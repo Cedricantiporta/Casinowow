@@ -30,10 +30,9 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
 
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center animate-pop-in">
-            {/* Removed bg-black/90 to remove darkening */}
-            <div className="relative w-full max-w-md p-3">
-                {/* Main Card - PURPLE BG */}
-                <div className="relative bg-gradient-to-b from-[#4c1d95] via-[#3b0764] to-[#2e1065] rounded-2xl p-4 md:p-6 flex flex-col items-center text-center shadow-[0_0_40px_rgba(147,51,234,0.4)] overflow-hidden">
+            <div className="relative w-full h-full p-0">
+                {/* Main Card - FULLSCREEN PURPLE BG */}
+                <div className="absolute inset-0 bg-gradient-to-b from-[#4c1d95] via-[#3b0764] to-[#2e1065] p-4 md:p-6 flex flex-col items-center text-center shadow-[0_0_40px_rgba(147,51,234,0.4)] overflow-auto">
                     
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
                     
@@ -42,7 +41,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                     <h2 className="relative z-10 text-xl md:text-2xl font-black font-display text-white uppercase tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-1 text-shadow-lg">Golden Treasury</h2>
                     <p className="relative z-10 text-purple-200 font-bold text-[10px] md:text-xs uppercase tracking-wide mb-4">Wait longer for bigger rewards!</p>
 
-                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
+                    <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-3 w-full px-4 md:px-8">
                         {timers.map((timer) => {
                             const timeLeft = Math.max(0, timer.endTime - currentTime);
                             const isReady = timeLeft === 0;

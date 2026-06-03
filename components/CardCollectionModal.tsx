@@ -16,6 +16,7 @@ interface CardCollectionModalProps {
     playerLevel: number;
     tokens: number; 
     packCredits: number;
+    balance: number;
     grandPrize?: number;
     getDeckReward?: (deckId: string) => number;
 }
@@ -33,6 +34,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     playerLevel,
     tokens,
     packCredits,
+    balance,
     grandPrize = 0,
     getDeckReward = (deckId: string) => 0
 }) => {
@@ -129,7 +131,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/85 backdrop-blur-sm p-3 animate-pop-in">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/85 backdrop-blur-sm p-0 animate-pop-in">
             {/* Pack Opening Overlay */}
             {isOpeningPack && (
                 <div className="absolute inset-0 z-[160] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl p-3">
@@ -211,7 +213,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 </div>
             )}
 
-            <div className="w-full max-w-xl h-[80vh] bg-gradient-to-b from-[#2e1065] to-[#0f0518] flex flex-col shadow-2xl rounded-2xl overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-b from-[#2e1065] to-[#0f0518] flex flex-col shadow-2xl overflow-auto relative">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#4c1d95] to-[#3b0764] p-2.5 flex justify-between items-center shrink-0 z-10 shadow-lg relative">
                     <div className="flex items-center gap-2 flex-1">
@@ -233,17 +235,21 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     </div>
                     
                     <div className="flex items-center gap-1.5 mr-6 text-[10px]">
-                        <div className="bg-black/40 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                            <span>💎</span>
+                        <div className="currency-pill flex items-center gap-2 px-3 py-1">
+                            <div className="coin">$</div>
+                            <span className="font-mono font-bold text-white">{formatNumber(balance)}</span>
+                        </div>
+                        <div className="currency-pill flex items-center gap-2 px-3 py-1">
+                            <div className="gem"></div>
                             <span className="font-mono font-bold text-white">{formatNumber(diamonds)}</span>
                         </div>
                         <button onClick={() => { onClose(); onOpenShop('BOOSTS'); }} className="bg-black/40 px-2 py-0.5 rounded-full flex items-center gap-0.5 relative group">
                              <span>📦</span>
                              <span className="font-mono font-bold text-orange-400">{packCredits}</span>
                         </button>
-                        <div className="bg-black/40 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                            <span>💳</span>
-                            <span className="font-mono font-bold text-green-400">{formatNumber(tokens)}</span>
+                        <div className="currency-pill flex items-center gap-2 px-3 py-1">
+                            <div className="text-green-400">💳</div>
+                            <span className="font-mono font-bold text-white">{formatNumber(tokens)}</span>
                         </div>
                     </div>
 

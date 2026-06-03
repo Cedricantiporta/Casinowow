@@ -126,7 +126,7 @@ const App: React.FC = () => {
   const [betIndex, setBetIndex] = useState(0);
   const [autoMaxBet, setAutoMaxBet] = useState(false);
   const [status, setStatus] = useState<GameStatus>(GameStatus.IDLE);
-  const [grid, setGrid] = useState<SymbolType[][]>(Array(GAMES_CONFIG[0].reels).fill(null).map(() => Array(GAMES_CONFIG[0].rows).fill(SymbolType.SEVEN)));
+    const [grid, setGrid] = useState<SymbolType[][]>(Array(GAMES_CONFIG[0].reels).fill(null).map(() => Array(3).fill(SymbolType.SEVEN)));
   const [targetGrid, setTargetGrid] = useState<SymbolType[][]>([]);
   const [winData, setWinData] = useState<WinData | null>(null);
   const [stoppedReels, setStoppedReels] = useState(0);
@@ -1322,7 +1322,8 @@ const App: React.FC = () => {
           grid
       };
       setSavedGameStates(prev => ({ ...prev, [selectedGame.id]: currentState }));
-      setSelectedGame(game);
+    const modifiedGame = { ...game, rows: 3 };
+    setSelectedGame(modifiedGame);
       setIsHighLimit(highLimit);
       setCurrentView('GAME');
       // Ensure we close any unlock modals when entering a game
@@ -1343,7 +1344,7 @@ const App: React.FC = () => {
           setFreeSpinsWon(0);
           setFreeSpinTotalWin(0);
           setSpinsWithoutBonus(0);
-          setGrid(Array(game.reels).fill(null).map(() => Array(game.rows).fill(SymbolType.SEVEN)));
+          setGrid(Array(game.reels).fill(null).map(() => Array(3).fill(SymbolType.SEVEN)));
           setWinData(null);
       }
       setTargetGrid([]); 
@@ -1736,7 +1737,7 @@ const App: React.FC = () => {
           </div>
       )}
 
-      <ShopModal isOpen={activeModal === 'SHOP'} onClose={() => setActiveModal('NONE')} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={player.freeStashClaimed} initialTab={shopInitialTab} />
+    <ShopModal isOpen={activeModal === 'SHOP'} onClose={() => setActiveModal('NONE')} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={player.freeStashClaimed} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} />
       
       <CardCollectionModal 
           isOpen={activeModal === 'COLLECTION'} 
@@ -1753,6 +1754,7 @@ const App: React.FC = () => {
           packCredits={player.packCredits}
           grandPrize={getGrandAlbumReward(player.level)}
           getDeckReward={(id) => getDeckReward(player.level)}
+          balance={player.balance}
       />
       
       <MiniGameModal 
@@ -1794,7 +1796,7 @@ const App: React.FC = () => {
       
       <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} onClaim={handleClaimLoginBonus} />
       
-      <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} />
+    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} balance={player.balance} />
 
       <FeatureUnlockModal 
         isOpen={activeModal === 'FEATURE_UNLOCK'} 

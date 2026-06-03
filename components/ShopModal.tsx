@@ -7,9 +7,11 @@ interface ShopModalProps {
     level: number;
     isFreeStashClaimed?: boolean;
     initialTab?: 'COINS' | 'BOOSTS' | 'DIAMONDS';
+    balance?: number;
+    diamonds?: number;
 }
 
-export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, initialTab = 'COINS' }) => {
+export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, initialTab = 'COINS', balance = 0, diamonds = 0 }) => {
     const [activeTab, setActiveTab] = useState<'COINS' | 'BOOSTS' | 'DIAMONDS'>(initialTab);
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
 
@@ -112,6 +114,15 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-2 shrink-0 ml-auto select-none">
+                     <div className="currency-pill flex items-center gap-2 px-3 py-1">
+                         <div className="coin">$</div>
+                         <span className="font-mono font-bold text-white">{formatFullNumber(balance)}</span>
+                     </div>
+                     <div className="currency-pill flex items-center gap-2 px-3 py-1">
+                         <div className="gem"></div>
+                         <span className="font-mono font-bold text-white">{formatFullNumber(diamonds)}</span>
+                     </div>
+
                      <div className="flex items-center bg-transparent px-1.5 py-0.5 select-none">
                          <span className="text-xs mr-1">🪙</span>
                          <div className="flex items-center gap-1 mr-2 leading-none">

@@ -9,9 +9,10 @@ interface PiggyBankModalProps {
     diamonds: number;
     onBreak: () => void;
     level: number;
+    balance?: number;
 }
 
-export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level }) => {
+export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, balance = 0 }) => {
     const [isBreaking, setIsBreaking] = useState(false);
     const [shake, setShake] = useState(false);
     
@@ -53,7 +54,17 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
             <div className="relative w-full max-w-sm p-3">
                 <div className="bg-gradient-to-b from-pink-500 to-rose-800 rounded-2xl p-4 flex flex-col items-center text-center shadow-[0_0_40px_rgba(244,114,182,0.4)] overflow-hidden relative">
                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
-                     <button onClick={onClose} className="absolute top-3 right-3 w-7 h-7 bg-black/20 hover:bg-black/40 rounded-full text-white font-bold flex items-center justify-center z-50 text-xs">✕</button>
+                     <div className="absolute top-3 right-3 flex items-center gap-2 z-50">
+                         <div className="currency-pill flex items-center gap-2 px-3 py-1">
+                             <div className="coin">$</div>
+                             <span className="font-mono font-bold text-white">{formatCommaNumber(Math.floor(balance || 0))}</span>
+                         </div>
+                         <div className="currency-pill flex items-center gap-2 px-3 py-1">
+                             <div className="gem"></div>
+                             <span className="font-mono font-bold text-white">{formatNumber(diamonds)}</span>
+                         </div>
+                         <button onClick={onClose} className="w-7 h-7 bg-black/20 hover:bg-black/40 rounded-full text-white font-bold flex items-center justify-center z-50 text-xs">✕</button>
+                     </div>
                      
                      <h2 className="text-xl md:text-2xl font-black font-cartoon text-white uppercase tracking-wider drop-shadow-md mb-1">Piggy Bank</h2>
                      <p className="text-pink-100 text-[10px] md:text-xs font-bold mb-3">Saves 1% of every bet!</p>
