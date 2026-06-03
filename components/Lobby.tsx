@@ -39,7 +39,9 @@ export const Lobby: React.FC<LobbyProps> = ({
 }) => {
     
     const [timeLeft, setTimeLeft] = useState(0);
-    const [jackpotTotal, setJackpotTotal] = useState(50_432_881 + Math.floor(Math.random() * 5_000_000));
+    const [jackpots, setJackpots] = useState<number[]>(() =>
+        GAMES_CONFIG.map((_, i) => 80_000 + Math.floor(Math.random() * 400_000) * (i + 1))
+    );
     const scrollRef = useRef<HTMLDivElement>(null);
     const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -54,8 +56,10 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setJackpotTotal(prev => prev + Math.floor(Math.random() * 600 + 200));
-        }, 80);
+            setJackpots(prev => prev.map(v =>
+                Math.random() < 0.35 ? v + Math.floor(Math.random() * 1200 + 300) : v
+            ));
+        }, 4500);
         return () => clearInterval(interval);
     }, []);
 
@@ -125,40 +129,38 @@ export const Lobby: React.FC<LobbyProps> = ({
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 ${isHighLimit ? 'bg-red-950' : ''} relative overflow-hidden`}>
 
-              {/* Total Jackpot Counter */}
-              <div className="w-full flex flex-col items-center justify-center pt-2 pb-0.5 select-none shrink-0">
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-yellow-300/80 leading-none mb-0.5">Total Jackpot</span>
-                  <span
-                      className="font-black leading-none"
-                      style={{
-                          fontSize: '22px',
-                          background: 'linear-gradient(180deg,#fff8a0 0%,#ffd700 40%,#ff9500 80%,#ff6a00 100%)',
-                          WebkitBackgroundClip: 'text',
-                          WebkitTextFillColor: 'transparent',
-                          backgroundClip: 'text',
-                          filter: 'drop-shadow(0 0 6px rgba(255,200,0,0.7))',
-                          fontFamily: 'Nunito, sans-serif',
-                      }}
-                  >
-                      ${formatCommaNumber(jackpotTotal)}
-                  </span>
-              </div>
+              <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9">
 
-              <div className="flex-1 relative flex items-center justify-center p-0.5 pt-3 pb-8 md:pb-9">
-                <button
-                    onMouseDown={() => startScroll('LEFT')}
-                    onMouseUp={stopScroll}
-                    onMouseLeave={stopScroll}
-                    onTouchStart={() => startScroll('LEFT')}
-                    onTouchEnd={stopScroll}
-                    className="absolute left-4 z-30 w-10 h-10 md:w-14 md:h-14 bg-black/50 hover:bg-black/80 text-white rounded-full flex items-center justify-center shadow-lg border border-white/20 transition-all active:scale-95 select-none"
-                >
-                    ◀
-                </button>
+                {/* Left Side Vertical Panel (Quest + Pass) */}
+                <div className="absolute left-1 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-1.5 select-none">
+                    <button
+                        onClick={!isQuestLocked ? onOpenQuest : undefined}
+                        className={`relative flex flex-col items-center justify-center gap-0.5 rounded-xl active:scale-95 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : ''}`}
+                        style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', border:'1.5px solid #38106e', width:'46px', padding:'6px 4px', boxShadow:'0 3px 10px rgba(0,0,0,0.55),inset 0 1px 1px rgba(255,255,255,0.2)' }}
+                    >
+                        {questReady && !isQuestLocked && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full border border-white animate-bounce z-10"></div>}
+                        <span className="text-xl leading-none">{getQuestIcon()}</span>
+                        <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none mt-0.5">Quest</span>
+                    </button>
+
+                    <button
+                        onClick={!isMissionsLocked ? onOpenBattlePass : undefined}
+                        className={`relative flex flex-col items-center justify-center gap-0.5 rounded-xl active:scale-95 transition-transform ${isMissionsLocked ? 'grayscale opacity-50 cursor-not-allowed' : ''}`}
+                        style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', border:'1.5px solid #38106e', width:'46px', padding:'6px 4px', boxShadow:'0 3px 10px rgba(0,0,0,0.55),inset 0 1px 1px rgba(255,255,255,0.2)' }}
+                    >
+                        {totalMissionNotifs > 0 && !isMissionsLocked && (
+                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] text-white font-bold z-10 animate-pulse">
+                                {totalMissionNotifs}
+                            </div>
+                        )}
+                        <span className="text-xl leading-none">🎫</span>
+                        <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none mt-0.5">Pass</span>
+                    </button>
+                </div>
 
                 <div
                     ref={scrollRef}
-                    className="grid gap-x-4 gap-y-2 h-[93%] max-h-[580px] auto-cols-max px-8 pr-24 overflow-x-auto no-scrollbar snap-x"
+                    className="grid gap-x-4 gap-y-2 h-[93%] max-h-[580px] auto-cols-max pl-[54px] pr-20 overflow-x-auto no-scrollbar snap-x"
                     style={{
                         gridTemplateRows: 'repeat(2, 1fr)',
                         gridAutoFlow: 'column'
@@ -207,8 +209,17 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className={`absolute inset-0 bg-gradient-to-br ${isHighLimit ? 'from-red-950 via-black to-red-900' : game.color} transition-opacity`}></div>
 
                                 <div className="relative z-10 w-full h-full select-none">
+                                    {/* Jackpot Pill */}
+                                    <div className="absolute top-0 left-0 right-0 flex justify-center z-20 pt-[3px]">
+                                        <div className="px-1.5 py-[2px] rounded-full" style={{ background:'rgba(0,0,0,0.72)', border:'1px solid rgba(255,185,0,0.5)' }}>
+                                            <span style={{ fontSize:'7px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap' }}>
+                                                ${formatCommaNumber(jackpots[idx])}
+                                            </span>
+                                        </div>
+                                    </div>
+
                                     {/* Icon — fills almost the full card */}
-                                    <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="absolute inset-0 flex items-center justify-center pt-3">
                                         <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">
                                             {icon}
                                         </span>
