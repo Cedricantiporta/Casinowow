@@ -341,7 +341,7 @@ export const GET_PAYLINES = (rowCount: number, colCount: number = 5): Payline[] 
     return lines;
 };
 
-export const INITIAL_BALANCE = 100000;
+export const INITIAL_BALANCE = 10000000;
 export const INITIAL_GEMS = 500; 
 export const BASE_XP_PER_SPIN = 1000; 
 export const XP_BASE_REQ = 2000;
@@ -373,8 +373,7 @@ const GENERATE_SCALES = () => {
 const SCALES = GENERATE_SCALES();
 export const GET_ALL_BETS = () => SCALES;
 export const MAX_BET_BY_LEVEL = (level: number): number => {
-    // Doubled max bet relative to level compared to previous
-    const index = Math.min(Math.floor(level), SCALES.length - 1);
+    const index = Math.min(Math.floor(level * 0.3), SCALES.length - 1);
     return SCALES[index];
 };
 

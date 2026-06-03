@@ -124,7 +124,6 @@ const App: React.FC = () => {
 
   const [availableBets, setAvailableBets] = useState<number[]>(ALL_BETS);
   const [betIndex, setBetIndex] = useState(0);
-  const [autoMaxBet, setAutoMaxBet] = useState(false);
   const [status, setStatus] = useState<GameStatus>(GameStatus.IDLE);
     const [grid, setGrid] = useState<SymbolType[][]>(Array(GAMES_CONFIG[0].reels).fill(null).map(() => Array(3).fill(SymbolType.SEVEN)));
   const [targetGrid, setTargetGrid] = useState<SymbolType[][]>([]);
@@ -361,24 +360,18 @@ const App: React.FC = () => {
     if (JSON.stringify(allowed) !== JSON.stringify(availableBets)) {
         const currentBet = availableBets[betIndex];
         setAvailableBets(allowed);
-        if (autoMaxBet) {
-             setBetIndex(allowed.length - 1);
-        } else {
-            let closestIndex = 0;
-            let minDiff = Infinity;
-            allowed.forEach((b, i) => {
-                const diff = Math.abs(b - currentBet);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    closestIndex = i;
-                }
-            });
-            setBetIndex(closestIndex);
-        }
-    } else if (autoMaxBet) {
-         setBetIndex(allowed.length - 1);
+        let closestIndex = 0;
+        let minDiff = Infinity;
+        allowed.forEach((b, i) => {
+            const diff = Math.abs(b - currentBet);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIndex = i;
+            }
+        });
+        setBetIndex(closestIndex);
     }
-  }, [player.level, availableBets, betIndex, autoMaxBet, isHighLimit]); 
+  }, [player.level, availableBets, betIndex, isHighLimit]); 
 
   useEffect(() => {
       if (player.xpBoostEndTime > 0) {
@@ -1534,14 +1527,14 @@ const App: React.FC = () => {
                     {/* Piggy Bank quick button (left icons) */}
                     <div
                         onClick={handleOpenPiggyBank}
-                        className={`round-btn shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''} ${player.piggyBank > 0 ? 'animate-pulse' : ''}`}
+                        className={`round-btn shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
                         title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
                     >
                         <span style={{fontSize:16}}>🐷</span>
                     </div>
 
                 {/* Star Experience Progression (No pill shape container, 2x long, star + bar) */}
-                <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent">
+                <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent ml-2">
                     <div className="star shrink-0"></div>
                     <div className="rtrack !flex-none w-[90px] md:w-[150px] overflow-hidden relative">
                         <div 
@@ -1553,7 +1546,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Active Multiplier indicator */}
-                <div className="mult shrink-0">
+                <div className="mult shrink-0 ml-2">
                     x{player.xpMultiplier}
                 </div>
 
@@ -1607,7 +1600,7 @@ const App: React.FC = () => {
                                 {isQuestLocked
                                     ? <span className="text-2xl leading-none">🔒</span>
                                     : <>
-                                        {qReady && <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-yellow-400 animate-bounce z-10"></div>}
+                                        {qReady && <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-yellow-400 z-10"></div>}
                                         <span className="text-[30px] leading-none">{quest.activeGame === 'DICE' ? '🎲' : quest.activeGame === 'WILD' ? '🗿' : '🗺️'}</span>
                                       </>
                                 }
@@ -1623,7 +1616,7 @@ const App: React.FC = () => {
                                     ? <span className="text-2xl leading-none">🔒</span>
                                     : <>
                                         {totalNotifs > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-6 h-6 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[14px] text-white font-black z-10 animate-pulse" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                            <div className="absolute -top-0.5 -right-0.5 w-6 h-6 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[14px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                                 {totalNotifs}
                                             </div>
                                         )}
@@ -1690,7 +1683,7 @@ const App: React.FC = () => {
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || autoMaxBet ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       −
                   </div>
@@ -1709,7 +1702,7 @@ const App: React.FC = () => {
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || autoMaxBet ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       +
                   </div>
@@ -1731,15 +1724,14 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Max Bet */}
-                  <div 
+                  <div
                       onClick={() => {
-                          if (status === GameStatus.IDLE) {
+                          if (status === GameStatus.IDLE && betIndex !== availableBets.length - 1) {
                               setBetIndex(availableBets.length - 1);
-                              setAutoMaxBet(prev => !prev);
                               audioService.playClick();
                           }
                       }}
-                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE || betIndex === availableBets.length - 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -1750,12 +1742,15 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Spin Button */}
-                  <div 
+                  {(() => {
+                      const isStop = player.autoSpin || status === GameStatus.SPINNING || status === GameStatus.STOPPING;
+                      return (
+                  <div
                       onMouseDown={handleSpinMouseDown}
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat green spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -1768,6 +1763,8 @@ const App: React.FC = () => {
                           </div>
                       </div>
                   </div>
+                  );
+                  })()}
               </div>
           </div>
       )}

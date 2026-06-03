@@ -39,8 +39,8 @@ export const Lobby: React.FC<LobbyProps> = ({
 }) => {
     
     const [timeLeft, setTimeLeft] = useState(0);
-    const [jackpots, setJackpots] = useState<number[]>(() =>
-        GAMES_CONFIG.map((_, i) => 80_000 + Math.floor(Math.random() * 400_000) * (i + 1))
+    const [grandJackpot, setGrandJackpot] = useState(() =>
+        5_000_000 + Math.floor(Math.random() * 5_000_000)
     );
     const scrollRef = useRef<HTMLDivElement>(null);
     const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -56,10 +56,8 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setJackpots(prev => prev.map(v =>
-                Math.random() < 0.35 ? v + Math.floor(Math.random() * 1200 + 300) : v
-            ));
-        }, 4500);
+            setGrandJackpot(prev => prev + Math.floor(Math.random() * 4000 + 800));
+        }, 2500);
         return () => clearInterval(interval);
     }, []);
 
@@ -177,12 +175,13 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     ${isLocked ? 'cursor-not-allowed grayscale' : ''}
                                 `}
                             >
-                                {/* Jackpot Pill — fully above card, full width */}
+                                {/* Jackpot Pill — 3D purple, shows grand jackpot */}
                                 {!isLocked && (
                                     <div className="absolute -top-[17px] left-0 right-0 z-30 pointer-events-none">
-                                        <div className="w-full py-[2px]" style={{ background:'rgba(0,0,0,0.85)', border:'1px solid rgba(255,185,0,0.5)', borderRadius:'4px', boxShadow:'0 0 5px rgba(255,185,0,0.25)' }}>
-                                            <span className="block text-center" style={{ fontSize:'11px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px' }}>
-                                                {formatCommaNumber(jackpots[idx])}
+                                        <div className="w-full py-[2px] relative overflow-hidden" style={{ background:'linear-gradient(180deg,#9050cc,#4a1880)', border:'1.5px solid #38106e', borderRadius:'4px', boxShadow:'0 2px 0 #1a0838, 0 3px 6px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.2)' }}>
+                                            <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'50%', background:'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }}></div>
+                                            <span className="block text-center relative z-10" style={{ fontSize:'11px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px' }}>
+                                                {formatCommaNumber(grandJackpot)}
                                             </span>
                                         </div>
                                     </div>
@@ -253,11 +252,13 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                 return (
                     <>
-                        {/* Bar background layer */}
-                        <div className="fixed bottom-0 left-0 right-0 z-[49]" style={{ height: '46px' }}>
+                        {/* Bar background layer — clip-path gives flat center, sides curve sharply down */}
+                        <div className="fixed bottom-0 left-0 right-0 z-[49]" style={{
+                            height: '46px',
+                            clipPath: 'polygon(0% 100%, 0% 82%, 5% 60%, 10% 40%, 17% 18%, 24% 5%, 32% 0%, 68% 0%, 76% 5%, 83% 18%, 90% 40%, 95% 60%, 100% 82%, 100% 100%)',
+                        }}>
                             <div className="absolute inset-0" style={{
                                 background: 'linear-gradient(180deg,#a060d8 0%,#7c3fb5 30%,#4a1880 100%)',
-                                borderTop: '1.5px solid rgba(180,110,240,0.75)',
                                 boxShadow: '0 -6px 24px rgba(0,0,0,0.7)',
                             }}>
                                 {/* Shine */}
@@ -265,10 +266,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 {/* Shadow */}
                                 <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'35%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
                             </div>
-                            {/* Left corner cutout — makes left side curve sharply down */}
-                            <div className="absolute pointer-events-none" style={{ top:0, left:0, width:'48px', height:'46px', background:cutoutBg, borderBottomRightRadius:'48px', zIndex:5 }}></div>
-                            {/* Right corner cutout */}
-                            <div className="absolute pointer-events-none" style={{ top:0, right:0, width:'48px', height:'46px', background:cutoutBg, borderBottomLeftRadius:'48px', zIndex:5 }}></div>
                         </div>
 
                         {/* Icons layer — taller than bar so icons protrude above */}
@@ -283,7 +280,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isQuestLocked ? onOpenQuest : undefined} className={iconBtn(isQuestLocked)}>
                                 <div className="relative leading-none">
                                     <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{getQuestIcon()}</span>
-                                    {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-yellow-400 animate-bounce"></div>}
+                                    {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-yellow-400"></div>}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
                             </button>
@@ -292,7 +289,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative leading-none">
                                     <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎫</span>
                                     {totalMissionNotifs > 0 && !isMissionsLocked && (
-                                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[9px] text-white font-black animate-pulse" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[9px] text-white font-black" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                             {totalMissionNotifs}
                                         </div>
                                     )}
@@ -347,7 +344,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isVipLocked ? onToggleVIP : undefined} className={iconBtn(isVipLocked)}>
                                 <div className="relative leading-none">
                                     <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isHighLimit ? '👑' : '🧢'}</span>
-                                    {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border-2 border-yellow-400 animate-pulse"></div>}
+                                    {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border-2 border-yellow-400"></div>}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP'}</span>
                             </button>

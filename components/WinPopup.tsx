@@ -85,10 +85,10 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
                 }
             `}</style>
 
-            <div className="relative flex flex-col items-center z-20 w-full max-w-sm p-4">
-                {/* Flat Title */}
-                <h2 className={`text-3xl md:text-5xl font-display font-black uppercase text-center tracking-tighter mb-4 ${theme.color}`}
-                    style={{ textShadow: '0 3px 0 #000, 0 5px 10px rgba(0,0,0,0.5)' }}
+            <div className="relative flex flex-col items-center z-20 w-full p-4">
+                {/* Flat Title — 3X bigger */}
+                <h2 className={`font-display font-black uppercase text-center tracking-tighter mb-4 ${theme.color}`}
+                    style={{ fontSize: 'clamp(72px, 18vw, 144px)', textShadow: '0 4px 0 #000, 0 6px 14px rgba(0,0,0,0.6)', lineHeight: 1.05 }}
                 >
                     {theme.title}
                 </h2>
