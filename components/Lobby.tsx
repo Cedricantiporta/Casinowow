@@ -39,6 +39,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 }) => {
     
     const [timeLeft, setTimeLeft] = useState(0);
+    const [jackpotTotal, setJackpotTotal] = useState(50_432_881 + Math.floor(Math.random() * 5_000_000));
     const scrollRef = useRef<HTMLDivElement>(null);
     const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -50,6 +51,13 @@ export const Lobby: React.FC<LobbyProps> = ({
         }, 1000);
         return () => clearInterval(interval);
     }, [nextTimeBonus]);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setJackpotTotal(prev => prev + Math.floor(Math.random() * 600 + 200));
+        }, 80);
+        return () => clearInterval(interval);
+    }, []);
 
     const isReadyToCollect = timeLeft === 0;
     const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
@@ -116,8 +124,28 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 ${isHighLimit ? 'bg-red-950' : ''} relative overflow-hidden`}>
-              <div className="flex-1 relative flex items-center justify-center p-0.5 pt-1 pb-10 md:pb-12">
-                <button 
+
+              {/* Total Jackpot Counter */}
+              <div className="w-full flex flex-col items-center justify-center pt-2 pb-0.5 select-none shrink-0">
+                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-yellow-300/80 leading-none mb-0.5">Total Jackpot</span>
+                  <span
+                      className="font-black leading-none"
+                      style={{
+                          fontSize: '22px',
+                          background: 'linear-gradient(180deg,#fff8a0 0%,#ffd700 40%,#ff9500 80%,#ff6a00 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          backgroundClip: 'text',
+                          filter: 'drop-shadow(0 0 6px rgba(255,200,0,0.7))',
+                          fontFamily: 'Nunito, sans-serif',
+                      }}
+                  >
+                      ${formatCommaNumber(jackpotTotal)}
+                  </span>
+              </div>
+
+              <div className="flex-1 relative flex items-center justify-center p-0.5 pt-3 pb-8 md:pb-9">
+                <button
                     onMouseDown={() => startScroll('LEFT')}
                     onMouseUp={stopScroll}
                     onMouseLeave={stopScroll}
@@ -128,9 +156,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                     ◀
                 </button>
 
-                <div 
+                <div
                     ref={scrollRef}
-                    className="grid gap-2 h-[93%] max-h-[580px] auto-cols-max px-8 pr-24 overflow-x-auto no-scrollbar snap-x"
+                    className="grid gap-x-4 gap-y-2 h-[93%] max-h-[580px] auto-cols-max px-8 pr-24 overflow-x-auto no-scrollbar snap-x"
                     style={{
                         gridTemplateRows: 'repeat(2, 1fr)',
                         gridAutoFlow: 'column'
