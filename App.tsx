@@ -1598,39 +1598,39 @@ const App: React.FC = () => {
                     const isPassLocked = player.level < 10;
                     return (
                         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
-                            style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', border:'1.5px solid #38106e', borderRadius:'14px', padding:'6px 4px', gap:'2px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'46px' }}>
+                            style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', border:'1.5px solid #38106e', borderRadius:'21px', padding:'9px 6px', gap:'3px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
                             <button
                                 onClick={!isQuestLocked ? handleQuestClaim : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'5px 2px' }}
+                                style={{ padding:'7px 3px' }}
                             >
                                 {isQuestLocked
-                                    ? <span className="text-base leading-none">🔒</span>
+                                    ? <span className="text-2xl leading-none">🔒</span>
                                     : <>
-                                        {qReady && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-white animate-bounce z-10"></div>}
-                                        <span className="text-xl leading-none">{quest.activeGame === 'DICE' ? '🎲' : quest.activeGame === 'WILD' ? '🗿' : '🗺️'}</span>
+                                        {qReady && <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border border-white animate-bounce z-10"></div>}
+                                        <span className="text-[30px] leading-none">{quest.activeGame === 'DICE' ? '🎲' : quest.activeGame === 'WILD' ? '🗿' : '🗺️'}</span>
                                       </>
                                 }
-                                <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
+                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
                             </button>
-                            <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 4px' }}></div>
+                            <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
                             <button
                                 onClick={!isPassLocked ? openBattlePassModal : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'5px 2px' }}
+                                style={{ padding:'7px 3px' }}
                             >
                                 {isPassLocked
-                                    ? <span className="text-base leading-none">🔒</span>
+                                    ? <span className="text-2xl leading-none">🔒</span>
                                     : <>
                                         {totalNotifs > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] text-white font-bold z-10 animate-pulse">
+                                            <div className="absolute -top-0.5 -right-0.5 w-6 h-6 bg-red-600 rounded-full border border-white flex items-center justify-center text-[11px] text-white font-bold z-10 animate-pulse">
                                                 {totalNotifs}
                                             </div>
                                         )}
-                                        <span className="text-xl leading-none">🎫</span>
+                                        <span className="text-[30px] leading-none">🎫</span>
                                       </>
                                 }
-                                <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
+                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
                             </button>
                         </div>
                     );

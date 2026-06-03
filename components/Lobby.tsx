@@ -245,100 +245,114 @@ export const Lobby: React.FC<LobbyProps> = ({
                 >▶</button>
             </div>
  
-            <div className="fixed bottom-0 w-full z-50 shadow-[0_-6px_20px_rgba(0,0,0,0.8)] select-none" style={{background:'linear-gradient(180deg,#7c3fb5,#4a1880)',borderTop:'2px solid #38106e'}}>
-                <div className="font-nunito w-full flex items-stretch gap-0.5 px-2 md:px-4 h-[38px] md:h-[44px]">
+            {/* Bottom bar — curved arch, 3D, compressed center */}
+            <div className="fixed bottom-0 w-full z-50 select-none" style={{ padding:'0 10px' }}>
+                <div className="relative overflow-hidden" style={{
+                    background: 'linear-gradient(180deg,#a060d8 0%,#7c3fb5 28%,#4a1880 100%)',
+                    border: '1.5px solid rgba(180,110,240,0.7)',
+                    borderBottom: 'none',
+                    borderRadius: '100% 100% 0 0 / 18px 18px 0 0',
+                    boxShadow: '0 -8px 28px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.18)',
+                }}>
+                    {/* Top shine */}
+                    <div className="absolute top-0 left-0 right-0 h-[40%] pointer-events-none z-10" style={{ background:'linear-gradient(180deg,rgba(255,255,255,0.20) 0%,rgba(255,255,255,0) 100%)' }}></div>
+                    {/* Bottom shadow */}
+                    <div className="absolute bottom-0 left-0 right-0 h-[35%] pointer-events-none z-10" style={{ background:'linear-gradient(0deg,rgba(0,0,0,0.38) 0%,rgba(0,0,0,0) 100%)' }}></div>
 
-                    {/* Piggy Bank */}
-                    <button
-                        onClick={!isPiggyLocked ? onOpenPiggyBank : undefined}
-                        className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform ${isPiggyLocked ? 'grayscale opacity-50' : ''}`}
-                    >
-                        <span className="text-base md:text-xl leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">🐷</span>
-                        <span className="text-[7px] md:text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
-                    </button>
+                    <div className="font-nunito flex items-stretch justify-center gap-0.5 h-[40px] md:h-[46px] relative z-20">
 
-                    {/* Quest */}
-                    <button
-                        onClick={!isQuestLocked ? onOpenQuest : undefined}
-                        className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform ${isQuestLocked ? 'grayscale opacity-50' : ''}`}
-                    >
-                        <div className="relative leading-none">
-                            <span className="text-base md:text-xl leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{getQuestIcon()}</span>
-                            {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full border border-white animate-bounce"></div>}
-                        </div>
-                        <span className="text-[7px] md:text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
-                    </button>
-
-                    {/* Season Pass */}
-                    <button
-                        onClick={!isMissionsLocked ? onOpenBattlePass : undefined}
-                        className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform ${isMissionsLocked ? 'grayscale opacity-50' : ''}`}
-                    >
-                        <div className="relative leading-none">
-                            <span className="text-base md:text-xl leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">🎫</span>
-                            {totalMissionNotifs > 0 && !isMissionsLocked && (
-                                <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white flex items-center justify-center text-[6px] text-white font-bold animate-pulse">
-                                    {totalMissionNotifs}
-                                </div>
-                            )}
-                        </div>
-                        <span className="text-[7px] md:text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
-                    </button>
-
-                    {/* Time Bonus (Center Protruding Button) */}
-                    <div className="flex-1 flex items-center justify-center">
+                        {/* Piggy Bank */}
                         <button
-                            onClick={onClaimBonus}
-                            className="flex flex-col items-center justify-center relative active:scale-95 transition-transform z-20"
+                            onClick={!isPiggyLocked ? onOpenPiggyBank : undefined}
+                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isPiggyLocked ? 'grayscale opacity-50' : ''}`}
                         >
-                            <div className={`relative w-9 h-9 md:w-11 md:h-11 rounded-full border-2 border-white/30 shadow-[0_0_10px_rgba(255,215,0,0.4)] flex flex-col items-center justify-center transition-transform -mt-4 md:-mt-5 ${isReadyToCollect ? 'bg-gradient-to-b from-[#7ada2a] via-[#5cc814] to-[#388e00] animate-pulse border-green-300' : 'bg-gradient-to-b from-[#3a1270] to-[#1a0838]'}`}>
-                                {isReadyToCollect ? (
-                                    <>
-                                        <span className="text-[6px] font-black uppercase text-white leading-none drop-shadow-[0_1px_0_rgba(15,60,0,0.8)]">FREE</span>
-                                        <span className="text-[7px] font-black uppercase text-yellow-100 drop-shadow-[0_1px_0_rgba(15,60,0,0.8)] leading-none">COINS</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className="text-[5.5px] font-bold text-purple-300 uppercase leading-none">BONUS</span>
-                                        <span className="text-[8px] font-black text-white font-mono leading-none mt-0.5">{formatTime(timeLeft)}</span>
-                                    </>
-                                )}
-                                {isReadyToCollect && <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white animate-ping opacity-75"></div>}
-                                {isReadyToCollect && <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] font-bold text-white">!</div>}
-                            </div>
+                            <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">🐷</span>
+                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
                         </button>
-                    </div>
 
-                    {/* Missions */}
-                    <button
-                        onClick={!isMissionsLocked ? onOpenMissions : undefined}
-                        className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform ${isMissionsLocked ? 'grayscale opacity-50' : ''}`}
-                    >
-                        <span className="text-base md:text-xl leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">📜</span>
-                        <span className="text-[7px] md:text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
-                    </button>
+                        {/* Quest */}
+                        <button
+                            onClick={!isQuestLocked ? onOpenQuest : undefined}
+                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isQuestLocked ? 'grayscale opacity-50' : ''}`}
+                        >
+                            <div className="relative leading-none">
+                                <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{getQuestIcon()}</span>
+                                {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full border border-white animate-bounce"></div>}
+                            </div>
+                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
+                        </button>
 
-                    {/* Cards */}
-                    <button
-                        onClick={!isCardsLocked ? onOpenCollection : undefined}
-                        className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform ${isCardsLocked ? 'grayscale opacity-50' : ''}`}
-                    >
-                        <span className="text-base md:text-xl leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">🃏</span>
-                        <span className="text-[7px] md:text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
-                    </button>
+                        {/* Season Pass */}
+                        <button
+                            onClick={!isMissionsLocked ? onOpenBattlePass : undefined}
+                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isMissionsLocked ? 'grayscale opacity-50' : ''}`}
+                        >
+                            <div className="relative leading-none">
+                                <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">🎫</span>
+                                {totalMissionNotifs > 0 && !isMissionsLocked && (
+                                    <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white flex items-center justify-center text-[6px] text-white font-bold animate-pulse">
+                                        {totalMissionNotifs}
+                                    </div>
+                                )}
+                            </div>
+                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
+                        </button>
 
-                    {/* VIP Limit Toggle */}
-                    <button
-                        onClick={!isVipLocked ? onToggleVIP : undefined}
-                        className={`flex-1 flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform ${isVipLocked ? 'grayscale opacity-50' : ''}`}
-                    >
-                        <div className="relative leading-none">
-                            <span className="text-base md:text-xl leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{isHighLimit ? '👑' : '🧢'}</span>
-                            {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border border-white animate-pulse"></div>}
+                        {/* Time Bonus (Center Protruding Button) */}
+                        <div className="flex items-center justify-center px-1">
+                            <button
+                                onClick={onClaimBonus}
+                                className="flex flex-col items-center justify-center relative active:scale-95 transition-transform z-20"
+                            >
+                                <div className={`relative w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white/30 shadow-[0_0_10px_rgba(255,215,0,0.4)] flex flex-col items-center justify-center transition-transform -mt-5 md:-mt-6 ${isReadyToCollect ? 'bg-gradient-to-b from-[#7ada2a] via-[#5cc814] to-[#388e00] animate-pulse border-green-300' : 'bg-gradient-to-b from-[#3a1270] to-[#1a0838]'}`}>
+                                    {isReadyToCollect ? (
+                                        <>
+                                            <span className="text-[6px] font-black uppercase text-white leading-none drop-shadow-[0_1px_0_rgba(15,60,0,0.8)]">FREE</span>
+                                            <span className="text-[7px] font-black uppercase text-yellow-100 drop-shadow-[0_1px_0_rgba(15,60,0,0.8)] leading-none">COINS</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="text-[5.5px] font-bold text-purple-300 uppercase leading-none">BONUS</span>
+                                            <span className="text-[8px] font-black text-white font-mono leading-none mt-0.5">{formatTime(timeLeft)}</span>
+                                        </>
+                                    )}
+                                    {isReadyToCollect && <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white animate-ping opacity-75"></div>}
+                                    {isReadyToCollect && <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] font-bold text-white">!</div>}
+                                </div>
+                            </button>
                         </div>
-                        <span className="text-[7px] md:text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP'}</span>
-                    </button>
 
+                        {/* Missions */}
+                        <button
+                            onClick={!isMissionsLocked ? onOpenMissions : undefined}
+                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isMissionsLocked ? 'grayscale opacity-50' : ''}`}
+                        >
+                            <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">📜</span>
+                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
+                        </button>
+
+                        {/* Cards */}
+                        <button
+                            onClick={!isCardsLocked ? onOpenCollection : undefined}
+                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isCardsLocked ? 'grayscale opacity-50' : ''}`}
+                        >
+                            <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">🃏</span>
+                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
+                        </button>
+
+                        {/* VIP Limit Toggle */}
+                        <button
+                            onClick={!isVipLocked ? onToggleVIP : undefined}
+                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isVipLocked ? 'grayscale opacity-50' : ''}`}
+                        >
+                            <div className="relative leading-none">
+                                <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{isHighLimit ? '👑' : '🧢'}</span>
+                                {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border border-white animate-pulse"></div>}
+                            </div>
+                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP'}</span>
+                        </button>
+
+                    </div>
                 </div>
             </div>
         </div>
