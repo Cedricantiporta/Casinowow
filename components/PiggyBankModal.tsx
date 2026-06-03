@@ -72,8 +72,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col items-center justify-center px-6 pb-8">
-                <h2 className="text-2xl font-black text-white uppercase tracking-wider drop-shadow-md mb-1">Piggy Bank</h2>
-                <p className="text-pink-200 text-xs font-bold mb-6">Saves 1% of every bet!</p>
+                <h2 className="text-2xl font-black text-white uppercase tracking-wider drop-shadow-md mb-4">Piggy Bank</h2>
 
                 <div className={`relative flex items-center justify-center mb-6 transition-transform duration-300 ${isBreaking ? 'scale-110' : shake ? 'shake' : 'animate-bounce'}`}>
                     <div className="text-[8rem] filter drop-shadow-2xl leading-none">🐷</div>
@@ -83,16 +82,14 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                     )}
                 </div>
 
-                <div className="bg-black/40 rounded-xl p-4 mb-6 w-full max-w-xs backdrop-blur-sm">
-                    <div className="flex justify-between items-end mb-1 px-1">
-                        <div className="text-pink-200 text-[9px] font-bold uppercase tracking-widest">Saved Amount</div>
-                        <div className="text-pink-300 text-[8px] font-bold uppercase">Cap: {formatNumber(cap)}</div>
+                <div className="flex flex-col items-center mb-6">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                        <span className="text-3xl">🪙</span>
+                        <div className="text-3xl font-mono font-black text-white drop-shadow-md leading-none">
+                            {formatCommaNumber(Math.floor(amount))}
+                        </div>
                     </div>
-                    <div className="text-3xl font-mono font-black text-white drop-shadow-md truncate leading-none mb-3">
-                        {formatCommaNumber(Math.floor(amount))}
-                    </div>
-
-                    <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden shadow-inner">
+                    <div className="w-full max-w-xs h-3 bg-black/60 rounded-full overflow-hidden shadow-inner">
                         <div
                            className={`h-full transition-all duration-500 ${isFull ? 'bg-red-500' : 'bg-gradient-to-r from-green-400 to-emerald-500'}`}
                            style={{ width: `${Math.min(100, (amount / cap) * 100)}%` }}

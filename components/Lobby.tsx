@@ -200,8 +200,8 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                                 {/* Card content */}
                                 <div className="absolute inset-0 rounded-md overflow-hidden z-10 select-none">
-                                    {/* Icon — fills almost the full card */}
-                                    <div className="absolute inset-0 flex items-center justify-center">
+                                    {/* Icon — aligned near top */}
+                                    <div className="absolute inset-0 flex items-start justify-center pt-2">
                                         <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">
                                             {icon}
                                         </span>
@@ -282,16 +282,16 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                         {/* Icons layer — taller than bar so icons protrude above */}
                         <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center gap-0.5 select-none font-nunito"
-                            style={{ height:'66px', paddingBottom:'4px' }}>
+                            style={{ height:'72px', paddingBottom:'2px' }}>
 
                             <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
-                                <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🐷</span>
+                                <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🐷</span>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
                             </button>
 
                             <button onClick={!isQuestLocked ? onOpenQuest : undefined} className={iconBtn(isQuestLocked)}>
                                 <div className="relative leading-none">
-                                    <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{getQuestIcon()}</span>
+                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{getQuestIcon()}</span>
                                     {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-yellow-400"></div>}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
@@ -299,7 +299,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
                                 <div className="relative leading-none">
-                                    <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎫</span>
+                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎫</span>
                                     {totalMissionNotifs > 0 && !isMissionsLocked && (
                                         <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[9px] text-white font-black" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                             {totalMissionNotifs}
@@ -344,18 +344,18 @@ export const Lobby: React.FC<LobbyProps> = ({
                             </button>
 
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
-                                <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📜</span>
+                                <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📜</span>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
                             </button>
 
                             <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
-                                <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
+                                <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
                             </button>
 
                             <button onClick={!isVipLocked ? onToggleVIP : undefined} className={iconBtn(isVipLocked)}>
                                 <div className="relative leading-none">
-                                    <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isHighLimit ? '👑' : '🧢'}</span>
+                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isHighLimit ? '👑' : '🧢'}</span>
                                     {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border-2 border-yellow-400"></div>}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP'}</span>

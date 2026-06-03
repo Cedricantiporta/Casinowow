@@ -71,19 +71,12 @@ const App: React.FC = () => {
   const [isHighLimit, setIsHighLimit] = useState(false);
   const [savedGameStates, setSavedGameStates] = useState<Record<string, SavedGameState>>({});
 
-  const [player, setPlayer] = useState<PlayerState>({
-    balance: INITIAL_BALANCE,
-    diamonds: INITIAL_GEMS,
-    tokens: 0, 
-    packCredits: 0, 
-    piggyBank: 0,
-    level: 1,
-    xp: 0,
-    xpToNextLevel: XP_BASE_REQ,
-    autoSpin: false,
-    xpMultiplier: 1,
-    xpBoostEndTime: 0,
-    freeStashClaimed: false
+  const [player, setPlayer] = useState<PlayerState>(() => {
+    try {
+      const saved = localStorage.getItem('cw_player');
+      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimed: false }, ...JSON.parse(saved) };
+    } catch {}
+    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimed: false };
   });
   
   // Ref to track player state to avoid stale closures in callbacks (like feature unlocks)
@@ -109,16 +102,12 @@ const App: React.FC = () => {
       })));
   }, [player.level]);
 
-  const [missionState, setMissionState] = useState<MissionState>({
-      activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)],
-      passLevel: 1,
-      passXP: 0,
-      passXpToNext: 500, 
-      passRewards: GENERATE_PASS_REWARDS(),
-      isPremium: false,
-      premiumExpiry: 0,
-      passBoostMultiplier: 1,
-      passBoostEndTime: 0
+  const [missionState, setMissionState] = useState<MissionState>(() => {
+    try {
+      const saved = localStorage.getItem('cw_missions');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 500, passRewards: GENERATE_PASS_REWARDS(), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
   });
   const [decks, setDecks] = useState<Deck[]>(GENERATE_DECKS());
 
@@ -397,6 +386,14 @@ const App: React.FC = () => {
           return () => clearInterval(interval);
       }
   }, [missionState.passBoostEndTime]);
+
+  useEffect(() => {
+    try { localStorage.setItem('cw_player', JSON.stringify(player)); } catch {}
+  }, [player]);
+
+  useEffect(() => {
+    try { localStorage.setItem('cw_missions', JSON.stringify(missionState)); } catch {}
+  }, [missionState]);
 
   const updateMissions = (type: MissionType, amount: number) => {
       if (player.level < 10) return; 
@@ -1673,13 +1670,18 @@ const App: React.FC = () => {
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
                 style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
                   {/* Missions Button */}
-                  <div 
-                      onClick={openMissionsModal}
-                      className="icon-btn shrink-0 flex flex-col items-center justify-end"
-                  >
-                      <i className="ti ti-target-arrow"></i>
-                      <span>MISSIONS</span>
-                  </div>
+                  {(() => {
+                      const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
+                      return (
+                          <div onClick={openMissionsModal} className="icon-btn shrink-0 flex flex-col items-center justify-end relative">
+                              {missReady > 0 && (
+                                  <div className="absolute top-0 right-0 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>{missReady}</div>
+                              )}
+                              <i className="ti ti-target-arrow"></i>
+                              <span>MISSIONS</span>
+                          </div>
+                      );
+                  })()}
 
                   {/* Minus Bet */}
                   <div 
