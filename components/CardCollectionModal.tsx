@@ -208,21 +208,26 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     <div className="flex-1"></div>
 
                     <div className="flex items-center gap-1.5 text-[10px]">
-                        <div className="currency-pill flex items-center gap-1.5 px-2 py-1">
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
                             <div className="coin">$</div>
-                            <span className="font-mono font-bold text-white">{formatNumber(balance)}</span>
+                            <span className="num">{formatNumber(balance)}</span>
                         </div>
-                        <div className="currency-pill flex items-center gap-1.5 px-2 py-1">
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
                             <div className="gem"></div>
-                            <span className="font-mono font-bold text-white">{formatNumber(diamonds)}</span>
+                            <span className="num">{formatNumber(diamonds)}</span>
                         </div>
-                        <button onClick={() => { onClose(); onOpenShop('BOOSTS'); }} className="bg-black/40 px-2 py-0.5 rounded-full flex items-center gap-0.5">
-                            <span>📦</span>
-                            <span className="font-mono font-bold text-orange-400">{packCredits}</span>
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
+                            <span style={{ fontSize: '12px', lineHeight: 1, flexShrink: 0 }}>📦</span>
+                            <span className="num" style={{ color: '#fb923c' }}>{packCredits}</span>
+                        </div>
+                        <button onClick={() => { onClose(); onOpenShop('BOOSTS'); }}
+                            className="flex items-center justify-center font-black text-white shrink-0 transition-all active:scale-90"
+                            style={{ width: 20, height: 20, borderRadius: '50%', background: 'linear-gradient(180deg,#a855f7,#7c3aed)', border: '1px solid rgba(255,255,255,0.25)', fontSize: '14px', lineHeight: 1, boxShadow: '0 2px 0 #3b0764' }}>
+                            +
                         </button>
-                        <div className="currency-pill flex items-center gap-1.5 px-2 py-1">
-                            <div className="text-green-400">💳</div>
-                            <span className="font-mono font-bold text-white">{formatNumber(tokens)}</span>
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
+                            <span style={{ fontSize: '11px', lineHeight: 1, flexShrink: 0 }}>💳</span>
+                            <span className="num">{formatNumber(tokens)}</span>
                         </div>
                     </div>
                     <div className="round-btn cursor-pointer shrink-0 ml-1" onClick={onClose}><i className="ti ti-x"></i></div>
@@ -240,48 +245,38 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 <div className="text-white font-black text-xl font-mono">{formatCommaNumber(grandPrize)}</div>
                             </div>
 
-                            {/* Deck scroll with nav buttons */}
-                            <div className="flex-1 relative flex items-stretch gap-1 min-h-0">
-                                <button onClick={() => scrollAlbum('LEFT')}
-                                    className="shrink-0 w-7 flex items-center justify-center text-white font-black text-xs rounded-lg active:scale-95 transition-transform"
-                                    style={{ background:'linear-gradient(180deg,#6030a8,#3a1870)', border:'1px solid #5020a0' }}>◀</button>
-
-                                <div ref={albumScrollRef} className="flex-1 overflow-x-auto flex items-stretch gap-3 no-scrollbar">
-                                    {decks.map(deck => {
-                                        const collected = deck.cards.filter(c => c.count > 0).length;
-                                        const total = deck.cards.length;
-                                        const isComplete = collected === total;
-                                        return (
-                                            <button key={deck.gameId} onClick={() => setSelectedDeckId(deck.gameId)}
-                                                className="flex-none w-36 flex flex-col items-center bg-black/40 p-2 rounded-xl h-full active:scale-95 transition-transform">
-                                                <div className={`w-full flex-1 bg-gradient-to-b ${deck.theme === 'NEON' ? 'from-purple-900 to-black' : deck.theme === 'EGYPT' ? 'from-orange-900 to-black' : 'from-gray-800 to-black'} rounded-lg flex items-center justify-center overflow-hidden relative min-h-0`}>
-                                                    <div className="text-[5rem] drop-shadow-2xl leading-none">{deck.theme === 'NEON' ? '🎰' : deck.theme === 'EGYPT' ? '🦂' : deck.theme === 'DRAGON' ? '🐉' : deck.theme === 'PIRATE' ? '🏴‍☠️' : deck.theme === 'SPACE' ? '👽' : deck.theme === 'PIGGY' ? '🐷' : '🃏'}</div>
-                                                    {isComplete && <div className="absolute top-1 right-1 text-sm">✅</div>}
-                                                    <div className="absolute bottom-1 bg-black/70 px-2 py-0.5 rounded-full">
-                                                        <div className="text-yellow-400 font-mono font-black text-[11px]">+{formatNumber(getDeckReward(deck.gameId))}</div>
-                                                    </div>
+                            {/* Deck scroll — swipe/wheel only */}
+                            <div className="flex-1 overflow-x-auto flex items-stretch gap-3 no-scrollbar min-h-0">
+                                {decks.map(deck => {
+                                    const collected = deck.cards.filter(c => c.count > 0).length;
+                                    const total = deck.cards.length;
+                                    const isComplete = collected === total;
+                                    return (
+                                        <button key={deck.gameId} onClick={() => setSelectedDeckId(deck.gameId)}
+                                            className="flex-none w-36 flex flex-col items-center bg-black/40 p-2 rounded-xl h-full active:scale-95 transition-transform">
+                                            <div className={`w-full flex-1 bg-gradient-to-b ${deck.theme === 'NEON' ? 'from-purple-900 to-black' : deck.theme === 'EGYPT' ? 'from-orange-900 to-black' : 'from-gray-800 to-black'} rounded-lg flex items-center justify-center overflow-hidden relative min-h-0`}>
+                                                <div className="text-[5rem] drop-shadow-2xl leading-none">{deck.theme === 'NEON' ? '🎰' : deck.theme === 'EGYPT' ? '🦂' : deck.theme === 'DRAGON' ? '🐉' : deck.theme === 'PIRATE' ? '🏴‍☠️' : deck.theme === 'SPACE' ? '👽' : deck.theme === 'PIGGY' ? '🐷' : '🃏'}</div>
+                                                {isComplete && <div className="absolute top-1 right-1 text-sm">✅</div>}
+                                                <div className="absolute bottom-1 bg-black/70 px-2 py-0.5 rounded-full">
+                                                    <div className="text-yellow-400 font-mono font-black text-[11px]">+{formatNumber(getDeckReward(deck.gameId))}</div>
                                                 </div>
-                                                <div className="mt-1.5 text-center w-full">
-                                                    <h3 className="text-white font-black font-display text-[13px] truncate leading-none">{deck.gameName}</h3>
-                                                    <div className="text-purple-300 font-bold text-[10px] uppercase mt-0.5">{collected}/{total}</div>
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <button onClick={() => scrollAlbum('RIGHT')}
-                                    className="shrink-0 w-7 flex items-center justify-center text-white font-black text-xs rounded-lg active:scale-95 transition-transform"
-                                    style={{ background:'linear-gradient(180deg,#6030a8,#3a1870)', border:'1px solid #5020a0' }}>▶</button>
+                                            </div>
+                                            <div className="mt-1.5 text-center w-full">
+                                                <h3 className="text-white font-black font-display text-[13px] truncate leading-none">{deck.gameName}</h3>
+                                                <div className="text-purple-300 font-bold text-[10px] uppercase mt-0.5">{collected}/{total}</div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
 
-                    {/* PACKS view — horizontal row */}
+                    {/* PACKS view — fills full width */}
                     {!selectedDeckId && activeTab === 'PACKS' && (
-                        <div className="flex items-stretch gap-3 h-full min-w-max">
+                        <div className="flex items-stretch gap-2 h-full w-full">
                             {/* Duplicate exchange column */}
-                            <div className="flex-none w-36 bg-gray-900/60 rounded-xl p-2 flex flex-col gap-1.5 h-full">
+                            <div className="flex-none w-32 bg-gray-900/60 rounded-xl p-2 flex flex-col gap-1.5 h-full">
                                 <h3 className="text-green-400 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0"><span>💳</span> Dupe Exchange</h3>
                                 <div className="flex flex-col gap-1.5 flex-1">
                                     {tokenExchanges.map((ex, idx) => (
@@ -298,14 +293,14 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 </div>
                             </div>
 
-                            {/* Pack cards */}
+                            {/* Pack cards — flex-1 to fill remaining width */}
                             {packOptions.map(pack => {
                                 const singleCost = pack.info.creditCost;
                                 const bulkCost = Math.ceil((singleCost * 10) * 0.9);
                                 const canDrawOne = packCredits >= singleCost;
                                 const canDrawTen = packCredits >= bulkCost;
                                 return (
-                                    <div key={pack.id} className={`flex-none w-32 rounded-xl overflow-hidden shadow-md flex flex-col bg-gradient-to-b ${pack.color} h-full`}>
+                                    <div key={pack.id} className={`flex-1 min-w-[100px] rounded-xl overflow-hidden shadow-md flex flex-col bg-gradient-to-b ${pack.color} h-full`}>
                                         <div className="flex-1 flex flex-col items-center justify-center bg-black/20 py-4">
                                             <div className="text-4xl drop-shadow-md">{pack.icon}</div>
                                         </div>
@@ -330,32 +325,30 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     {/* Single Deck card view — horizontal row */}
                     {selectedDeckId && (
                         <div className="flex flex-col h-full">
-                            <div className="shrink-0 flex items-center gap-3 mb-2">
-                                <div className="bg-gradient-to-r from-yellow-500/10 to-yellow-600/10 rounded-lg px-3 py-1.5 flex items-center gap-2">
-                                    <span className="text-xl">🏆</span>
-                                    <div className="flex flex-col">
-                                        <div className="text-yellow-200 text-[8px] font-bold uppercase leading-none">Completion Reward</div>
-                                        <div className="text-sm font-black text-white font-mono mt-0.5">{formatCommaNumber(getDeckReward(selectedDeckId))}</div>
-                                    </div>
-                                </div>
-                                {decks.find(d => d.gameId === selectedDeckId)?.isCompleted ? (
-                                    decks.find(d => d.gameId === selectedDeckId)?.rewardClaimed ? (
-                                        <div className="bg-gray-700 px-4 py-1 rounded-lg text-[10px] font-bold text-gray-400 uppercase">Reward Claimed</div>
+                            {/* Completion reward — centered, no container */}
+                            <div className="shrink-0 text-center mb-2">
+                                <div className="text-yellow-400 text-[8px] font-black uppercase tracking-widest">🏆 Completion Reward</div>
+                                <div className="text-white font-black text-lg font-mono leading-none">{formatCommaNumber(getDeckReward(selectedDeckId))}</div>
+                                <div className="mt-1">
+                                    {decks.find(d => d.gameId === selectedDeckId)?.isCompleted ? (
+                                        decks.find(d => d.gameId === selectedDeckId)?.rewardClaimed ? (
+                                            <span className="text-gray-500 text-[9px] font-bold uppercase">Reward Claimed</span>
+                                        ) : (
+                                            <button onClick={() => onClaimDeckReward(selectedDeckId!, getDeckReward(selectedDeckId))} className="btn-3d bg-gradient-to-r from-yellow-500 to-yellow-600 px-6 py-1 rounded-lg font-black text-black text-[10px] uppercase shadow-md">Claim Reward</button>
+                                        )
                                     ) : (
-                                        <button onClick={() => onClaimDeckReward(selectedDeckId!, getDeckReward(selectedDeckId))} className="btn-3d bg-gradient-to-r from-yellow-500 to-yellow-600 px-6 py-1.5 rounded-lg font-black text-black text-[10px] uppercase shadow-md">Claim Reward</button>
-                                    )
-                                ) : (
-                                    <div className="bg-black/40 px-3 py-1 rounded-lg text-gray-400 text-[8px] font-bold uppercase">Collect all to claim</div>
-                                )}
+                                        <span className="text-gray-500 text-[8px] font-bold uppercase">Collect all cards to claim</span>
+                                    )}
+                                </div>
                             </div>
                             <div className="flex-1 overflow-x-auto no-scrollbar">
-                                <div className="flex gap-3 h-full items-stretch min-w-max py-1">
+                                <div className="flex gap-2 h-full items-stretch min-w-max py-0.5">
                                     {decks.find(d => d.gameId === selectedDeckId)?.cards.map((card, i) => {
                                         const rarityColor = card.rarity === 'LEGENDARY' ? '#f59e0b' : card.rarity === 'EPIC' ? '#a855f7' : card.rarity === 'RARE' ? '#3b82f6' : '#6b7280';
                                         const isLocked = card.count === 0;
                                         return (
                                             <div key={i} className={`flex-none rounded-xl ${getCardStyle(card.rarity, isLocked)} flex flex-col items-center relative overflow-hidden`}
-                                                style={{ width: '70px', aspectRatio: '2/3', border: `1.5px solid ${rarityColor}44` }}>
+                                                style={{ width: '72px', border: `1.5px solid ${rarityColor}44` }}>
                                                 {/* Card inner frame */}
                                                 <div className="absolute inset-[4px] rounded-lg pointer-events-none" style={{ border: `1px solid ${rarityColor}30` }}></div>
                                                 {/* Rarity corner badge top-left */}
