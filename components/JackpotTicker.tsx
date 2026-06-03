@@ -29,15 +29,14 @@ export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet, isSpin
         }
     }, [currentBet]);
 
-    // Continuously increase during spin
+    // Continuously increase always
     useEffect(() => {
-        if (!isSpinning) return;
         const interval = setInterval(() => {
             const tick = Math.max(50, currentBet * 0.0008);
             setAmounts(prev => prev.map(v => v + Math.floor(Math.random() * tick + tick * 0.3)));
         }, 60);
         return () => clearInterval(interval);
-    }, [isSpinning, currentBet]);
+    }, [currentBet]);
 
     return (
         <div className="jackpot font-nunito w-full select-none">

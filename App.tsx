@@ -913,9 +913,9 @@ const App: React.FC = () => {
     }
 
     if (!isFreeSpin) {
-      // Piggy Bank Logic: 1% of Bet, Capped. Only saves if Level >= 5.
+      // Piggy Bank Logic: 5% of Bet, Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
-          const savings = currentBet * 0.01;
+          const savings = currentBet * 0.05;
           const cap = player.level * 2500000;
           setPlayer(prev => ({ 
               ...prev, 

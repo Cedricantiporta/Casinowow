@@ -307,19 +307,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             <button onClick={() => handleScroll('RIGHT')} className="btn-3d w-8 h-8 bg-gradient-to-b from-[#6030a8] to-[#3a1870] text-white rounded-full flex items-center justify-center pointer-events-auto text-xs font-black">▶</button>
                         </div>
 
-                        {/* Pass level strip */}
-                        <div className="px-4 py-2 bg-gradient-to-b from-[#1e142b] to-[#0f0816] shrink-0 flex items-center gap-3">
-                            <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center shadow shrink-0">
-                                <span className="font-black text-sm text-white">{missionState.passLevel}</span>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="text-purple-300 text-[8px] font-black uppercase tracking-widest leading-none">Pass Level</div>
-                                <div className="w-full h-1.5 bg-black rounded-full mt-1 overflow-hidden">
-                                    <div className="h-full bg-purple-600 transition-all" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Rewards horizontal scroll */}
                         <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar bg-gradient-to-b from-[#1a1025] to-black snap-x">
                             {levels.map((lvl) => {
