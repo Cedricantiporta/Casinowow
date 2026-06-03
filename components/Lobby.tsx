@@ -178,17 +178,18 @@ export const Lobby: React.FC<LobbyProps> = ({
                             >
                                 <div className={`absolute inset-0 bg-gradient-to-br ${isHighLimit ? 'from-red-950 via-black to-red-900' : game.color} transition-opacity`}></div>
 
-                                <div className="relative z-10 w-full h-full flex flex-col p-1.5 select-none items-center justify-between">
-                                    {/* Icon / Emoji */}
-                                    <div className="flex-1 flex items-center justify-center">
-                                        <span className="text-3xl md:text-4xl drop-shadow-2xl filter">
+                                <div className="relative z-10 w-full h-full select-none">
+                                    {/* Icon — fills almost the full card */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">
                                             {icon}
                                         </span>
                                     </div>
 
-                                    {/* Title */}
-                                    <div className="w-full pb-0.5 select-none text-center">
-                                        <h3 className={`text-[11px] md:text-sm font-black uppercase tracking-wide truncate ${getFontClass(game.theme)} ${titleStyle}`}>
+                                    {/* Title overlays at bottom */}
+                                    <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center z-10">
+                                        <h3 className={`text-[16px] md:text-[20px] font-black uppercase tracking-wide truncate ${getFontClass(game.theme)} ${titleStyle}`}
+                                            style={{textShadow:'0 1px 4px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.8)'}}>
                                             {game.name}
                                         </h3>
                                     </div>
