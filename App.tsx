@@ -1567,7 +1567,7 @@ const App: React.FC = () => {
             </div>
       </header>
 
-      <main className="relative pt-[36px] md:pt-[44px] w-full h-screen flex flex-col overflow-hidden">
+      <main className="relative pt-0 w-full flex-1 flex flex-col overflow-hidden min-h-0">
         {currentView === 'LOBBY' ? (
             <Lobby 
                 onSelectGame={handleGameSelect} 
@@ -1586,7 +1586,7 @@ const App: React.FC = () => {
                 playerLevel={player.level}
             />
         ) : (
-            <div className="flex-1 flex flex-col items-center justify-center p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
+            <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
                 <div className="w-full z-10 p-0 m-0">
                     <JackpotTicker currentBet={availableBets[betIndex]} />
                     {isHighLimit && (

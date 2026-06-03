@@ -173,8 +173,8 @@ const ReelCell: React.FC<{
     // Bounce Animation Logic (Applies to Content Wrapper)
     const activeBounce = highlight || isScatterShowcase;
     
-    // Custom size for WILD text to fit, while keeping Emojis huge
-    const fontSize = isWild ? 'text-4xl md:text-5xl lg:text-6xl' : 'text-6xl md:text-7xl lg:text-8xl';
+    // Custom size for WILD text to fit, while keeping Emojis huge (10% smaller than original)
+    const fontSize = isWild ? 'text-[2rem] md:text-[2.7rem] lg:text-[3.375rem]' : 'text-[3.375rem] md:text-[4.05rem] lg:text-[5.4rem]';
 
     return (
         <div 
