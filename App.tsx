@@ -1530,6 +1530,15 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
+                    {/* Piggy Bank quick button (left icons) */}
+                    <div
+                        onClick={handleOpenPiggyBank}
+                        className={`round-btn shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''} ${player.piggyBank > 0 ? 'animate-pulse' : ''}`}
+                        title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
+                    >
+                        <span style={{fontSize:16}}>🐷</span>
+                    </div>
+
                 {/* Star Experience Progression (No pill shape container, 2x long, star + bar) */}
                 <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent">
                     <div className="star shrink-0"></div>
