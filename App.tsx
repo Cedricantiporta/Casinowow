@@ -1072,7 +1072,7 @@ const App: React.FC = () => {
            setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 300 : 1000);
        }
     } else {
-       const lossXp = Math.floor((Math.sqrt(currentBet) * 10 * 0.2) * player.xpMultiplier);
+       const lossXp = Math.floor(Math.sqrt(currentBet) * 10 * player.xpMultiplier);
        addXp(lossXp);
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);

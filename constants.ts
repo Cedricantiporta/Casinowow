@@ -547,12 +547,11 @@ export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number): Mission[] => {
     ];
 
     templates.forEach((t, i) => {
-        let target = t.base;
+        let target = t.base * 10;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
-             // Reduced to 2.5x (1/4 of previous 10x)
-             target = Math.floor(t.base * Math.max(1, playerLevel / 2) * 2.5);
+             target = Math.floor(t.base * 10 * Math.max(1, playerLevel / 2) * 2.5);
         }
-        
+
         const xpReward = 1500 + (i * 500);
         const coinReward = Math.floor((xpReward / 10) * 1000000);
 
@@ -586,12 +585,11 @@ export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number): Mission[] => {
     ];
 
     templates.forEach((t, i) => {
-        let target = t.base;
+        let target = t.base * 10;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
-             // Reduced to 2.5x (1/4 of previous 10x)
              target = Math.floor(t.base * 10 * Math.max(1, playerLevel) * 2.5);
         }
-        
+
         const xpReward = 8000 + (i * 2000);
         const coinReward = Math.floor((xpReward / 10) * 1000000);
 
