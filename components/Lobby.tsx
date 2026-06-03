@@ -133,7 +133,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                 <div
                     ref={scrollRef}
-                    className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 px-8 pr-16 overflow-x-auto no-scrollbar snap-x"
+                    className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 px-3 overflow-x-auto no-scrollbar snap-x"
                     style={{
                         gridTemplateRows: 'repeat(2, 1fr)',
                         gridAutoFlow: 'column'
@@ -201,7 +201,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     </div>
                                     {/* Title overlays at bottom */}
                                     <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
-                                        <h3 className={`text-[16px] md:text-[20px] font-black uppercase tracking-wide truncate ${getFontClass(game.theme)} ${titleStyle}`}
+                                        <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
                                             style={{textShadow:'0 1px 4px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.8)'}}>
                                             {game.name}
                                         </h3>
@@ -222,16 +222,27 @@ export const Lobby: React.FC<LobbyProps> = ({
                     <div className="w-8"></div>
                 </div>
  
-                <button 
+                {/* Left arrow */}
+                <button
+                    onMouseDown={() => startScroll('LEFT')}
+                    onMouseUp={stopScroll}
+                    onMouseLeave={stopScroll}
+                    onTouchStart={() => startScroll('LEFT')}
+                    onTouchEnd={stopScroll}
+                    className="absolute left-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
+                    style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
+                >◀</button>
+
+                {/* Right arrow */}
+                <button
                     onMouseDown={() => startScroll('RIGHT')}
                     onMouseUp={stopScroll}
                     onMouseLeave={stopScroll}
                     onTouchStart={() => startScroll('RIGHT')}
                     onTouchEnd={stopScroll}
-                    className="absolute right-4 z-30 w-10 h-10 md:w-14 md:h-14 bg-black/50 hover:bg-black/80 text-white rounded-full flex items-center justify-center shadow-lg border border-white/20 transition-all active:scale-95 select-none"
-                >
-                    ▶
-                </button>
+                    className="absolute right-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
+                    style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
+                >▶</button>
             </div>
  
             <div className="fixed bottom-0 w-full z-50 shadow-[0_-6px_20px_rgba(0,0,0,0.8)] select-none" style={{background:'linear-gradient(180deg,#7c3fb5,#4a1880)',borderTop:'2px solid #38106e'}}>

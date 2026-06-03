@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface ShopModalProps {
     isOpen: boolean;
@@ -11,10 +11,31 @@ interface ShopModalProps {
     diamonds?: number;
 }
 
+const arrowBtnStyle: React.CSSProperties = {
+    background: 'linear-gradient(180deg,#9050cc,#5020a0)',
+    border: '1.5px solid #38106e',
+    borderRadius: '8px',
+    boxShadow: '0 3px 0 #1a0838, 0 4px 8px rgba(0,0,0,0.6)',
+};
+
 export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, balance = 0, diamonds = 0 }) => {
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const fmt = (n: number) => n.toLocaleString('en-US');
+
+    const startScroll = (dir: 'left' | 'right') => {
+        if (scrollInterval.current) return;
+        const amount = dir === 'right' ? 20 : -20;
+        const scrollAction = () => scrollRef.current?.scrollBy({ left: amount, behavior: 'auto' });
+        scrollAction();
+        scrollInterval.current = setInterval(scrollAction, 16);
+    };
+
+    const stopScroll = () => {
+        if (scrollInterval.current) { clearInterval(scrollInterval.current); scrollInterval.current = null; }
+    };
 
     useEffect(() => {
         if (!isOpen) return;
@@ -63,7 +84,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none"
             style={{ background: 'linear-gradient(160deg,#8040c0 0%,#5a1ea0 35%,#38086e 70%,#240550 100%)' }}
         >
-            {/* Header — seamless, no separator */}
+            {/* Header */}
             <div className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
                 <div className="flex items-center gap-2">
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
@@ -82,52 +103,72 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 >✕</button>
             </div>
 
-            {/* Horizontal item list — fills remaining height */}
-            <div className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar px-3 pb-4">
-                <div className="flex gap-3 h-full items-stretch min-w-max py-1">
-                    {allItems.map((item, i) => (
-                        <button
-                            key={i}
-                            onClick={item.action}
-                            disabled={item.disabled}
-                            className={`
-                                flex-shrink-0 w-[130px]
-                                flex flex-col items-center justify-between
-                                rounded-2xl overflow-hidden
-                                px-3 pt-3 pb-2
-                                bg-gradient-to-b ${item.color}
-                                hover:brightness-110 active:scale-[0.97]
-                                transition-all shadow-xl
-                                ${item.disabled ? 'grayscale opacity-50 cursor-not-allowed' : ''}
-                            `}
-                        >
-                            {/* Label */}
-                            <div className="text-[9px] font-black uppercase text-white/80 tracking-widest leading-none text-center">
-                                {item.label}
-                            </div>
+            {/* Scroll area + arrows */}
+            <div className="flex-1 relative flex items-stretch min-h-0 px-1 pb-4">
+                {/* Left arrow */}
+                <button
+                    onMouseDown={() => startScroll('left')}
+                    onMouseUp={stopScroll}
+                    onMouseLeave={stopScroll}
+                    onTouchStart={() => startScroll('left')}
+                    onTouchEnd={stopScroll}
+                    className="shrink-0 self-center w-7 h-10 flex items-center justify-center text-white text-xs font-black active:translate-y-[2px] active:shadow-none transition-transform mr-1"
+                    style={arrowBtnStyle}
+                >◀</button>
 
-                            {/* Big Icon */}
-                            <div className="flex-1 flex items-center justify-center py-1">
-                                <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
-                            </div>
-
-                            {/* Amount + Price */}
-                            <div className="w-full flex flex-col gap-1">
-                                {item.sub && (
-                                    <div className="text-[11px] font-black text-white text-center leading-none drop-shadow-sm">
-                                        {item.sub}
-                                    </div>
-                                )}
-                                <div
-                                    className="w-full py-1.5 rounded-xl text-[10px] font-black text-white uppercase text-center tracking-wide"
-                                    style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.2)' }}
-                                >
-                                    {item.price}
+                {/* Item list */}
+                <div ref={scrollRef} className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar py-1">
+                    <div className="flex gap-3 h-full items-stretch min-w-max">
+                        {allItems.map((item, i) => (
+                            <button
+                                key={i}
+                                onClick={item.action}
+                                disabled={item.disabled}
+                                className={`
+                                    flex-shrink-0 w-[130px]
+                                    flex flex-col items-center justify-between
+                                    rounded-2xl overflow-hidden
+                                    px-3 pt-3 pb-2
+                                    bg-gradient-to-b ${item.color}
+                                    hover:brightness-110 active:scale-[0.97]
+                                    transition-all shadow-xl
+                                    ${item.disabled ? 'grayscale opacity-50 cursor-not-allowed' : ''}
+                                `}
+                            >
+                                <div className="text-[9px] font-black uppercase text-white/80 tracking-widest leading-none text-center">
+                                    {item.label}
                                 </div>
-                            </div>
-                        </button>
-                    ))}
+                                <div className="flex-1 flex items-center justify-center py-1">
+                                    <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
+                                </div>
+                                <div className="w-full flex flex-col gap-1">
+                                    {item.sub && (
+                                        <div className="text-[11px] font-black text-white text-center leading-none drop-shadow-sm">
+                                            {item.sub}
+                                        </div>
+                                    )}
+                                    <div
+                                        className="w-full py-1.5 rounded-xl text-[10px] font-black text-white uppercase text-center tracking-wide"
+                                        style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.2)' }}
+                                    >
+                                        {item.price}
+                                    </div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
                 </div>
+
+                {/* Right arrow */}
+                <button
+                    onMouseDown={() => startScroll('right')}
+                    onMouseUp={stopScroll}
+                    onMouseLeave={stopScroll}
+                    onTouchStart={() => startScroll('right')}
+                    onTouchEnd={stopScroll}
+                    className="shrink-0 self-center w-7 h-10 flex items-center justify-center text-white text-xs font-black active:translate-y-[2px] active:shadow-none transition-transform ml-1"
+                    style={arrowBtnStyle}
+                >▶</button>
             </div>
         </div>
     );
