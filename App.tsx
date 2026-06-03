@@ -153,8 +153,8 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const updateScale = () => {
-      const widthScale = window.innerWidth / 390;
-      const heightScale = window.innerHeight / 844;
+      const widthScale = window.innerWidth / 844;
+      const heightScale = window.innerHeight / 390;
       setMobileScale(Math.min(1, widthScale, heightScale));
     };
 
@@ -1479,7 +1479,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
-      <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 390, height: 844, transform: `scale(${mobileScale})`, transformOrigin: 'top center' }}>
+      <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'top center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}>
           <header className="fixed top-0 w-full z-[100] bg-[#120024] border-b-2 border-[#2a0d55] flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[36px] md:h-[44px] select-none overflow-visible">
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
