@@ -173,8 +173,12 @@ const ReelCell: React.FC<{
     // Bounce Animation Logic (Applies to Content Wrapper)
     const activeBounce = highlight || isScatterShowcase;
     
-    // Custom size for WILD text to fit, while keeping Emojis huge (20% smaller than original)
-    const fontSize = isWild ? 'text-[1.8rem] md:text-[2.43rem] lg:text-[3.0375rem]' : 'text-[3.0375rem] md:text-[3.645rem] lg:text-[4.86rem]';
+    // Symbol font sizes: wild −20%, letters −10%, regular full
+    const fontSize = isWild
+        ? 'text-[1.44rem] md:text-[1.94rem] lg:text-[2.43rem]'
+        : isLetter
+            ? 'text-[2.73rem] md:text-[3.28rem] lg:text-[4.37rem]'
+            : 'text-[3.0375rem] md:text-[3.645rem] lg:text-[4.86rem]';
 
     return (
         <div 
@@ -219,7 +223,7 @@ const ReelCell: React.FC<{
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
                             <span className={`
                                 block font-titan
-                                text-[1.0125rem] md:text-[1.35rem] font-black text-white
+                                text-[0.81rem] md:text-[1.08rem] font-black text-white
                                 tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]
                                 stroke-black stroke-2
                             `}
