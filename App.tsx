@@ -1496,13 +1496,13 @@ const App: React.FC = () => {
                 {/* Separate Coins & Gems pills joined closely */}
                 <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[245px] md:max-w-[370px] shrink-0">
                     {/* Separate Coins Pill */}
-                    <div className="currency-pill flex-1 max-w-[120px] md:max-w-[180px] flex items-center gap-1 shrink-0">
+                    <div className="currency-pill flex-[3] max-w-[150px] md:max-w-[222px] flex items-center gap-1 shrink-0">
                         <div className="coin">$</div>
                         <span className="num flex-1">{formatCommaNumber(player.balance)}</span>
                     </div>
 
                     {/* Separate Gem Pill */}
-                    <div className="currency-pill flex-1 max-w-[120px] md:max-w-[180px] flex items-center gap-1 shrink-0">
+                    <div className="currency-pill flex-[2] max-w-[100px] md:max-w-[148px] flex items-center gap-1 shrink-0">
                         <div className="gem"></div>
                         <span className="num flex-1">{formatCommaNumber(player.diamonds)}</span>
                     </div>
