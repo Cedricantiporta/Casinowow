@@ -141,7 +141,15 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 relative overflow-hidden`}
-            style={isHighLimit ? { background:'linear-gradient(160deg,#3a2000,#1a0f00 50%,#2a1800)' } : {}}>
+            style={isHighLimit ? {
+                backgroundImage: 'url(/lobby-bg-vip.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+            } : {
+                backgroundImage: 'url(/lobby-bg.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+            }}>
 
               <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9">
 

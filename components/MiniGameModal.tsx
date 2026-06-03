@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MiniGameReward, WildGridCell } from '../types';
 import { formatNumber, formatCommaNumber } from '../constants';
 import { audioService } from '../services/audioService';
+import { jackpotService } from '../services/jackpotService';
 
 interface MiniGameModalProps {
     isOpen: boolean;
@@ -90,14 +91,14 @@ const StatPill: React.FC<{ label: string; value: string | number; accent?: strin
 );
 
 // --- 3D Button ---
-const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string; shadow?: string; border?: string; className?: string; children: React.ReactNode }> = ({
-    onClick, disabled, color = 'linear-gradient(180deg,#a855f7,#7c3aed)', shadow = '0 4px 0 #3b0764', border = '1px solid rgba(255,255,255,0.2)', className = '', children
+const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string; shadow?: string; border?: string; className?: string; style?: React.CSSProperties; children: React.ReactNode }> = ({
+    onClick, disabled, color = 'linear-gradient(180deg,#a855f7,#7c3aed)', shadow = '0 4px 0 #3b0764', border = '1px solid rgba(255,255,255,0.2)', className = '', style, children
 }) => (
     <button
         onClick={disabled ? undefined : onClick}
         disabled={disabled}
         className={`btn-3d font-black uppercase tracking-wide transition-all active:translate-y-[2px] ${disabled ? 'opacity-40 cursor-not-allowed grayscale' : 'cursor-pointer'} ${className}`}
-        style={{ background: disabled ? '#333' : color, boxShadow: disabled ? 'none' : shadow, border }}
+        style={{ background: disabled ? '#333' : color, boxShadow: disabled ? 'none' : shadow, border, ...style }}
     >
         {children}
     </button>
@@ -109,6 +110,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 }) => {
     const currentGridSize = GRID_SIZES[Math.min(wildStage - 1, GRID_SIZES.length - 1)];
     const totalCells = currentGridSize * currentGridSize;
+
+    const [jackpotTotal, setJackpotTotal] = useState(() => jackpotService.getAmounts().reduce((s, a) => s + a, 0));
 
     const [grid, setGrid] = useState<WildGridCell[]>([]);
     const [stageWinning, setStageWinning] = useState(false);
@@ -189,6 +192,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             if (el) container.scrollTo({ left: el.offsetLeft - container.clientWidth / 2 + el.offsetWidth / 2, behavior: 'smooth' });
         }
     }, [visualPosition, activeGame]);
+
+    useEffect(() => {
+        return jackpotService.subscribe(() => {
+            setJackpotTotal(jackpotService.getAmounts().reduce((s, a) => s + a, 0));
+        });
+    }, []);
 
     useEffect(() => {
         if (autoRoll && !isRolling && !isMoving && picks > 0) {
@@ -315,43 +324,28 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             <div className="shrink-0 flex items-center gap-2 px-3 h-[44px] z-20"
                 style={{ background: HDR, borderBottom: HDR_BORDER, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-arrow-left"></i></div>
-                <span className="font-black text-white text-sm uppercase tracking-widest flex-1 drop-shadow">{questTitle}</span>
-                <div className="flex items-center gap-1.5 shrink-0">
-                    <StatPill label={isWild ? 'Stage' : 'Stage'} value={isWild ? wildStage : diceStage} accent="text-fuchsia-300" />
-                    <StatPill label="Credits" value={credits} accent="text-green-300" />
-                    <StatPill label={isWild ? 'Picks' : 'Rolls'} value={picks} accent="text-yellow-300" />
+                <span className="font-black text-white text-sm uppercase tracking-widest drop-shadow">{questTitle}</span>
+                <div className="flex-1 flex items-center justify-end">
+                    <span style={{ fontSize: '1.15rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap' }}>
+                        💰 {formatCommaNumber(jackpotTotal)}
+                    </span>
                 </div>
             </div>
 
             {/* ── WILD QUEST ── */}
             {activeGame === 'WILD' && (
-                <>
-                    {/* Buy row */}
-                    <div className="shrink-0 flex items-center justify-center gap-2 px-4 py-2"
-                        style={{ background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                        <Btn3D onClick={handleExchangeCredits} disabled={credits < EXCHANGE_RATE}
-                            color="linear-gradient(180deg,#16a34a,#14532d)" shadow="0 3px 0 #052e16"
-                            className="px-4 py-1.5 rounded-xl text-xs text-white">
-                            +1 Pick &nbsp;·&nbsp; {EXCHANGE_RATE} Credits
-                        </Btn3D>
-                        <Btn3D onClick={handleBuyGems}
-                            color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
-                            className="px-4 py-1.5 rounded-xl text-xs text-white">
-                            +1 Pick &nbsp;·&nbsp; {GEM_COST} 💎
-                        </Btn3D>
-                    </div>
+                <div className="flex-1 flex overflow-hidden relative">
+                    {/* Stage-clear overlay */}
+                    {stageWinning && (
+                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center"
+                            style={{ background: 'rgba(0,0,0,0.85)' }}>
+                            <div style={{ fontSize: '72px', lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce">💎</div>
+                            <div className="mt-3 text-2xl font-black text-white uppercase tracking-widest">Stage Clear!</div>
+                        </div>
+                    )}
 
-                    {/* Grid area */}
-                    <div className="flex-1 flex items-center justify-center p-3 relative">
-                        {stageWinning && (
-                            <div className="absolute inset-0 z-50 flex flex-col items-center justify-center"
-                                style={{ background: 'rgba(0,0,0,0.85)' }}>
-                                <div style={{ fontSize: '72px', lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce">💎</div>
-                                <div className="mt-3 text-2xl font-black text-white uppercase tracking-widest">Stage Clear!</div>
-                            </div>
-                        )}
-
-                        {/* Grid card */}
+                    {/* Grid area — flex-1 */}
+                    <div className="flex-1 flex items-center justify-center p-3">
                         <div className="relative p-3 rounded-2xl"
                             style={{
                                 background: 'linear-gradient(160deg,#2e1065,#1a0a3e)',
@@ -369,6 +363,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const icon = isGem ? '💎' : isReward
                                         ? (cell.reward?.type === 'COINS' ? '💰' : cell.reward?.type === 'PICKS' ? '⛏️' : '💎')
                                         : null;
+                                    const tileSize = currentGridSize >= 6 ? 42 : currentGridSize >= 5 ? 48 : currentGridSize >= 4 ? 54 : 62;
                                     return (
                                         <button
                                             key={i}
@@ -376,8 +371,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             disabled={revealed || picks <= 0}
                                             className="relative flex flex-col items-center justify-center rounded-xl active:translate-y-[2px] transition-all overflow-hidden"
                                             style={{
-                                                width: currentGridSize >= 5 ? 46 : currentGridSize >= 4 ? 54 : 62,
-                                                height: currentGridSize >= 5 ? 46 : currentGridSize >= 4 ? 54 : 62,
+                                                width: tileSize,
+                                                height: tileSize,
                                                 background: revealed
                                                     ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isReward ? 'linear-gradient(180deg,#15803d,#14532d)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
                                                     : 'linear-gradient(180deg,#7c3aed,#5b21b6)',
@@ -388,7 +383,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         >
                                             {icon ? (
                                                 <>
-                                                    <span style={{ fontSize: currentGridSize >= 5 ? '1.2rem' : '1.5rem', lineHeight: 1 }}>{icon}</span>
+                                                    <span style={{ fontSize: currentGridSize >= 5 ? '1.1rem' : '1.4rem', lineHeight: 1 }}>{icon}</span>
                                                     {isReward && <span className="text-[7px] font-black text-white/80 mt-0.5 leading-none">{cell.reward?.label}</span>}
                                                 </>
                                             ) : (
@@ -401,35 +396,33 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Auto Pick footer */}
-                    <div className="shrink-0 flex justify-center pb-4 pt-2 gap-3">
-                        <Btn3D onClick={handleAutoPick} disabled={picks <= 0 || stageWinning}
-                            color="linear-gradient(180deg,#c026d3,#86198f)" shadow="0 4px 0 #4a044e"
-                            className="px-8 py-2.5 rounded-xl text-sm text-white">
-                            Auto Pick All ({picks} picks)
-                        </Btn3D>
+                    {/* Right sidebar — stats + buy buttons */}
+                    <div className="shrink-0 flex flex-col gap-3 p-3 justify-center"
+                        style={{ width: 136, background: 'rgba(0,0,0,0.4)', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
+                        {/* Stats */}
+                        <StatPill label="Stage" value={wildStage} accent="text-fuchsia-300" />
+                        <StatPill label="Credits" value={credits} accent="text-green-300" />
+                        <StatPill label="Picks" value={picks} accent="text-yellow-300" />
+                        {/* Buy buttons */}
+                        <div className="flex flex-col gap-2 mt-1">
+                            <Btn3D onClick={handleExchangeCredits} disabled={credits < EXCHANGE_RATE}
+                                color="linear-gradient(180deg,#16a34a,#14532d)" shadow="0 3px 0 #052e16"
+                                className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
+                                +1 Pick<br />{EXCHANGE_RATE} Credits
+                            </Btn3D>
+                            <Btn3D onClick={handleBuyGems}
+                                color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
+                                className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
+                                +1 Pick<br />{GEM_COST} 💎
+                            </Btn3D>
+                        </div>
                     </div>
-                </>
+                </div>
             )}
 
             {/* ── DICE QUEST ── */}
             {activeGame === 'DICE' && (
                 <>
-                    {/* Buy row */}
-                    <div className="shrink-0 flex items-center justify-center gap-2 px-4 py-2"
-                        style={{ background: 'rgba(0,0,0,0.3)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                        <Btn3D onClick={handleExchangeCredits} disabled={credits < EXCHANGE_RATE}
-                            color="linear-gradient(180deg,#16a34a,#14532d)" shadow="0 3px 0 #052e16"
-                            className="px-4 py-1.5 rounded-xl text-xs text-white">
-                            +1 Roll &nbsp;·&nbsp; {EXCHANGE_RATE} Credits
-                        </Btn3D>
-                        <Btn3D onClick={handleBuyGems}
-                            color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
-                            className="px-4 py-1.5 rounded-xl text-xs text-white">
-                            +1 Roll &nbsp;·&nbsp; {GEM_COST} 💎
-                        </Btn3D>
-                    </div>
-
                     {/* Board */}
                     <div className="flex-1 flex items-center justify-center relative w-full overflow-hidden px-2">
                         {/* Scroll arrows */}
@@ -499,41 +492,62 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Controls footer */}
-                    <div className="shrink-0 pb-4 pt-2 flex items-center justify-center gap-6"
-                        style={{ background: 'rgba(0,0,0,0.35)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                    {/* Controls footer — left: +rolls, center: dice+roll, right: stats */}
+                    <div className="shrink-0 flex items-center px-3 py-2 gap-3"
+                        style={{ background: 'rgba(0,0,0,0.45)', borderTop: '1px solid rgba(255,255,255,0.07)', minHeight: 100 }}>
 
-                        {/* Dice */}
-                        <DiceFace value={diceValue} rolling={isRolling} size={72} />
+                        {/* Left — buy roll buttons */}
+                        <div className="flex flex-col gap-2" style={{ width: 130 }}>
+                            <Btn3D onClick={handleExchangeCredits} disabled={credits < EXCHANGE_RATE}
+                                color="linear-gradient(180deg,#16a34a,#14532d)" shadow="0 3px 0 #052e16"
+                                className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
+                                +1 Roll · {EXCHANGE_RATE} Credits
+                            </Btn3D>
+                            <Btn3D onClick={handleBuyGems}
+                                color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
+                                className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
+                                +1 Roll · {GEM_COST} 💎
+                            </Btn3D>
+                        </div>
 
-                        {/* Roll button */}
-                        <div className="flex flex-col items-center gap-1">
-                            <button
-                                onMouseDown={handleRollMouseDown}
-                                onMouseUp={handleRollMouseUp}
-                                onMouseLeave={handleRollMouseUp}
-                                onTouchStart={handleRollMouseDown}
-                                onTouchEnd={handleRollMouseUp}
-                                disabled={picks <= 0 || isMoving}
-                                className="relative w-20 h-20 rounded-full flex flex-col items-center justify-center font-black uppercase tracking-widest text-sm transition-all active:translate-y-[3px]"
-                                style={{
-                                    background: autoRoll
-                                        ? 'linear-gradient(180deg,#ef4444,#b91c1c)'
-                                        : picks > 0
-                                        ? 'linear-gradient(180deg,#fbbf24,#d97706)'
-                                        : '#374151',
-                                    boxShadow: picks > 0
-                                        ? (autoRoll ? '0 5px 0 #7f1d1d, 0 8px 20px rgba(0,0,0,0.5)' : '0 5px 0 #92400e, 0 8px 20px rgba(0,0,0,0.5)')
-                                        : 'none',
-                                    border: '2px solid rgba(255,255,255,0.2)',
-                                    color: picks > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
-                                    cursor: picks <= 0 || isMoving ? 'not-allowed' : 'pointer',
-                                }}
-                            >
-                                <span className="text-lg leading-none">{autoRoll ? 'STOP' : 'ROLL'}</span>
-                                {picks > 0 && <span className="text-[8px] opacity-70 leading-none mt-0.5">{autoRoll ? 'Auto On' : 'Hold=Auto'}</span>}
-                            </button>
-                            <span className="text-purple-300 text-[9px] font-bold uppercase tracking-wide">{picks} rolls left</span>
+                        {/* Center — dice + roll button */}
+                        <div className="flex-1 flex items-center justify-center gap-5">
+                            <DiceFace value={diceValue} rolling={isRolling} size={72} />
+                            <div className="flex flex-col items-center gap-1">
+                                <button
+                                    onMouseDown={handleRollMouseDown}
+                                    onMouseUp={handleRollMouseUp}
+                                    onMouseLeave={handleRollMouseUp}
+                                    onTouchStart={handleRollMouseDown}
+                                    onTouchEnd={handleRollMouseUp}
+                                    disabled={picks <= 0 || isMoving}
+                                    className="relative w-20 h-20 rounded-full flex flex-col items-center justify-center font-black uppercase tracking-widest text-sm transition-all active:translate-y-[3px]"
+                                    style={{
+                                        background: autoRoll
+                                            ? 'linear-gradient(180deg,#ef4444,#b91c1c)'
+                                            : picks > 0
+                                            ? 'linear-gradient(180deg,#fbbf24,#d97706)'
+                                            : '#374151',
+                                        boxShadow: picks > 0
+                                            ? (autoRoll ? '0 5px 0 #7f1d1d, 0 8px 20px rgba(0,0,0,0.5)' : '0 5px 0 #92400e, 0 8px 20px rgba(0,0,0,0.5)')
+                                            : 'none',
+                                        border: '2px solid rgba(255,255,255,0.2)',
+                                        color: picks > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
+                                        cursor: picks <= 0 || isMoving ? 'not-allowed' : 'pointer',
+                                    }}
+                                >
+                                    <span className="text-lg leading-none">{autoRoll ? 'STOP' : 'ROLL'}</span>
+                                    {picks > 0 && <span className="text-[8px] opacity-70 leading-none mt-0.5">{autoRoll ? 'Auto On' : 'Hold=Auto'}</span>}
+                                </button>
+                                <span className="text-purple-300 text-[9px] font-bold uppercase tracking-wide">{picks} rolls left</span>
+                            </div>
+                        </div>
+
+                        {/* Right — stats */}
+                        <div className="flex flex-col gap-2" style={{ width: 110 }}>
+                            <StatPill label="Stage" value={diceStage} accent="text-fuchsia-300" />
+                            <StatPill label="Credits" value={credits} accent="text-green-300" />
+                            <StatPill label="Rolls" value={picks} accent="text-yellow-300" />
                         </div>
                     </div>
                 </>
