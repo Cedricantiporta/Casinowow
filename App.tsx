@@ -20,6 +20,7 @@ import { LoginBonusModal } from './components/LoginBonusModal';
 import { JackpotTicker } from './components/JackpotTicker';
 import { PiggyBankModal } from './components/PiggyBankModal';
 import { FeatureUnlockModal } from './components/FeatureUnlockModal';
+import { SettingsModal } from './components/SettingsModal';
 import { audioService } from './services/audioService';
 
 // Interface for persisted game state
@@ -121,6 +122,7 @@ const App: React.FC = () => {
   const [instantStop, setInstantStop] = useState(false);
   const [fastSpin, setFastSpin] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const savedFastSpinRef = useRef<boolean>(false); 
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [piggyGlow, setPiggyGlow] = useState(false);
@@ -732,7 +734,8 @@ const App: React.FC = () => {
       
       let megaMatchActive = false;
       let megaMatchSymbol = SymbolType.TEN;
-      const megaMatchProb = isFreeSpin ? 0.24 : 0.16; 
+      const isNeon = selectedGame.theme === 'NEON';
+      const megaMatchProb = isFreeSpin ? 0.34 : (isNeon ? 0.08 : 0.16);
       
       if (Math.random() < megaMatchProb) { 
             const targets = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN];
@@ -754,16 +757,17 @@ const App: React.FC = () => {
            
            if (!eventTriggered) {
                let wildStackChance = 0.0;
+               const wildMult = isFreeSpin ? 1.20 : (isNeon ? 0.80 : 1.0);
                if (cols >= 5) {
-                    if (c === 2) wildStackChance = 0.12; 
-                    if (c === 3) wildStackChance = 0.16;
-                    if (c === 4) wildStackChance = 0.24;
+                    if (c === 2) wildStackChance = 0.12 * wildMult;
+                    if (c === 3) wildStackChance = 0.16 * wildMult;
+                    if (c === 4) wildStackChance = 0.24 * wildMult;
                } else if (isSmallGrid) {
-                   if (c === 1) wildStackChance = 0.06;
-                   if (c === 2) wildStackChance = 0.08;
+                   if (c === 1) wildStackChance = 0.06 * wildMult;
+                   if (c === 2) wildStackChance = 0.08 * wildMult;
                } else {
-                   if (c === 1) wildStackChance = 0.15;
-                   if (c === 2) wildStackChance = 0.20;
+                   if (c === 1) wildStackChance = 0.15 * wildMult;
+                   if (c === 2) wildStackChance = 0.20 * wildMult;
                }
 
                if (c === 0) {
@@ -1587,13 +1591,13 @@ const App: React.FC = () => {
                     x{player.xpMultiplier}
                 </div>
 
-                {/* Dynamic Mute round-btn */}
+                {/* Settings button */}
                 <div
-                    onClick={() => setIsMuted(audioService.toggleMute())}
+                    onClick={() => setShowSettings(true)}
                     className="round-btn shrink-0"
                     style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
-                    <i className={`ti ${isMuted ? 'ti-volume-3' : 'ti-volume'}`}></i>
+                    <i className="ti ti-settings"></i>
                 </div>
             </div>
       </header>
@@ -1680,7 +1684,7 @@ const App: React.FC = () => {
                     );
                 })()}
                 <div className="w-full z-10 p-0 m-0">
-                    <JackpotTicker currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
+                    <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
@@ -1912,6 +1916,20 @@ const App: React.FC = () => {
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
       
       <BankruptcyModal isOpen={showBankruptcy} onCollect={() => { setPlayer(p => ({ ...p, balance: p.balance + 100000 })); setShowBankruptcy(false); setCelebrationMsg("+100,000 Coins"); audioService.playWinBig(); }} />
+
+      <SettingsModal
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          isMuted={isMuted}
+          onToggleMute={() => setIsMuted(audioService.toggleMute())}
+          fastSpin={fastSpin}
+          onToggleFastSpin={() => setFastSpin(f => !f)}
+          onDevMode={() => {
+              setPlayer(p => ({ ...p, level: 50, balance: 9_000_000_000_000, diamonds: 100_000 }));
+              setCelebrationMsg('Dev Mode: Level 50 · 9T Coins · 100K Gems');
+              audioService.playWinBig();
+          }}
+      />
 
         </div>
       </div>

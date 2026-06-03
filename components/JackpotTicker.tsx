@@ -1,49 +1,37 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatCommaNumber } from '../constants';
+import { jackpotService } from '../services/jackpotService';
 
 interface JackpotTickerProps {
-    currentBet: number;
+    slotIdx?: number;
+    currentBet?: number;
     isSpinning?: boolean;
 }
 
-const JACKPOT_CONFIG = [
-    { name: 'MINI',  multiplier: 20,  tierClass: 't-green'  },
-    { name: 'MINOR', multiplier: 40,  tierClass: 't-cyan'   },
-    { name: 'MAJOR', multiplier: 60,  tierClass: 't-purple' },
-    { name: 'MAXI',  multiplier: 80,  tierClass: 't-red'    },
-    { name: 'GRAND', multiplier: 100, tierClass: 't-gold'   }
+const TIER_META = [
+    { name: 'MINI',  tierClass: 't-green'  },
+    { name: 'MINOR', tierClass: 't-cyan'   },
+    { name: 'MAJOR', tierClass: 't-purple' },
+    { name: 'MAXI',  tierClass: 't-red'    },
+    { name: 'GRAND', tierClass: 't-gold'   },
 ];
 
-export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet, isSpinning = false }) => {
-    const [amounts, setAmounts] = useState<number[]>(() =>
-        JACKPOT_CONFIG.map(jp => currentBet * jp.multiplier + Math.floor(Math.random() * currentBet * 0.5))
-    );
-    const prevBetRef = useRef(currentBet);
+export const JackpotTicker: React.FC<JackpotTickerProps> = ({ slotIdx = 0, isSpinning = false }) => {
+    const [amounts, setAmounts] = useState<number[]>(() => jackpotService.getSlotAmounts(slotIdx));
 
-    // Reset to new base when bet changes
     useEffect(() => {
-        if (currentBet !== prevBetRef.current) {
-            prevBetRef.current = currentBet;
-            setAmounts(JACKPOT_CONFIG.map(jp => currentBet * jp.multiplier));
-        }
-    }, [currentBet]);
-
-    // Continuously increase always
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const tick = Math.max(50, currentBet * 0.0008);
-            setAmounts(prev => prev.map(v => v + Math.floor(Math.random() * tick + tick * 0.3)));
-        }, 60);
-        return () => clearInterval(interval);
-    }, [currentBet]);
+        return jackpotService.subscribe(() => {
+            setAmounts(jackpotService.getSlotAmounts(slotIdx));
+        });
+    }, [slotIdx]);
 
     return (
         <div className="jackpot font-nunito w-full select-none">
-            {JACKPOT_CONFIG.map((jp, idx) => (
-                <div key={jp.name} className={`jp ${jp.tierClass}`}>
-                    <div className="jp-tier">{jp.name}</div>
-                    <div className="jp-amt">{formatCommaNumber(amounts[idx])}</div>
+            {TIER_META.map((tier, idx) => (
+                <div key={tier.name} className={`jp ${tier.tierClass}`}>
+                    <div className="jp-tier">{tier.name}</div>
+                    <div className="jp-amt">{formatCommaNumber(amounts[idx] ?? 0)}</div>
                 </div>
             ))}
         </div>
