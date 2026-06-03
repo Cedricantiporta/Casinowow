@@ -30,7 +30,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         if (scrollInterval.current) { clearInterval(scrollInterval.current); scrollInterval.current = null; }
     };
 
-    // Tab scroll: Coins=idx 0, Gems=idx 6 (1 free + 5 coin packs), Boosts=idx 11
+    // Tab scroll: Coins=idx 0, Gems=idx 5, Boosts=idx 10, Free=idx 15
     const scrollToSection = (startIdx: number) => {
         scrollRef.current?.scrollTo({ left: startIdx * 152, behavior: 'smooth' });
     };
@@ -75,7 +75,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         action: () => !isFreeStashClaimed && onBuy('COIN', 300_000, 0, 0),
     };
 
-    const allItems = [freeItem, ...dynamicPacks, ...gemPacks, ...boostPacks];
+    const allItems = [...dynamicPacks, ...gemPacks, ...boostPacks, freeItem];
 
     return (
         <div
@@ -83,8 +83,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             style={{ background: 'linear-gradient(160deg,#8040c0 0%,#5a1ea0 35%,#38086e 70%,#240550 100%)' }}
         >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 pt-3 pb-1 shrink-0">
-                <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
                         <div className="coin">$</div>
                         <span className="num font-mono">{fmt(balance)}</span>
@@ -94,22 +94,22 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                         <span className="num font-mono">{fmt(diamonds)}</span>
                     </div>
                 </div>
-                <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
-            </div>
-
-            {/* Section tabs */}
-            <div className="flex items-center gap-2 px-4 pb-2 shrink-0">
+                <div className="flex-1"></div>
+                {/* Section tabs — right side, solid colors */}
                 {[
-                    { label: '🪙 Coins',  idx: 0  },
-                    { label: '💎 Gems',   idx: 6  },
-                    { label: '🚀 Boosts', idx: 11 },
+                    { label: '🪙',  name: 'Coins',  idx: 0,  bg: '#b8860b' },
+                    { label: '💎',  name: 'Gems',   idx: 5,  bg: '#0e7490' },
+                    { label: '🚀',  name: 'Boosts', idx: 10, bg: '#7c3aed' },
+                    { label: '🎁',  name: 'Free',   idx: 15, bg: '#166534' },
                 ].map(tab => (
-                    <button key={tab.label} onClick={() => scrollToSection(tab.idx)}
-                        className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black text-white uppercase"
-                        style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                        {tab.label}
+                    <button key={tab.name} onClick={() => scrollToSection(tab.idx)}
+                        className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5"
+                        style={{ background: tab.bg, border: '1px solid rgba(255,255,255,0.25)', minWidth: '34px' }}>
+                        <span>{tab.label}</span>
+                        <span>{tab.name}</span>
                     </button>
                 ))}
+                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
             {/* Scroll area — nav arrows overlay the card list, no side margin */}

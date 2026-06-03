@@ -6,7 +6,8 @@ import { GameConfig, QuestState, MissionState } from '../types';
 
 interface LobbyProps {
     onSelectGame: (game: GameConfig, isHighLimit: boolean) => void;
-    onOpenQuest: () => void;
+    onOpenWildQuest: () => void;
+    onOpenDiceQuest: () => void;
     onOpenMissions: () => void;
     onOpenBattlePass: () => void;
     onClaimBonus: () => void;
@@ -21,9 +22,10 @@ interface LobbyProps {
     playerLevel: number; 
 }
 
-export const Lobby: React.FC<LobbyProps> = ({ 
-    onSelectGame, 
-    onOpenQuest, 
+export const Lobby: React.FC<LobbyProps> = ({
+    onSelectGame,
+    onOpenWildQuest,
+    onOpenDiceQuest,
     onOpenMissions,
     onOpenBattlePass,
     onClaimBonus, 
@@ -133,7 +135,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const isQuestLocked = playerLevel < 20;
     const isMissionsLocked = playerLevel < 10;
     const isCardsLocked = playerLevel < 30;
-    const isVipLocked = playerLevel < 40;
+    const isVipLocked = playerLevel < 30;
 
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 relative overflow-hidden`}
@@ -197,7 +199,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 )}
 
                                 {/* Card background */}
-                                <div className={`absolute inset-0 rounded-md overflow-hidden bg-gradient-to-br ${isHighLimit ? 'from-red-950 via-black to-red-900' : game.color} transition-opacity`}></div>
+                                <div className={`absolute inset-0 rounded-md overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
 
                                 {/* Card content */}
                                 <div className="absolute inset-0 rounded-md overflow-hidden z-10 select-none">
@@ -292,12 +294,19 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
                             </button>
 
-                            <button onClick={!isQuestLocked ? onOpenQuest : undefined} className={iconBtn(isQuestLocked)}>
+                            <button onClick={!isQuestLocked ? onOpenWildQuest : undefined} className={iconBtn(isQuestLocked)}>
                                 <div className="relative leading-none">
-                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{getQuestIcon()}</span>
+                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🗿</span>
                                     {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-yellow-400"></div>}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
+                            </button>
+
+                            <button onClick={!isQuestLocked ? onOpenDiceQuest : undefined} className={iconBtn(isQuestLocked)}>
+                                <div className="relative leading-none">
+                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎲</span>
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
                             </button>
 
                             <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>

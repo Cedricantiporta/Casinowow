@@ -282,7 +282,7 @@ const App: React.FC = () => {
   };
 
   const handleToggleVIP = () => {
-      if (playerRef.current.level < 40) {
+      if (playerRef.current.level < 30) {
           audioService.playStoneBreak();
           setCelebrationMsg("VIP Limit Unlocks at Level 40");
           return;
@@ -924,7 +924,7 @@ const App: React.FC = () => {
     if (!isFreeSpin) {
       // Piggy Bank Logic: 5% of Bet, Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
-          const savings = currentBet * 0.05;
+          const savings = currentBet * 0.10;
           const cap = player.level * 25000000;
           setPlayer(prev => ({ 
               ...prev, 
@@ -1238,6 +1238,28 @@ const App: React.FC = () => {
       openModal('MINIGAME');
       audioService.playClick();
   };
+
+  const handleWildQuestClaim = () => {
+      if (player.level < 20) {
+          setCelebrationMsg("Quest Unlocks at Level 20!");
+          audioService.playStoneBreak();
+          return;
+      }
+      setQuest(q => ({ ...q, activeGame: 'WILD' }));
+      openModal('MINIGAME');
+      audioService.playClick();
+  };
+
+  const handleDiceQuestClaim = () => {
+      if (player.level < 20) {
+          setCelebrationMsg("Quest Unlocks at Level 20!");
+          audioService.playStoneBreak();
+          return;
+      }
+      setQuest(q => ({ ...q, activeGame: 'DICE' }));
+      openModal('MINIGAME');
+      audioService.playClick();
+  };
   const handleBuyPicks = (amount: number, cost: number, currency: 'CREDITS' | 'GEMS') => {
       if (currency === 'CREDITS') {
           if (quest.credits >= cost) {
@@ -1311,9 +1333,9 @@ const App: React.FC = () => {
           return;
       }
       
-      if (highLimit && currentLevel < 40) {
+      if (highLimit && currentLevel < 30) {
           audioService.playStoneBreak();
-          setCelebrationMsg("VIP Limit Unlocks at Level 40");
+          setCelebrationMsg("VIP Limit Unlocks at Level 30");
           return;
       }
 
@@ -1578,9 +1600,10 @@ const App: React.FC = () => {
 
       <main className="relative pt-0 w-full flex-1 flex flex-col overflow-hidden min-h-0">
         {currentView === 'LOBBY' ? (
-            <Lobby 
-                onSelectGame={handleGameSelect} 
-                onOpenQuest={handleQuestClaim}
+            <Lobby
+                onSelectGame={handleGameSelect}
+                onOpenWildQuest={handleWildQuestClaim}
+                onOpenDiceQuest={handleDiceQuestClaim}
                 onOpenMissions={openMissionsModal}
                 onOpenBattlePass={openBattlePassModal}
                 onClaimBonus={handleOpenTimeBonus}
@@ -1609,7 +1632,7 @@ const App: React.FC = () => {
                         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
                             style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', border: isHighLimit ? '1.5px solid #8b6200' : '1.5px solid #38106e', borderRadius:'21px', padding:'9px 6px', gap:'3px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
                             <button
-                                onClick={!isQuestLocked ? handleQuestClaim : undefined}
+                                onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                                 style={{ padding:'7px 3px' }}
                             >
@@ -1617,10 +1640,21 @@ const App: React.FC = () => {
                                     ? <span className="text-2xl leading-none">🔒</span>
                                     : <>
                                         {qReady && <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-yellow-400 z-10"></div>}
-                                        <span className="text-[30px] leading-none">{quest.activeGame === 'DICE' ? '🎲' : quest.activeGame === 'WILD' ? '🗿' : '🗺️'}</span>
+                                        <span className="text-[30px] leading-none">🗿</span>
                                       </>
                                 }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
+                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
+                            </button>
+                            <button
+                                onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
+                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                style={{ padding:'7px 3px' }}
+                            >
+                                {isQuestLocked
+                                    ? <span className="text-xl leading-none">🔒</span>
+                                    : <span className="text-[30px] leading-none">🎲</span>
+                                }
+                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
                             </button>
                             <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
                             <button

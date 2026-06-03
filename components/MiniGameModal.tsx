@@ -323,7 +323,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     };
 
     const handleBackToSelection = () => {
-        onSelectMode('NONE');
+        onClose();
     };
 
     const handleBoardScroll = (direction: 'LEFT' | 'RIGHT') => {
@@ -337,42 +337,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black animate-pop-in">
-            {/* GAME SELECTION SCREEN */}
-            {activeGame === 'NONE' && (
-                <div className="w-full h-full max-w-none flex flex-col items-center justify-center p-4 relative bg-[#180e07] rounded-none shadow-2xl overflow-hidden">
-                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-15 pointer-events-none"></div>
-                     <div className="round-btn absolute top-2.5 right-2.5 z-50 cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
-                     
-                     <h2 className="text-lg font-black font-heavy text-[#e6c288] uppercase mb-4 text-center z-13">Choose Quest</h2>
-                     
-                     <div className="flex flex-row gap-3 z-10 items-center">
-                          {/* Wild Quest Card */}
-                          <button onClick={() => onSelectMode('WILD')} className="group relative w-32 h-44 bg-[#2a1b12] rounded-xl hover:scale-105 transition-transform flex flex-col items-center overflow-hidden">
-                              <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/85 z-10"></div>
-                              <div className="relative z-20 flex-1 flex items-center justify-center">
-                                  <div className="text-4xl group-hover:scale-105 transition-transform">🗿</div>
-                              </div>
-                              <div className="relative z-20 w-full bg-black/70 p-2 text-center">
-                                  <h3 className="text-[10px] font-black text-[#e6c288] uppercase tracking-wider leading-none">Wild</h3>
-                                  <p className="text-[#a1887f] text-[7px] font-bold mt-1 leading-none">Find gems!</p>
-                              </div>
-                          </button>
-
-                          {/* Dice Quest Card */}
-                          <button onClick={() => onSelectMode('DICE')} className="group relative w-32 h-44 bg-[#1a237e] rounded-xl hover:scale-105 transition-transform flex flex-col items-center overflow-hidden">
-                              <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/85 z-10"></div>
-                              <div className="relative z-20 flex-1 flex items-center justify-center">
-                                  <div className="text-4xl group-hover:scale-105 transition-transform">🎲</div>
-                              </div>
-                              <div className="relative z-20 w-full bg-black/70 p-2 text-center">
-                                  <h3 className="text-[10px] font-black text-[#ffeb3b] uppercase tracking-wider leading-none">Dice</h3>
-                                  <p className="text-[#c5cae9] text-[7px] font-bold mt-1 leading-none">Roll & win!</p>
-                              </div>
-                          </button>
-                     </div>
-                </div>
-            )}
-
             {/* WILD QUEST GAMEPLAY */}
             {activeGame === 'WILD' && (
                 <div className="w-full max-w-none h-full flex flex-col bg-[#2a1b12] rounded-none shadow-2xl relative overflow-hidden">
