@@ -13,6 +13,7 @@ interface LobbyProps {
     onClaimBonus: () => void;
     onOpenCollection: () => void;
     onOpenPiggyBank: () => void;
+    onOpenInbox: () => void;
     onToggleVIP: () => void;
     questState: QuestState;
     missionState: MissionState;
@@ -31,6 +32,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     onClaimBonus, 
     onOpenCollection,
     onOpenPiggyBank,
+    onOpenInbox,
     onToggleVIP,
     questState, 
     missionState, 
@@ -363,12 +365,17 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
                             </button>
 
+                            <button onClick={onOpenInbox} className={iconBtn(false)}>
+                                <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📬</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Inbox</span>
+                            </button>
+
                             <button onClick={!isVipLocked ? onToggleVIP : undefined} className={iconBtn(isVipLocked)}>
                                 <div className="relative leading-none">
                                     <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isHighLimit ? '👑' : '🧢'}</span>
                                     {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border-2 border-yellow-400"></div>}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP'}</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP Lounge'}</span>
                             </button>
 
                         </div>

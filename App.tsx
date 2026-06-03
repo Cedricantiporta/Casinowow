@@ -925,7 +925,7 @@ const App: React.FC = () => {
       // Piggy Bank Logic: 5% of Bet, Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
           const savings = currentBet * 0.10;
-          const cap = player.level * 25000000;
+          const cap = player.level * 7500000;
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
@@ -1609,6 +1609,7 @@ const App: React.FC = () => {
                 onClaimBonus={handleOpenTimeBonus}
                 onOpenCollection={() => openModal('COLLECTION')}
                 onOpenPiggyBank={handleOpenPiggyBank}
+                onOpenInbox={() => setCelebrationMsg("Inbox coming soon!")}
                 onToggleVIP={handleToggleVIP}
                 questState={quest}
                 missionState={missionState}
