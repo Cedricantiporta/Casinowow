@@ -127,25 +127,25 @@
       .barA,.barB{background:linear-gradient(180deg,#7c3fb5,#4a1880);border:1.5px solid #38106e;}
 
       /* ===== JACKPOT BAR (5 tiers, boxed numbers) ===== */
-      .jackpot{display:flex;align-items:stretch;gap:4px;padding:0px;margin:0 12px;
+      .jackpot{display:flex;align-items:stretch;gap:2px;padding:0px;margin:0 8px;
         background:none;border:none;box-shadow:none;}
       @media (min-width: 768px) {
-        .jackpot { margin: 0 24px; gap: 6px; }
+        .jackpot { margin: 0 12px; gap: 3px; }
       }
-      .jp{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;}
-      .jp-tier{font-family:'Titan One',cursive !important;font-weight:900;font-size:14px;letter-spacing:0.3px;line-height:1;margin-bottom:1px;}
+      .jp{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;}
+      .jp-tier{font-family:'Titan One',cursive !important;font-weight:900;font-size:10px;letter-spacing:0.2px;line-height:1;margin-bottom:1px;}
       @media (min-width: 768px) {
-        .jp-tier { font-size: 22px; }
+        .jp-tier { font-size: 11px; }
       }
-      .jp-box{width:100%;border-radius:6px;padding:1.5px 3px;background:#160835;
-        box-shadow:inset 0 1.5px 3px rgba(0,0,0,0.73);border:1.5px solid;}
+      .jp-box{width:100%;border-radius:4px;padding:1px 2px;background:#160835;
+        box-shadow:inset 0 1px 2px rgba(0,0,0,0.73);border:1px solid;}
       @media (min-width: 768px) {
-        .jp-box { border-radius: 7px; padding: 3px 6px; border-width: 2.2px; }
+        .jp-box { border-radius: 5px; padding: 2px 4px; border-width: 1.5px; }
       }
-      .jp-amt{font-family:'Nunito',sans-serif !important;font-weight:900;font-size:8px;line-height:1.1;color:#fff;white-space:nowrap;
-        text-shadow:0 1px 1.5px rgba(0,0,0,0.9);overflow:hidden;text-overflow:ellipsis;}
+      .jp-amt{font-family:'Nunito',sans-serif !important;font-weight:900;font-size:6px;line-height:1.1;color:#fff;white-space:nowrap;
+        text-shadow:0 1px 1px rgba(0,0,0,0.9);overflow:hidden;text-overflow:ellipsis;}
       @media (min-width: 768px) {
-        .jp-amt { font-size: 13px; }
+        .jp-amt { font-size: 7px; }
       }
 
       /* tier colors: title gradient + box border */
@@ -160,14 +160,14 @@
       .t-gold .jp-tier{background:linear-gradient(180deg,#fff5c0,#ffd84a 50%,#e89000);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 1px 1.5px #5a3000);}
       .t-gold .jp-box{border-color:#f0b020;}
 
-      .barA{display:flex;align-items:stretch;gap:4px;border-radius:0px;padding:5px;height:56px;}
+      .barA{display:flex;align-items:stretch;gap:4px;border-radius:0px;padding:5px;height:50px;}
       .icon-btn{background:linear-gradient(180deg,#9b6ce0,#5022a8);border:1px solid #38106e;border-radius:7px;
         display:flex;flex-direction:column;align-items:center;justify-content:flex-end;color:#fff;cursor:pointer;z-index:1;
         box-shadow:inset 0 1px 2px rgba(255,255,255,0.5),inset 0 -2px 2px rgba(0,0,0,0.3);min-width:44px;padding:2px 0 3px;gap:1px;}
       .icon-btn i{font-size:18px;}
       .icon-btn span{font-size:7px;font-weight:900;}
       @media (min-width: 768px) {
-        .barA { gap: 6px; height: 64px; }
+        .barA { gap: 6px; height: 58px; }
         .icon-btn { min-width: 52px; padding: 4px 0 3px; gap: 1px; }
         .icon-btn i { font-size: 24px; }
         .icon-btn span { font-size: 8px; }
@@ -215,9 +215,9 @@
         .spinA .sub { font-size: 8px; letter-spacing: 0.3px; margin-top: 4px; -webkit-text-stroke: 1.5px #b6ff66; }
       }
 
-      .barB{display:flex;align-items:center;gap:4px;border-radius:0px;padding:4px 5px;height:36px;overflow:visible;}
+      .barB{display:flex;align-items:center;gap:4px;border-radius:0px;padding:4px 5px;height:29px;overflow:visible;}
       @media (min-width: 768px) {
-        .barB { gap: 7px; padding: 5px 6px; height: 44px; }
+        .barB { gap: 7px; padding: 5px 6px; height: 35px; } 
       }
       .round-btn{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;z-index:1;
         color:#fff;font-size:17px;cursor:pointer;

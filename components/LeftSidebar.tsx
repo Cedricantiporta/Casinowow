@@ -63,47 +63,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
             {/* Missions Widget Group - Unlocked or Locked always visible */}
             <div className="pointer-events-auto flex flex-col gap-6 items-center animate-pop-in">
                 
-                {/* Mission Button */}
-                <div className="relative flex flex-col items-center justify-center">
-                    <button 
-                        onClick={isMissionsUnlocked ? onOpenMissions : undefined}
-                        className={`group relative w-14 h-14 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-indigo-900 to-[#2e1065] shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible z-10 ${!isMissionsUnlocked ? 'grayscale opacity-60' : ''}`}
-                    >
-                        <div className="absolute inset-0 rounded-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none overflow-hidden"></div>
-                        <div className="flex flex-col items-center justify-center">
-                             <div className="text-2xl md:text-4xl drop-shadow-md group-hover:-translate-y-1 transition-transform mb-1">📜</div>
-                             <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)] z-10">
-                                MISSION
-                             </span>
-                        </div>
-                        
-                        {missionsReady > 0 && isMissionsUnlocked && (
-                            <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-black animate-bounce shadow-lg border-2 border-white z-20">
-                                {missionsReady}
-                            </div>
-                        )}
-                    </button>
-                    
-                    {!isMissionsUnlocked && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 backdrop-blur-[1px] rounded-full z-20 pointer-events-none">
-                            <span className="text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">🔒</span>
-                            <span className="text-white text-[8px] px-1 rounded font-bold bg-red-600 shadow-md mt-0.5">Lvl 10</span>
-                        </div>
-                    )}
-                    
-                    {/* Conditional Collect Pill - Positioned Absolute */}
-                    {missionsReady > 0 && isMissionsUnlocked && (
-                        <span className={`
-                            absolute -bottom-1 left-1/2 -translate-x-1/2 z-20
-                            px-2 py-0.5 rounded-full text-[8px] font-black uppercase drop-shadow-md animate-pulse shadow-lg border whitespace-nowrap
-                            ${isMissionXpBoosted 
-                                ? 'bg-yellow-500 text-black border-yellow-300' 
-                                : 'bg-green-600 text-white border-green-400'}
-                        `}>
-                            {isMissionXpBoosted ? 'COLLECT 2X' : 'COLLECT'}
-                        </span>
-                    )}
-                </div>
+                {/* Mission button removed for in-game floating UI per request */}
 
                 {/* Season Pass Button */}
                 <div className="relative flex flex-col items-center justify-center">
