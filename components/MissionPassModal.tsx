@@ -156,7 +156,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             </div>
                             <button onClick={() => setView('PASS')} className="btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white font-black uppercase text-[10px] px-3 py-1.5 rounded-lg relative active:scale-95 shrink-0">
                                 Rewards
-                                {rewardsToClaimCount > 0 && <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-[10px] font-black animate-pulse">{rewardsToClaimCount}</div>}
+                                {rewardsToClaimCount > 0 && <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-green-500 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[12px] font-black animate-pulse" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>{rewardsToClaimCount}</div>}
                             </button>
                         </div>
 

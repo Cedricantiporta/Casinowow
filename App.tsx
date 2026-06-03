@@ -1607,7 +1607,7 @@ const App: React.FC = () => {
                                 {isQuestLocked
                                     ? <span className="text-2xl leading-none">🔒</span>
                                     : <>
-                                        {qReady && <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border border-white animate-bounce z-10"></div>}
+                                        {qReady && <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-yellow-400 animate-bounce z-10"></div>}
                                         <span className="text-[30px] leading-none">{quest.activeGame === 'DICE' ? '🎲' : quest.activeGame === 'WILD' ? '🗿' : '🗺️'}</span>
                                       </>
                                 }
@@ -1623,7 +1623,7 @@ const App: React.FC = () => {
                                     ? <span className="text-2xl leading-none">🔒</span>
                                     : <>
                                         {totalNotifs > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-6 h-6 bg-red-600 rounded-full border border-white flex items-center justify-center text-[11px] text-white font-bold z-10 animate-pulse">
+                                            <div className="absolute -top-0.5 -right-0.5 w-6 h-6 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[14px] text-white font-black z-10 animate-pulse" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                                 {totalNotifs}
                                             </div>
                                         )}

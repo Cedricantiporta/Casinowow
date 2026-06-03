@@ -202,7 +202,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     {/* Title overlays at bottom */}
                                     <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
                                         <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
-                                            style={{textShadow:'0 1px 4px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.8)'}}>
+                                            style={{ WebkitTextStroke:'1.5px rgba(0,0,0,0.95)', paintOrder:'stroke fill' }}>
                                             {game.name}
                                         </h3>
                                     </div>
@@ -283,7 +283,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isQuestLocked ? onOpenQuest : undefined} className={iconBtn(isQuestLocked)}>
                                 <div className="relative leading-none">
                                     <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{getQuestIcon()}</span>
-                                    {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-white animate-bounce"></div>}
+                                    {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border-2 border-yellow-400 animate-bounce"></div>}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
                             </button>
@@ -292,7 +292,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative leading-none">
                                     <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎫</span>
                                     {totalMissionNotifs > 0 && !isMissionsLocked && (
-                                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white flex items-center justify-center text-[6px] text-white font-bold animate-pulse">
+                                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[9px] text-white font-black animate-pulse" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                             {totalMissionNotifs}
                                         </div>
                                     )}
@@ -328,7 +328,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     }}>
                                         {isReadyToCollect ? 'COLLECT' : formatTime(timeLeft)}
                                     </div>
-                                    {isReadyToCollect && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] font-bold text-white z-10">!</div>}
+                                    {isReadyToCollect && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] font-black text-white z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>!</div>}
                                 </div>
                                 {/* spacer for the COLLECT badge overflow */}
                                 <div style={{ height:'14px' }}></div>
@@ -347,7 +347,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isVipLocked ? onToggleVIP : undefined} className={iconBtn(isVipLocked)}>
                                 <div className="relative leading-none">
                                     <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isHighLimit ? '👑' : '🧢'}</span>
-                                    {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border border-white animate-pulse"></div>}
+                                    {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border-2 border-yellow-400 animate-pulse"></div>}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP'}</span>
                             </button>
