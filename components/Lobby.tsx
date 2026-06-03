@@ -42,6 +42,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const [grandJackpot, setGrandJackpot] = useState(() =>
         5_000_000 + Math.floor(Math.random() * 5_000_000)
     );
+    const [canScroll, setCanScroll] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -56,9 +57,19 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setGrandJackpot(prev => prev + Math.floor(Math.random() * 4000 + 800));
-        }, 2500);
+            setGrandJackpot(prev => prev + Math.floor(Math.random() * 150 + 30));
+        }, 80);
         return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const check = () => setCanScroll(el.scrollWidth > el.clientWidth + 4);
+        check();
+        const ro = new ResizeObserver(check);
+        ro.observe(el);
+        return () => ro.disconnect();
     }, []);
 
     const isReadyToCollect = timeLeft === 0;
@@ -175,15 +186,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     ${isLocked ? 'cursor-not-allowed grayscale' : ''}
                                 `}
                             >
-                                {/* Jackpot Pill — 3D purple, shows grand jackpot */}
+                                {/* Jackpot number — no container, constantly ticking */}
                                 {!isLocked && (
-                                    <div className="absolute -top-[17px] left-0 right-0 z-30 pointer-events-none">
-                                        <div className="w-full py-[2px] relative overflow-hidden" style={{ background:'linear-gradient(180deg,#9050cc,#4a1880)', border:'1.5px solid #38106e', borderRadius:'4px', boxShadow:'0 2px 0 #1a0838, 0 3px 6px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.2)' }}>
-                                            <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'50%', background:'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }}></div>
-                                            <span className="block text-center relative z-10" style={{ fontSize:'11px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px' }}>
-                                                {formatCommaNumber(grandJackpot)}
-                                            </span>
-                                        </div>
+                                    <div className="absolute -top-[18px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
+                                        <span style={{ fontSize:'16px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px', lineHeight:1, textShadow:'none', filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
+                                            {formatCommaNumber(grandJackpot)}
+                                        </span>
                                     </div>
                                 )}
 
@@ -221,27 +229,31 @@ export const Lobby: React.FC<LobbyProps> = ({
                     <div className="w-8"></div>
                 </div>
  
-                {/* Left arrow */}
-                <button
-                    onMouseDown={() => startScroll('LEFT')}
-                    onMouseUp={stopScroll}
-                    onMouseLeave={stopScroll}
-                    onTouchStart={() => startScroll('LEFT')}
-                    onTouchEnd={stopScroll}
-                    className="absolute left-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
-                    style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
-                >◀</button>
+                {/* Left arrow — only when scrollable */}
+                {canScroll && (
+                    <button
+                        onMouseDown={() => startScroll('LEFT')}
+                        onMouseUp={stopScroll}
+                        onMouseLeave={stopScroll}
+                        onTouchStart={() => startScroll('LEFT')}
+                        onTouchEnd={stopScroll}
+                        className="absolute left-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
+                        style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
+                    >◀</button>
+                )}
 
-                {/* Right arrow */}
-                <button
-                    onMouseDown={() => startScroll('RIGHT')}
-                    onMouseUp={stopScroll}
-                    onMouseLeave={stopScroll}
-                    onTouchStart={() => startScroll('RIGHT')}
-                    onTouchEnd={stopScroll}
-                    className="absolute right-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
-                    style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
-                >▶</button>
+                {/* Right arrow — only when scrollable */}
+                {canScroll && (
+                    <button
+                        onMouseDown={() => startScroll('RIGHT')}
+                        onMouseUp={stopScroll}
+                        onMouseLeave={stopScroll}
+                        onTouchStart={() => startScroll('RIGHT')}
+                        onTouchEnd={stopScroll}
+                        className="absolute right-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
+                        style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
+                    >▶</button>
+                )}
             </div>
  
             {/* Bottom bar — flat center, sides curve sharply down (corner-cutout technique) */}

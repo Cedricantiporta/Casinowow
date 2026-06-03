@@ -37,6 +37,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const [activeTab, setActiveTab] = useState<MissionFrequency>('DAILY');
     const [showPremiumInfo, setShowPremiumInfo] = useState(false);
     const rewardsContainerRef = useRef<HTMLDivElement>(null);
+    const missionScrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -87,6 +88,10 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
     const fmt = (n: number) => n.toLocaleString('en-US');
 
+    /* Shared button style — uniform size for pass action row */
+    const passBtn = "btn-3d font-black uppercase text-[8px] rounded-lg flex items-center justify-center";
+    const passBtnSize = { width: '54px', height: '26px', flexShrink: 0 as const };
+
     return (
         <div className="fixed inset-0 z-[150] flex flex-col bg-[#0d0814] animate-pop-in">
             {showPremiumInfo && (
@@ -96,7 +101,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
                             <button onClick={() => setShowPremiumInfo(false)} className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-50 text-xs">✕</button>
                             <h2 className="text-xl font-black font-display text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-500 uppercase tracking-widest mb-2">Premium Pass</h2>
-                            <div className="text-4xl mb-3 animate-bounce">👑</div>
+                            <div className="text-4xl mb-3">👑</div>
                             <ul className="space-y-2 mb-4 text-left w-full max-w-xs relative z-10 text-xs">
                                 <li className="flex items-center gap-2"><span>🚀</span><span className="text-white font-bold">Unlock Premium Rewards</span></li>
                                 <li className="flex items-center gap-2"><span>⚡</span><span className="text-white font-bold">+20 Instant Levels</span></li>
@@ -115,151 +120,227 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                 </div>
             )}
 
-            <div className="w-full h-full flex flex-col relative">
+            <div className="w-full h-full flex flex-col relative overflow-hidden">
 
-                {/* Header — coins/gems pills + close */}
-                <div className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0" style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', borderBottom:'1.5px solid #38106e' }}>
-                    <div className="flex items-center gap-2">
-                        {view === 'PASS' && (
-                            <button onClick={() => setView('MISSIONS')} className="text-white text-lg font-bold px-1 mr-1 active:scale-95 transition-transform">⬅</button>
-                        )}
-                        <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
-                            <div className="coin">$</div>
-                            <span className="num font-mono">{fmt(Math.floor(balance))}</span>
+                {/* ===== TOPBAR ===== */}
+                {view === 'MISSIONS' ? (
+                    /* MISSIONS topbar: back(close) | coins | gems | DAILY/WEEKLY/MONTHLY tabs | flex-1 | level badge + bar | REWARDS */
+                    <div className="font-nunito w-full flex items-center gap-1.5 px-3 shrink-0 select-none"
+                        style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', borderBottom:'1.5px solid #38106e', height:'40px', boxShadow:'0 4px 8px rgba(0,0,0,0.4)' }}>
+
+                        {/* Home/close btn — same design as topbar home button */}
+                        <div className="round-btn shrink-0" onClick={onClose}>
+                            <i className="ti ti-home"></i>
                         </div>
-                        <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
+
+                        {/* Currency pills */}
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
+                            <div className="coin">$</div>
+                            <span className="num">{fmt(Math.floor(balance))}</span>
+                        </div>
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
                             <div className="gem"></div>
-                            <span className="num font-mono">{fmt(diamonds)}</span>
+                            <span className="num">{fmt(diamonds)}</span>
+                        </div>
+
+                        {/* Tabs — left side */}
+                        <div className="flex items-center gap-0.5 ml-1 shrink-0">
+                            {(['DAILY', 'WEEKLY', 'MONTHLY'] as MissionFrequency[]).map(tab => (
+                                <button key={tab} onClick={() => setActiveTab(tab)}
+                                    className={`px-2 py-1 rounded-md font-black uppercase text-[8px] leading-none transition-all ${activeTab === tab ? 'btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white' : 'text-gray-400 hover:text-white'}`}>
+                                    {tab === 'DAILY' ? 'Daily' : tab === 'WEEKLY' ? 'Weekly' : 'Monthly'}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex-1"></div>
+
+                        {/* Pass level badge + XP bar */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center shadow-md">
+                                <span className="font-black text-[10px] text-white">{missionState.passLevel}</span>
+                            </div>
+                            <div className="w-14 h-2 bg-black/60 rounded-full overflow-hidden border border-white/10">
+                                <div className="h-full bg-gradient-to-r from-fuchsia-500 to-purple-600 transition-all" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
+                            </div>
+                        </div>
+
+                        {/* REWARDS button */}
+                        <button onClick={() => setView('PASS')}
+                            className="btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white font-black uppercase text-[9px] px-2.5 py-1 rounded-lg relative shrink-0 active:scale-95">
+                            REWARDS
+                            {rewardsToClaimCount > 0 && (
+                                <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-green-500 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[9px] font-black" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                    {rewardsToClaimCount}
+                                </div>
+                            )}
+                        </button>
+                    </div>
+                ) : (
+                    /* PASS topbar: back | coins | gems | "Season Pass" + XP | flex-1 | [JUMP][CLAIM ALL][+LVL][PREMIUM] */
+                    <div className="font-nunito w-full flex items-center gap-1.5 px-3 shrink-0 select-none"
+                        style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', borderBottom:'1.5px solid #38106e', height:'40px', boxShadow:'0 4px 8px rgba(0,0,0,0.4)' }}>
+
+                        {/* Back btn — same round-btn style as home button */}
+                        <div className="round-btn shrink-0" onClick={() => setView('MISSIONS')}>
+                            <i className="ti ti-arrow-left"></i>
+                        </div>
+
+                        {/* Currency pills */}
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
+                            <div className="coin">$</div>
+                            <span className="num">{fmt(Math.floor(balance))}</span>
+                        </div>
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
+                            <div className="gem"></div>
+                            <span className="num">{fmt(diamonds)}</span>
+                        </div>
+
+                        {/* Season Pass title + XP */}
+                        <div className="flex flex-col ml-1 shrink-0 leading-none">
+                            <span className="text-white font-black text-[9px] uppercase tracking-wide">Season Pass</span>
+                            <span className="text-yellow-300 font-mono text-[8px] mt-0.5">{missionState.passXP}/{missionState.passXpToNext} XP</span>
+                        </div>
+
+                        <div className="flex-1"></div>
+
+                        {/* Action buttons — all exactly the same size */}
+                        <div className="flex items-center gap-1 shrink-0">
+                            <button onClick={jumpToCurrentLevel}
+                                className={`${passBtn} bg-gradient-to-b from-white/20 to-white/5 text-white`}
+                                style={{ ...passBtnSize, border:'1px solid rgba(255,255,255,0.2)' }}>
+                                JUMP
+                            </button>
+                            <button onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
+                                className={`${passBtn} ${rewardsToClaimCount > 0 ? 'bg-gradient-to-b from-green-400 to-green-700 text-white' : 'text-gray-500'}`}
+                                style={{ ...passBtnSize, background: rewardsToClaimCount > 0 ? undefined : 'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)' }}>
+                                {rewardsToClaimCount > 0 ? `CLAIM(${rewardsToClaimCount})` : 'CLAIM'}
+                            </button>
+                            <button onClick={onBuyLevel}
+                                className={`${passBtn} bg-gradient-to-b from-indigo-500 to-indigo-800 text-white`}
+                                style={passBtnSize}>
+                                +LVL💎100
+                            </button>
+                            {!missionState.isPremium ? (
+                                <button onClick={() => setShowPremiumInfo(true)}
+                                    className={`${passBtn} bg-gradient-to-b from-yellow-300 to-yellow-600 text-black`}
+                                    style={passBtnSize}>
+                                    PREMIUM
+                                </button>
+                            ) : (
+                                <div className="flex items-center justify-center text-yellow-300 font-black text-[9px]"
+                                    style={passBtnSize}>
+                                    👑 VIP
+                                </div>
+                            )}
                         </div>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-white font-black text-sm transition-all hover:bg-white/20 active:scale-95"
-                        style={{ background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.2)' }}
-                    >✕</button>
-                </div>
+                )}
+
+                {/* ===== CONTENT ===== */}
 
                 {view === 'MISSIONS' && (
-                    <div className="flex-1 flex flex-col relative overflow-hidden">
-                        {/* Pass level + tab row */}
-                        <div className="px-3 py-2 bg-gradient-to-b from-[#1e142b] to-[#120b1c] flex items-center justify-between gap-2 shrink-0">
-                            <div className="flex items-center gap-2">
-                                <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-md shrink-0">
-                                    <span className="font-black text-sm text-white">{missionState.passLevel}</span>
-                                </div>
-                                <div>
-                                    <div className="text-purple-300 text-[8px] font-black uppercase tracking-widest">Pass Level</div>
-                                    <div className="w-24 h-1.5 bg-black rounded-full mt-0.5 shadow-inner overflow-hidden">
-                                        <div className="h-full bg-purple-600" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onClick={() => setView('PASS')} className="btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white font-black uppercase text-[10px] px-3 py-1.5 rounded-lg relative active:scale-95 shrink-0">
-                                Rewards
-                                {rewardsToClaimCount > 0 && <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-green-500 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[12px] font-black animate-pulse" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>{rewardsToClaimCount}</div>}
-                            </button>
-                        </div>
+                    <div className="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-b from-[#1a1025] to-[#0d0814]">
+                        {/* Horizontal mission cards with scroll arrows */}
+                        <div className="relative flex-1 flex items-center min-h-0">
+                            {/* Left arrow */}
+                            <button
+                                onClick={() => missionScrollRef.current?.scrollBy({ left: -170, behavior: 'smooth' })}
+                                className="absolute left-1 z-10 w-6 h-10 flex items-center justify-center text-white text-[10px] font-black select-none active:translate-y-[2px] transition-transform"
+                                style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}>◀</button>
 
-                        {/* Tabs */}
-                        <div className="flex justify-center py-2 shrink-0">
-                            <div className="bg-black/40 p-0.5 rounded-lg flex shadow-inner">
-                                {(['DAILY', 'WEEKLY', 'MONTHLY'] as MissionFrequency[]).map(tab => (
-                                    <button key={tab} onClick={() => setActiveTab(tab)}
-                                        className={`px-3 py-1 rounded-md font-black uppercase tracking-wider text-[10px] transition-all ${activeTab === tab ? 'btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white' : 'text-gray-500 hover:text-white'}`}>
-                                        {tab.charAt(0) + tab.slice(1).toLowerCase()}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto px-3 pb-3">
-                            <div className="flex flex-col gap-2 max-w-xl mx-auto w-full">
+                            <div ref={missionScrollRef} className="flex-1 h-full overflow-x-auto flex items-center gap-3 px-9 py-4 no-scrollbar snap-x">
                                 {currentMissions.map((mission) => (
-                                    <div key={mission.id} className={`rounded-xl ${mission.completed ? 'bg-gradient-to-r from-green-950 to-[#0e1c0e]' : 'bg-gradient-to-r from-[#2a233e] to-[#1e172e]'} flex items-center p-2.5 relative overflow-hidden shadow-md group gap-2.5 border border-white/5`}>
+                                    <div key={mission.id}
+                                        className={`flex-none w-[150px] h-[220px] flex flex-col gap-1.5 rounded-xl p-2.5 relative overflow-hidden shadow-lg snap-center border ${mission.completed ? 'bg-gradient-to-b from-[#0a2e0a] to-[#0e1c0e] border-green-900/40' : 'bg-gradient-to-b from-[#2a233e] to-[#1a1230] border-white/5'}`}>
                                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
 
-                                        <div className="relative z-10 w-10 h-10 bg-black/45 rounded-xl flex items-center justify-center text-2xl shrink-0 shadow-inner">
+                                        {/* Icon */}
+                                        <div className="w-10 h-10 bg-black/45 rounded-xl flex items-center justify-center text-2xl shrink-0 shadow-inner mx-auto relative z-10">
                                             {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? '💰' : '⭐'}
                                         </div>
 
-                                        <div className="relative z-10 flex-grow min-w-0 pr-1 select-none">
-                                            <div className="text-fuchsia-400 text-[8px] font-bold uppercase tracking-widest leading-none">Mission</div>
-                                            <div className="text-white font-black text-[11px] leading-snug drop-shadow-sm mb-1 truncate">{mission.description}</div>
-                                            <div className="w-full flex items-center gap-1.5">
-                                                <div className="flex-1 h-1.5 bg-black rounded-full overflow-hidden shadow-inner">
-                                                    <div className={`h-full bg-gradient-to-r ${mission.completed ? 'from-green-500 to-emerald-500' : 'from-fuchsia-500 to-purple-500'}`} style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%` }}></div>
-                                                </div>
-                                                <span className="text-purple-300 font-mono text-[9px] font-black shrink-0">{mission.completed ? '100%' : `${mission.current}/${mission.target}`}</span>
+                                        {/* Label */}
+                                        <div className="text-fuchsia-400 text-[8px] font-bold uppercase text-center leading-none relative z-10">Mission</div>
+
+                                        {/* Description */}
+                                        <div className="text-white font-black text-[10px] leading-snug text-center flex-1 relative z-10">{mission.description}</div>
+
+                                        {/* Progress */}
+                                        <div className="flex items-center gap-1 relative z-10">
+                                            <div className="flex-1 h-1.5 bg-black rounded-full overflow-hidden">
+                                                <div className={`h-full ${mission.completed ? 'bg-green-500' : 'bg-fuchsia-500'}`}
+                                                    style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%` }}></div>
                                             </div>
+                                            <span className="text-purple-300 font-mono text-[8px] shrink-0">
+                                                {mission.completed ? '✓' : `${mission.current}/${mission.target}`}
+                                            </span>
                                         </div>
 
-                                        <div className="relative z-10 flex flex-col items-end justify-between self-stretch shrink-0 min-w-[70px] pl-2.5" style={{ borderLeft:'1px solid rgba(255,255,255,0.08)' }}>
-                                            <div className="flex flex-col items-end leading-none text-right mb-1.5">
-                                                <span className={`font-mono text-[9px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
-                                                    +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} XP
-                                                </span>
-                                                <span className="text-gold-300 font-mono text-[8px] font-bold mt-0.5">+{formatNumber(mission.coinReward)}</span>
-                                            </div>
+                                        {/* Rewards */}
+                                        <div className="flex items-center justify-between relative z-10">
+                                            <span className={`font-mono text-[8px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
+                                                +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} XP
+                                            </span>
+                                            <span className="text-yellow-300 font-mono text-[8px] font-black">+{formatNumber(mission.coinReward)}</span>
+                                        </div>
+
+                                        {/* Action */}
+                                        <div className="relative z-10">
                                             {mission.completed ? (
-                                                <button onClick={() => onClaimMissionReward(mission)} className="btn-3d w-full py-1 bg-gradient-to-b from-green-500 to-green-700 rounded-lg text-white text-[9px] font-black uppercase">CLAIM</button>
+                                                <button onClick={() => onClaimMissionReward(mission)}
+                                                    className="btn-3d w-full py-1 bg-gradient-to-b from-green-500 to-green-700 text-white text-[9px] font-black uppercase rounded-md">
+                                                    CLAIM
+                                                </button>
                                             ) : (
-                                                <button onClick={() => onFinishMission(mission)} className="btn-3d w-full py-1 bg-gradient-to-b from-[#4a2e61] to-[#2e1845] rounded-lg text-cyan-200 text-[9px] font-bold uppercase flex items-center justify-center gap-0.5 active:scale-95">
-                                                    <span>Skip</span><span className="text-[8px] text-cyan-300">💎{diamondCostToSkip(mission.xpReward)}</span>
+                                                <button onClick={() => onFinishMission(mission)}
+                                                    className="btn-3d w-full py-1 bg-gradient-to-b from-[#4a2e61] to-[#2e1845] text-cyan-200 text-[8px] font-bold uppercase rounded-md flex items-center justify-center gap-0.5">
+                                                    SKIP 💎{diamondCostToSkip(mission.xpReward)}
                                                 </button>
                                             )}
                                         </div>
                                     </div>
                                 ))}
+
                                 {currentMissions.length === 0 && (
-                                    <div className="flex flex-col items-center justify-center bg-white/5 rounded-xl h-36 text-gray-500 font-bold uppercase tracking-widest text-center text-xs p-4 border border-dashed border-white/10">
-                                        <span>🎉</span>
-                                        <span className="mt-2 text-[10px] tracking-widest text-purple-300">All missions completed</span>
+                                    <div className="flex-none w-[200px] h-[180px] flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 text-center p-4">
+                                        <span className="text-3xl">🎉</span>
+                                        <span className="mt-2 text-[10px] text-purple-300 font-bold uppercase tracking-widest">All Done!</span>
                                     </div>
                                 )}
                             </div>
+
+                            {/* Right arrow */}
+                            <button
+                                onClick={() => missionScrollRef.current?.scrollBy({ left: 170, behavior: 'smooth' })}
+                                className="absolute right-1 z-10 w-6 h-10 flex items-center justify-center text-white text-[10px] font-black select-none active:translate-y-[2px] transition-transform"
+                                style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}>▶</button>
                         </div>
                     </div>
                 )}
 
                 {view === 'PASS' && (
                     <div className="flex-1 flex flex-col bg-black relative">
+                        {/* Rewards scroll arrows */}
                         <div className="absolute top-[45%] left-0 right-0 z-20 pointer-events-none flex justify-between px-2">
                             <button onClick={() => handleScroll('LEFT')} className="btn-3d w-8 h-8 bg-gradient-to-b from-[#6030a8] to-[#3a1870] text-white rounded-full flex items-center justify-center pointer-events-auto text-xs font-black">◀</button>
                             <button onClick={() => handleScroll('RIGHT')} className="btn-3d w-8 h-8 bg-gradient-to-b from-[#6030a8] to-[#3a1870] text-white rounded-full flex items-center justify-center pointer-events-auto text-xs font-black">▶</button>
                         </div>
 
-                        {/* Pass header — compact, no separator */}
-                        <div className="px-3 py-2 bg-gradient-to-b from-[#1e142b] to-[#0f0816] shrink-0 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                                <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-gold-400 to-orange-600 flex items-center justify-center shadow shrink-0">
-                                    <span className="font-black text-sm text-white">{missionState.passLevel}</span>
-                                </div>
-                                <div>
-                                    <h3 className="text-white font-black uppercase text-[10px] tracking-wider italic leading-none">Season Pass</h3>
-                                    <span className="text-gold-400 font-mono text-[9px] font-bold">{missionState.passXP}/{missionState.passXpToNext} XP</span>
-                                </div>
+                        {/* Pass level strip */}
+                        <div className="px-4 py-2 bg-gradient-to-b from-[#1e142b] to-[#0f0816] shrink-0 flex items-center gap-3">
+                            <div className="relative w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center shadow shrink-0">
+                                <span className="font-black text-sm text-white">{missionState.passLevel}</span>
                             </div>
-
-                            <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                                <button onClick={jumpToCurrentLevel} className="btn-3d bg-gradient-to-b from-white/20 to-white/5 text-white text-[8px] font-bold px-2 py-1.5 rounded-lg uppercase" style={{ border:'1px solid rgba(255,255,255,0.15)' }}>
-                                    Jump
-                                </button>
-                                {rewardsToClaimCount > 0 && (
-                                    <button onClick={onClaimAll} className="btn-3d bg-gradient-to-b from-green-400 to-green-700 text-white text-[9px] font-black px-2 py-1.5 rounded-lg uppercase">Claim All ({rewardsToClaimCount})</button>
-                                )}
-                                <button onClick={onBuyLevel} className="btn-3d bg-gradient-to-b from-indigo-600 to-indigo-900 text-white text-[8px] font-bold px-2 py-1.5 rounded-lg uppercase">
-                                    +Lvl 💎100
-                                </button>
-                                {!missionState.isPremium ? (
-                                    <button onClick={() => setShowPremiumInfo(true)} className="btn-3d px-2 py-1.5 bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-lg">
-                                        <span className="font-black text-black text-[9px] uppercase italic tracking-wider">GET PREMIUM</span>
-                                    </button>
-                                ) : (
-                                    <span className="text-gold-300 font-black uppercase tracking-widest text-[9px] bg-gold-950/40 px-2 py-1 rounded-md">👑 Premium</span>
-                                )}
+                            <div className="flex-1 min-w-0">
+                                <div className="text-purple-300 text-[8px] font-black uppercase tracking-widest leading-none">Pass Level</div>
+                                <div className="w-full h-1.5 bg-black rounded-full mt-1 overflow-hidden">
+                                    <div className="h-full bg-purple-600 transition-all" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
+                                </div>
                             </div>
                         </div>
 
+                        {/* Rewards horizontal scroll */}
                         <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar bg-gradient-to-b from-[#1a1025] to-black snap-x">
                             {levels.map((lvl) => {
                                 const rewards = missionState.passRewards.filter(r => r.level === lvl);
@@ -285,8 +366,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             <div className="flex-1 flex flex-col items-center justify-center w-full relative">
                                                 {!missionState.isPremium && <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-[1px]"><span className="text-3xl text-white">🔒</span></div>}
                                                 <div className="text-3xl mb-1">{premReward?.type === 'COINS' ? '💰' : premReward?.type === 'DIAMONDS' ? '💎' : premReward?.type === 'PICKS' ? '⛏️' : '👑'}</div>
-                                                <span className={`font-black text-[10px] text-center leading-tight mb-1 drop-shadow-md ${missionState.isPremium ? 'text-gold-100' : 'text-gray-500'}`}>{premReward ? getDisplayValue(premReward) : ''}</span>
-                                                <span className={`text-[8px] uppercase font-bold px-2 py-0.5 rounded-full ${missionState.isPremium ? 'text-gold-400 bg-black/50' : 'text-gray-600 bg-black/20'}`}>Premium</span>
+                                                <span className={`font-black text-[10px] text-center leading-tight mb-1 drop-shadow-md ${missionState.isPremium ? 'text-yellow-100' : 'text-gray-500'}`}>{premReward ? getDisplayValue(premReward) : ''}</span>
+                                                <span className={`text-[8px] uppercase font-bold px-2 py-0.5 rounded-full ${missionState.isPremium ? 'text-yellow-400 bg-black/50' : 'text-gray-600 bg-black/20'}`}>Premium</span>
                                             </div>
                                             <button onClick={() => premReward && onClaimReward(premReward)} disabled={!isUnlocked || premReward?.claimed || !missionState.isPremium}
                                                 className={`btn-3d w-full py-1 text-[9px] font-black uppercase rounded-md ${isUnlocked && !premReward?.claimed && missionState.isPremium ? 'bg-gradient-to-b from-yellow-300 to-yellow-600 text-black' : 'bg-gray-800 text-gray-600 cursor-not-allowed'}`}>
