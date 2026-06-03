@@ -21,6 +21,7 @@ import { JackpotTicker } from './components/JackpotTicker';
 import { PiggyBankModal } from './components/PiggyBankModal';
 import { FeatureUnlockModal } from './components/FeatureUnlockModal';
 import { SettingsModal } from './components/SettingsModal';
+import { VipLoungeModal } from './components/VipLoungeModal';
 import { audioService } from './services/audioService';
 
 // Interface for persisted game state
@@ -123,6 +124,7 @@ const App: React.FC = () => {
   const [fastSpin, setFastSpin] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showVipLounge, setShowVipLounge] = useState(false);
   const savedFastSpinRef = useRef<boolean>(false); 
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [piggyGlow, setPiggyGlow] = useState(false);
@@ -284,11 +286,21 @@ const App: React.FC = () => {
   };
 
   const handleToggleVIP = () => {
-      if (playerRef.current.level < 30) {
-          audioService.playStoneBreak();
-          setCelebrationMsg("VIP Limit Unlocks at Level 40");
-          return;
-      }
+      setShowVipLounge(true);
+      audioService.playClick();
+  };
+
+  const handleJoinVip = () => {
+      setPlayer(p => ({
+          ...p,
+          isVip: true,
+          balance: p.balance + 500_000,
+          diamonds: p.diamonds + 500,
+      }));
+      audioService.playClick();
+  };
+
+  const handleToggleHighLimitFromLounge = () => {
       setIsHighLimit(prev => !prev);
       audioService.playClick();
   };
@@ -926,9 +938,9 @@ const App: React.FC = () => {
     }
 
     if (!isFreeSpin) {
-      // Piggy Bank Logic: 5% of Bet, Capped. Only saves if Level >= 5.
+      // Piggy Bank Logic: 10% of Bet (+ 10% extra if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
-          const savings = currentBet * 0.10;
+          const savings = currentBet * (player.isVip ? 0.20 : 0.10);
           const cap = player.level * 7500000;
           setPlayer(prev => ({ 
               ...prev, 
@@ -1065,8 +1077,9 @@ const App: React.FC = () => {
     if (totalPayout > 0) {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
        
-       const xpGained = Math.floor(Math.sqrt(currentBet) * 10 * player.xpMultiplier); 
-       
+       const vipXpMult = player.isVip ? 1.2 : 1.0;
+       const xpGained = Math.floor(Math.sqrt(currentBet) * 10 * player.xpMultiplier * vipXpMult);
+
        addXp(xpGained);
        updateMissions(MissionType.WIN_COINS, totalPayout);
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
@@ -1085,7 +1098,8 @@ const App: React.FC = () => {
            setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 300 : 1000);
        }
     } else {
-       const lossXp = Math.floor(Math.sqrt(currentBet) * 10 * player.xpMultiplier);
+       const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
+       const lossXp = Math.floor(Math.sqrt(currentBet) * 10 * player.xpMultiplier * vipXpMultLoss);
        addXp(lossXp);
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
@@ -1929,6 +1943,15 @@ const App: React.FC = () => {
               setCelebrationMsg('Dev Mode: Level 50 · 9T Coins · 100K Gems');
               audioService.playWinBig();
           }}
+      />
+
+      <VipLoungeModal
+          isOpen={showVipLounge}
+          onClose={() => setShowVipLounge(false)}
+          isVip={!!player.isVip}
+          isHighLimit={isHighLimit}
+          onJoinVip={handleJoinVip}
+          onToggleHighLimit={handleToggleHighLimitFromLounge}
       />
 
         </div>

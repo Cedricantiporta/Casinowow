@@ -352,8 +352,25 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             </button>
                                         </div>
 
-                                        {/* LVL label — between the two cards */}
-                                        <div className={`text-center font-black text-[10px] shrink-0 py-0.5 ${isUnlocked ? 'text-white' : 'text-gray-600'}`}>LVL {lvl}</div>
+                                        {/* Level node with connecting line */}
+                                        <div className="flex items-center justify-center shrink-0 relative" style={{ height: 34 }}>
+                                            {/* Left line half */}
+                                            <div className="absolute left-0 right-[50%]" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#7c3aed,#a855f7)' : '#1e1b4b' }} />
+                                            {/* Right line half */}
+                                            <div className="absolute left-[50%] right-0" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#7c3aed)' : '#1e1b4b' }} />
+                                            {/* Circle node */}
+                                            <div className="relative z-10 flex items-center justify-center font-black text-[9px] rounded-full"
+                                                style={{
+                                                    width: 28, height: 28,
+                                                    background: isUnlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827',
+                                                    border: `2px solid ${isUnlocked ? '#e879f9' : '#374151'}`,
+                                                    boxShadow: isUnlocked ? '0 2px 8px rgba(168,85,247,0.6),inset 0 1px 2px rgba(255,255,255,0.3)' : 'none',
+                                                    color: isUnlocked ? 'white' : '#4b5563',
+                                                    flexShrink: 0,
+                                                }}>
+                                                {lvl}
+                                            </div>
+                                        </div>
 
                                         {/* PREMIUM card — greyed/grayscale when locked, no blur */}
                                         <div className={`flex-1 bg-gradient-to-b ${missionState.isPremium ? 'from-[#451a03] to-[#2e1065]' : 'from-gray-800 to-black'} rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${!missionState.isPremium ? 'grayscale opacity-60' : premReward?.claimed ? 'opacity-50 grayscale' : ''}`}>

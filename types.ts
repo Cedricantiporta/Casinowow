@@ -61,6 +61,7 @@ export interface PlayerState {
   xpMultiplier: number;
   xpBoostEndTime: number;
   freeStashClaimed: boolean;
+  isVip?: boolean;
 }
 
 export interface Payline {

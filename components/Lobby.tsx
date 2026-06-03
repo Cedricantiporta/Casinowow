@@ -124,20 +124,13 @@ export const Lobby: React.FC<LobbyProps> = ({
         }
     };
 
-    const getUnlockLevel = (index: number) => {
-        // Game 0 (Piggy), 1 (Neon), 2 (Pharaoh) -> Unlocked
-        if (index < 3) return 0;
-        // Game 3 (Dragon) -> Unlocks at 32
-        // Game 4 (Pirate) -> Unlocks at 42
-        return 32 + (index - 3) * 10;
-    };
+    const getUnlockLevel = (index: number) => index * 5;
 
     // Feature Locks
     const isPiggyLocked = playerLevel < 5;
     const isQuestLocked = playerLevel < 20;
     const isMissionsLocked = playerLevel < 10;
     const isCardsLocked = playerLevel < 30;
-    const isVipLocked = playerLevel < 30;
 
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 relative overflow-hidden`}
@@ -378,12 +371,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Inbox</span>
                             </button>
 
-                            <button onClick={!isVipLocked ? onToggleVIP : undefined} className={iconBtn(isVipLocked)}>
+                            <button onClick={onToggleVIP} className={iconBtn(false)}>
                                 <div className="relative leading-none">
-                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isHighLimit ? '👑' : '🧢'}</span>
-                                    {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border-2 border-yellow-400"></div>}
+                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isHighLimit ? '👑' : '🎩'}</span>
+                                    {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full border-2 border-white"></div>}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP Lounge'}</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP HL' : 'VIP Lounge'}</span>
                             </button>
 
                         </div>
