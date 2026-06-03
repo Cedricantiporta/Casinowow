@@ -267,10 +267,10 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                 return (
                     <>
-                        {/* Bar background — curved arch: flat at very edges, dips toward center */}
+                        {/* Bar background — dome shape: rises at center for FREE COINS button */}
                         <div className="fixed bottom-0 left-0 right-0 z-[49]" style={{
-                            height: '52px',
-                            clipPath: 'polygon(0% 100%, 0% 0%, 14% 0%, 26% 20%, 38% 40%, 44% 55%, 50% 62%, 56% 55%, 62% 40%, 74% 20%, 86% 0%, 100% 0%, 100% 100%)',
+                            height: '72px',
+                            clipPath: 'polygon(0% 100%, 0% 72%, 16% 72%, 28% 46%, 38% 18%, 44% 5%, 50% 0%, 56% 5%, 62% 18%, 72% 46%, 84% 72%, 100% 72%, 100% 100%)',
                         }}>
                             <div className="absolute inset-0" style={{ background: barBg, boxShadow:'0 -6px 24px rgba(0,0,0,0.7)' }}>
                                 <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'38%', background:'linear-gradient(180deg,rgba(255,255,255,0.22),transparent)' }}></div>
@@ -280,7 +280,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                         {/* Icons layer — taller than bar so icons protrude above */}
                         <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center gap-0.5 select-none font-nunito"
-                            style={{ height:'72px', paddingBottom:'2px' }}>
+                            style={{ height:'88px', paddingBottom:'4px' }}>
 
                             <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
                                 <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🐷</span>

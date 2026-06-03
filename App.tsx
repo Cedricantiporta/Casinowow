@@ -169,10 +169,18 @@ const App: React.FC = () => {
   const [showFreeSpinSummary, setShowFreeSpinSummary] = useState(false);
   const [spinsWithoutBonus, setSpinsWithoutBonus] = useState(0);
   
-  const [loginState, setLoginState] = useState<DailyLoginState>({
-      currentDay: 1,
-      claimedToday: false,
-      lastClaimTime: 0
+  const [loginState, setLoginState] = useState<DailyLoginState>(() => {
+      try {
+          const saved = localStorage.getItem('cw_login');
+          if (saved) {
+              const parsed = JSON.parse(saved);
+              const lastDate = new Date(parsed.lastClaimTime).toDateString();
+              const today = new Date().toDateString();
+              if (lastDate !== today) return { ...parsed, claimedToday: false };
+              return parsed;
+          }
+      } catch {}
+      return { currentDay: 1, claimedToday: false, lastClaimTime: 0 };
   });
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
@@ -394,6 +402,10 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_missions', JSON.stringify(missionState)); } catch {}
   }, [missionState]);
+
+  useEffect(() => {
+    try { localStorage.setItem('cw_login', JSON.stringify(loginState)); } catch {}
+  }, [loginState]);
 
   const updateMissions = (type: MissionType, amount: number) => {
       if (player.level < 10) return; 
@@ -1544,7 +1556,7 @@ const App: React.FC = () => {
                             className="rfill"
                             style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, ...(player.xpMultiplier >= 2 ? { background: 'linear-gradient(180deg,#ffe04d,#d4a017 60%,#a07010)', boxShadow: 'inset 0 1px 1px rgba(255,255,180,0.7)' } : {}) }}
                         ></div>
-                        <span className="rnum relative z-10 text-[9px] font-black">{player.level}</span>
+                        <span className="rnum relative z-10 font-black" style={{ fontSize: '18px' }}>{player.level}</span>
                     </div>
                 </div>
 

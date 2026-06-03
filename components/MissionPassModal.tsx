@@ -298,7 +298,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </div>
 
                         {/* Rewards horizontal scroll */}
-                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar bg-gradient-to-b from-[#1a1025] to-black snap-x">
+                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-stretch p-3 gap-3 no-scrollbar bg-gradient-to-b from-[#1a1025] to-black snap-x">
                             {levels.map((lvl) => {
                                 const rewards = missionState.passRewards.filter(r => r.level === lvl);
                                 const freeReward = rewards.find(r => r.tier === 'FREE');
@@ -306,9 +306,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 const isUnlocked = missionState.passLevel >= lvl;
 
                                 return (
-                                    <div key={lvl} className="flex-none flex flex-col gap-2 relative snap-center" style={{ width: '110px' }}>
-                                        <div className={`text-center font-black text-[11px] ${isUnlocked ? 'text-white' : 'text-gray-600'}`}>LVL {lvl}</div>
-                                        <div className={`bg-gradient-to-b from-[#382952] to-[#231833] rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${freeReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`} style={{ aspectRatio: '2/3' }}>
+                                    <div key={lvl} className="flex-none flex flex-col gap-2 relative snap-center h-full" style={{ width: '110px' }}>
+                                        <div className={`text-center font-black text-[11px] shrink-0 ${isUnlocked ? 'text-white' : 'text-gray-600'}`}>LVL {lvl}</div>
+                                        <div className={`flex-1 bg-gradient-to-b from-[#382952] to-[#231833] rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${freeReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
                                             <span className="text-[8px] text-gray-300 uppercase font-bold bg-black/50 px-2 py-0.5 rounded-full mt-0.5">Free</span>
                                             <div className="flex-1 flex flex-col items-center justify-center w-full gap-1">
                                                 <div className="text-5xl">{freeReward?.type === 'COINS' ? '🪙' : freeReward?.type === 'DIAMONDS' ? '💎' : '📦'}</div>
@@ -319,7 +319,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                 {freeReward?.claimed ? 'Claimed' : isUnlocked ? 'Claim' : 'Locked'}
                                             </button>
                                         </div>
-                                        <div className={`bg-gradient-to-b ${missionState.isPremium ? 'from-[#451a03] to-[#2e1065]' : 'from-gray-800 to-black'} rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${premReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`} style={{ aspectRatio: '2/3' }}>
+                                        <div className={`flex-1 bg-gradient-to-b ${missionState.isPremium ? 'from-[#451a03] to-[#2e1065]' : 'from-gray-800 to-black'} rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${premReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
                                             <span className={`text-[8px] uppercase font-bold px-2 py-0.5 rounded-full mt-0.5 ${missionState.isPremium ? 'text-yellow-400 bg-black/50' : 'text-gray-600 bg-black/20'}`}>Premium</span>
                                             <div className="flex-1 flex flex-col items-center justify-center w-full relative gap-1">
                                                 {!missionState.isPremium && <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-[1px]"><span className="text-4xl text-white">🔒</span></div>}
