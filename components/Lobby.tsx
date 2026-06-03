@@ -133,7 +133,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                 <div
                     ref={scrollRef}
-                    className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-3 px-8 pr-16 overflow-x-auto no-scrollbar snap-x"
+                    className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 px-8 pr-16 overflow-x-auto no-scrollbar snap-x"
                     style={{
                         gridTemplateRows: 'repeat(2, 1fr)',
                         gridAutoFlow: 'column'
@@ -174,17 +174,19 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     rounded-md overflow-visible
                                     border-none shadow-xl
                                     snap-center
-                                    ${isLocked ? 'cursor-not-allowed' : ''}
+                                    ${isLocked ? 'cursor-not-allowed grayscale' : ''}
                                 `}
                             >
-                                {/* Jackpot Pill — floats above the card top edge */}
-                                <div className="absolute -top-[9px] left-0 right-0 flex justify-center z-30 pointer-events-none">
-                                    <div className="px-2.5 py-[1px] rounded-full" style={{ background:'rgba(0,0,0,0.82)', border:'1px solid rgba(255,185,0,0.55)', boxShadow:'0 0 6px rgba(255,185,0,0.3)' }}>
-                                        <span style={{ fontSize:'9px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.2px' }}>
-                                            {formatCommaNumber(jackpots[idx])}
-                                        </span>
+                                {/* Jackpot Pill — fully above card, full width */}
+                                {!isLocked && (
+                                    <div className="absolute -top-[17px] left-0 right-0 z-30 pointer-events-none">
+                                        <div className="w-full py-[2px]" style={{ background:'rgba(0,0,0,0.85)', border:'1px solid rgba(255,185,0,0.5)', borderRadius:'4px', boxShadow:'0 0 5px rgba(255,185,0,0.25)' }}>
+                                            <span className="block text-center" style={{ fontSize:'11px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px' }}>
+                                                {formatCommaNumber(jackpots[idx])}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {/* Card background */}
                                 <div className={`absolute inset-0 rounded-md overflow-hidden bg-gradient-to-br ${isHighLimit ? 'from-red-950 via-black to-red-900' : game.color} transition-opacity`}></div>
@@ -207,12 +209,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 </div>
 
                                 {isLocked && (
-                                    <div className="absolute inset-0 rounded-md overflow-hidden bg-black/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center p-2 text-center">
-                                        <span className="text-3xl mb-1 drop-shadow-lg">🔒</span>
-                                        <div className="bg-red-600 px-2 py-0.5 rounded-full shadow-lg mb-0.5">
-                                            <span className="text-white font-black uppercase text-[10px] tracking-wider">LOCKED</span>
-                                        </div>
-                                        <span className="text-white font-bold uppercase text-[9px] drop-shadow-md">Lvl {unlockLevel}</span>
+                                    <div className="absolute inset-0 rounded-md overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
+                                        <span className="text-3xl leading-none opacity-80">🔒</span>
+                                        <span className="text-white/70 font-bold text-[9px] mt-1 uppercase">Lvl {unlockLevel}</span>
                                     </div>
                                 )}
 

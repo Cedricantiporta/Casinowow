@@ -1594,30 +1594,42 @@ const App: React.FC = () => {
                     const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
                     const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed).length;
                     const totalNotifs = missReady + passReady;
+                    const isQuestLocked = player.level < 20;
+                    const isPassLocked = player.level < 10;
                     return (
                         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
                             style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', border:'1.5px solid #38106e', borderRadius:'14px', padding:'6px 4px', gap:'2px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'46px' }}>
                             <button
-                                onClick={handleQuestClaim}
-                                className="relative flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform"
+                                onClick={!isQuestLocked ? handleQuestClaim : undefined}
+                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                                 style={{ padding:'5px 2px' }}
                             >
-                                {qReady && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-white animate-bounce z-10"></div>}
-                                <span className="text-xl leading-none">{quest.activeGame === 'DICE' ? '🎲' : quest.activeGame === 'WILD' ? '🗿' : '🗺️'}</span>
+                                {isQuestLocked
+                                    ? <span className="text-base leading-none">🔒</span>
+                                    : <>
+                                        {qReady && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-white animate-bounce z-10"></div>}
+                                        <span className="text-xl leading-none">{quest.activeGame === 'DICE' ? '🎲' : quest.activeGame === 'WILD' ? '🗿' : '🗺️'}</span>
+                                      </>
+                                }
                                 <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
                             </button>
                             <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 4px' }}></div>
                             <button
-                                onClick={openBattlePassModal}
-                                className="relative flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform"
+                                onClick={!isPassLocked ? openBattlePassModal : undefined}
+                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                                 style={{ padding:'5px 2px' }}
                             >
-                                {totalNotifs > 0 && (
-                                    <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] text-white font-bold z-10 animate-pulse">
-                                        {totalNotifs}
-                                    </div>
-                                )}
-                                <span className="text-xl leading-none">🎫</span>
+                                {isPassLocked
+                                    ? <span className="text-base leading-none">🔒</span>
+                                    : <>
+                                        {totalNotifs > 0 && (
+                                            <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] text-white font-bold z-10 animate-pulse">
+                                                {totalNotifs}
+                                            </div>
+                                        )}
+                                        <span className="text-xl leading-none">🎫</span>
+                                      </>
+                                }
                                 <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
                             </button>
                         </div>
@@ -1653,19 +1665,6 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="hidden md:block w-full">
-                    <LeftSidebar 
-                        quest={quest} 
-                        onQuestClaim={handleQuestClaim} 
-                        xpMultiplier={player.xpMultiplier} 
-                        xpBoostEndTime={player.xpBoostEndTime} 
-                        missionState={missionState} 
-                        onOpenMissions={openMissionsModal} 
-                        onOpenBattlePass={openBattlePassModal}
-                        picks={quest.picks}
-                        playerLevel={player.level}
-                    />
-                </div>
             </div>
         )}
       </main>
