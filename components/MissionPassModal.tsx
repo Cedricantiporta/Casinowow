@@ -136,17 +136,20 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         ))}
                     </div>
 
-                    {/* Price + CTA */}
-                    <div className="shrink-0 px-4 pb-3 pt-1 flex items-center gap-3">
-                        <div className="flex-1 rounded-xl px-3 py-2"
+                    {/* Price + CTA — centered, constrained */}
+                    <div className="shrink-0 px-4 pb-3 pt-1 flex flex-col items-center gap-2">
+                        <div className="flex items-center justify-between w-full max-w-xs rounded-xl px-3 py-2"
                             style={{ background: 'rgba(255,200,0,0.1)', border: '1px solid rgba(255,200,0,0.25)' }}>
-                            <div className="text-yellow-100 font-black text-base leading-none">₱ 0.00</div>
-                            <div className="text-yellow-200/50 text-[9px] uppercase tracking-wide mt-0.5">Free with demo account</div>
+                            <div>
+                                <div className="text-yellow-100 font-black text-base leading-none">₱ 0.00</div>
+                                <div className="text-yellow-200/50 text-[9px] uppercase tracking-wide mt-0.5">Free with demo account</div>
+                            </div>
+                            <div className="text-yellow-400 font-black text-[9px] bg-yellow-900/40 px-2 py-0.5 rounded-full uppercase">Demo</div>
                         </div>
                         <button onClick={handlePremiumPurchase}
-                            className="btn-3d shrink-0 px-5 py-3 rounded-xl font-black text-sm uppercase tracking-widest text-black relative overflow-hidden"
+                            className="btn-3d px-8 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest text-black relative overflow-hidden"
                             style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 4px 0 #7a5000,0 6px 16px rgba(0,0,0,0.5)' }}>
-                            <span className="relative z-10">Unlock Now</span>
+                            <span className="relative z-10">👑 Unlock Monthly Pass</span>
                             <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none"></div>
                         </button>
                     </div>

@@ -1634,6 +1634,7 @@ const App: React.FC = () => {
                 nextTimeBonus={nextBonusTime}
                 bonusAmount={CALCULATE_TIME_BONUS(player.level)}
                 isHighLimit={isHighLimit}
+                isVip={!!player.isVip}
                 playerLevel={player.level}
             />
         ) : (

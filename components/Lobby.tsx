@@ -5,6 +5,8 @@ import { GAMES_CONFIG, formatCommaNumber, formatTime } from '../constants';
 import { GameConfig, QuestState, MissionState } from '../types';
 import { jackpotService } from '../services/jackpotService';
 
+const VIP_SLOT_IDS = ['neon-vegas', 'dragon-fortune', 'cosmic-cash', 'samurai-honor'];
+
 interface LobbyProps {
     onSelectGame: (game: GameConfig, isHighLimit: boolean) => void;
     onOpenWildQuest: () => void;
@@ -18,10 +20,11 @@ interface LobbyProps {
     onToggleVIP: () => void;
     questState: QuestState;
     missionState: MissionState;
-    nextTimeBonus: number; 
+    nextTimeBonus: number;
     bonusAmount: number;
     isHighLimit: boolean;
-    playerLevel: number; 
+    isVip: boolean;
+    playerLevel: number;
 }
 
 export const Lobby: React.FC<LobbyProps> = ({
@@ -30,16 +33,17 @@ export const Lobby: React.FC<LobbyProps> = ({
     onOpenDiceQuest,
     onOpenMissions,
     onOpenBattlePass,
-    onClaimBonus, 
+    onClaimBonus,
     onOpenCollection,
     onOpenPiggyBank,
     onOpenInbox,
     onToggleVIP,
-    questState, 
-    missionState, 
+    questState,
+    missionState,
     nextTimeBonus,
     bonusAmount,
     isHighLimit,
+    isVip,
     playerLevel
 }) => {
     
@@ -134,7 +138,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 relative overflow-hidden`}
-            style={isHighLimit ? {
+            style={(isVip || isHighLimit) ? {
                 backgroundImage: 'url(/lobby-bg-vip.jpg)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -146,119 +150,158 @@ export const Lobby: React.FC<LobbyProps> = ({
 
               <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9">
 
-                <div
-                    ref={scrollRef}
-                    className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 px-3 overflow-x-auto no-scrollbar snap-x"
-                    style={{
-                        gridTemplateRows: 'repeat(2, 1fr)',
-                        gridAutoFlow: 'column'
-                    }}
-                >
-                    {GAMES_CONFIG.map((game, idx) => {
-                         const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.8)]' :
-                                             game.theme === 'EGYPT' ? 'text-amber-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]' :
-                                             game.theme === 'DRAGON' ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
-                                             game.theme === 'PIRATE' ? 'text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]' :
-                                             game.theme === 'SPACE' ? 'text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]' :
-                                             game.theme === 'PIGGY' ? 'text-pink-300 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]' :
-                                             'text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]';
-                        
-                        let icon = '🍭';
-                        if (game.theme === 'NEON') icon = '🎰';
-                        else if (game.theme === 'EGYPT') icon = '🦂';
-                        else if (game.theme === 'DRAGON') icon = '🐉';
-                        else if (game.theme === 'PIRATE') icon = '🏴‍☠️';
-                        else if (game.theme === 'SPACE') icon = '👽';
-                        else if (game.theme === 'PIGGY') icon = '🐷';
-                        else if (game.theme === 'JUNGLE') icon = '🌴';
-                        else if (game.theme === 'UNDERWATER') icon = '🔱';
-                        else if (game.theme === 'WESTERN') icon = '🤠';
-                        else if (game.theme === 'SAMURAI') icon = '👹';
- 
-                        const unlockLevel = getUnlockLevel(idx);
-                        const isLocked = playerLevel < unlockLevel;
- 
-                        return (
+                {isHighLimit ? (
+                    /* ── High Limit Room — 2×2 grid of 4 VIP slots ── */
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 px-4 py-2">
+                        {/* Room title */}
+                        <div className="shrink-0 flex items-center gap-2">
+                            <span style={{ fontSize: '1.1rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
+                                🎰 High Limit Room
+                            </span>
+                        </div>
+                        {/* 2×2 grid */}
+                        <div className="flex-1 grid grid-cols-2 gap-3 w-full max-h-[260px]">
+                            {GAMES_CONFIG.filter(g => VIP_SLOT_IDS.includes(g.id)).map((game, idx) => {
+                                const globalIdx = GAMES_CONFIG.findIndex(g => g.id === game.id);
+                                const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.8)]' :
+                                    game.theme === 'DRAGON' ? 'text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
+                                    game.theme === 'SPACE' ? 'text-indigo-300 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]' :
+                                    'text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]';
+                                const iconMap: Record<string, string> = { NEON: '🎰', DRAGON: '🐉', SPACE: '👽', SAMURAI: '👹', PIRATE: '🏴‍☠️', EGYPT: '🦂', PIGGY: '🐷', JUNGLE: '🌴', UNDERWATER: '🔱', WESTERN: '🤠', CANDY: '🍭' };
+                                const icon = iconMap[game.theme] ?? '🎰';
+                                return (
+                                    <button
+                                        key={game.id}
+                                        onClick={() => onSelectGame(game, true)}
+                                        className="relative rounded-xl overflow-hidden shadow-2xl active:scale-95 transition-transform"
+                                        style={{ border: '1.5px solid rgba(251,191,36,0.4)', boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.15)' }}
+                                    >
+                                        {/* Background */}
+                                        <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`} />
+                                        {/* Gold overlay shimmer */}
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-yellow-400/10 to-transparent pointer-events-none" />
+                                        {/* Jackpot */}
+                                        <div className="absolute top-1 left-0 right-0 flex justify-center z-20">
+                                            <span style={{ fontSize: '11px', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.9))' }}>
+                                                {formatCommaNumber(jackpotTotals[globalIdx] ?? 0)}
+                                            </span>
+                                        </div>
+                                        {/* Icon */}
+                                        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-4 pb-6">
+                                            <span className="text-[3.5rem] leading-none drop-shadow-2xl">{icon}</span>
+                                        </div>
+                                        {/* Name bar */}
+                                        <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center z-10">
+                                            <h3 className={`text-[12px] font-black uppercase tracking-wide leading-none ${getFontClass(game.theme)} ${titleStyle}`}
+                                                style={{ WebkitTextStroke: '1px rgba(0,0,0,0.9)', paintOrder: 'stroke fill' }}>
+                                                {game.name}
+                                            </h3>
+                                        </div>
+                                        {/* VIP badge */}
+                                        <div className="absolute top-1 right-1 z-20">
+                                            <span style={{ fontSize: '10px', background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00', padding: '1px 4px', borderRadius: '6px', fontWeight: 900, letterSpacing: '0.05em' }}>VIP</span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ) : (
+                    /* ── Normal lobby — horizontal scroll grid ── */
+                    <>
+                        <div
+                            ref={scrollRef}
+                            className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 px-3 overflow-x-auto no-scrollbar snap-x"
+                            style={{
+                                gridTemplateRows: 'repeat(2, 1fr)',
+                                gridAutoFlow: 'column'
+                            }}
+                        >
+                            {GAMES_CONFIG.map((game, idx) => {
+                                const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.8)]' :
+                                    game.theme === 'EGYPT' ? 'text-amber-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]' :
+                                    game.theme === 'DRAGON' ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
+                                    game.theme === 'PIRATE' ? 'text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]' :
+                                    game.theme === 'SPACE' ? 'text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]' :
+                                    game.theme === 'PIGGY' ? 'text-pink-300 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]' :
+                                    'text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]';
+                                let icon = '🍭';
+                                if (game.theme === 'NEON') icon = '🎰';
+                                else if (game.theme === 'EGYPT') icon = '🦂';
+                                else if (game.theme === 'DRAGON') icon = '🐉';
+                                else if (game.theme === 'PIRATE') icon = '🏴‍☠️';
+                                else if (game.theme === 'SPACE') icon = '👽';
+                                else if (game.theme === 'PIGGY') icon = '🐷';
+                                else if (game.theme === 'JUNGLE') icon = '🌴';
+                                else if (game.theme === 'UNDERWATER') icon = '🔱';
+                                else if (game.theme === 'WESTERN') icon = '🤠';
+                                else if (game.theme === 'SAMURAI') icon = '👹';
+                                const unlockLevel = getUnlockLevel(idx);
+                                const isLocked = playerLevel < unlockLevel;
+                                return (
+                                    <button
+                                        key={game.id}
+                                        onClick={() => onSelectGame(game, isHighLimit)}
+                                        className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-md overflow-visible border-none shadow-xl snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
+                                    >
+                                        {!isLocked && (
+                                            <div className="absolute -top-[18px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
+                                                <span style={{ fontSize:'16px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px', lineHeight:1, textShadow:'none', filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
+                                                    {formatCommaNumber(jackpotTotals[idx] ?? 0)}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className={`absolute inset-0 rounded-md overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
+                                        <div className="absolute inset-0 rounded-md overflow-hidden z-10 select-none">
+                                            <div className="absolute inset-0 flex items-start justify-center pt-2">
+                                                <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
+                                            </div>
+                                            <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
+                                                <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
+                                                    style={{ WebkitTextStroke:'1.5px rgba(0,0,0,0.95)', paintOrder:'stroke fill' }}>
+                                                    {game.name}
+                                                </h3>
+                                            </div>
+                                        </div>
+                                        {isLocked && (
+                                            <div className="absolute inset-0 rounded-md overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
+                                                <span className="text-3xl leading-none opacity-80">🔒</span>
+                                                <span className="text-white/70 font-bold text-[9px] mt-1 uppercase">Lvl {unlockLevel}</span>
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 rounded-md overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
+                                    </button>
+                                );
+                            })}
+                            <div className="w-8"></div>
+                        </div>
+
+                        {/* Left arrow — only when scrollable */}
+                        {canScroll && (
                             <button
-                                key={game.id}
-                                onClick={() => onSelectGame(game, isHighLimit)}
-                                className={`
-                                    row-span-1
-                                    relative group
-                                    w-[85px] h-[85px] md:w-[105px] md:h-[105px]
-                                    rounded-md overflow-visible
-                                    border-none shadow-xl
-                                    snap-center
-                                    ${isLocked ? 'cursor-not-allowed grayscale' : ''}
-                                `}
-                            >
-                                {/* Jackpot number — no container, constantly ticking */}
-                                {!isLocked && (
-                                    <div className="absolute -top-[18px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
-                                        <span style={{ fontSize:'16px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px', lineHeight:1, textShadow:'none', filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
-                                            {formatCommaNumber(jackpotTotals[idx] ?? 0)}
-                                        </span>
-                                    </div>
-                                )}
+                                onMouseDown={() => startScroll('LEFT')}
+                                onMouseUp={stopScroll}
+                                onMouseLeave={stopScroll}
+                                onTouchStart={() => startScroll('LEFT')}
+                                onTouchEnd={stopScroll}
+                                className="absolute left-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
+                                style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
+                            >◀</button>
+                        )}
 
-                                {/* Card background */}
-                                <div className={`absolute inset-0 rounded-md overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
-
-                                {/* Card content */}
-                                <div className="absolute inset-0 rounded-md overflow-hidden z-10 select-none">
-                                    {/* Icon — aligned near top */}
-                                    <div className="absolute inset-0 flex items-start justify-center pt-2">
-                                        <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">
-                                            {icon}
-                                        </span>
-                                    </div>
-                                    {/* Title overlays at bottom */}
-                                    <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
-                                        <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
-                                            style={{ WebkitTextStroke:'1.5px rgba(0,0,0,0.95)', paintOrder:'stroke fill' }}>
-                                            {game.name}
-                                        </h3>
-                                    </div>
-                                </div>
-
-                                {isLocked && (
-                                    <div className="absolute inset-0 rounded-md overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
-                                        <span className="text-3xl leading-none opacity-80">🔒</span>
-                                        <span className="text-white/70 font-bold text-[9px] mt-1 uppercase">Lvl {unlockLevel}</span>
-                                    </div>
-                                )}
-
-                                <div className="absolute inset-0 rounded-md overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
-                            </button>
-                        );
-                    })}
-                    <div className="w-8"></div>
-                </div>
- 
-                {/* Left arrow — only when scrollable */}
-                {canScroll && (
-                    <button
-                        onMouseDown={() => startScroll('LEFT')}
-                        onMouseUp={stopScroll}
-                        onMouseLeave={stopScroll}
-                        onTouchStart={() => startScroll('LEFT')}
-                        onTouchEnd={stopScroll}
-                        className="absolute left-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
-                        style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
-                    >◀</button>
-                )}
-
-                {/* Right arrow — only when scrollable */}
-                {canScroll && (
-                    <button
-                        onMouseDown={() => startScroll('RIGHT')}
-                        onMouseUp={stopScroll}
-                        onMouseLeave={stopScroll}
-                        onTouchStart={() => startScroll('RIGHT')}
-                        onTouchEnd={stopScroll}
-                        className="absolute right-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
-                        style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
-                    >▶</button>
+                        {/* Right arrow — only when scrollable */}
+                        {canScroll && (
+                            <button
+                                onMouseDown={() => startScroll('RIGHT')}
+                                onMouseUp={stopScroll}
+                                onMouseLeave={stopScroll}
+                                onTouchStart={() => startScroll('RIGHT')}
+                                onTouchEnd={stopScroll}
+                                className="absolute right-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
+                                style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
+                            >▶</button>
+                        )}
+                    </>
                 )}
             </div>
  
@@ -266,10 +309,11 @@ export const Lobby: React.FC<LobbyProps> = ({
             {(() => {
                 const iconBtn = (locked: boolean) =>
                     `flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform ${locked ? 'grayscale opacity-50' : ''}`;
-                const barBg = isHighLimit
+                const isGolden = isVip || isHighLimit;
+                const barBg = isGolden
                     ? 'linear-gradient(180deg,#e8b020 0%,#c9901a 30%,#7a5000 100%)'
                     : 'linear-gradient(180deg,#a060d8 0%,#7c3fb5 30%,#4a1880 100%)';
-                const borderCol = isHighLimit ? '#b07010' : '#38106e';
+                const borderCol = isGolden ? '#b07010' : '#38106e';
 
                 return (
                     <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center select-none font-nunito">
