@@ -257,30 +257,35 @@ export const Lobby: React.FC<LobbyProps> = ({
                 )}
             </div>
  
-            {/* Bottom bar — center arch shape, sides sweep down */}
+            {/* Bottom bar — centered floating platform, icons protrude above */}
             {(() => {
                 const iconBtn = (locked: boolean) =>
                     `flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform ${locked ? 'grayscale opacity-50' : ''}`;
                 const barBg = isHighLimit
                     ? 'linear-gradient(180deg,#e8b020 0%,#c9901a 30%,#7a5000 100%)'
                     : 'linear-gradient(180deg,#a060d8 0%,#7c3fb5 30%,#4a1880 100%)';
+                const borderCol = isHighLimit ? '#b07010' : '#38106e';
 
                 return (
-                    <>
-                        {/* Bar background — dome shape: rises at center for FREE COINS button */}
-                        <div className="fixed bottom-0 left-0 right-0 z-[49]" style={{
-                            height: '72px',
-                            clipPath: 'polygon(0% 100%, 0% 72%, 16% 72%, 28% 46%, 38% 18%, 44% 5%, 50% 0%, 56% 5%, 62% 18%, 72% 46%, 84% 72%, 100% 72%, 100% 100%)',
-                        }}>
-                            <div className="absolute inset-0" style={{ background: barBg, boxShadow:'0 -6px 24px rgba(0,0,0,0.7)' }}>
-                                <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'38%', background:'linear-gradient(180deg,rgba(255,255,255,0.22),transparent)' }}></div>
+                    <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center select-none font-nunito">
+                        {/* Centered platform — only as wide as icons, bg is shorter than icons so they protrude */}
+                        <div className="relative flex items-end justify-center gap-0.5 overflow-visible"
+                            style={{ paddingLeft:'14px', paddingRight:'14px', paddingBottom:'4px', paddingTop:'8px' }}>
+
+                            {/* Colored background — shorter than icons so they protrude above */}
+                            <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
+                                style={{
+                                    height:'52px',
+                                    borderRadius:'18px 18px 0 0',
+                                    background: barBg,
+                                    border: `1.5px solid ${borderCol}`,
+                                    borderBottom: 'none',
+                                    boxShadow:'0 -6px 24px rgba(0,0,0,0.7)',
+                                    zIndex: -1,
+                                }}>
+                                <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'45%', borderRadius:'18px 18px 0 0', background:'linear-gradient(180deg,rgba(255,255,255,0.22),transparent)' }}></div>
                                 <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'35%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
                             </div>
-                        </div>
-
-                        {/* Icons layer — taller than bar so icons protrude above */}
-                        <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center gap-0.5 select-none font-nunito"
-                            style={{ height:'88px', paddingBottom:'4px' }}>
 
                             <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
                                 <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🐷</span>
@@ -307,7 +312,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
                             </button>
 
-                            {/* Center — big coin "COLLECT" button */}
+                            {/* Center — big coin "COLLECT" button, protrudes high */}
                             <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform relative">
                                 <div className="relative" style={{
                                     width: '52px', height: '52px', borderRadius: '50%',
@@ -323,7 +328,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 }}>
                                     <span style={{ fontSize:'11px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>FREE</span>
                                     <span style={{ fontSize:'13px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>COINS</span>
-                                    {/* COLLECT badge at bottom of coin */}
                                     <div style={{
                                         position:'absolute', bottom:'-9px', left:'50%', transform:'translateX(-50%)',
                                         background: isReadyToCollect ? 'linear-gradient(180deg,#3a9900,#1e6600)' : '#444',
@@ -337,7 +341,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     </div>
                                     {isReadyToCollect && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] font-black text-white z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>!</div>}
                                 </div>
-                                {/* spacer for the COLLECT badge overflow */}
                                 <div style={{ height:'14px' }}></div>
                             </button>
 
@@ -360,7 +363,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             </button>
 
                         </div>
-                    </>
+                    </div>
                 );
             })()}
         </div>

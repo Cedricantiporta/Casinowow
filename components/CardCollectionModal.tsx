@@ -349,17 +349,39 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 )}
                             </div>
                             <div className="flex-1 overflow-x-auto no-scrollbar">
-                                <div className="flex gap-2 h-full items-stretch min-w-max">
-                                    {decks.find(d => d.gameId === selectedDeckId)?.cards.map((card, i) => (
-                                        <div key={i} className={`flex-none w-20 rounded-lg ${getCardStyle(card.rarity, card.count === 0)} p-1 flex flex-col items-center justify-between relative`}>
-                                            <div className="w-full flex justify-between items-start leading-none p-0.5">
-                                                <span className={`text-[7px] font-black uppercase px-1 rounded ${card.rarity === 'LEGENDARY' ? 'bg-yellow-500 text-black' : card.rarity === 'EPIC' ? 'bg-purple-600 text-white' : card.rarity === 'RARE' ? 'bg-blue-600 text-white' : 'bg-gray-650 text-white'}`}>{card.rarity[0]}</span>
-                                                {card.count > 0 && <span className="text-[7px] font-bold bg-black/60 text-white px-1 rounded">x{card.count}</span>}
+                                <div className="flex gap-3 h-full items-stretch min-w-max py-1">
+                                    {decks.find(d => d.gameId === selectedDeckId)?.cards.map((card, i) => {
+                                        const rarityColor = card.rarity === 'LEGENDARY' ? '#f59e0b' : card.rarity === 'EPIC' ? '#a855f7' : card.rarity === 'RARE' ? '#3b82f6' : '#6b7280';
+                                        const isLocked = card.count === 0;
+                                        return (
+                                            <div key={i} className={`flex-none rounded-xl ${getCardStyle(card.rarity, isLocked)} flex flex-col items-center relative overflow-hidden`}
+                                                style={{ width: '70px', aspectRatio: '2/3', border: `1.5px solid ${rarityColor}44` }}>
+                                                {/* Card inner frame */}
+                                                <div className="absolute inset-[4px] rounded-lg pointer-events-none" style={{ border: `1px solid ${rarityColor}30` }}></div>
+                                                {/* Rarity corner badge top-left */}
+                                                <div className="absolute top-1 left-1 z-10">
+                                                    <span className={`text-[6px] font-black uppercase px-1 py-0.5 rounded-sm ${card.rarity === 'LEGENDARY' ? 'bg-yellow-500 text-black' : card.rarity === 'EPIC' ? 'bg-purple-600 text-white' : card.rarity === 'RARE' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white'}`}>{card.rarity[0]}</span>
+                                                </div>
+                                                {/* Count badge top-right */}
+                                                {card.count > 0 && (
+                                                    <div className="absolute top-1 right-1 z-10">
+                                                        <span className="text-[6px] font-bold bg-black/60 text-white px-1 py-0.5 rounded-sm">×{card.count}</span>
+                                                    </div>
+                                                )}
+                                                {/* Icon — centered, large */}
+                                                <div className="flex-1 flex items-center justify-center w-full">
+                                                    <span className="text-3xl leading-none drop-shadow-md">{isLocked ? '🔒' : card.icon}</span>
+                                                </div>
+                                                {/* Name bar at bottom */}
+                                                <div className="w-full shrink-0 px-1 pb-1.5">
+                                                    <div className="text-[7px] font-black text-center w-full truncate leading-none py-0.5 rounded-sm"
+                                                        style={{ background: `${rarityColor}22`, color: isLocked ? '#555' : 'white' }}>
+                                                        {card.name}
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="text-2xl drop-shadow-md">{card.count > 0 ? card.icon : '🔒'}</div>
-                                            <div className="text-[7px] font-bold text-center bg-black/40 px-0.5 rounded w-full truncate">{card.name}</div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
