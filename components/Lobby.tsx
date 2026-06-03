@@ -131,36 +131,9 @@ export const Lobby: React.FC<LobbyProps> = ({
 
               <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9">
 
-                {/* Left Side Vertical Panel (Quest + Pass) */}
-                <div className="absolute left-1 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-1.5 select-none">
-                    <button
-                        onClick={!isQuestLocked ? onOpenQuest : undefined}
-                        className={`relative flex flex-col items-center justify-center gap-0.5 rounded-xl active:scale-95 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : ''}`}
-                        style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', border:'1.5px solid #38106e', width:'46px', padding:'6px 4px', boxShadow:'0 3px 10px rgba(0,0,0,0.55),inset 0 1px 1px rgba(255,255,255,0.2)' }}
-                    >
-                        {questReady && !isQuestLocked && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-400 rounded-full border border-white animate-bounce z-10"></div>}
-                        <span className="text-xl leading-none">{getQuestIcon()}</span>
-                        <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none mt-0.5">Quest</span>
-                    </button>
-
-                    <button
-                        onClick={!isMissionsLocked ? onOpenBattlePass : undefined}
-                        className={`relative flex flex-col items-center justify-center gap-0.5 rounded-xl active:scale-95 transition-transform ${isMissionsLocked ? 'grayscale opacity-50 cursor-not-allowed' : ''}`}
-                        style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', border:'1.5px solid #38106e', width:'46px', padding:'6px 4px', boxShadow:'0 3px 10px rgba(0,0,0,0.55),inset 0 1px 1px rgba(255,255,255,0.2)' }}
-                    >
-                        {totalMissionNotifs > 0 && !isMissionsLocked && (
-                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] text-white font-bold z-10 animate-pulse">
-                                {totalMissionNotifs}
-                            </div>
-                        )}
-                        <span className="text-xl leading-none">🎫</span>
-                        <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none mt-0.5">Pass</span>
-                    </button>
-                </div>
-
                 <div
                     ref={scrollRef}
-                    className="grid gap-x-4 gap-y-2 h-[93%] max-h-[580px] auto-cols-max pl-[54px] pr-20 overflow-x-auto no-scrollbar snap-x"
+                    className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-3 px-8 pr-16 overflow-x-auto no-scrollbar snap-x"
                     style={{
                         gridTemplateRows: 'repeat(2, 1fr)',
                         gridAutoFlow: 'column'
@@ -198,44 +171,43 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     row-span-1
                                     relative group
                                     w-[85px] h-[85px] md:w-[105px] md:h-[105px]
-                                    rounded-md overflow-hidden
-                                    border-none
-                                    shadow-xl
-                                    flex flex-col items-center justify-between
+                                    rounded-md overflow-visible
+                                    border-none shadow-xl
                                     snap-center
                                     ${isLocked ? 'cursor-not-allowed' : ''}
                                 `}
                             >
-                                <div className={`absolute inset-0 bg-gradient-to-br ${isHighLimit ? 'from-red-950 via-black to-red-900' : game.color} transition-opacity`}></div>
-
-                                <div className="relative z-10 w-full h-full select-none">
-                                    {/* Jackpot Pill */}
-                                    <div className="absolute top-0 left-0 right-0 flex justify-center z-20 pt-[3px]">
-                                        <div className="px-1.5 py-[2px] rounded-full" style={{ background:'rgba(0,0,0,0.72)', border:'1px solid rgba(255,185,0,0.5)' }}>
-                                            <span style={{ fontSize:'7px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap' }}>
-                                                ${formatCommaNumber(jackpots[idx])}
-                                            </span>
-                                        </div>
+                                {/* Jackpot Pill — floats above the card top edge */}
+                                <div className="absolute -top-[9px] left-0 right-0 flex justify-center z-30 pointer-events-none">
+                                    <div className="px-2.5 py-[1px] rounded-full" style={{ background:'rgba(0,0,0,0.82)', border:'1px solid rgba(255,185,0,0.55)', boxShadow:'0 0 6px rgba(255,185,0,0.3)' }}>
+                                        <span style={{ fontSize:'9px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.2px' }}>
+                                            {formatCommaNumber(jackpots[idx])}
+                                        </span>
                                     </div>
+                                </div>
 
+                                {/* Card background */}
+                                <div className={`absolute inset-0 rounded-md overflow-hidden bg-gradient-to-br ${isHighLimit ? 'from-red-950 via-black to-red-900' : game.color} transition-opacity`}></div>
+
+                                {/* Card content */}
+                                <div className="absolute inset-0 rounded-md overflow-hidden z-10 select-none">
                                     {/* Icon — fills almost the full card */}
-                                    <div className="absolute inset-0 flex items-center justify-center pt-3">
+                                    <div className="absolute inset-0 flex items-center justify-center">
                                         <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">
                                             {icon}
                                         </span>
                                     </div>
-
                                     {/* Title overlays at bottom */}
-                                    <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center z-10">
+                                    <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
                                         <h3 className={`text-[16px] md:text-[20px] font-black uppercase tracking-wide truncate ${getFontClass(game.theme)} ${titleStyle}`}
                                             style={{textShadow:'0 1px 4px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.8)'}}>
                                             {game.name}
                                         </h3>
                                     </div>
                                 </div>
-                                
+
                                 {isLocked && (
-                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center p-2 text-center rounded-md">
+                                    <div className="absolute inset-0 rounded-md overflow-hidden bg-black/60 backdrop-blur-[2px] z-20 flex flex-col items-center justify-center p-2 text-center">
                                         <span className="text-3xl mb-1 drop-shadow-lg">🔒</span>
                                         <div className="bg-red-600 px-2 py-0.5 rounded-full shadow-lg mb-0.5">
                                             <span className="text-white font-black uppercase text-[10px] tracking-wider">LOCKED</span>
@@ -243,8 +215,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         <span className="text-white font-bold uppercase text-[9px] drop-shadow-md">Lvl {unlockLevel}</span>
                                     </div>
                                 )}
- 
-                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none"></div>
+
+                                <div className="absolute inset-0 rounded-md overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
                             </button>
                         );
                     })}

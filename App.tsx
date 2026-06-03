@@ -1587,6 +1587,42 @@ const App: React.FC = () => {
             />
         ) : (
             <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
+
+                {/* Quest + Pass vertical panel — always visible in game view */}
+                {(() => {
+                    const qReady = quest.credits >= quest.max;
+                    const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
+                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed).length;
+                    const totalNotifs = missReady + passReady;
+                    return (
+                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
+                            style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', border:'1.5px solid #38106e', borderRadius:'14px', padding:'6px 4px', gap:'2px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'46px' }}>
+                            <button
+                                onClick={handleQuestClaim}
+                                className="relative flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform"
+                                style={{ padding:'5px 2px' }}
+                            >
+                                {qReady && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-white animate-bounce z-10"></div>}
+                                <span className="text-xl leading-none">{quest.activeGame === 'DICE' ? '🎲' : quest.activeGame === 'WILD' ? '🗿' : '🗺️'}</span>
+                                <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
+                            </button>
+                            <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 4px' }}></div>
+                            <button
+                                onClick={openBattlePassModal}
+                                className="relative flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-transform"
+                                style={{ padding:'5px 2px' }}
+                            >
+                                {totalNotifs > 0 && (
+                                    <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] text-white font-bold z-10 animate-pulse">
+                                        {totalNotifs}
+                                    </div>
+                                )}
+                                <span className="text-xl leading-none">🎫</span>
+                                <span className="text-[7px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
+                            </button>
+                        </div>
+                    );
+                })()}
                 <div className="w-full z-10 p-0 m-0">
                     <JackpotTicker currentBet={availableBets[betIndex]} />
                     {isHighLimit && (
