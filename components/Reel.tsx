@@ -173,9 +173,9 @@ const ReelCell: React.FC<{
     // Bounce Animation Logic (Applies to Content Wrapper)
     const activeBounce = highlight || isScatterShowcase;
     
-    // Symbol font sizes: wild −20%, letters −10%, regular full
+    // Symbol font sizes: wild −30%, letters −10%, regular full
     const fontSize = isWild
-        ? 'text-[1.44rem] md:text-[1.94rem] lg:text-[2.43rem]'
+        ? 'text-[1.296rem] md:text-[1.746rem] lg:text-[2.187rem]'
         : isLetter
             ? 'text-[2.73rem] md:text-[3.28rem] lg:text-[4.37rem]'
             : 'text-[3.0375rem] md:text-[3.645rem] lg:text-[4.86rem]';
@@ -223,7 +223,7 @@ const ReelCell: React.FC<{
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
                             <span className={`
                                 block font-titan
-                                text-[0.81rem] md:text-[1.08rem] font-black text-white
+                                text-[0.729rem] md:text-[0.972rem] font-black text-white
                                 tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]
                                 stroke-black stroke-2
                             `}
