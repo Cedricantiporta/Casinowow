@@ -40,6 +40,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 }) => {
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'ALBUM' | 'PACKS'>('ALBUM');
+    const albumScrollRef = React.useRef<HTMLDivElement>(null);
+
+    const scrollAlbum = (dir: 'LEFT' | 'RIGHT') => {
+        albumScrollRef.current?.scrollBy({ left: dir === 'LEFT' ? -160 : 160, behavior: 'smooth' });
+    };
 
     const [isOpeningPack, setIsOpeningPack] = useState(false);
     const [lastPackId, setLastPackId] = useState<string | null>(null);
@@ -226,37 +231,49 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 {/* Horizontal scroll content */}
                 <div className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar p-3 min-h-0">
 
-                    {/* ALBUM view — horizontal row of deck cards */}
+                    {/* ALBUM view */}
                     {!selectedDeckId && activeTab === 'ALBUM' && (
-                        <div className="flex items-stretch gap-3 h-full min-w-max">
-                            {/* Grand prize pill */}
-                            <div className="flex-none w-28 bg-gradient-to-b from-yellow-600/20 to-yellow-900/20 rounded-xl p-2 flex flex-col items-center justify-center border border-yellow-600/30">
-                                <div className="text-3xl mb-1">👑</div>
-                                <div className="text-yellow-300 text-[8px] font-bold uppercase tracking-wider text-center">Grand Reward</div>
-                                <div className="text-base font-black text-white font-mono leading-none mt-1">{formatCommaNumber(grandPrize)}</div>
+                        <div className="flex flex-col h-full gap-2">
+                            {/* Grand reward — no container, no emoji, just text */}
+                            <div className="shrink-0 text-center leading-tight">
+                                <div className="text-yellow-400 text-[9px] font-black uppercase tracking-widest">Grand Reward</div>
+                                <div className="text-white font-black text-xl font-mono">{formatCommaNumber(grandPrize)}</div>
                             </div>
 
-                            {decks.map(deck => {
-                                const collected = deck.cards.filter(c => c.count > 0).length;
-                                const total = deck.cards.length;
-                                const isComplete = collected === total;
-                                return (
-                                    <button key={deck.gameId} onClick={() => setSelectedDeckId(deck.gameId)}
-                                        className="flex-none w-32 flex flex-col items-center bg-black/40 p-2 rounded-xl h-full active:scale-95 transition-transform">
-                                        <div className={`w-full flex-1 bg-gradient-to-b ${deck.theme === 'NEON' ? 'from-purple-900 to-black' : deck.theme === 'EGYPT' ? 'from-orange-900 to-black' : 'from-gray-800 to-black'} rounded-lg flex items-center justify-center overflow-hidden relative min-h-0`}>
-                                            <div className="text-4xl drop-shadow-md">{deck.theme === 'NEON' ? '🎰' : deck.theme === 'EGYPT' ? '🦂' : deck.theme === 'DRAGON' ? '🐉' : '🃏'}</div>
-                                            {isComplete && <div className="absolute top-1 right-1 text-sm">✅</div>}
-                                            <div className="absolute bottom-1 bg-black/70 px-1.5 py-0.5 rounded-full">
-                                                <div className="text-yellow-400 font-mono font-black text-[8px]">+{formatNumber(getDeckReward(deck.gameId))}</div>
-                                            </div>
-                                        </div>
-                                        <div className="mt-1 text-center w-full">
-                                            <h3 className="text-white font-black font-display text-[11px] truncate leading-none">{deck.gameName}</h3>
-                                            <div className="text-purple-300 font-bold text-[9px] uppercase mt-0.5">{collected}/{total}</div>
-                                        </div>
-                                    </button>
-                                );
-                            })}
+                            {/* Deck scroll with nav buttons */}
+                            <div className="flex-1 relative flex items-stretch gap-1 min-h-0">
+                                <button onClick={() => scrollAlbum('LEFT')}
+                                    className="shrink-0 w-7 flex items-center justify-center text-white font-black text-xs rounded-lg active:scale-95 transition-transform"
+                                    style={{ background:'linear-gradient(180deg,#6030a8,#3a1870)', border:'1px solid #5020a0' }}>◀</button>
+
+                                <div ref={albumScrollRef} className="flex-1 overflow-x-auto flex items-stretch gap-3 no-scrollbar">
+                                    {decks.map(deck => {
+                                        const collected = deck.cards.filter(c => c.count > 0).length;
+                                        const total = deck.cards.length;
+                                        const isComplete = collected === total;
+                                        return (
+                                            <button key={deck.gameId} onClick={() => setSelectedDeckId(deck.gameId)}
+                                                className="flex-none w-36 flex flex-col items-center bg-black/40 p-2 rounded-xl h-full active:scale-95 transition-transform">
+                                                <div className={`w-full flex-1 bg-gradient-to-b ${deck.theme === 'NEON' ? 'from-purple-900 to-black' : deck.theme === 'EGYPT' ? 'from-orange-900 to-black' : 'from-gray-800 to-black'} rounded-lg flex items-center justify-center overflow-hidden relative min-h-0`}>
+                                                    <div className="text-[5rem] drop-shadow-2xl leading-none">{deck.theme === 'NEON' ? '🎰' : deck.theme === 'EGYPT' ? '🦂' : deck.theme === 'DRAGON' ? '🐉' : deck.theme === 'PIRATE' ? '🏴‍☠️' : deck.theme === 'SPACE' ? '👽' : deck.theme === 'PIGGY' ? '🐷' : '🃏'}</div>
+                                                    {isComplete && <div className="absolute top-1 right-1 text-sm">✅</div>}
+                                                    <div className="absolute bottom-1 bg-black/70 px-2 py-0.5 rounded-full">
+                                                        <div className="text-yellow-400 font-mono font-black text-[11px]">+{formatNumber(getDeckReward(deck.gameId))}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-1.5 text-center w-full">
+                                                    <h3 className="text-white font-black font-display text-[13px] truncate leading-none">{deck.gameName}</h3>
+                                                    <div className="text-purple-300 font-bold text-[10px] uppercase mt-0.5">{collected}/{total}</div>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <button onClick={() => scrollAlbum('RIGHT')}
+                                    className="shrink-0 w-7 flex items-center justify-center text-white font-black text-xs rounded-lg active:scale-95 transition-transform"
+                                    style={{ background:'linear-gradient(180deg,#6030a8,#3a1870)', border:'1px solid #5020a0' }}>▶</button>
+                            </div>
                         </div>
                     )}
 

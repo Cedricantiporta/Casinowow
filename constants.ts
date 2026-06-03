@@ -373,7 +373,7 @@ const GENERATE_SCALES = () => {
 const SCALES = GENERATE_SCALES();
 export const GET_ALL_BETS = () => SCALES;
 export const MAX_BET_BY_LEVEL = (level: number): number => {
-    const index = Math.min(Math.floor(level * 0.8), SCALES.length - 1);
+    const index = Math.min(Math.floor(level * 0.4), SCALES.length - 1);
     return SCALES[index];
 };
 

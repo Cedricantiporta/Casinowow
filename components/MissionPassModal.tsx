@@ -58,7 +58,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
         (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
     ).length;
 
-    const diamondCostToSkip = (xp: number) => Math.ceil(xp / 50) * 10;
+    const diamondCostToSkip = (xp: number) => Math.max(1, Math.ceil(xp / 500));
     const isXpBoosted = missionState.passBoostMultiplier > 1;
 
     const handleScroll = (direction: 'LEFT' | 'RIGHT') => {
@@ -125,11 +125,11 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                 {/* ===== TOPBAR ===== */}
                 {view === 'MISSIONS' ? (
-                    /* MISSIONS topbar: single row — home | pills | spacer | tabs | pass btn */
+                    /* MISSIONS topbar: single row — back | pills | spacer | tabs */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-1.5 px-3 h-[38px]">
                             <div className="round-btn shrink-0" onClick={onClose}>
-                                <i className="ti ti-home"></i>
+                                <i className="ti ti-arrow-left"></i>
                             </div>
                             <div className="currency-pill flex items-center gap-1 shrink-0">
                                 <div className="coin">$</div>
@@ -149,15 +149,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     </button>
                                 ))}
                             </div>
-                            <button onClick={() => setView('PASS')}
-                                className="btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white font-black uppercase text-[9px] px-2.5 py-1 rounded-lg relative shrink-0 active:scale-95 ml-1">
-                                PASS
-                                {rewardsToClaimCount > 0 && (
-                                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-green-500 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[9px] font-black" style={{ WebkitTextStroke: '0.5px #000', paintOrder: 'stroke fill' }}>
-                                        {rewardsToClaimCount}
-                                    </div>
-                                )}
-                            </button>
                         </div>
                     </div>
                 ) : (
