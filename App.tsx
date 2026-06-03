@@ -1632,7 +1632,7 @@ const App: React.FC = () => {
                     );
                 })()}
                 <div className="w-full z-10 p-0 m-0">
-                    <JackpotTicker currentBet={availableBets[betIndex]} />
+                    <JackpotTicker currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
                     {isHighLimit && (
                         <div className="text-center mt-0">
                             <span className="bg-red-650 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase tracking-widest shadow-lg inline-block text-shadow-md">High Limit</span>

@@ -57,8 +57,8 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setGrandJackpot(prev => prev + Math.floor(Math.random() * 150 + 30));
-        }, 80);
+            setGrandJackpot(prev => prev + Math.floor(Math.random() * 8000 + 2000));
+        }, 3500);
         return () => clearInterval(interval);
     }, []);
 
