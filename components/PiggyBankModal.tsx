@@ -63,11 +63,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                         <span className="num font-mono">{formatNumber(diamonds)}</span>
                     </div>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white font-black text-sm transition-all hover:bg-white/20 active:scale-95"
-                    style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
-                >✕</button>
+                <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
             {/* Main Content */}

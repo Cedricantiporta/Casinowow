@@ -341,7 +341,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {activeGame === 'NONE' && (
                 <div className="w-full h-full max-w-none flex flex-col items-center justify-center p-4 relative bg-[#180e07] rounded-none shadow-2xl overflow-hidden">
                      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-15 pointer-events-none"></div>
-                     <button onClick={onClose} className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-[10px] z-50">✕</button>
+                     <div className="round-btn absolute top-2.5 right-2.5 z-50 cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
                      
                      <h2 className="text-lg font-black font-heavy text-[#e6c288] uppercase mb-4 text-center z-13">Choose Quest</h2>
                      
@@ -376,7 +376,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {/* WILD QUEST GAMEPLAY */}
             {activeGame === 'WILD' && (
                 <div className="w-full max-w-none h-full flex flex-col bg-[#2a1b12] rounded-none shadow-2xl relative overflow-hidden">
-                    <button onClick={onClose} className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-[10px] z-[60]">✕</button>
+                    <div className="round-btn absolute top-2.5 right-2.5 z-[60] cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/aztec.png')] opacity-10 pointer-events-none"></div>
                     
                     {/* Header */}
@@ -471,7 +471,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {/* DICE QUEST GAMEPLAY */}
             {activeGame === 'DICE' && (
                 <div className="w-full max-w-none h-full flex flex-col bg-[#1a237e] rounded-none shadow-2xl relative overflow-hidden">
-                    <button onClick={onClose} className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-[10px] z-[60]">✕</button>
+                    <div className="round-btn absolute top-2.5 right-2.5 z-[60] cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
 
                     {/* Header */}

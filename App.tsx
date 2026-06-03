@@ -1731,7 +1731,9 @@ const App: React.FC = () => {
                   {/* Win Panel */}
                   <div className="winpanel flex-1 flex flex-col items-center justify-center">
                       <span className="lets-spin">
-                          {status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
+                          {freeSpinsRemaining > 0 ? (
+                              formatCommaNumber(freeSpinTotalWin)
+                          ) : status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
                               'SPINNING...'
                           ) : winData?.payout && winData.payout > 0 ? (
                               formatWinNumber(winData.payout)

@@ -225,7 +225,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <span className="font-mono font-bold text-white">{formatNumber(tokens)}</span>
                         </div>
                     </div>
-                    <button onClick={onClose} className="ml-1 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition text-xs shrink-0">✕</button>
+                    <div className="round-btn cursor-pointer shrink-0 ml-1" onClick={onClose}><i className="ti ti-x"></i></div>
                 </div>
 
                 {/* Horizontal scroll content */}

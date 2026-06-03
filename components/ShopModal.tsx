@@ -30,6 +30,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         if (scrollInterval.current) { clearInterval(scrollInterval.current); scrollInterval.current = null; }
     };
 
+    // Tab scroll: Coins=idx 0, Gems=idx 6 (1 free + 5 coin packs), Boosts=idx 11
+    const scrollToSection = (startIdx: number) => {
+        scrollRef.current?.scrollTo({ left: startIdx * 152, behavior: 'smooth' });
+    };
+
     useEffect(() => {
         if (!isOpen) return;
         const B = 1_000_000;
@@ -78,7 +83,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             style={{ background: 'linear-gradient(160deg,#8040c0 0%,#5a1ea0 35%,#38086e 70%,#240550 100%)' }}
         >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
+            <div className="flex items-center justify-between px-4 pt-3 pb-1 shrink-0">
                 <div className="flex items-center gap-2">
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
                         <div className="coin">$</div>
@@ -89,11 +94,22 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                         <span className="num font-mono">{fmt(diamonds)}</span>
                     </div>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white font-black text-sm transition-all hover:bg-white/20 active:scale-95"
-                    style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}
-                >✕</button>
+                <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
+            </div>
+
+            {/* Section tabs */}
+            <div className="flex items-center gap-2 px-4 pb-2 shrink-0">
+                {[
+                    { label: '🪙 Coins',  idx: 0  },
+                    { label: '💎 Gems',   idx: 6  },
+                    { label: '🚀 Boosts', idx: 11 },
+                ].map(tab => (
+                    <button key={tab.label} onClick={() => scrollToSection(tab.idx)}
+                        className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black text-white uppercase"
+                        style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)' }}>
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
             {/* Scroll area — nav arrows overlay the card list, no side margin */}
@@ -140,13 +156,13 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                             {item.sub}
                                         </div>
                                     )}
-                                    {/* 3D price button */}
+                                    {/* Solid price button */}
                                     <div
                                         className="btn-3d w-full py-2 rounded-xl text-xs font-black text-white uppercase text-center tracking-wide"
                                         style={{
-                                            background: 'linear-gradient(180deg,rgba(255,255,255,0.28) 0%,rgba(0,0,0,0.45) 100%)',
-                                            border: '1px solid rgba(255,255,255,0.3)',
-                                            boxShadow: '0 3px 0 rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.35)'
+                                            background: 'rgba(0,0,0,0.65)',
+                                            border: '1px solid rgba(255,255,255,0.15)',
+                                            boxShadow: '0 3px 0 rgba(0,0,0,0.6)'
                                         }}
                                     >
                                         {item.price}

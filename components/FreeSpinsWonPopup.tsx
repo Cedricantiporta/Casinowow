@@ -14,7 +14,7 @@ export const FreeSpinsWonPopup: React.FC<FreeSpinsWonPopupProps> = ({ isOpen, co
             if (timerRef.current) clearTimeout(timerRef.current);
             timerRef.current = setTimeout(() => {
                 onComplete();
-            }, 2000); // 2 Seconds
+            }, 2000);
         }
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current);
@@ -29,35 +29,36 @@ export const FreeSpinsWonPopup: React.FC<FreeSpinsWonPopupProps> = ({ isOpen, co
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md animate-pop-in">
-            <div className="relative bg-gradient-to-b from-yellow-300 to-orange-500 p-0.5 rounded-xl shadow-[0_0_30px_rgba(255,165,0,0.5)]">
-                 <div className="bg-gradient-to-b from-yellow-500 to-orange-600 rounded-xl p-5 md:p-8 flex flex-col items-center text-center min-w-[240px] md:min-w-[320px] shadow-inner relative overflow-hidden">
-                    
-                    {/* Background Rays */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] bg-[conic-gradient(from_0deg,transparent_0deg,rgba(255,255,255,0.2)_20deg,transparent_40deg)] animate-[spin_10s_linear_infinite]"></div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 animate-pop-in">
+            {/* 3D container — offset bottom layer for thickness */}
+            <div className="relative">
+                <div className="absolute inset-0 rounded-2xl" style={{ background: '#2e0660', transform: 'translateY(7px)', borderRadius: '16px' }}></div>
+                <div className="relative rounded-2xl overflow-hidden flex flex-col items-center text-center px-8 py-6 min-w-[220px]"
+                    style={{
+                        background: 'linear-gradient(160deg,#9333ea 0%,#6d28d9 50%,#4c1d95 100%)',
+                        border: '1.5px solid rgba(196,151,255,0.4)',
+                        boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.25)',
+                    }}>
+                    {/* Shine overlay */}
+                    <div className="absolute top-0 left-0 right-0 h-1/2 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.15),transparent)' }}></div>
 
-                    <div className="relative z-10 flex flex-col items-center gap-1">
-                        
-                        <h2 className="text-sm md:text-base font-black font-display text-white uppercase tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.3)] mb-1">
-                            YOU WON FREE
-                        </h2>
-
-                        <div className="text-5xl md:text-6xl font-black font-display text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] my-2 animate-bounce">
-                            {count}
-                        </div>
-
-                        <div className="text-sm md:text-base font-black font-display text-white uppercase tracking-[0.3em] drop-shadow-[0_2px_0_rgba(0,0,0,0.3)]">
-                            SPINS
-                        </div>
-
-                        <button 
-                            onClick={handleStartNow}
-                            className="mt-4 px-6 py-1.5 bg-gradient-to-r from-red-600 to-red-500 text-white font-black uppercase text-xs tracking-widest rounded-lg shadow hover:scale-105 active:scale-95 transition-transform z-20"
-                        >
-                            Start Now
-                        </button>
+                    <h2 className="relative z-10 text-sm font-black text-purple-100 uppercase tracking-widest mb-1 drop-shadow">
+                        YOU WON FREE
+                    </h2>
+                    <div className="relative z-10 text-6xl font-black font-display text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] my-2 animate-bounce">
+                        {count}
                     </div>
-                 </div>
+                    <div className="relative z-10 text-sm font-black text-purple-100 uppercase tracking-[0.3em] drop-shadow mb-4">
+                        SPINS
+                    </div>
+                    <button
+                        onClick={handleStartNow}
+                        className="relative z-10 px-6 py-1.5 text-white font-black uppercase text-xs tracking-widest rounded-lg active:scale-95 transition-transform"
+                        style={{ background: 'linear-gradient(180deg,#a855f7,#7c3aed)', boxShadow: '0 3px 0 #3b0764', border: '1px solid rgba(255,255,255,0.2)' }}
+                    >
+                        Start Now
+                    </button>
+                </div>
             </div>
         </div>
     );

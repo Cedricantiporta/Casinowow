@@ -9,13 +9,10 @@ interface FreeSpinSummaryProps {
 }
 
 export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalWin, bet, onClose }) => {
-    
-    // Auto close after 3 seconds
+
     useEffect(() => {
         if (isOpen) {
-            const timer = setTimeout(() => {
-                onClose();
-            }, 3000);
+            const timer = setTimeout(() => { onClose(); }, 3000);
             return () => clearTimeout(timer);
         }
     }, [isOpen, onClose]);
@@ -24,39 +21,37 @@ export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalW
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-transparent pointer-events-auto animate-pop-in">
-            <div className="relative w-full max-w-xs p-2">
-                 {/* Glow Effect */}
-                 <div className="absolute inset-0 bg-yellow-400 rounded-xl blur-md opacity-55 animate-pulse"></div>
-                 
-                 <div className="relative bg-gradient-to-b from-yellow-400 to-yellow-600 rounded-xl p-4 md:p-5 flex flex-col items-center text-center shadow-md overflow-hidden">
-                    
-                    {/* Background Texture */}
-                    <div className="absolute inset-0 opacity-30 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] mix-blend-overlay"></div>
-                    <div className="absolute inset-0 bg-gradient-to-tr from-white/40 to-transparent opacity-50"></div>
+            {/* 3D container */}
+            <div className="relative w-full max-w-[260px]">
+                <div className="absolute inset-0 rounded-2xl" style={{ background: '#2e0660', transform: 'translateY(8px)', borderRadius: '16px' }}></div>
+                <div className="relative rounded-2xl p-4 flex flex-col items-center text-center overflow-hidden"
+                    style={{
+                        background: 'linear-gradient(160deg,#9333ea 0%,#6d28d9 50%,#4c1d95 100%)',
+                        border: '1.5px solid rgba(196,151,255,0.35)',
+                        boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2)',
+                    }}>
+                    <div className="absolute top-0 left-0 right-0 h-1/3 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.12),transparent)' }}></div>
 
-                    <div className="relative z-10 w-full flex flex-col items-center">
-                        <div className="text-[8px] font-black text-yellow-900 uppercase tracking-[0.2em] mb-1 drop-shadow-sm">Free Spins Complete</div>
-                        
-                        <h2 className="text-lg font-black font-display mb-2 tracking-wider text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]">
-                            TOTAL WIN
-                        </h2>
+                    <div className="text-[8px] font-black text-purple-200 uppercase tracking-[0.2em] mb-1 relative z-10">Free Spins Complete</div>
+                    <h2 className="text-lg font-black font-display mb-2 tracking-wider text-white drop-shadow relative z-10">TOTAL WIN</h2>
 
-                        <div className="bg-black/20 rounded-xl p-3 mb-4 w-full backdrop-blur-sm shadow-inner flex items-center justify-center min-h-[70px]">
-                            <div className="text-white text-3xl font-mono font-black drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] tracking-tighter whitespace-nowrap">
-                                {totalWin > 10000000000 ? formatNumber(totalWin) : formatCommaNumber(totalWin)}
-                            </div>
+                    <div className="rounded-xl p-3 mb-4 w-full shadow-inner relative z-10 flex items-center justify-center"
+                        style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div className="text-white text-3xl font-mono font-black tracking-tighter whitespace-nowrap drop-shadow">
+                            {totalWin > 10000000000 ? formatNumber(totalWin) : formatCommaNumber(totalWin)}
                         </div>
-
-                        <div className="text-yellow-100 text-[9px] uppercase mb-4 font-bold tracking-widest">Accumulated Coins</div>
-
-                        <button 
-                            onClick={onClose}
-                            className="px-6 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black text-xs uppercase tracking-widest rounded-lg shadow-md hover:scale-105 transition-all cursor-pointer"
-                        >
-                            COLLECT
-                        </button>
                     </div>
-                 </div>
+
+                    <div className="text-purple-200 text-[9px] uppercase mb-4 font-bold tracking-widest relative z-10">Accumulated Coins</div>
+
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-1.5 text-white font-black text-xs uppercase tracking-widest rounded-lg cursor-pointer active:scale-95 transition-all relative z-10"
+                        style={{ background: 'linear-gradient(180deg,#a855f7,#7c3aed)', boxShadow: '0 3px 0 #3b0764', border: '1px solid rgba(255,255,255,0.2)' }}
+                    >
+                        COLLECT
+                    </button>
+                </div>
             </div>
         </div>
     );

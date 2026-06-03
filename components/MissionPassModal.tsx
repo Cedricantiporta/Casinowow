@@ -100,7 +100,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className="relative bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-2xl p-0.5 w-full max-w-sm shadow-xl">
                         <div className="bg-gradient-to-b from-black/95 to-black/90 rounded-2xl p-5 flex flex-col items-center text-center relative overflow-hidden">
                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-                            <button onClick={() => setShowPremiumInfo(false)} className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-50 text-xs">✕</button>
+                            <div className="round-btn absolute top-3 right-3 z-50 cursor-pointer" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
                             <h2 className="text-xl font-black font-display text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-500 uppercase tracking-widest mb-2">Premium Pass</h2>
                             <div className="text-4xl mb-3">👑</div>
                             <ul className="space-y-2 mb-4 text-left w-full max-w-xs relative z-10 text-xs">
@@ -297,9 +297,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 const isUnlocked = missionState.passLevel >= lvl;
 
                                 return (
-                                    <div key={lvl} className="flex-none flex flex-col gap-2 relative snap-center h-full" style={{ width: '110px' }}>
-                                        <div className={`text-center font-black text-[11px] shrink-0 ${isUnlocked ? 'text-white' : 'text-gray-600'}`}>LVL {lvl}</div>
-                                        <div className={`flex-1 bg-gradient-to-b from-[#382952] to-[#231833] rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${freeReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
+                                    <div key={lvl} className="flex-none flex flex-col gap-1 relative snap-center h-full" style={{ width: '110px' }}>
+                                        {/* FREE card */}
+                                        <div className={`flex-1 bg-gradient-to-b from-[#382952] to-[#231833] rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${freeReward?.claimed ? 'opacity-50 grayscale' : ''}`}>
                                             <span className="text-[8px] text-gray-300 uppercase font-bold bg-black/50 px-2 py-0.5 rounded-full mt-0.5">Free</span>
                                             <div className="flex-1 flex flex-col items-center justify-center w-full gap-1">
                                                 <div className="text-5xl">{freeReward?.type === 'COINS' ? '🪙' : freeReward?.type === 'DIAMONDS' ? '💎' : '📦'}</div>
@@ -310,10 +310,15 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                 {freeReward?.claimed ? 'Claimed' : isUnlocked ? 'Claim' : 'Locked'}
                                             </button>
                                         </div>
-                                        <div className={`flex-1 bg-gradient-to-b ${missionState.isPremium ? 'from-[#451a03] to-[#2e1065]' : 'from-gray-800 to-black'} rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${premReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
-                                            <span className={`text-[8px] uppercase font-bold px-2 py-0.5 rounded-full mt-0.5 ${missionState.isPremium ? 'text-yellow-400 bg-black/50' : 'text-gray-600 bg-black/20'}`}>Premium</span>
+
+                                        {/* LVL label — between the two cards */}
+                                        <div className={`text-center font-black text-[10px] shrink-0 py-0.5 ${isUnlocked ? 'text-white' : 'text-gray-600'}`}>LVL {lvl}</div>
+
+                                        {/* PREMIUM card — greyed/grayscale when locked, no blur */}
+                                        <div className={`flex-1 bg-gradient-to-b ${missionState.isPremium ? 'from-[#451a03] to-[#2e1065]' : 'from-gray-800 to-black'} rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${!missionState.isPremium ? 'grayscale opacity-60' : premReward?.claimed ? 'opacity-50 grayscale' : ''}`}>
+                                            <span className={`text-[8px] uppercase font-bold px-2 py-0.5 rounded-full mt-0.5 ${missionState.isPremium ? 'text-yellow-400 bg-black/50' : 'text-gray-500 bg-black/20'}`}>Premium</span>
                                             <div className="flex-1 flex flex-col items-center justify-center w-full relative gap-1">
-                                                {!missionState.isPremium && <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-[1px]"><span className="text-4xl text-white">🔒</span></div>}
+                                                {!missionState.isPremium && <div className="absolute inset-0 flex items-center justify-center z-10"><span className="text-4xl text-gray-400">🔒</span></div>}
                                                 <div className="text-5xl">{premReward?.type === 'COINS' ? '💰' : premReward?.type === 'DIAMONDS' ? '💎' : premReward?.type === 'PICKS' ? '⛏️' : '👑'}</div>
                                                 <span className={`font-black text-[12px] text-center leading-tight drop-shadow-md ${missionState.isPremium ? 'text-yellow-100' : 'text-gray-500'}`}>{premReward ? getDisplayValue(premReward) : ''}</span>
                                             </div>

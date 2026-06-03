@@ -36,7 +36,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                     
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
                     
-                    <button onClick={onClose} className="absolute top-3 right-3 w-7 h-7 bg-black/20 hover:bg-black/40 rounded-full text-white font-bold flex items-center justify-center z-50 text-xs">✕</button>
+                    <div className="round-btn absolute top-3 right-3 z-50 cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
 
                     <h2 className="relative z-10 text-xl md:text-2xl font-black font-display text-white uppercase tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-1 text-shadow-lg">Golden Treasury</h2>
                     <p className="relative z-10 text-purple-200 font-bold text-[10px] md:text-xs uppercase tracking-wide mb-4">Wait longer for bigger rewards!</p>
@@ -48,20 +48,21 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                             const colors = getTimerColor(timer.id);
 
                             return (
-                                <div key={timer.id} className={`rounded-xl p-2.5 ${colors.bg} shadow-md flex flex-col items-center justify-between flex-1 relative group overflow-hidden transition-all`}>
+                                <div key={timer.id} className={`rounded-xl p-3 ${colors.bg} shadow-md flex flex-col items-center justify-between flex-1 relative group overflow-hidden transition-all`}>
                                     {isReady && <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-shine pointer-events-none"></div>}
-                                    <div className={`text-[9px] font-black uppercase ${colors.text} tracking-widest bg-black/40 px-2 py-0.5 rounded-full mb-1.5`}>{timer.label}</div>
-                                    <div className={`text-4xl md:text-5xl transition-transform duration-300 ${isReady ? 'scale-110 animate-bounce' : 'opacity-50 grayscale scale-90'}`}>
+                                    <div className={`text-[10px] font-black uppercase ${colors.text} tracking-widest bg-black/40 px-2 py-0.5 rounded-full mb-1`}>{timer.label}</div>
+                                    <div className={`leading-none transition-transform duration-300 ${isReady ? 'scale-110 animate-bounce' : 'opacity-50 grayscale scale-90'}`}
+                                        style={{ fontSize: '88px' }}>
                                         {timer.id === 0 ? '💎' : timer.id === 1 ? '🧧' : '👑'}
                                     </div>
                                     <div className="mt-2 w-full">
-                                        <div className="text-sm md:text-base font-black text-white drop-shadow-md mb-1.5 font-mono">
+                                        <div className="text-xl font-black text-white drop-shadow-md mb-2 font-mono text-center">
                                             {formatCommaNumber(timer.reward)}
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => isReady ? onClaim(timer.id, timer.reward) : null}
                                             disabled={!isReady}
-                                            className={`w-full py-1.5 rounded-lg font-black uppercase text-[10px] tracking-wider shadow-md transition-all ${isReady ? `${colors.btn} text-white hover:scale-105 cursor-pointer` : 'bg-gray-800/80 text-gray-500 cursor-default'}`}
+                                            className={`w-full py-2 rounded-lg font-black uppercase text-xs tracking-wider shadow-md transition-all ${isReady ? `${colors.btn} text-white hover:scale-105 cursor-pointer` : 'bg-gray-800/80 text-gray-500 cursor-default'}`}
                                         >
                                             {isReady ? 'COLLECT' : formatTime(timeLeft)}
                                         </button>
