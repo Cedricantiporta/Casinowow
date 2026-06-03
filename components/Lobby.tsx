@@ -136,7 +136,8 @@ export const Lobby: React.FC<LobbyProps> = ({
     const isVipLocked = playerLevel < 40;
 
     return (
-        <div className={`w-full h-full flex flex-col transition-colors duration-500 ${isHighLimit ? 'bg-red-950' : ''} relative overflow-hidden`}>
+        <div className={`w-full h-full flex flex-col transition-colors duration-500 relative overflow-hidden`}
+            style={isHighLimit ? { background:'linear-gradient(160deg,#3a2000,#1a0f00 50%,#2a1800)' } : {}}>
 
               <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9">
 
@@ -256,26 +257,23 @@ export const Lobby: React.FC<LobbyProps> = ({
                 )}
             </div>
  
-            {/* Bottom bar — flat center, sides curve sharply down (corner-cutout technique) */}
+            {/* Bottom bar — center arch shape, sides sweep down */}
             {(() => {
-                const cutoutBg = isHighLimit ? '#450a0a' : '#120024';
                 const iconBtn = (locked: boolean) =>
                     `flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform ${locked ? 'grayscale opacity-50' : ''}`;
+                const barBg = isHighLimit
+                    ? 'linear-gradient(180deg,#e8b020 0%,#c9901a 30%,#7a5000 100%)'
+                    : 'linear-gradient(180deg,#a060d8 0%,#7c3fb5 30%,#4a1880 100%)';
 
                 return (
                     <>
-                        {/* Bar background layer — clip-path gives flat center, sides curve sharply down */}
+                        {/* Bar background — curved arch: flat at very edges, dips toward center */}
                         <div className="fixed bottom-0 left-0 right-0 z-[49]" style={{
-                            height: '46px',
-                            clipPath: 'polygon(0% 100%, 0% 82%, 5% 60%, 10% 40%, 17% 18%, 24% 5%, 32% 0%, 68% 0%, 76% 5%, 83% 18%, 90% 40%, 95% 60%, 100% 82%, 100% 100%)',
+                            height: '52px',
+                            clipPath: 'polygon(0% 100%, 0% 0%, 14% 0%, 26% 20%, 38% 40%, 44% 55%, 50% 62%, 56% 55%, 62% 40%, 74% 20%, 86% 0%, 100% 0%, 100% 100%)',
                         }}>
-                            <div className="absolute inset-0" style={{
-                                background: 'linear-gradient(180deg,#a060d8 0%,#7c3fb5 30%,#4a1880 100%)',
-                                boxShadow: '0 -6px 24px rgba(0,0,0,0.7)',
-                            }}>
-                                {/* Shine */}
+                            <div className="absolute inset-0" style={{ background: barBg, boxShadow:'0 -6px 24px rgba(0,0,0,0.7)' }}>
                                 <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'38%', background:'linear-gradient(180deg,rgba(255,255,255,0.22),transparent)' }}></div>
-                                {/* Shadow */}
                                 <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'35%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
                             </div>
                         </div>

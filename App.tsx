@@ -913,7 +913,7 @@ const App: React.FC = () => {
       // Piggy Bank Logic: 5% of Bet, Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
           const savings = currentBet * 0.05;
-          const cap = player.level * 2500000;
+          const cap = player.level * 25000000;
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
@@ -1480,9 +1480,10 @@ const App: React.FC = () => {
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
                 {/* Lobby Home Button */}
-                <div 
+                <div
                     onClick={currentView !== 'LOBBY' ? handleHeaderBack : undefined}
                     className={`round-btn shrink-0 ${currentView === 'LOBBY' ? 'opacity-65 cursor-default' : ''}`}
+                    style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
                     <i className="ti ti-home"></i>
                 </div>
@@ -1530,6 +1531,7 @@ const App: React.FC = () => {
                         onClick={handleOpenPiggyBank}
                         className={`round-btn shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
                         title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
+                        style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                     >
                         <span style={{fontSize:16}}>🐷</span>
                     </div>
@@ -1547,14 +1549,15 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Active Multiplier indicator */}
-                <div className="mult shrink-0 ml-2">
+                <div className="mult shrink-0 ml-2" style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}>
                     x{player.xpMultiplier}
                 </div>
 
                 {/* Dynamic Mute round-btn */}
-                <div 
+                <div
                     onClick={() => setIsMuted(audioService.toggleMute())}
                     className="round-btn shrink-0"
+                    style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
                     <i className={`ti ${isMuted ? 'ti-volume-3' : 'ti-volume'}`}></i>
                 </div>
@@ -1631,15 +1634,10 @@ const App: React.FC = () => {
                 })()}
                 <div className="w-full z-10 p-0 m-0">
                     <JackpotTicker currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
-                    {isHighLimit && (
-                        <div className="text-center mt-0">
-                            <span className="bg-red-650 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase tracking-widest shadow-lg inline-block text-shadow-md">High Limit</span>
-                        </div>
-                    )}
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
-                    <div className={`relative z-10 bg-black/60 p-1 md:p-1.5 rounded-xl shadow-2xl flex gap-1 h-full max-h-full aspect-[5/3] overflow-hidden ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,38,38,0.35)] animate-pulse' : ''}`}>
+                    <div className={`relative z-10 bg-black/60 p-1 md:p-1.5 rounded-xl shadow-2xl flex gap-1 h-full max-h-full aspect-[5/3] overflow-hidden ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}`}>
                         {grid.map((col, i) => (
                             <Reel 
                                 key={i} 
@@ -1673,7 +1671,8 @@ const App: React.FC = () => {
                   {(() => {
                       const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
                       return (
-                          <div onClick={openMissionsModal} className="icon-btn shrink-0 flex flex-col items-center justify-end relative">
+                          <div onClick={openMissionsModal} className="icon-btn shrink-0 flex flex-col items-center justify-end relative"
+                              style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', borderColor:'#8b6200' } : {}}>
                               {missReady > 0 && (
                                   <div className="absolute top-0 right-0 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>{missReady}</div>
                               )}
@@ -1691,7 +1690,7 @@ const App: React.FC = () => {
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       −
                   </div>
@@ -1710,7 +1709,7 @@ const App: React.FC = () => {
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       +
                   </div>
@@ -1739,7 +1738,7 @@ const App: React.FC = () => {
                               audioService.playClick();
                           }
                       }}
-                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE || betIndex === availableBets.length - 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE || betIndex === availableBets.length - 1 || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">

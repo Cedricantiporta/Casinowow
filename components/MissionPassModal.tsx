@@ -125,7 +125,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                 {/* ===== TOPBAR ===== */}
                 {view === 'MISSIONS' ? (
-                    /* MISSIONS topbar: single row — home | pills | spacer | level+xp | tabs | rewards */
+                    /* MISSIONS topbar: single row — home | pills | spacer | tabs | pass btn */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-1.5 px-3 h-[38px]">
                             <div className="round-btn shrink-0" onClick={onClose}>
@@ -140,15 +140,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <span className="num">{fmt(diamonds)}</span>
                             </div>
                             <div className="flex-1"></div>
-                            {/* Pass level badge + XP bar */}
-                            <div className="flex items-center gap-1.5 shrink-0">
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-indigo-700 flex items-center justify-center shadow-md">
-                                    <span className="font-black text-[10px] text-white">{missionState.passLevel}</span>
-                                </div>
-                                <div className="w-14 h-2 bg-black/60 rounded-full overflow-hidden border border-white/10">
-                                    <div className="h-full bg-gradient-to-r from-fuchsia-500 to-purple-600 transition-all" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
-                                </div>
-                            </div>
                             {/* Tabs — right side */}
                             <div className="flex items-center gap-0.5 shrink-0">
                                 {(['DAILY', 'WEEKLY', 'MONTHLY'] as MissionFrequency[]).map(tab => (
@@ -159,8 +150,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 ))}
                             </div>
                             <button onClick={() => setView('PASS')}
-                                className="btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white font-black uppercase text-[9px] px-2.5 py-1 rounded-lg relative shrink-0 active:scale-95">
-                                REWARDS
+                                className="btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white font-black uppercase text-[9px] px-2.5 py-1 rounded-lg relative shrink-0 active:scale-95 ml-1">
+                                PASS
                                 {rewardsToClaimCount > 0 && (
                                     <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-green-500 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[9px] font-black" style={{ WebkitTextStroke: '0.5px #000', paintOrder: 'stroke fill' }}>
                                         {rewardsToClaimCount}
@@ -243,8 +234,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
 
                                 {/* Icon */}
-                                <div className="w-12 h-12 bg-black/45 rounded-xl flex items-center justify-center text-3xl shrink-0 shadow-inner mx-auto relative z-10">
-                                    {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? '💰' : '⭐'}
+                                <div className="flex-1 bg-black/30 rounded-xl flex items-center justify-center shrink-0 shadow-inner mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(3rem, 8vw, 5rem)' }}>
+                                    {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? '💰' : mission.type === 'BET_COINS' ? '🪙' : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : '⭐'}
                                 </div>
 
                                 {/* Label */}
@@ -315,28 +306,28 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 const isUnlocked = missionState.passLevel >= lvl;
 
                                 return (
-                                    <div key={lvl} className="flex-none w-24 flex flex-col gap-1.5 relative snap-center">
-                                        <div className={`text-center font-black text-[10px] ${isUnlocked ? 'text-white' : 'text-gray-600'}`}>LVL {lvl}</div>
-                                        <div className={`aspect-square bg-gradient-to-b from-[#382952] to-[#231833] rounded-lg p-1 flex flex-col items-center justify-between relative shadow ${freeReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
-                                            <div className="flex-1 flex flex-col items-center justify-center w-full">
-                                                <div className="text-4xl mb-0.5">{freeReward?.type === 'COINS' ? '🪙' : freeReward?.type === 'DIAMONDS' ? '💎' : '📦'}</div>
-                                                <span className="font-black text-white text-[11px] text-center leading-tight drop-shadow-md">{freeReward ? getDisplayValue(freeReward) : ''}</span>
-                                                <span className="text-[8px] text-gray-300 uppercase font-bold bg-black/50 px-1.5 py-0.5 rounded-full mt-0.5">Free</span>
+                                    <div key={lvl} className="flex-none flex flex-col gap-2 relative snap-center" style={{ width: '110px' }}>
+                                        <div className={`text-center font-black text-[11px] ${isUnlocked ? 'text-white' : 'text-gray-600'}`}>LVL {lvl}</div>
+                                        <div className={`bg-gradient-to-b from-[#382952] to-[#231833] rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${freeReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`} style={{ aspectRatio: '2/3' }}>
+                                            <span className="text-[8px] text-gray-300 uppercase font-bold bg-black/50 px-2 py-0.5 rounded-full mt-0.5">Free</span>
+                                            <div className="flex-1 flex flex-col items-center justify-center w-full gap-1">
+                                                <div className="text-5xl">{freeReward?.type === 'COINS' ? '🪙' : freeReward?.type === 'DIAMONDS' ? '💎' : '📦'}</div>
+                                                <span className="font-black text-white text-[12px] text-center leading-tight drop-shadow-md">{freeReward ? getDisplayValue(freeReward) : ''}</span>
                                             </div>
                                             <button onClick={() => freeReward && onClaimReward(freeReward)} disabled={!isUnlocked || freeReward?.claimed}
-                                                className={`btn-3d w-full py-0.5 text-[8px] font-black uppercase rounded-md ${isUnlocked && !freeReward?.claimed ? 'bg-gradient-to-b from-green-400 to-green-700 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>
+                                                className={`btn-3d w-full py-1 text-[9px] font-black uppercase rounded-lg ${isUnlocked && !freeReward?.claimed ? 'bg-gradient-to-b from-green-400 to-green-700 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>
                                                 {freeReward?.claimed ? 'Claimed' : isUnlocked ? 'Claim' : 'Locked'}
                                             </button>
                                         </div>
-                                        <div className={`aspect-square bg-gradient-to-b ${missionState.isPremium ? 'from-[#451a03] to-[#2e1065]' : 'from-gray-800 to-black'} rounded-lg p-1 flex flex-col items-center justify-between relative shadow ${premReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
-                                            <div className="flex-1 flex flex-col items-center justify-center w-full relative">
+                                        <div className={`bg-gradient-to-b ${missionState.isPremium ? 'from-[#451a03] to-[#2e1065]' : 'from-gray-800 to-black'} rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${premReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`} style={{ aspectRatio: '2/3' }}>
+                                            <span className={`text-[8px] uppercase font-bold px-2 py-0.5 rounded-full mt-0.5 ${missionState.isPremium ? 'text-yellow-400 bg-black/50' : 'text-gray-600 bg-black/20'}`}>Premium</span>
+                                            <div className="flex-1 flex flex-col items-center justify-center w-full relative gap-1">
                                                 {!missionState.isPremium && <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-[1px]"><span className="text-4xl text-white">🔒</span></div>}
-                                                <div className="text-4xl mb-0.5">{premReward?.type === 'COINS' ? '💰' : premReward?.type === 'DIAMONDS' ? '💎' : premReward?.type === 'PICKS' ? '⛏️' : '👑'}</div>
-                                                <span className={`font-black text-[11px] text-center leading-tight drop-shadow-md ${missionState.isPremium ? 'text-yellow-100' : 'text-gray-500'}`}>{premReward ? getDisplayValue(premReward) : ''}</span>
-                                                <span className={`text-[8px] uppercase font-bold px-1.5 py-0.5 rounded-full mt-0.5 ${missionState.isPremium ? 'text-yellow-400 bg-black/50' : 'text-gray-600 bg-black/20'}`}>Premium</span>
+                                                <div className="text-5xl">{premReward?.type === 'COINS' ? '💰' : premReward?.type === 'DIAMONDS' ? '💎' : premReward?.type === 'PICKS' ? '⛏️' : '👑'}</div>
+                                                <span className={`font-black text-[12px] text-center leading-tight drop-shadow-md ${missionState.isPremium ? 'text-yellow-100' : 'text-gray-500'}`}>{premReward ? getDisplayValue(premReward) : ''}</span>
                                             </div>
                                             <button onClick={() => premReward && onClaimReward(premReward)} disabled={!isUnlocked || premReward?.claimed || !missionState.isPremium}
-                                                className={`btn-3d w-full py-0.5 text-[8px] font-black uppercase rounded-md ${isUnlocked && !premReward?.claimed && missionState.isPremium ? 'bg-gradient-to-b from-yellow-300 to-yellow-600 text-black' : 'bg-gray-800 text-gray-600 cursor-not-allowed'}`}>
+                                                className={`btn-3d w-full py-1 text-[9px] font-black uppercase rounded-lg ${isUnlocked && !premReward?.claimed && missionState.isPremium ? 'bg-gradient-to-b from-yellow-300 to-yellow-600 text-black' : 'bg-gray-800 text-gray-600 cursor-not-allowed'}`}>
                                                 {premReward?.claimed ? 'Claimed' : (isUnlocked && missionState.isPremium) ? 'Claim' : 'Locked'}
                                             </button>
                                         </div>

@@ -21,7 +21,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
     const rawCost = Math.max(50, Math.floor(amount / 20000));
     const breakCost = Math.min(rawCost, 1000);
 
-    const cap = level * 2500000;
+    const cap = level * 25000000;
     const isFull = amount >= cap;
 
     const handleBreakClick = () => {
