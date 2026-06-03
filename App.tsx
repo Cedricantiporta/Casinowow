@@ -149,6 +149,20 @@ const App: React.FC = () => {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [levelUpReward, setLevelUpReward] = useState(0);
   const [maxBetIncreased, setMaxBetIncreased] = useState(false);
+  const [mobileScale, setMobileScale] = useState(1);
+
+  useEffect(() => {
+    const updateScale = () => {
+      const widthScale = window.innerWidth / 390;
+      const heightScale = window.innerHeight / 844;
+      setMobileScale(Math.min(1, widthScale, heightScale));
+    };
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
   // Quest state initialized with separate stages
   const [quest, setQuest] = useState<QuestState>({ 
       credits: 0, 
@@ -1464,8 +1478,10 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`w-full min-h-screen bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}>
-      <header className="fixed top-0 w-full z-[100] bg-[#120024] border-b-2 border-[#2a0d55] flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[36px] md:h-[44px] select-none overflow-visible">
+    <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
+      <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 390, height: 844, transform: `scale(${mobileScale})`, transformOrigin: 'top center' }}>
+        <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}>
+          <header className="fixed top-0 w-full z-[100] bg-[#120024] border-b-2 border-[#2a0d55] flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[36px] md:h-[44px] select-none overflow-visible">
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6">
                 {/* Lobby Home Button */}
@@ -1795,6 +1811,8 @@ const App: React.FC = () => {
       
       <BankruptcyModal isOpen={showBankruptcy} onCollect={() => { setPlayer(p => ({ ...p, balance: p.balance + 100000 })); setShowBankruptcy(false); setCelebrationMsg("+100,000 Coins"); audioService.playWinBig(); }} />
 
+        </div>
+      </div>
     </div>
   );
 };
