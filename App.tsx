@@ -1812,18 +1812,19 @@ const App: React.FC = () => {
         playerLevel={player.level}
       />
       
-      <MissionPassModal 
-          isOpen={activeModal === 'MISSIONS'} 
-          initialView={missionInitialView} 
-          onClose={() => setActiveModal('NONE')} 
-          missionState={missionState} 
-          diamonds={player.diamonds} 
-          onClaimReward={handleClaimPassReward} 
-          onFinishMission={handleFinishMission} 
-          onClaimMissionReward={handleClaimMissionReward} 
-          onBuyPass={handleBuyPass} 
-          onBuyLevel={handleBuyPassLevel} 
-          onClaimAll={handleClaimAllMissions} 
+      <MissionPassModal
+          isOpen={activeModal === 'MISSIONS'}
+          initialView={missionInitialView}
+          onClose={() => setActiveModal('NONE')}
+          missionState={missionState}
+          diamonds={player.diamonds}
+          balance={player.balance}
+          onClaimReward={handleClaimPassReward}
+          onFinishMission={handleFinishMission}
+          onClaimMissionReward={handleClaimMissionReward}
+          onBuyPass={handleBuyPass}
+          onBuyLevel={handleBuyPassLevel}
+          onClaimAll={handleClaimAllMissions}
           playerLevel={player.level}
       />
       

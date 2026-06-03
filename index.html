@@ -259,6 +259,26 @@
       @media (min-width: 768px) {
         .divider { height: 22px; }
       }
+
+      /* 3D raised button effect — apply to any button with .btn-3d */
+      .btn-3d {
+        position: relative;
+        box-shadow: 0 4px 0 rgba(0,0,0,0.45), 0 5px 10px rgba(0,0,0,0.3);
+        transition: transform 0.08s ease, box-shadow 0.08s ease;
+      }
+      .btn-3d::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 50%);
+        pointer-events: none;
+      }
+      .btn-3d:active {
+        transform: translateY(4px) !important;
+        box-shadow: 0 0px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.2) !important;
+      }
+
       .buyB, .saleB{z-index:1; border-radius: 6px !important; padding-bottom:1px !important;}
       .buyB .face, .saleB .face{padding:7px 8px; display:flex; align-items:center; justify-content:center; border-radius: 5px !important; min-width:46px;}
       .buyB .lbl, .saleB .lbl{font-size:11px; font-family:'Nunito',sans-serif !important;}

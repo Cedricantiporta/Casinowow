@@ -245,116 +245,117 @@ export const Lobby: React.FC<LobbyProps> = ({
                 >▶</button>
             </div>
  
-            {/* Bottom bar — curved arch, 3D, compressed center */}
-            <div className="fixed bottom-0 w-full z-50 select-none" style={{ padding:'0 10px' }}>
-                <div className="relative overflow-hidden" style={{
-                    background: 'linear-gradient(180deg,#a060d8 0%,#7c3fb5 28%,#4a1880 100%)',
-                    border: '1.5px solid rgba(180,110,240,0.7)',
-                    borderBottom: 'none',
-                    borderRadius: '100% 100% 0 0 / 18px 18px 0 0',
-                    boxShadow: '0 -8px 28px rgba(0,0,0,0.75), inset 0 1px 0 rgba(255,255,255,0.18)',
-                }}>
-                    {/* Top shine */}
-                    <div className="absolute top-0 left-0 right-0 h-[40%] pointer-events-none z-10" style={{ background:'linear-gradient(180deg,rgba(255,255,255,0.20) 0%,rgba(255,255,255,0) 100%)' }}></div>
-                    {/* Bottom shadow */}
-                    <div className="absolute bottom-0 left-0 right-0 h-[35%] pointer-events-none z-10" style={{ background:'linear-gradient(0deg,rgba(0,0,0,0.38) 0%,rgba(0,0,0,0) 100%)' }}></div>
+            {/* Bottom bar — flat center, sides curve sharply down (corner-cutout technique) */}
+            {(() => {
+                const cutoutBg = isHighLimit ? '#450a0a' : '#120024';
+                const iconBtn = (locked: boolean) =>
+                    `flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform ${locked ? 'grayscale opacity-50' : ''}`;
 
-                    <div className="font-nunito flex items-stretch justify-center gap-0.5 h-[40px] md:h-[46px] relative z-20">
-
-                        {/* Piggy Bank */}
-                        <button
-                            onClick={!isPiggyLocked ? onOpenPiggyBank : undefined}
-                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isPiggyLocked ? 'grayscale opacity-50' : ''}`}
-                        >
-                            <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">🐷</span>
-                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
-                        </button>
-
-                        {/* Quest */}
-                        <button
-                            onClick={!isQuestLocked ? onOpenQuest : undefined}
-                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isQuestLocked ? 'grayscale opacity-50' : ''}`}
-                        >
-                            <div className="relative leading-none">
-                                <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{getQuestIcon()}</span>
-                                {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-400 rounded-full border border-white animate-bounce"></div>}
+                return (
+                    <>
+                        {/* Bar background layer */}
+                        <div className="fixed bottom-0 left-0 right-0 z-[49]" style={{ height: '46px' }}>
+                            <div className="absolute inset-0" style={{
+                                background: 'linear-gradient(180deg,#a060d8 0%,#7c3fb5 30%,#4a1880 100%)',
+                                borderTop: '1.5px solid rgba(180,110,240,0.75)',
+                                boxShadow: '0 -6px 24px rgba(0,0,0,0.7)',
+                            }}>
+                                {/* Shine */}
+                                <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'38%', background:'linear-gradient(180deg,rgba(255,255,255,0.22),transparent)' }}></div>
+                                {/* Shadow */}
+                                <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'35%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
                             </div>
-                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
-                        </button>
-
-                        {/* Season Pass */}
-                        <button
-                            onClick={!isMissionsLocked ? onOpenBattlePass : undefined}
-                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isMissionsLocked ? 'grayscale opacity-50' : ''}`}
-                        >
-                            <div className="relative leading-none">
-                                <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">🎫</span>
-                                {totalMissionNotifs > 0 && !isMissionsLocked && (
-                                    <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white flex items-center justify-center text-[6px] text-white font-bold animate-pulse">
-                                        {totalMissionNotifs}
-                                    </div>
-                                )}
-                            </div>
-                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
-                        </button>
-
-                        {/* Time Bonus (Center Protruding Button) */}
-                        <div className="flex items-center justify-center px-1">
-                            <button
-                                onClick={onClaimBonus}
-                                className="flex flex-col items-center justify-center relative active:scale-95 transition-transform z-20"
-                            >
-                                <div className={`relative w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-white/30 shadow-[0_0_10px_rgba(255,215,0,0.4)] flex flex-col items-center justify-center transition-transform -mt-5 md:-mt-6 ${isReadyToCollect ? 'bg-gradient-to-b from-[#7ada2a] via-[#5cc814] to-[#388e00] animate-pulse border-green-300' : 'bg-gradient-to-b from-[#3a1270] to-[#1a0838]'}`}>
-                                    {isReadyToCollect ? (
-                                        <>
-                                            <span className="text-[6px] font-black uppercase text-white leading-none drop-shadow-[0_1px_0_rgba(15,60,0,0.8)]">FREE</span>
-                                            <span className="text-[7px] font-black uppercase text-yellow-100 drop-shadow-[0_1px_0_rgba(15,60,0,0.8)] leading-none">COINS</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="text-[5.5px] font-bold text-purple-300 uppercase leading-none">BONUS</span>
-                                            <span className="text-[8px] font-black text-white font-mono leading-none mt-0.5">{formatTime(timeLeft)}</span>
-                                        </>
-                                    )}
-                                    {isReadyToCollect && <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white animate-ping opacity-75"></div>}
-                                    {isReadyToCollect && <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] font-bold text-white">!</div>}
-                                </div>
-                            </button>
+                            {/* Left corner cutout — makes left side curve sharply down */}
+                            <div className="absolute pointer-events-none" style={{ top:0, left:0, width:'48px', height:'46px', background:cutoutBg, borderBottomRightRadius:'48px', zIndex:5 }}></div>
+                            {/* Right corner cutout */}
+                            <div className="absolute pointer-events-none" style={{ top:0, right:0, width:'48px', height:'46px', background:cutoutBg, borderBottomLeftRadius:'48px', zIndex:5 }}></div>
                         </div>
 
-                        {/* Missions */}
-                        <button
-                            onClick={!isMissionsLocked ? onOpenMissions : undefined}
-                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isMissionsLocked ? 'grayscale opacity-50' : ''}`}
-                        >
-                            <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">📜</span>
-                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
-                        </button>
+                        {/* Icons layer — taller than bar so icons protrude above */}
+                        <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center gap-0.5 select-none font-nunito"
+                            style={{ height:'66px', paddingBottom:'4px' }}>
 
-                        {/* Cards */}
-                        <button
-                            onClick={!isCardsLocked ? onOpenCollection : undefined}
-                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isCardsLocked ? 'grayscale opacity-50' : ''}`}
-                        >
-                            <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">🃏</span>
-                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
-                        </button>
+                            <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
+                                <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🐷</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
+                            </button>
 
-                        {/* VIP Limit Toggle */}
-                        <button
-                            onClick={!isVipLocked ? onToggleVIP : undefined}
-                            className={`flex flex-col items-center justify-center gap-0.5 relative active:scale-95 transition-transform px-2.5 md:px-3 ${isVipLocked ? 'grayscale opacity-50' : ''}`}
-                        >
-                            <div className="relative leading-none">
-                                <span className="text-[1.2rem] md:text-[1.5rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{isHighLimit ? '👑' : '🧢'}</span>
-                                {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border border-white animate-pulse"></div>}
-                            </div>
-                            <span className="text-[8px] md:text-[9px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP'}</span>
-                        </button>
+                            <button onClick={!isQuestLocked ? onOpenQuest : undefined} className={iconBtn(isQuestLocked)}>
+                                <div className="relative leading-none">
+                                    <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{getQuestIcon()}</span>
+                                    {questReady && !isQuestLocked && <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-green-400 rounded-full border border-white animate-bounce"></div>}
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Quest</span>
+                            </button>
 
-                    </div>
-                </div>
-            </div>
+                            <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
+                                <div className="relative leading-none">
+                                    <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎫</span>
+                                    {totalMissionNotifs > 0 && !isMissionsLocked && (
+                                        <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-red-600 rounded-full border border-white flex items-center justify-center text-[6px] text-white font-bold animate-pulse">
+                                            {totalMissionNotifs}
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
+                            </button>
+
+                            {/* Center — big coin "COLLECT" button */}
+                            <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform relative">
+                                <div className="relative" style={{
+                                    width: '52px', height: '52px', borderRadius: '50%',
+                                    background: isReadyToCollect
+                                        ? 'radial-gradient(circle at 36% 28%,#fff7c0,#ffd027 40%,#f29400 70%,#b85f00)'
+                                        : 'radial-gradient(circle at 36% 28%,#c0c0c0,#888 40%,#555 70%,#333)',
+                                    border: isReadyToCollect ? '3px solid #f0a000' : '3px solid #666',
+                                    boxShadow: isReadyToCollect
+                                        ? 'inset 0 2px 5px rgba(255,255,255,0.65),inset 0 -2px 5px rgba(140,70,0,0.5),0 4px 0 rgba(120,60,0,0.7),0 6px 12px rgba(0,0,0,0.5)'
+                                        : 'inset 0 2px 4px rgba(255,255,255,0.3),0 4px 0 rgba(0,0,0,0.5)',
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                    flexShrink: 0,
+                                }}>
+                                    <span style={{ fontSize:'11px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>FREE</span>
+                                    <span style={{ fontSize:'13px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>COINS</span>
+                                    {/* COLLECT badge at bottom of coin */}
+                                    <div style={{
+                                        position:'absolute', bottom:'-9px', left:'50%', transform:'translateX(-50%)',
+                                        background: isReadyToCollect ? 'linear-gradient(180deg,#3a9900,#1e6600)' : '#444',
+                                        color:'white', fontSize:'7px', fontWeight:900,
+                                        padding:'2px 8px', borderRadius:'8px', whiteSpace:'nowrap', textTransform:'uppercase',
+                                        border:'1px solid rgba(255,255,255,0.25)',
+                                        boxShadow: isReadyToCollect ? '0 2px 0 rgba(0,0,0,0.4)' : 'none',
+                                        letterSpacing:'0.5px',
+                                    }}>
+                                        {isReadyToCollect ? 'COLLECT' : formatTime(timeLeft)}
+                                    </div>
+                                    {isReadyToCollect && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600 rounded-full border border-white flex items-center justify-center text-[7px] font-bold text-white z-10">!</div>}
+                                </div>
+                                {/* spacer for the COLLECT badge overflow */}
+                                <div style={{ height:'14px' }}></div>
+                            </button>
+
+                            <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
+                                <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📜</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
+                            </button>
+
+                            <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
+                                <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
+                            </button>
+
+                            <button onClick={!isVipLocked ? onToggleVIP : undefined} className={iconBtn(isVipLocked)}>
+                                <div className="relative leading-none">
+                                    <span className="text-[1.5rem] md:text-[1.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isHighLimit ? '👑' : '🧢'}</span>
+                                    {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-600 rounded-full border border-white animate-pulse"></div>}
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP ON' : 'VIP'}</span>
+                            </button>
+
+                        </div>
+                    </>
+                );
+            })()}
         </div>
     );
 };
