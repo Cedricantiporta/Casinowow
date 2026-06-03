@@ -126,10 +126,10 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/85 backdrop-blur-sm p-0 animate-pop-in">
+        <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(160deg,#2e1065 0%,#0f0518 100%)' }}>
             {/* Pack Opening Overlay */}
             {isOpeningPack && (
-                <div className="absolute inset-0 z-[160] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center rounded-2xl p-3">
+                <div className="absolute inset-0 z-[160] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-3">
                     {packStage === 'SHAKING' && (
                         <div className="text-6xl animate-bounce drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] pointer-events-none">📦</div>
                     )}
@@ -182,7 +182,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 </div>
             )}
 
-            <div className="absolute inset-0 bg-gradient-to-b from-[#2e1065] to-[#0f0518] flex flex-col shadow-2xl relative">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#4c1d95] to-[#3b0764] px-3 py-2 flex items-center gap-2 shrink-0 z-10 shadow-lg">
                     {selectedDeckId && (
@@ -349,7 +348,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         </div>
                     )}
                 </div>
-            </div>
         </div>
     );
 };

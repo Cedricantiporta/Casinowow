@@ -1683,7 +1683,7 @@ const App: React.FC = () => {
                   })()}
 
                   {/* Minus Bet */}
-                  <div 
+                  <div
                       onClick={() => {
                           if (betIndex > 0 && status === GameStatus.IDLE) {
                               setBetIndex(prev => prev - 1);
@@ -1691,6 +1691,7 @@ const App: React.FC = () => {
                           }
                       }}
                       className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      style={isHighLimit ? { color: '#e0a820' } : {}}
                   >
                       −
                   </div>
@@ -1698,11 +1699,11 @@ const App: React.FC = () => {
                   {/* Bet Display */}
                   <div className="bet-disp shrink-0 flex flex-col items-center justify-center">
                       <span className="bet-amt">{formatBet(availableBets[betIndex])}</span>
-                      <span className="bet-lbl">TOTAL BET</span>
+                      <span className="bet-lbl" style={{ color: '#c79bff' }}>TOTAL BET</span>
                   </div>
 
                   {/* Plus Bet */}
-                  <div 
+                  <div
                       onClick={() => {
                           if (betIndex < availableBets.length - 1 && status === GameStatus.IDLE) {
                               setBetIndex(prev => prev + 1);
@@ -1710,6 +1711,7 @@ const App: React.FC = () => {
                           }
                       }}
                       className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      style={isHighLimit ? { color: '#e0a820' } : {}}
                   >
                       +
                   </div>
