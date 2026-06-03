@@ -129,6 +129,7 @@ const App: React.FC = () => {
   const [targetGrid, setTargetGrid] = useState<SymbolType[][]>([]);
   const [winData, setWinData] = useState<WinData | null>(null);
   const [stoppedReels, setStoppedReels] = useState(0);
+  const [instantStop, setInstantStop] = useState(false);
   const [fastSpin, setFastSpin] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const savedFastSpinRef = useRef<boolean>(false); 
@@ -935,6 +936,7 @@ const App: React.FC = () => {
         setFreeSpinsRemaining(prev => prev - 1);
         updateMissions(MissionType.SPIN_COUNT, 1);
     }
+    setInstantStop(false);
     setStatus(GameStatus.SPINNING);
     setWinData(null);
     setStoppedReels(0);
@@ -1458,6 +1460,7 @@ const App: React.FC = () => {
               if (status === GameStatus.IDLE || (status === GameStatus.FREE_SPIN_INTRO && freeSpinsRemaining > 0)) {
                   spin();
               } else if (status === GameStatus.SPINNING || status === GameStatus.STOPPING) {
+                  setInstantStop(true);
                   if (status === GameStatus.SPINNING) setStatus(GameStatus.STOPPING);
               }
           }
@@ -1646,7 +1649,7 @@ const App: React.FC = () => {
                                 symbols={targetGrid.length > 0 ? targetGrid[i] : col} 
                                 spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} 
                                 stopping={status === GameStatus.STOPPING} 
-                                stopDelay={i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)} 
+                                stopDelay={instantStop ? 0 : i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)}
                                 duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION} 
                                 onStop={handleReelStop} 
                                 winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []} 
