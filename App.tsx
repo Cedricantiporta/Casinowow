@@ -1478,9 +1478,10 @@ const App: React.FC = () => {
     <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
       <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'top center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}>
-          <header className="w-full z-[100] bg-[#7c3fb5] border-b-2 border-[#2a0d55] flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[29px] md:h-[35px] select-none overflow-visible shrink-0">
+          <header className="w-full z-[100] border-b-2 flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
+            style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottomColor:'#8b6200' } : { background:'#7c3fb5', borderBottomColor:'#2a0d55' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
-            <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{borderTop:'none'}}>
+            <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
                 {/* Lobby Home Button */}
                 <div 
                     onClick={currentView !== 'LOBBY' ? handleHeaderBack : undefined}
@@ -1540,9 +1541,9 @@ const App: React.FC = () => {
                 <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent ml-2">
                     <div className="star shrink-0"></div>
                     <div className="rtrack !flex-none w-[90px] md:w-[150px] overflow-hidden relative">
-                        <div 
-                            className="rfill" 
-                            style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%` }}
+                        <div
+                            className="rfill"
+                            style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, ...(player.xpMultiplier >= 2 ? { background: 'linear-gradient(180deg,#ffe04d,#d4a017 60%,#a07010)', boxShadow: 'inset 0 1px 1px rgba(255,255,180,0.7)' } : {}) }}
                         ></div>
                         <span className="rnum relative z-10 text-[9px] font-black">{player.level}</span>
                     </div>
@@ -1594,7 +1595,7 @@ const App: React.FC = () => {
                     const isPassLocked = player.level < 10;
                     return (
                         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
-                            style={{ background:'linear-gradient(180deg,#7c3fb5,#4a1880)', border:'1.5px solid #38106e', borderRadius:'21px', padding:'9px 6px', gap:'3px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', border: isHighLimit ? '1.5px solid #8b6200' : '1.5px solid #38106e', borderRadius:'21px', padding:'9px 6px', gap:'3px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
                             <button
                                 onClick={!isQuestLocked ? handleQuestClaim : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
@@ -1666,9 +1667,11 @@ const App: React.FC = () => {
       </main>
 
       {currentView === 'GAME' && (
-          <div className="fixed bottom-0 w-full z-50 bg-[#120024] border-t-2 border-[#2a0d55] shadow-[0_-10px_35px_rgba(0,0,0,0.85)] flex flex-col select-none">
+          <div className="fixed bottom-0 w-full z-50 border-t-2 shadow-[0_-10px_35px_rgba(0,0,0,0.85)] flex flex-col select-none"
+            style={isHighLimit ? { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTopColor:'#8b6200' } : { background:'#120024', borderTopColor:'#2a0d55' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
-              <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]">
+              <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
+                style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
                   {/* Missions Button */}
                   <div 
                       onClick={openMissionsModal}
@@ -1852,7 +1855,7 @@ const App: React.FC = () => {
       
       {showFreeSpinsPopup && <FreeSpinsWonPopup isOpen={showFreeSpinsPopup} count={freeSpinsWon} onComplete={handleStartFreeSpins} />}
       
-      {showLevelUp && <LevelUpToast level={player.level} reward={levelUpReward} maxBetIncreased={maxBetIncreased} newMaxBet={MAX_BET_BY_LEVEL(player.level)} onClose={() => setShowLevelUp(false)} />}
+      {showLevelUp && currentView === 'GAME' && <LevelUpToast level={player.level} reward={levelUpReward} maxBetIncreased={maxBetIncreased} newMaxBet={MAX_BET_BY_LEVEL(player.level)} onClose={() => setShowLevelUp(false)} />}
       
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
       

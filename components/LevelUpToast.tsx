@@ -21,9 +21,6 @@ export const LevelUpToast: React.FC<LevelUpToastProps> = ({ level, reward, maxBe
                 onClick={onClose}
                 className="animate-pop-in cursor-pointer pointer-events-auto bg-zinc-950 rounded-xl p-3 shadow-2xl flex flex-col items-center text-center leading-tight"
             >
-                <h2 className="text-gold-400 font-black text-sm uppercase italic tracking-tighter mb-0.5 animate-pulse drop-shadow-md">
-                    LEVEL UP!
-                </h2>
                 <h3 className="text-xs font-display font-medium text-white mb-2 tracking-widest opacity-90">
                     LEVEL {level}
                 </h3>

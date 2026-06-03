@@ -125,9 +125,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                 {/* ===== TOPBAR ===== */}
                 {view === 'MISSIONS' ? (
-                    /* MISSIONS topbar: 2 rows — row1: nav + pills + level + rewards / row2: tabs */
+                    /* MISSIONS topbar: single row — home | pills | spacer | level+xp | tabs | rewards */
                     <div className={topbarBase} style={topbarStyle}>
-                        {/* Row 1 */}
                         <div className="flex items-center gap-1.5 px-3 h-[38px]">
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-home"></i>
@@ -150,6 +149,15 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     <div className="h-full bg-gradient-to-r from-fuchsia-500 to-purple-600 transition-all" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
                                 </div>
                             </div>
+                            {/* Tabs — right side */}
+                            <div className="flex items-center gap-0.5 shrink-0">
+                                {(['DAILY', 'WEEKLY', 'MONTHLY'] as MissionFrequency[]).map(tab => (
+                                    <button key={tab} onClick={() => setActiveTab(tab)}
+                                        className={`px-2 py-1 rounded-md font-black uppercase text-[9px] leading-none transition-all ${activeTab === tab ? 'btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white' : 'text-gray-400 hover:text-white'}`}>
+                                        {tab === 'DAILY' ? 'Daily' : tab === 'WEEKLY' ? 'Weekly' : 'Monthly'}
+                                    </button>
+                                ))}
+                            </div>
                             <button onClick={() => setView('PASS')}
                                 className="btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white font-black uppercase text-[9px] px-2.5 py-1 rounded-lg relative shrink-0 active:scale-95">
                                 REWARDS
@@ -159,15 +167,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     </div>
                                 )}
                             </button>
-                        </div>
-                        {/* Row 2 — tabs */}
-                        <div className="flex items-center gap-0.5 px-3 pb-1.5">
-                            {(['DAILY', 'WEEKLY', 'MONTHLY'] as MissionFrequency[]).map(tab => (
-                                <button key={tab} onClick={() => setActiveTab(tab)}
-                                    className={`px-3 py-1 rounded-md font-black uppercase text-[9px] leading-none transition-all ${activeTab === tab ? 'btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white' : 'text-gray-400 hover:text-white'}`}>
-                                    {tab === 'DAILY' ? 'Daily' : tab === 'WEEKLY' ? 'Weekly' : 'Monthly'}
-                                </button>
-                            ))}
                         </div>
                     </div>
                 ) : (
