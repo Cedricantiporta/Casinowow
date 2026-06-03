@@ -1533,7 +1533,7 @@ const App: React.FC = () => {
                 {/* Star Experience Progression (No pill shape container, 2x long, star + bar) */}
                 <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent">
                     <div className="star shrink-0"></div>
-                    <div className="rtrack !flex-none w-[160px] md:w-[260px] overflow-hidden relative">
+                    <div className="rtrack !flex-none w-[120px] md:w-[200px] overflow-hidden relative">
                         <div 
                             className="rfill" 
                             style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%` }}
