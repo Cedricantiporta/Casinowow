@@ -8,11 +8,11 @@ interface JackpotTickerProps {
 }
 
 const JACKPOT_CONFIG = [
-    { name: 'MINI', multiplier: 50, tierClass: 't-green' },
-    { name: 'MINOR', multiplier: 150, tierClass: 't-cyan' },
-    { name: 'MAJOR', multiplier: 500, tierClass: 't-purple' },
-    { name: 'MAXI', multiplier: 1500, tierClass: 't-red' },
-    { name: 'GRAND', multiplier: 5000, tierClass: 't-gold' }
+    { name: 'MINI',  multiplier: 20,  tierClass: 't-green'  },
+    { name: 'MINOR', multiplier: 40,  tierClass: 't-cyan'   },
+    { name: 'MAJOR', multiplier: 60,  tierClass: 't-purple' },
+    { name: 'MAXI',  multiplier: 80,  tierClass: 't-red'    },
+    { name: 'GRAND', multiplier: 100, tierClass: 't-gold'   }
 ];
 
 export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet, isSpinning = false }) => {

@@ -1624,7 +1624,7 @@ const App: React.FC = () => {
                 {(() => {
                     const qReady = quest.credits >= quest.max;
                     const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
-                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed).length;
+                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
                     const totalNotifs = missReady + passReady;
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;
@@ -1745,7 +1745,7 @@ const App: React.FC = () => {
                   {/* Bet Display */}
                   <div className="bet-disp shrink-0 flex flex-col items-center justify-center">
                       <span className="bet-amt">{formatBet(availableBets[betIndex])}</span>
-                      <span className="bet-lbl" style={{ color: '#c79bff' }}>TOTAL BET</span>
+                      <span className="bet-lbl" style={{ color: isHighLimit ? '#ffffff' : '#c79bff' }}>TOTAL BET</span>
                   </div>
 
                   {/* Plus Bet */}

@@ -143,11 +143,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     )}
                     {packStage === 'REVEAL' && (
                         <div className="w-full h-full flex flex-col items-center justify-center animate-pop-in relative py-4">
-                            <div className="flex-1 w-full max-w-lg px-2 overflow-y-auto grid grid-cols-3 gap-2 content-center justify-items-center">
+                            <div className={`flex-1 w-full max-w-2xl px-2 overflow-y-auto grid gap-2 content-center justify-items-center ${openedCards.length >= 10 ? 'grid-cols-5' : 'grid-cols-3'}`}>
                                 {openedCards.map((card, i) => (
                                     <div
                                         key={i}
-                                        className={`relative aspect-[2/3] w-full max-w-[100px] rounded-lg ${getCardStyle(card.rarity, false)} p-1.5 flex flex-col items-center justify-center animate-pop-in mt-3 ${card.rarity === 'LEGENDARY' ? 'animate-pulse duration-700' : ''}`}
+                                        className={`relative aspect-[2/3] w-full ${openedCards.length >= 10 ? 'max-w-[80px]' : 'max-w-[100px]'} rounded-lg ${getCardStyle(card.rarity, false)} p-1.5 flex flex-col items-center justify-center animate-pop-in mt-3 ${card.rarity === 'LEGENDARY' ? 'animate-pulse duration-700' : ''}`}
                                         style={{ animationDelay: `${i * 30}ms` }}
                                     >
                                         <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-wider whitespace-nowrap shadow ${card.rarity === 'LEGENDARY' ? 'bg-yellow-500 text-black' : card.rarity === 'EPIC' ? 'bg-purple-600 text-white' : card.rarity === 'RARE' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white'}`}>

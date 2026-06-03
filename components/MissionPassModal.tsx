@@ -58,7 +58,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
         (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
     ).length;
 
-    const diamondCostToSkip = (xp: number) => Math.max(1, Math.ceil(xp / 500));
+    const diamondCostToSkip = (xp: number) => Math.max(1, Math.ceil(xp / 50));
     const isXpBoosted = missionState.passBoostMultiplier > 1;
 
     const handleScroll = (direction: 'LEFT' | 'RIGHT') => {
@@ -96,28 +96,63 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     return (
         <div className="fixed inset-0 z-[150] flex flex-col bg-[#0d0814] animate-pop-in">
             {showPremiumInfo && (
-                <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-3 animate-pop-in">
-                    <div className="relative bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-2xl p-0.5 w-full max-w-sm shadow-xl">
-                        <div className="bg-gradient-to-b from-black/95 to-black/90 rounded-2xl p-5 flex flex-col items-center text-center relative overflow-hidden">
-                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-                            <div className="round-btn absolute top-3 right-3 z-50 cursor-pointer" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
-                            <h2 className="text-xl font-black font-display text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-500 uppercase tracking-widest mb-2">Premium Pass</h2>
-                            <div className="text-4xl mb-3">👑</div>
-                            <ul className="space-y-2 mb-4 text-left w-full max-w-xs relative z-10 text-xs">
-                                <li className="flex items-center gap-2"><span>🚀</span><span className="text-white font-bold">Unlock Premium Rewards</span></li>
-                                <li className="flex items-center gap-2"><span>⚡</span><span className="text-white font-bold">+20 Instant Levels</span></li>
-                                <li className="flex items-center gap-2"><span>💎</span><span className="text-white font-bold">Exclusive Gem Packs</span></li>
-                                <li className="flex items-center gap-2"><span>⛏️</span><span className="text-white font-bold">Extra Quest Picks</span></li>
-                            </ul>
-                            <div className="bg-yellow-900/30 rounded-lg p-3 mb-4 w-full">
-                                <div className="text-yellow-400 font-black text-lg">₱ 0.00</div>
-                                <div className="text-yellow-200 text-[10px] uppercase">Free with Demo Account!</div>
-                            </div>
-                            <button onClick={handlePremiumPurchase} className="btn-3d w-full py-2 bg-gradient-to-b from-yellow-300 to-yellow-600 text-black font-black text-xs uppercase tracking-widest rounded-lg relative z-20">
-                                Unlock Now
-                            </button>
-                        </div>
+                <div className="fixed inset-0 z-[200] flex flex-col animate-pop-in overflow-hidden"
+                    style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
+                    {/* Gold shimmer top band */}
+                    <div className="shrink-0 h-1 w-full" style={{ background: 'linear-gradient(90deg,transparent,#f0c000,#fff8a0,#f0c000,transparent)' }}></div>
+
+                    <div className="round-btn absolute top-3 right-3 z-50 cursor-pointer" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
+
+                    {/* Crown hero */}
+                    <div className="flex flex-col items-center pt-4 pb-2 shrink-0 relative">
+                        <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 60% 80% at 50% 50%,rgba(250,200,0,0.12),transparent)' }}></div>
+                        <div style={{ fontSize: '72px', lineHeight: 1, filter: 'drop-shadow(0 0 20px rgba(250,200,0,0.6))' }}>👑</div>
+                        <h2 className="mt-1 text-2xl font-black font-display uppercase tracking-widest"
+                            style={{ background: 'linear-gradient(180deg,#fff8c0,#f0c000,#c08000)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>
+                            Premium Pass
+                        </h2>
+                        <p className="text-yellow-200/60 text-[10px] font-bold uppercase tracking-[0.2em] mt-0.5">Unlock exclusive rewards</p>
                     </div>
+
+                    {/* Perks grid */}
+                    <div className="flex-1 flex flex-col justify-center px-6 gap-2">
+                        {[
+                            { icon: '🎁', title: 'Double Rewards',  desc: 'Claim FREE + PREMIUM on every level' },
+                            { icon: '⚡', title: '+20 Instant Levels', desc: 'Jump ahead with immediate level boost' },
+                            { icon: '💎', title: 'Exclusive Gems',   desc: 'Extra gem packs on premium tiers' },
+                            { icon: '⛏️', title: 'Quest Picks',      desc: 'Bonus picks for Wild & Dice quests' },
+                        ].map(p => (
+                            <div key={p.title} className="flex items-center gap-3 rounded-xl px-3 py-2 relative overflow-hidden"
+                                style={{ background: 'rgba(255,200,0,0.06)', border: '1px solid rgba(255,200,0,0.15)' }}>
+                                <span style={{ fontSize: '28px', lineHeight: 1, flexShrink: 0 }}>{p.icon}</span>
+                                <div>
+                                    <div className="text-yellow-200 font-black text-xs uppercase tracking-wide leading-none">{p.title}</div>
+                                    <div className="text-yellow-200/50 text-[9px] mt-0.5 leading-snug">{p.desc}</div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Price + CTA */}
+                    <div className="shrink-0 px-6 pb-5 pt-3 flex flex-col gap-2">
+                        <div className="flex items-center justify-between rounded-xl px-4 py-2"
+                            style={{ background: 'rgba(255,200,0,0.1)', border: '1px solid rgba(255,200,0,0.25)' }}>
+                            <div>
+                                <div className="text-yellow-100 font-black text-base leading-none">₱ 0.00</div>
+                                <div className="text-yellow-200/50 text-[9px] uppercase tracking-wide mt-0.5">Free with demo account</div>
+                            </div>
+                            <div className="text-yellow-400 font-black text-xs bg-yellow-900/40 px-2 py-0.5 rounded-full uppercase tracking-wide">Demo</div>
+                        </div>
+                        <button onClick={handlePremiumPurchase}
+                            className="btn-3d w-full py-3 rounded-xl font-black text-sm uppercase tracking-widest text-black relative overflow-hidden"
+                            style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 4px 0 #7a5000,0 6px 16px rgba(0,0,0,0.5)' }}>
+                            <span className="relative z-10">Unlock Premium Now</span>
+                            <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none"></div>
+                        </button>
+                    </div>
+
+                    {/* Gold shimmer bottom band */}
+                    <div className="shrink-0 h-1 w-full" style={{ background: 'linear-gradient(90deg,transparent,#f0c000,#fff8a0,#f0c000,transparent)' }}></div>
                 </div>
             )}
 
@@ -161,7 +196,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     /* PASS topbar: back | coins | gems | title + XP | spacer | action buttons */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-1.5 px-3 h-[40px]">
-                            <div className="round-btn shrink-0" onClick={() => setView('MISSIONS')}>
+                            <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-arrow-left"></i>
                             </div>
                             <div className="currency-pill flex items-center gap-1 shrink-0">

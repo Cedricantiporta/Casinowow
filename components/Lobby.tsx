@@ -76,7 +76,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     const isReadyToCollect = timeLeft === 0;
     const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
-    const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel && !r.claimed).length;
+    const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
     const totalMissionNotifs = missionsReady + passRewardsReady;
     const questReady = questState.credits >= questState.max;
 
