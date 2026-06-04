@@ -6,6 +6,8 @@ interface ShopModalProps {
     onBuy: (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT', amount: number, duration?: number, cost?: number) => void;
     level: number;
     isFreeStashClaimed?: boolean;
+    freeCoinsAvailable?: boolean;
+    freeCoinsAmount?: number;
     initialTab?: 'COINS' | 'BOOSTS' | 'DIAMONDS';
     balance?: number;
     diamonds?: number;
@@ -14,7 +16,7 @@ interface ShopModalProps {
     onClaimItem?: (label: string) => void;
 }
 
-export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, balance = 0, diamonds = 0, maxBet = 10000, initialTab, claimedItems, onClaimItem }) => {
+export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, freeCoinsAvailable = false, freeCoinsAmount = 300000, balance = 0, diamonds = 0, maxBet = 10000, initialTab, claimedItems, onClaimItem }) => {
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
     const [cooldown, setCooldown] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -107,12 +109,12 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     const freeItem = {
         icon: '🎁',
         label: 'FREE COINS',
-        sub: '300,000',
+        sub: fmt(freeCoinsAmount),
         price: isFreeStashClaimed ? 'CLAIMED' : 'CLAIM',
         color: isFreeStashClaimed ? 'from-gray-600 to-gray-800' : 'from-lime-500 to-green-700',
         isClaimed: !!isFreeStashClaimed,
         isRealMoney: false,
-        action: () => !isFreeStashClaimed && onBuy('COIN', 300_000, 0, 0),
+        action: () => !isFreeStashClaimed && onBuy('COIN', freeCoinsAmount, 0, 0),
     };
 
     // Build all items — real-money items get FREE/CLAIMED logic, others keep their price
@@ -158,7 +160,6 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                     { label: '🪙', name: 'Coins',  idx: 0,  bg: '#b8860b' },
                     { label: '💎', name: 'Gems',   idx: 5,  bg: '#0e7490' },
                     { label: '🚀', name: 'Boosts', idx: 10, bg: '#7c3aed' },
-                    { label: '🎁', name: 'Free',   idx: 15, bg: '#166534' },
                 ].map(tab => (
                     <button key={tab.name} onClick={() => scrollToSection(tab.idx)}
                         className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5"
@@ -167,6 +168,15 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                         <span>{tab.name}</span>
                     </button>
                 ))}
+                <button key="Free" onClick={() => scrollToSection(15)}
+                    className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5 relative"
+                    style={{ background: '#166534', border: '1px solid rgba(255,255,255,0.25)', minWidth: '34px' }}>
+                    <span>🎁</span>
+                    <span>Free</span>
+                    {freeCoinsAvailable && (
+                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white animate-pulse" />
+                    )}
+                </button>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 

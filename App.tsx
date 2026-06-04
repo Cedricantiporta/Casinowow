@@ -27,6 +27,7 @@ import { jackpotService } from './services/jackpotService';
 import { JackpotCelebration } from './components/JackpotCelebration';
 import { StageCompleteModal } from './components/StageCompleteModal';
 import { PremiumModal } from './components/PremiumModal';
+import { ProfileModal } from './components/ProfileModal';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -77,9 +78,9 @@ const App: React.FC = () => {
   const [player, setPlayer] = useState<PlayerState>(() => {
     try {
       const saved = localStorage.getItem('cw_player');
-      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimed: false, shopClaimedItems: [] }, ...JSON.parse(saved) };
+      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [] }, ...JSON.parse(saved) };
     } catch {}
-    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimed: false, shopClaimedItems: [] };
+    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [] };
   });
   
   // Ref to track player state to avoid stale closures in callbacks (like feature unlocks)
@@ -135,6 +136,7 @@ const App: React.FC = () => {
   const [fastSpin, setFastSpin] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [showVipLounge, setShowVipLounge] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const savedFastSpinRef = useRef<boolean>(false); 
@@ -1041,9 +1043,23 @@ const App: React.FC = () => {
       setSpinsWithoutBonus(prev => prev + 1);
       updateMissions(MissionType.SPIN_COUNT, 1);
       updateMissions(MissionType.BET_COINS, currentBet);
+      setPlayer(prev => ({
+          ...prev,
+          stats: {
+              ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }),
+              totalSpins: (prev.stats?.totalSpins || 0) + 1
+          }
+      }));
     } else {
         setFreeSpinsRemaining(prev => prev - 1);
         updateMissions(MissionType.SPIN_COUNT, 1);
+        setPlayer(prev => ({
+            ...prev,
+            stats: {
+                ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }),
+                totalSpins: (prev.stats?.totalSpins || 0) + 1
+            }
+        }));
     }
     setInstantStop(false);
     setStatus(GameStatus.SPINNING);
@@ -1184,6 +1200,23 @@ const App: React.FC = () => {
             setJackpotWinTier({ ...JP_META[tier], amount: jpAmounts[tier] });
         }
     });
+
+    if (totalPayout > 0) {
+        setPlayer(prev => ({
+            ...prev,
+            stats: {
+                maxSingleWin: Math.max(totalPayout, prev.stats?.maxSingleWin || 0),
+                maxJackpotWin: jackpotWon ? Math.max(
+                    jpAmounts.reduce((a, b) => a + b, 0),
+                    prev.stats?.maxJackpotWin || 0
+                ) : (prev.stats?.maxJackpotWin || 0),
+                totalCoinsWon: (prev.stats?.totalCoinsWon || 0) + totalPayout,
+                totalGemsEarned: prev.stats?.totalGemsEarned || 0,
+                totalSpins: prev.stats?.totalSpins || 0,
+                recentSlots: prev.stats?.recentSlots || [],
+            }
+        }));
+    }
 
     const winTier = getWinTier(totalPayout, currentBet);
     setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: !!winTier, scattersFound: scatterCount, winType: winTier || undefined });
@@ -1500,6 +1533,10 @@ const currentState: SavedGameState = {
       setSavedGameStates(prev => ({ ...prev, [selectedGame.id]: currentState }));
     const modifiedGame = { ...game, rows: 3 };
     setSelectedGame(modifiedGame);
+      setPlayer(prev => {
+          const newRecent = [game.id, ...(prev.stats?.recentSlots || []).filter(id => id !== game.id)].slice(0, 5);
+          return { ...prev, stats: { ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }), recentSlots: newRecent } };
+      });
       setIsHighLimit(highLimit);
       setCurrentView('GAME');
       // Ensure we close any unlock modals when entering a game
@@ -1608,7 +1645,7 @@ const currentState: SavedGameState = {
       }
       
       if (type === 'COIN') {
-          setPlayer(p => ({ ...p, balance: p.balance + amount, freeStashClaimed: cost === 0 ? true : p.freeStashClaimed }));
+          setPlayer(p => ({ ...p, balance: p.balance + amount, freeStashClaimedTime: cost === 0 ? Date.now() : p.freeStashClaimedTime }));
           setCelebrationMsg(`+${formatCommaNumber(amount)} Coins`);
           audioService.playWinBig();
       } else if (type === 'DIAMOND') {
@@ -1659,6 +1696,8 @@ const currentState: SavedGameState = {
   const getGrandAlbumReward = (level: number) => MAX_BET_BY_LEVEL(level) * 1000;
 
   const showGoldHeader = isHighLimit || (player.isVip && currentView === 'LOBBY');
+  const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
+  const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.5);
 
   return (
     <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
@@ -1670,11 +1709,11 @@ const currentState: SavedGameState = {
             <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
                 {/* Lobby Home Button */}
                 <div
-                    onClick={currentView !== 'LOBBY' ? handleHeaderBack : undefined}
-                    className={`round-btn shrink-0 ${currentView === 'LOBBY' ? 'opacity-65 cursor-default' : ''}`}
+                    onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
+                    className="round-btn shrink-0 cursor-pointer"
                     style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
-                    <i className="ti ti-home"></i>
+                    <i className={currentView !== 'LOBBY' ? 'ti ti-arrow-left' : 'ti ti-user'}></i>
                 </div>
 
                 {/* Separate Coins & Gems pills joined closely */}
@@ -2000,7 +2039,7 @@ const currentState: SavedGameState = {
                 setActiveModal('COLLECTION');
             }, 50);
         }
-    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={player.freeStashClaimed} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} />
+    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} />
       
       <CardCollectionModal
           isOpen={activeModal === 'COLLECTION'}
@@ -2131,6 +2170,14 @@ const currentState: SavedGameState = {
               setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 }));
               setShowPremiumModal(false);
           }}
+      />
+
+      <ProfileModal
+          isOpen={showProfile}
+          onClose={() => setShowProfile(false)}
+          player={player}
+          isPremium={missionState.isPremium}
+          recentGames={GAMES_CONFIG.filter(g => (player.stats?.recentSlots || []).includes(g.id)).sort((a, b) => (player.stats?.recentSlots || []).indexOf(a.id) - (player.stats?.recentSlots || []).indexOf(b.id))}
       />
 
         </div>

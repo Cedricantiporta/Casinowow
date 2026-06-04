@@ -65,9 +65,17 @@ export interface PlayerState {
   autoSpin: boolean;
   xpMultiplier: number;
   xpBoostEndTime: number;
-  freeStashClaimed: boolean;
+  freeStashClaimedTime?: number;  // timestamp of last claim, 0/undefined = never
   isVip?: boolean;
   shopClaimedItems?: string[];
+  stats?: {
+    maxSingleWin: number;
+    maxJackpotWin: number;
+    totalCoinsWon: number;
+    totalGemsEarned: number;
+    totalSpins: number;
+    recentSlots: string[]; // game IDs, last 5
+  };
 }
 
 export interface Payline {
