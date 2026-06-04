@@ -25,6 +25,7 @@ import { HighLimitLobby } from './components/HighLimitLobby';
 import { audioService } from './services/audioService';
 import { jackpotService } from './services/jackpotService';
 import { JackpotCelebration } from './components/JackpotCelebration';
+import { StageCompleteModal } from './components/StageCompleteModal';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -78,9 +79,9 @@ const App: React.FC = () => {
   const [player, setPlayer] = useState<PlayerState>(() => {
     try {
       const saved = localStorage.getItem('cw_player');
-      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimed: false }, ...JSON.parse(saved) };
+      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimed: false, shopClaimedItems: [] }, ...JSON.parse(saved) };
     } catch {}
-    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimed: false };
+    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimed: false, shopClaimedItems: [] };
   });
   
   // Ref to track player state to avoid stale closures in callbacks (like feature unlocks)
@@ -202,6 +203,7 @@ const App: React.FC = () => {
   });
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
+  const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE'; stage: number; coins: number; diamonds: number } | null>(null);
   const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
   const [pendingBigWin, setPendingBigWin] = useState(false);
 
@@ -922,11 +924,11 @@ const App: React.FC = () => {
 
       if (freeSpinsRemaining > 0) {
           const JP_SPAWN = [
-              { type: SymbolType.JACKPOT_MINI,  prob: 0.15 },
-              { type: SymbolType.JACKPOT_MINOR, prob: 0.07 },
-              { type: SymbolType.JACKPOT_MAJOR, prob: 0.03 },
-              { type: SymbolType.JACKPOT_MEGA,  prob: 0.01 },
-              { type: SymbolType.JACKPOT_GRAND, prob: 0.003 },
+              { type: SymbolType.JACKPOT_MINI,  prob: 0.105 },
+              { type: SymbolType.JACKPOT_MINOR, prob: 0.049 },
+              { type: SymbolType.JACKPOT_MAJOR, prob: 0.021 },
+              { type: SymbolType.JACKPOT_MEGA,  prob: 0.007 },
+              { type: SymbolType.JACKPOT_GRAND, prob: 0.0021 },
           ];
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
@@ -950,18 +952,17 @@ const App: React.FC = () => {
 
   const handleStageComplete = (gameType: 'WILD' | 'DICE', bonusCoins: number, bonusDiamonds: number) => {
       const stage = gameType === 'WILD' ? quest.wildStage : quest.diceStage;
-      const scaledBonus = 1000000 * stage * player.level; // Logic derived from MiniGameModal, ensure consistency
-      
+      const scaledBonus = 1000000 * stage * player.level;
+
       setPlayer(p => ({ ...p, balance: p.balance + scaledBonus, diamonds: p.diamonds + bonusDiamonds }));
-      
-      // Separate Progress Logic
+
       if (gameType === 'WILD') {
-          setQuest(q => ({ ...q, wildStage: q.wildStage + 1, wildGrid: [] })); 
+          setQuest(q => ({ ...q, wildStage: q.wildStage + 1, wildGrid: [] }));
       } else {
-          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 })); 
+          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
       }
-      
-      setCelebrationMsg(`${gameType === 'WILD' ? 'Wild' : 'Dice'} Stage Complete! +${formatCommaNumber(scaledBonus)}`);
+
+      setStageCompletePopup({ gameType, stage, coins: scaledBonus, diamonds: bonusDiamonds });
       audioService.playWinBig();
   };
 
@@ -980,11 +981,11 @@ const App: React.FC = () => {
           msgParts.push(`${formatCommaNumber(totalCoins)} Coins`);
       }
       if (isFinish) {
-          // Note: Logic here needs to match handleStageComplete regarding rewards scaling
-          const bonusCoins = 2000000 * quest.diceStage * player.level; 
+          const bonusCoins = 2000000 * quest.diceStage * player.level;
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
+          const currentStage = quest.diceStage;
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
-          msgParts.push(`Stage Clear! +${formatCommaNumber(bonusCoins)}`);
+          setStageCompletePopup({ gameType: 'DICE', stage: currentStage, coins: bonusCoins, diamonds: 0 });
       }
       if (msgParts.length > 0) {
           setCelebrationMsg(msgParts.join('\n'));
@@ -1608,6 +1609,10 @@ const currentState: SavedGameState = {
       }
   };
 
+  const handleClaimShopItem = (label: string) => {
+      setPlayer(p => ({ ...p, shopClaimedItems: [...(p.shopClaimedItems || []), label] }));
+  };
+
   const handleSpinMouseDown = () => {
       if (freeSpinsRemaining > 0) return; 
       isLongPressRef.current = false;
@@ -1986,7 +1991,7 @@ const currentState: SavedGameState = {
                 setActiveModal('COLLECTION');
             }, 50);
         }
-    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={player.freeStashClaimed} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} />
+    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={player.freeStashClaimed} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} />
       
       <CardCollectionModal
           isOpen={activeModal === 'COLLECTION'}
@@ -2063,6 +2068,14 @@ const currentState: SavedGameState = {
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
+      <StageCompleteModal
+          isOpen={stageCompletePopup !== null}
+          gameType={stageCompletePopup?.gameType || 'WILD'}
+          stage={stageCompletePopup?.stage || 1}
+          coins={stageCompletePopup?.coins || 0}
+          diamonds={stageCompletePopup?.diamonds || 0}
+          onNext={() => setStageCompletePopup(null)}
+      />
       {showWinPopup && <WinPopup amount={winData?.payout || 0} type={winData?.winType || ''} onComplete={handleWinPopupComplete} />}
       
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />

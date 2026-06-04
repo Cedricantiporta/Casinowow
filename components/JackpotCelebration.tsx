@@ -65,16 +65,12 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
                     +{formatCommaNumber(displayAmount)}
                 </div>
 
-                {canClose ? (
+                {canClose && (
                     <button onClick={(e) => { e.stopPropagation(); onClose(); }}
                         className="mt-4 px-10 py-3 rounded-2xl font-black uppercase text-white text-xl btn-3d animate-pop-in"
                         style={{ background:`linear-gradient(180deg,${style.glow},rgba(0,0,0,0.5))`, boxShadow:`0 4px 0 rgba(0,0,0,0.6), 0 0 20px ${style.glow}`, border:`1px solid ${style.textColor}` }}>
                         COLLECT 🎉
                     </button>
-                ) : (
-                    <div className="mt-4 text-white/40 text-sm font-bold uppercase tracking-widest animate-pulse">
-                        Please wait...
-                    </div>
                 )}
             </div>
         </div>

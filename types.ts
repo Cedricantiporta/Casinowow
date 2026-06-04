@@ -67,6 +67,7 @@ export interface PlayerState {
   xpBoostEndTime: number;
   freeStashClaimed: boolean;
   isVip?: boolean;
+  shopClaimedItems?: string[];
 }
 
 export interface Payline {

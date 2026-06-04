@@ -58,6 +58,10 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim, xpMu
                  )}
             </button>
             
+            <div className="flex gap-1 mt-0.5 justify-center">
+                <span className="text-[9px] font-black text-white bg-purple-800/90 rounded-full px-1.5 py-0.5 leading-none">🎲{quest.diceCredits}</span>
+                <span className="text-[9px] font-black text-white bg-indigo-800/90 rounded-full px-1.5 py-0.5 leading-none">🗿{quest.wildCredits}</span>
+            </div>
             {isMax && (
                 <span className="bg-green-600 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase drop-shadow-md animate-pulse shadow-lg border border-green-400">
                     COLLECT

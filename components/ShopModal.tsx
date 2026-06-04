@@ -10,9 +10,11 @@ interface ShopModalProps {
     balance?: number;
     diamonds?: number;
     maxBet?: number;
+    claimedItems?: string[];
+    onClaimItem?: (label: string) => void;
 }
 
-export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, balance = 0, diamonds = 0, maxBet = 10000, initialTab }) => {
+export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, balance = 0, diamonds = 0, maxBet = 10000, initialTab, claimedItems, onClaimItem }) => {
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
     const [cooldown, setCooldown] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -78,7 +80,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 icon: '🪙',
                 label: labels[i],
                 sub: fmt(amount),
-                price: `₱ ${price.toLocaleString('en-US')}`,
+                price: `$ ${price.toLocaleString('en-US')}`,
                 color: colors[i],
                 action: () => onBuy('COIN', amount, 0, price),
             };
@@ -88,11 +90,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     if (!isOpen) return null;
 
     const gemPacks = [
-        { icon: '💎', label: '50 Gems',    sub: '50',   price: '₱ 49',   color: 'from-sky-400     to-cyan-700',    action: () => onBuy('DIAMOND', 50)   },
-        { icon: '💎', label: '150 Gems',   sub: '150',  price: '₱ 99',   color: 'from-cyan-500    to-blue-700',    action: () => onBuy('DIAMOND', 150)  },
-        { icon: '💎', label: '500 Gems',   sub: '500',  price: '₱ 249',  color: 'from-blue-500    to-indigo-700',  action: () => onBuy('DIAMOND', 500)  },
-        { icon: '💎', label: '1,500 Gems', sub: '1,500',price: '₱ 499',  color: 'from-indigo-500  to-purple-700',  action: () => onBuy('DIAMOND', 1500) },
-        { icon: '💎', label: '5,000 Gems', sub: '5,000',price: '₱ 1,250',color: 'from-purple-500  to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
+        { icon: '💎', label: '50 Gems',    sub: '50',   price: '$ 49',   color: 'from-sky-400     to-cyan-700',    action: () => onBuy('DIAMOND', 50)   },
+        { icon: '💎', label: '150 Gems',   sub: '150',  price: '$ 99',   color: 'from-cyan-500    to-blue-700',    action: () => onBuy('DIAMOND', 150)  },
+        { icon: '💎', label: '500 Gems',   sub: '500',  price: '$ 249',  color: 'from-blue-500    to-indigo-700',  action: () => onBuy('DIAMOND', 500)  },
+        { icon: '💎', label: '1,500 Gems', sub: '1,500',price: '$ 499',  color: 'from-indigo-500  to-purple-700',  action: () => onBuy('DIAMOND', 1500) },
+        { icon: '💎', label: '5,000 Gems', sub: '5,000',price: '$ 1,250',color: 'from-purple-500  to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
     ];
 
     const boostPacks = [
@@ -114,6 +116,20 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     };
 
     const allItems = [...dynamicPacks, ...gemPacks, ...boostPacks, freeItem];
+
+    const realMoneyCount = dynamicPacks.length + gemPacks.length; // first N items are real-money
+    const renderedItems = allItems.map((item, i) => {
+        if (i < realMoneyCount) {
+            const isClaimed = claimedItems?.includes(item.label);
+            return {
+                ...item,
+                price: isClaimed ? 'CLAIMED' : item.price,
+                disabled: isClaimed ? true : item.disabled,
+                action: isClaimed ? () => {} : () => { item.action(); onClaimItem?.(item.label); },
+            };
+        }
+        return item;
+    });
 
     return (
         <div
@@ -166,7 +182,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 {/* Item list — full width, no px offset */}
                 <div ref={scrollRef} className="w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar py-1 px-6">
                     <div className="flex gap-3 h-full items-stretch min-w-max">
-                        {allItems.map((item, i) => (
+                        {renderedItems.map((item, i) => (
                             <button
                                 key={i}
                                 onClick={() => handleBuy(item.action)}

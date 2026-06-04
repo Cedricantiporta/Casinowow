@@ -106,16 +106,12 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
                     {formatCommaNumber(displayAmount)}
                 </div>
 
-                {canClose ? (
+                {canClose && (
                     <button onClick={onComplete}
                         className="mt-6 px-8 py-3 rounded-2xl font-black uppercase text-white text-lg btn-3d"
                         style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 4px 0 #052e16', border: '1px solid rgba(255,255,255,0.3)' }}>
                         COLLECT
                     </button>
-                ) : (
-                    <div className="mt-6 text-white/40 text-sm font-bold uppercase tracking-widest animate-pulse">
-                        Please wait...
-                    </div>
                 )}
             </div>
 

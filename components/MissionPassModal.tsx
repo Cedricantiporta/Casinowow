@@ -67,7 +67,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
         (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
     ).length;
 
-    const diamondCostToSkip = (xp: number) => Math.max(1, Math.ceil(xp / 50));
+    const diamondCostToSkip = (xp: number) => Math.max(1, Math.ceil(xp / 5));
     const isXpBoosted = missionState.passBoostMultiplier > 1;
 
     const handleScroll = (direction: 'LEFT' | 'RIGHT') => {

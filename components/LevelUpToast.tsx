@@ -11,7 +11,7 @@ interface LevelUpToastProps {
 
 export const LevelUpToast: React.FC<LevelUpToastProps> = ({ level, reward, maxBetIncreased, newMaxBet, onClose }) => {
     useEffect(() => {
-        const timer = setTimeout(onClose, 2000); 
+        const timer = setTimeout(onClose, 1000);
         return () => clearTimeout(timer);
     }, [onClose]);
 
