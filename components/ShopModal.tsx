@@ -39,11 +39,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         if (!isOpen) return;
         const B = 1_000_000;
         setDynamicPacks([
-            { icon: '🪙', label: 'Pile',    sub: fmt(level * B * 1),    price: '₱ 49',    color: 'from-cyan-500    to-cyan-800',    action: () => onBuy('COIN', level * B * 1,   0, 49)   },
-            { icon: '🪙', label: 'Double',  sub: fmt(level * B * 2.5),  price: '₱ 99',    color: 'from-green-500  to-green-800',   action: () => onBuy('COIN', level * B * 2.5, 0, 99)   },
-            { icon: '🪙', label: 'Big Bag', sub: fmt(level * B * 5),    price: '₱ 199',   color: 'from-emerald-500 to-emerald-800', action: () => onBuy('COIN', level * B * 5,   0, 199)  },
-            { icon: '🪙', label: 'Roller',  sub: fmt(level * B * 10),   price: '₱ 499',   color: 'from-purple-500 to-purple-800',  action: () => onBuy('COIN', level * B * 10,  0, 499)  },
-            { icon: '🪙', label: 'Jackpot', sub: fmt(level * B * 50),   price: '₱ 2,490', color: 'from-yellow-500 to-amber-700',   action: () => onBuy('COIN', level * B * 50,  0, 2490) },
+            { icon: '🪙', label: 'Pile',    sub: fmt(level * B * 1.6),  price: '₱ 49',    color: 'from-cyan-500    to-cyan-800',    action: () => onBuy('COIN', level * B * 1.6,  0, 49)   },
+            { icon: '🪙', label: 'Double',  sub: fmt(level * B * 4),    price: '₱ 99',    color: 'from-green-500  to-green-800',   action: () => onBuy('COIN', level * B * 4,    0, 99)   },
+            { icon: '🪙', label: 'Big Bag', sub: fmt(level * B * 8),    price: '₱ 199',   color: 'from-emerald-500 to-emerald-800', action: () => onBuy('COIN', level * B * 8,    0, 199)  },
+            { icon: '🪙', label: 'Roller',  sub: fmt(level * B * 16),   price: '₱ 499',   color: 'from-purple-500 to-purple-800',  action: () => onBuy('COIN', level * B * 16,   0, 499)  },
+            { icon: '🪙', label: 'Jackpot', sub: fmt(level * B * 80),   price: '₱ 2,490', color: 'from-yellow-500 to-amber-700',   action: () => onBuy('COIN', level * B * 80,   0, 2490) },
         ]);
     }, [isOpen, level]);
 

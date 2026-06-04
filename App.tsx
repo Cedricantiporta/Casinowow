@@ -1132,7 +1132,7 @@ const App: React.FC = () => {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
 
        const vipXpMult = player.isVip ? 1.2 : 1.0;
-       const xpGained = Math.floor(Math.sqrt(currentBet) * 10 * player.xpMultiplier * vipXpMult);
+       const xpGained = Math.floor(Math.sqrt(currentBet) * 5 * player.xpMultiplier * vipXpMult);
 
        addXp(xpGained);
        updateMissions(MissionType.WIN_COINS, totalPayout);
@@ -1150,7 +1150,7 @@ const App: React.FC = () => {
        }
     } else {
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
-       const lossXp = Math.floor(Math.sqrt(currentBet) * 10 * player.xpMultiplier * vipXpMultLoss);
+       const lossXp = Math.floor(Math.sqrt(currentBet) * 5 * player.xpMultiplier * vipXpMultLoss);
        addXp(lossXp);
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
@@ -1402,13 +1402,7 @@ const App: React.FC = () => {
           return;
       }
       
-      if (highLimit && currentLevel < 30) {
-          audioService.playStoneBreak();
-          setCelebrationMsg("VIP Limit Unlocks at Level 30");
-          return;
-      }
-
-      const currentState: SavedGameState = {
+const currentState: SavedGameState = {
           freeSpinsRemaining,
           totalFreeSpins,
           freeSpinsWon,
