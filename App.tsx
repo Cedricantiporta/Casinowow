@@ -1167,8 +1167,9 @@ const App: React.FC = () => {
         { name: 'MEGA',  color: '#ff8c00', icon: '👑' },
         { name: 'GRAND', color: '#ff2244', icon: '🏆' },
     ];
-    const slotIdxForJP = GAMES_CONFIG.findIndex(g => g.id === selectedGame.id);
-    const jpAmounts = jackpotService.getSlotAmounts(slotIdxForJP);
+    // Jackpot amounts: 20/35/55/75/100× current bet
+    const JP_BET_MULTIPLIERS = [20, 35, 55, 75, 100];
+    const jpAmounts = JP_BET_MULTIPLIERS.map(m => Math.floor(currentBet * m));
     let jackpotWon = false;
     JP_WIN_TYPES.forEach((jpType, tier) => {
         let jpCount = 0;
@@ -1250,7 +1251,7 @@ const App: React.FC = () => {
           }
           if (leveledUp) {
               audioService.playLevelUp();
-              const reward = newLevel * MAX_BET_BY_LEVEL(newLevel) * 2;
+              const reward = MAX_BET_BY_LEVEL(newLevel);
               const oldMax = MAX_BET_BY_LEVEL(prev.level);
               const newMax = MAX_BET_BY_LEVEL(newLevel);
               if (toastCountRef.current < 10) {

@@ -527,21 +527,18 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
 
         let target = t.base;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
-             // Reduced to 2.5x (1/4 of previous 10x)
-             target = Math.floor(t.base * multiplier * scale * 2.5);
-             if (maxBet && maxBet > 0) {
-                 if (t.type === MissionType.WIN_COINS) target = Math.max(target, maxBet * 20);
-                 if (t.type === MissionType.BET_COINS) target = Math.max(target, maxBet * 30);
-             }
+             const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+             target = t.type === MissionType.WIN_COINS ? mb * 20 : mb * 30;
+             target = Math.floor(target * scale);
         } else if (t.type === MissionType.SPIN_COUNT) {
              target = (t.base + (playerLevel * 5)) * scale;
         } else {
              target = Math.ceil(t.base * scale);
         }
-        
+
         const xpReward = 30 + (i * 15);
-        // 1m per 10 xp
-        const coinReward = Math.floor((xpReward / 10) * 1000000);
+        const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+        const coinReward = Math.floor(mb * xpReward * 10);
         
         missions.push({
             id: `daily-${Date.now()}-${i}`,
@@ -574,17 +571,15 @@ export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number, maxBet?: number): 
     ];
 
     templates.forEach((t, i) => {
-        let target = t.base; // 90% reduction from previous *10
+        let target = t.base;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
-             target = Math.floor(t.base * 2 * Math.max(1, playerLevel / 2) * 2.5); // 2x of base
-             if (maxBet && maxBet > 0) {
-                 if (t.type === MissionType.WIN_COINS) target = Math.max(target, maxBet * 200);
-                 if (t.type === MissionType.BET_COINS) target = Math.max(target, maxBet * 300);
-             }
+             const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+             target = t.type === MissionType.WIN_COINS ? mb * 200 : mb * 300;
         }
 
         const xpReward = 1500 + (i * 500);
-        const coinReward = Math.floor((xpReward / 10) * 1000000);
+        const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+        const coinReward = Math.floor(mb * xpReward * 10);
 
         missions.push({
             id: `weekly-${Date.now()}-${i}`,
@@ -616,17 +611,15 @@ export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number, maxBet?: number):
     ];
 
     templates.forEach((t, i) => {
-        let target = t.base; // 90% reduction from previous *10
+        let target = t.base;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
-             target = Math.floor(t.base * 2 * Math.max(1, playerLevel) * 2.5); // 2x of base
-             if (maxBet && maxBet > 0) {
-                 if (t.type === MissionType.WIN_COINS) target = Math.max(target, maxBet * 1000);
-                 if (t.type === MissionType.BET_COINS) target = Math.max(target, maxBet * 2000);
-             }
+             const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+             target = t.type === MissionType.WIN_COINS ? mb * 1000 : mb * 2000;
         }
 
         const xpReward = 8000 + (i * 2000);
-        const coinReward = Math.floor((xpReward / 10) * 1000000);
+        const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+        const coinReward = Math.floor(mb * xpReward * 10);
 
         missions.push({
             id: `monthly-${Date.now()}-${i}`,
