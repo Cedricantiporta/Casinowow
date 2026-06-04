@@ -23,6 +23,7 @@ import { FeatureUnlockModal } from './components/FeatureUnlockModal';
 import { SettingsModal } from './components/SettingsModal';
 import { VipLoungeModal } from './components/VipLoungeModal';
 import { HighLimitLobby } from './components/HighLimitLobby';
+import { PaylinePanel } from './components/PaylinePanel';
 import { audioService } from './services/audioService';
 import { jackpotService } from './services/jackpotService';
 
@@ -99,6 +100,11 @@ const App: React.FC = () => {
   useEffect(() => {
       jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
   }, [player.level]);
+
+  // Instantly dismiss level toast when leaving game view
+  useEffect(() => {
+      if (currentView !== 'GAME') setShowLevelUp(false);
+  }, [currentView]);
 
   // Effect to update Golden Treasury rewards when level changes
   useEffect(() => {
@@ -777,7 +783,9 @@ const App: React.FC = () => {
       let megaMatchActive = false;
       let megaMatchSymbol = SymbolType.TEN;
       const isNeon = selectedGame.theme === 'NEON';
-      const megaMatchProb = isFreeSpin ? 0.34 : (isNeon ? 0.08 : 0.16);
+      // 3×3 grids get 80% less same-cell stacks (mega match) + 20% less wilds
+      const smallGridPenalty = isSmallGrid ? 0.20 : 1.0;
+      const megaMatchProb = isFreeSpin ? 0.34 * smallGridPenalty : (isNeon ? 0.08 : 0.16) * smallGridPenalty;
       
       if (Math.random() < megaMatchProb) { 
             const targets = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN];
@@ -805,8 +813,9 @@ const App: React.FC = () => {
                     if (c === 3) wildStackChance = 0.16 * wildMult;
                     if (c === 4) wildStackChance = 0.24 * wildMult;
                } else if (isSmallGrid) {
-                   if (c === 1) wildStackChance = 0.06 * wildMult;
-                   if (c === 2) wildStackChance = 0.08 * wildMult;
+                   // 3×3: base chances × 0.8 (20% less wild column spawns)
+                   if (c === 1) wildStackChance = 0.06 * wildMult * 0.8;
+                   if (c === 2) wildStackChance = 0.08 * wildMult * 0.8;
                } else {
                    if (c === 1) wildStackChance = 0.15 * wildMult;
                    if (c === 2) wildStackChance = 0.20 * wildMult;
@@ -855,10 +864,15 @@ const App: React.FC = () => {
 
       const scatterRoll = Math.random() * 100;
       let targetScatters = 0;
-      if (scatterRoll >= 60) targetScatters = 1;
-      if (scatterRoll >= 82) targetScatters = 2;
-      if (scatterRoll >= 99.0) targetScatters = 3;
-      if (scatterRoll >= 99.75) targetScatters = 4;
+      // 3×3 slots: 20% less free spin chance (raise thresholds so fewer scatters spawn)
+      const s1 = isSmallGrid ? 68 : 60;
+      const s2 = isSmallGrid ? 85.6 : 82;
+      const s3 = isSmallGrid ? 99.2 : 99.0;
+      const s4 = isSmallGrid ? 99.8 : 99.75;
+      if (scatterRoll >= s1) targetScatters = 1;
+      if (scatterRoll >= s2) targetScatters = 2;
+      if (scatterRoll >= s3) targetScatters = 3;
+      if (scatterRoll >= s4) targetScatters = 4;
 
       if (selectedGame.theme === 'DRAGON') {
           if (scatterRoll >= 99.25) targetScatters = 4;
@@ -1696,17 +1710,17 @@ const App: React.FC = () => {
                     const isPassLocked = player.level < 10;
                     return (
                         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', border: isHighLimit ? '1.5px solid #8b6200' : '1.5px solid #38106e', borderRadius:'21px', padding:'9px 6px', gap:'3px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', border: isHighLimit ? '1.5px solid #8b6200' : '1.5px solid #38106e', borderRadius:'21px', padding:'6px 6px', gap:'2px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
                             <button
                                 onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'7px 3px' }}
+                                style={{ padding:'3px 3px' }}
                             >
                                 {isQuestLocked
-                                    ? <span className="text-2xl leading-none">🔒</span>
+                                    ? <span className="text-[28px] leading-none">🔒</span>
                                     : <>
                                         {qReady && <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-yellow-400 z-10"></div>}
-                                        <span className="text-[30px] leading-none">🗿</span>
+                                        <span className="text-[36px] leading-none">🗿</span>
                                       </>
                                 }
                                 <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
@@ -1714,11 +1728,11 @@ const App: React.FC = () => {
                             <button
                                 onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'7px 3px' }}
+                                style={{ padding:'3px 3px' }}
                             >
                                 {isQuestLocked
-                                    ? <span className="text-xl leading-none">🔒</span>
-                                    : <span className="text-[30px] leading-none">🎲</span>
+                                    ? <span className="text-[28px] leading-none">🔒</span>
+                                    : <span className="text-[36px] leading-none">🎲</span>
                                 }
                                 <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
                             </button>
@@ -1726,17 +1740,17 @@ const App: React.FC = () => {
                             <button
                                 onClick={!isPassLocked ? openBattlePassModal : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'7px 3px' }}
+                                style={{ padding:'3px 3px' }}
                             >
                                 {isPassLocked
-                                    ? <span className="text-2xl leading-none">🔒</span>
+                                    ? <span className="text-[28px] leading-none">🔒</span>
                                     : <>
                                         {totalNotifs > 0 && (
                                             <div className="absolute -top-0.5 -right-0.5 w-6 h-6 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[14px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                                 {totalNotifs}
                                             </div>
                                         )}
-                                        <span className="text-[30px] leading-none">🎫</span>
+                                        <span className="text-[36px] leading-none">🎫</span>
                                       </>
                                 }
                                 <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
@@ -1765,9 +1779,16 @@ const App: React.FC = () => {
                                 isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE} 
                             />
                         ))}
-                        <PaylinesOverlay winData={winData} rowCount={selectedGame.rows} />
+                        <PaylinesOverlay winData={winData} rowCount={selectedGame.rows} colCount={selectedGame.reels} />
                     </div>
                 </div>
+
+                {/* Payline guide — right sidebar */}
+                <PaylinePanel
+                    winningLines={winData?.winningLines ?? []}
+                    gameConfig={selectedGame}
+                    isHighLimit={isHighLimit}
+                />
 
             </div>
         )}
