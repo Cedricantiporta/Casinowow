@@ -24,6 +24,7 @@ import { VipLoungeModal } from './components/VipLoungeModal';
 import { HighLimitLobby } from './components/HighLimitLobby';
 import { audioService } from './services/audioService';
 import { jackpotService } from './services/jackpotService';
+import { JackpotCelebration } from './components/JackpotCelebration';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -202,6 +203,7 @@ const App: React.FC = () => {
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
   const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
+  const [pendingBigWin, setPendingBigWin] = useState(false);
 
   useEffect(() => {
     setBetIndex(0);
@@ -359,7 +361,7 @@ const App: React.FC = () => {
   const handleClaimLoginBonus = () => {
       const reward = DAILY_LOGIN_REWARDS.find(r => r.day === loginState.currentDay);
       if (reward) {
-          const scaledCoins = SCALE_COIN_REWARD(reward.coins, player.level);
+          const scaledCoins = SCALE_COIN_REWARD(reward.coins, player.level, MAX_BET_BY_LEVEL(player.level));
           setPlayer(p => ({ 
               ...p, 
               balance: p.balance + scaledCoins,
@@ -519,7 +521,7 @@ const App: React.FC = () => {
       
       let msg = "";
       if (reward.type === 'COINS') {
-          const scaledValue = SCALE_COIN_REWARD(reward.value, player.level);
+          const scaledValue = SCALE_COIN_REWARD(reward.value, player.level, MAX_BET_BY_LEVEL(player.level));
           setPlayer(p => ({ ...p, balance: p.balance + scaledValue }));
           msg = `+${formatCommaNumber(scaledValue)} Coins`;
       } else if (reward.type === 'DIAMONDS') {
@@ -554,7 +556,7 @@ const App: React.FC = () => {
       let xpBoostApplied = false;
 
       rewardsToClaim.forEach(r => {
-          if (r.type === 'COINS') totalCoins += SCALE_COIN_REWARD(r.value, player.level);
+          if (r.type === 'COINS') totalCoins += SCALE_COIN_REWARD(r.value, player.level, MAX_BET_BY_LEVEL(player.level));
           else if (r.type === 'DIAMONDS') totalDiamonds += r.value;
           else if (r.type === 'CREDIT_BACK') totalCredits += r.value;
           else if (r.type === 'PICKS') totalPicks += r.value;
@@ -1158,6 +1160,7 @@ const App: React.FC = () => {
     ];
     const slotIdxForJP = GAMES_CONFIG.findIndex(g => g.id === selectedGame.id);
     const jpAmounts = jackpotService.getSlotAmounts(slotIdxForJP);
+    let jackpotWon = false;
     JP_WIN_TYPES.forEach((jpType, tier) => {
         let jpCount = 0;
         const jpCells: {col: number, row: number}[] = [];
@@ -1165,10 +1168,10 @@ const App: React.FC = () => {
             if (s === jpType) { jpCount++; jpCells.push({ col: c, row: r }); }
         }));
         if (jpCount >= 3) {
+            jackpotWon = true;
             totalPayout += jpAmounts[tier];
             winningCells.push(...jpCells);
             setJackpotWinTier({ ...JP_META[tier], amount: jpAmounts[tier] });
-            setTimeout(() => setJackpotWinTier(null), 3000);
         }
     });
 
@@ -1203,7 +1206,11 @@ const App: React.FC = () => {
 
        if (winTier) {
            audioService.playWinBig();
-           setShowWinPopup(true);
+           if (jackpotWon) {
+               setPendingBigWin(true);
+           } else {
+               setShowWinPopup(true);
+           }
            setStatus(GameStatus.WIN_ANIMATION);
        } else {
            audioService.playWinSmall();
@@ -1234,7 +1241,7 @@ const App: React.FC = () => {
           }
           if (leveledUp) {
               audioService.playLevelUp();
-              const reward = newLevel * 10000;
+              const reward = newLevel * MAX_BET_BY_LEVEL(newLevel) * 2;
               const oldMax = MAX_BET_BY_LEVEL(prev.level);
               const newMax = MAX_BET_BY_LEVEL(newLevel);
               if (toastCountRef.current < 10) {
@@ -1360,6 +1367,14 @@ const App: React.FC = () => {
   const handleWinPopupComplete = () => {
       setShowWinPopup(false);
       setStatus(GameStatus.IDLE);
+  };
+
+  const handleJackpotClose = () => {
+      setJackpotWinTier(null);
+      if (pendingBigWin) {
+          setPendingBigWin(false);
+          setShowWinPopup(true);
+      }
   };
   const handleQuestClaim = () => {
       if (player.level < 20) {
@@ -1626,12 +1641,8 @@ const currentState: SavedGameState = {
       }
   };
 
-  const getDeckReward = (level: number) => {
-      return (1000000 + (level * 500000)) * 100; 
-  };
-  const getGrandAlbumReward = (level: number) => {
-      return (10000000 + (level * 2000000)) * 10000;
-  };
+  const getDeckReward = (level: number) => MAX_BET_BY_LEVEL(level) * 100;
+  const getGrandAlbumReward = (level: number) => MAX_BET_BY_LEVEL(level) * 1000;
 
   const showGoldHeader = isHighLimit || (player.isVip && currentView === 'LOBBY');
 
@@ -2012,8 +2023,9 @@ const currentState: SavedGameState = {
         onStageComplete={(bonusCoins, bonusDiamonds) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds)} 
         onGridUpdate={handleWildGridUpdate} // Update grid
         onDiceRoll={handleDiceRoll}
-        onClose={() => setActiveModal('NONE')} 
+        onClose={() => setActiveModal('NONE')}
         playerLevel={player.level}
+        maxBet={MAX_BET_BY_LEVEL(player.level)}
       />
       
       <MissionPassModal
@@ -2050,21 +2062,7 @@ const currentState: SavedGameState = {
         onClose={() => setActiveModal('NONE')} 
       />
 
-      {jackpotWinTier && (
-          <div className="fixed inset-0 z-[310] flex items-center justify-center pointer-events-none">
-              <div className="animate-pop-in flex flex-col items-center gap-1">
-                  <div className="text-5xl leading-none drop-shadow-2xl">{jackpotWinTier.icon}</div>
-                  <div className="font-black text-center uppercase tracking-widest"
-                      style={{ fontSize: 'clamp(28px,7vw,48px)', color: jackpotWinTier.color, WebkitTextStroke: '2px #000', paintOrder: 'stroke fill', filter: `drop-shadow(0 0 12px ${jackpotWinTier.color})` }}>
-                      {jackpotWinTier.name} JACKPOT!
-                  </div>
-                  <div className="font-mono font-black text-white text-2xl"
-                      style={{ WebkitTextStroke: '1px #000', paintOrder: 'stroke fill', textShadow: `0 0 10px ${jackpotWinTier.color}` }}>
-                      +{formatCommaNumber(jackpotWinTier.amount)}
-                  </div>
-              </div>
-          </div>
-      )}
+      <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
       {showWinPopup && <WinPopup amount={winData?.payout || 0} type={winData?.winType || ''} onComplete={handleWinPopupComplete} />}
       
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />

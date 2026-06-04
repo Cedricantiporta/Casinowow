@@ -10,21 +10,23 @@ interface WinPopupProps {
 
 export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) => {
     const [displayAmount, setDisplayAmount] = useState(0);
-    
+    const [canClose, setCanClose] = useState(false);
+
     useEffect(() => {
         audioService.playWinCheer();
+        setCanClose(false);
 
-        let duration = 3000; 
+        let duration = 3000;
         if (type === 'BIG WIN') duration = 3500;
         else if (type === 'GREAT WIN') duration = 4000;
         else if (type === 'EPIC WIN') duration = 5000;
         else if (type === 'MEGA WIN') duration = 6000;
         else if (type === 'ULTIMATE WIN') duration = 7000;
-        
+
         // Counting Animation
         const startTime = Date.now();
         const countDuration = Math.min(2000, duration - 500); // Count faster than total popup time
-        
+
         const timerInterval = setInterval(() => {
             const now = Date.now();
             const elapsed = now - startTime;
@@ -39,14 +41,15 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
             }
         }, 16);
 
-        const completeTimer = setTimeout(() => {
-            onComplete();
-        }, duration); 
+        const canCloseTimer = setTimeout(() => {
+            setCanClose(true);
+        }, 3000);
+
         return () => {
-            clearTimeout(completeTimer);
+            clearTimeout(canCloseTimer);
             clearInterval(timerInterval);
         };
-    }, [onComplete, type, amount]);
+    }, [type, amount]);
 
     const getCoinCount = (tier: string) => {
         switch(tier) {
@@ -73,9 +76,10 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
     const particleCount = getCoinCount(type);
 
     return (
-        <div 
-            onClick={onComplete}
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-sm cursor-pointer overflow-hidden"
+        <div
+            onClick={canClose ? onComplete : undefined}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-sm overflow-hidden"
+            style={{ cursor: canClose ? 'pointer' : 'default' }}
         >
             <style>{`
                 @keyframes coinFall {
@@ -95,12 +99,24 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
                 
                 {/* Amount - No container, just huge text with heavy shadow */}
                 <div className="text-4xl md:text-[4.5rem] font-mono font-black text-white transform scale-105"
-                     style={{ 
+                     style={{
                          textShadow: '0 0 5px #000, 0 0 10px #000, 0 3px 0 #000, 0 5px 5px rgba(0,0,0,0.5)',
                          WebkitTextStroke: '1px black'
                      }}>
                     {formatCommaNumber(displayAmount)}
                 </div>
+
+                {canClose ? (
+                    <button onClick={onComplete}
+                        className="mt-6 px-8 py-3 rounded-2xl font-black uppercase text-white text-lg btn-3d"
+                        style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 4px 0 #052e16', border: '1px solid rgba(255,255,255,0.3)' }}>
+                        COLLECT
+                    </button>
+                ) : (
+                    <div className="mt-6 text-white/40 text-sm font-bold uppercase tracking-widest animate-pulse">
+                        Please wait...
+                    </div>
+                )}
             </div>
 
             {/* 2D Particles */}

@@ -22,6 +22,7 @@ interface MiniGameModalProps {
     onDiceRoll: (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean) => void;
     onClose: () => void;
     playerLevel: number;
+    maxBet?: number;
 }
 
 const GRID_SIZES = [3, 4, 5, 5, 6];
@@ -106,7 +107,7 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     isOpen, diceCredits, wildCredits, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
-    onSelectMode, onBuyPicks, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel
+    onSelectMode, onBuyPicks, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet
 }) => {
     const currentGridSize = GRID_SIZES[Math.min(wildStage - 1, GRID_SIZES.length - 1)];
     const totalCells = currentGridSize * currentGridSize;
@@ -130,7 +131,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const cells: WildGridCell[] = Array(totalCells).fill({ revealed: false, content: 'BLANK' });
         const gemIdx = Math.floor(Math.random() * totalCells);
         cells[gemIdx] = { revealed: false, content: 'GEM' };
-        const baseCoin = 25000 * wildStage * playerLevel;
+        const baseCoin = (maxBet || 10000) * wildStage * 0.5;
         for (let i = 0; i < totalCells; i++) {
             if (i === gemIdx) continue;
             if (Math.random() < 0.3) {
@@ -145,11 +146,11 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
         setGrid(cells);
         if (onGridUpdate) onGridUpdate(cells);
-    }, [wildStage, totalCells, playerLevel, onGridUpdate]);
+    }, [wildStage, totalCells, playerLevel, maxBet, onGridUpdate]);
 
     const initBoard = useCallback(() => {
         const newBoard: BoardStep[] = [];
-        const baseCoin = 10000 * diceStage * playerLevel;
+        const baseCoin = (maxBet || 10000) * diceStage * 0.2;
         for (let i = 0; i <= boardLength; i++) {
             let reward: MiniGameReward | undefined;
             if (i > 0 && i < boardLength && Math.random() < 0.35) {
@@ -163,7 +164,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
         setBoard(newBoard);
         setVisualPosition(0);
-    }, [boardLength, diceStage, playerLevel]);
+    }, [boardLength, diceStage, playerLevel, maxBet]);
 
     useEffect(() => {
         if (isOpen) {
@@ -317,7 +318,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 <div className="flex-1 flex flex-col items-end justify-center">
                     <span style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(253,230,138,0.6)', textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1 }}>Stage Prize</span>
                     <span style={{ fontSize: '1.1rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
-                        💰 {formatCommaNumber(1000000 * (isWild ? wildStage : diceStage) * playerLevel)}
+                        💰 {formatCommaNumber((maxBet || 10000) * (isWild ? wildStage : diceStage) * 10)}
                     </span>
                 </div>
             </div>

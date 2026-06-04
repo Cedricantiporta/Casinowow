@@ -393,8 +393,12 @@ export const CALCULATE_TIME_BONUS = (level: number): number => {
     return Math.max(50000, 100000 * Math.pow(level, 1.1));
 };
 
-export const SCALE_COIN_REWARD = (base: number, level: number): number => {
-    return Math.floor(base * (1 + (level * 0.1)));
+export const SCALE_COIN_REWARD = (base: number, level: number, maxBet?: number): number => {
+    if (maxBet && maxBet > 10000) {
+        const factor = maxBet / 10000;
+        return Math.floor(base * factor);
+    }
+    return Math.floor(base * (1 + level * 0.1));
 };
 
 export const formatNumber = (num: number): string => {
@@ -504,10 +508,10 @@ export const GENERATE_REPLACEMENT_MISSION = (level: number, frequency: MissionFr
     };
 };
 
-export const GENERATE_DAILY_MISSIONS = (playerLevel: number): Mission[] => {
-    const multiplier = Math.max(1, playerLevel); 
+export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): Mission[] => {
+    const multiplier = Math.max(1, playerLevel);
     const missions: Mission[] = [];
-    
+
     const templates = [
         { type: MissionType.SPIN_COUNT, base: 125, desc: "Spin the reels" },
         { type: MissionType.WIN_COINS, base: 5000000, desc: "Win total coins" },
@@ -518,14 +522,18 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number): Mission[] => {
     // 10 per day
     for (let i = 0; i < 10; i++) {
         const t = templates[i % templates.length];
-        const scale = 1 + (Math.floor(i / 4) * 0.5); 
+        const scale = 1 + (Math.floor(i / 4) * 0.5);
 
         let target = t.base;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
              // Reduced to 2.5x (1/4 of previous 10x)
              target = Math.floor(t.base * multiplier * scale * 2.5);
+             if (maxBet && maxBet > 0) {
+                 if (t.type === MissionType.WIN_COINS) target = Math.max(target, maxBet * 20);
+                 if (t.type === MissionType.BET_COINS) target = Math.max(target, maxBet * 30);
+             }
         } else if (t.type === MissionType.SPIN_COUNT) {
-             target = (t.base + (playerLevel * 5)) * scale; 
+             target = (t.base + (playerLevel * 5)) * scale;
         } else {
              target = Math.ceil(t.base * scale);
         }
@@ -551,9 +559,9 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number): Mission[] => {
     return missions;
 };
 
-export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number): Mission[] => {
+export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number, maxBet?: number): Mission[] => {
     const missions: Mission[] = [];
-    
+
     // 6 per week
     const templates = [
         { type: MissionType.SPIN_COUNT, base: 2500, desc: "Weekly: Spin the reels" },
@@ -568,6 +576,10 @@ export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number): Mission[] => {
         let target = t.base; // 90% reduction from previous *10
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
              target = Math.floor(t.base * 2 * Math.max(1, playerLevel / 2) * 2.5); // 2x of base
+             if (maxBet && maxBet > 0) {
+                 if (t.type === MissionType.WIN_COINS) target = Math.max(target, maxBet * 200);
+                 if (t.type === MissionType.BET_COINS) target = Math.max(target, maxBet * 300);
+             }
         }
 
         const xpReward = 1500 + (i * 500);
@@ -589,9 +601,9 @@ export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number): Mission[] => {
     return missions;
 };
 
-export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number): Mission[] => {
+export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number, maxBet?: number): Mission[] => {
     const missions: Mission[] = [];
-    
+
     // 6 per month
     const templates = [
         { type: MissionType.SPIN_COUNT, base: 12500, desc: "Monthly: Spin the reels" },
@@ -606,6 +618,10 @@ export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number): Mission[] => {
         let target = t.base; // 90% reduction from previous *10
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
              target = Math.floor(t.base * 2 * Math.max(1, playerLevel) * 2.5); // 2x of base
+             if (maxBet && maxBet > 0) {
+                 if (t.type === MissionType.WIN_COINS) target = Math.max(target, maxBet * 1000);
+                 if (t.type === MissionType.BET_COINS) target = Math.max(target, maxBet * 2000);
+             }
         }
 
         const xpReward = 8000 + (i * 2000);
