@@ -11,7 +11,12 @@ export enum SymbolType {
   CHERRY = 'CHERRY',
   SEVEN = 'SEVEN',
   WILD = 'WILD',
-  SCATTER = 'SCATTER'
+  SCATTER = 'SCATTER',
+  JACKPOT_MINI = 'JACKPOT_MINI',
+  JACKPOT_MINOR = 'JACKPOT_MINOR',
+  JACKPOT_MAJOR = 'JACKPOT_MAJOR',
+  JACKPOT_MEGA = 'JACKPOT_MEGA',
+  JACKPOT_GRAND = 'JACKPOT_GRAND',
 }
 
 export type GameTheme = 'NEON' | 'EGYPT' | 'DRAGON' | 'PIRATE' | 'SPACE' | 'CANDY' | 'JUNGLE' | 'UNDERWATER' | 'WESTERN' | 'SAMURAI' | 'PIGGY';
@@ -86,12 +91,12 @@ export interface WildGridCell {
 }
 
 export interface QuestState {
-  credits: number;
-  picks: number; 
+  diceCredits: number;
+  wildCredits: number;
   wildStage: number; // Separated Stage
   diceStage: number; // Separated Stage
   max: 60;
-  dicePosition: number; 
+  dicePosition: number;
   activeGame: 'NONE' | 'WILD' | 'DICE';
   wildGrid: WildGridCell[]; // Persistence for Wild Quest
 }

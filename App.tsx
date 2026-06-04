@@ -170,16 +170,16 @@ const App: React.FC = () => {
   }, []);
 
   // Quest state initialized with separate stages
-  const [quest, setQuest] = useState<QuestState>({ 
-      credits: 0, 
-      picks: 2, 
-      wildStage: 1, 
-      diceStage: 1, 
-      max: 60, 
-      dicePosition: 0, 
-      activeGame: 'NONE', 
-      wildGrid: [] 
-  }); 
+  const [quest, setQuest] = useState<QuestState>({
+      diceCredits: 5,
+      wildCredits: 5,
+      wildStage: 1,
+      diceStage: 1,
+      max: 60,
+      dicePosition: 0,
+      activeGame: 'NONE',
+      wildGrid: []
+  });
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
@@ -940,7 +940,7 @@ const App: React.FC = () => {
   };
 
   const handleDiceRoll = (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean) => {
-      setQuest(q => ({ ...q, picks: Math.max(0, q.picks - 1), dicePosition: newPosition })); 
+      setQuest(q => ({ ...q, diceCredits: Math.max(0, q.diceCredits - 1), dicePosition: newPosition }));
       let msgParts = [];
       let totalCoins = 0;
       rewards.forEach(r => { if (r.type === 'COINS') totalCoins += r.value; });
@@ -1120,7 +1120,11 @@ const App: React.FC = () => {
 
     // Per-spin drops (every spin, not just wins)
     if (player.level >= 20 && Math.random() < 0.20) {
-        setQuest(q => ({ ...q, credits: Math.min(q.max, q.credits + 1) }));
+        if (Math.random() < 0.5) {
+            setQuest(q => ({ ...q, diceCredits: q.diceCredits + 1 }));
+        } else {
+            setQuest(q => ({ ...q, wildCredits: q.wildCredits + 1 }));
+        }
     }
     if (player.level >= 30) {
         const cardRoll = Math.random();
@@ -1330,35 +1334,34 @@ const App: React.FC = () => {
       audioService.playClick();
   };
   const handleBuyPicks = (amount: number, cost: number, currency: 'CREDITS' | 'GEMS') => {
-      if (currency === 'CREDITS') {
-          if (quest.credits >= cost) {
-              setQuest(q => ({ ...q, credits: q.credits - cost, picks: q.picks + amount }));
-              audioService.playClick();
-          }
-      } else {
+      if (currency === 'GEMS') {
           if (player.diamonds >= cost) {
               setPlayer(p => ({ ...p, diamonds: p.diamonds - cost }));
-              setQuest(q => ({ ...q, picks: q.picks + amount }));
+              if (quest.activeGame === 'DICE') {
+                  setQuest(q => ({ ...q, diceCredits: q.diceCredits + amount }));
+              } else {
+                  setQuest(q => ({ ...q, wildCredits: q.wildCredits + amount }));
+              }
               audioService.playClick();
           }
       }
   };
   const handleMiniGamePick = (isGem: boolean, reward: MiniGameReward | null) => {
-      setQuest(q => ({ ...q, picks: Math.max(0, q.picks - 1) }));
+      setQuest(q => ({ ...q, wildCredits: Math.max(0, q.wildCredits - 1) }));
       if (reward) {
-          if (reward.type === 'COINS') { 
-              setPlayer(p => ({ ...p, balance: p.balance + reward.value })); 
-              setCelebrationMsg(`+${formatCommaNumber(reward.value)} Coins`); 
+          if (reward.type === 'COINS') {
+              setPlayer(p => ({ ...p, balance: p.balance + reward.value }));
+              setCelebrationMsg(`+${formatCommaNumber(reward.value)} Coins`);
           }
           else if (reward.type === 'DIAMONDS') { setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value })); setCelebrationMsg(`+${reward.value} Gems`); }
           else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Date.now() + 1800000 })); setCelebrationMsg(`XP Boost!`); }
-          else if (reward.type === 'PICKS') { setQuest(q => ({ ...q, picks: q.picks + reward.value })); setCelebrationMsg(`+${reward.value} Picks`); }
+          else if (reward.type === 'PICKS') { setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value })); setCelebrationMsg(`+${reward.value} Credits`); }
       }
   };
 
   const handleBatchPick = (picksUsed: number, rewards: MiniGameReward[]) => {
-      setQuest(q => ({ ...q, picks: Math.max(0, q.picks - picksUsed) }));
-      
+      setQuest(q => ({ ...q, wildCredits: Math.max(0, q.wildCredits - picksUsed) }));
+
       let totalCoins = 0;
       let totalGems = 0;
       let totalPicksFound = 0;
@@ -1373,15 +1376,15 @@ const App: React.FC = () => {
 
       if (totalCoins > 0) setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
       if (totalGems > 0) setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems }));
-      if (totalPicksFound > 0) setQuest(q => ({ ...q, picks: q.picks + totalPicksFound }));
+      if (totalPicksFound > 0) setQuest(q => ({ ...q, wildCredits: q.wildCredits + totalPicksFound }));
       if (xpBoostFound) setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Date.now() + 1800000 }));
 
       const parts = [];
       if (totalCoins > 0) parts.push(`${formatCommaNumber(totalCoins)} Coins`);
       if (totalGems > 0) parts.push(`${totalGems} Gems`);
-      if (totalPicksFound > 0) parts.push(`${totalPicksFound} Picks`);
+      if (totalPicksFound > 0) parts.push(`${totalPicksFound} Credits`);
       if (xpBoostFound) parts.push("XP Boost");
-      
+
       if (parts.length > 0) {
           setCelebrationMsg(`Auto Pick: +${parts.join(', ')}`);
           audioService.playWinBig();
@@ -1927,10 +1930,10 @@ const currentState: SavedGameState = {
           balance={player.balance}
       />
       
-      <MiniGameModal 
-        isOpen={activeModal === 'MINIGAME'} 
-        credits={quest.credits} 
-        picks={quest.picks} 
+      <MiniGameModal
+        isOpen={activeModal === 'MINIGAME'}
+        diceCredits={quest.diceCredits}
+        wildCredits={quest.wildCredits}
         wildStage={quest.wildStage}
         diceStage={quest.diceStage}
         dicePosition={quest.dicePosition}

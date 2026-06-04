@@ -6,8 +6,8 @@ import { audioService } from '../services/audioService';
 
 interface MiniGameModalProps {
     isOpen: boolean;
-    credits: number;
-    picks: number;
+    diceCredits: number;
+    wildCredits: number;
     wildStage: number;
     diceStage: number;
     dicePosition: number;
@@ -105,7 +105,7 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 );
 
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
-    isOpen, credits, picks, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
+    isOpen, diceCredits, wildCredits, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
     onSelectMode, onBuyPicks, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel
 }) => {
     const currentGridSize = GRID_SIZES[Math.min(wildStage - 1, GRID_SIZES.length - 1)];
@@ -192,11 +192,11 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     }, [visualPosition, activeGame]);
 
     useEffect(() => {
-        if (autoRoll && !isRolling && !isMoving && picks > 0) {
+        if (autoRoll && !isRolling && !isMoving && diceCredits > 0) {
             const t = setTimeout(handleRollDice, 1000);
             return () => clearTimeout(t);
-        } else if (autoRoll && picks <= 0) setAutoRoll(false);
-    }, [autoRoll, isRolling, isMoving, picks]);
+        } else if (autoRoll && diceCredits <= 0) setAutoRoll(false);
+    }, [autoRoll, isRolling, isMoving, diceCredits]);
 
     const handleTileClick = (index: number) => {
         if (picks <= 0 || grid[index].revealed || stageWinning) return;
