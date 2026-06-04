@@ -13,99 +13,132 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
     if (!isOpen) return null;
 
     const vipBenefits = [
-        '💰 20% cashback on every spin (vs 10%)',
-        '📈 Higher max bet unlocked earlier',
-        '⭐ 2× XP from all spins',
-        '🏆 VIP gold UI theme',
-        '🎲 Access to High-Limit tables',
-        '🔓 All premium features unlocked',
+        { icon: '💰', text: '20% cashback on every spin (vs 10%)' },
+        { icon: '📈', text: 'Higher max bet unlocked earlier' },
+        { icon: '⭐', text: '2× XP from all spins' },
+        { icon: '🏆', text: 'VIP gold UI theme' },
+        { icon: '🎲', text: 'Access to High-Limit tables' },
+        { icon: '🔓', text: 'All premium features unlocked' },
     ];
 
     const passBenefits = [
-        '🎁 Premium mission reward track',
-        '💎 Exclusive gem rewards',
-        '🚀 Mission XP booster included',
-        '📜 Monthly bonus coins on claim',
-        '🌟 Prestige badge on profile',
-        '♾️ Unlimited daily bonus claims',
+        { icon: '🎁', text: 'Premium mission reward track' },
+        { icon: '💎', text: 'Exclusive gem rewards' },
+        { icon: '🚀', text: 'Mission XP booster included' },
+        { icon: '📜', text: 'Monthly bonus coins on claim' },
+        { icon: '🌟', text: 'Prestige badge on profile' },
+        { icon: '♾️', text: 'Unlimited daily bonus claims' },
     ];
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-sm" onClick={onClose}>
-            <div
-                className="relative flex flex-col gap-4 p-5 rounded-3xl shadow-2xl max-w-[400px] w-full mx-3 animate-pop-in"
-                style={{ background: 'linear-gradient(160deg,#1a003a,#2d0060,#1a003a)', border: '1.5px solid rgba(255,255,255,0.15)' }}
-                onClick={e => e.stopPropagation()}
-            >
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <h2 className="font-black text-white text-xl uppercase tracking-widest">🏅 Premium</h2>
-                    <button onClick={onClose} className="round-btn text-white text-lg"><i className="ti ti-x" /></button>
-                </div>
+        <div
+            className="fixed inset-0 z-[200] flex flex-col animate-pop-in select-none"
+            style={{ background: 'linear-gradient(180deg,#0d0814 0%,#1a0535 100%)' }}
+        >
+            {/* Header */}
+            <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2 border-b border-white/10">
+                <span className="text-2xl">🏅</span>
+                <h2 className="font-black text-white text-lg uppercase tracking-widest flex-1">Premium Plans</h2>
+                <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></div>
+            </div>
+
+            {/* Side-by-side cards — fill remaining height */}
+            <div className="flex-1 flex gap-4 px-4 py-4 min-h-0">
 
                 {/* VIP Lounge Card */}
-                <div className="rounded-2xl overflow-hidden border border-yellow-500/40" style={{ background: 'linear-gradient(135deg,#3d2200,#7a4a00,#3d2200)' }}>
-                    <div className="px-4 pt-3 pb-2 flex items-center gap-2">
-                        <span className="text-2xl">👑</span>
-                        <div>
-                            <div className="font-black text-yellow-300 text-base uppercase tracking-wider">VIP Lounge</div>
-                            <div className="text-yellow-200/70 text-xs">Exclusive high-roller access</div>
+                <div
+                    className="flex-1 flex flex-col rounded-2xl overflow-hidden border border-yellow-500/40"
+                    style={{ background: 'linear-gradient(160deg,#2a1500,#5c3000,#2a1500)' }}
+                >
+                    {/* Card Header */}
+                    <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-yellow-500/20"
+                        style={{ background: 'linear-gradient(180deg,rgba(251,191,36,0.15),transparent)' }}>
+                        <span className="text-3xl leading-none">👑</span>
+                        <div className="flex-1 min-w-0">
+                            <div className="font-black text-yellow-300 text-base uppercase tracking-wider leading-none">VIP Lounge</div>
+                            <div className="text-yellow-200/60 text-xs mt-0.5">Exclusive high-roller access</div>
                         </div>
-                        {isVip && <span className="ml-auto text-xs font-black bg-yellow-500 text-black px-2 py-0.5 rounded-full">ACTIVE</span>}
+                        {isVip && (
+                            <span className="shrink-0 text-[10px] font-black bg-yellow-500 text-black px-2 py-0.5 rounded-full uppercase">ACTIVE</span>
+                        )}
                     </div>
-                    <ul className="px-4 pb-2 space-y-1">
+
+                    {/* Benefits */}
+                    <div className="flex-1 px-4 py-3 flex flex-col gap-2 overflow-y-auto no-scrollbar">
                         {vipBenefits.map((b, i) => (
-                            <li key={i} className="text-yellow-100/90 text-xs">{b}</li>
+                            <div key={i} className="flex items-center gap-2 rounded-xl px-2.5 py-2"
+                                style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.15)' }}>
+                                <span className="text-base leading-none shrink-0">{b.icon}</span>
+                                <span className="text-yellow-100/90 text-xs leading-snug">{b.text}</span>
+                            </div>
                         ))}
-                    </ul>
-                    <div className="px-4 pb-3">
+                    </div>
+
+                    {/* CTA */}
+                    <div className="shrink-0 px-4 pb-4 pt-2">
                         <button
                             onClick={onBuyVip}
                             disabled={isVip}
-                            className="w-full py-2 rounded-xl font-black uppercase text-sm btn-3d"
+                            className="w-full py-3 rounded-xl font-black uppercase text-sm btn-3d tracking-widest"
                             style={{
-                                background: isVip ? '#555' : 'linear-gradient(180deg,#f59e0b,#b45309)',
-                                boxShadow: isVip ? 'none' : '0 3px 0 #78350f',
-                                color: '#fff',
-                                opacity: isVip ? 0.6 : 1,
+                                background: isVip ? 'rgba(0,0,0,0.4)' : 'linear-gradient(180deg,#fbbf24,#b45309)',
+                                boxShadow: isVip ? 'none' : '0 4px 0 #78350f',
+                                color: isVip ? 'rgba(255,255,255,0.4)' : '#fff',
+                                cursor: isVip ? 'not-allowed' : 'pointer',
                             }}
                         >
-                            {isVip ? '✓ Already Active' : 'Activate FREE'}
+                            {isVip ? '✓ Already Active' : '👑 Activate FREE'}
                         </button>
                     </div>
                 </div>
 
                 {/* Monthly Pass Card */}
-                <div className="rounded-2xl overflow-hidden border border-purple-400/40" style={{ background: 'linear-gradient(135deg,#1e003d,#4a0080,#1e003d)' }}>
-                    <div className="px-4 pt-3 pb-2 flex items-center gap-2">
-                        <span className="text-2xl">📜</span>
-                        <div>
-                            <div className="font-black text-purple-300 text-base uppercase tracking-wider">Monthly Pass</div>
-                            <div className="text-purple-200/70 text-xs">30-day premium mission rewards</div>
+                <div
+                    className="flex-1 flex flex-col rounded-2xl overflow-hidden border border-purple-400/40"
+                    style={{ background: 'linear-gradient(160deg,#0e0030,#2d0060,#0e0030)' }}
+                >
+                    {/* Card Header */}
+                    <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-purple-400/20"
+                        style={{ background: 'linear-gradient(180deg,rgba(168,85,247,0.15),transparent)' }}>
+                        <span className="text-3xl leading-none">📜</span>
+                        <div className="flex-1 min-w-0">
+                            <div className="font-black text-purple-300 text-base uppercase tracking-wider leading-none">Monthly Pass</div>
+                            <div className="text-purple-200/60 text-xs mt-0.5">30-day premium mission rewards</div>
                         </div>
-                        {isPremium && <span className="ml-auto text-xs font-black bg-purple-500 text-white px-2 py-0.5 rounded-full">ACTIVE</span>}
+                        {isPremium && (
+                            <span className="shrink-0 text-[10px] font-black bg-purple-500 text-white px-2 py-0.5 rounded-full uppercase">ACTIVE</span>
+                        )}
                     </div>
-                    <ul className="px-4 pb-2 space-y-1">
+
+                    {/* Benefits */}
+                    <div className="flex-1 px-4 py-3 flex flex-col gap-2 overflow-y-auto no-scrollbar">
                         {passBenefits.map((b, i) => (
-                            <li key={i} className="text-purple-100/90 text-xs">{b}</li>
+                            <div key={i} className="flex items-center gap-2 rounded-xl px-2.5 py-2"
+                                style={{ background: 'rgba(168,85,247,0.07)', border: '1px solid rgba(168,85,247,0.15)' }}>
+                                <span className="text-base leading-none shrink-0">{b.icon}</span>
+                                <span className="text-purple-100/90 text-xs leading-snug">{b.text}</span>
+                            </div>
                         ))}
-                    </ul>
-                    <div className="px-4 pb-3">
+                    </div>
+
+                    {/* CTA */}
+                    <div className="shrink-0 px-4 pb-4 pt-2">
                         <button
                             onClick={onBuyPremium}
                             disabled={isPremium}
-                            className="w-full py-2 rounded-xl font-black uppercase text-sm btn-3d"
+                            className="w-full py-3 rounded-xl font-black uppercase text-sm btn-3d tracking-widest"
                             style={{
-                                background: isPremium ? '#555' : 'linear-gradient(180deg,#a855f7,#6d28d9)',
-                                boxShadow: isPremium ? 'none' : '0 3px 0 #4c1d95',
-                                color: '#fff',
-                                opacity: isPremium ? 0.6 : 1,
+                                background: isPremium ? 'rgba(0,0,0,0.4)' : 'linear-gradient(180deg,#a855f7,#6d28d9)',
+                                boxShadow: isPremium ? 'none' : '0 4px 0 #4c1d95',
+                                color: isPremium ? 'rgba(255,255,255,0.4)' : '#fff',
+                                cursor: isPremium ? 'not-allowed' : 'pointer',
                             }}
                         >
-                            {isPremium ? '✓ Already Active' : 'Activate FREE'}
+                            {isPremium ? '✓ Already Active' : '📜 Activate FREE'}
                         </button>
                     </div>
                 </div>
+
             </div>
         </div>
     );

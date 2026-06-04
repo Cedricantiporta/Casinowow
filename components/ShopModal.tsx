@@ -18,7 +18,18 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
     const [cooldown, setCooldown] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    // Non-passive wheel handler so we can preventDefault and scroll horizontally
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const onWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            el.scrollBy({ left: e.deltaY * 2, behavior: 'auto' });
+        };
+        el.addEventListener('wheel', onWheel, { passive: false });
+        return () => el.removeEventListener('wheel', onWheel);
+    }, [isOpen]);
 
     const handleBuy = (action: () => void) => {
         if (cooldown) return;
@@ -30,23 +41,12 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     const fmt = (n: number) => {
         const abs = Math.abs(n);
         const sign = n < 0 ? '-' : '';
-        if (abs >= 1e15) return sign + (abs / 1e15).toFixed(2).replace(/\.?0+$/, '') + 'Q';
+        if (abs >= 1e18) return sign + (abs / 1e18).toFixed(2).replace(/\.?0+$/, '') + 'Qi';
+        if (abs >= 1e15) return sign + (abs / 1e15).toFixed(2).replace(/\.?0+$/, '') + 'Qd';
         if (abs >= 1e12) return sign + (abs / 1e12).toFixed(2).replace(/\.?0+$/, '') + 'T';
         if (abs >= 1e9)  return sign + (abs / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
         if (abs >= 1e6)  return sign + (abs / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
         return n.toLocaleString('en-US');
-    };
-
-    const startScroll = (dir: 'left' | 'right') => {
-        if (scrollInterval.current) return;
-        const amount = dir === 'right' ? 20 : -20;
-        const scrollAction = () => scrollRef.current?.scrollBy({ left: amount, behavior: 'auto' });
-        scrollAction();
-        scrollInterval.current = setInterval(scrollAction, 16);
-    };
-
-    const stopScroll = () => {
-        if (scrollInterval.current) { clearInterval(scrollInterval.current); scrollInterval.current = null; }
     };
 
     // Tab scroll: Coins=idx 0, Gems=idx 5, Boosts=idx 10, Free=idx 15
@@ -80,7 +80,6 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 icon: '🪙',
                 label: labels[i],
                 sub: fmt(amount),
-                price: `$ ${price.toLocaleString('en-US')}`,
                 color: colors[i],
                 action: () => onBuy('COIN', amount, 0, price),
             };
@@ -90,19 +89,19 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     if (!isOpen) return null;
 
     const gemPacks = [
-        { icon: '💎', label: '50 Gems',    sub: '50',   price: '$ 49',   color: 'from-sky-400     to-cyan-700',    action: () => onBuy('DIAMOND', 50)   },
-        { icon: '💎', label: '150 Gems',   sub: '150',  price: '$ 99',   color: 'from-cyan-500    to-blue-700',    action: () => onBuy('DIAMOND', 150)  },
-        { icon: '💎', label: '500 Gems',   sub: '500',  price: '$ 249',  color: 'from-blue-500    to-indigo-700',  action: () => onBuy('DIAMOND', 500)  },
-        { icon: '💎', label: '1,500 Gems', sub: '1,500',price: '$ 499',  color: 'from-indigo-500  to-purple-700',  action: () => onBuy('DIAMOND', 1500) },
-        { icon: '💎', label: '5,000 Gems', sub: '5,000',price: '$ 1,250',color: 'from-purple-500  to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
+        { icon: '💎', label: '50 Gems',    sub: '50',    color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 50)   },
+        { icon: '💎', label: '150 Gems',   sub: '150',   color: 'from-cyan-500 to-blue-700',      action: () => onBuy('DIAMOND', 150)  },
+        { icon: '💎', label: '500 Gems',   sub: '500',   color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
+        { icon: '💎', label: '1,500 Gems', sub: '1,500', color: 'from-indigo-500 to-purple-700',  action: () => onBuy('DIAMOND', 1500) },
+        { icon: '💎', label: '5,000 Gems', sub: '5,000', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
     ];
 
     const boostPacks = [
-        { icon: '📦', label: '10 Pack Credits',   sub: '10 Credits',  price: '45 💎',   color: 'from-orange-600 to-red-800',     action: () => onBuy('PACK_CREDIT', 10,  0, 45)  },
-        { icon: '📦', label: '100 Pack Credits',  sub: '100 Credits', price: '400 💎',  color: 'from-orange-700 to-red-900',     action: () => onBuy('PACK_CREDIT', 100, 0, 400) },
-        { icon: '🚀', label: 'XP Boost 30m',      sub: '2× XP',       price: '200 💎',  color: 'from-fuchsia-600 to-fuchsia-900',action: () => onBuy('BOOST',  2, 1_800_000,  200) },
-        { icon: '🚀', label: 'XP Boost 12H',      sub: '2× XP',       price: '500 💎',  color: 'from-fuchsia-700 to-purple-900', action: () => onBuy('BOOST',  2, 43_200_000, 500) },
-        { icon: '📜', label: 'Mission XP 30m',    sub: '2× Mission',  price: '300 💎',  color: 'from-indigo-500  to-indigo-800', action: () => onBuy('PASS_XP', 2, 1_800_000, 300) },
+        { icon: '📦', label: '10 Pack Credits',  sub: '10 Credits', price: '45 💎',  color: 'from-orange-600 to-red-800',     action: () => onBuy('PACK_CREDIT', 10,  0, 45)  },
+        { icon: '📦', label: '100 Pack Credits', sub: '100 Credits',price: '400 💎', color: 'from-orange-700 to-red-900',     action: () => onBuy('PACK_CREDIT', 100, 0, 400) },
+        { icon: '🚀', label: 'XP Boost 30m',     sub: '2× XP',      price: '200 💎', color: 'from-fuchsia-600 to-fuchsia-900',action: () => onBuy('BOOST',  2, 1_800_000,  200) },
+        { icon: '🚀', label: 'XP Boost 12H',     sub: '2× XP',      price: '500 💎', color: 'from-fuchsia-700 to-purple-900', action: () => onBuy('BOOST',  2, 43_200_000, 500) },
+        { icon: '📜', label: 'Mission XP 30m',   sub: '2× Mission', price: '300 💎', color: 'from-indigo-500 to-indigo-800',  action: () => onBuy('PASS_XP', 2, 1_800_000, 300) },
     ];
 
     const freeItem = {
@@ -111,33 +110,38 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         sub: '300,000',
         price: isFreeStashClaimed ? 'CLAIMED' : 'CLAIM',
         color: isFreeStashClaimed ? 'from-gray-600 to-gray-800' : 'from-lime-500 to-green-700',
-        disabled: !!isFreeStashClaimed,
+        isClaimed: !!isFreeStashClaimed,
+        isRealMoney: false,
         action: () => !isFreeStashClaimed && onBuy('COIN', 300_000, 0, 0),
     };
 
-    const allItems = [...dynamicPacks, ...gemPacks, ...boostPacks, freeItem];
-
-    const realMoneyCount = dynamicPacks.length + gemPacks.length; // first N items are real-money
-    const renderedItems = allItems.map((item, i) => {
-        if (i < realMoneyCount) {
-            const isClaimed = claimedItems?.includes(item.label);
-            return {
-                ...item,
-                price: isClaimed ? 'CLAIMED' : item.price,
-                disabled: isClaimed ? true : item.disabled,
-                action: isClaimed ? () => {} : () => { item.action(); onClaimItem?.(item.label); },
-            };
-        }
-        return item;
+    // Build all items — real-money items get FREE/CLAIMED logic, others keep their price
+    const realMoneyItems = [
+        ...dynamicPacks.map(item => ({ ...item, isRealMoney: true })),
+        ...gemPacks.map(item => ({ ...item, isRealMoney: true })),
+    ].map(item => {
+        const isClaimed = claimedItems?.includes(item.label) ?? false;
+        return {
+            ...item,
+            price: isClaimed ? 'CLAIMED' : 'FREE',
+            isClaimed,
+            action: isClaimed ? () => {} : () => { item.action(); onClaimItem?.(item.label); },
+        };
     });
+
+    const allItems = [
+        ...realMoneyItems,
+        ...boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false })),
+        freeItem,
+    ];
 
     return (
         <div
             className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none"
-            style={{ background: 'linear-gradient(160deg,#8040c0 0%,#5a1ea0 35%,#38086e 70%,#240550 100%)' }}
+            style={{ background: 'linear-gradient(180deg,#0d0814 0%,#180830 100%)' }}
         >
             {/* Header */}
-            <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0">
+            <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0 border-b border-white/10">
                 <div className="flex items-center gap-2 shrink-0">
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
                         <div className="coin">$</div>
@@ -149,12 +153,12 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                     </div>
                 </div>
                 <div className="flex-1"></div>
-                {/* Section tabs — right side, solid colors */}
+                {/* Section tabs */}
                 {[
-                    { label: '🪙',  name: 'Coins',  idx: 0,  bg: '#b8860b' },
-                    { label: '💎',  name: 'Gems',   idx: 5,  bg: '#0e7490' },
-                    { label: '🚀',  name: 'Boosts', idx: 10, bg: '#7c3aed' },
-                    { label: '🎁',  name: 'Free',   idx: 15, bg: '#166534' },
+                    { label: '🪙', name: 'Coins',  idx: 0,  bg: '#b8860b' },
+                    { label: '💎', name: 'Gems',   idx: 5,  bg: '#0e7490' },
+                    { label: '🚀', name: 'Boosts', idx: 10, bg: '#7c3aed' },
+                    { label: '🎁', name: 'Free',   idx: 15, bg: '#166534' },
                 ].map(tab => (
                     <button key={tab.name} onClick={() => scrollToSection(tab.idx)}
                         className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5"
@@ -166,77 +170,67 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
-            {/* Scroll area — nav arrows overlay the card list, no side margin */}
-            <div className="flex-1 relative min-h-0 pb-4">
-                {/* Left arrow — transparent overlay */}
-                <button
-                    onMouseDown={() => startScroll('left')}
-                    onMouseUp={stopScroll}
-                    onMouseLeave={stopScroll}
-                    onTouchStart={() => startScroll('left')}
-                    onTouchEnd={stopScroll}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-12 flex items-center justify-center text-white text-sm font-black active:scale-95 transition-transform"
-                    style={{ background: 'linear-gradient(90deg,rgba(60,0,100,0.7),transparent)', borderRadius:'0 8px 8px 0' }}
-                >◀</button>
-
-                {/* Item list — full width, no px offset */}
-                <div ref={scrollRef} className="w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar py-1 px-6">
+            {/* Scroll area */}
+            <div className="flex-1 min-h-0 pb-4">
+                <div
+                    ref={scrollRef}
+                    className="w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar py-3 px-4"
+                >
                     <div className="flex gap-3 h-full items-stretch min-w-max">
-                        {renderedItems.map((item, i) => (
-                            <button
-                                key={i}
-                                onClick={() => handleBuy(item.action)}
-                                disabled={item.disabled || cooldown}
-                                className={`
-                                    flex-shrink-0 w-[140px]
-                                    flex flex-col items-center justify-between
-                                    rounded-2xl overflow-hidden
-                                    px-3 pt-3 pb-2
-                                    bg-gradient-to-b ${item.color}
-                                    hover:brightness-110 active:scale-[0.97]
-                                    transition-all shadow-xl
-                                    ${(item.disabled || cooldown) ? 'grayscale opacity-50 cursor-not-allowed' : ''}
-                                `}
-                            >
-                                <div className="text-xs font-black uppercase text-white tracking-widest leading-none text-center">
-                                    {item.label}
-                                </div>
-                                <div className="flex-1 flex items-center justify-center py-1">
-                                    <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
-                                </div>
-                                <div className="w-full flex flex-col gap-1.5">
-                                    {item.sub && (
-                                        <div className="text-sm font-black text-white text-center leading-none drop-shadow-sm">
-                                            {item.sub}
-                                        </div>
-                                    )}
-                                    {/* Solid price button */}
-                                    <div
-                                        className="btn-3d w-full py-2 rounded-xl text-xs font-black text-white uppercase text-center tracking-wide"
-                                        style={{
-                                            background: 'rgba(0,0,0,0.65)',
-                                            border: '1px solid rgba(255,255,255,0.15)',
-                                            boxShadow: '0 3px 0 rgba(0,0,0,0.6)'
-                                        }}
-                                    >
-                                        {item.price}
+                        {allItems.map((item, i) => {
+                            const isGemBuy = !item.isRealMoney && item !== freeItem;
+                            const btnDisabled = item.isClaimed || cooldown;
+
+                            return (
+                                <div
+                                    key={i}
+                                    className={`
+                                        flex-shrink-0 w-[140px]
+                                        flex flex-col items-center justify-between
+                                        rounded-2xl overflow-hidden
+                                        px-3 pt-3 pb-2
+                                        bg-gradient-to-b ${item.color}
+                                        shadow-xl transition-all
+                                    `}
+                                >
+                                    <div className="text-xs font-black uppercase text-white tracking-widest leading-none text-center">
+                                        {item.label}
+                                    </div>
+                                    <div className="flex-1 flex items-center justify-center py-1">
+                                        <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
+                                    </div>
+                                    <div className="w-full flex flex-col gap-1.5">
+                                        {item.sub && (
+                                            <div className="text-sm font-black text-white text-center leading-none drop-shadow-sm">
+                                                {item.sub}
+                                            </div>
+                                        )}
+                                        {/* Price/action button — only this part is disabled when claimed */}
+                                        <button
+                                            onClick={() => !btnDisabled && handleBuy(item.action)}
+                                            disabled={btnDisabled}
+                                            className={`
+                                                btn-3d w-full py-2 rounded-xl text-xs font-black text-white uppercase text-center tracking-wide transition-all
+                                                ${btnDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-110 active:scale-[0.97]'}
+                                            `}
+                                            style={{
+                                                background: item.isClaimed
+                                                    ? 'rgba(0,0,0,0.4)'
+                                                    : item.price === 'FREE' || item.price === 'CLAIM'
+                                                        ? 'linear-gradient(180deg,#22c55e,#15803d)'
+                                                        : 'rgba(0,0,0,0.65)',
+                                                border: '1px solid rgba(255,255,255,0.15)',
+                                                boxShadow: btnDisabled ? 'none' : '0 3px 0 rgba(0,0,0,0.6)',
+                                            }}
+                                        >
+                                            {item.price}
+                                        </button>
                                     </div>
                                 </div>
-                            </button>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
-
-                {/* Right arrow — transparent overlay */}
-                <button
-                    onMouseDown={() => startScroll('right')}
-                    onMouseUp={stopScroll}
-                    onMouseLeave={stopScroll}
-                    onTouchStart={() => startScroll('right')}
-                    onTouchEnd={stopScroll}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-12 flex items-center justify-center text-white text-sm font-black active:scale-95 transition-transform"
-                    style={{ background: 'linear-gradient(270deg,rgba(60,0,100,0.7),transparent)', borderRadius:'8px 0 0 8px' }}
-                >▶</button>
             </div>
         </div>
     );
