@@ -201,6 +201,7 @@ const App: React.FC = () => {
   });
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
+  const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
 
   useEffect(() => {
     setBetIndex(0);
@@ -1148,6 +1149,13 @@ const App: React.FC = () => {
         SymbolType.JACKPOT_MEGA,
         SymbolType.JACKPOT_GRAND,
     ];
+    const JP_META = [
+        { name: 'MINI',  color: '#cd7f32', icon: '🥉' },
+        { name: 'MINOR', color: '#c0c0c0', icon: '🥈' },
+        { name: 'MAJOR', color: '#ffd700', icon: '🥇' },
+        { name: 'MEGA',  color: '#ff8c00', icon: '👑' },
+        { name: 'GRAND', color: '#ff2244', icon: '🏆' },
+    ];
     const slotIdxForJP = GAMES_CONFIG.findIndex(g => g.id === selectedGame.id);
     const jpAmounts = jackpotService.getSlotAmounts(slotIdxForJP);
     JP_WIN_TYPES.forEach((jpType, tier) => {
@@ -1159,6 +1167,8 @@ const App: React.FC = () => {
         if (jpCount >= 3) {
             totalPayout += jpAmounts[tier];
             winningCells.push(...jpCells);
+            setJackpotWinTier({ ...JP_META[tier], amount: jpAmounts[tier] });
+            setTimeout(() => setJackpotWinTier(null), 3000);
         }
     });
 
@@ -1623,19 +1633,21 @@ const currentState: SavedGameState = {
       return (10000000 + (level * 2000000)) * 10000;
   };
 
+  const showGoldHeader = isHighLimit || (player.isVip && currentView === 'LOBBY');
+
   return (
     <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
       <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'top center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}>
           <header className="w-full z-[100] border-b-2 flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
-            style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottomColor:'#8b6200' } : { background:'#7c3fb5', borderBottomColor:'#2a0d55' }}>
+            style={showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottomColor:'#8b6200' } : { background:'#7c3fb5', borderBottomColor:'#2a0d55' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
-            <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
+            <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
                 {/* Lobby Home Button */}
                 <div
                     onClick={currentView !== 'LOBBY' ? handleHeaderBack : undefined}
                     className={`round-btn shrink-0 ${currentView === 'LOBBY' ? 'opacity-65 cursor-default' : ''}`}
-                    style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                    style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
                     <i className="ti ti-home"></i>
                 </div>
@@ -1683,7 +1695,7 @@ const currentState: SavedGameState = {
                         onClick={handleOpenPiggyBank}
                         className={`round-btn shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
                         title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
-                        style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                     >
                         <span style={{fontSize:16}}>🐷</span>
                     </div>
@@ -1701,7 +1713,7 @@ const currentState: SavedGameState = {
                 </div>
 
                 {/* Active Multiplier indicator */}
-                <div className="mult shrink-0 ml-2" style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}>
+                <div className="mult shrink-0 ml-2" style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}>
                     x{player.xpMultiplier}
                 </div>
 
@@ -1709,7 +1721,7 @@ const currentState: SavedGameState = {
                 <div
                     onClick={() => setShowSettings(true)}
                     className="round-btn shrink-0"
-                    style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                    style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
                     <i className="ti ti-settings"></i>
                 </div>
@@ -2038,6 +2050,21 @@ const currentState: SavedGameState = {
         onClose={() => setActiveModal('NONE')} 
       />
 
+      {jackpotWinTier && (
+          <div className="fixed inset-0 z-[310] flex items-center justify-center pointer-events-none">
+              <div className="animate-pop-in flex flex-col items-center gap-1">
+                  <div className="text-5xl leading-none drop-shadow-2xl">{jackpotWinTier.icon}</div>
+                  <div className="font-black text-center uppercase tracking-widest"
+                      style={{ fontSize: 'clamp(28px,7vw,48px)', color: jackpotWinTier.color, WebkitTextStroke: '2px #000', paintOrder: 'stroke fill', filter: `drop-shadow(0 0 12px ${jackpotWinTier.color})` }}>
+                      {jackpotWinTier.name} JACKPOT!
+                  </div>
+                  <div className="font-mono font-black text-white text-2xl"
+                      style={{ WebkitTextStroke: '1px #000', paintOrder: 'stroke fill', textShadow: `0 0 10px ${jackpotWinTier.color}` }}>
+                      +{formatCommaNumber(jackpotWinTier.amount)}
+                  </div>
+              </div>
+          </div>
+      )}
       {showWinPopup && <WinPopup amount={winData?.payout || 0} type={winData?.winType || ''} onComplete={handleWinPopupComplete} />}
       
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />

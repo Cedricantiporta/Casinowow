@@ -359,9 +359,9 @@ export const PICKS_COST_IN_CREDITS = 5;
 
 const GENERATE_SCALES = () => {
     const bets: number[] = [];
-    const steps = 30; 
-    const minBet = 10000; 
-    const maxBet = 1500000000000; 
+    const steps = 40;
+    const minBet = 10000;
+    const maxBet = 1.5e19; // 15 quintillion
     const logMin = Math.log(minBet);
     const logMax = Math.log(maxBet);
     const scaleFactor = (logMax - logMin) / (steps - 1);
@@ -369,10 +369,11 @@ const GENERATE_SCALES = () => {
     for (let i = 0; i < steps; i++) {
         const rawValue = Math.exp(logMin + (i * scaleFactor));
         let rounded = rawValue;
-        if (rawValue > 100000000000) rounded = Math.round(rawValue / 100000000000) * 100000000000; 
-        else if (rawValue > 1000000000) rounded = Math.round(rawValue / 1000000000) * 1000000000; 
-        else if (rawValue > 1000000) rounded = Math.round(rawValue / 1000000) * 1000000; 
-        else if (rawValue > 100000) rounded = Math.round(rawValue / 10000) * 10000; 
+        if (rawValue > 1e15) rounded = Math.round(rawValue / 1e15) * 1e15;
+        else if (rawValue > 1e12) rounded = Math.round(rawValue / 1e12) * 1e12;
+        else if (rawValue > 1e9) rounded = Math.round(rawValue / 1e9) * 1e9;
+        else if (rawValue > 1e6) rounded = Math.round(rawValue / 1e6) * 1e6;
+        else if (rawValue > 100000) rounded = Math.round(rawValue / 10000) * 10000;
         else rounded = Math.round(rawValue / 1000) * 1000;
         if (i === steps - 1) rounded = maxBet;
         bets.push(rounded);
@@ -408,10 +409,11 @@ export const formatCommaNumber = (num: number): string => {
     if (!isFinite(num) || isNaN(num)) return '0';
     const abs = Math.abs(num);
     const sign = num < 0 ? '-' : '';
-    if (abs >= 1e15) return sign + (abs / 1e15).toFixed(2).replace(/\.?0+$/, '') + 'Q';
+    // Only abbreviate when the full comma string would overflow (~13+ chars = >= 1B)
+    if (abs >= 1e18) return sign + (abs / 1e18).toFixed(2).replace(/\.?0+$/, '') + 'Qi';
+    if (abs >= 1e15) return sign + (abs / 1e15).toFixed(2).replace(/\.?0+$/, '') + 'Qd';
     if (abs >= 1e12) return sign + (abs / 1e12).toFixed(2).replace(/\.?0+$/, '') + 'T';
     if (abs >= 1e9)  return sign + (abs / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
-    if (abs >= 1e6)  return sign + (abs / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
     return num.toLocaleString('en-US');
 };
 
