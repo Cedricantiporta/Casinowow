@@ -26,6 +26,7 @@ import { audioService } from './services/audioService';
 import { jackpotService } from './services/jackpotService';
 import { JackpotCelebration } from './components/JackpotCelebration';
 import { StageCompleteModal } from './components/StageCompleteModal';
+import { PremiumModal } from './components/PremiumModal';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -61,10 +62,7 @@ const getWinTier = (amount: number, bet: number): string | null => {
   return null;
 };
 
-const formatBet = (num: number) => {
-    if (num >= 10000000000) return formatNumber(num);
-    return formatCommaNumber(num);
-};
+const formatBet = (num: number) => formatCommaNumber(num);
 
 const App: React.FC = () => {
   const toastCountRef = useRef(0);
@@ -138,6 +136,7 @@ const App: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showVipLounge, setShowVipLounge] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const savedFastSpinRef = useRef<boolean>(false); 
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [piggyGlow, setPiggyGlow] = useState(false);
@@ -930,16 +929,25 @@ const App: React.FC = () => {
               { type: SymbolType.JACKPOT_MEGA,  prob: 0.007 },
               { type: SymbolType.JACKPOT_GRAND, prob: 0.0021 },
           ];
+          const jpCellPositions: { c: number; r: number }[] = [];
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
                   if (newGrid[c][r] === SymbolType.SCATTER || newGrid[c][r] === SymbolType.WILD) continue;
+                  if (jpCellPositions.length >= 5) break;
                   for (const jp of JP_SPAWN) {
                       if (Math.random() < jp.prob) {
                           newGrid[c][r] = jp.type;
+                          jpCellPositions.push({ c, r });
                           break;
                       }
                   }
               }
+              if (jpCellPositions.length >= 5) break;
+          }
+          // 50% chance: upgrade one random jackpot cell to GRAND or MEGA
+          if (jpCellPositions.length > 0 && Math.random() < 0.5) {
+              const pick = jpCellPositions[Math.floor(Math.random() * jpCellPositions.length)];
+              newGrid[pick.c][pick.r] = Math.random() < 0.5 ? SymbolType.JACKPOT_GRAND : SymbolType.JACKPOT_MEGA;
           }
       }
 
@@ -1017,7 +1025,7 @@ const App: React.FC = () => {
       // Piggy Bank Logic: 10% of Bet (+ 10% extra if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
           const savings = currentBet * (player.isVip ? 0.20 : 0.10);
-          const cap = player.level * 7500000;
+          const cap = player.level * MAX_BET_BY_LEVEL(player.level) * 750;
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
@@ -1696,8 +1704,8 @@ const currentState: SavedGameState = {
                     </div>
 
                     {/* Sale Button */}
-                    <div 
-                        onClick={() => openShop('BOOSTS')}
+                    <div
+                        onClick={() => setShowPremiumModal(true)}
                         className="btn pink saleB shrink-0"
                     >
                         <div className="face text-center">
@@ -2107,6 +2115,21 @@ const currentState: SavedGameState = {
           onClose={() => setShowVipLounge(false)}
           isVip={!!player.isVip}
           onJoinVip={handleJoinVip}
+      />
+
+      <PremiumModal
+          isOpen={showPremiumModal}
+          onClose={() => setShowPremiumModal(false)}
+          isVip={!!player.isVip}
+          isPremium={missionState.isPremium}
+          onBuyVip={() => {
+              setPlayer(p => ({ ...p, isVip: true }));
+              setShowPremiumModal(false);
+          }}
+          onBuyPremium={() => {
+              setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 }));
+              setShowPremiumModal(false);
+          }}
       />
 
         </div>

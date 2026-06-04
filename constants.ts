@@ -361,7 +361,7 @@ const GENERATE_SCALES = () => {
     const bets: number[] = [];
     const steps = 40;
     const minBet = 10000;
-    const maxBet = 1.5e19; // 15 quintillion
+    const maxBet = 3e19; // 30 quintillion
     const logMin = Math.log(minBet);
     const logMax = Math.log(maxBet);
     const scaleFactor = (logMax - logMin) / (steps - 1);
@@ -369,7 +369,8 @@ const GENERATE_SCALES = () => {
     for (let i = 0; i < steps; i++) {
         const rawValue = Math.exp(logMin + (i * scaleFactor));
         let rounded = rawValue;
-        if (rawValue > 1e15) rounded = Math.round(rawValue / 1e15) * 1e15;
+        if (rawValue > 1e18) rounded = Math.round(rawValue / 1e18) * 1e18;
+        else if (rawValue > 1e15) rounded = Math.round(rawValue / 1e15) * 1e15;
         else if (rawValue > 1e12) rounded = Math.round(rawValue / 1e12) * 1e12;
         else if (rawValue > 1e9) rounded = Math.round(rawValue / 1e9) * 1e9;
         else if (rawValue > 1e6) rounded = Math.round(rawValue / 1e6) * 1e6;
