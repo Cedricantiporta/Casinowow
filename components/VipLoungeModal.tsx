@@ -4,9 +4,7 @@ interface VipLoungeModalProps {
     isOpen: boolean;
     onClose: () => void;
     isVip: boolean;
-    isHighLimit: boolean;
     onJoinVip: () => void;
-    onToggleHighLimit: () => void;
 }
 
 const BENEFITS: { icon: string; title: string; desc: string }[] = [
@@ -20,7 +18,7 @@ const BENEFITS: { icon: string; title: string; desc: string }[] = [
 ];
 
 export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
-    isOpen, onClose, isVip, isHighLimit, onJoinVip, onToggleHighLimit
+    isOpen, onClose, isVip, onJoinVip
 }) => {
     if (!isOpen) return null;
 
@@ -104,25 +102,9 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                         </button>
                     </>
                 ) : (
-                    <button
-                        onClick={onToggleHighLimit}
-                        className="btn-3d font-black text-sm uppercase tracking-widest relative overflow-hidden px-10 py-3 rounded-xl"
-                        style={isHighLimit ? {
-                            background: 'linear-gradient(180deg,#ef4444,#b91c1c)',
-                            boxShadow: '0 4px 0 #7f1d1d, 0 6px 16px rgba(0,0,0,0.5)',
-                            border: '1px solid rgba(255,150,150,0.3)',
-                            color: 'white',
-                        } : {
-                            background: 'linear-gradient(180deg,#fbbf24,#d97706)',
-                            boxShadow: '0 4px 0 #92400e, 0 6px 16px rgba(0,0,0,0.5)',
-                            border: '1px solid rgba(255,255,255,0.3)',
-                            color: '#1c0a00',
-                        }}>
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
-                        <span className="relative z-10">
-                            {isHighLimit ? '🚪 Exit High Limit Room' : '🎰 Enter High Limit Room'}
-                        </span>
-                    </button>
+                    <div className="text-yellow-200/60 text-[10px] text-center font-bold uppercase tracking-widest py-2">
+                        ✓ VIP Active — Tap VIP Lounge in lobby to enter
+                    </div>
                 )}
             </div>
 

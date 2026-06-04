@@ -39,11 +39,20 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const rewardsContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (isOpen) {
+        if (!isOpen) {
             setView(initialView);
             setShowPremiumInfo(false);
         }
     }, [isOpen, initialView]);
+
+    useEffect(() => {
+        if (!isOpen || view !== 'PASS') return;
+        const el = rewardsContainerRef.current;
+        if (!el) return;
+        const handler = (e: WheelEvent) => { e.preventDefault(); el.scrollLeft += e.deltaY; };
+        el.addEventListener('wheel', handler, { passive: false });
+        return () => el.removeEventListener('wheel', handler);
+    }, [isOpen, view]);
 
     if (!isOpen) return null;
 

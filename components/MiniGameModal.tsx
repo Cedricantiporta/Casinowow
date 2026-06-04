@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MiniGameReward, WildGridCell } from '../types';
 import { formatNumber, formatCommaNumber } from '../constants';
 import { audioService } from '../services/audioService';
-import { jackpotService } from '../services/jackpotService';
+
 
 interface MiniGameModalProps {
     isOpen: boolean;
@@ -111,8 +111,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const currentGridSize = GRID_SIZES[Math.min(wildStage - 1, GRID_SIZES.length - 1)];
     const totalCells = currentGridSize * currentGridSize;
 
-    const [jackpotTotal, setJackpotTotal] = useState(() => jackpotService.getAmounts().reduce((s, a) => s + a, 0));
-
     const [grid, setGrid] = useState<WildGridCell[]>([]);
     const [stageWinning, setStageWinning] = useState(false);
 
@@ -192,12 +190,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             if (el) container.scrollTo({ left: el.offsetLeft - container.clientWidth / 2 + el.offsetWidth / 2, behavior: 'smooth' });
         }
     }, [visualPosition, activeGame]);
-
-    useEffect(() => {
-        return jackpotService.subscribe(() => {
-            setJackpotTotal(jackpotService.getAmounts().reduce((s, a) => s + a, 0));
-        });
-    }, []);
 
     useEffect(() => {
         if (autoRoll && !isRolling && !isMoving && picks > 0) {
@@ -325,9 +317,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 style={{ background: HDR, borderBottom: HDR_BORDER, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-arrow-left"></i></div>
                 <span className="font-black text-white text-sm uppercase tracking-widest drop-shadow">{questTitle}</span>
-                <div className="flex-1 flex items-center justify-end">
-                    <span style={{ fontSize: '1.15rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap' }}>
-                        💰 {formatCommaNumber(jackpotTotal)}
+                <div className="flex-1 flex flex-col items-end justify-center">
+                    <span style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(253,230,138,0.6)', textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1 }}>Stage Prize</span>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
+                        💰 {formatCommaNumber(1000000 * (isWild ? wildStage : diceStage) * playerLevel)}
                     </span>
                 </div>
             </div>
@@ -520,7 +513,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     onMouseLeave={handleRollMouseUp}
                                     onTouchStart={handleRollMouseDown}
                                     onTouchEnd={handleRollMouseUp}
-                                    disabled={picks <= 0 || isMoving}
+                                    disabled={picks <= 0}
                                     className="relative w-20 h-20 rounded-full flex flex-col items-center justify-center font-black uppercase tracking-widest text-sm transition-all active:translate-y-[3px]"
                                     style={{
                                         background: autoRoll
@@ -533,7 +526,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             : 'none',
                                         border: '2px solid rgba(255,255,255,0.2)',
                                         color: picks > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
-                                        cursor: picks <= 0 || isMoving ? 'not-allowed' : 'pointer',
+                                        cursor: picks <= 0 ? 'not-allowed' : 'pointer',
                                     }}
                                 >
                                     <span className="text-lg leading-none">{autoRoll ? 'STOP' : 'ROLL'}</span>

@@ -41,10 +41,24 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'ALBUM' | 'PACKS'>('ALBUM');
     const albumScrollRef = React.useRef<HTMLDivElement>(null);
+    const deckCardsScrollRef = React.useRef<HTMLDivElement>(null);
 
     const scrollAlbum = (dir: 'LEFT' | 'RIGHT') => {
         albumScrollRef.current?.scrollBy({ left: dir === 'LEFT' ? -160 : 160, behavior: 'smooth' });
     };
+
+    React.useEffect(() => {
+        if (!isOpen) return;
+        const addWheel = (el: HTMLDivElement | null) => {
+            if (!el) return () => {};
+            const handler = (e: WheelEvent) => { e.preventDefault(); el.scrollLeft += e.deltaY; };
+            el.addEventListener('wheel', handler, { passive: false });
+            return () => el.removeEventListener('wheel', handler);
+        };
+        const r1 = addWheel(albumScrollRef.current);
+        const r2 = addWheel(deckCardsScrollRef.current);
+        return () => { r1(); r2(); };
+    }, [isOpen, selectedDeckId, activeTab]);
 
     const [isOpeningPack, setIsOpeningPack] = useState(false);
     const [lastPackId, setLastPackId] = useState<string | null>(null);
@@ -246,7 +260,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             </div>
 
                             {/* Deck scroll — swipe/wheel only */}
-                            <div className="flex-1 overflow-x-auto flex items-stretch gap-3 no-scrollbar min-h-0">
+                            <div ref={albumScrollRef} className="flex-1 overflow-x-auto flex items-stretch gap-3 no-scrollbar min-h-0">
                                 {decks.map(deck => {
                                     const collected = deck.cards.filter(c => c.count > 0).length;
                                     const total = deck.cards.length;
@@ -341,7 +355,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     )}
                                 </div>
                             </div>
-                            <div className="flex-1 overflow-x-auto no-scrollbar">
+                            <div ref={deckCardsScrollRef} className="flex-1 overflow-x-auto no-scrollbar">
                                 <div className="flex gap-2 h-full items-stretch min-w-max py-0.5">
                                     {decks.find(d => d.gameId === selectedDeckId)?.cards.map((card, i) => {
                                         const rarityColor = card.rarity === 'LEGENDARY' ? '#f59e0b' : card.rarity === 'EPIC' ? '#a855f7' : card.rarity === 'RARE' ? '#3b82f6' : '#6b7280';

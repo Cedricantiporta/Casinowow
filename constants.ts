@@ -658,8 +658,8 @@ export const GENERATE_PASS_REWARDS = (): PassReward[] => {
         if (i % 20 === 0) {
             // Premium XP Boost every 20 levels (20, 40)
             typePrem = 'XP_BOOST';
-            valuePrem = 5; 
-            labelPrem = "5x XP";
+            valuePrem = 2;
+            labelPrem = "2x XP";
         } else if (i % 6 === 0) {
             // Special Item matching free tier flow but boosted
             const variant = (i / 6) % 3;

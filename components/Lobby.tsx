@@ -5,8 +5,6 @@ import { GAMES_CONFIG, formatCommaNumber, formatTime } from '../constants';
 import { GameConfig, QuestState, MissionState } from '../types';
 import { jackpotService } from '../services/jackpotService';
 
-const VIP_SLOT_IDS = ['neon-vegas', 'dragon-fortune', 'cosmic-cash', 'samurai-honor'];
-
 interface LobbyProps {
     onSelectGame: (game: GameConfig, isHighLimit: boolean) => void;
     onOpenWildQuest: () => void;
@@ -138,7 +136,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 relative overflow-hidden`}
-            style={(isVip || isHighLimit) ? {
+            style={isVip ? {
                 backgroundImage: 'url(/lobby-bg-vip.jpg)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
@@ -150,64 +148,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
               <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9">
 
-                {isHighLimit ? (
-                    /* ── High Limit Room — 2×2 grid of 4 VIP slots ── */
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 px-4 py-2">
-                        {/* Room title */}
-                        <div className="shrink-0 flex items-center gap-2">
-                            <span style={{ fontSize: '1.1rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.8))', textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-                                🎰 High Limit Room
-                            </span>
-                        </div>
-                        {/* 2×2 grid */}
-                        <div className="flex-1 grid grid-cols-2 gap-3 w-full max-h-[260px]">
-                            {GAMES_CONFIG.filter(g => VIP_SLOT_IDS.includes(g.id)).map((game, idx) => {
-                                const globalIdx = GAMES_CONFIG.findIndex(g => g.id === game.id);
-                                const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.8)]' :
-                                    game.theme === 'DRAGON' ? 'text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
-                                    game.theme === 'SPACE' ? 'text-indigo-300 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]' :
-                                    'text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]';
-                                const iconMap: Record<string, string> = { NEON: '🎰', DRAGON: '🐉', SPACE: '👽', SAMURAI: '👹', PIRATE: '🏴‍☠️', EGYPT: '🦂', PIGGY: '🐷', JUNGLE: '🌴', UNDERWATER: '🔱', WESTERN: '🤠', CANDY: '🍭' };
-                                const icon = iconMap[game.theme] ?? '🎰';
-                                return (
-                                    <button
-                                        key={game.id}
-                                        onClick={() => onSelectGame(game, true)}
-                                        className="relative rounded-xl overflow-hidden shadow-2xl active:scale-95 transition-transform"
-                                        style={{ border: '1.5px solid rgba(251,191,36,0.4)', boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.15)' }}
-                                    >
-                                        {/* Background */}
-                                        <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`} />
-                                        {/* Gold overlay shimmer */}
-                                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-yellow-400/10 to-transparent pointer-events-none" />
-                                        {/* Jackpot */}
-                                        <div className="absolute top-1 left-0 right-0 flex justify-center z-20">
-                                            <span style={{ fontSize: '11px', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.9))' }}>
-                                                {formatCommaNumber(jackpotTotals[globalIdx] ?? 0)}
-                                            </span>
-                                        </div>
-                                        {/* Icon */}
-                                        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-4 pb-6">
-                                            <span className="text-[3.5rem] leading-none drop-shadow-2xl">{icon}</span>
-                                        </div>
-                                        {/* Name bar */}
-                                        <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center z-10">
-                                            <h3 className={`text-[12px] font-black uppercase tracking-wide leading-none ${getFontClass(game.theme)} ${titleStyle}`}
-                                                style={{ WebkitTextStroke: '1px rgba(0,0,0,0.9)', paintOrder: 'stroke fill' }}>
-                                                {game.name}
-                                            </h3>
-                                        </div>
-                                        {/* VIP badge */}
-                                        <div className="absolute top-1 right-1 z-20">
-                                            <span style={{ fontSize: '10px', background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00', padding: '1px 4px', borderRadius: '6px', fontWeight: 900, letterSpacing: '0.05em' }}>VIP</span>
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ) : (
-                    /* ── Normal lobby — horizontal scroll grid ── */
+                    {/* ── Normal lobby — horizontal scroll grid ── */}
                     <>
                         <div
                             ref={scrollRef}
@@ -302,14 +243,13 @@ export const Lobby: React.FC<LobbyProps> = ({
                             >▶</button>
                         )}
                     </>
-                )}
             </div>
  
             {/* Bottom bar — centered floating platform, icons protrude above */}
             {(() => {
                 const iconBtn = (locked: boolean) =>
                     `flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform ${locked ? 'grayscale opacity-50' : ''}`;
-                const isGolden = isVip || isHighLimit;
+                const isGolden = isVip;
                 const barBg = isGolden
                     ? 'linear-gradient(180deg,#e8b020 0%,#c9901a 30%,#7a5000 100%)'
                     : 'linear-gradient(180deg,#a060d8 0%,#7c3fb5 30%,#4a1880 100%)';
@@ -417,10 +357,10 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             <button onClick={onToggleVIP} className={iconBtn(false)}>
                                 <div className="relative leading-none">
-                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isHighLimit ? '👑' : '🎩'}</span>
-                                    {isHighLimit && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full border-2 border-white"></div>}
+                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isVip ? '👑' : '🎩'}</span>
+                                    {isVip && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full border-2 border-white"></div>}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isHighLimit ? 'VIP HL' : 'VIP Lounge'}</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isVip ? 'VIP HL' : 'VIP Lounge'}</span>
                             </button>
 
                         </div>

@@ -22,7 +22,9 @@ import { PiggyBankModal } from './components/PiggyBankModal';
 import { FeatureUnlockModal } from './components/FeatureUnlockModal';
 import { SettingsModal } from './components/SettingsModal';
 import { VipLoungeModal } from './components/VipLoungeModal';
+import { HighLimitLobby } from './components/HighLimitLobby';
 import { audioService } from './services/audioService';
+import { jackpotService } from './services/jackpotService';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -68,7 +70,7 @@ const App: React.FC = () => {
   const spinButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
-  const [currentView, setCurrentView] = useState<'LOBBY' | 'GAME'>('LOBBY');
+  const [currentView, setCurrentView] = useState<'LOBBY' | 'GAME' | 'HIGH_LIMIT'>('LOBBY');
   const [selectedGame, setSelectedGame] = useState<GameConfig>(GAMES_CONFIG[0]);
   const [isHighLimit, setIsHighLimit] = useState(false);
   const [savedGameStates, setSavedGameStates] = useState<Record<string, SavedGameState>>({});
@@ -92,6 +94,11 @@ const App: React.FC = () => {
       { id: 1, endTime: Date.now() + 900000, reward: 250000, label: 'Daily' }, 
       { id: 2, endTime: Date.now() + 3600000, reward: 1000000, label: 'Mega' } 
   ]);
+
+  // Sync jackpot max bet with current level's max bet
+  useEffect(() => {
+      jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
+  }, [player.level]);
 
   // Effect to update Golden Treasury rewards when level changes
   useEffect(() => {
@@ -286,7 +293,12 @@ const App: React.FC = () => {
   };
 
   const handleToggleVIP = () => {
-      setShowVipLounge(true);
+      if (player.isVip) {
+          setIsHighLimit(true);
+          setCurrentView('HIGH_LIMIT');
+      } else {
+          setShowVipLounge(true);
+      }
       audioService.playClick();
   };
 
@@ -297,11 +309,9 @@ const App: React.FC = () => {
           balance: p.balance + 500_000,
           diamonds: p.diamonds + 500,
       }));
-      audioService.playClick();
-  };
-
-  const handleToggleHighLimitFromLounge = () => {
-      setIsHighLimit(prev => !prev);
+      setShowVipLounge(false);
+      setIsHighLimit(true);
+      setCurrentView('HIGH_LIMIT');
       audioService.playClick();
   };
 
@@ -711,6 +721,26 @@ const App: React.FC = () => {
       audioService.playWinBig();
   };
 
+  const handleCardDrop = useCallback((rarity: 'COMMON' | 'RARE') => {
+      setDecks(prev => {
+          const allCards: { deckIdx: number; cardIdx: number }[] = [];
+          prev.forEach((deck, di) => {
+              deck.cards.forEach((card, ci) => {
+                  if (card.rarity === rarity) allCards.push({ deckIdx: di, cardIdx: ci });
+              });
+          });
+          if (allCards.length === 0) return prev;
+          const pick = allCards[Math.floor(Math.random() * allCards.length)];
+          return prev.map((deck, di) => {
+              if (di !== pick.deckIdx) return deck;
+              const newCards = deck.cards.map((card, ci) =>
+                  ci !== pick.cardIdx ? card : { ...card, count: card.count + 1 }
+              );
+              return { ...deck, cards: newCards, isCompleted: newCards.every(c => c.count > 0) };
+          });
+      });
+  }, []);
+
   const generateSmartGrid = useCallback(() => {
       const cols = selectedGame.reels;
       const rows = selectedGame.rows;
@@ -1074,18 +1104,25 @@ const App: React.FC = () => {
 
     if (totalFreeSpins > 0 && totalPayout > 0) setFreeSpinTotalWin(prev => prev + totalPayout);
 
+    // Per-spin drops (every spin, not just wins)
+    if (player.level >= 20 && Math.random() < 0.20) {
+        setQuest(q => ({ ...q, credits: Math.min(q.max, q.credits + 1) }));
+    }
+    if (player.level >= 30) {
+        const cardRoll = Math.random();
+        if (cardRoll < 0.10) handleCardDrop('RARE');
+        else if (cardRoll < 0.30) handleCardDrop('COMMON');
+    }
+
     if (totalPayout > 0) {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
-       
+
        const vipXpMult = player.isVip ? 1.2 : 1.0;
        const xpGained = Math.floor(Math.sqrt(currentBet) * 10 * player.xpMultiplier * vipXpMult);
 
        addXp(xpGained);
        updateMissions(MissionType.WIN_COINS, totalPayout);
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
-       if (player.level >= 20 && Math.random() > 0.5) {
-           setQuest(q => ({ ...q, credits: Math.min(q.max, q.credits + 1) }));
-       }
 
        if (winTier) {
            audioService.playWinBig();
@@ -1433,6 +1470,8 @@ const App: React.FC = () => {
   const handleHeaderBack = () => {
     if (activeModal !== 'NONE') {
         setActiveModal('NONE');
+    } else if (currentView === 'HIGH_LIMIT') {
+        setCurrentView('LOBBY');
     } else if (currentView === 'GAME') {
         setSavedGameStates(prev => ({
             ...prev,
@@ -1617,6 +1656,13 @@ const App: React.FC = () => {
       </header>
 
       <main className="relative pt-0 w-full flex-1 flex flex-col overflow-hidden min-h-0">
+        {currentView === 'HIGH_LIMIT' && (
+            <HighLimitLobby
+                onBack={() => setCurrentView('LOBBY')}
+                onSelectGame={handleGameSelect}
+                playerLevel={player.level}
+            />
+        )}
         {currentView === 'LOBBY' ? (
             <Lobby
                 onSelectGame={handleGameSelect}
@@ -1757,7 +1803,7 @@ const App: React.FC = () => {
                           }
                       }}
                       className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { color: '#e0a820' } : {}}
+                      style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       −
                   </div>
@@ -1777,7 +1823,7 @@ const App: React.FC = () => {
                           }
                       }}
                       className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { color: '#e0a820' } : {}}
+                      style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       +
                   </div>
@@ -1950,9 +1996,7 @@ const App: React.FC = () => {
           isOpen={showVipLounge}
           onClose={() => setShowVipLounge(false)}
           isVip={!!player.isVip}
-          isHighLimit={isHighLimit}
           onJoinVip={handleJoinVip}
-          onToggleHighLimit={handleToggleHighLimitFromLounge}
       />
 
         </div>
