@@ -1,9 +1,9 @@
 
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GAMES_CONFIG, formatCommaNumber, formatTime } from '../constants';
+import { GAMES_CONFIG, formatCommaNumber, formatTime, formatK } from '../constants';
 import { GameConfig, QuestState, MissionState } from '../types';
-import { jackpotService } from '../services/jackpotService';
+import { jackpotService, SLOT_VARS } from '../services/jackpotService';
 
 interface LobbyProps {
     onSelectGame: (game: GameConfig, isHighLimit: boolean) => void;
@@ -23,6 +23,7 @@ interface LobbyProps {
     isHighLimit: boolean;
     isVip: boolean;
     playerLevel: number;
+    currentBet: number;
 }
 
 export const Lobby: React.FC<LobbyProps> = ({
@@ -42,12 +43,13 @@ export const Lobby: React.FC<LobbyProps> = ({
     bonusAmount,
     isHighLimit,
     isVip,
-    playerLevel
+    playerLevel,
+    currentBet
 }) => {
     
     const [timeLeft, setTimeLeft] = useState(0);
     const [jackpotTotals, setJackpotTotals] = useState<number[]>(() =>
-        GAMES_CONFIG.map((_, idx) => jackpotService.getSlotTotal(idx))
+        GAMES_CONFIG.map((_, idx) => Math.floor(currentBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
     );
     const [canScroll, setCanScroll] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -63,10 +65,16 @@ export const Lobby: React.FC<LobbyProps> = ({
     }, [nextTimeBonus]);
 
     useEffect(() => {
+        setJackpotTotals(
+            GAMES_CONFIG.map((_, idx) => Math.floor(currentBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
+        );
+    }, [currentBet]);
+
+    useEffect(() => {
         return jackpotService.subscribe(() => {
-            setJackpotTotals(GAMES_CONFIG.map((_, idx) => jackpotService.getSlotTotal(idx)));
+            setJackpotTotals(GAMES_CONFIG.map((_, idx) => Math.floor(currentBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1))));
         });
-    }, []);
+    }, [currentBet]);
 
     useEffect(() => {
         const el = scrollRef.current;
@@ -188,7 +196,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         {!isLocked && (
                                             <div className="absolute -top-[18px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
                                                 <span style={{ fontSize:'10px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px', lineHeight:1, textShadow:'none', filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
-                                                    {formatCommaNumber(jackpotTotals[idx] ?? 0)}
+                                                    {formatK(jackpotTotals[idx] ?? 0)}
                                                 </span>
                                             </div>
                                         )}

@@ -125,7 +125,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         const isClaimed = claimedItems?.includes(item.label) ?? false;
         return {
             ...item,
-            price: isClaimed ? 'CLAIMED' : 'FREE',
+            price: isClaimed ? item.sub : 'FREE',
             isClaimed,
             action: isClaimed ? () => {} : () => { item.action(); onClaimItem?.(item.label); },
         };

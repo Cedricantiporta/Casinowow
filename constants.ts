@@ -438,6 +438,17 @@ export const formatTime = (ms: number): string => {
     return `${minutes}m ${seconds}s`;
 };
 
+// Formats a number as K (thousands) with comma notation, always ending in K
+// e.g. 1,000,000,000,000 → "1,000,000,000K"  86,500,000,000,000 → "86,500,000,000K"
+export const formatK = (n: number): string => {
+    if (!isFinite(n) || isNaN(n)) return '0K';
+    const abs = Math.abs(n);
+    const sign = n < 0 ? '-' : '';
+    const k = abs / 1000;
+    if (k < 1) return sign + Math.round(abs).toLocaleString('en-US');
+    return sign + k.toLocaleString('en-US', { maximumFractionDigits: 0 }) + 'K';
+};
+
 // --- Mission & Battle Pass Generators ---
 // 5x Rewards for Missions, Extra multiplier for Win/Bet coins
 const MISSION_COIN_MULTIPLIER = 5; 
@@ -527,9 +538,9 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
 
         let target = t.base;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
-             const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-             target = t.type === MissionType.WIN_COINS ? mb * 20 : mb * 30;
-             target = Math.floor(target * scale);
+            const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+            target = mb * 10;
+            target = Math.floor(target * scale);
         } else if (t.type === MissionType.SPIN_COUNT) {
              target = (t.base + (playerLevel * 5)) * scale;
         } else {
@@ -538,7 +549,7 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
 
         const xpReward = 30 + (i * 15);
         const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-        const coinReward = Math.floor(mb * xpReward * 10);
+        const coinReward = mb;
         
         missions.push({
             id: `daily-${Date.now()}-${i}`,
@@ -573,13 +584,13 @@ export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number, maxBet?: number): 
     templates.forEach((t, i) => {
         let target = t.base;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
-             const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-             target = t.type === MissionType.WIN_COINS ? mb * 200 : mb * 300;
+            const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+            target = mb * 70;
         }
 
         const xpReward = 1500 + (i * 500);
         const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-        const coinReward = Math.floor(mb * xpReward * 10);
+        const coinReward = mb * 7;
 
         missions.push({
             id: `weekly-${Date.now()}-${i}`,
@@ -613,13 +624,13 @@ export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number, maxBet?: number):
     templates.forEach((t, i) => {
         let target = t.base;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
-             const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-             target = t.type === MissionType.WIN_COINS ? mb * 1000 : mb * 2000;
+            const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+            target = mb * 300;
         }
 
         const xpReward = 8000 + (i * 2000);
         const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-        const coinReward = Math.floor(mb * xpReward * 10);
+        const coinReward = mb * 30;
 
         missions.push({
             id: `monthly-${Date.now()}-${i}`,
@@ -637,13 +648,13 @@ export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number, maxBet?: number):
     return missions;
 };
 
-export const GENERATE_PASS_REWARDS = (): PassReward[] => {
+export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
     const rewards: PassReward[] = [];
     for (let i = 1; i <= 50; i++) {
         // FREE TIER
         // Pattern: 5 Coins, then 1 Special
         let typeFree: RewardType = 'COINS';
-        let valueFree = 100000 * i * 5; 
+        let valueFree = Math.floor(maxBet * 0.3 * (1 + (i - 1) * 0.5));
         let labelFree = formatNumber(valueFree);
 
         if (i === 40) {
@@ -680,7 +691,7 @@ export const GENERATE_PASS_REWARDS = (): PassReward[] => {
 
         // PREMIUM TIER
         let typePrem: RewardType = 'COINS';
-        let valuePrem = valueFree * 10; 
+        let valuePrem = Math.floor(maxBet * 1.0 * (1 + (i - 1) * 0.5));
         let labelPrem = formatNumber(valuePrem);
 
         if (i % 20 === 0) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { formatCommaNumber } from '../constants';
+import { formatCommaNumber, formatK } from '../constants';
 
 interface JackpotCelebrationProps {
     tier: { name: string; color: string; icon: string; amount: number } | null;
@@ -62,7 +62,7 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
                 </div>
                 <div className="font-mono font-black text-white"
                     style={{ fontSize:'clamp(24px,6vw,48px)', WebkitTextStroke:'2px #000', paintOrder:'stroke fill', textShadow:`0 0 15px ${style.glow}, 0 0 30px ${style.glow}` }}>
-                    +{formatCommaNumber(displayAmount)}
+                    +{formatK(displayAmount)}
                 </div>
 
                 {canClose && (

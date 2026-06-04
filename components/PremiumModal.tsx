@@ -37,8 +37,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
         >
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2 border-b border-white/10">
-                <span className="text-2xl">🏅</span>
-                <h2 className="font-black text-white text-lg uppercase tracking-widest flex-1">Premium Plans</h2>
+                <span className="text-2xl">🏷️</span>
+                <h2 className="font-black text-white text-lg uppercase tracking-widest flex-1">SALE</h2>
                 <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></div>
             </div>
 
@@ -57,6 +57,10 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                         <div className="flex-1 min-w-0">
                             <div className="font-black text-yellow-300 text-base uppercase tracking-wider leading-none">VIP Lounge</div>
                             <div className="text-yellow-200/60 text-xs mt-0.5">Exclusive high-roller access</div>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-yellow-200/40 text-xs line-through">₱ 9,999</span>
+                                <span className="text-green-400 font-black text-sm uppercase">FREE</span>
+                            </div>
                         </div>
                         {isVip && (
                             <span className="shrink-0 text-[10px] font-black bg-yellow-500 text-black px-2 py-0.5 rounded-full uppercase">ACTIVE</span>
@@ -104,6 +108,10 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                         <div className="flex-1 min-w-0">
                             <div className="font-black text-purple-300 text-base uppercase tracking-wider leading-none">Monthly Pass</div>
                             <div className="text-purple-200/60 text-xs mt-0.5">30-day premium mission rewards</div>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-yellow-200/40 text-xs line-through">₱ 4,999</span>
+                                <span className="text-green-400 font-black text-sm uppercase">FREE</span>
+                            </div>
                         </div>
                         {isPremium && (
                             <span className="shrink-0 text-[10px] font-black bg-purple-500 text-white px-2 py-0.5 rounded-full uppercase">ACTIVE</span>

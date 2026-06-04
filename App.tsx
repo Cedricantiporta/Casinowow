@@ -121,7 +121,7 @@ const App: React.FC = () => {
       const saved = localStorage.getItem('cw_missions');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return { activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 500, passRewards: GENERATE_PASS_REWARDS(), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
+    return { activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 500, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
   });
   const [decks, setDecks] = useState<Deck[]>(GENERATE_DECKS());
 
@@ -1241,7 +1241,7 @@ const App: React.FC = () => {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
 
        const vipXpMult = player.isVip ? 1.2 : 1.0;
-       const xpGained = Math.floor(Math.sqrt(currentBet) * 5 * player.xpMultiplier * vipXpMult);
+       const xpGained = Math.floor(Math.sqrt(currentBet) * 2 * player.xpMultiplier * vipXpMult);
 
        addXp(xpGained);
        updateMissions(MissionType.WIN_COINS, totalPayout);
@@ -1263,7 +1263,7 @@ const App: React.FC = () => {
        }
     } else {
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
-       const lossXp = Math.floor(Math.sqrt(currentBet) * 5 * player.xpMultiplier * vipXpMultLoss);
+       const lossXp = Math.floor(Math.sqrt(currentBet) * 2 * player.xpMultiplier * vipXpMultLoss);
        addXp(lossXp);
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
@@ -1284,7 +1284,7 @@ const App: React.FC = () => {
           }
           if (leveledUp) {
               audioService.playLevelUp();
-              const reward = MAX_BET_BY_LEVEL(newLevel);
+              const reward = Math.floor(MAX_BET_BY_LEVEL(newLevel) * 0.5);
               const oldMax = MAX_BET_BY_LEVEL(prev.level);
               const newMax = MAX_BET_BY_LEVEL(newLevel);
               if (toastCountRef.current < 10) {
@@ -1294,6 +1294,14 @@ const App: React.FC = () => {
                   toastCountRef.current += 1;
               }
               updateMissions(MissionType.LEVEL_UP, 1);
+              const newMaxBet2 = MAX_BET_BY_LEVEL(newLevel);
+              setMissionState(prev => ({
+                  ...prev,
+                  passRewards: GENERATE_PASS_REWARDS(newMaxBet2).map(r => {
+                      const existing = prev.passRewards.find((pr: any) => pr.id === r.id);
+                      return existing ? { ...r, claimed: existing.claimed } : r;
+                  })
+              }));
 
               // CHECK FEATURE UNLOCKS
               const justUnlocked = (level: number) => {
@@ -1697,7 +1705,7 @@ const currentState: SavedGameState = {
 
   const showGoldHeader = isHighLimit || (player.isVip && currentView === 'LOBBY');
   const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
-  const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.5);
+  const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
   return (
     <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
@@ -1819,6 +1827,7 @@ const currentState: SavedGameState = {
                 isHighLimit={isHighLimit}
                 isVip={!!player.isVip}
                 playerLevel={player.level}
+                currentBet={availableBets[betIndex]}
             />
         ) : (
             <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
