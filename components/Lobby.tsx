@@ -187,7 +187,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     >
                                         {!isLocked && (
                                             <div className="absolute -top-[18px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
-                                                <span style={{ fontSize:'8px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px', lineHeight:1, textShadow:'none', filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
+                                                <span style={{ fontSize:'10px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px', lineHeight:1, textShadow:'none', filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
                                                     {formatCommaNumber(jackpotTotals[idx] ?? 0)}
                                                 </span>
                                             </div>

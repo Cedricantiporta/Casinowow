@@ -12,7 +12,8 @@ interface QuestSidebarProps {
 }
 
 export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim, xpMultiplier = 1, xpBoostEndTime = 0, picks = 0 }) => {
-    const isMax = quest.credits >= quest.max;
+    const activeCredits = quest.activeGame === 'DICE' ? quest.diceCredits : quest.wildCredits;
+    const isMax = false;
 
     const getIcon = () => {
         if (quest.activeGame === 'DICE') return '🎲';
@@ -50,9 +51,9 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim, xpMu
                     <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-black shadow-lg border-2 border-white z-20 animate-pulse">
                         MAX
                     </div>
-                 ) : quest.credits > 0 && (
+                 ) : activeCredits > 0 && (
                     <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-black shadow-lg border-2 border-white z-20">
-                        {Math.floor(quest.credits)}
+                        {Math.floor(activeCredits)}
                     </div>
                  )}
             </button>

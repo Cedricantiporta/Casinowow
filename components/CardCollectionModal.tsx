@@ -7,6 +7,7 @@ interface CardCollectionModalProps {
     isOpen: boolean;
     onClose: () => void;
     onOpenShop: (tab?: 'COINS' | 'BOOSTS' | 'DIAMONDS') => void;
+    initialTab?: 'ALBUM' | 'PACKS';
     decks: Deck[];
     onClaimDeckReward: (deckId: string, reward: number) => void;
     onBuyPack: (packId: string, drawCount: number) => Card[];
@@ -25,6 +26,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     isOpen,
     onClose,
     onOpenShop,
+    initialTab,
     decks,
     onClaimDeckReward,
     onBuyPack,
@@ -39,7 +41,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     getDeckReward = (_deckId: string) => 0
 }) => {
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'ALBUM' | 'PACKS'>('ALBUM');
+    const [activeTab, setActiveTab] = useState<'ALBUM' | 'PACKS'>(initialTab || 'ALBUM');
     const albumScrollRef = React.useRef<HTMLDivElement>(null);
     const deckCardsScrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -73,6 +75,10 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
             setPackStage('DONE');
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen && initialTab) setActiveTab(initialTab);
+    }, [isOpen, initialTab]);
 
     const closePack = () => {
         setIsOpeningPack(false);

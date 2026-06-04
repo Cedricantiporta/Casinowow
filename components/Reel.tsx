@@ -160,6 +160,16 @@ const ReelCell: React.FC<{
     const isWild = symbol === SymbolType.WILD;
     const isLetter = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
 
+    const JP_LABELS: Partial<Record<SymbolType, string>> = {
+        [SymbolType.JACKPOT_MINI]:  'MINI',
+        [SymbolType.JACKPOT_MINOR]: 'MINOR',
+        [SymbolType.JACKPOT_MAJOR]: 'MAJOR',
+        [SymbolType.JACKPOT_MEGA]:  'MEGA',
+        [SymbolType.JACKPOT_GRAND]: 'GRAND',
+    };
+    const isJackpot = symbol in JP_LABELS;
+    const jpLabel = JP_LABELS[symbol];
+
     let bgClasses = config?.bg || 'bg-transparent';
     
     // Background Effects (Glows only, no bounce)
@@ -230,6 +240,14 @@ const ReelCell: React.FC<{
                             style={{ textShadow: '0 0 4px black, 0 0 8px black' }} // Heavy shadow for readability
                             >
                                 SCATTER
+                            </span>
+                        </div>
+                    )}
+                    {isJackpot && !blur && (
+                        <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
+                            <span className="block font-titan text-[0.729rem] md:text-[0.972rem] font-black text-yellow-300 tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
+                                style={{ textShadow: '0 0 4px black, 0 0 8px black' }}>
+                                {jpLabel}
                             </span>
                         </div>
                     )}

@@ -9,9 +9,10 @@ interface ShopModalProps {
     initialTab?: 'COINS' | 'BOOSTS' | 'DIAMONDS';
     balance?: number;
     diamonds?: number;
+    maxBet?: number;
 }
 
-export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, balance = 0, diamonds = 0 }) => {
+export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, balance = 0, diamonds = 0, maxBet = 10000, initialTab }) => {
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
     const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -37,15 +38,36 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
 
     useEffect(() => {
         if (!isOpen) return;
-        const B = 1_000_000;
-        setDynamicPacks([
-            { icon: '🪙', label: 'Pile',    sub: fmt(level * B * 1.6),  price: '₱ 49',    color: 'from-cyan-500    to-cyan-800',    action: () => onBuy('COIN', level * B * 1.6,  0, 49)   },
-            { icon: '🪙', label: 'Double',  sub: fmt(level * B * 4),    price: '₱ 99',    color: 'from-green-500  to-green-800',   action: () => onBuy('COIN', level * B * 4,    0, 99)   },
-            { icon: '🪙', label: 'Big Bag', sub: fmt(level * B * 8),    price: '₱ 199',   color: 'from-emerald-500 to-emerald-800', action: () => onBuy('COIN', level * B * 8,    0, 199)  },
-            { icon: '🪙', label: 'Roller',  sub: fmt(level * B * 16),   price: '₱ 499',   color: 'from-purple-500 to-purple-800',  action: () => onBuy('COIN', level * B * 16,   0, 499)  },
-            { icon: '🪙', label: 'Jackpot', sub: fmt(level * B * 80),   price: '₱ 2,490', color: 'from-yellow-500 to-amber-700',   action: () => onBuy('COIN', level * B * 80,   0, 2490) },
-        ]);
-    }, [isOpen, level]);
+        const tabIdxMap: Record<string, number> = { 'COINS': 0, 'DIAMONDS': 5, 'BOOSTS': 10 };
+        const idx = tabIdxMap[initialTab || 'COINS'] ?? 0;
+        if (idx > 0) {
+            setTimeout(() => scrollToSection(idx), 80);
+        }
+    }, [isOpen, initialTab]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const prices = [49, 99, 199, 499, 2490];
+        const labels = ['Pile', 'Double', 'Big Bag', 'Roller', 'Jackpot'];
+        const colors = [
+            'from-cyan-500 to-cyan-800',
+            'from-green-500 to-green-800',
+            'from-emerald-500 to-emerald-800',
+            'from-purple-500 to-purple-800',
+            'from-yellow-500 to-amber-700',
+        ];
+        setDynamicPacks(prices.map((price, i) => {
+            const amount = Math.round((price / 50) * maxBet);
+            return {
+                icon: '🪙',
+                label: labels[i],
+                sub: fmt(amount),
+                price: `₱ ${price.toLocaleString('en-US')}`,
+                color: colors[i],
+                action: () => onBuy('COIN', amount, 0, price),
+            };
+        }));
+    }, [isOpen, maxBet]);
 
     if (!isOpen) return null;
 

@@ -199,7 +199,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     }, [autoRoll, isRolling, isMoving, diceCredits]);
 
     const handleTileClick = (index: number) => {
-        if (picks <= 0 || grid[index].revealed || stageWinning) return;
+        if (wildCredits <= 0 || grid[index].revealed || stageWinning) return;
         const cell = grid[index];
         const newGrid = [...grid];
         newGrid[index] = { ...cell, revealed: true };
@@ -219,13 +219,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     };
 
     const handleAutoPick = () => {
-        if (picks <= 0 || stageWinning) return;
+        if (wildCredits <= 0 || stageWinning) return;
         const unrevealed = grid.map((c, i) => !c.revealed ? i : -1).filter(i => i !== -1);
         for (let i = unrevealed.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [unrevealed[i], unrevealed[j]] = [unrevealed[j], unrevealed[i]];
         }
-        const count = Math.min(picks, unrevealed.length);
+        const count = Math.min(wildCredits, unrevealed.length);
         const newGrid = [...grid];
         const rewards: MiniGameReward[] = [];
         let gemFound = false;
@@ -263,7 +263,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     };
 
     const handleRollDice = () => {
-        if (picks <= 0 || isRolling || isMoving) { if (picks <= 0) setAutoRoll(false); return; }
+        if (diceCredits <= 0 || isRolling || isMoving) { if (diceCredits <= 0) setAutoRoll(false); return; }
         setIsRolling(true);
         audioService.playClick();
         let rolls = 0;
@@ -281,7 +281,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     };
 
     const handleRollMouseDown = () => {
-        if (picks <= 0 || isRolling || isMoving) return;
+        if (diceCredits <= 0 || isRolling || isMoving) return;
         isLongPressRef.current = false;
         rollButtonTimeoutRef.current = setTimeout(() => {
             isLongPressRef.current = true;
@@ -297,9 +297,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
     };
 
-    const handleExchangeCredits = () => {
-        if (credits >= EXCHANGE_RATE) { onBuyPicks(1, EXCHANGE_RATE, 'CREDITS'); audioService.playClick(); }
-    };
     const handleBuyGems = () => { onBuyPicks(1, GEM_COST, 'GEMS'); audioService.playClick(); };
 
     if (!isOpen) return null;
@@ -361,7 +358,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         <button
                                             key={i}
                                             onClick={() => handleTileClick(i)}
-                                            disabled={revealed || picks <= 0}
+                                            disabled={revealed || wildCredits <= 0}
                                             className="relative flex flex-col items-center justify-center rounded-xl active:translate-y-[2px] transition-all overflow-hidden"
                                             style={{
                                                 width: tileSize,
@@ -371,7 +368,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                     : 'linear-gradient(180deg,#7c3aed,#5b21b6)',
                                                 boxShadow: revealed ? 'none' : '0 4px 0 #3b0764, 0 6px 12px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.18)',
                                                 border: revealed ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(167,139,250,0.4)',
-                                                cursor: revealed || picks <= 0 ? 'default' : 'pointer',
+                                                cursor: revealed || wildCredits <= 0 ? 'default' : 'pointer',
                                             }}
                                         >
                                             {icon ? (
@@ -394,19 +391,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         style={{ width: 136, background: 'rgba(0,0,0,0.4)', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
                         {/* Stats */}
                         <StatPill label="Stage" value={wildStage} accent="text-fuchsia-300" />
-                        <StatPill label="Credits" value={credits} accent="text-green-300" />
-                        <StatPill label="Picks" value={picks} accent="text-yellow-300" />
+                        <StatPill label="Credits" value={wildCredits} accent="text-yellow-300" />
                         {/* Buy buttons */}
                         <div className="flex flex-col gap-2 mt-1">
-                            <Btn3D onClick={handleExchangeCredits} disabled={credits < EXCHANGE_RATE}
-                                color="linear-gradient(180deg,#16a34a,#14532d)" shadow="0 3px 0 #052e16"
-                                className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
-                                +1 Pick<br />{EXCHANGE_RATE} Credits
-                            </Btn3D>
                             <Btn3D onClick={handleBuyGems}
                                 color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
                                 className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
-                                +1 Pick<br />{GEM_COST} 💎
+                                +1 Credit<br />{GEM_COST} 💎
                             </Btn3D>
                         </div>
                     </div>
@@ -491,15 +482,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
                         {/* Left — buy roll buttons */}
                         <div className="flex flex-col gap-2" style={{ width: 130 }}>
-                            <Btn3D onClick={handleExchangeCredits} disabled={credits < EXCHANGE_RATE}
-                                color="linear-gradient(180deg,#16a34a,#14532d)" shadow="0 3px 0 #052e16"
-                                className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
-                                +1 Roll · {EXCHANGE_RATE} Credits
-                            </Btn3D>
                             <Btn3D onClick={handleBuyGems}
                                 color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
                                 className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
-                                +1 Roll · {GEM_COST} 💎
+                                +1 Credit · {GEM_COST} 💎
                             </Btn3D>
                         </div>
 
@@ -513,34 +499,33 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     onMouseLeave={handleRollMouseUp}
                                     onTouchStart={handleRollMouseDown}
                                     onTouchEnd={handleRollMouseUp}
-                                    disabled={picks <= 0}
+                                    disabled={diceCredits <= 0}
                                     className="relative w-20 h-20 rounded-full flex flex-col items-center justify-center font-black uppercase tracking-widest text-sm transition-all active:translate-y-[3px]"
                                     style={{
                                         background: autoRoll
                                             ? 'linear-gradient(180deg,#ef4444,#b91c1c)'
-                                            : picks > 0
+                                            : diceCredits > 0
                                             ? 'linear-gradient(180deg,#fbbf24,#d97706)'
                                             : '#374151',
-                                        boxShadow: picks > 0
+                                        boxShadow: diceCredits > 0
                                             ? (autoRoll ? '0 5px 0 #7f1d1d, 0 8px 20px rgba(0,0,0,0.5)' : '0 5px 0 #92400e, 0 8px 20px rgba(0,0,0,0.5)')
                                             : 'none',
                                         border: '2px solid rgba(255,255,255,0.2)',
-                                        color: picks > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
-                                        cursor: picks <= 0 ? 'not-allowed' : 'pointer',
+                                        color: diceCredits > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
+                                        cursor: diceCredits <= 0 ? 'not-allowed' : 'pointer',
                                     }}
                                 >
                                     <span className="text-lg leading-none">{autoRoll ? 'STOP' : 'ROLL'}</span>
-                                    {picks > 0 && <span className="text-[8px] opacity-70 leading-none mt-0.5">{autoRoll ? 'Auto On' : 'Hold=Auto'}</span>}
+                                    {diceCredits > 0 && <span className="text-[8px] opacity-70 leading-none mt-0.5">{autoRoll ? 'Auto On' : 'Hold=Auto'}</span>}
                                 </button>
-                                <span className="text-purple-300 text-[9px] font-bold uppercase tracking-wide">{picks} rolls left</span>
+                                <span className="text-purple-300 text-[9px] font-bold uppercase tracking-wide">{diceCredits} rolls left</span>
                             </div>
                         </div>
 
                         {/* Right — stats */}
                         <div className="flex flex-col gap-2" style={{ width: 110 }}>
                             <StatPill label="Stage" value={diceStage} accent="text-fuchsia-300" />
-                            <StatPill label="Credits" value={credits} accent="text-green-300" />
-                            <StatPill label="Rolls" value={picks} accent="text-yellow-300" />
+                            <StatPill label="Credits" value={diceCredits} accent="text-yellow-300" />
                         </div>
                     </div>
                 </>

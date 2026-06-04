@@ -3,7 +3,6 @@ import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameRewar
 import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD } from './constants';
 import { Reel } from './components/Reel';
 import { WinPopup } from './components/WinPopup';
-import { PaylinesOverlay } from './components/PaylinesOverlay';
 import { LeftSidebar } from './components/LeftSidebar';
 import { ShopModal } from './components/ShopModal';
 import { MiniGameModal } from './components/MiniGameModal';
@@ -23,7 +22,6 @@ import { FeatureUnlockModal } from './components/FeatureUnlockModal';
 import { SettingsModal } from './components/SettingsModal';
 import { VipLoungeModal } from './components/VipLoungeModal';
 import { HighLimitLobby } from './components/HighLimitLobby';
-import { PaylinePanel } from './components/PaylinePanel';
 import { audioService } from './services/audioService';
 import { jackpotService } from './services/jackpotService';
 
@@ -145,6 +143,8 @@ const App: React.FC = () => {
   const [activeModal, setActiveModal] = useState<'NONE' | 'SHOP' | 'COLLECTION' | 'MINIGAME' | 'MISSIONS' | 'TIME_BONUS' | 'LOGIN_BONUS' | 'PIGGY' | 'FEATURE_UNLOCK'>('NONE');
   const [missionInitialView, setMissionInitialView] = useState<'MISSIONS' | 'PASS'>('MISSIONS');
   const [shopInitialTab, setShopInitialTab] = useState<'COINS' | 'BOOSTS' | 'DIAMONDS'>('COINS');
+  const [cardInitialTab, setCardInitialTab] = useState<'ALBUM' | 'PACKS'>('ALBUM');
+  const [cardModalReturnTab, setCardModalReturnTab] = useState<'ALBUM' | 'PACKS' | null>(null);
   
   const [featureUnlockData, setFeatureUnlockData] = useState({ name: '', icon: '', description: '', action: () => {} });
   const [shownUnlocks, setShownUnlocks] = useState<Set<number>>(new Set());
@@ -249,6 +249,12 @@ const App: React.FC = () => {
       setActiveModal('SHOP');
       audioService.playClick();
   }
+
+  const openShopFromCards = (tab: 'COINS' | 'BOOSTS' | 'DIAMONDS' = 'COINS') => {
+      setCardModalReturnTab('PACKS');
+      setActiveModal('NONE');
+      openShop(tab);
+  };
 
   const openMissionsModal = () => {
       setMissionInitialView('MISSIONS');
@@ -910,6 +916,27 @@ const App: React.FC = () => {
           }
       }
 
+      if (freeSpinsRemaining > 0) {
+          const JP_SPAWN = [
+              { type: SymbolType.JACKPOT_MINI,  prob: 0.15 },
+              { type: SymbolType.JACKPOT_MINOR, prob: 0.07 },
+              { type: SymbolType.JACKPOT_MAJOR, prob: 0.03 },
+              { type: SymbolType.JACKPOT_MEGA,  prob: 0.01 },
+              { type: SymbolType.JACKPOT_GRAND, prob: 0.003 },
+          ];
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  if (newGrid[c][r] === SymbolType.SCATTER || newGrid[c][r] === SymbolType.WILD) continue;
+                  for (const jp of JP_SPAWN) {
+                      if (Math.random() < jp.prob) {
+                          newGrid[c][r] = jp.type;
+                          break;
+                      }
+                  }
+              }
+          }
+      }
+
       return newGrid;
   }, [selectedGame, freeSpinsRemaining, spinsWithoutBonus]);
 
@@ -1112,7 +1139,28 @@ const App: React.FC = () => {
         }
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
-    
+
+    const JP_WIN_TYPES = [
+        SymbolType.JACKPOT_MINI,
+        SymbolType.JACKPOT_MINOR,
+        SymbolType.JACKPOT_MAJOR,
+        SymbolType.JACKPOT_MEGA,
+        SymbolType.JACKPOT_GRAND,
+    ];
+    const slotIdxForJP = GAMES_CONFIG.findIndex(g => g.id === selectedGame.id);
+    const jpAmounts = jackpotService.getSlotAmounts(slotIdxForJP);
+    JP_WIN_TYPES.forEach((jpType, tier) => {
+        let jpCount = 0;
+        const jpCells: {col: number, row: number}[] = [];
+        finalGrid.forEach((col, c) => col.forEach((s, r) => {
+            if (s === jpType) { jpCount++; jpCells.push({ col: c, row: r }); }
+        }));
+        if (jpCount >= 3) {
+            totalPayout += jpAmounts[tier];
+            winningCells.push(...jpCells);
+        }
+    });
+
     const winTier = getWinTier(totalPayout, currentBet);
     setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: !!winTier, scattersFound: scatterCount, winType: winTier || undefined });
 
@@ -1699,7 +1747,7 @@ const currentState: SavedGameState = {
 
                 {/* Quest + Pass vertical panel — always visible in game view */}
                 {(() => {
-                    const qReady = quest.credits >= quest.max;
+                    const qReady = false;
                     const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
                     const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
                     const totalNotifs = missReady + passReady;
@@ -1776,16 +1824,9 @@ const currentState: SavedGameState = {
                                 isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE} 
                             />
                         ))}
-                        <PaylinesOverlay winData={winData} rowCount={selectedGame.rows} colCount={selectedGame.reels} />
                     </div>
                 </div>
 
-                {/* Payline guide — right sidebar */}
-                <PaylinePanel
-                    winningLines={winData?.winningLines ?? []}
-                    gameConfig={selectedGame}
-                    isHighLimit={isHighLimit}
-                />
 
             </div>
         )}
@@ -1910,13 +1951,24 @@ const currentState: SavedGameState = {
           </div>
       )}
 
-    <ShopModal isOpen={activeModal === 'SHOP'} onClose={() => setActiveModal('NONE')} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={player.freeStashClaimed} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} />
+    <ShopModal isOpen={activeModal === 'SHOP'} onClose={() => {
+        setActiveModal('NONE');
+        if (cardModalReturnTab) {
+            const tab = cardModalReturnTab;
+            setCardModalReturnTab(null);
+            setTimeout(() => {
+                setCardInitialTab(tab);
+                setActiveModal('COLLECTION');
+            }, 50);
+        }
+    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={player.freeStashClaimed} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} />
       
-      <CardCollectionModal 
-          isOpen={activeModal === 'COLLECTION'} 
-          onClose={() => setActiveModal('NONE')} 
-          onOpenShop={openShop}
-          decks={decks} 
+      <CardCollectionModal
+          isOpen={activeModal === 'COLLECTION'}
+          onClose={() => setActiveModal('NONE')}
+          onOpenShop={openShopFromCards}
+          initialTab={cardInitialTab}
+          decks={decks}
           onClaimDeckReward={handleClaimDeckReward} 
           onBuyPack={handleBuyPack}
           onBuyCredits={handleBuyPackCredits}
