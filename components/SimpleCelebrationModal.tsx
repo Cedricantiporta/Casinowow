@@ -19,8 +19,8 @@ export const SimpleCelebrationModal: React.FC<SimpleCelebrationModalProps> = ({ 
     return (
         <div className="fixed inset-0 z-[300] flex items-center justify-center pointer-events-none">
             <div className="animate-pop-in flex flex-col items-center">
-                <h2 className="text-3xl md:text-4xl font-black font-display text-white text-center drop-shadow-[0_4px_4px_rgba(0,0,0,1)]"
-                    style={{ textShadow: '0 0 10px black, 0 0 20px black' }}>
+                <h2 className="text-3xl md:text-4xl font-black font-display text-white text-center"
+                    style={{ textShadow: '0 0 10px black, 0 0 20px black', WebkitTextStroke: '1.5px #000', paintOrder: 'stroke fill' }}>
                     {message}
                 </h2>
             </div>

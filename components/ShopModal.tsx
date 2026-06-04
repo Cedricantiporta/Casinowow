@@ -14,10 +14,26 @@ interface ShopModalProps {
 
 export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, balance = 0, diamonds = 0, maxBet = 10000, initialTab }) => {
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
+    const [cooldown, setCooldown] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const fmt = (n: number) => n.toLocaleString('en-US');
+    const handleBuy = (action: () => void) => {
+        if (cooldown) return;
+        action();
+        setCooldown(true);
+        setTimeout(() => setCooldown(false), 1000);
+    };
+
+    const fmt = (n: number) => {
+        const abs = Math.abs(n);
+        const sign = n < 0 ? '-' : '';
+        if (abs >= 1e15) return sign + (abs / 1e15).toFixed(2).replace(/\.?0+$/, '') + 'Q';
+        if (abs >= 1e12) return sign + (abs / 1e12).toFixed(2).replace(/\.?0+$/, '') + 'T';
+        if (abs >= 1e9)  return sign + (abs / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
+        if (abs >= 1e6)  return sign + (abs / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
+        return n.toLocaleString('en-US');
+    };
 
     const startScroll = (dir: 'left' | 'right') => {
         if (scrollInterval.current) return;
@@ -153,8 +169,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                         {allItems.map((item, i) => (
                             <button
                                 key={i}
-                                onClick={item.action}
-                                disabled={item.disabled}
+                                onClick={() => handleBuy(item.action)}
+                                disabled={item.disabled || cooldown}
                                 className={`
                                     flex-shrink-0 w-[140px]
                                     flex flex-col items-center justify-between
@@ -163,7 +179,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                     bg-gradient-to-b ${item.color}
                                     hover:brightness-110 active:scale-[0.97]
                                     transition-all shadow-xl
-                                    ${item.disabled ? 'grayscale opacity-50 cursor-not-allowed' : ''}
+                                    ${(item.disabled || cooldown) ? 'grayscale opacity-50 cursor-not-allowed' : ''}
                                 `}
                             >
                                 <div className="text-xs font-black uppercase text-white tracking-widest leading-none text-center">

@@ -82,7 +82,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
     const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
     const totalMissionNotifs = missionsReady + passRewardsReady;
-    const questReady = questState.credits >= questState.max;
+    const questReady = questState.diceCredits > 0 || questState.wildCredits > 0;
 
     const getQuestIcon = () => {
         if (questState.activeGame === 'DICE') return '🎲';
@@ -182,7 +182,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 return (
                                     <button
                                         key={game.id}
-                                        onClick={() => onSelectGame(game, isHighLimit)}
+                                        onClick={() => onSelectGame(game, false)}
                                         className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-md overflow-visible border-none shadow-xl snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
                                     >
                                         {!isLocked && (

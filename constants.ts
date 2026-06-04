@@ -158,61 +158,65 @@ export const GAMES_CONFIG: GameConfig[] = [
 ];
 
 // --- Themed Symbol Maps ---
+const JP_ICONS = {
+  [SymbolType.JACKPOT_MINI]: '🥉', [SymbolType.JACKPOT_MINOR]: '🥈',
+  [SymbolType.JACKPOT_MAJOR]: '🥇', [SymbolType.JACKPOT_MEGA]: '👑', [SymbolType.JACKPOT_GRAND]: '🏆',
+};
 const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   NEON: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '🍒', [SymbolType.BELL]: '🍋', [SymbolType.BAR]: '💎', [SymbolType.CHERRY]: '7️⃣', [SymbolType.SEVEN]: '💸',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🎰'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🎰', ...JP_ICONS
   },
   EGYPT: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '🪲', [SymbolType.BELL]: '🪬', [SymbolType.BAR]: '⚖️', [SymbolType.CHERRY]: '🐦‍🔥', [SymbolType.SEVEN]: '🐆',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🗿'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🗿', ...JP_ICONS
   },
   DRAGON: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '🎋', [SymbolType.BELL]: '👘', [SymbolType.BAR]: '🔮', [SymbolType.CHERRY]: '👺', [SymbolType.SEVEN]: '🐲',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🌋'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🌋', ...JP_ICONS
   },
   PIRATE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '💣', [SymbolType.BELL]: '🧭', [SymbolType.BAR]: '🏴‍☠️', [SymbolType.CHERRY]: '🦜', [SymbolType.SEVEN]: '⚓',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '☠️'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '☠️', ...JP_ICONS
   },
   SPACE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '☄️', [SymbolType.BELL]: '🛰️', [SymbolType.BAR]: '🪐', [SymbolType.CHERRY]: '👾', [SymbolType.SEVEN]: '🌞',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🚀'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🚀', ...JP_ICONS
   },
   CANDY: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '🥝', [SymbolType.BELL]: '🫐', [SymbolType.BAR]: '🍇', [SymbolType.CHERRY]: '🍓', [SymbolType.SEVEN]: '🍭',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🧁'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🧁', ...JP_ICONS
   },
   JUNGLE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '🍌', [SymbolType.BELL]: '🦜', [SymbolType.BAR]: '🐍', [SymbolType.CHERRY]: '🦍', [SymbolType.SEVEN]: '🐆',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🗿'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🗿', ...JP_ICONS
   },
   UNDERWATER: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '🐚', [SymbolType.BELL]: '🦞', [SymbolType.BAR]: '🐠', [SymbolType.CHERRY]: '🦈', [SymbolType.SEVEN]: '🔱',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🐡'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🐡', ...JP_ICONS
   },
   WESTERN: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '🌵', [SymbolType.BELL]: '👢', [SymbolType.BAR]: '🔫', [SymbolType.CHERRY]: '🤠', [SymbolType.SEVEN]: '💰',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '⭐'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '⭐', ...JP_ICONS
   },
   SAMURAI: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '🏮', [SymbolType.BELL]: '🍶', [SymbolType.BAR]: '⚔️', [SymbolType.CHERRY]: '👹', [SymbolType.SEVEN]: '🏯',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🌸'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🌸', ...JP_ICONS
   },
   PIGGY: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '💵', [SymbolType.BELL]: '🔔', [SymbolType.BAR]: '🏦', [SymbolType.CHERRY]: '🔨', [SymbolType.SEVEN]: '🐷',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '💰'
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '💰', ...JP_ICONS
   }
 };
 
@@ -401,6 +405,13 @@ export const formatNumber = (num: number): string => {
 };
 
 export const formatCommaNumber = (num: number): string => {
+    if (!isFinite(num) || isNaN(num)) return '0';
+    const abs = Math.abs(num);
+    const sign = num < 0 ? '-' : '';
+    if (abs >= 1e15) return sign + (abs / 1e15).toFixed(2).replace(/\.?0+$/, '') + 'Q';
+    if (abs >= 1e12) return sign + (abs / 1e12).toFixed(2).replace(/\.?0+$/, '') + 'T';
+    if (abs >= 1e9)  return sign + (abs / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
+    if (abs >= 1e6)  return sign + (abs / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
     return num.toLocaleString('en-US');
 };
 

@@ -528,10 +528,10 @@ const App: React.FC = () => {
           setPlayer(p => ({ ...p, xpMultiplier: reward.value, xpBoostEndTime: Date.now() + 1800000 })); 
           msg = `${reward.value}x XP Boost`;
       } else if (reward.type === 'CREDIT_BACK') {
-          setQuest(q => ({ ...q, credits: q.credits + reward.value }));
+          setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value }));
           msg = `+${reward.value} Credits`;
       } else if (reward.type === 'PICKS') {
-          setQuest(q => ({ ...q, picks: q.picks + reward.value }));
+          setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value }));
           msg = `+${reward.value} Picks`;
       }
       setCelebrationMsg(msg);
@@ -568,11 +568,12 @@ const App: React.FC = () => {
           balance: p.balance + totalCoins,
           diamonds: p.diamonds + totalDiamonds
       }));
-      setQuest(q => ({
-          ...q,
-          credits: q.credits + totalCredits,
-          picks: q.picks + totalPicks
-      }));
+      if (totalCredits > 0 || totalPicks > 0) {
+          setQuest(q => ({
+              ...q,
+              wildCredits: q.wildCredits + totalCredits + totalPicks,
+          }));
+      }
       
       const ids = new Set(rewardsToClaim.map(r => r.id));
       setMissionState(prev => ({
@@ -1530,6 +1531,7 @@ const currentState: SavedGameState = {
     if (activeModal !== 'NONE') {
         setActiveModal('NONE');
     } else if (currentView === 'HIGH_LIMIT') {
+        setIsHighLimit(false);
         setCurrentView('LOBBY');
     } else if (currentView === 'GAME') {
         setSavedGameStates(prev => ({
