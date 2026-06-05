@@ -921,6 +921,37 @@ const App: React.FC = () => {
           }
       }
 
+      // PIGGY: inject coin symbols (1-6 cells), 6+ triggers free spins
+      if (selectedGame.theme === 'PIGGY') {
+          const coinRoll = Math.random();
+          let targetCoins = 0;
+          if (coinRoll >= 0.99)      targetCoins = 6;  // ~1%  → free spins
+          else if (coinRoll >= 0.96) targetCoins = 5;  // ~3%
+          else if (coinRoll >= 0.91) targetCoins = 4;  // ~5%
+          else if (coinRoll >= 0.81) targetCoins = 3;  // ~10%
+          else if (coinRoll >= 0.63) targetCoins = 2;  // ~18%
+          else if (coinRoll >= 0.35) targetCoins = 1;  // ~28%
+          // 0-34% → 0 coins
+          if (targetCoins > 0) {
+              const eligible: {c: number; r: number}[] = [];
+              for (let c = 0; c < cols; c++) {
+                  for (let r = 0; r < rows; r++) {
+                      const s = newGrid[c][r];
+                      if (s !== SymbolType.SCATTER && s !== SymbolType.WILD && !String(s).startsWith('JACKPOT')) {
+                          eligible.push({c, r});
+                      }
+                  }
+              }
+              for (let i = eligible.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+              }
+              for (let i = 0; i < Math.min(targetCoins, eligible.length); i++) {
+                  newGrid[eligible[i].c][eligible[i].r] = SymbolType.COIN;
+              }
+          }
+      }
+
       if (freeSpinsRemaining > 0) {
           const JP_SPAWN = [
               { type: SymbolType.JACKPOT_MINI,  prob: 0.105 },
@@ -1100,20 +1131,42 @@ const App: React.FC = () => {
              const spinsWon = scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20;
              setFreeSpinsWon(spinsWon);
              setTotalFreeSpins(prev => prev + spinsWon);
-             
+
              if (freeSpinsRemaining > 0) {
                  setShowFreeSpinsPopup(true);
                  audioService.playWinBig();
              } else {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
-                 setSpinsWithoutBonus(0); 
+                 setSpinsWithoutBonus(0);
                  setTimeout(() => {
                      setShowFreeSpinsPopup(true);
                  }, 2000);
                  return next;
              }
         }
+
+        // PIGGY: 6+ coin cells triggers free spins
+        if (selectedGame.theme === 'PIGGY') {
+            let coinCount = 0;
+            targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
+            if (coinCount >= 6) {
+                const spinsWon = coinCount === 6 ? 10 : coinCount === 7 ? 15 : 20;
+                setFreeSpinsWon(spinsWon);
+                setTotalFreeSpins(prev => prev + spinsWon);
+                if (freeSpinsRemaining > 0) {
+                    setShowFreeSpinsPopup(true);
+                    audioService.playWinBig();
+                } else {
+                    setStatus(GameStatus.SCATTER_SHOWCASE);
+                    audioService.playScatterTrigger();
+                    setSpinsWithoutBonus(0);
+                    setTimeout(() => { setShowFreeSpinsPopup(true); }, 2000);
+                    return next;
+                }
+            }
+        }
+
         calculateWin(targetGrid);
       }
       return next;
@@ -1904,7 +1957,7 @@ const currentState: SavedGameState = {
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
-                    <div className={`relative z-10 bg-black/60 p-1 md:p-1.5 rounded-xl shadow-2xl flex gap-1 h-full max-h-full aspect-[5/3] overflow-hidden ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}`}>
+                    <div className={`relative z-10 bg-black/60 p-1 md:p-1.5 rounded-xl shadow-2xl flex gap-1 h-full max-h-full overflow-hidden ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}`} style={{ aspectRatio: `${selectedGame.reels}/${selectedGame.rows}` }}>
                         {grid.map((col, i) => (
                             <Reel 
                                 key={i} 

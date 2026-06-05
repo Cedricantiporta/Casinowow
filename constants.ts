@@ -28,8 +28,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     name: 'Piggy Riches',
     theme: 'PIGGY',
     rows: 3,
-    reels: 5,
-    scattersToTrigger: 3,
+    reels: 7,
+    scattersToTrigger: 999,
     description: 'Break the bank!',
     color: 'from-pink-500 via-rose-500 to-pink-800',
     bgImage: 'radial-gradient(circle at 50% 0%, #f472b6 0%, #831843 100%)',
@@ -161,6 +161,7 @@ export const GAMES_CONFIG: GameConfig[] = [
 const JP_ICONS = {
   [SymbolType.JACKPOT_MINI]: '🥉', [SymbolType.JACKPOT_MINOR]: '🥈',
   [SymbolType.JACKPOT_MAJOR]: '🥇', [SymbolType.JACKPOT_MEGA]: '👑', [SymbolType.JACKPOT_GRAND]: '🏆',
+  [SymbolType.COIN]: '🪙',
 };
 const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   NEON: {
@@ -233,16 +234,18 @@ const TILE_BGS = {
 
 const getThemeFont = (theme: GameTheme) => {
     switch(theme) {
-        case 'NEON': return 'font-titan'; 
-        case 'CANDY': return 'font-luckiest'; 
-        case 'SPACE': return 'font-titan'; 
-        case 'PIRATE': return 'font-luckiest'; 
-        case 'DRAGON': return 'font-titan';
-        case 'WESTERN': return 'font-luckiest';
-        case 'SAMURAI': return 'font-titan';
-        case 'JUNGLE': return 'font-luckiest';
-        case 'PIGGY': return 'font-luckiest';
-        default: return 'font-titan';
+        case 'NEON':       return 'font-neon';
+        case 'EGYPT':      return 'font-egypt';
+        case 'DRAGON':     return 'font-dragon';
+        case 'PIRATE':     return 'font-pirate';
+        case 'SPACE':      return 'font-space';
+        case 'CANDY':      return 'font-candy';
+        case 'JUNGLE':     return 'font-jungle';
+        case 'UNDERWATER': return 'font-underwater';
+        case 'WESTERN':    return 'font-western';
+        case 'SAMURAI':    return 'font-samurai';
+        case 'PIGGY':      return 'font-piggy';
+        default:           return 'font-titan';
     }
 }
 
@@ -270,37 +273,40 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
     [SymbolType.JACKPOT_MAJOR]: { type: SymbolType.JACKPOT_MAJOR, icon: '🥇', value: 0, style: 'drop-shadow-[0_0_12px_rgba(255,215,0,1)]',    bg: 'bg-yellow-700/40', highlightClass: 'bg-yellow-500/40 shadow-[0_0_50px_rgba(255,215,0,0.9)]   border-yellow-300/50' },
     [SymbolType.JACKPOT_MEGA]:  { type: SymbolType.JACKPOT_MEGA,  icon: '👑', value: 0, style: 'drop-shadow-[0_0_15px_rgba(255,165,0,1)]',    bg: 'bg-orange-700/40', highlightClass: 'bg-orange-500/40 shadow-[0_0_50px_rgba(255,165,0,0.9)]   border-orange-300/50' },
     [SymbolType.JACKPOT_GRAND]: { type: SymbolType.JACKPOT_GRAND, icon: '🏆', value: 0, style: 'drop-shadow-[0_0_20px_rgba(255,50,50,1)]',    bg: 'bg-red-700/40',    highlightClass: 'bg-red-500/40    shadow-[0_0_50px_rgba(255,50,50,0.9)]   border-red-300/50' },
+    [SymbolType.COIN]: { type: SymbolType.COIN, icon: '🪙', value: 3.5, style: 'drop-shadow-[0_0_8px_rgba(250,204,21,0.9)]', bg: TILE_BGS.YELLOW, highlightClass: 'bg-yellow-500/40 shadow-[0_0_50px_rgba(234,179,8,0.9)] border-yellow-300/50' },
   };
 };
 
 export const WEIGHTS = [
-  { type: SymbolType.TEN, weight: 35 },   
-  { type: SymbolType.JACK, weight: 30 },  
-  { type: SymbolType.QUEEN, weight: 30 }, 
-  { type: SymbolType.KING, weight: 25 }, 
-  { type: SymbolType.ACE, weight: 15 },   
-  { type: SymbolType.GRAPE, weight: 10 }, 
-  { type: SymbolType.BELL, weight: 8 },   
-  { type: SymbolType.BAR, weight: 5 },    
-  { type: SymbolType.CHERRY, weight: 3.5 }, 
-  { type: SymbolType.SEVEN, weight: 2 },  
-  { type: SymbolType.WILD, weight: 0.1 }, 
-  { type: SymbolType.SCATTER, weight: 1.5 }, 
+  { type: SymbolType.TEN, weight: 35 },
+  { type: SymbolType.JACK, weight: 30 },
+  { type: SymbolType.QUEEN, weight: 30 },
+  { type: SymbolType.KING, weight: 25 },
+  { type: SymbolType.ACE, weight: 15 },
+  { type: SymbolType.GRAPE, weight: 10 },
+  { type: SymbolType.BELL, weight: 8 },
+  { type: SymbolType.BAR, weight: 5 },
+  { type: SymbolType.CHERRY, weight: 3.5 },
+  { type: SymbolType.SEVEN, weight: 2 },
+  { type: SymbolType.WILD, weight: 0.1 },
+  { type: SymbolType.SCATTER, weight: 1.5 },
+  { type: SymbolType.COIN, weight: 0 },
 ];
 
 export const FREE_SPIN_WEIGHTS = [
-  { type: SymbolType.TEN, weight: 35 },   
-  { type: SymbolType.JACK, weight: 30 },  
-  { type: SymbolType.QUEEN, weight: 30 }, 
-  { type: SymbolType.KING, weight: 25 }, 
-  { type: SymbolType.ACE, weight: 15 },   
-  { type: SymbolType.GRAPE, weight: 10 }, 
-  { type: SymbolType.BELL, weight: 8 },  
+  { type: SymbolType.TEN, weight: 35 },
+  { type: SymbolType.JACK, weight: 30 },
+  { type: SymbolType.QUEEN, weight: 30 },
+  { type: SymbolType.KING, weight: 25 },
+  { type: SymbolType.ACE, weight: 15 },
+  { type: SymbolType.GRAPE, weight: 10 },
+  { type: SymbolType.BELL, weight: 8 },
   { type: SymbolType.BAR, weight: 5 },
-  { type: SymbolType.CHERRY, weight: 3.5 },  
-  { type: SymbolType.SEVEN, weight: 2 },  
-  { type: SymbolType.WILD, weight: 0.1 }, 
-  { type: SymbolType.SCATTER, weight: 1.5 }, 
+  { type: SymbolType.CHERRY, weight: 3.5 },
+  { type: SymbolType.SEVEN, weight: 2 },
+  { type: SymbolType.WILD, weight: 0.1 },
+  { type: SymbolType.SCATTER, weight: 1.5 },
+  { type: SymbolType.COIN, weight: 0 },
 ];
 
 export const GET_DYNAMIC_WEIGHTS = (isFreeSpin: boolean, spinsWithoutBonus: number) => {

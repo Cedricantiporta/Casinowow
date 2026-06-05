@@ -17,6 +17,7 @@ export enum SymbolType {
   JACKPOT_MAJOR = 'JACKPOT_MAJOR',
   JACKPOT_MEGA = 'JACKPOT_MEGA',
   JACKPOT_GRAND = 'JACKPOT_GRAND',
+  COIN = 'COIN',
 }
 
 export type GameTheme = 'NEON' | 'EGYPT' | 'DRAGON' | 'PIRATE' | 'SPACE' | 'CANDY' | 'JUNGLE' | 'UNDERWATER' | 'WESTERN' | 'SAMURAI' | 'PIGGY';

@@ -103,18 +103,20 @@ export const Lobby: React.FC<LobbyProps> = ({
     };
 
     const getFontClass = (theme: string) => {
-         switch(theme) {
-             case 'NEON': return 'font-titan';
-             case 'CANDY': return 'font-luckiest';
-             case 'PIRATE': return 'font-luckiest';
-             case 'DRAGON': return 'font-titan';
-             case 'SPACE': return 'font-titan';
-             case 'JUNGLE': return 'font-luckiest';
-             case 'WESTERN': return 'font-luckiest';
-             case 'SAMURAI': return 'font-titan';
-             case 'PIGGY': return 'font-luckiest';
-             default: return 'font-titan';
-         }
+        switch(theme) {
+            case 'NEON':       return 'font-neon';
+            case 'EGYPT':      return 'font-egypt';
+            case 'DRAGON':     return 'font-dragon';
+            case 'PIRATE':     return 'font-pirate';
+            case 'SPACE':      return 'font-space';
+            case 'CANDY':      return 'font-candy';
+            case 'JUNGLE':     return 'font-jungle';
+            case 'UNDERWATER': return 'font-underwater';
+            case 'WESTERN':    return 'font-western';
+            case 'SAMURAI':    return 'font-samurai';
+            case 'PIGGY':      return 'font-piggy';
+            default:           return 'font-titan';
+        }
     };
 
     const startScroll = (direction: 'LEFT' | 'RIGHT') => {
