@@ -1242,7 +1242,7 @@ const App: React.FC = () => {
 
        const vipXpMult = player.isVip ? 1.2 : 1.0;
        const spinsAtMaxBet = Math.max(1, player.level * 1.1);
-       const betFraction = Math.min(currentBet / MAX_BET_BY_LEVEL(player.level), 1.0);
+       const betFraction = currentBet / MAX_BET_BY_LEVEL(player.level);
        const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult);
 
        addXp(xpGained);
@@ -1266,7 +1266,7 @@ const App: React.FC = () => {
     } else {
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
        const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
-       const betFractionLoss = Math.min(currentBet / MAX_BET_BY_LEVEL(player.level), 1.0);
+       const betFractionLoss = currentBet / MAX_BET_BY_LEVEL(player.level);
        const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss);
        addXp(lossXp);
        const effectiveFastSpin = fastSpin;
