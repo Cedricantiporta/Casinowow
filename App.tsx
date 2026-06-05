@@ -1241,8 +1241,7 @@ const App: React.FC = () => {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
 
        const vipXpMult = player.isVip ? 1.2 : 1.0;
-       // spinsAtMaxBet grows with level: ~1 at L1, ~6 at L10, ~22 at L20, ~190 at L50, ~630 at L100
-       const spinsAtMaxBet = Math.max(1, 0.1 * Math.pow(player.level, 1.8));
+       const spinsAtMaxBet = Math.max(1, player.level * 1.1);
        const betFraction = Math.min(currentBet / MAX_BET_BY_LEVEL(player.level), 1.0);
        const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult);
 
@@ -1266,7 +1265,7 @@ const App: React.FC = () => {
        }
     } else {
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
-       const spinsAtMaxBetLoss = Math.max(1, 0.1 * Math.pow(player.level, 1.8));
+       const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
        const betFractionLoss = Math.min(currentBet / MAX_BET_BY_LEVEL(player.level), 1.0);
        const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss);
        addXp(lossXp);
