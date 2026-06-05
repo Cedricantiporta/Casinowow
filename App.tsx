@@ -1025,7 +1025,7 @@ const App: React.FC = () => {
       // Piggy Bank Logic: 10% of Bet (+ 10% extra if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
           const savings = currentBet * (player.isVip ? 0.20 : 0.10);
-          const cap = MAX_BET_BY_LEVEL(player.level) * 15;
+          const cap = MAX_BET_BY_LEVEL(player.level) * 5;
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
@@ -1773,7 +1773,7 @@ const currentState: SavedGameState = {
                         style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', overflow:'visible' } : { overflow:'visible' }}
                     >
                         <span style={{fontSize:16}}>🐷</span>
-                        {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 15 && (
+                        {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 5 && (
                             <div className="absolute -top-1.5 -right-1.5 text-white font-black text-[6px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap z-10"
                                 style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>
                         )}
@@ -2235,6 +2235,8 @@ const currentState: SavedGameState = {
           onClose={() => setShowProfile(false)}
           player={player}
           isPremium={missionState.isPremium}
+          passBoostMultiplier={missionState.passBoostMultiplier}
+          passBoostEndTime={missionState.passBoostEndTime}
           recentGames={GAMES_CONFIG.filter(g => (player.stats?.recentSlots || []).includes(g.id)).sort((a, b) => (player.stats?.recentSlots || []).indexOf(a.id) - (player.stats?.recentSlots || []).indexOf(b.id))}
       />
 

@@ -12,6 +12,8 @@ interface ProfileModalProps {
         balance: number;
         diamonds: number;
         isVip?: boolean;
+        xpMultiplier?: number;
+        xpBoostEndTime?: number;
         stats?: {
             maxSingleWin: number;
             maxJackpotWin: number;
@@ -22,6 +24,8 @@ interface ProfileModalProps {
         };
     };
     isPremium: boolean;
+    passBoostMultiplier?: number;
+    passBoostEndTime?: number;
     recentGames: GameConfig[];
 }
 
@@ -33,7 +37,7 @@ const StatRow: React.FC<{ icon: string; label: string; value: string; vip?: bool
     </div>
 );
 
-export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, player, isPremium, recentGames }) => {
+export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, player, isPremium, passBoostMultiplier = 1, passBoostEndTime = 0, recentGames }) => {
     const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || 'Player');
     const [editingName, setEditingName] = useState(false);
     const [nameInput, setNameInput] = useState(playerName);
@@ -65,9 +69,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, pla
 
     if (!isOpen) return null;
 
+    const now = Date.now();
     const vip = !!player.isVip;
     const stats = player.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] };
     const xpPct = Math.min(100, Math.floor((player.xp / player.xpToNextLevel) * 100));
+    const xpBoostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > now;
+    const passBoostActive = passBoostMultiplier > 1 && passBoostEndTime > now;
 
     const bgStyle = vip
         ? 'linear-gradient(160deg,#3b1a00 0%,#1e0f00 60%,#0d0700 100%)'
@@ -161,6 +168,17 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, pla
                     <StatRow vip={vip} icon="🏆" label="Max Win" value={formatK(stats.maxSingleWin)} />
                     <StatRow vip={vip} icon="💰" label="Total Won" value={formatK(stats.totalCoinsWon)} />
                     <StatRow vip={vip} icon="🎯" label="Max Jackpot" value={formatK(stats.maxJackpotWin)} />
+
+                    {/* Active Boosts */}
+                    {(xpBoostActive || passBoostActive || vip || isPremium) && (
+                        <>
+                            <div className={`text-[9px] font-black uppercase tracking-widest mt-2 mb-1 ${labelColor}`}>Active Boosts</div>
+                            {vip && <StatRow vip={vip} icon="👑" label="VIP" value="Active" />}
+                            {isPremium && <StatRow vip={vip} icon="🎫" label="Monthly Pass" value="Active" />}
+                            {xpBoostActive && <StatRow vip={vip} icon="🚀" label="XP Boost" value={`×${player.xpMultiplier}`} />}
+                            {passBoostActive && <StatRow vip={vip} icon="⚡" label="Pass Boost" value={`×${passBoostMultiplier}`} />}
+                        </>
+                    )}
                 </div>
 
                 {/* RIGHT — Recent Slots */}

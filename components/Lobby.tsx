@@ -154,7 +154,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const diceCredits = Math.floor(questState.diceCredits);
 
     // Piggy full state
-    const piggyCap = piggyMaxBet * 15;
+    const piggyCap = piggyMaxBet * 5;
     const piggyFull = !isPiggyLocked && piggyBank >= piggyCap;
 
     return (
@@ -210,7 +210,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     >
                                         {!isLocked && (
                                             <div className="absolute -top-[18px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
-                                                <span style={{ fontSize:'10px', fontWeight:900, background:'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', whiteSpace:'nowrap', letterSpacing:'0.3px', lineHeight:1, textShadow:'none', filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.8))' }}>
+                                                <span style={{ fontSize:'10px', fontWeight:900, color:'white', whiteSpace:'nowrap', letterSpacing:'0.3px', lineHeight:1, filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.9))' }}>
                                                     {formatK(jackpotTotals[idx] ?? 0)}
                                                 </span>
                                             </div>
@@ -386,25 +386,22 @@ export const Lobby: React.FC<LobbyProps> = ({
                             </button>
 
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
-                                <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📜</span>
+                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📜</span>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
                             </button>
 
                             <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
-                                <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
+                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
                             </button>
 
                             <button onClick={onOpenInbox} className={iconBtn(false)}>
-                                <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📬</span>
+                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📬</span>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Inbox</span>
                             </button>
 
                             <button onClick={onToggleVIP} className={iconBtn(false)}>
-                                <div className="relative leading-none">
-                                    <span className="text-[2rem] md:text-[2.2rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isVip ? '👑' : '🎩'}</span>
-                                    {isVip && <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-yellow-400 rounded-full border-2 border-white"></div>}
-                                </div>
+                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isVip ? '👑' : '🎩'}</span>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isVip ? 'VIP HL' : 'VIP Lounge'}</span>
                             </button>
 

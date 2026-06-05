@@ -87,20 +87,29 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         setLastPackId(null);
     };
 
-    const getCardStyle = (rarity: CardRarity, isLocked: boolean) => {
+    const getCardBg = (rarity: CardRarity, isLocked: boolean): string => {
         if (isLocked) {
             switch(rarity) {
-                case 'LEGENDARY': return 'bg-[#3a2d10]/80 text-yellow-850 shadow-none grayscale-[0.5]';
-                case 'EPIC': return 'bg-[#2d103a]/80 text-purple-850 shadow-none grayscale-[0.5]';
-                case 'RARE': return 'bg-[#101d3a]/80 text-blue-850 shadow-none grayscale-[0.5]';
-                default: return 'bg-[#1a1a1a]/80 text-gray-800 shadow-none grayscale-[0.8]';
+                case 'LEGENDARY': return 'linear-gradient(160deg,#78350f,#451a03)';
+                case 'EPIC': return 'linear-gradient(160deg,#3b0764,#1e0438)';
+                case 'RARE': return 'linear-gradient(160deg,#1e3a5f,#0c1a30)';
+                default: return 'linear-gradient(160deg,#1e1e2e,#0d0d1a)';
             }
         }
         switch(rarity) {
-            case 'LEGENDARY': return 'bg-yellow-950/90 text-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.5)] animate-pulse';
-            case 'EPIC': return 'bg-purple-950/90 text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]';
-            case 'RARE': return 'bg-blue-950/90 text-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.4)]';
-            default: return 'bg-gray-900/90 text-gray-400 shadow-none';
+            case 'LEGENDARY': return 'linear-gradient(160deg,#d97706,#f59e0b,#b45309)';
+            case 'EPIC': return 'linear-gradient(160deg,#7c3aed,#a855f7,#6d28d9)';
+            case 'RARE': return 'linear-gradient(160deg,#2563eb,#3b82f6,#1d4ed8)';
+            default: return 'linear-gradient(160deg,#475569,#64748b,#334155)';
+        }
+    };
+
+    const getCardBorder = (rarity: CardRarity): string => {
+        switch(rarity) {
+            case 'LEGENDARY': return '#fde68a';
+            case 'EPIC': return '#c084fc';
+            case 'RARE': return '#93c5fd';
+            default: return '#94a3b8';
         }
     };
 
@@ -164,25 +173,31 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     {packStage === 'REVEAL' && (
                         <div className="w-full h-full flex flex-col items-center justify-center animate-pop-in relative py-4">
                             <div className={`flex-1 w-full max-w-2xl px-2 overflow-y-auto grid gap-2 content-center justify-items-center ${openedCards.length >= 10 ? 'grid-cols-5' : 'grid-cols-3'}`}>
-                                {openedCards.map((card, i) => (
+                                {openedCards.map((card, i) => {
+                                    const borderColor = getCardBorder(card.rarity);
+                                    return (
                                     <div
                                         key={i}
-                                        className={`relative aspect-[2/3] w-full ${openedCards.length >= 10 ? 'max-w-[80px]' : 'max-w-[100px]'} rounded-lg ${getCardStyle(card.rarity, false)} p-1.5 flex flex-col items-center justify-center animate-pop-in mt-3 ${card.rarity === 'LEGENDARY' ? 'animate-pulse duration-700' : ''}`}
-                                        style={{ animationDelay: `${i * 30}ms` }}
+                                        className={`relative w-full ${openedCards.length >= 10 ? 'max-w-[80px]' : 'max-w-[100px]'} rounded-xl flex flex-col items-center justify-between overflow-hidden animate-pop-in ${card.rarity === 'LEGENDARY' ? 'animate-pulse duration-700' : ''}`}
+                                        style={{ animationDelay: `${i * 30}ms`, background: getCardBg(card.rarity, false), border: `2px solid ${borderColor}`, aspectRatio: '2/3', boxShadow: `0 4px 20px ${borderColor}55` }}
                                     >
-                                        <div className={`absolute -top-3.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-wider whitespace-nowrap shadow ${card.rarity === 'LEGENDARY' ? 'bg-yellow-500 text-black' : card.rarity === 'EPIC' ? 'bg-purple-600 text-white' : card.rarity === 'RARE' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white'}`}>
-                                            {card.rarity}
+                                        {/* Rarity inside top */}
+                                        <div className="w-full px-1 pt-1.5 flex justify-center">
+                                            <span className={`text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full ${card.rarity === 'LEGENDARY' ? 'bg-black/40 text-yellow-200' : card.rarity === 'EPIC' ? 'bg-black/40 text-purple-200' : card.rarity === 'RARE' ? 'bg-black/40 text-blue-200' : 'bg-black/40 text-white'}`}>
+                                                {card.rarity}
+                                            </span>
                                         </div>
-                                        {card.isNew && <div className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[7px] font-black px-1 rounded animate-pulse z-20">NEW</div>}
-                                        <div className="text-2xl mb-1 drop-shadow-md">{card.icon}</div>
-                                        <div className="text-[8px] font-bold text-center bg-black/50 px-1 rounded truncate w-full">{card.name}</div>
-                                        {card.isDuplicate && (
-                                            <div className="absolute inset-x-0 bottom-1 flex flex-col items-center justify-center">
-                                                <div className="text-yellow-400 text-[7px] font-bold uppercase bg-black/80 px-1 rounded">Dup</div>
-                                            </div>
-                                        )}
+                                        {card.isNew && <div className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[7px] font-black px-1 rounded z-20">NEW</div>}
+                                        <div className="flex-1 flex items-center justify-center">
+                                            <div className="text-3xl drop-shadow-md">{card.icon}</div>
+                                        </div>
+                                        <div className="w-full px-1 pb-1.5 text-center">
+                                            <div className="text-[8px] font-bold text-white/90 bg-black/30 rounded px-1 truncate">{card.name}</div>
+                                            {card.isDuplicate && <div className="text-yellow-300 text-[7px] font-bold uppercase mt-0.5">Dup</div>}
+                                        </div>
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                             <div className="shrink-0 mt-4 flex flex-col sm:flex-row gap-2 z-50 items-center bg-black/70 p-2.5 rounded-xl">
                                 <button onClick={closePack} className="px-5 py-1.5 bg-gray-700 rounded-lg text-white font-bold text-xs uppercase hover:bg-gray-600">Close</button>
@@ -274,7 +289,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     return (
                                         <button key={deck.gameId} onClick={() => setSelectedDeckId(deck.gameId)}
                                             className="flex-none w-36 flex flex-col items-center bg-black/40 p-2 rounded-xl h-full active:scale-95 transition-transform">
-                                            <div className={`w-full flex-1 bg-gradient-to-b ${deck.theme === 'NEON' ? 'from-purple-900 to-black' : deck.theme === 'EGYPT' ? 'from-orange-900 to-black' : 'from-gray-800 to-black'} rounded-lg flex items-center justify-center overflow-hidden relative min-h-0`}>
+                                            <div className={`w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0`} style={{ background: deck.theme === 'NEON' ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : deck.theme === 'EGYPT' ? 'linear-gradient(135deg,#b45309,#78350f)' : deck.theme === 'DRAGON' ? 'linear-gradient(135deg,#dc2626,#7f1d1d)' : deck.theme === 'PIRATE' ? 'linear-gradient(135deg,#0369a1,#0c4a6e)' : deck.theme === 'SPACE' ? 'linear-gradient(135deg,#1d4ed8,#0f172a)' : deck.theme === 'CANDY' ? 'linear-gradient(135deg,#db2777,#9d174d)' : deck.theme === 'JUNGLE' ? 'linear-gradient(135deg,#15803d,#14532d)' : deck.theme === 'UNDERWATER' ? 'linear-gradient(135deg,#0891b2,#164e63)' : deck.theme === 'WESTERN' ? 'linear-gradient(135deg,#ca8a04,#713f12)' : deck.theme === 'SAMURAI' ? 'linear-gradient(135deg,#9f1239,#4c0519)' : deck.theme === 'PIGGY' ? 'linear-gradient(135deg,#ec4899,#9d174d)' : 'linear-gradient(135deg,#475569,#1e293b)' }}>
                                                 <div className="text-[5rem] drop-shadow-2xl leading-none">{deck.theme === 'NEON' ? '🎰' : deck.theme === 'EGYPT' ? '🦂' : deck.theme === 'DRAGON' ? '🐉' : deck.theme === 'PIRATE' ? '🏴‍☠️' : deck.theme === 'SPACE' ? '👽' : deck.theme === 'PIGGY' ? '🐷' : '🃏'}</div>
                                                 {isComplete && <div className="absolute top-1 right-1 text-sm">✅</div>}
                                                 <div className="absolute bottom-1 bg-black/70 px-2 py-0.5 rounded-full">
@@ -363,32 +378,29 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             </div>
                             <div ref={deckCardsScrollRef} className="flex-1 overflow-x-auto no-scrollbar">
                                 <div className="flex gap-2 h-full items-stretch min-w-max py-0.5">
-                                    {decks.find(d => d.gameId === selectedDeckId)?.cards.map((card, i) => {
-                                        const rarityColor = card.rarity === 'LEGENDARY' ? '#f59e0b' : card.rarity === 'EPIC' ? '#a855f7' : card.rarity === 'RARE' ? '#3b82f6' : '#6b7280';
+                                    {decks.find(d => d.gameId === selectedDeckId)?.cards
+                                        .filter(card => card.icon.length > 2 || /\p{Emoji}/u.test(card.icon))
+                                        .map((card, i) => {
+                                        const borderColor = getCardBorder(card.rarity);
                                         const isLocked = card.count === 0;
                                         return (
-                                            <div key={i} className={`flex-none rounded-xl ${getCardStyle(card.rarity, isLocked)} flex flex-col items-center relative overflow-hidden`}
-                                                style={{ width: '72px', border: `1.5px solid ${rarityColor}44` }}>
-                                                {/* Card inner frame */}
-                                                <div className="absolute inset-[4px] rounded-lg pointer-events-none" style={{ border: `1px solid ${rarityColor}30` }}></div>
-                                                {/* Rarity corner badge top-left */}
-                                                <div className="absolute top-1 left-1 z-10">
-                                                    <span className={`text-[6px] font-black uppercase px-1 py-0.5 rounded-sm ${card.rarity === 'LEGENDARY' ? 'bg-yellow-500 text-black' : card.rarity === 'EPIC' ? 'bg-purple-600 text-white' : card.rarity === 'RARE' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white'}`}>{card.rarity[0]}</span>
+                                            <div key={i} className="flex-none rounded-xl flex flex-col items-center justify-between relative overflow-hidden"
+                                                style={{ width: '70px', height: '110px', background: getCardBg(card.rarity, isLocked), border: `2px solid ${isLocked ? borderColor + '44' : borderColor}`, boxShadow: isLocked ? 'none' : `0 4px 16px ${borderColor}44` }}>
+                                                {/* Rarity + count top bar */}
+                                                <div className="w-full flex items-center justify-between px-1 pt-1">
+                                                    <span className={`text-[6px] font-black uppercase px-1 py-0.5 rounded-sm ${card.rarity === 'LEGENDARY' ? 'bg-black/40 text-yellow-200' : card.rarity === 'EPIC' ? 'bg-black/40 text-purple-200' : card.rarity === 'RARE' ? 'bg-black/40 text-blue-200' : 'bg-black/40 text-white/70'}`}>{card.rarity[0]}</span>
+                                                    {card.count > 0 && (
+                                                        <span className="text-[6px] font-bold bg-black/50 text-white px-1 py-0.5 rounded-sm">×{card.count}</span>
+                                                    )}
                                                 </div>
-                                                {/* Count badge top-right */}
-                                                {card.count > 0 && (
-                                                    <div className="absolute top-1 right-1 z-10">
-                                                        <span className="text-[6px] font-bold bg-black/60 text-white px-1 py-0.5 rounded-sm">×{card.count}</span>
-                                                    </div>
-                                                )}
-                                                {/* Icon — centered, large */}
+                                                {/* Icon — centered */}
                                                 <div className="flex-1 flex items-center justify-center w-full">
                                                     <span className="text-3xl leading-none drop-shadow-md">{isLocked ? '🔒' : card.icon}</span>
                                                 </div>
                                                 {/* Name bar at bottom */}
-                                                <div className="w-full shrink-0 px-1 pb-1.5">
+                                                <div className="w-full px-1 pb-1.5">
                                                     <div className="text-[7px] font-black text-center w-full truncate leading-none py-0.5 rounded-sm"
-                                                        style={{ background: `${rarityColor}22`, color: isLocked ? '#555' : 'white' }}>
+                                                        style={{ background: 'rgba(0,0,0,0.35)', color: isLocked ? '#666' : 'white' }}>
                                                         {card.name}
                                                     </div>
                                                 </div>

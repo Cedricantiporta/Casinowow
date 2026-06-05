@@ -18,7 +18,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
     if (!isOpen) return null;
 
-    const cap = maxBet * 15;
+    const cap = maxBet * 5;
     const isFull = amount >= cap;
     const pct = Math.min(100, (amount / cap) * 100);
 
@@ -105,7 +105,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 </button>
 
                 <p className="text-white/30 text-[9px] text-center max-w-xs">
-                    Earn up to {formatK(Math.floor(cap))} coins · Max is 15× your current max bet
+                    Earn up to {formatK(Math.floor(cap))} coins · Max is 5× your current max bet
                 </p>
             </div>
         </div>
