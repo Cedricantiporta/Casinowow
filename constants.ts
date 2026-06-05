@@ -438,10 +438,9 @@ export const formatTime = (ms: number): string => {
     return `${minutes}m ${seconds}s`;
 };
 
-// Coin formatter: shows full number with commas up to 19 raw digits.
-// At 20+ digits, abbreviates to K (then M, B, T, Qd, Qi) — each stepping up
-// when the abbreviated number itself would exceed 19 digits.
-//      3×10^19                → "30,000,000,000,000M"   (K would give 17 digits → M)
+// Coin formatter: shows full number with commas up to 15 raw digits.
+// At 16+ digits, abbreviates to K (then M, B, T, Qd, Qi) — each stepping up
+// when the abbreviated number itself would exceed 15 digits.
 export const formatK = (n: number): string => {
     if (!isFinite(n) || isNaN(n)) return '0';
     const abs = Math.abs(n);
@@ -449,7 +448,7 @@ export const formatK = (n: number): string => {
 
     const digitCount = (v: number) => v < 1 ? 1 : Math.floor(Math.log10(v)) + 1;
 
-    if (digitCount(abs) <= 19) {
+    if (digitCount(abs) <= 15) {
         return sign + Math.round(abs).toLocaleString('en-US');
     }
 
@@ -466,7 +465,7 @@ export const formatK = (n: number): string => {
         const { div, suffix } = tiers[i];
         if (abs < div) continue;
         const reduced = Math.round(abs / div);
-        if (digitCount(reduced) <= 19 || i === tiers.length - 1) {
+        if (digitCount(reduced) <= 15 || i === tiers.length - 1) {
             return sign + reduced.toLocaleString('en-US') + suffix;
         }
     }

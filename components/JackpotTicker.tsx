@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { formatK } from '../constants';
 
 // Jackpot prizes are currentBet × these multipliers (same as win amounts)
-const JP_MULTIPLIERS = [20, 35, 55, 75, 100];
+const JP_MULTIPLIERS = [10, 20, 30, 50, 100];
 
 const TIER_META = [
     { name: 'MINI',  tierClass: 't-green'  },
