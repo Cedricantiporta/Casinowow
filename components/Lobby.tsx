@@ -304,7 +304,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative leading-none">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🐷</span>
                                     {piggyFull && (
-                                        <div className="absolute -top-1 -right-2 bg-green-500 text-white font-black text-[7px] px-1 py-0.5 rounded-full border border-white leading-none animate-pulse whitespace-nowrap">FULL</div>
+                                        <div className="absolute -top-1 -right-2 text-white font-black text-[7px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>
                                     )}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
@@ -315,8 +316,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative leading-none">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🗿</span>
                                     {!isQuestLocked && wildCredits > 0 && (
-                                        <div className={`absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black border border-white leading-none text-[8px] ${wildFull ? 'bg-green-500 animate-pulse' : 'bg-purple-600'}`}>
-                                            {wildFull ? 'FULL' : wildCredits}
+                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
+                                            {wildFull ? 'MAX' : wildCredits}
                                         </div>
                                     )}
                                 </div>
@@ -328,8 +330,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative leading-none">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎲</span>
                                     {!isQuestLocked && diceCredits > 0 && (
-                                        <div className={`absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black border border-white leading-none text-[8px] ${diceFull ? 'bg-green-500 animate-pulse' : 'bg-purple-600'}`}>
-                                            {diceFull ? 'FULL' : diceCredits}
+                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
+                                            {diceFull ? 'MAX' : diceCredits}
                                         </div>
                                     )}
                                 </div>
@@ -341,7 +344,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative leading-none">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎫</span>
                                     {totalMissionNotifs > 0 && !isMissionsLocked && (
-                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 bg-red-600 rounded-full border border-white flex items-center justify-center text-[9px] text-white font-black" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[9px] text-white font-black"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
                                             {totalMissionNotifs}
                                         </div>
                                     )}

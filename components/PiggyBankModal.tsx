@@ -70,7 +70,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                     <div className="text-[7rem] filter drop-shadow-2xl leading-none">🐷</div>
                     {breaking && <div className="absolute text-5xl animate-ping">💥</div>}
                     {isFull && !breaking && (
-                        <div className="absolute -top-2 -right-2 bg-red-600 text-white font-black text-[10px] px-2 py-0.5 rounded-full animate-bounce shadow-lg">FULL!</div>
+                        <div className="absolute -top-2 -right-2 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-lg" style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL!</div>
                     )}
                 </div>
 

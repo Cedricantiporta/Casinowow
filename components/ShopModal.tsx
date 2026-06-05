@@ -167,7 +167,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                     <span>🎁</span>
                     <span>Free</span>
                     {freeCoinsAvailable && (
-                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white animate-pulse" />
+                        <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full" style={{ background: '#dc2626', border: '1.5px solid #f0c000' }} />
                     )}
                 </button>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>

@@ -80,7 +80,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                         </div>
                         
                         {passRewardsReady > 0 && isMissionsUnlocked && (
-                            <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-black animate-bounce shadow-lg border-2 border-white z-20">
+                            <div className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 rounded-full flex items-center justify-center text-white text-xs font-black shadow-lg z-20"
+                                style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
                                 {passRewardsReady}
                             </div>
                         )}
@@ -94,7 +95,8 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     )}
                     
                     {passRewardsReady > 0 && isMissionsUnlocked && (
-                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-20 bg-green-600 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase drop-shadow-md animate-pulse shadow-lg border border-green-400 whitespace-nowrap">
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-20 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase drop-shadow-md shadow-lg whitespace-nowrap"
+                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
                             COLLECT
                         </span>
                     )}
