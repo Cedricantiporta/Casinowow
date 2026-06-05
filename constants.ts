@@ -438,17 +438,23 @@ export const formatTime = (ms: number): string => {
     return `${minutes}m ${seconds}s`;
 };
 
-// Smart formatter: starts with lowest suffix (K) and steps up only when the
-// number string (digits + commas + suffix) would exceed MAX_LEN characters.
-// e.g. 9T → "9,000,000M"  86.5T → "86,500,000M"  1B → "1,000,000K"
+// Coin formatter: shows full number with commas up to 16 raw digits.
+// At 17+ digits, abbreviates to K (then M, B, T, Qd, Qi) — each stepping up
+// when the abbreviated number itself would exceed 16 digits.
+// e.g. 9,999,999,999,999,999 → "9,999,999,999,999,999" (16 digits, full)
+//      10,000,000,000,000,000 → "10,000,000,000,000K"   (17 digits → K)
+//      3×10^19                → "30,000,000,000,000M"   (K would give 17 digits → M)
 export const formatK = (n: number): string => {
-    if (!isFinite(n) || isNaN(n)) return '0K';
+    if (!isFinite(n) || isNaN(n)) return '0';
     const abs = Math.abs(n);
     const sign = n < 0 ? '-' : '';
 
-    if (abs < 1000) return sign + Math.round(abs).toLocaleString('en-US');
+    const digitCount = (v: number) => v < 1 ? 1 : Math.floor(Math.log10(v)) + 1;
 
-    const MAX_LEN = 13; // max chars for the number+suffix portion (e.g. "9,000,000,000M" is 14 → skip)
+    if (digitCount(abs) <= 16) {
+        return sign + Math.round(abs).toLocaleString('en-US');
+    }
+
     const tiers = [
         { div: 1e3,  suffix: 'K'  },
         { div: 1e6,  suffix: 'M'  },
@@ -461,9 +467,9 @@ export const formatK = (n: number): string => {
     for (let i = 0; i < tiers.length; i++) {
         const { div, suffix } = tiers[i];
         if (abs < div) continue;
-        const formatted = Math.round(abs / div).toLocaleString('en-US') + suffix;
-        if (formatted.length <= MAX_LEN || i === tiers.length - 1) {
-            return sign + formatted;
+        const reduced = Math.round(abs / div);
+        if (digitCount(reduced) <= 16 || i === tiers.length - 1) {
+            return sign + reduced.toLocaleString('en-US') + suffix;
         }
     }
     return sign + Math.round(abs).toLocaleString('en-US');
