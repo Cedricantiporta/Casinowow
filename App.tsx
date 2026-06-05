@@ -2157,10 +2157,27 @@ const currentState: SavedGameState = {
           onToggleMute={() => setIsMuted(audioService.toggleMute())}
           fastSpin={fastSpin}
           onToggleFastSpin={() => setFastSpin(f => !f)}
-          onDevMode={() => {
-              setPlayer(p => ({ ...p, level: 50, balance: 9_000_000_000_000, diamonds: 100_000 }));
-              setCelebrationMsg('Dev Mode: Level 50 · 9T Coins · 100K Gems');
+          onRedeem={(code) => {
+              if (code === 'dev777') {
+                  setPlayer(p => ({ ...p, level: 50, balance: p.balance + 1_000_000_000_000 }));
+                  setCelebrationMsg('⚡ Level Rush! +1T Coins · Level 50');
+              } else if (code === 'dev999') {
+                  setPlayer(p => ({ ...p, balance: p.balance + 100_000_000_000_000 }));
+                  setCelebrationMsg('💰 Coin Flood! +100T Coins');
+              } else if (code === 'dev1') {
+                  const now = Date.now();
+                  setPlayer(p => ({ ...p, diamonds: p.diamonds + 50_000, isVip: true, xpMultiplier: 3, xpBoostEndTime: now + 24 * 60 * 60 * 1000 }));
+                  setMissionState(ms => ({
+                      ...ms,
+                      isPremium: true,
+                      premiumExpiry: now + 30 * 24 * 60 * 60 * 1000,
+                      passBoostMultiplier: 3,
+                      passBoostEndTime: now + 24 * 60 * 60 * 1000,
+                  }));
+                  setCelebrationMsg('👑 Full Premium Unlocked!');
+              }
               audioService.playWinBig();
+              setShowSettings(false);
           }}
       />
 
