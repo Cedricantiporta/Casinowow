@@ -167,12 +167,12 @@ const ReelCell: React.FC<{
         [SymbolType.JACKPOT_MEGA]:  'MEGA',
         [SymbolType.JACKPOT_GRAND]: 'GRAND',
     };
-    const JP_BG_STYLES: Partial<Record<SymbolType, { border: string; glow: string; text: string }>> = {
-        [SymbolType.JACKPOT_MINI]:  { border: '#22c55e', glow: 'rgba(34,197,94,0.5)',  text: '#4ade80' },
-        [SymbolType.JACKPOT_MINOR]: { border: '#06b6d4', glow: 'rgba(6,182,212,0.5)',  text: '#67e8f9' },
-        [SymbolType.JACKPOT_MAJOR]: { border: '#a855f7', glow: 'rgba(168,85,247,0.5)', text: '#d8b4fe' },
-        [SymbolType.JACKPOT_MEGA]:  { border: '#ef4444', glow: 'rgba(239,68,68,0.5)',  text: '#fca5a5' },
-        [SymbolType.JACKPOT_GRAND]: { border: '#f59e0b', glow: 'rgba(245,158,11,0.5)', text: '#fde68a' },
+    const JP_BG_STYLES: Partial<Record<SymbolType, { border: string; glow: string; text: string; solidBg: string }>> = {
+        [SymbolType.JACKPOT_MINI]:  { border: '#16a34a', glow: 'rgba(34,197,94,0.6)',  text: '#bbf7d0', solidBg: '#14532d' },
+        [SymbolType.JACKPOT_MINOR]: { border: '#0891b2', glow: 'rgba(6,182,212,0.6)',  text: '#a5f3fc', solidBg: '#164e63' },
+        [SymbolType.JACKPOT_MAJOR]: { border: '#9333ea', glow: 'rgba(168,85,247,0.6)', text: '#e9d5ff', solidBg: '#3b0764' },
+        [SymbolType.JACKPOT_MEGA]:  { border: '#dc2626', glow: 'rgba(239,68,68,0.6)',  text: '#fecaca', solidBg: '#7f1d1d' },
+        [SymbolType.JACKPOT_GRAND]: { border: '#d97706', glow: 'rgba(245,158,11,0.6)', text: '#fef08a', solidBg: '#78350f' },
     };
     const isJackpot = symbol in JP_LABELS;
     const jpLabel = JP_LABELS[symbol];
@@ -188,7 +188,7 @@ const ReelCell: React.FC<{
         bgClasses = "bg-indigo-500/50 border-indigo-300 shadow-[0_0_40px_rgba(99,102,241,0.9)] z-20";
     }
     if (isJackpot && !highlight) {
-        bgClasses = `bg-black/40 border border-white/10`;
+        bgClasses = '';
     }
 
     // Bounce Animation Logic (Applies to Content Wrapper)
@@ -218,12 +218,14 @@ const ReelCell: React.FC<{
                 h-full
                 w-full
                 max-w-full
-                rounded-none 
+                rounded-none
                 flex items-center justify-center
                 transition-all duration-300
                 overflow-hidden
                 ${isLetter && !highlight ? '' : bgClasses}
-            `}>
+            `}
+            style={isJackpot && !highlight && jpStyle ? { background: jpStyle.solidBg } : undefined}
+            >
                  {/* Inner Shine - Hide for letters unless highlighted */}
                  {(!isLetter || highlight) && <div className="absolute inset-0 rounded-none border border-white/10 shadow-inner pointer-events-none"></div>}
                  

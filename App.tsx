@@ -924,23 +924,20 @@ const App: React.FC = () => {
       }
 
       if (freeSpinsRemaining > 0) {
-          // Base probs reduced 30% from original
           const JP_SPAWN = [
-              { type: SymbolType.JACKPOT_MINI,  prob: 0.0735 },
-              { type: SymbolType.JACKPOT_MINOR, prob: 0.0343 },
-              { type: SymbolType.JACKPOT_MAJOR, prob: 0.0147 },
-              { type: SymbolType.JACKPOT_MEGA,  prob: 0.0049 },
-              { type: SymbolType.JACKPOT_GRAND, prob: 0.00147 },
+              { type: SymbolType.JACKPOT_MINI,  prob: 0.105 },
+              { type: SymbolType.JACKPOT_MINOR, prob: 0.049 },
+              { type: SymbolType.JACKPOT_MAJOR, prob: 0.021 },
+              { type: SymbolType.JACKPOT_MEGA,  prob: 0.007 },
+              { type: SymbolType.JACKPOT_GRAND, prob: 0.0021 },
           ];
           const jpCellPositions: { c: number; r: number }[] = [];
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
                   if (newGrid[c][r] === SymbolType.SCATTER || newGrid[c][r] === SymbolType.WILD) continue;
                   if (jpCellPositions.length >= 5) break;
-                  // Once 2 jackpots placed, halve all probs to make 3+ 50% less likely
-                  const mult = jpCellPositions.length >= 2 ? 0.5 : 1.0;
                   for (const jp of JP_SPAWN) {
-                      if (Math.random() < jp.prob * mult) {
+                      if (Math.random() < jp.prob) {
                           newGrid[c][r] = jp.type;
                           jpCellPositions.push({ c, r });
                           break;
@@ -2180,7 +2177,6 @@ const currentState: SavedGameState = {
                   setCelebrationMsg('👑 Full Premium Unlocked!');
               }
               audioService.playWinBig();
-              setShowSettings(false);
           }}
       />
 
