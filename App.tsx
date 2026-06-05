@@ -1770,11 +1770,14 @@ const currentState: SavedGameState = {
                     {/* Piggy Bank quick button (left icons) */}
                     <div
                         onClick={handleOpenPiggyBank}
-                        className={`round-btn shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+                        className={`round-btn shrink-0 ml-1 relative ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
                         title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
                         style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                     >
                         <span style={{fontSize:16}}>🐷</span>
+                        {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 2 && (
+                            <div className="absolute -top-1.5 -right-1.5 bg-green-500 text-white font-black text-[6px] px-1 py-0.5 rounded-full border border-white leading-none animate-pulse whitespace-nowrap z-10">FULL</div>
+                        )}
                     </div>
 
                 {/* Star Experience Progression (No pill shape container, 2x long, star + bar) */}
@@ -1833,6 +1836,8 @@ const currentState: SavedGameState = {
                 isVip={!!player.isVip}
                 playerLevel={player.level}
                 currentBet={availableBets[betIndex]}
+                piggyBank={player.piggyBank}
+                piggyMaxBet={MAX_BET_BY_LEVEL(player.level)}
             />
         ) : (
             <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">

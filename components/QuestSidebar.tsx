@@ -11,34 +11,33 @@ interface QuestSidebarProps {
     picks?: number;
 }
 
+const MAX_CREDITS = 60;
+
 export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim, xpMultiplier = 1, xpBoostEndTime = 0, picks = 0 }) => {
     const activeCredits = quest.activeGame === 'DICE' ? quest.diceCredits : quest.wildCredits;
-    const isMax = false;
 
     const getIcon = () => {
         if (quest.activeGame === 'DICE') return '🎲';
         if (quest.activeGame === 'WILD') return '🗿';
-        return '🗺️'; // Default
+        return '🗺️';
     };
 
     const getLabel = () => {
         if (quest.activeGame === 'DICE') return 'DICE';
         if (quest.activeGame === 'WILD') return 'WILD';
         return 'QUEST';
-    }
+    };
+
+    const wildFull = quest.wildCredits >= MAX_CREDITS;
+    const diceFull = quest.diceCredits >= MAX_CREDITS;
 
     return (
         <div className="flex flex-col items-center gap-1 self-center pointer-events-auto relative">
-            {/* Quest Button - Clean Circle, Icon Only */}
-            <button 
+            {/* Quest Button */}
+            <button
                 onClick={onClaim}
-                className={`
-                    relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-2xl transition-all cursor-pointer overflow-visible
-                    hover:scale-105 active:scale-95
-                    ${isMax ? 'bg-gradient-to-b from-fuchsia-600 to-purple-900' : 'bg-gradient-to-b from-[#2a1b3d] to-[#1a1025]'}
-                `}
+                className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-2xl transition-all cursor-pointer overflow-visible hover:scale-105 active:scale-95 bg-gradient-to-b from-[#2a1b3d] to-[#1a1025]"
             >
-                 {/* Always show Icon */}
                 <div className="flex flex-col items-center justify-center">
                     <span className="text-2xl md:text-4xl drop-shadow-md mb-1">{getIcon()}</span>
                     <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)] z-10">
@@ -46,27 +45,23 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim, xpMu
                     </span>
                 </div>
 
-                 {/* Credits Counter Badge */}
-                 {isMax ? (
-                    <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-black shadow-lg border-2 border-white z-20 animate-pulse">
-                        MAX
+                {/* Active quest credit badge */}
+                {activeCredits > 0 && (
+                    <div className={`absolute -top-2 -right-2 min-w-[24px] h-6 px-1 rounded-full flex items-center justify-center text-white text-[10px] font-black shadow-lg border-2 border-white z-20 ${activeCredits >= MAX_CREDITS ? 'bg-green-500 animate-pulse' : 'bg-purple-600'}`}>
+                        {activeCredits >= MAX_CREDITS ? 'FULL' : Math.floor(activeCredits)}
                     </div>
-                 ) : activeCredits > 0 && (
-                    <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-black shadow-lg border-2 border-white z-20">
-                        {Math.floor(activeCredits)}
-                    </div>
-                 )}
+                )}
             </button>
-            
+
+            {/* Per-quest credit pills */}
             <div className="flex gap-1 mt-0.5 justify-center">
-                <span className="text-[9px] font-black text-white bg-purple-800/90 rounded-full px-1.5 py-0.5 leading-none">🎲{quest.diceCredits}</span>
-                <span className="text-[9px] font-black text-white bg-indigo-800/90 rounded-full px-1.5 py-0.5 leading-none">🗿{quest.wildCredits}</span>
-            </div>
-            {isMax && (
-                <span className="bg-green-600 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase drop-shadow-md animate-pulse shadow-lg border border-green-400">
-                    COLLECT
+                <span className={`text-[9px] font-black text-white rounded-full px-1.5 py-0.5 leading-none ${wildFull ? 'bg-green-700 animate-pulse' : 'bg-indigo-800/90'}`}>
+                    🗿 {wildFull ? 'FULL' : quest.wildCredits}
                 </span>
-            )}
+                <span className={`text-[9px] font-black text-white rounded-full px-1.5 py-0.5 leading-none ${diceFull ? 'bg-green-700 animate-pulse' : 'bg-purple-800/90'}`}>
+                    🎲 {diceFull ? 'FULL' : quest.diceCredits}
+                </span>
+            </div>
         </div>
     );
 };
