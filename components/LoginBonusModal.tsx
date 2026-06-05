@@ -1,13 +1,14 @@
 import React from 'react';
-import { DAILY_LOGIN_REWARDS, formatCommaNumber } from '../constants';
+import { DAILY_LOGIN_REWARDS, formatK } from '../constants';
 
 interface LoginBonusModalProps {
     isOpen: boolean;
-    currentDay: number; // 1-7
+    currentDay: number;
+    maxBet: number;
     onClaim: () => void;
 }
 
-export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, currentDay, onClaim }) => {
+export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, currentDay, maxBet, onClaim }) => {
     if (!isOpen) return null;
 
     const row1 = DAILY_LOGIN_REWARDS.slice(0, 3);
@@ -18,9 +19,10 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
         const isPast = reward.day < currentDay;
         const isFuture = reward.day > currentDay;
         const isGoldenDay = reward.day === 7;
+        const coins = reward.multiplier * maxBet;
 
         return (
-            <div 
+            <div
                 key={reward.day}
                 className={`
                     relative rounded-xl p-1.5 flex flex-col items-center justify-between overflow-hidden shadow-md transition-all h-24 md:h-28 w-full
@@ -39,7 +41,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                         {reward.day === 7 ? '👑' : reward.gems > 0 ? '💎' : '💰'}
                     </div>
                     <div className={`font-black text-[10px] md:text-sm leading-tight ${isGoldenDay ? 'text-black' : isToday ? 'text-white' : 'text-indigo-100'}`}>
-                        {formatCommaNumber(reward.coins)}
+                        {formatK(coins)}
                     </div>
                     {reward.gems > 0 && (
                         <div className={`font-bold text-[8px] md:text-[9px] mt-0.5 ${isGoldenDay ? 'text-red-950' : isToday ? 'text-cyan-200' : 'text-cyan-400'}`}>
@@ -47,9 +49,9 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                         </div>
                     )}
                 </div>
-                
+
                 {isToday && (
-                    <button 
+                    <button
                         onClick={onClaim}
                         className="w-full py-1 bg-green-500 hover:bg-green-400 text-white font-black uppercase text-[8px] rounded-md shadow-md animate-pulse mt-0.5"
                     >
@@ -69,10 +71,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
     return (
         <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/90 backdrop-blur-md animate-pop-in">
             <div className="relative w-full max-w-sm p-3">
-                {/* Container */}
                 <div className="bg-gradient-to-b from-indigo-900 to-[#1e1b4b] rounded-2xl p-4 shadow-[0_0_30px_rgba(79,70,229,0.4)] flex flex-col items-center text-center relative overflow-hidden">
-                    
-                    {/* Background */}
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] bg-[conic-gradient(from_0deg,transparent_0deg,rgba(255,255,255,0.1)_20deg,transparent_40deg)] animate-[spin_15s_linear_infinite] pointer-events-none"></div>
 
@@ -83,12 +82,9 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                         Come back every day for bigger rewards!
                     </p>
 
-                    {/* Row 1: 3 items */}
                     <div className="grid grid-cols-3 gap-1.5 w-full max-w-xs mb-2">
                         {row1.map(reward => renderDayCard(reward))}
                     </div>
-
-                    {/* Row 2: 4 items */}
                     <div className="grid grid-cols-4 gap-1.5 w-full max-w-sm">
                         {row2.map(reward => renderDayCard(reward))}
                     </div>

@@ -674,7 +674,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         // FREE TIER
         // Pattern: 5 Coins, then 1 Special
         let typeFree: RewardType = 'COINS';
-        let valueFree = Math.floor(maxBet * 0.15 * (1 + (i - 1) * 0.15));
+        let valueFree = Math.floor(10000 * 0.15 * (1 + (i - 1) * 0.15));
         let labelFree = formatNumber(valueFree);
 
         if (i === 40) {
@@ -711,7 +711,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
 
         // PREMIUM TIER
         let typePrem: RewardType = 'COINS';
-        let valuePrem = Math.floor(maxBet * 0.5 * (1 + (i - 1) * 0.15));
+        let valuePrem = Math.floor(10000 * 0.5 * (1 + (i - 1) * 0.15));
         let labelPrem = formatNumber(valuePrem);
 
         if (i % 20 === 0) {
@@ -817,11 +817,11 @@ export const GENERATE_DECKS = (): Deck[] => {
 };
 
 export const DAILY_LOGIN_REWARDS = [
-    { day: 1, coins: 50000, gems: 0 },
-    { day: 2, coins: 100000, gems: 0 },
-    { day: 3, coins: 250000, gems: 5 },
-    { day: 4, coins: 500000, gems: 0 },
-    { day: 5, coins: 1000000, gems: 10 },
-    { day: 6, coins: 2500000, gems: 20 },
-    { day: 7, coins: 10000000, gems: 50 }
+    { day: 1, multiplier: 5,  gems: 0  },
+    { day: 2, multiplier: 10, gems: 0  },
+    { day: 3, multiplier: 15, gems: 5  },
+    { day: 4, multiplier: 20, gems: 0  },
+    { day: 5, multiplier: 25, gems: 10 },
+    { day: 6, multiplier: 35, gems: 20 },
+    { day: 7, multiplier: 50, gems: 50 },
 ];

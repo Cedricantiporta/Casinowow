@@ -285,27 +285,20 @@ const App: React.FC = () => {
       openModal('PIGGY');
   };
   
-  const handleBreakPiggy = () => {
-      // Dynamic Cost: Base 50 Gems, +1 Gem per 20,000 Coins
-      // Capped at 1000 Gems
-      const rawCost = Math.max(50, Math.floor(player.piggyBank / 20000));
-      const breakCost = Math.min(rawCost, 1000);
-
-      if (player.diamonds >= breakCost && player.piggyBank > 0) {
-          const brokenAmount = Math.floor(player.piggyBank);
-          if (brokenAmount > 0) {
-              setPlayer(p => ({ 
-                  ...p, 
-                  balance: p.balance + brokenAmount, 
-                  diamonds: p.diamonds - breakCost,
-                  piggyBank: 0 
-              }));
-              setCelebrationMsg(`+${formatCommaNumber(brokenAmount)} Coins`);
-              audioService.playWinBig();
-          }
+  const handleBreakPiggy = (tierAmount: number, gemCost: number) => {
+      if (player.diamonds >= gemCost && player.piggyBank >= tierAmount) {
+          const brokenAmount = Math.floor(tierAmount);
+          setPlayer(p => ({
+              ...p,
+              balance: p.balance + brokenAmount,
+              diamonds: p.diamonds - gemCost,
+              piggyBank: Math.max(0, p.piggyBank - brokenAmount),
+          }));
+          setCelebrationMsg(`+${formatCommaNumber(brokenAmount)} Coins`);
+          audioService.playWinBig();
       } else {
-          if (player.diamonds < breakCost) setCelebrationMsg(`Need ${breakCost} Gems!`);
-          else setCelebrationMsg("Bank is empty!");
+          if (player.diamonds < gemCost) setCelebrationMsg(`Need ${gemCost} Gems!`);
+          else setCelebrationMsg("Not enough saved yet!");
           audioService.playStoneBreak();
       }
   };
@@ -364,7 +357,7 @@ const App: React.FC = () => {
   const handleClaimLoginBonus = () => {
       const reward = DAILY_LOGIN_REWARDS.find(r => r.day === loginState.currentDay);
       if (reward) {
-          const scaledCoins = SCALE_COIN_REWARD(reward.coins, player.level, MAX_BET_BY_LEVEL(player.level));
+          const scaledCoins = reward.multiplier * MAX_BET_BY_LEVEL(player.level);
           setPlayer(p => ({ 
               ...p, 
               balance: p.balance + scaledCoins,
@@ -1241,7 +1234,10 @@ const App: React.FC = () => {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
 
        const vipXpMult = player.isVip ? 1.2 : 1.0;
-       const xpGained = Math.floor(Math.sqrt(currentBet) * 2 * player.xpMultiplier * vipXpMult);
+       // spinsAtMaxBet grows with level: ~1 at L1, ~6 at L10, ~22 at L20, ~190 at L50, ~630 at L100
+       const spinsAtMaxBet = Math.max(1, 0.1 * Math.pow(player.level, 1.8));
+       const betFraction = Math.min(currentBet / MAX_BET_BY_LEVEL(player.level), 1.0);
+       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult);
 
        addXp(xpGained);
        updateMissions(MissionType.WIN_COINS, totalPayout);
@@ -1263,7 +1259,9 @@ const App: React.FC = () => {
        }
     } else {
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
-       const lossXp = Math.floor(Math.sqrt(currentBet) * 2 * player.xpMultiplier * vipXpMultLoss);
+       const spinsAtMaxBetLoss = Math.max(1, 0.1 * Math.pow(player.level, 1.8));
+       const betFractionLoss = Math.min(currentBet / MAX_BET_BY_LEVEL(player.level), 1.0);
+       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss);
        addXp(lossXp);
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
@@ -2109,9 +2107,9 @@ const currentState: SavedGameState = {
       
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus} />
       
-      <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} onClaim={handleClaimLoginBonus} />
+      <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} />
       
-    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} balance={player.balance} />
+    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} />
 
       <FeatureUnlockModal 
         isOpen={activeModal === 'FEATURE_UNLOCK'} 
