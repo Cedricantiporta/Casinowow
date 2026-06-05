@@ -674,7 +674,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         // FREE TIER
         // Pattern: 5 Coins, then 1 Special
         let typeFree: RewardType = 'COINS';
-        let valueFree = Math.floor(maxBet * 0.3 * (1 + (i - 1) * 0.5));
+        let valueFree = Math.floor(maxBet * 0.15 * (1 + (i - 1) * 0.15));
         let labelFree = formatNumber(valueFree);
 
         if (i === 40) {
@@ -711,7 +711,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
 
         // PREMIUM TIER
         let typePrem: RewardType = 'COINS';
-        let valuePrem = Math.floor(maxBet * 1.0 * (1 + (i - 1) * 0.5));
+        let valuePrem = Math.floor(maxBet * 0.5 * (1 + (i - 1) * 0.15));
         let labelPrem = formatNumber(valuePrem);
 
         if (i % 20 === 0) {

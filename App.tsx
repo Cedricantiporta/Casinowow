@@ -1288,7 +1288,8 @@ const App: React.FC = () => {
           }
           if (leveledUp) {
               audioService.playLevelUp();
-              const reward = Math.floor(MAX_BET_BY_LEVEL(newLevel) * 0.5);
+              const isMilestone = newLevel % 5 === 0;
+              const reward = Math.floor(MAX_BET_BY_LEVEL(newLevel) * (isMilestone ? 0.2 : 0.05));
               const oldMax = MAX_BET_BY_LEVEL(prev.level);
               const newMax = MAX_BET_BY_LEVEL(newLevel);
               if (toastCountRef.current < 10) {
@@ -1895,7 +1896,7 @@ const currentState: SavedGameState = {
                     );
                 })()}
                 <div className="w-full z-10 p-0 m-0">
-                    <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={currentBet} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
+                    <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
