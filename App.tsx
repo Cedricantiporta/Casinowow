@@ -285,20 +285,18 @@ const App: React.FC = () => {
       openModal('PIGGY');
   };
   
-  const handleBreakPiggy = (tierAmount: number, gemCost: number) => {
-      if (player.diamonds >= gemCost && player.piggyBank >= tierAmount) {
-          const brokenAmount = Math.floor(tierAmount);
+  const handleBreakPiggy = (tierAmount: number, _gemCost: number) => {
+      const brokenAmount = Math.floor(player.piggyBank);
+      if (brokenAmount > 0) {
           setPlayer(p => ({
               ...p,
               balance: p.balance + brokenAmount,
-              diamonds: p.diamonds - gemCost,
-              piggyBank: Math.max(0, p.piggyBank - brokenAmount),
+              piggyBank: 0,
           }));
-          setCelebrationMsg(`+${formatCommaNumber(brokenAmount)} Coins`);
+          setCelebrationMsg(`🐷 +${formatCommaNumber(brokenAmount)} Coins!`);
           audioService.playWinBig();
       } else {
-          if (player.diamonds < gemCost) setCelebrationMsg(`Need ${gemCost} Gems!`);
-          else setCelebrationMsg("Not enough saved yet!");
+          setCelebrationMsg("Piggy Bank is empty!");
           audioService.playStoneBreak();
       }
   };
@@ -1027,7 +1025,7 @@ const App: React.FC = () => {
       // Piggy Bank Logic: 10% of Bet (+ 10% extra if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
           const savings = currentBet * (player.isVip ? 0.20 : 0.10);
-          const cap = player.level * MAX_BET_BY_LEVEL(player.level) * 750;
+          const cap = MAX_BET_BY_LEVEL(player.level) * 15;
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
@@ -1183,8 +1181,8 @@ const App: React.FC = () => {
         { name: 'MEGA',  color: '#ff8c00', icon: '👑' },
         { name: 'GRAND', color: '#ff2244', icon: '🏆' },
     ];
-    // Jackpot amounts: 20/35/55/75/100× current bet
-    const JP_BET_MULTIPLIERS = [20, 35, 55, 75, 100];
+    // Jackpot amounts: 10/20/30/50/100× current bet
+    const JP_BET_MULTIPLIERS = [10, 20, 30, 50, 100];
     const jpAmounts = JP_BET_MULTIPLIERS.map(m => Math.floor(currentBet * m));
     let jackpotWon = false;
     JP_WIN_TYPES.forEach((jpType, tier) => {
@@ -1775,8 +1773,9 @@ const currentState: SavedGameState = {
                         style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                     >
                         <span style={{fontSize:16}}>🐷</span>
-                        {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 2 && (
-                            <div className="absolute -top-1.5 -right-1.5 bg-green-500 text-white font-black text-[6px] px-1 py-0.5 rounded-full border border-white leading-none animate-pulse whitespace-nowrap z-10">FULL</div>
+                        {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 15 && (
+                            <div className="absolute -top-1.5 -right-1.5 text-white font-black text-[6px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap z-10"
+                                style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>
                         )}
                     </div>
 
@@ -2180,6 +2179,26 @@ const currentState: SavedGameState = {
                       passBoostEndTime: now + 24 * 60 * 60 * 1000,
                   }));
                   setCelebrationMsg('👑 Full Premium Unlocked!');
+              } else if (code === 'dev111') {
+                  const now = Date.now();
+                  setPlayer(p => ({
+                      ...p,
+                      balance: p.balance + 1_000_000_000_000_000_000,
+                      level: p.level + 100,
+                      diamonds: p.diamonds + 500_000,
+                      packCredits: p.packCredits + 500_000,
+                      isVip: true,
+                      xpMultiplier: 5,
+                      xpBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
+                  }));
+                  setMissionState(ms => ({
+                      ...ms,
+                      isPremium: true,
+                      premiumExpiry: now + 365 * 24 * 60 * 60 * 1000,
+                      passBoostMultiplier: 5,
+                      passBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
+                  }));
+                  setCelebrationMsg('💥 GOD MODE! +1Qi · +100 Levels · All Premium');
               }
               audioService.playWinBig();
           }}

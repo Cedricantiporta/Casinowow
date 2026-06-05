@@ -154,7 +154,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const diceCredits = Math.floor(questState.diceCredits);
 
     // Piggy full state
-    const piggyCap = piggyMaxBet * 2;
+    const piggyCap = piggyMaxBet * 15;
     const piggyFull = !isPiggyLocked && piggyBank >= piggyCap;
 
     return (

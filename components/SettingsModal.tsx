@@ -39,11 +39,24 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
             { icon: '🚀', label: 'XP Boost ×3 — 24 Hours' },
         ],
     },
+    dev111: {
+        title: 'GOD MODE',
+        description: 'Maximum everything. One quintillion coins, 100 levels, all premiums.',
+        icon: '💥',
+        rewards: [
+            { icon: '🪙', label: '+1 Quintillion Coins' },
+            { icon: '⭐', label: '+100 Levels' },
+            { icon: '💎', label: '+500,000 Gems' },
+            { icon: '🃏', label: '+500,000 Card Packs' },
+            { icon: '👑', label: 'VIP + Monthly Pass' },
+            { icon: '🚀', label: 'XP Boost ×5 — 7 Days' },
+        ],
+    },
 };
 
 const Toggle: React.FC<{ on: boolean; onToggle: () => void; label: string; sub?: string; icon: string }> = ({ on, onToggle, label, sub, icon }) => (
     <div className="flex items-center justify-between px-3 py-2.5 rounded-xl"
-        style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+        style={{ background: 'rgba(255,255,255,0.05)' }}>
         <div className="flex items-center gap-2.5">
             <span style={{ fontSize: '1.3rem', lineHeight: 1 }}>{icon}</span>
             <div>
@@ -126,29 +139,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 px-0.5">Gameplay</div>
-                        <div className="flex flex-col gap-1.5">
-                            <Toggle on={fastSpin} onToggle={onToggleFastSpin} icon="⚡" label="Fast Spin" sub="Instant reel stop" />
-                            <div className="flex items-center justify-between px-3 py-2.5 rounded-xl opacity-40"
-                                style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                                <div className="flex items-center gap-2.5">
-                                    <span style={{ fontSize: '1.3rem', lineHeight: 1 }}>🃏</span>
-                                    <div className="text-white/60 font-black text-xs">Show Paylines</div>
-                                </div>
-                                <span className="text-purple-400/50 text-[8px] font-bold uppercase">Soon</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div className="text-purple-400/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 px-0.5">Account</div>
-                        <div className="flex items-center justify-between px-3 py-2.5 rounded-xl opacity-40"
-                            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div className="flex items-center gap-2.5">
-                                <span style={{ fontSize: '1.3rem', lineHeight: 1 }}>📧</span>
-                                <div className="text-white/60 font-black text-xs">Notifications</div>
-                            </div>
-                            <span className="text-purple-400/50 text-[8px] font-bold uppercase">Soon</span>
-                        </div>
+                        <Toggle on={fastSpin} onToggle={onToggleFastSpin} icon="⚡" label="Fast Spin" sub="Instant reel stop" />
                     </div>
                 </div>
 
@@ -157,7 +148,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 px-0.5">Redeem Code</div>
                         <div className="rounded-xl p-3 flex flex-col gap-2"
-                            style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                            style={{ background: 'rgba(0,0,0,0.35)' }}>
                             <p className="text-purple-200/50 text-[9px] leading-snug">Enter a code to claim special rewards.</p>
                             <div className={`flex gap-2 ${errorShake ? 'animate-[shake_0.4s_ease]' : ''}`}>
                                 <input
@@ -182,7 +173,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 px-0.5">About</div>
                         <div className="rounded-xl p-3 flex flex-col gap-1.5"
-                            style={{ background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            style={{ background: 'rgba(0,0,0,0.25)' }}>
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">🎰</span>
                                 <div>
@@ -190,7 +181,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                     <div className="text-purple-300/40 text-[9px]">For entertainment only · No real money</div>
                                 </div>
                             </div>
-                            <div className="h-px w-full bg-white/5 my-0.5" />
                             <div className="text-purple-300/30 text-[8px] leading-relaxed">
                                 All coins and gems are virtual and have no real-world value. This game does not offer real-money gambling.
                             </div>
@@ -204,7 +194,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {codeInfo && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/75 backdrop-blur-sm animate-pop-in">
                     <div className="relative w-64 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(168,85,247,0.4)]"
-                        style={{ background: 'linear-gradient(160deg,#4c1d95,#1e0438)', border: '1.5px solid rgba(168,85,247,0.4)' }}>
+                        style={{ background: 'linear-gradient(160deg,#4c1d95,#1e0438)' }}>
 
                         {/* Shimmer top */}
 
@@ -219,7 +209,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             <div className="w-full flex flex-col gap-1.5 mt-1">
                                 {codeInfo.rewards.map((r, i) => (
                                     <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl"
-                                        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                        style={{ background: 'rgba(255,255,255,0.07)' }}>
                                         <span className="text-base">{r.icon}</span>
                                         <span className="text-white font-black text-xs">{r.label}</span>
                                     </div>
@@ -230,7 +220,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 <button
                                     onClick={() => setPendingCode(null)}
                                     className="flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide text-white/60 transition-all active:scale-95"
-                                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
                                     Cancel
                                 </button>
                                 <button
@@ -239,7 +229,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                     style={{
                                         background: 'linear-gradient(180deg,#a855f7,#7c3aed)',
                                         boxShadow: '0 4px 0 #4c1d95, 0 6px 20px rgba(168,85,247,0.4)',
-                                        border: '1px solid rgba(255,255,255,0.2)',
                                     }}>
                                     ✨ Claim Reward
                                 </button>
