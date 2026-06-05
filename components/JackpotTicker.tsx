@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { formatCommaNumber } from '../constants';
+import { formatK } from '../constants';
 import { jackpotService } from '../services/jackpotService';
 
 interface JackpotTickerProps {
@@ -31,7 +31,7 @@ export const JackpotTicker: React.FC<JackpotTickerProps> = ({ slotIdx = 0, isSpi
             {TIER_META.map((tier, idx) => (
                 <div key={tier.name} className={`jp ${tier.tierClass}`}>
                     <div className="jp-tier">{tier.name}</div>
-                    <div className="jp-amt">{formatCommaNumber(amounts[idx] ?? 0)}</div>
+                    <div className="jp-amt">{formatK(amounts[idx] ?? 0)}</div>
                 </div>
             ))}
         </div>

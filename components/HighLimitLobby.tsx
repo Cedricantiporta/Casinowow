@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GAMES_CONFIG, formatCommaNumber } from '../constants';
+import { GAMES_CONFIG, formatK } from '../constants';
 import { GameConfig } from '../types';
 import { jackpotService } from '../services/jackpotService';
 
@@ -86,7 +86,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                             {/* Jackpot */}
                             <div className="absolute top-2 left-0 right-0 flex justify-center z-20">
                                 <span style={{ fontSize: '12px', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }}>
-                                    {formatCommaNumber(jackpotTotals[globalIdx] ?? 0)}
+                                    {formatK(jackpotTotals[globalIdx] ?? 0)}
                                 </span>
                             </div>
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { formatK } from '../constants';
 
 interface ShopModalProps {
     isOpen: boolean;
@@ -40,16 +41,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         setTimeout(() => setCooldown(false), 1000);
     };
 
-    const fmt = (n: number) => {
-        const abs = Math.abs(n);
-        const sign = n < 0 ? '-' : '';
-        if (abs >= 1e18) return sign + (abs / 1e18).toFixed(2).replace(/\.?0+$/, '') + 'Qi';
-        if (abs >= 1e15) return sign + (abs / 1e15).toFixed(2).replace(/\.?0+$/, '') + 'Qd';
-        if (abs >= 1e12) return sign + (abs / 1e12).toFixed(2).replace(/\.?0+$/, '') + 'T';
-        if (abs >= 1e9)  return sign + (abs / 1e9).toFixed(2).replace(/\.?0+$/, '') + 'B';
-        if (abs >= 1e6)  return sign + (abs / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M';
-        return n.toLocaleString('en-US');
-    };
+    const fmt = formatK;
 
     // Tab scroll: Coins=idx 0, Gems=idx 5, Boosts=idx 10, Free=idx 15
     const scrollToSection = (startIdx: number) => {
@@ -82,6 +74,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 icon: '🪙',
                 label: labels[i],
                 sub: fmt(amount),
+                pesosLabel: String(price),
                 color: colors[i],
                 action: () => onBuy('COIN', amount, 0, price),
             };
@@ -125,7 +118,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         const isClaimed = claimedItems?.includes(item.label) ?? false;
         return {
             ...item,
-            price: isClaimed ? item.sub : 'FREE',
+            price: isClaimed ? (item.pesosLabel ?? item.sub) : 'FREE',
             isClaimed,
             action: isClaimed ? () => {} : () => { item.action(); onClaimItem?.(item.label); },
         };

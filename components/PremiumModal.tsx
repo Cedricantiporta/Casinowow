@@ -58,7 +58,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <div className="font-black text-yellow-300 text-base uppercase tracking-wider leading-none">VIP Lounge</div>
                             <div className="text-yellow-200/60 text-xs mt-0.5">Exclusive high-roller access</div>
                             <div className="flex items-center gap-2 mt-1">
-                                <span className="text-yellow-200/40 text-xs line-through">₱ 9,999</span>
+                                <span className="text-yellow-200/40 text-xs line-through">₱ 999</span>
                                 <span className="text-green-400 font-black text-sm uppercase">FREE</span>
                             </div>
                         </div>
@@ -109,7 +109,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <div className="font-black text-purple-300 text-base uppercase tracking-wider leading-none">Monthly Pass</div>
                             <div className="text-purple-200/60 text-xs mt-0.5">30-day premium mission rewards</div>
                             <div className="flex items-center gap-2 mt-1">
-                                <span className="text-yellow-200/40 text-xs line-through">₱ 4,999</span>
+                                <span className="text-yellow-200/40 text-xs line-through">₱ 499</span>
                                 <span className="text-green-400 font-black text-sm uppercase">FREE</span>
                             </div>
                         </div>

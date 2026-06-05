@@ -384,7 +384,7 @@ const GENERATE_SCALES = () => {
 const SCALES = GENERATE_SCALES();
 export const GET_ALL_BETS = () => SCALES;
 export const MAX_BET_BY_LEVEL = (level: number): number => {
-    const index = Math.min(Math.floor(level * 0.4), SCALES.length - 1);
+    const index = Math.min(Math.floor(level * 0.2), SCALES.length - 1);
     return SCALES[index];
 };
 
@@ -438,15 +438,35 @@ export const formatTime = (ms: number): string => {
     return `${minutes}m ${seconds}s`;
 };
 
-// Formats a number as K (thousands) with comma notation, always ending in K
-// e.g. 1,000,000,000,000 → "1,000,000,000K"  86,500,000,000,000 → "86,500,000,000K"
+// Smart formatter: starts with lowest suffix (K) and steps up only when the
+// number string (digits + commas + suffix) would exceed MAX_LEN characters.
+// e.g. 9T → "9,000,000M"  86.5T → "86,500,000M"  1B → "1,000,000K"
 export const formatK = (n: number): string => {
     if (!isFinite(n) || isNaN(n)) return '0K';
     const abs = Math.abs(n);
     const sign = n < 0 ? '-' : '';
-    const k = abs / 1000;
-    if (k < 1) return sign + Math.round(abs).toLocaleString('en-US');
-    return sign + k.toLocaleString('en-US', { maximumFractionDigits: 0 }) + 'K';
+
+    if (abs < 1000) return sign + Math.round(abs).toLocaleString('en-US');
+
+    const MAX_LEN = 13; // max chars for the number+suffix portion (e.g. "9,000,000,000M" is 14 → skip)
+    const tiers = [
+        { div: 1e3,  suffix: 'K'  },
+        { div: 1e6,  suffix: 'M'  },
+        { div: 1e9,  suffix: 'B'  },
+        { div: 1e12, suffix: 'T'  },
+        { div: 1e15, suffix: 'Qd' },
+        { div: 1e18, suffix: 'Qi' },
+    ];
+
+    for (let i = 0; i < tiers.length; i++) {
+        const { div, suffix } = tiers[i];
+        if (abs < div) continue;
+        const formatted = Math.round(abs / div).toLocaleString('en-US') + suffix;
+        if (formatted.length <= MAX_LEN || i === tiers.length - 1) {
+            return sign + formatted;
+        }
+    }
+    return sign + Math.round(abs).toLocaleString('en-US');
 };
 
 // --- Mission & Battle Pass Generators ---

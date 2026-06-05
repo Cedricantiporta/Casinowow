@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mission, MissionState, PassReward, MissionFrequency } from '../types';
-import { formatNumber, formatCommaNumber, SCALE_COIN_REWARD } from '../constants';
+import { formatNumber, formatCommaNumber, formatK, SCALE_COIN_REWARD } from '../constants';
 
 interface MissionPassModalProps {
     isOpen: boolean;
@@ -90,7 +90,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     };
 
     const getDisplayValue = (reward: PassReward) => {
-        if (reward.type === 'COINS') return formatNumber(SCALE_COIN_REWARD(reward.value, playerLevel));
+        if (reward.type === 'COINS') return formatK(SCALE_COIN_REWARD(reward.value, playerLevel));
         return reward.label;
     };
 
@@ -295,7 +295,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%` }}></div>
                                     </div>
                                     <span className="text-purple-300 font-mono text-[9px] shrink-0 whitespace-nowrap">
-                                        {mission.completed ? '✓' : `${formatNumber(mission.current)}/${formatNumber(mission.target)}`}
+                                        {mission.completed ? '✓' : `${formatK(mission.current)}/${formatK(mission.target)}`}
                                     </span>
                                 </div>
 
@@ -304,7 +304,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     <span className={`font-mono text-[9px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
                                         +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} XP
                                     </span>
-                                    <span className="text-yellow-300 font-mono text-[9px] font-black">+{formatNumber(mission.coinReward)}</span>
+                                    <span className="text-yellow-300 font-mono text-[9px] font-black">+{formatK(mission.coinReward)}</span>
                                 </div>
 
                                 {/* Action */}
