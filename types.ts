@@ -150,7 +150,8 @@ export interface PassReward {
   value: number;
   label: string;
   claimed: boolean;
-  tier: 'FREE' | 'PREMIUM'; 
+  claimedValue?: number; // snapshot of actual coins at claim time — prevents display from re-scaling after collecting
+  tier: 'FREE' | 'PREMIUM';
 }
 
 export interface MissionState {

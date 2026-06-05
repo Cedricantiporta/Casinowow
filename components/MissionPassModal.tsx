@@ -90,7 +90,12 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     };
 
     const getDisplayValue = (reward: PassReward) => {
-        if (reward.type === 'COINS') return formatK(SCALE_COIN_REWARD(reward.value, playerLevel));
+        if (reward.type === 'COINS') {
+            // Claimed rewards show the snapshot value from when they were collected
+            if (reward.claimed && reward.claimedValue !== undefined) return formatK(reward.claimedValue);
+            // Uncollected rewards scale dynamically with current max bet
+            return formatK(SCALE_COIN_REWARD(reward.value, playerLevel));
+        }
         return reward.label;
     };
 

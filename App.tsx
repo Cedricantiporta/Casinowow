@@ -512,26 +512,28 @@ const App: React.FC = () => {
 
   const handleClaimPassReward = (reward: PassReward) => {
       if (reward.claimed) return;
-      if (reward.tier === 'PREMIUM' && !missionState.isPremium) return; 
-      setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true } : r) }));
-      
+      if (reward.tier === 'PREMIUM' && !missionState.isPremium) return;
       let msg = "";
       if (reward.type === 'COINS') {
           const scaledValue = SCALE_COIN_REWARD(reward.value, player.level, MAX_BET_BY_LEVEL(player.level));
+          setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true, claimedValue: scaledValue } : r) }));
           setPlayer(p => ({ ...p, balance: p.balance + scaledValue }));
           msg = `+${formatCommaNumber(scaledValue)} Coins`;
-      } else if (reward.type === 'DIAMONDS') {
-          setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value }));
-          msg = `+${reward.value} Gems`;
-      } else if (reward.type === 'XP_BOOST') {
-          setPlayer(p => ({ ...p, xpMultiplier: reward.value, xpBoostEndTime: Date.now() + 1800000 })); 
-          msg = `${reward.value}x XP Boost`;
-      } else if (reward.type === 'CREDIT_BACK') {
-          setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value }));
-          msg = `+${reward.value} Credits`;
-      } else if (reward.type === 'PICKS') {
-          setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value }));
-          msg = `+${reward.value} Picks`;
+      } else {
+          setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true } : r) }));
+          if (reward.type === 'DIAMONDS') {
+              setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value }));
+              msg = `+${reward.value} Gems`;
+          } else if (reward.type === 'XP_BOOST') {
+              setPlayer(p => ({ ...p, xpMultiplier: reward.value, xpBoostEndTime: Date.now() + 1800000 }));
+              msg = `${reward.value}x XP Boost`;
+          } else if (reward.type === 'CREDIT_BACK') {
+              setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value }));
+              msg = `+${reward.value} Credits`;
+          } else if (reward.type === 'PICKS') {
+              setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value }));
+              msg = `+${reward.value} Picks`;
+          }
       }
       setCelebrationMsg(msg);
       audioService.playWinBig();
@@ -574,10 +576,15 @@ const App: React.FC = () => {
           }));
       }
       
-      const ids = new Set(rewardsToClaim.map(r => r.id));
+      const claimedMap = new Map(rewardsToClaim.map(r => [
+          r.id,
+          r.type === 'COINS' ? SCALE_COIN_REWARD(r.value, player.level, MAX_BET_BY_LEVEL(player.level)) : undefined,
+      ]));
       setMissionState(prev => ({
           ...prev,
-          passRewards: prev.passRewards.map(r => ids.has(r.id) ? { ...r, claimed: true } : r)
+          passRewards: prev.passRewards.map(r => claimedMap.has(r.id)
+              ? { ...r, claimed: true, ...(claimedMap.get(r.id) !== undefined ? { claimedValue: claimedMap.get(r.id) } : {}) }
+              : r),
       }));
 
       let msgParts = [];
