@@ -1770,7 +1770,7 @@ const currentState: SavedGameState = {
                         onClick={handleOpenPiggyBank}
                         className={`round-btn shrink-0 ml-1 relative ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
                         title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
-                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', overflow:'visible' } : { overflow:'visible' }}
                     >
                         <span style={{fontSize:16}}>🐷</span>
                         {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 15 && (
@@ -2180,13 +2180,17 @@ const currentState: SavedGameState = {
                   }));
                   setCelebrationMsg('👑 Full Premium Unlocked!');
               } else if (code === 'dev111') {
+                  setPlayer(p => ({
+                      ...p,
+                      balance: p.balance + 10_000_000_000_000_000,
+                      diamonds: p.diamonds + 500_000,
+                  }));
+                  setCelebrationMsg('💥 Coin Nuke! +10Qd Coins · +500k Gems');
+              } else if (code === 'dev222') {
                   const now = Date.now();
                   setPlayer(p => ({
                       ...p,
-                      balance: p.balance + 1_000_000_000_000_000_000,
                       level: p.level + 100,
-                      diamonds: p.diamonds + 500_000,
-                      packCredits: p.packCredits + 500_000,
                       isVip: true,
                       xpMultiplier: 5,
                       xpBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
@@ -2198,7 +2202,7 @@ const currentState: SavedGameState = {
                       passBoostMultiplier: 5,
                       passBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
                   }));
-                  setCelebrationMsg('💥 GOD MODE! +1Qi · +100 Levels · All Premium');
+                  setCelebrationMsg('👑 GOD MODE! +100 Levels · All Premium · Max Boosts');
               }
               audioService.playWinBig();
           }}

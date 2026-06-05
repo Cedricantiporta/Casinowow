@@ -138,12 +138,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, pla
                     {/* Thick XP bar with text inside */}
                     <div className="relative h-6 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.35)' }}>
                         <div className="absolute inset-0 rounded-full transition-all" style={{ width: `${xpPct}%`, background: xpBarStyle }} />
-                        <div className="absolute inset-0 flex items-center justify-between px-2.5">
-                            <span className="text-[10px] font-black text-white leading-none" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-                                Lv.{player.level}
-                            </span>
+                        <div className="absolute inset-0 flex items-center justify-center px-2.5">
                             <span className="text-[10px] font-black leading-none" style={{ color: vip ? '#fde68a' : '#e9d5ff', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-                                {xpPct}% XP
+                                {formatK(player.xp)} XP / {formatK(player.xpToNextLevel)} XP
                             </span>
                         </div>
                     </div>

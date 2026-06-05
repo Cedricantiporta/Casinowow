@@ -40,14 +40,20 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
         ],
     },
     dev111: {
-        title: 'GOD MODE',
-        description: 'Maximum everything. One quintillion coins, 100 levels, all premiums.',
+        title: 'COIN NUKE',
+        description: '10 Quadrillion coins and 500k gems dropped straight to your wallet.',
         icon: '💥',
         rewards: [
-            { icon: '🪙', label: '+1 Quintillion Coins' },
-            { icon: '⭐', label: '+100 Levels' },
+            { icon: '🪙', label: '+10 Quadrillion Coins' },
             { icon: '💎', label: '+500,000 Gems' },
-            { icon: '🃏', label: '+500,000 Card Packs' },
+        ],
+    },
+    dev222: {
+        title: 'GOD MODE',
+        description: '+100 levels, all premium features, VIP, and max boosts.',
+        icon: '👑',
+        rewards: [
+            { icon: '⭐', label: '+100 Levels' },
             { icon: '👑', label: 'VIP + Monthly Pass' },
             { icon: '🚀', label: 'XP Boost ×5 — 7 Days' },
         ],
@@ -199,7 +205,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         {/* Shimmer top */}
 
                         <div className="px-5 py-5 flex flex-col items-center gap-3">
-                            <div className="text-4xl drop-shadow-lg">{codeInfo.icon}</div>
                             <div className="text-center">
                                 <div className="text-white font-black text-base uppercase tracking-widest">{codeInfo.title}</div>
                                 <div className="text-purple-300/70 text-[10px] mt-0.5 leading-snug">{codeInfo.description}</div>
@@ -207,7 +212,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                             {/* Rewards list */}
                             <div className="w-full flex flex-col gap-1.5 mt-1">
-                                {codeInfo.rewards.map((r, i) => (
+                                {codeInfo.rewards.slice(0, 3).map((r, i) => (
                                     <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl"
                                         style={{ background: 'rgba(255,255,255,0.07)' }}>
                                         <span className="text-base">{r.icon}</span>

@@ -15,54 +15,38 @@ const DOT = 'absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 rounded-full fl
 const DOT_STYLE = { background: '#dc2626', border: '1.5px solid #f0c000' };
 
 export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim }) => {
-    const activeCredits = quest.activeGame === 'DICE' ? quest.diceCredits : quest.wildCredits;
-
-    const getIcon = () => {
-        if (quest.activeGame === 'DICE') return '🎲';
-        if (quest.activeGame === 'WILD') return '🗿';
-        return '🗺️';
-    };
-
-    const getLabel = () => {
-        if (quest.activeGame === 'DICE') return 'DICE';
-        if (quest.activeGame === 'WILD') return 'WILD';
-        return 'QUEST';
-    };
-
     const wildFull = quest.wildCredits >= MAX_CREDITS;
     const diceFull = quest.diceCredits >= MAX_CREDITS;
 
     return (
-        <div className="flex flex-col items-center gap-1 self-center pointer-events-auto relative">
-            {/* Quest Button */}
+        <div className="flex flex-col items-center gap-1.5 self-center pointer-events-auto relative">
+            {/* Wild Button */}
             <button
                 onClick={onClaim}
-                className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-2xl transition-all cursor-pointer overflow-visible hover:scale-105 active:scale-95 bg-gradient-to-b from-[#2a1b3d] to-[#1a1025]"
+                className="relative w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-2xl transition-all cursor-pointer overflow-visible hover:scale-105 active:scale-95 bg-gradient-to-b from-[#2a1b3d] to-[#1a1025]"
             >
-                <div className="flex flex-col items-center justify-center">
-                    <span className="text-2xl md:text-4xl drop-shadow-md mb-1">{getIcon()}</span>
-                    <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)] z-10">
-                        {getLabel()}
-                    </span>
-                </div>
-                {activeCredits > 0 && (
+                <span className="text-xl drop-shadow-md leading-none">🗿</span>
+                <span className="text-[7px] font-black text-white uppercase tracking-wider mt-0.5">WILD</span>
+                {quest.wildCredits > 0 && (
                     <div className={DOT} style={DOT_STYLE}>
-                        {activeCredits >= MAX_CREDITS ? 'FULL' : Math.floor(activeCredits)}
+                        {wildFull ? 'MAX' : Math.floor(quest.wildCredits)}
                     </div>
                 )}
             </button>
 
-            {/* Per-quest credit pills */}
-            <div className="flex gap-1 mt-0.5 justify-center">
-                <span className="text-[9px] font-black text-white rounded-full px-1.5 py-0.5 leading-none bg-indigo-900/90"
-                    style={wildFull ? { border: '1px solid #f0c000', color: '#fde68a' } : undefined}>
-                    🗿 {wildFull ? 'FULL' : quest.wildCredits}
-                </span>
-                <span className="text-[9px] font-black text-white rounded-full px-1.5 py-0.5 leading-none bg-purple-900/90"
-                    style={diceFull ? { border: '1px solid #f0c000', color: '#fde68a' } : undefined}>
-                    🎲 {diceFull ? 'FULL' : quest.diceCredits}
-                </span>
-            </div>
+            {/* Dice Button */}
+            <button
+                onClick={onClaim}
+                className="relative w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-2xl transition-all cursor-pointer overflow-visible hover:scale-105 active:scale-95 bg-gradient-to-b from-[#2a1b3d] to-[#1a1025]"
+            >
+                <span className="text-xl drop-shadow-md leading-none">🎲</span>
+                <span className="text-[7px] font-black text-white uppercase tracking-wider mt-0.5">DICE</span>
+                {quest.diceCredits > 0 && (
+                    <div className={DOT} style={DOT_STYLE}>
+                        {diceFull ? 'MAX' : Math.floor(quest.diceCredits)}
+                    </div>
+                )}
+            </button>
         </div>
     );
 };
