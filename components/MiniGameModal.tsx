@@ -312,7 +312,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
             {/* ── Topbar ── */}
             <div className="shrink-0 flex items-center gap-2 px-3 h-[44px] z-20"
-                style={{ background: HDR, borderBottom: HDR_BORDER, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                style={{ background: HDR, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-arrow-left"></i></div>
                 <span className="font-black text-white text-sm uppercase tracking-widest drop-shadow">{questTitle}</span>
                 <div className="flex-1 flex flex-col items-end justify-center">

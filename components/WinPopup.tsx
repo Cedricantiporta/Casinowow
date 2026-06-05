@@ -16,16 +16,16 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
         audioService.playWinCheer();
         setCanClose(false);
 
-        let duration = 3000;
-        if (type === 'BIG WIN') duration = 3500;
-        else if (type === 'GREAT WIN') duration = 4000;
-        else if (type === 'EPIC WIN') duration = 5000;
-        else if (type === 'MEGA WIN') duration = 6000;
-        else if (type === 'ULTIMATE WIN') duration = 7000;
+        let duration = 1500;
+        if (type === 'BIG WIN') duration = 1750;
+        else if (type === 'GREAT WIN') duration = 2000;
+        else if (type === 'EPIC WIN') duration = 2500;
+        else if (type === 'MEGA WIN') duration = 3000;
+        else if (type === 'ULTIMATE WIN') duration = 3500;
 
         // Counting Animation
         const startTime = Date.now();
-        const countDuration = Math.min(2000, duration - 500); // Count faster than total popup time
+        const countDuration = Math.min(1000, duration - 300);
 
         const timerInterval = setInterval(() => {
             const now = Date.now();
@@ -43,7 +43,7 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
 
         const canCloseTimer = setTimeout(() => {
             setCanClose(true);
-        }, 3000);
+        }, 1500);
 
         return () => {
             clearTimeout(canCloseTimer);

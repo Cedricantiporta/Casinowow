@@ -136,7 +136,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             style={{ background: 'linear-gradient(180deg,#0d0814 0%,#180830 100%)' }}
         >
             {/* Header */}
-            <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0 border-b border-white/10">
+            <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0">
                 <div className="flex items-center gap-2 shrink-0">
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
                         <div className="coin">$</div>

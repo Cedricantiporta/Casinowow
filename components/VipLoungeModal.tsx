@@ -26,9 +26,6 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
         <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none overflow-hidden"
             style={{ background: 'linear-gradient(160deg,#1c0900 0%,#2a1200 50%,#0f0600 100%)' }}>
 
-            {/* Gold shimmer top */}
-            <div className="shrink-0 h-0.5 w-full" style={{ background: 'linear-gradient(90deg,transparent,#f0c000,#fff8a0,#f0c000,transparent)' }} />
-
             {/* Hero section */}
             <div className="shrink-0 flex items-center justify-between px-4 py-3 relative">
                 {/* Back button */}
@@ -108,8 +105,6 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                 )}
             </div>
 
-            {/* Gold shimmer bottom */}
-            <div className="shrink-0 h-0.5 w-full" style={{ background: 'linear-gradient(90deg,transparent,#f0c000,#fff8a0,#f0c000,transparent)' }} />
         </div>
     );
 };

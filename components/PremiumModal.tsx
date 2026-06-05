@@ -36,7 +36,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
             style={{ background: 'linear-gradient(180deg,#0d0814 0%,#1a0535 100%)' }}
         >
             {/* Header */}
-            <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2 border-b border-white/10">
+            <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2">
                 <span className="text-2xl">🏷️</span>
                 <h2 className="font-black text-white text-lg uppercase tracking-widest flex-1">SALE</h2>
                 <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></div>
@@ -51,7 +51,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     style={{ background: 'linear-gradient(160deg,#2a1500,#5c3000,#2a1500)' }}
                 >
                     {/* Card Header */}
-                    <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-yellow-500/20"
+                    <div className="shrink-0 flex items-center gap-3 px-4 py-3"
                         style={{ background: 'linear-gradient(180deg,rgba(251,191,36,0.15),transparent)' }}>
                         <span className="text-3xl leading-none">👑</span>
                         <div className="flex-1 min-w-0">
@@ -102,7 +102,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     style={{ background: 'linear-gradient(160deg,#0e0030,#2d0060,#0e0030)' }}
                 >
                     {/* Card Header */}
-                    <div className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-purple-400/20"
+                    <div className="shrink-0 flex items-center gap-3 px-4 py-3"
                         style={{ background: 'linear-gradient(180deg,rgba(168,85,247,0.15),transparent)' }}>
                         <span className="text-3xl leading-none">📜</span>
                         <div className="flex-1 min-w-0">

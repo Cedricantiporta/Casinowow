@@ -105,11 +105,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="fixed inset-0 z-[150] flex animate-pop-in select-none"
             style={{ background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
 
-            <div className="shrink-0 h-0.5 w-full absolute top-0 left-0" style={{ background: 'linear-gradient(90deg,transparent,#a855f7,transparent)' }} />
-
             {/* Header */}
             <div className="absolute top-0 left-0 right-0 flex items-center gap-3 px-4 py-2.5"
-                style={{ background: 'linear-gradient(180deg,#6b21a8,#4c1d95)', borderBottom: '1.5px solid rgba(168,85,247,0.3)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 2 }}>
+                style={{ background: 'linear-gradient(180deg,#6b21a8,#4c1d95)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)', zIndex: 2 }}>
                 <button className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-arrow-left"></i></button>
                 <span className="text-white font-black text-base uppercase tracking-widest drop-shadow">⚙️ Settings</span>
                 <div className="ml-auto text-purple-300/30 text-[9px] font-bold tracking-widest">v1.0.0</div>
@@ -119,7 +117,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="absolute inset-0 top-[44px] overflow-hidden flex gap-0">
 
                 {/* LEFT — Toggles */}
-                <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3 border-r border-white/5">
+                <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
 
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 px-0.5">Audio</div>
@@ -201,7 +199,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
             </div>
 
-            <div className="shrink-0 h-0.5 w-full absolute bottom-0 left-0" style={{ background: 'linear-gradient(90deg,transparent,#a855f7,transparent)' }} />
 
             {/* Reward Preview Popup */}
             {codeInfo && (
@@ -210,7 +207,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         style={{ background: 'linear-gradient(160deg,#4c1d95,#1e0438)', border: '1.5px solid rgba(168,85,247,0.4)' }}>
 
                         {/* Shimmer top */}
-                        <div className="h-0.5 w-full" style={{ background: 'linear-gradient(90deg,transparent,#a855f7,#d946ef,transparent)' }} />
 
                         <div className="px-5 py-5 flex flex-col items-center gap-3">
                             <div className="text-4xl drop-shadow-lg">{codeInfo.icon}</div>
@@ -250,7 +246,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             </div>
                         </div>
 
-                        <div className="h-0.5 w-full" style={{ background: 'linear-gradient(90deg,transparent,#a855f7,transparent)' }} />
                     </div>
                 </div>
             )}

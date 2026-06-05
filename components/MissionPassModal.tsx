@@ -105,19 +105,16 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const passBtnSize = { width: '54px', height: '26px', flexShrink: 0 as const };
 
     const topbarBase = "font-nunito w-full flex flex-col shrink-0 select-none";
-    const topbarStyle = { background: 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderBottom: '1.5px solid #38106e', boxShadow: '0 4px 8px rgba(0,0,0,0.4)' };
+    const topbarStyle = { background: 'linear-gradient(180deg,#7c3fb5,#4a1880)', boxShadow: '0 4px 8px rgba(0,0,0,0.4)' };
 
     return (
         <div className="fixed inset-0 z-[150] flex flex-col bg-[#0d0814] animate-pop-in">
             {showPremiumInfo && (
                 <div className="fixed inset-0 z-[200] flex flex-col animate-pop-in overflow-hidden"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
-                    {/* Gold shimmer top band */}
-                    <div className="shrink-0 h-0.5 w-full" style={{ background: 'linear-gradient(90deg,transparent,#f0c000,#fff8a0,#f0c000,transparent)' }}></div>
-
                     {/* Header row */}
                     <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative"
-                        style={{ background: 'linear-gradient(180deg,#92400e,#78350f)', borderBottom: '1px solid rgba(251,191,36,0.3)' }}>
+                        style={{ background: 'linear-gradient(180deg,#92400e,#78350f)' }}>
                         <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-arrow-left"></i></div>
                         <div style={{ fontSize: '28px', lineHeight: 1, filter: 'drop-shadow(0 0 10px rgba(250,200,0,0.7))' }}>👑</div>
                         <div className="flex-1">
@@ -168,8 +165,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </button>
                     </div>
 
-                    {/* Gold shimmer bottom band */}
-                    <div className="shrink-0 h-0.5 w-full" style={{ background: 'linear-gradient(90deg,transparent,#f0c000,#fff8a0,#f0c000,transparent)' }}></div>
                 </div>
             )}
 
