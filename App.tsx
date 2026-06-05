@@ -1241,7 +1241,9 @@ const App: React.FC = () => {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
 
        const vipXpMult = player.isVip ? 1.2 : 1.0;
-       const xpGained = Math.floor(Math.sqrt(currentBet) * 2 * player.xpMultiplier * vipXpMult);
+       const maxBetAtLevel = MAX_BET_BY_LEVEL(player.level);
+       const betRatio = Math.min(currentBet / maxBetAtLevel, 1.0);
+       const xpGained = Math.floor(player.xpToNextLevel * 0.015 * Math.sqrt(betRatio) * player.xpMultiplier * vipXpMult);
 
        addXp(xpGained);
        updateMissions(MissionType.WIN_COINS, totalPayout);
@@ -1263,7 +1265,9 @@ const App: React.FC = () => {
        }
     } else {
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
-       const lossXp = Math.floor(Math.sqrt(currentBet) * 2 * player.xpMultiplier * vipXpMultLoss);
+       const maxBetAtLevelLoss = MAX_BET_BY_LEVEL(player.level);
+       const betRatioLoss = Math.min(currentBet / maxBetAtLevelLoss, 1.0);
+       const lossXp = Math.floor(player.xpToNextLevel * 0.015 * Math.sqrt(betRatioLoss) * player.xpMultiplier * vipXpMultLoss);
        addXp(lossXp);
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
@@ -1891,7 +1895,7 @@ const currentState: SavedGameState = {
                     );
                 })()}
                 <div className="w-full z-10 p-0 m-0">
-                    <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
+                    <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={currentBet} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
