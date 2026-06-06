@@ -1,5 +1,5 @@
 import React from 'react';
-import { DAILY_LOGIN_REWARDS, formatK } from '../constants';
+import { DAILY_LOGIN_REWARDS, formatKShort } from '../constants';
 
 interface LoginBonusModalProps {
     isOpen: boolean;
@@ -41,7 +41,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                         {reward.day === 7 ? '👑' : reward.gems > 0 ? '💎' : '💰'}
                     </div>
                     <div className={`font-black text-[10px] md:text-sm leading-tight ${isGoldenDay ? 'text-black' : isToday ? 'text-white' : 'text-indigo-100'}`}>
-                        {formatK(coins)}
+                        {formatKShort(coins)}
                     </div>
                     {reward.gems > 0 && (
                         <div className={`font-bold text-[8px] md:text-[9px] mt-0.5 ${isGoldenDay ? 'text-red-950' : isToday ? 'text-cyan-200' : 'text-cyan-400'}`}>

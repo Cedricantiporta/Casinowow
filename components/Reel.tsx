@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { SymbolType, SymbolConfig } from '../types';
+import { SymbolType, SymbolConfig, GameTheme } from '../types';
 import { WEIGHTS, GET_SYMBOLS } from '../constants';
 import { GameConfig } from '../types';
 
@@ -127,14 +127,16 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                     const isShowcase = landing && visibleRowIndex >= 0 && isScatterShowcase && s === SymbolType.SCATTER;
 
                     return (
-                        <ReelCell 
-                            key={i} 
-                            symbol={s} 
+                        <ReelCell
+                            key={i}
+                            symbol={s}
                             config={SYMBOL_CONFIGS[s]}
                             blur={!landing && spinning}
-                            highlight={isWinner} 
+                            highlight={isWinner}
                             isScatterShowcase={isShowcase}
-                            heightPercent={100 / totalItems} // Cell takes up proportional height of the tall container
+                            heightPercent={100 / totalItems}
+                            theme={gameConfig.theme}
+                            isLastCell={i === renderStrip.length - 1}
                         />
                     );
                 })}
@@ -147,15 +149,35 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   );
 };
 
-const ReelCell: React.FC<{ 
-    symbol: SymbolType, 
-    blur?: boolean, 
-    highlight?: boolean, 
-    config: SymbolConfig, 
+// Returns inline style for the cell separator/border based on theme
+const getCellSeparatorStyle = (theme: GameTheme, isLastCell: boolean): React.CSSProperties => {
+    switch (theme) {
+        case 'PIGGY':
+            return isLastCell ? {} : { borderBottom: '3px solid rgba(0,0,0,0.65)' };
+        case 'DRAGON': case 'PIRATE': case 'JUNGLE': case 'CANDY':
+            return isLastCell ? {} : { borderBottom: '1px solid rgba(255,255,255,0.14)' };
+        case 'EGYPT':
+            return { border: '1px solid rgba(217,119,6,0.45)' };
+        case 'UNDERWATER':
+            return { border: '1px solid rgba(6,182,212,0.4)' };
+        case 'SAMURAI':
+            return { border: '1px solid rgba(239,68,68,0.4)' };
+        default:
+            return {};
+    }
+};
+
+const ReelCell: React.FC<{
+    symbol: SymbolType,
+    blur?: boolean,
+    highlight?: boolean,
+    config: SymbolConfig,
     heightPercent: number,
-    isScatterShowcase?: boolean 
-}> = ({ symbol, blur, highlight, config, heightPercent, isScatterShowcase }) => {
-    
+    isScatterShowcase?: boolean,
+    theme: GameTheme,
+    isLastCell: boolean,
+}> = ({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell }) => {
+
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
     const isLetter = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
@@ -179,61 +201,54 @@ const ReelCell: React.FC<{
     const jpStyle = isJackpot ? JP_BG_STYLES[symbol] : undefined;
 
     let bgClasses = config?.bg || 'bg-transparent';
-    
-    // Background Effects (Glows only, no bounce)
+
     if (highlight) {
-        // Use specific highlight class from config if available to reflect color, otherwise default Gold
-        bgClasses = (config?.highlightClass || "bg-gold-500/30 shadow-[0_0_50px_rgba(255,215,0,0.8)] border-gold-400/50") + " z-20 border";
+        bgClasses = (config?.highlightClass || 'bg-white/20 shadow-[0_0_50px_rgba(255,215,0,0.8)] border-yellow-300/60') + ' z-20 border';
     } else if (isScatter && isScatterShowcase) {
-        bgClasses = "bg-indigo-500/50 border-indigo-300 shadow-[0_0_40px_rgba(99,102,241,0.9)] z-20";
+        bgClasses = 'bg-indigo-500/50 border-indigo-300 shadow-[0_0_40px_rgba(99,102,241,0.9)] z-20';
     }
     if (isJackpot && !highlight) {
         bgClasses = '';
     }
 
-    // Bounce Animation Logic (Applies to Content Wrapper)
     const activeBounce = highlight || isScatterShowcase;
-    
-    // Symbol font sizes: wild −30%, letters −10%, regular full
+
     const fontSize = isWild
         ? 'text-[1.296rem] md:text-[1.746rem] lg:text-[2.187rem]'
         : isLetter
             ? 'text-[2.73rem] md:text-[3.28rem] lg:text-[4.37rem]'
             : 'text-[3.0375rem] md:text-[3.645rem] lg:text-[4.86rem]';
 
+    const separatorStyle = getCellSeparatorStyle(theme, isLastCell);
+
     return (
-        <div 
+        <div
             className={`
-                w-full flex items-center justify-center relative 
-                ${blur ? 'blur-[2px] opacity-80' : ''} 
+                w-full flex items-center justify-center relative
+                ${blur ? 'blur-[2px] opacity-80' : ''}
                 transition-all duration-300
             `}
-            style={{ 
+            style={{
                 height: `${heightPercent}%`,
+                ...separatorStyle,
             }}
         >
             <div className={`
-                relative
-                aspect-square
-                h-full
-                w-full
-                max-w-full
-                rounded-none
+                relative h-full w-full max-w-full rounded-none
                 flex items-center justify-center
-                transition-all duration-300
-                overflow-hidden
-                ${isLetter && !highlight ? '' : bgClasses}
+                transition-all duration-300 overflow-hidden
+                ${bgClasses}
             `}
             style={isJackpot && !highlight && jpStyle ? { background: jpStyle.solidBg } : undefined}
             >
-                 {/* Inner Shine - Hide for letters unless highlighted */}
-                 {(!isLetter || highlight) && <div className="absolute inset-0 rounded-none border border-white/10 shadow-inner pointer-events-none"></div>}
-                 
-                 {/* Content Wrapper - Handles Bounce Animation */}
-                 <div className={`
-                     relative flex flex-col items-center justify-center z-10 w-full h-full
-                     ${activeBounce ? 'animate-bounce scale-110' : ''}
-                 `}>
+                {/* Inner shine/border overlay */}
+                <div className="absolute inset-0 rounded-none border border-white/10 shadow-inner pointer-events-none"></div>
+
+                {/* Content wrapper */}
+                <div className={`
+                    relative flex flex-col items-center justify-center z-10 w-full h-full
+                    ${activeBounce ? 'animate-bounce scale-110' : ''}
+                `}>
                     {isJackpot ? (
                         <span
                             className="font-titan font-black tracking-widest select-none text-white leading-none text-center px-1"
@@ -245,31 +260,33 @@ const ReelCell: React.FC<{
                             {jpLabel}
                         </span>
                     ) : (
-                        <div className={`
-                            ${fontSize} select-none transform
-                            ${config?.style || ''}
-                            ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
-                        `}>
+                        <div
+                            className={`
+                                ${fontSize} select-none transform
+                                ${config?.style || ''}
+                                ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
+                            `}
+                            style={isLetter ? {
+                                textShadow: '0 1px 0 rgba(0,0,0,0.55), 0 2px 0 rgba(0,0,0,0.4), 0 3px 0 rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.5)',
+                            } : undefined}
+                        >
                             {config?.icon}
                         </div>
                     )}
 
                     {isScatter && !blur && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
-                            <span className={`
-                                block font-titan
-                                text-[0.729rem] md:text-[0.972rem] font-black text-white
-                                tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]
-                                stroke-black stroke-2
-                            `}
-                            style={{ textShadow: '0 0 4px black, 0 0 8px black' }}
+                            <span
+                                className="block font-titan text-[0.729rem] md:text-[0.972rem] font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
+                                style={{ textShadow: '0 0 4px black, 0 0 8px black' }}
                             >
                                 SCATTER
                             </span>
                         </div>
                     )}
                     {isJackpot && !blur && (
-                        <div className="absolute inset-0 rounded-none pointer-events-none z-20"
+                        <div
+                            className="absolute inset-0 rounded-none pointer-events-none z-20"
                             style={{
                                 border: `4px solid ${jpStyle?.border || '#f59e0b'}`,
                                 boxShadow: `inset 0 0 14px ${jpStyle?.glow || 'rgba(245,158,11,0.5)'}, 0 0 10px ${jpStyle?.glow || 'rgba(245,158,11,0.5)'}`,
@@ -279,5 +296,5 @@ const ReelCell: React.FC<{
                 </div>
             </div>
         </div>
-    )
+    );
 }

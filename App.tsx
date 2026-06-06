@@ -1993,7 +1993,13 @@ const currentState: SavedGameState = {
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
-                    <div className={`relative z-10 bg-black/60 p-1 md:p-1.5 rounded-xl shadow-2xl flex gap-1 h-full max-h-full overflow-hidden ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}`} style={{ aspectRatio: `${selectedGame.reels}/${selectedGame.rows}` }}>
+                    <div
+                        className={`relative z-10 bg-black/60 p-1 md:p-1.5 shadow-2xl flex gap-1 h-full max-h-full overflow-hidden
+                            ${selectedGame.theme === 'EGYPT' ? 'rounded-none border-[3px] border-yellow-500 shadow-[0_0_22px_rgba(217,119,6,0.6)]' : 'rounded-xl'}
+                            ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}
+                        `}
+                        style={{ aspectRatio: `${selectedGame.reels}/${selectedGame.rows}` }}
+                    >
                         {grid.map((col, i) => (
                             <Reel 
                                 key={i} 

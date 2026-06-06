@@ -252,15 +252,22 @@ const getThemeFont = (theme: GameTheme) => {
 export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> => {
   const icons = SYMBOL_MAP[theme];
   const themeFont = getThemeFont(theme);
-  const letterStyle = `text-white font-black drop-shadow-sm ${themeFont}`;
-  const letterHighlight = 'bg-white/10 shadow-[0_0_30px_rgba(255,255,255,0.8)] border-white/50';
+
+  // Colored + 3D letter/number symbol configs
+  const LTR = {
+    TEN:   { style: `text-cyan-100 font-black ${themeFont}`,    bg: 'bg-gradient-to-b from-cyan-600 to-cyan-900 shadow-[0_4px_0_rgb(14,116,144)]',       highlightClass: 'bg-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.9)] border-cyan-300/60' },
+    JACK:  { style: `text-lime-100 font-black ${themeFont}`,    bg: 'bg-gradient-to-b from-lime-600 to-lime-900 shadow-[0_4px_0_rgb(22,101,52)]',         highlightClass: 'bg-lime-500/40 shadow-[0_0_50px_rgba(132,204,22,0.9)] border-lime-300/60' },
+    QUEEN: { style: `text-fuchsia-100 font-black ${themeFont}`, bg: 'bg-gradient-to-b from-fuchsia-600 to-fuchsia-900 shadow-[0_4px_0_rgb(112,26,117)]',  highlightClass: 'bg-fuchsia-500/40 shadow-[0_0_50px_rgba(217,70,239,0.9)] border-fuchsia-300/60' },
+    KING:  { style: `text-amber-100 font-black ${themeFont}`,   bg: 'bg-gradient-to-b from-amber-500 to-amber-800 shadow-[0_4px_0_rgb(120,53,15)]',       highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
+    ACE:   { style: `text-red-100 font-black ${themeFont}`,     bg: 'bg-gradient-to-b from-red-600 to-red-900 shadow-[0_4px_0_rgb(127,29,29)]',           highlightClass: 'bg-red-500/40 shadow-[0_0_50px_rgba(239,68,68,0.9)] border-red-300/60' },
+  };
 
   return {
-    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: icons.TEN,   value: 0.5, style: letterStyle, bg: TILE_BGS.TRANSPARENT, highlightClass: letterHighlight },
-    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: icons.JACK,  value: 0.75, style: letterStyle, bg: TILE_BGS.TRANSPARENT, highlightClass: letterHighlight },
-    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: icons.QUEEN, value: 1, style: letterStyle, bg: TILE_BGS.TRANSPARENT, highlightClass: letterHighlight },
-    [SymbolType.KING]:  { type: SymbolType.KING,  icon: icons.KING,  value: 1.5, style: letterStyle, bg: TILE_BGS.TRANSPARENT, highlightClass: letterHighlight },
-    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: icons.ACE,   value: 2, style: letterStyle, bg: TILE_BGS.TRANSPARENT, highlightClass: letterHighlight },
+    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: icons.TEN,   value: 0.5,  ...LTR.TEN },
+    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: icons.JACK,  value: 0.75, ...LTR.JACK },
+    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: icons.QUEEN, value: 1,    ...LTR.QUEEN },
+    [SymbolType.KING]:  { type: SymbolType.KING,  icon: icons.KING,  value: 1.5,  ...LTR.KING },
+    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: icons.ACE,   value: 2,    ...LTR.ACE },
     [SymbolType.GRAPE]:   { type: SymbolType.GRAPE,   icon: icons.GRAPE, value: 2.5,  style: 'text-emerald-100 drop-shadow-md', bg: TILE_BGS.GREEN, highlightClass: 'bg-emerald-600/40 shadow-[0_0_50px_rgba(5,150,105,0.8)] border-emerald-400/50' }, 
     [SymbolType.BELL]:    { type: SymbolType.BELL,    icon: icons.BELL, value: 4.5,  style: 'text-blue-100 drop-shadow-[0_0_5px_#3b82f6]', bg: TILE_BGS.BLUE, highlightClass: 'bg-blue-600/40 shadow-[0_0_50px_rgba(37,99,235,0.8)] border-blue-400/50' }, 
     [SymbolType.BAR]:     { type: SymbolType.BAR,     icon: icons.BAR, value: 7.5,  style: 'text-purple-100 drop-shadow-[0_0_5px_#a855f7]', bg: TILE_BGS.PURPLE, highlightClass: 'bg-purple-600/40 shadow-[0_0_50px_rgba(147,51,234,0.8)] border-purple-400/50' }, 
@@ -442,6 +449,19 @@ export const formatTime = (ms: number): string => {
     const seconds = totalSeconds % 60;
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m ${seconds}s`;
+};
+
+// Short formatter: abbreviates at 1M+ (6-digit max before suffix)
+export const formatKShort = (n: number): string => {
+    if (!isFinite(n) || isNaN(n)) return '0';
+    const abs = Math.abs(n);
+    const sign = n < 0 ? '-' : '';
+    if (abs >= 1e18) return sign + (abs / 1e18).toFixed(1).replace(/\.0$/, '') + 'Qi';
+    if (abs >= 1e15) return sign + (abs / 1e15).toFixed(1).replace(/\.0$/, '') + 'Qd';
+    if (abs >= 1e12) return sign + (abs / 1e12).toFixed(1).replace(/\.0$/, '') + 'T';
+    if (abs >= 1e9)  return sign + (abs / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+    if (abs >= 1e6)  return sign + (abs / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    return sign + Math.round(abs).toLocaleString('en-US');
 };
 
 // Coin formatter: shows full number with commas up to 15 raw digits.
