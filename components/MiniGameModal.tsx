@@ -343,13 +343,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             style={{ background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
 
             {/* Topbar */}
-            <div className="shrink-0 flex items-center gap-2 px-3 h-[44px] z-20"
+            <div className="shrink-0 flex items-center gap-2 px-3 h-[34px] z-20"
                 style={{ background: HDR, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-arrow-left"></i></div>
                 <span className="font-black text-white text-sm uppercase tracking-widest drop-shadow">{questTitle}</span>
-                <div className="flex-1 flex flex-col items-end justify-center">
+                <div className="flex-1 flex items-center justify-end gap-1.5">
                     <span style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(253,230,138,0.6)', textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1 }}>Stage Prize</span>
-                    <span style={{ fontSize: '1.1rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1 }}>
                         💰 {formatCommaNumber((maxBet || 10000) * (isWild ? wildStage : diceStage) * 10)}
                     </span>
                 </div>
@@ -379,7 +379,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         ? (cell.reward?.type === 'COINS' ? '🪙' : cell.reward?.type === 'PICKS' ? '⛏️' : '💎')
                                         : revealed && isBomb ? '💥' : null;
                                     const tileBg = revealed
-                                        ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isReward ? 'linear-gradient(180deg,#15803d,#14532d)' : isBomb ? 'linear-gradient(180deg,#b45309,#78350f)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
+                                        ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isBomb ? 'linear-gradient(180deg,#b45309,#78350f)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
                                         : isBomb ? 'linear-gradient(180deg,#7f1d1d,#450a0a)' : 'linear-gradient(180deg,#4c1d95,#2e1065)';
                                     return (
                                         <button key={i} onClick={() => handleTileClick(i)}
@@ -395,8 +395,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             {revealed ? (
                                                 icon ? (
                                                     <>
-                                                        <span style={{ fontSize: currentGridSize >= 5 ? '1.3rem' : '1.7rem', lineHeight: 1 }}>{icon}</span>
-                                                        {isReward && <span className="text-[8px] font-bold text-white/80 mt-0.5 leading-none">{cell.reward?.label}</span>}
+                                                        <span style={{ fontSize: tileSize * 0.62, lineHeight: 1 }}>{icon}</span>
+                                                        {isReward && <span style={{ fontSize: Math.max(9, tileSize * 0.19) }} className="font-bold text-white/90 mt-0.5 leading-none">{cell.reward?.label}</span>}
                                                     </>
                                                 ) : null
                                             ) : isBomb ? (
