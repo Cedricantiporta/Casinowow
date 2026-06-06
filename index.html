@@ -58,6 +58,7 @@
             animation: {
               'spin-blur': 'spinReel 0.3s linear infinite',
               'bounce-land': 'bounceLand 0.4s ease-out forwards',
+              'bounce-sm': 'bounceSm 1s ease-in-out infinite',
               'pop-in': 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
               'shake': 'shake 0.4s ease',
               'coin-shower': 'coinShower 1s ease-out forwards',
@@ -84,6 +85,10 @@
               shine: {
                 '0%': { transform: 'translateX(-100%) skewX(-15deg)' },
                 '100%': { transform: 'translateX(200%) skewX(-15deg)' }
+              },
+              bounceSm: {
+                '0%, 100%': { transform: 'translateY(-12%) scale(1.05)', animationTimingFunction: 'cubic-bezier(0.8,0,1,1)' },
+                '50%': { transform: 'translateY(0) scale(1)', animationTimingFunction: 'cubic-bezier(0,0,0.2,1)' },
               },
               shake: {
                 '0%,100%': { transform: 'translateX(0)' },

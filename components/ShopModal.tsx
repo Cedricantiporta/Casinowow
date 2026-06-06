@@ -91,11 +91,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     ];
 
     const boostPacks = [
-        { icon: '📦', label: '10 Pack Credits',  sub: '10 Credits', pesosLabel: '45',  color: 'from-orange-600 to-red-800',     action: () => onBuy('PACK_CREDIT', 10,  0, 45)  },
-        { icon: '📦', label: '100 Pack Credits', sub: '100 Credits',pesosLabel: '400', color: 'from-orange-700 to-red-900',     action: () => onBuy('PACK_CREDIT', 100, 0, 400) },
-        { icon: '🚀', label: 'XP Boost 30m',     sub: '2× XP',      pesosLabel: '200', color: 'from-fuchsia-600 to-fuchsia-900',action: () => onBuy('BOOST',  2, 1_800_000,  200) },
-        { icon: '🚀', label: 'XP Boost 12H',     sub: '2× XP',      pesosLabel: '500', color: 'from-fuchsia-700 to-purple-900', action: () => onBuy('BOOST',  2, 43_200_000, 500) },
-        { icon: '📜', label: 'Mission XP 30m',   sub: '2× Mission', pesosLabel: '300', color: 'from-indigo-500 to-indigo-800',  action: () => onBuy('PASS_XP', 2, 1_800_000, 300) },
+        { icon: '🚀', label: 'XP Boost 30m',   sub: '2× XP',      pesosLabel: '200', color: 'from-fuchsia-600 to-fuchsia-900',action: () => onBuy('BOOST',  2, 1_800_000,  200) },
+        { icon: '🚀', label: 'XP Boost 12H',   sub: '2× XP',      pesosLabel: '500', color: 'from-fuchsia-700 to-purple-900', action: () => onBuy('BOOST',  2, 43_200_000, 500) },
+        { icon: '📜', label: 'Mission XP 30m', sub: '2× Mission', pesosLabel: '300', color: 'from-indigo-500 to-indigo-800',  action: () => onBuy('PASS_XP', 2, 1_800_000, 300) },
     ];
 
     const freeItem = {

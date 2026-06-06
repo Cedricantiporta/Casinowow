@@ -700,20 +700,20 @@ export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number, maxBet?: number):
 
 export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
     const rewards: PassReward[] = [];
-    // FREE tier special pattern (repeats every 5): Coins, Gems, Picks, Credits, XP
+    // FREE tier special pattern (cycles): Gems, Picks, Dice, Card Packs, XP
     const freeSpecials: { type: RewardType; fn: (i: number) => [number, string] }[] = [
-        { type: 'COINS',       fn: (i) => { const v = Math.floor(10000 * 0.15 * Math.pow(1.25, i - 1)); return [v, formatNumber(v)]; } },
         { type: 'DIAMONDS',    fn: (i) => { const v = i * 4; return [v, `${v} 💎`]; } },
         { type: 'PICKS',       fn: (_) => [2, '+2 Picks'] },
-        { type: 'CREDIT_BACK', fn: (_) => [15, '+15 Credits'] },
+        { type: 'DICE_CREDITS',fn: (_) => [2, '+2 Dice'] },
+        { type: 'CREDIT_BACK', fn: (_) => [10, '+10 Card Packs'] },
         { type: 'XP_BOOST',    fn: (_) => [2, '2x XP'] },
     ];
-    // PREMIUM tier special pattern (repeats every 5): Coins, Gems, Picks, Credits, XP
+    // PREMIUM tier special pattern (cycles): Gems, Picks, Dice, Card Packs, XP
     const premSpecials: { type: RewardType; fn: (i: number) => [number, string] }[] = [
-        { type: 'COINS',       fn: (i) => { const v = Math.floor(10000 * 0.5 * Math.pow(1.25, i - 1)); return [v, formatNumber(v)]; } },
         { type: 'DIAMONDS',    fn: (i) => { const v = i * 20; return [v, `${v} 💎`]; } },
         { type: 'PICKS',       fn: (_) => [10, '+10 Picks'] },
-        { type: 'CREDIT_BACK', fn: (_) => [75, '+75 Credits'] },
+        { type: 'DICE_CREDITS',fn: (_) => [10, '+10 Dice'] },
+        { type: 'CREDIT_BACK', fn: (_) => [50, '+50 Card Packs'] },
         { type: 'XP_BOOST',    fn: (_) => [2, '2x XP'] },
     ];
 

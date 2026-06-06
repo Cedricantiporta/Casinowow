@@ -111,7 +111,7 @@ export interface QuestState {
   wildGrid: WildGridCell[]; // Persistence for Wild Quest
 }
 
-export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'PACKS' | 'BACK';
+export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'PACKS' | 'BACK' | 'DICE_CREDITS';
 
 export interface MiniGameReward {
   type: RewardType;

@@ -42,6 +42,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 }) => {
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'ALBUM' | 'PACKS'>(initialTab || 'ALBUM');
+    const [showPackBuyPopup, setShowPackBuyPopup] = useState(false);
     const albumScrollRef = React.useRef<HTMLDivElement>(null);
     const deckCardsScrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -249,12 +250,12 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <div className="gem"></div>
                             <span className="num">{formatNumber(diamonds)}</span>
                         </div>
-                        <button onClick={() => { onClose(); onOpenShop('BOOSTS'); }}
+                        <button onClick={() => setShowPackBuyPopup(true)}
                             className="currency-pill flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
                             style={{ cursor: 'pointer' }}>
                             <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>📦</span>
                             <span className="num">{packCredits}</span>
-                            <span style={{ fontSize: '7px', fontWeight: 900, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>+GET</span>
+                            <span style={{ fontSize: '9px', fontWeight: 900, color: '#4ade80', textTransform: 'uppercase' }}>+GET</span>
                         </button>
                         <div className="currency-pill flex items-center gap-1 shrink-0">
                             <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>💳</span>
@@ -414,6 +415,54 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         </div>
                     )}
                 </div>
+
+            {/* Card Pack Buy Popup */}
+            {showPackBuyPopup && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                    onClick={() => setShowPackBuyPopup(false)}>
+                    <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ width: 260, background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}
+                        onClick={e => e.stopPropagation()}>
+                        {/* Header: card packs count */}
+                        <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <span className="text-2xl">📦</span>
+                                <div>
+                                    <div className="text-white font-black text-base leading-none">{packCredits} Card Packs</div>
+                                    <div className="text-purple-300/60 text-[10px]">Buy more with gems</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full">
+                                <span className="text-sm">💎</span>
+                                <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
+                            </div>
+                        </div>
+                        {/* Options */}
+                        <div className="px-4 pb-4 flex flex-col gap-2 mt-1">
+                            {[
+                                { packs: 10,  gemCost: 45  },
+                                { packs: 50,  gemCost: 200 },
+                                { packs: 100, gemCost: 350 },
+                            ].map(opt => {
+                                const canAfford = diamonds >= opt.gemCost;
+                                return (
+                                    <button key={opt.packs}
+                                        onClick={() => { if (!canAfford) return; onBuyCredits(opt.gemCost, opt.packs); setShowPackBuyPopup(false); }}
+                                        disabled={!canAfford}
+                                        className="btn-3d w-full py-3 rounded-xl flex items-center justify-between px-3"
+                                        style={{
+                                            background: canAfford ? 'linear-gradient(180deg,#7c3aed,#4c1d95)' : 'rgba(0,0,0,0.4)',
+                                            boxShadow: canAfford ? '0 3px 0 #2e1065' : 'none',
+                                            opacity: canAfford ? 1 : 0.5,
+                                        }}>
+                                        <span className="text-white font-black text-sm">📦 ×{opt.packs}</span>
+                                        <span className="text-purple-200 font-black text-sm">💎 {opt.gemCost}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

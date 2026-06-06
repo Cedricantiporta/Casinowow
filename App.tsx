@@ -544,11 +544,14 @@ const App: React.FC = () => {
               setPlayer(p => ({ ...p, xpMultiplier: reward.value, xpBoostEndTime: Date.now() + 1800000 }));
               msg = `${reward.value}x XP Boost`;
           } else if (reward.type === 'CREDIT_BACK') {
-              setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value }));
-              msg = `+${reward.value} Credits`;
+              setPlayer(p => ({ ...p, packCredits: p.packCredits + reward.value }));
+              msg = `+${reward.value} Card Packs`;
           } else if (reward.type === 'PICKS') {
               setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value }));
               msg = `+${reward.value} Picks`;
+          } else if (reward.type === 'DICE_CREDITS') {
+              setQuest(q => ({ ...q, diceCredits: q.diceCredits + reward.value }));
+              msg = `+${reward.value} Dice`;
           }
       }
       setCelebrationMsg(msg);
@@ -565,15 +568,17 @@ const App: React.FC = () => {
 
       let totalCoins = 0;
       let totalDiamonds = 0;
-      let totalCredits = 0;
+      let totalPackCredits = 0;
       let totalPicks = 0;
+      let totalDice = 0;
       let xpBoostApplied = false;
 
       rewardsToClaim.forEach(r => {
           if (r.type === 'COINS') totalCoins += SCALE_COIN_REWARD(r.value, player.level, MAX_BET_BY_LEVEL(player.level));
           else if (r.type === 'DIAMONDS') totalDiamonds += r.value;
-          else if (r.type === 'CREDIT_BACK') totalCredits += r.value;
+          else if (r.type === 'CREDIT_BACK') totalPackCredits += r.value;
           else if (r.type === 'PICKS') totalPicks += r.value;
+          else if (r.type === 'DICE_CREDITS') totalDice += r.value;
           else if (r.type === 'XP_BOOST') {
               setPlayer(p => ({ ...p, xpMultiplier: r.value, xpBoostEndTime: Date.now() + 1800000 }));
               xpBoostApplied = true;
@@ -583,13 +588,14 @@ const App: React.FC = () => {
       setPlayer(p => ({
           ...p,
           balance: p.balance + totalCoins,
-          diamonds: p.diamonds + totalDiamonds
+          diamonds: p.diamonds + totalDiamonds,
+          packCredits: p.packCredits + totalPackCredits,
       }));
-      if (totalCredits > 0 || totalPicks > 0) {
-          setQuest(q => ({
-              ...q,
-              wildCredits: q.wildCredits + totalCredits + totalPicks,
-          }));
+      if (totalPicks > 0) {
+          setQuest(q => ({ ...q, wildCredits: q.wildCredits + totalPicks }));
+      }
+      if (totalDice > 0) {
+          setQuest(q => ({ ...q, diceCredits: q.diceCredits + totalDice }));
       }
       
       const claimedMap = new Map(rewardsToClaim.map(r => [
@@ -1612,8 +1618,7 @@ const App: React.FC = () => {
 
   const handleGameSelect = (game: GameConfig, highLimit: boolean = false) => {
       const gameIndex = GAMES_CONFIG.findIndex(g => g.id === game.id);
-      let unlockLevel = 0;
-      if (gameIndex >= 3) unlockLevel = 32 + (gameIndex - 3) * 10;
+      const unlockLevel = gameIndex * 5;
       
       // Use a fresh reference to player level if available, or ref
       const currentLevel = playerRef.current.level;

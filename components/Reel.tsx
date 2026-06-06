@@ -269,7 +269,7 @@ const ReelCell: React.FC<{
                 {/* Content wrapper */}
                 <div className={`
                     relative flex flex-col items-center justify-center z-10 w-full h-full
-                    ${activeBounce ? 'animate-[bounce_1s_ease-in-out_infinite] scale-[1.05]' : ''}
+                    ${activeBounce ? 'animate-bounce-sm' : ''}
                 `}>
                     {isJackpot ? (
                         <span
