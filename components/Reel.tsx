@@ -219,9 +219,11 @@ const ReelCell: React.FC<{
     let bgClasses = config?.bg || 'bg-transparent';
 
     if (highlight) {
-        bgClasses = (config?.highlightClass || 'bg-white/20 shadow-[0_0_50px_rgba(255,215,0,0.8)] border-yellow-300/60') + ' z-20 border';
+        // Shiny border only — no background fill or icon glow
+        const borderColor = config?.highlightClass?.match(/border-(\S+)/)?.[1] ?? 'yellow-300/60';
+        bgClasses = `border-2 border-${borderColor} shadow-[0_0_12px_rgba(255,255,255,0.6)] z-20`;
     } else if (isScatter && isScatterShowcase) {
-        bgClasses = 'bg-indigo-500/50 border-indigo-300 shadow-[0_0_40px_rgba(99,102,241,0.9)] z-20';
+        bgClasses = 'border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
     }
     if (isJackpot && !highlight) {
         bgClasses = '';
@@ -267,7 +269,7 @@ const ReelCell: React.FC<{
                 {/* Content wrapper */}
                 <div className={`
                     relative flex flex-col items-center justify-center z-10 w-full h-full
-                    ${activeBounce ? 'animate-bounce scale-110' : ''}
+                    ${activeBounce ? 'animate-[bounce_1s_ease-in-out_infinite] scale-[1.05]' : ''}
                 `}>
                     {isJackpot ? (
                         <span
@@ -284,8 +286,7 @@ const ReelCell: React.FC<{
                             className={`
                                 ${fontSize} select-none transform
                                 ${config?.style || ''}
-                                ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
-                            `}
+                                `}
                             style={isLetter ? { textShadow: getLetter3DShadow(symbol) } : undefined}
                         >
                             {config?.icon}

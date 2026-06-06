@@ -76,6 +76,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const [grid, setGrid] = useState<WildGridCell[]>([]);
     const [stageWinning, setStageWinning] = useState(false);
+    const [noPicksMsg, setNoPicksMsg] = useState(false);
 
     const [isRolling, setIsRolling] = useState(false);
     const [isMoving, setIsMoving] = useState(false);
@@ -186,7 +187,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     }, [autoRoll, isRolling, isMoving, diceCredits]);
 
     const handleTileClick = (index: number) => {
-        if (wildCredits <= 0 || grid[index].revealed || stageWinning) return;
+        if (grid[index].revealed || stageWinning) return;
+        if (wildCredits <= 0) {
+            setNoPicksMsg(true);
+            setTimeout(() => setNoPicksMsg(false), 2000);
+            return;
+        }
         const cell = grid[index];
         const newGrid = [...grid.map(c => ({ ...c }))];
         newGrid[index] = { ...cell, revealed: true };
@@ -363,6 +369,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {/* ── COINMINE (Wild Quest) ── */}
             {activeGame === 'WILD' && (
                 <div className="flex-1 flex overflow-hidden relative">
+                    {noPicksMsg && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+                            <div className="animate-pop-in px-5 py-3 rounded-2xl font-black text-white text-base uppercase tracking-widest"
+                                style={{ background: 'rgba(0,0,0,0.9)', border: '2px solid #dc2626', boxShadow: '0 0 20px rgba(220,38,38,0.5)' }}>
+                                ⛏️ No picks left!
+                            </div>
+                        </div>
+                    )}
                     {stageWinning && (
                         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
                             <div style={{ fontSize: '72px', lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce">💎</div>

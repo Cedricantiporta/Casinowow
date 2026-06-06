@@ -211,8 +211,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-md overflow-visible border-none shadow-xl snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
                                     >
                                         {!isLocked && (
-                                            <div className="absolute -top-[18px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
-                                                <span style={{ fontSize:'10px', fontWeight:900, color:'white', whiteSpace:'nowrap', letterSpacing:'0.3px', lineHeight:1, filter:'drop-shadow(0 1px 2px rgba(0,0,0,0.9))' }}>
+                                            <div className="absolute -top-[20px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
+                                                <span style={{ fontSize:'9px', fontWeight:900, color:'#e9d5ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.85)', border:'1.5px solid #7c3aed', borderRadius:'999px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
                                                     {formatK(jackpotTotals[idx] ?? 0)}
                                                 </span>
                                             </div>
