@@ -149,14 +149,13 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   );
 };
 
-// Cell separators: all slots use horizontal line + vertical margin.
-// Piggy gets a thicker, darker separator (reel container also adds column gap for Piggy).
+// Only Piggy has visible cell separators (thick horizontal + wide column gap).
+// All other themes: no separator lines.
 const getCellSeparatorStyle = (theme: GameTheme, isLastCell: boolean): React.CSSProperties => {
-    if (isLastCell) return {};
-    if (theme === 'PIGGY') {
+    if (theme === 'PIGGY' && !isLastCell) {
         return { borderBottom: '3px solid rgba(0,0,0,0.6)' };
     }
-    return { borderBottom: '1px solid rgba(255,255,255,0.18)' };
+    return {};
 };
 
 // 3D text-shadow per letter tier

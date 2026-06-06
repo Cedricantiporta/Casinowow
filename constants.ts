@@ -222,14 +222,14 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
 };
 
 const TILE_BGS = {
-    TRANSPARENT: '', 
-    GREEN: 'bg-gradient-to-b from-emerald-700 to-emerald-900 shadow-[0_4px_0_rgb(6,78,59)]',
-    BLUE: 'bg-gradient-to-b from-blue-700 to-blue-900 shadow-[0_4px_0_rgb(30,58,138)]',
-    PURPLE: 'bg-gradient-to-b from-purple-700 to-purple-900 shadow-[0_4px_0_rgb(88,28,135)]',
-    RED: 'bg-gradient-to-b from-red-700 to-red-900 shadow-[0_4px_0_rgb(127,29,29)]',
-    YELLOW: 'bg-gradient-to-b from-yellow-600 to-yellow-800 shadow-[0_4px_0_rgb(161,98,7)]',
-    WILD: 'bg-gradient-to-b from-yellow-300 via-yellow-500 to-yellow-600 shadow-[0_4px_0_rgb(180,83,9)]',
-    SCATTER: 'bg-gradient-to-b from-indigo-600 to-indigo-900 shadow-[0_4px_0_rgb(49,46,129)]',
+    TRANSPARENT: '',
+    GREEN:   'bg-emerald-900/25',
+    BLUE:    'bg-blue-900/25',
+    PURPLE:  'bg-purple-900/25',
+    RED:     'bg-red-900/25',
+    YELLOW:  'bg-yellow-900/25',
+    WILD:    'bg-gradient-to-b from-yellow-300 via-yellow-500 to-yellow-600 shadow-[0_4px_0_rgb(180,83,9)]',
+    SCATTER: 'bg-indigo-900/30',
 };
 
 const getThemeFont = (theme: GameTheme) => {

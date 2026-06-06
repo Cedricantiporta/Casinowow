@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { GameConfig } from '../types';
 import { formatK } from '../constants';
 
@@ -38,34 +38,7 @@ const StatRow: React.FC<{ icon: string; label: string; value: string; vip?: bool
 );
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, player, isPremium, passBoostMultiplier = 1, passBoostEndTime = 0, recentGames }) => {
-    const [playerName, setPlayerName] = useState(() => localStorage.getItem('playerName') || 'Player');
-    const [editingName, setEditingName] = useState(false);
-    const [nameInput, setNameInput] = useState(playerName);
-    const [profilePic, setProfilePic] = useState<string | null>(() => localStorage.getItem('profilePic'));
-    const fileRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        localStorage.setItem('playerName', playerName);
-    }, [playerName]);
-
-    const handleNameSave = () => {
-        const trimmed = nameInput.trim() || 'Player';
-        setPlayerName(trimmed);
-        setNameInput(trimmed);
-        setEditingName(false);
-    };
-
-    const handlePicUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-            const result = ev.target?.result as string;
-            setProfilePic(result);
-            localStorage.setItem('profilePic', result);
-        };
-        reader.readAsDataURL(file);
-    };
+    const [playerName] = useState(() => localStorage.getItem('playerName') || 'Player');
 
     if (!isOpen) return null;
 
@@ -95,42 +68,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, pla
             <div className="shrink-0 flex items-center gap-3 px-4 pt-2.5 pb-3"
                 style={{ background: headerStyle, boxShadow: '0 4px 16px rgba(0,0,0,0.6)' }}>
 
-                {/* Avatar — clickable to upload */}
-                <div className="relative shrink-0 cursor-pointer group" onClick={() => fileRef.current?.click()}>
-                    <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center font-black text-lg text-white shrink-0"
-                        style={{ background: vip ? 'linear-gradient(135deg,#f59e0b,#b45309)' : 'linear-gradient(135deg,#a855f7,#7c3aed)', border: vip ? '2px solid #f0c000' : '2px solid rgba(255,255,255,0.25)' }}>
-                        {profilePic
-                            ? <img src={profilePic} alt="avatar" className="w-full h-full object-cover" />
-                            : <span>{player.level}</span>
-                        }
-                    </div>
-                    <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                        <span className="text-[10px] text-white font-bold">📷</span>
-                    </div>
-                    <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePicUpload} />
+                {/* Avatar */}
+                <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center font-black text-lg text-white shrink-0"
+                    style={{ background: vip ? 'linear-gradient(135deg,#f59e0b,#b45309)' : 'linear-gradient(135deg,#a855f7,#7c3aed)', border: vip ? '2px solid #f0c000' : '2px solid rgba(255,255,255,0.25)' }}>
+                    <span>{player.level}</span>
                 </div>
 
                 {/* Name + XP bar */}
                 <div className="flex-1 min-w-0">
                     {/* Name row */}
                     <div className="flex items-center gap-2 mb-1">
-                        {editingName ? (
-                            <input
-                                autoFocus
-                                value={nameInput}
-                                onChange={e => setNameInput(e.target.value)}
-                                onBlur={handleNameSave}
-                                onKeyDown={e => { if (e.key === 'Enter') handleNameSave(); if (e.key === 'Escape') setEditingName(false); }}
-                                className="font-black text-white text-sm uppercase tracking-wider leading-none bg-transparent border-b outline-none flex-1 min-w-0"
-                                style={{ borderColor: vip ? '#f0c000' : '#a855f7' }}
-                                maxLength={18}
-                            />
-                        ) : (
-                            <span className="font-black text-white text-sm uppercase tracking-wider leading-none cursor-pointer hover:opacity-70 transition-opacity"
-                                onClick={() => { setNameInput(playerName); setEditingName(true); }}>
-                                {playerName}
-                            </span>
-                        )}
+                        <span className="font-black text-white text-sm uppercase tracking-wider leading-none">
+                            {playerName}
+                        </span>
                         {/* Benefit pills — no emoji */}
                         {vip && (
                             <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"

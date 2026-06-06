@@ -1997,7 +1997,11 @@ const currentState: SavedGameState = {
                     <div
                         className={`relative z-10 bg-black/60 p-1 md:p-1.5 shadow-2xl h-full max-h-full overflow-hidden
                             ${selectedGame.theme === 'PIGGY' ? 'flex gap-2' : 'flex gap-0.5'}
-                            ${selectedGame.theme === 'EGYPT' ? 'rounded-none border-[3px] border-yellow-500 shadow-[0_0_22px_rgba(217,119,6,0.6)]' : 'rounded-xl'}
+                            ${selectedGame.theme === 'EGYPT'   ? 'rounded-none border-[3px] border-yellow-600' : ''}
+                            ${selectedGame.theme === 'WESTERN' ? 'rounded-lg border-[4px] border-amber-800' : ''}
+                            ${selectedGame.theme === 'SPACE'   ? 'rounded-lg border-[2px] border-cyan-400' : ''}
+                            ${selectedGame.theme === 'CANDY'   ? 'rounded-lg border-[3px] border-pink-300' : ''}
+                            ${!['EGYPT','WESTERN','SPACE','CANDY'].includes(selectedGame.theme) ? 'rounded-xl' : ''}
                             ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}
                         `}
                         style={{ aspectRatio: `${selectedGame.reels}/${selectedGame.rows}` }}
