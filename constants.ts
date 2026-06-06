@@ -253,13 +253,14 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
   const icons = SYMBOL_MAP[theme];
   const themeFont = getThemeFont(theme);
 
-  // Letter/number cells: colored text + 3D shadow, transparent background
+  // Letter/number cells: 3D text effect, transparent bg. Three tiers:
+  //  10, J = plain white 3D  |  Q, K = purple 3D  |  A = amber/gold 3D (color-coded)
   const LTR = {
-    TEN:   { style: `text-cyan-300 font-black ${themeFont}`,    bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.9)] border-cyan-300/60' },
-    JACK:  { style: `text-lime-300 font-black ${themeFont}`,    bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-lime-500/40 shadow-[0_0_50px_rgba(132,204,22,0.9)] border-lime-300/60' },
-    QUEEN: { style: `text-fuchsia-300 font-black ${themeFont}`, bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-fuchsia-500/40 shadow-[0_0_50px_rgba(217,70,239,0.9)] border-fuchsia-300/60' },
-    KING:  { style: `text-amber-300 font-black ${themeFont}`,   bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
-    ACE:   { style: `text-red-300 font-black ${themeFont}`,     bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-red-500/40 shadow-[0_0_50px_rgba(239,68,68,0.9)] border-red-300/60' },
+    TEN:   { style: `text-white font-black ${themeFont}`,        bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
+    JACK:  { style: `text-white font-black ${themeFont}`,        bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
+    QUEEN: { style: `text-violet-300 font-black ${themeFont}`,   bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
+    KING:  { style: `text-violet-300 font-black ${themeFont}`,   bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
+    ACE:   { style: `text-amber-300 font-black ${themeFont}`,    bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
   };
 
   return {

@@ -149,22 +149,31 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   );
 };
 
-// Returns inline style for the cell separator/border based on theme
+// Cell separators: all slots use horizontal line + vertical margin.
+// Piggy gets a thicker, darker separator (reel container also adds column gap for Piggy).
 const getCellSeparatorStyle = (theme: GameTheme, isLastCell: boolean): React.CSSProperties => {
-    switch (theme) {
-        case 'PIGGY':
-            return isLastCell ? {} : { borderBottom: '3px solid rgba(0,0,0,0.65)' };
-        case 'DRAGON': case 'PIRATE': case 'JUNGLE': case 'CANDY':
-            return isLastCell ? {} : { borderBottom: '1px solid rgba(255,255,255,0.14)' };
-        case 'EGYPT':
-            return { border: '1px solid rgba(217,119,6,0.45)' };
-        case 'UNDERWATER':
-            return { border: '1px solid rgba(6,182,212,0.4)' };
-        case 'SAMURAI':
-            return { border: '1px solid rgba(239,68,68,0.4)' };
-        default:
-            return {};
+    if (isLastCell) return {};
+    if (theme === 'PIGGY') {
+        return { borderBottom: '3px solid rgba(0,0,0,0.6)' };
     }
+    return { borderBottom: '1px solid rgba(255,255,255,0.18)' };
+};
+
+// 3D text-shadow per letter tier
+const getLetter3DShadow = (symbol: SymbolType): string | undefined => {
+    if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
+        // plain white — dark extrusion
+        return '1px 1px 0 rgba(0,0,0,0.7), 2px 2px 0 rgba(0,0,0,0.55), 3px 3px 0 rgba(0,0,0,0.35), 4px 4px 8px rgba(0,0,0,0.5)';
+    }
+    if (symbol === SymbolType.QUEEN || symbol === SymbolType.KING) {
+        // purple — dark violet extrusion
+        return '1px 1px 0 #1a0040, 2px 2px 0 #25005a, 3px 3px 0 #25005a, 4px 4px 8px rgba(0,0,0,0.7)';
+    }
+    if (symbol === SymbolType.ACE) {
+        // amber — dark orange extrusion
+        return '1px 1px 0 #6b3000, 2px 2px 0 #8a3e00, 3px 3px 0 #8a3e00, 4px 4px 8px rgba(0,0,0,0.7)';
+    }
+    return undefined;
 };
 
 const ReelCell: React.FC<{
@@ -266,9 +275,7 @@ const ReelCell: React.FC<{
                                 ${config?.style || ''}
                                 ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
                             `}
-                            style={isLetter ? {
-                                textShadow: '0 1px 0 rgba(0,0,0,0.55), 0 2px 0 rgba(0,0,0,0.4), 0 3px 0 rgba(0,0,0,0.3), 0 4px 6px rgba(0,0,0,0.5)',
-                            } : undefined}
+                            style={isLetter ? { textShadow: getLetter3DShadow(symbol) } : undefined}
                         >
                             {config?.icon}
                         </div>
