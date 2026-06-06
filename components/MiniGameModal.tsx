@@ -26,7 +26,8 @@ interface MiniGameModalProps {
     maxBet?: number;
 }
 
-const GRID_SIZES = [3, 4, 5, 5, 6];
+// Grid grows every 5 stages: 3 (1-5), 4 (6-10), 5 (11-15), 6 (16+)
+const getGridSize = (stage: number) => Math.min(Math.floor((stage - 1) / 5) + 3, 6);
 const GEM_COST = 100;
 
 interface BoardStep {
@@ -74,7 +75,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     balance = 0, diamonds = 0,
     onSelectMode, onBuyPicks, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet
 }) => {
-    const currentGridSize = GRID_SIZES[Math.min(wildStage - 1, GRID_SIZES.length - 1)];
+    const currentGridSize = getGridSize(wildStage);
     const totalCells = currentGridSize * currentGridSize;
 
     const [grid, setGrid] = useState<WildGridCell[]>([]);

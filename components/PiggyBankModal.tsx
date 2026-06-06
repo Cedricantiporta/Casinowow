@@ -20,13 +20,15 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
     const cap = maxBet * 5;
 
+    const GEM_BREAK_COST = 50;
+
     const handleBreak = () => {
-        if (breaking || amount <= 0) return;
+        if (breaking || amount <= 0 || diamonds < GEM_BREAK_COST) return;
         setBreaking(true);
         audioService.playClick();
         setTimeout(() => {
             audioService.playStoneBreak();
-            onBreak(amount, 0);
+            onBreak(amount, GEM_BREAK_COST);
             setTimeout(() => {
                 setBreaking(false);
                 onClose();
@@ -73,15 +75,18 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 {/* Single break button */}
                 <button
                     onClick={handleBreak}
-                    disabled={breaking || amount <= 0}
+                    disabled={breaking || amount <= 0 || diamonds < GEM_BREAK_COST}
                     className={`px-10 py-3.5 rounded-2xl font-black text-white uppercase text-base tracking-widest btn-3d transition-all
-                        ${(breaking || amount <= 0) ? 'opacity-40 cursor-not-allowed' : 'active:scale-95 hover:scale-105'}`}
+                        ${(breaking || amount <= 0 || diamonds < GEM_BREAK_COST) ? 'opacity-40 cursor-not-allowed' : 'active:scale-95 hover:scale-105'}`}
                     style={{
-                        background: amount > 0 ? 'linear-gradient(180deg,#f59e0b,#b45309)' : 'rgba(0,0,0,0.4)',
-                        boxShadow: amount > 0 ? '0 5px 0 #78350f, 0 8px 20px rgba(0,0,0,0.5)' : 'none',
+                        background: (amount > 0 && diamonds >= GEM_BREAK_COST) ? 'linear-gradient(180deg,#f59e0b,#b45309)' : 'rgba(0,0,0,0.4)',
+                        boxShadow: (amount > 0 && diamonds >= GEM_BREAK_COST) ? '0 5px 0 #78350f, 0 8px 20px rgba(0,0,0,0.5)' : 'none',
                     }}
                 >
-                    💥 Break Piggy Bank
+                    Break Piggy Bank
+                    <span className="block text-xs font-bold opacity-80 mt-0.5 normal-case tracking-normal">
+                        💎 {GEM_BREAK_COST} Gems
+                    </span>
                 </button>
 
                 <p className="text-white/30 text-[9px] text-center max-w-xs">

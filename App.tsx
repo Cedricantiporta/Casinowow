@@ -294,12 +294,13 @@ const App: React.FC = () => {
       openModal('PIGGY');
   };
   
-  const handleBreakPiggy = (tierAmount: number, _gemCost: number) => {
+  const handleBreakPiggy = (tierAmount: number, gemCost: number) => {
       const brokenAmount = Math.floor(player.piggyBank);
       if (brokenAmount > 0) {
           setPlayer(p => ({
               ...p,
               balance: p.balance + brokenAmount,
+              diamonds: p.diamonds - gemCost,
               piggyBank: 0,
           }));
           setCelebrationMsg(`🐷 +${formatCommaNumber(brokenAmount)} Coins!`);

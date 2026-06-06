@@ -85,19 +85,17 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     if (!isOpen) return null;
 
     const gemPacks = [
-        { icon: '💎', label: '50 Gems',    sub: '50',    color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 50)   },
-        { icon: '💎', label: '150 Gems',   sub: '150',   color: 'from-cyan-500 to-blue-700',      action: () => onBuy('DIAMOND', 150)  },
-        { icon: '💎', label: '500 Gems',   sub: '500',   color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
-        { icon: '💎', label: '1,500 Gems', sub: '1,500', color: 'from-indigo-500 to-purple-700',  action: () => onBuy('DIAMOND', 1500) },
-        { icon: '💎', label: '5,000 Gems', sub: '5,000', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
+        { icon: '💎', label: '100 Gems',   sub: '100',   pesosLabel: '99',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
+        { icon: '💎', label: '500 Gems',   sub: '500',   pesosLabel: '399', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
+        { icon: '💎', label: '5,000 Gems', sub: '5,000', pesosLabel: '999', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
     ];
 
     const boostPacks = [
-        { icon: '📦', label: '10 Pack Credits',  sub: '10 Credits', price: '45 💎',  gemCost: 45,  color: 'from-orange-600 to-red-800',     action: () => onBuy('PACK_CREDIT', 10,  0, 45)  },
-        { icon: '📦', label: '100 Pack Credits', sub: '100 Credits',price: '400 💎', gemCost: 400, color: 'from-orange-700 to-red-900',     action: () => onBuy('PACK_CREDIT', 100, 0, 400) },
-        { icon: '🚀', label: 'XP Boost 30m',     sub: '2× XP',      price: '200 💎', gemCost: 200, color: 'from-fuchsia-600 to-fuchsia-900',action: () => onBuy('BOOST',  2, 1_800_000,  200) },
-        { icon: '🚀', label: 'XP Boost 12H',     sub: '2× XP',      price: '500 💎', gemCost: 500, color: 'from-fuchsia-700 to-purple-900', action: () => onBuy('BOOST',  2, 43_200_000, 500) },
-        { icon: '📜', label: 'Mission XP 30m',   sub: '2× Mission', price: '300 💎', gemCost: 300, color: 'from-indigo-500 to-indigo-800',  action: () => onBuy('PASS_XP', 2, 1_800_000, 300) },
+        { icon: '📦', label: '10 Pack Credits',  sub: '10 Credits', pesosLabel: '45',  color: 'from-orange-600 to-red-800',     action: () => onBuy('PACK_CREDIT', 10,  0, 45)  },
+        { icon: '📦', label: '100 Pack Credits', sub: '100 Credits',pesosLabel: '400', color: 'from-orange-700 to-red-900',     action: () => onBuy('PACK_CREDIT', 100, 0, 400) },
+        { icon: '🚀', label: 'XP Boost 30m',     sub: '2× XP',      pesosLabel: '200', color: 'from-fuchsia-600 to-fuchsia-900',action: () => onBuy('BOOST',  2, 1_800_000,  200) },
+        { icon: '🚀', label: 'XP Boost 12H',     sub: '2× XP',      pesosLabel: '500', color: 'from-fuchsia-700 to-purple-900', action: () => onBuy('BOOST',  2, 43_200_000, 500) },
+        { icon: '📜', label: 'Mission XP 30m',   sub: '2× Mission', pesosLabel: '300', color: 'from-indigo-500 to-indigo-800',  action: () => onBuy('PASS_XP', 2, 1_800_000, 300) },
     ];
 
     const freeItem = {
@@ -111,23 +109,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         action: () => !isFreeStashClaimed && onBuy('COIN', freeCoinsAmount, 0, 0),
     };
 
-    // Build all items — real-money items get FREE/CLAIMED logic, others keep their price
-    const realMoneyItems = [
-        ...dynamicPacks.map(item => ({ ...item, isRealMoney: true })),
-        ...gemPacks.map(item => ({ ...item, isRealMoney: true })),
-    ].map(item => {
-        const isClaimed = claimedItems?.includes(item.label) ?? false;
-        return {
-            ...item,
-            price: isClaimed ? (item.pesosLabel ?? item.sub) : 'FREE',
-            isClaimed,
-            action: isClaimed ? () => {} : () => { item.action(); onClaimItem?.(item.label); },
-        };
-    });
-
     const allItems = [
-        ...realMoneyItems,
-        ...boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false })),
+        ...dynamicPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}` })),
+        ...gemPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}` })),
+        ...boostPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}` })),
         freeItem,
     ];
 
@@ -198,13 +183,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 >
                     <div className="flex gap-3 h-full items-stretch min-w-max">
                         {allItems.map((item, i) => {
-                            const gemCost = (item as any).gemCost as number | undefined;
                             const btnDisabled = cooldown;
 
                             const onItemClick = () => {
                                 if (cooldown) return;
                                 if (item.isClaimed) { setPopup('nopay'); return; }
-                                if (gemCost !== undefined && diamonds < gemCost) { setPopup('nogems'); return; }
                                 handleBuy(item.action);
                             };
 
@@ -238,11 +221,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                             className="btn-3d w-full py-2 rounded-xl text-xs font-black text-white uppercase text-center tracking-wide transition-all hover:brightness-110 active:scale-[0.97]"
                                             style={{
                                                 background: item.isClaimed
-                                                    ? 'rgba(0,0,0,0.4)'
+                                                    ? 'linear-gradient(180deg,#6b7280,#374151)'
                                                     : item.price === 'FREE' || item.price === 'CLAIM'
                                                         ? 'linear-gradient(180deg,#22c55e,#15803d)'
-                                                        : 'rgba(0,0,0,0.65)',
-                                                border: '1px solid rgba(255,255,255,0.15)',
+                                                        : 'linear-gradient(180deg,#f59e0b,#b45309)',
                                                 boxShadow: '0 3px 0 rgba(0,0,0,0.6)',
                                             }}
                                         >
