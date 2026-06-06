@@ -103,7 +103,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, pla
                     </div>
                 </div>
 
-                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x" /></div>
+                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
+                    style={vip ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}>
+                    <i className="ti ti-x" />
+                </div>
             </div>
 
             {/* Two-column body */}

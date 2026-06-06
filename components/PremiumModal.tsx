@@ -47,7 +47,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
                 {/* VIP Lounge Card */}
                 <div
-                    className="flex-1 flex flex-col rounded-2xl overflow-hidden border border-yellow-500/40"
+                    className="flex-1 flex flex-col rounded-2xl overflow-hidden"
                     style={{ background: 'linear-gradient(160deg,#2a1500,#5c3000,#2a1500)' }}
                 >
                     {/* Card Header */}
@@ -71,7 +71,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     <div className="flex-1 px-4 py-3 flex flex-col gap-2 overflow-y-auto no-scrollbar">
                         {vipBenefits.map((b, i) => (
                             <div key={i} className="flex items-center gap-2 rounded-xl px-2.5 py-2"
-                                style={{ background: 'rgba(251,191,36,0.07)', border: '1px solid rgba(251,191,36,0.15)' }}>
+                                style={{ background: 'rgba(251,191,36,0.07)' }}>
                                 <span className="text-base leading-none shrink-0">{b.icon}</span>
                                 <span className="text-yellow-100/90 text-xs leading-snug">{b.text}</span>
                             </div>
@@ -98,7 +98,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
                 {/* Monthly Pass Card */}
                 <div
-                    className="flex-1 flex flex-col rounded-2xl overflow-hidden border border-purple-400/40"
+                    className="flex-1 flex flex-col rounded-2xl overflow-hidden"
                     style={{ background: 'linear-gradient(160deg,#0e0030,#2d0060,#0e0030)' }}
                 >
                     {/* Card Header */}
@@ -122,7 +122,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     <div className="flex-1 px-4 py-3 flex flex-col gap-2 overflow-y-auto no-scrollbar">
                         {passBenefits.map((b, i) => (
                             <div key={i} className="flex items-center gap-2 rounded-xl px-2.5 py-2"
-                                style={{ background: 'rgba(168,85,247,0.07)', border: '1px solid rgba(168,85,247,0.15)' }}>
+                                style={{ background: 'rgba(168,85,247,0.07)' }}>
                                 <span className="text-base leading-none shrink-0">{b.icon}</span>
                                 <span className="text-purple-100/90 text-xs leading-snug">{b.text}</span>
                             </div>

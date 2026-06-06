@@ -96,7 +96,7 @@ export interface WinData {
 
 export interface WildGridCell {
     revealed: boolean;
-    content: 'GEM' | 'REWARD' | 'BLANK';
+    content: 'GEM' | 'REWARD' | 'BLANK' | 'BOMB';
     reward?: MiniGameReward;
 }
 

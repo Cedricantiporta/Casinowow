@@ -29,7 +29,10 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
             {/* Hero section */}
             <div className="shrink-0 flex items-center justify-between px-4 py-3 relative">
                 {/* Back button */}
-                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-arrow-left"></i></div>
+                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
+                    style={{ background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' }}>
+                    <i className="ti ti-arrow-left"></i>
+                </div>
 
                 {/* Crown + title */}
                 <div className="flex items-center gap-2">

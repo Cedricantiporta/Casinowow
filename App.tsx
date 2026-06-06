@@ -107,12 +107,12 @@ const App: React.FC = () => {
 
   // Effect to update Golden Treasury rewards when level changes
   useEffect(() => {
-      const base = CALCULATE_TIME_BONUS(player.level);
-      // Logic: Quick = 0.5x, Daily = 2.5x, Mega = 10x Base
-      const multipliers = [0.5, 2.5, 10];
+      const maxBet = MAX_BET_BY_LEVEL(player.level);
+      // Quick = 5% maxBet, Daily = 25% maxBet, Mega = 100% maxBet
+      const pcts = [0.05, 0.25, 1.0];
       setBonusTimers(prev => prev.map(t => ({
           ...t,
-          reward: Math.floor(base * multipliers[t.id])
+          reward: Math.floor(maxBet * pcts[t.id])
       })));
   }, [player.level]);
 
@@ -974,7 +974,7 @@ const App: React.FC = () => {
       // Jackpot cell injection: during free spins for all slots; NEON always (20% boost)
       const isNeonJP = selectedGame.theme === 'NEON';
       if (freeSpinsRemaining > 0 || isNeonJP) {
-          const neonBoost = isNeonJP ? 1.2 : 1.0;
+          const neonBoost = isNeonJP ? 1.8 : 1.0;
           // 60/40 MINI:MINOR ratio; all tiers ~30% less than before to reduce 3-match frequency
           const JP_SPAWN = [
               { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * neonBoost },
@@ -1950,7 +1950,11 @@ const currentState: SavedGameState = {
                                 {isQuestLocked
                                     ? <span className="text-[28px] leading-none">🔒</span>
                                     : <>
-                                        {qReady && <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-green-400 rounded-full border-2 border-yellow-400 z-10"></div>}
+                                        {quest.wildCredits > 0 && (
+                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                {quest.wildCredits}
+                                            </div>
+                                        )}
                                         <span className="text-[36px] leading-none">🗿</span>
                                       </>
                                 }
@@ -1963,7 +1967,14 @@ const currentState: SavedGameState = {
                             >
                                 {isQuestLocked
                                     ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <span className="text-[36px] leading-none">🎲</span>
+                                    : <>
+                                        {quest.diceCredits > 0 && (
+                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                {quest.diceCredits}
+                                            </div>
+                                        )}
+                                        <span className="text-[36px] leading-none">🎲</span>
+                                      </>
                                 }
                                 <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
                             </button>

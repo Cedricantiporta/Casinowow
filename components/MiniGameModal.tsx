@@ -100,10 +100,16 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 const r = Math.random();
                 let reward: MiniGameReward = { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) };
                 if (r < 0.5) { const h = baseCoin * 2; reward = { type: 'COINS', value: h, label: formatNumber(h) }; }
-                else if (r < 0.7) reward = { type: 'PICKS', value: 1, label: '+1 ⛏️' };
-                else if (r < 0.9) reward = { type: 'PICKS', value: 2, label: '+2 ⛏️' };
-                else reward = { type: 'DIAMONDS', value: 5, label: '5 💎' };
+                else if (r < 0.7) reward = { type: 'PICKS', value: 1, label: '+1 Pick' };
+                else if (r < 0.9) reward = { type: 'PICKS', value: 2, label: '+2 Picks' };
+                else reward = { type: 'DIAMONDS', value: 5, label: '+5 Gems' };
                 cells[i] = { revealed: false, content: 'REWARD', reward };
+            }
+        }
+        // Add bomb cells on blank tiles (~10% chance each)
+        for (let i = 0; i < totalCells; i++) {
+            if (cells[i].content === 'BLANK' && Math.random() < 0.10) {
+                cells[i] = { revealed: false, content: 'BOMB' };
             }
         }
         setGrid(cells);
@@ -177,8 +183,41 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const handleTileClick = (index: number) => {
         if (wildCredits <= 0 || grid[index].revealed || stageWinning) return;
         const cell = grid[index];
-        const newGrid = [...grid];
+        const newGrid = [...grid.map(c => ({ ...c }))];
         newGrid[index] = { ...cell, revealed: true };
+
+        if (cell.content === 'BOMB') {
+            // Reveal all surrounding cells (up to 8)
+            const row = Math.floor(index / currentGridSize);
+            const col = index % currentGridSize;
+            const surroundingRewards: MiniGameReward[] = [];
+            let gemFoundFromBomb = false;
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (nr >= 0 && nr < currentGridSize && nc >= 0 && nc < currentGridSize) {
+                        const ni = nr * currentGridSize + nc;
+                        if (!newGrid[ni].revealed) {
+                            newGrid[ni] = { ...newGrid[ni], revealed: true };
+                            if (newGrid[ni].content === 'GEM') gemFoundFromBomb = true;
+                            else if (newGrid[ni].content === 'REWARD' && newGrid[ni].reward) surroundingRewards.push(newGrid[ni].reward!);
+                        }
+                    }
+                }
+            }
+            setGrid(newGrid);
+            if (onGridUpdate) onGridUpdate(newGrid);
+            audioService.playWinBig();
+            onBatchPick(1, surroundingRewards);
+            if (gemFoundFromBomb) {
+                setStageWinning(true);
+                setTimeout(() => { onStageComplete(50000 * wildStage, 10 * wildStage); setStageWinning(false); }, 2000);
+            }
+            return;
+        }
+
         setGrid(newGrid);
         if (onGridUpdate) onGridUpdate(newGrid);
         if (cell.content === 'GEM') {
@@ -334,30 +373,34 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const revealed = cell.revealed;
                                     const isGem = revealed && cell.content === 'GEM';
                                     const isReward = revealed && cell.content === 'REWARD';
+                                    const isBomb = cell.content === 'BOMB';
                                     const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
                                     const icon = isGem ? '💎' : isReward
                                         ? (cell.reward?.type === 'COINS' ? '🪙' : cell.reward?.type === 'PICKS' ? '⛏️' : '💎')
-                                        : null;
+                                        : revealed && isBomb ? '💥' : null;
+                                    const tileBg = revealed
+                                        ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isReward ? 'linear-gradient(180deg,#15803d,#14532d)' : isBomb ? 'linear-gradient(180deg,#b45309,#78350f)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
+                                        : isBomb ? 'linear-gradient(180deg,#7f1d1d,#450a0a)' : 'linear-gradient(180deg,#4c1d95,#2e1065)';
                                     return (
                                         <button key={i} onClick={() => handleTileClick(i)}
-                                            disabled={revealed || wildCredits <= 0}
+                                            disabled={revealed || wildCredits <= 0 || stageWinning}
                                             className="relative flex flex-col items-center justify-center rounded-xl active:translate-y-[2px] transition-all overflow-hidden"
                                             style={{
                                                 width: tileSize, height: tileSize,
-                                                background: revealed
-                                                    ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isReward ? 'linear-gradient(180deg,#15803d,#14532d)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
-                                                    : 'linear-gradient(180deg,#4c1d95,#2e1065)',
+                                                background: tileBg,
                                                 boxShadow: revealed ? 'none' : '0 4px 0 #1e0438, 0 6px 12px rgba(0,0,0,0.5)',
                                                 border: revealed ? '1px solid rgba(255,255,255,0.1)' : 'none',
-                                                cursor: revealed || wildCredits <= 0 ? 'default' : 'pointer',
+                                                cursor: revealed || wildCredits <= 0 || stageWinning ? 'default' : 'pointer',
                                             }}>
                                             {revealed ? (
                                                 icon ? (
                                                     <>
                                                         <span style={{ fontSize: currentGridSize >= 5 ? '1.3rem' : '1.7rem', lineHeight: 1 }}>{icon}</span>
-                                                        {isReward && <span className="text-[7px] font-black text-white/80 mt-0.5 leading-none">{cell.reward?.label}</span>}
+                                                        {isReward && <span className="text-[8px] font-bold text-white/80 mt-0.5 leading-none">{cell.reward?.label}</span>}
                                                     </>
                                                 ) : null
+                                            ) : isBomb ? (
+                                                <span style={{ fontSize: tileSize * 0.72, lineHeight: 1, filter: 'drop-shadow(0 2px 6px rgba(255,80,0,0.8))' }}>💣</span>
                                             ) : (
                                                 <span style={{ fontSize: tileSize * 0.78, lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>🪨</span>
                                             )}
