@@ -19,8 +19,6 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
     if (!isOpen) return null;
 
     const cap = maxBet * 5;
-    const isFull = amount >= cap;
-    const pct = Math.min(100, (amount / cap) * 100);
 
     const handleBreak = () => {
         if (breaking || amount <= 0) return;
@@ -64,30 +62,12 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 <div className={`relative flex items-center justify-center transition-transform duration-300 ${breaking ? 'scale-110' : ''}`}>
                     <div className="text-[7rem] filter drop-shadow-2xl leading-none">🐷</div>
                     {breaking && <div className="absolute text-5xl animate-ping">💥</div>}
-                    {isFull && !breaking && (
-                        <div className="absolute -top-2 -right-2 text-white font-black text-[10px] px-2 py-0.5 rounded-full shadow-lg uppercase"
-                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>
-                    )}
                 </div>
 
-                {/* Saved amount + progress */}
-                <div className="flex flex-col items-center w-full max-w-xs gap-2">
-                    <div className="flex items-center gap-2">
-                        <span className="text-2xl">🪙</span>
-                        <span className="text-2xl font-mono font-black text-white drop-shadow-md">{formatK(Math.floor(amount))}</span>
-                    </div>
-                    <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden shadow-inner">
-                        <div
-                            className={`h-full transition-all duration-500 ${isFull ? 'bg-red-500' : 'bg-gradient-to-r from-green-400 to-emerald-500'}`}
-                            style={{ width: `${pct}%` }}
-                        />
-                    </div>
-                    <div className="text-white/40 text-[9px] font-bold">
-                        {formatK(Math.floor(amount))} / {formatK(Math.floor(cap))} · {Math.round(pct)}%
-                    </div>
-                    {isFull && (
-                        <div className="text-red-300 text-[9px] font-bold uppercase">Piggy Bank Full! Break it to save more.</div>
-                    )}
+                {/* Saved amount */}
+                <div className="flex items-center gap-2">
+                    <span className="text-2xl">🪙</span>
+                    <span className="text-2xl font-mono font-black text-white drop-shadow-md">{formatK(Math.floor(amount))}</span>
                 </div>
 
                 {/* Single break button */}
@@ -105,7 +85,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 </button>
 
                 <p className="text-white/30 text-[9px] text-center max-w-xs">
-                    Earn up to {formatK(Math.floor(cap))} coins · Max is 5× your current max bet
+                    Gains 5% of each bet (10% with VIP) · Max {formatK(Math.floor(cap))} coins
                 </p>
             </div>
         </div>

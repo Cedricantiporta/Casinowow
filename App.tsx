@@ -1090,9 +1090,9 @@ const App: React.FC = () => {
     }
 
     if (!isFreeSpin) {
-      // Piggy Bank Logic: 10% of Bet (+ 10% extra if VIP), Capped. Only saves if Level >= 5.
+      // Piggy Bank Logic: 5% of Bet (10% if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
-          const savings = currentBet * (player.isVip ? 0.20 : 0.10);
+          const savings = currentBet * (player.isVip ? 0.10 : 0.05);
           const cap = MAX_BET_BY_LEVEL(player.level) * 5;
           setPlayer(prev => ({ 
               ...prev, 
@@ -1872,10 +1872,6 @@ const currentState: SavedGameState = {
                         style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', overflow:'visible' } : { overflow:'visible' }}
                     >
                         <span style={{fontSize:16}}>🐷</span>
-                        {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 5 && (
-                            <div className="absolute -top-1.5 -right-1.5 text-white font-black text-[6px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap z-10"
-                                style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>
-                        )}
                     </div>
 
                 {/* Star Experience Progression (No pill shape container, 2x long, star + bar) */}
@@ -2313,10 +2309,10 @@ const currentState: SavedGameState = {
               } else if (code === 'dev111') {
                   setPlayer(p => ({
                       ...p,
-                      balance: p.balance + 10_000_000_000_000_000,
-                      diamonds: p.diamonds + 500_000,
+                      balance: p.balance + 10_000_000_000,
+                      diamonds: p.diamonds + 2_000,
                   }));
-                  setCelebrationMsg('💥 Coin Nuke! +10Qd Coins · +500k Gems');
+                  setCelebrationMsg('💰 +10B Coins · +2,000 Gems');
               } else if (code === 'dev222') {
                   const now = Date.now();
                   setPlayer(p => ({

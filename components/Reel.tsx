@@ -149,12 +149,8 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   );
 };
 
-// Only Piggy has visible cell separators (thick horizontal + wide column gap).
-// All other themes: no separator lines.
-const getCellSeparatorStyle = (theme: GameTheme, isLastCell: boolean): React.CSSProperties => {
-    if (theme === 'PIGGY' && !isLastCell) {
-        return { borderBottom: '3px solid rgba(0,0,0,0.6)' };
-    }
+// No cell separators on any theme.
+const getCellSeparatorStyle = (_theme: GameTheme, _isLastCell: boolean): React.CSSProperties => {
     return {};
 };
 
