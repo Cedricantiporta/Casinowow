@@ -155,30 +155,31 @@ const getCellSeparatorStyle = (_theme: GameTheme, _isLastCell: boolean): React.C
 };
 
 // 3D text-shadow per letter tier
-const getLetter3DShadow = (symbol: SymbolType): string | undefined => {
+const getLetter3DShadow = (symbol: SymbolType): string => {
     if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
-        return '1px 1px 0 rgba(0,0,0,0.7), 2px 2px 0 rgba(0,0,0,0.55), 3px 3px 0 rgba(0,0,0,0.35), 4px 4px 8px rgba(0,0,0,0.5)';
+        return '1px 1px 0 rgba(0,0,0,0.8), 2px 2px 0 rgba(0,0,0,0.6), 3px 3px 0 rgba(0,0,0,0.4), 4px 4px 8px rgba(0,0,0,0.5)';
     }
     if (symbol === SymbolType.QUEEN || symbol === SymbolType.KING) {
-        return '1px 1px 0 #1a0040, 2px 2px 0 #25005a, 3px 3px 0 #25005a, 4px 4px 8px rgba(0,0,0,0.7)';
+        return '1px 1px 0 #2d0060, 2px 2px 0 #1a003a, 3px 3px 0 #0d001e, 4px 4px 8px rgba(0,0,0,0.8)';
     }
     if (symbol === SymbolType.ACE) {
-        return '1px 1px 0 #6b3000, 2px 2px 0 #8a3e00, 3px 3px 0 #8a3e00, 4px 4px 8px rgba(0,0,0,0.7)';
+        return '1px 1px 0 #7c3800, 2px 2px 0 #4a2000, 3px 3px 0 #2a1000, 4px 4px 8px rgba(0,0,0,0.8)';
     }
-    return undefined;
+    return '';
 };
 
-// Gradient text fill per letter tier
-const getLetterGradient = (symbol: SymbolType): React.CSSProperties => {
-    let background = '';
+// Gradient for letter text (applied to an inline-block span so background-clip: text works reliably)
+const getLetterGradientBg = (symbol: SymbolType): string => {
     if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
-        background = 'linear-gradient(180deg, #ffffff 0%, #c8c8c8 100%)';
-    } else if (symbol === SymbolType.QUEEN || symbol === SymbolType.KING) {
-        background = 'linear-gradient(180deg, #f0e6ff 0%, #c084fc 40%, #7c3aed 100%)';
-    } else if (symbol === SymbolType.ACE) {
-        background = 'linear-gradient(180deg, #fef08a 0%, #fbbf24 40%, #d97706 100%)';
+        return 'linear-gradient(180deg, #ffffff 0%, #d0d0d0 100%)';
     }
-    return background ? { background, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' } : {};
+    if (symbol === SymbolType.QUEEN || symbol === SymbolType.KING) {
+        return 'linear-gradient(180deg, #f0e6ff 0%, #c084fc 45%, #7c3aed 100%)';
+    }
+    if (symbol === SymbolType.ACE) {
+        return 'linear-gradient(180deg, #fef08a 0%, #fbbf24 45%, #d97706 100%)';
+    }
+    return '';
 };
 
 const ReelCell: React.FC<{
@@ -280,9 +281,19 @@ const ReelCell: React.FC<{
                                 ${config?.style || ''}
                                 ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
                             `}
-                            style={isLetter ? { textShadow: getLetter3DShadow(symbol), ...getLetterGradient(symbol) } : undefined}
                         >
-                            {config?.icon}
+                            {isLetter ? (
+                                <span style={{
+                                    display: 'inline-block',
+                                    background: getLetterGradientBg(symbol),
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    backgroundClip: 'text',
+                                    textShadow: getLetter3DShadow(symbol),
+                                }}>
+                                    {config?.icon}
+                                </span>
+                            ) : config?.icon}
                         </div>
                     )}
 
