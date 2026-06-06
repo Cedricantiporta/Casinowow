@@ -3,7 +3,7 @@ import { GAMES_CONFIG, formatK } from '../constants';
 import { GameConfig } from '../types';
 import { jackpotService } from '../services/jackpotService';
 
-const VIP_SLOT_IDS = ['neon-vegas', 'dragon-fortune', 'cosmic-cash', 'samurai-honor'];
+const VIP_SLOT_IDS = ['neon-vegas', 'dragon-fortune', 'cosmic-cash', 'samurai-honor', 'pharaoh-tomb', 'piggy-riches'];
 
 const ICON_MAP: Record<string, string> = {
     NEON: '🎰', DRAGON: '🐉', SPACE: '👽', SAMURAI: '👹',
@@ -55,8 +55,8 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                 </div>
             </div>
 
-            {/* 2×2 slot grid */}
-            <div className="relative z-10 flex-1 grid grid-cols-2 gap-3 p-4">
+            {/* 3×2 slot grid */}
+            <div className="relative z-10 flex-1 grid grid-cols-3 gap-3 p-4">
                 {vipGames.map(game => {
                     const globalIdx = GAMES_CONFIG.findIndex(g => g.id === game.id);
                     const icon = ICON_MAP[game.theme] ?? '🎰';
@@ -64,6 +64,8 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                     const titleColor = game.theme === 'NEON' ? 'text-fuchsia-300' :
                         game.theme === 'DRAGON' ? 'text-red-400' :
                         game.theme === 'SPACE' ? 'text-indigo-300' :
+                        game.theme === 'EGYPT' ? 'text-yellow-300' :
+                        game.theme === 'PIGGY' ? 'text-pink-300' :
                         'text-amber-300';
 
                     return (

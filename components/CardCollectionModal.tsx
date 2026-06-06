@@ -251,13 +251,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         </div>
                         <button onClick={() => { onClose(); onOpenShop('BOOSTS'); }}
                             className="currency-pill flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
-                            style={{ cursor: 'pointer', border: '1px solid rgba(251,146,60,0.4)' }}>
-                            <span style={{ fontSize: '12px', lineHeight: 1, flexShrink: 0 }}>📦</span>
-                            <span className="num" style={{ color: '#fb923c' }}>{packCredits}</span>
-                            <span style={{ fontSize: '8px', fontWeight: 900, color: '#fb923c', textTransform: 'uppercase', letterSpacing: '0.05em' }}>+Get</span>
+                            style={{ cursor: 'pointer' }}>
+                            <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>📦</span>
+                            <span className="num">{packCredits}</span>
+                            <span style={{ fontSize: '7px', fontWeight: 900, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>+GET</span>
                         </button>
                         <div className="currency-pill flex items-center gap-1 shrink-0">
-                            <span style={{ fontSize: '11px', lineHeight: 1, flexShrink: 0 }}>💳</span>
+                            <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>💳</span>
                             <span className="num">{formatNumber(tokens)}</span>
                         </div>
                     </div>
@@ -304,9 +304,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                     {/* PACKS view — card-shaped, centered */}
                     {!selectedDeckId && activeTab === 'PACKS' && (
-                        <div className="flex items-center justify-center gap-3 h-full w-full">
-                            {/* Pack cards */}
-                            <div className="flex items-center justify-center gap-4">
+                        <div className="flex items-center h-full w-full">
+                            {/* Pack cards — centered */}
+                            <div className="flex-1 flex items-center justify-center gap-4">
                                 {packOptions.map(pack => {
                                     const singleCost = pack.info.creditCost;
                                     const bulkCost = Math.ceil((singleCost * 10) * 0.9);
@@ -337,8 +337,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 })}
                             </div>
 
-                            {/* Compact exchange panel */}
-                            <div className="flex flex-col gap-1.5 shrink-0" style={{ width: 110 }}>
+                            {/* Exchange panel — far right */}
+                            <div className="flex flex-col gap-1.5 shrink-0 ml-auto" style={{ width: 110 }}>
                                 <div className="text-[8px] font-black text-purple-300/70 uppercase tracking-widest text-center mb-0.5">Exchange</div>
                                 {tokenExchanges.map((ex) => (
                                     <button key={ex.credits} onClick={() => onBuyCreditsWithTokens && onBuyCreditsWithTokens(ex.credits, ex.cost)}

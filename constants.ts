@@ -255,12 +255,27 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
 
   // Letter/number cells: 3D text effect, transparent bg. Three tiers:
   //  10, J = plain white 3D  |  Q, K = purple 3D  |  A = amber/gold 3D (color-coded)
+  // Letter cell bg matches the reel's dark bg per theme (not color-coded per symbol)
+  const themeDarkBg: Record<GameTheme, string> = {
+    NEON:       'bg-[#0a0315]',
+    EGYPT:      'bg-[#150b00]',
+    DRAGON:     'bg-[#150000]',
+    PIRATE:     'bg-[#060f18]',
+    SPACE:      'bg-[#000010]',
+    CANDY:      'bg-[#250816]',
+    JUNGLE:     'bg-[#03200e]',
+    UNDERWATER: 'bg-[#083248]',
+    WESTERN:    'bg-[#351402]',
+    SAMURAI:    'bg-[#1e0303]',
+    PIGGY:      'bg-[#3b0519]',
+  };
+  const ltrBg = themeDarkBg[theme] || 'bg-black/70';
   const LTR = {
-    TEN:   { style: `text-white font-black ${themeFont}`,        bg: 'bg-slate-900/70', highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
-    JACK:  { style: `text-white font-black ${themeFont}`,        bg: 'bg-slate-900/70', highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
-    QUEEN: { style: `text-violet-300 font-black ${themeFont}`,   bg: 'bg-violet-950/80', highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
-    KING:  { style: `text-violet-300 font-black ${themeFont}`,   bg: 'bg-violet-950/80', highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
-    ACE:   { style: `text-amber-300 font-black ${themeFont}`,    bg: 'bg-amber-950/80',  highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
+    TEN:   { style: `text-white font-black ${themeFont}`,          bg: ltrBg, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
+    JACK:  { style: `text-white font-black ${themeFont}`,          bg: ltrBg, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
+    QUEEN: { style: `text-violet-200 font-black ${themeFont}`,     bg: ltrBg, highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
+    KING:  { style: `text-violet-200 font-black ${themeFont}`,     bg: ltrBg, highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
+    ACE:   { style: `text-yellow-200 font-black ${themeFont}`,     bg: ltrBg, highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
   };
 
   return {
@@ -700,82 +715,55 @@ export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number, maxBet?: number):
 
 export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
     const rewards: PassReward[] = [];
+    // FREE tier special pattern (repeats every 5): Coins, Gems, Picks, Credits, XP
+    const freeSpecials: { type: RewardType; fn: (i: number) => [number, string] }[] = [
+        { type: 'COINS',       fn: (i) => { const v = Math.floor(10000 * 0.15 * Math.pow(1.25, i - 1)); return [v, formatNumber(v)]; } },
+        { type: 'DIAMONDS',    fn: (i) => { const v = i * 4; return [v, `${v} 💎`]; } },
+        { type: 'PICKS',       fn: (_) => [2, '+2 Picks'] },
+        { type: 'CREDIT_BACK', fn: (_) => [15, '+15 Credits'] },
+        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP'] },
+    ];
+    // PREMIUM tier special pattern (repeats every 5): Coins, Gems, Picks, Credits, XP
+    const premSpecials: { type: RewardType; fn: (i: number) => [number, string] }[] = [
+        { type: 'COINS',       fn: (i) => { const v = Math.floor(10000 * 0.5 * Math.pow(1.25, i - 1)); return [v, formatNumber(v)]; } },
+        { type: 'DIAMONDS',    fn: (i) => { const v = i * 20; return [v, `${v} 💎`]; } },
+        { type: 'PICKS',       fn: (_) => [10, '+10 Picks'] },
+        { type: 'CREDIT_BACK', fn: (_) => [75, '+75 Credits'] },
+        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP'] },
+    ];
+
     for (let i = 1; i <= 50; i++) {
-        // FREE TIER
-        // Pattern: 5 Coins, then 1 Special
-        let typeFree: RewardType = 'COINS';
-        let valueFree = Math.floor(10000 * 0.15 * Math.pow(1.25, i - 1));
-        let labelFree = formatNumber(valueFree);
-
-        if (i === 40) {
-            typeFree = 'XP_BOOST';
-            valueFree = 2;
-            labelFree = "2x XP";
-        } else if (i % 6 === 0) {
-            // Special Item every 6th level
-            const variant = (i / 6) % 3;
-            if (variant === 0) {
-                 typeFree = 'DIAMONDS';
-                 valueFree = i * 2;
-                 labelFree = `${valueFree} 💎`;
-            } else if (variant === 1) {
-                 typeFree = 'CREDIT_BACK';
-                 valueFree = 10;
-                 labelFree = "+10 Credits";
-            } else {
-                 typeFree = 'PICKS';
-                 valueFree = 2;
-                 labelFree = "+2 Picks";
-            }
+        // FREE TIER — alternates: odd = coins, even = special
+        let typeFree: RewardType;
+        let valueFree: number;
+        let labelFree: string;
+        if (i % 2 === 1) {
+            // Coin reward on odd levels
+            const v = Math.floor(10000 * 0.15 * Math.pow(1.2, i - 1));
+            typeFree = 'COINS'; valueFree = v; labelFree = formatNumber(v);
+        } else {
+            // Cycle through non-coin specials on even levels
+            const spec = freeSpecials[1 + ((i / 2 - 1) % (freeSpecials.length - 1))];
+            typeFree = spec.type;
+            [valueFree, labelFree] = spec.fn(i);
         }
 
-        rewards.push({
-            id: `free-${i}`,
-            level: i,
-            type: typeFree,
-            value: valueFree,
-            label: labelFree,
-            claimed: false,
-            tier: 'FREE'
-        });
+        rewards.push({ id: `free-${i}`, level: i, type: typeFree, value: valueFree, label: labelFree, claimed: false, tier: 'FREE' });
 
-        // PREMIUM TIER
-        let typePrem: RewardType = 'COINS';
-        let valuePrem = Math.floor(10000 * 0.5 * Math.pow(1.25, i - 1));
-        let labelPrem = formatNumber(valuePrem);
-
-        if (i % 20 === 0) {
-            // Premium XP Boost every 20 levels (20, 40)
-            typePrem = 'XP_BOOST';
-            valuePrem = 2;
-            labelPrem = "2x XP";
-        } else if (i % 6 === 0) {
-            // Special Item matching free tier flow but boosted
-            const variant = (i / 6) % 3;
-            if (variant === 0) {
-                 typePrem = 'DIAMONDS';
-                 valuePrem = (i * 2) * 5; 
-                 labelPrem = `${valuePrem} 💎`;
-            } else if (variant === 1) {
-                 typePrem = 'PICKS';
-                 valuePrem = 5;
-                 labelPrem = "+5 Picks";
-            } else {
-                 typePrem = 'CREDIT_BACK';
-                 valuePrem = 50;
-                 labelPrem = "+50 Credits";
-            }
+        // PREMIUM TIER — 1 coin every 3 levels, rest are specials
+        let typePrem: RewardType;
+        let valuePrem: number;
+        let labelPrem: string;
+        if (i % 3 === 0) {
+            const v = Math.floor(10000 * 0.5 * Math.pow(1.2, i - 1));
+            typePrem = 'COINS'; valuePrem = v; labelPrem = formatNumber(v);
+        } else {
+            const spec = premSpecials[1 + ((i - 1) % (premSpecials.length - 1))];
+            typePrem = spec.type;
+            [valuePrem, labelPrem] = spec.fn(i);
         }
 
-        rewards.push({
-            id: `prem-${i}`,
-            level: i,
-            type: typePrem,
-            value: valuePrem,
-            label: labelPrem,
-            claimed: false,
-            tier: 'PREMIUM'
-        });
+        rewards.push({ id: `prem-${i}`, level: i, type: typePrem, value: valuePrem, label: labelPrem, claimed: false, tier: 'PREMIUM' });
     }
     return rewards;
 };

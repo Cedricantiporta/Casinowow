@@ -168,19 +168,6 @@ const getLetter3DShadow = (symbol: SymbolType): string => {
     return '';
 };
 
-// Gradient for letter text (applied to an inline-block span so background-clip: text works reliably)
-const getLetterGradientBg = (symbol: SymbolType): string => {
-    if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
-        return 'linear-gradient(180deg, #ffffff 0%, #d0d0d0 100%)';
-    }
-    if (symbol === SymbolType.QUEEN || symbol === SymbolType.KING) {
-        return 'linear-gradient(180deg, #f0e6ff 0%, #c084fc 45%, #7c3aed 100%)';
-    }
-    if (symbol === SymbolType.ACE) {
-        return 'linear-gradient(180deg, #fef08a 0%, #fbbf24 45%, #d97706 100%)';
-    }
-    return '';
-};
 
 const ReelCell: React.FC<{
     symbol: SymbolType,
@@ -281,19 +268,9 @@ const ReelCell: React.FC<{
                                 ${config?.style || ''}
                                 ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
                             `}
+                            style={isLetter ? { textShadow: getLetter3DShadow(symbol) } : undefined}
                         >
-                            {isLetter ? (
-                                <span style={{
-                                    display: 'inline-block',
-                                    background: getLetterGradientBg(symbol),
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    backgroundClip: 'text',
-                                    textShadow: getLetter3DShadow(symbol),
-                                }}>
-                                    {config?.icon}
-                                </span>
-                            ) : config?.icon}
+                            {config?.icon}
                         </div>
                     )}
 
