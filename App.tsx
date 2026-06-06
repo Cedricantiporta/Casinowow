@@ -2212,7 +2212,9 @@ const currentState: SavedGameState = {
         diceStage={quest.diceStage}
         dicePosition={quest.dicePosition}
         activeGame={quest.activeGame}
-        savedGrid={quest.wildGrid} // Pass saved grid
+        savedGrid={quest.wildGrid}
+        balance={player.balance}
+        diamonds={player.diamonds}
         onSelectMode={handleQuestModeSelect}
         onBuyPicks={handleBuyPicks} 
         onPickTile={handleMiniGamePick} 
@@ -2317,7 +2319,6 @@ const currentState: SavedGameState = {
                   const now = Date.now();
                   setPlayer(p => ({
                       ...p,
-                      level: p.level + 100,
                       isVip: true,
                       xpMultiplier: 5,
                       xpBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
@@ -2329,7 +2330,7 @@ const currentState: SavedGameState = {
                       passBoostMultiplier: 5,
                       passBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
                   }));
-                  setCelebrationMsg('👑 GOD MODE! +100 Levels · All Premium · Max Boosts');
+                  setCelebrationMsg('👑 GOD MODE! All Premium · Max Boosts');
               }
               audioService.playWinBig();
           }}

@@ -12,6 +12,8 @@ interface MiniGameModalProps {
     dicePosition: number;
     activeGame: 'NONE' | 'WILD' | 'DICE';
     savedGrid?: WildGridCell[];
+    balance?: number;
+    diamonds?: number;
     onSelectMode: (mode: 'NONE' | 'WILD' | 'DICE') => void;
     onBuyPicks: (amount: number, cost: number, currency: 'CREDITS' | 'GEMS') => void;
     onPickTile: (isGem: boolean, reward: MiniGameReward | null) => void;
@@ -69,6 +71,7 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     isOpen, diceCredits, wildCredits, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
+    balance = 0, diamonds = 0,
     onSelectMode, onBuyPicks, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet
 }) => {
     const currentGridSize = GRID_SIZES[Math.min(wildStage - 1, GRID_SIZES.length - 1)];
@@ -354,14 +357,24 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             style={{ background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
 
             {/* Topbar */}
-            <div className="shrink-0 flex items-center gap-2 px-3 h-[34px] z-20"
+            <div className="shrink-0 flex items-center gap-2 px-3 h-[38px] z-20"
                 style={{ background: HDR, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-arrow-left"></i></div>
-                <span className="font-black text-white text-sm uppercase tracking-widest drop-shadow">{questTitle}</span>
-                <div className="flex-1 flex items-center justify-end gap-1.5">
-                    <span style={{ fontSize: '9px', fontWeight: 700, color: 'rgba(253,230,138,0.6)', textTransform: 'uppercase', letterSpacing: '0.08em', lineHeight: 1 }}>Stage Prize</span>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1 }}>
-                        💰 {formatCommaNumber((maxBet || 10000) * (isWild ? wildStage : diceStage) * 10)}
+                <span className="font-black text-white text-xs uppercase tracking-widest drop-shadow shrink-0">{questTitle}</span>
+                <div className="flex-1 flex items-center justify-center gap-1.5">
+                    <div className="currency-pill flex items-center gap-1">
+                        <div className="coin shrink-0">$</div>
+                        <span className="num" style={{ fontSize: '10px' }}>{formatCommaNumber(balance)}</span>
+                    </div>
+                    <div className="currency-pill flex items-center gap-1">
+                        <div className="gem shrink-0"></div>
+                        <span className="num" style={{ fontSize: '10px' }}>{diamonds}</span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                    <span style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(253,230,138,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>Prize</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1 }}>
+                        {formatCommaNumber((maxBet || 10000) * (isWild ? wildStage : diceStage) * 10)}
                     </span>
                 </div>
             </div>
