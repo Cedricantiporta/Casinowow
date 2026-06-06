@@ -328,14 +328,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
                     {/* Rock grid */}
                     <div className="flex-1 flex items-center justify-center p-3">
-                        <div className="relative p-3 rounded-2xl"
-                            style={{ background: 'linear-gradient(160deg,#2e1065,#1a0a3e)', border: '1.5px solid rgba(139,92,246,0.4)', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+                        <div className="relative p-2">
                             <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))` }}>
                                 {grid.map((cell, i) => {
                                     const revealed = cell.revealed;
                                     const isGem = revealed && cell.content === 'GEM';
                                     const isReward = revealed && cell.content === 'REWARD';
-                                    const tileSize = currentGridSize >= 6 ? 44 : currentGridSize >= 5 ? 50 : currentGridSize >= 4 ? 56 : 64;
+                                    const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
                                     const icon = isGem ? '💎' : isReward
                                         ? (cell.reward?.type === 'COINS' ? '🪙' : cell.reward?.type === 'PICKS' ? '⛏️' : '💎')
                                         : null;
@@ -349,19 +348,18 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                     ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isReward ? 'linear-gradient(180deg,#15803d,#14532d)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
                                                     : 'linear-gradient(180deg,#4c1d95,#2e1065)',
                                                 boxShadow: revealed ? 'none' : '0 4px 0 #1e0438, 0 6px 12px rgba(0,0,0,0.5)',
-                                                border: revealed ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(167,139,250,0.3)',
+                                                border: revealed ? '1px solid rgba(255,255,255,0.1)' : 'none',
                                                 cursor: revealed || wildCredits <= 0 ? 'default' : 'pointer',
                                             }}>
                                             {revealed ? (
                                                 icon ? (
                                                     <>
-                                                        <span style={{ fontSize: currentGridSize >= 5 ? '1.1rem' : '1.4rem', lineHeight: 1 }}>{icon}</span>
+                                                        <span style={{ fontSize: currentGridSize >= 5 ? '1.3rem' : '1.7rem', lineHeight: 1 }}>{icon}</span>
                                                         {isReward && <span className="text-[7px] font-black text-white/80 mt-0.5 leading-none">{cell.reward?.label}</span>}
                                                     </>
                                                 ) : null
                                             ) : (
-                                                // Unrevealed: big rock emoji, no container
-                                                <span style={{ fontSize: tileSize * 0.62, lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>🪨</span>
+                                                <span style={{ fontSize: tileSize * 0.78, lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>🪨</span>
                                             )}
                                         </button>
                                     );

@@ -20,6 +20,7 @@ interface ShopModalProps {
 export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, freeCoinsAvailable = false, freeCoinsAmount = 300000, balance = 0, diamonds = 0, maxBet = 10000, initialTab, claimedItems, onClaimItem }) => {
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
     const [cooldown, setCooldown] = useState(false);
+    const [popup, setPopup] = useState<'nopay' | 'nogems' | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Non-passive wheel handler so we can preventDefault and scroll horizontally
@@ -92,11 +93,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     ];
 
     const boostPacks = [
-        { icon: '📦', label: '10 Pack Credits',  sub: '10 Credits', price: '45 💎',  color: 'from-orange-600 to-red-800',     action: () => onBuy('PACK_CREDIT', 10,  0, 45)  },
-        { icon: '📦', label: '100 Pack Credits', sub: '100 Credits',price: '400 💎', color: 'from-orange-700 to-red-900',     action: () => onBuy('PACK_CREDIT', 100, 0, 400) },
-        { icon: '🚀', label: 'XP Boost 30m',     sub: '2× XP',      price: '200 💎', color: 'from-fuchsia-600 to-fuchsia-900',action: () => onBuy('BOOST',  2, 1_800_000,  200) },
-        { icon: '🚀', label: 'XP Boost 12H',     sub: '2× XP',      price: '500 💎', color: 'from-fuchsia-700 to-purple-900', action: () => onBuy('BOOST',  2, 43_200_000, 500) },
-        { icon: '📜', label: 'Mission XP 30m',   sub: '2× Mission', price: '300 💎', color: 'from-indigo-500 to-indigo-800',  action: () => onBuy('PASS_XP', 2, 1_800_000, 300) },
+        { icon: '📦', label: '10 Pack Credits',  sub: '10 Credits', price: '45 💎',  gemCost: 45,  color: 'from-orange-600 to-red-800',     action: () => onBuy('PACK_CREDIT', 10,  0, 45)  },
+        { icon: '📦', label: '100 Pack Credits', sub: '100 Credits',price: '400 💎', gemCost: 400, color: 'from-orange-700 to-red-900',     action: () => onBuy('PACK_CREDIT', 100, 0, 400) },
+        { icon: '🚀', label: 'XP Boost 30m',     sub: '2× XP',      price: '200 💎', gemCost: 200, color: 'from-fuchsia-600 to-fuchsia-900',action: () => onBuy('BOOST',  2, 1_800_000,  200) },
+        { icon: '🚀', label: 'XP Boost 12H',     sub: '2× XP',      price: '500 💎', gemCost: 500, color: 'from-fuchsia-700 to-purple-900', action: () => onBuy('BOOST',  2, 43_200_000, 500) },
+        { icon: '📜', label: 'Mission XP 30m',   sub: '2× Mission', price: '300 💎', gemCost: 300, color: 'from-indigo-500 to-indigo-800',  action: () => onBuy('PASS_XP', 2, 1_800_000, 300) },
     ];
 
     const freeItem = {
@@ -156,14 +157,14 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 ].map(tab => (
                     <button key={tab.name} onClick={() => scrollToSection(tab.idx)}
                         className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5"
-                        style={{ background: tab.bg, border: '1px solid rgba(255,255,255,0.25)', minWidth: '34px' }}>
+                        style={{ background: tab.bg, minWidth: '34px' }}>
                         <span>{tab.label}</span>
                         <span>{tab.name}</span>
                     </button>
                 ))}
                 <button key="Free" onClick={() => scrollToSection(15)}
                     className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5 relative"
-                    style={{ background: '#166534', border: '1px solid rgba(255,255,255,0.25)', minWidth: '34px' }}>
+                    style={{ background: '#166534', minWidth: '34px' }}>
                     <span>🎁</span>
                     <span>Free</span>
                     {freeCoinsAvailable && (
@@ -173,6 +174,22 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
+            {/* Popup overlay */}
+            {popup && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setPopup(null)}>
+                    <div className="bg-[#1e0d30] rounded-2xl px-6 py-5 max-w-[260px] text-center shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
+                        <div className="text-3xl mb-2">{popup === 'nogems' ? '💎' : '🚫'}</div>
+                        <div className="text-white font-black text-sm uppercase tracking-wide mb-1">
+                            {popup === 'nogems' ? 'Not Enough Gems' : 'No Payment Environment'}
+                        </div>
+                        <div className="text-white/50 text-[10px] mb-3">
+                            {popup === 'nogems' ? 'You need more gems to purchase this item.' : 'Payment processing is not available in this environment.'}
+                        </div>
+                        <button onClick={() => setPopup(null)} className="btn-3d px-5 py-1.5 rounded-lg font-black text-white text-xs uppercase" style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)' }}>OK</button>
+                    </div>
+                </div>
+            )}
+
             {/* Scroll area */}
             <div className="flex-1 min-h-0 pb-4">
                 <div
@@ -181,8 +198,15 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 >
                     <div className="flex gap-3 h-full items-stretch min-w-max">
                         {allItems.map((item, i) => {
-                            const isGemBuy = !item.isRealMoney && item !== freeItem;
-                            const btnDisabled = item.isClaimed || cooldown;
+                            const gemCost = (item as any).gemCost as number | undefined;
+                            const btnDisabled = cooldown;
+
+                            const onItemClick = () => {
+                                if (cooldown) return;
+                                if (item.isClaimed) { setPopup('nopay'); return; }
+                                if (gemCost !== undefined && diamonds < gemCost) { setPopup('nogems'); return; }
+                                handleBuy(item.action);
+                            };
 
                             return (
                                 <div
@@ -208,14 +232,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                                 {item.sub}
                                             </div>
                                         )}
-                                        {/* Price/action button — only this part is disabled when claimed */}
                                         <button
-                                            onClick={() => !btnDisabled && handleBuy(item.action)}
+                                            onClick={onItemClick}
                                             disabled={btnDisabled}
-                                            className={`
-                                                btn-3d w-full py-2 rounded-xl text-xs font-black text-white uppercase text-center tracking-wide transition-all
-                                                ${btnDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:brightness-110 active:scale-[0.97]'}
-                                            `}
+                                            className="btn-3d w-full py-2 rounded-xl text-xs font-black text-white uppercase text-center tracking-wide transition-all hover:brightness-110 active:scale-[0.97]"
                                             style={{
                                                 background: item.isClaimed
                                                     ? 'rgba(0,0,0,0.4)'
@@ -223,7 +243,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                                         ? 'linear-gradient(180deg,#22c55e,#15803d)'
                                                         : 'rgba(0,0,0,0.65)',
                                                 border: '1px solid rgba(255,255,255,0.15)',
-                                                boxShadow: btnDisabled ? 'none' : '0 3px 0 rgba(0,0,0,0.6)',
+                                                boxShadow: '0 3px 0 rgba(0,0,0,0.6)',
                                             }}
                                         >
                                             {item.price}

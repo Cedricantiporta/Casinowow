@@ -2214,6 +2214,7 @@ const currentState: SavedGameState = {
           onBuyLevel={handleBuyPassLevel}
           onClaimAll={handleClaimAllMissions}
           playerLevel={player.level}
+          maxBet={MAX_BET_BY_LEVEL(player.level)}
       />
       
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus} />

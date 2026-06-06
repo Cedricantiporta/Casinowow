@@ -145,10 +145,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     };
 
     const packOptions = [
-        { id: 'basic', name: 'Basic', info: PACK_COSTS.BASIC, color: 'from-gray-700 to-gray-900', icon: '📦' },
-        { id: 'super', name: 'Super', info: PACK_COSTS.SUPER, color: 'from-blue-700 to-blue-900', icon: '💼' },
-        { id: 'mega', name: 'Mega', info: PACK_COSTS.MEGA, color: 'from-purple-700 to-purple-900', icon: '🦄' },
-        { id: 'ultra', name: 'Ultra', info: PACK_COSTS.ULTRA, color: 'from-yellow-600 to-yellow-800', icon: '👑' }
+        { id: 'super', name: 'Standard', info: PACK_COSTS.SUPER, color: 'from-blue-700 to-blue-900', icon: '💼' },
+        { id: 'ultra', name: 'Premium', info: PACK_COSTS.ULTRA, color: 'from-yellow-600 to-yellow-800', icon: '👑' },
     ];
 
     const tokenExchanges = [
@@ -309,19 +307,19 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                     {/* PACKS view — fills full width */}
                     {!selectedDeckId && activeTab === 'PACKS' && (
-                        <div className="flex items-stretch gap-2 h-full w-full">
+                        <div className="flex items-stretch gap-1.5 h-full w-full">
                             {/* Duplicate exchange column */}
-                            <div className="flex-none w-32 bg-gray-900/60 rounded-xl p-2 flex flex-col gap-1.5 h-full">
-                                <h3 className="text-green-400 text-[9px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0"><span>💳</span> Dupe Exchange</h3>
-                                <div className="flex flex-col gap-1.5 flex-1">
+                            <div className="flex-none w-28 bg-gray-900/60 rounded-xl p-1.5 flex flex-col gap-1 h-full">
+                                <h3 className="text-green-400 text-[8px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0"><span>💳</span> Dupe Exch</h3>
+                                <div className="flex flex-col gap-1 flex-1">
                                     {tokenExchanges.map((ex, idx) => (
                                         <button key={idx} onClick={() => onBuyCreditsWithTokens && onBuyCreditsWithTokens(ex.credits, ex.cost)}
                                             disabled={tokens < ex.cost}
-                                            className={`btn-3d flex-1 flex flex-col items-center justify-center p-1.5 rounded-lg transition-all ${tokens >= ex.cost ? 'bg-gradient-to-b from-[#166534]/50 to-[#14532d]/50 border border-green-700/55 hover:brightness-110' : 'bg-gray-800/40 border border-gray-700/30 opacity-40 cursor-not-allowed'}`}>
-                                            <span className="text-white text-[9px] font-bold">+{ex.credits} Credit</span>
-                                            <div className="flex items-center gap-0.5 bg-black/40 px-1.5 py-0.5 rounded-full mt-0.5">
-                                                <span className="text-green-400 font-mono text-[8px] font-bold">{ex.cost}</span>
-                                                <span className="text-[8px]">💳</span>
+                                            className={`btn-3d flex-1 flex flex-col items-center justify-center p-1 rounded-lg transition-all ${tokens >= ex.cost ? 'bg-gradient-to-b from-[#166534]/50 to-[#14532d]/50 border border-green-700/55 hover:brightness-110' : 'bg-gray-800/40 border border-gray-700/30 opacity-40 cursor-not-allowed'}`}>
+                                            <span className="text-white text-[8px] font-bold">+{ex.credits} Cred</span>
+                                            <div className="flex items-center gap-0.5 bg-black/40 px-1 py-0.5 rounded-full mt-0.5">
+                                                <span className="text-green-400 font-mono text-[7px] font-bold">{ex.cost}</span>
+                                                <span className="text-[7px]">💳</span>
                                             </div>
                                         </button>
                                     ))}
@@ -335,12 +333,12 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 const canDrawOne = packCredits >= singleCost;
                                 const canDrawTen = packCredits >= bulkCost;
                                 return (
-                                    <div key={pack.id} className={`flex-1 min-w-[100px] rounded-xl overflow-hidden shadow-md flex flex-col bg-gradient-to-b ${pack.color} h-full`}>
-                                        <div className="flex-1 flex flex-col items-center justify-center bg-black/20 py-4">
-                                            <div className="text-4xl drop-shadow-md">{pack.icon}</div>
+                                    <div key={pack.id} className={`flex-1 rounded-xl overflow-hidden shadow-md flex flex-col bg-gradient-to-b ${pack.color} h-full`}>
+                                        <div className="flex-1 flex flex-col items-center justify-center bg-black/20 py-2">
+                                            <div className="text-5xl drop-shadow-md">{pack.icon}</div>
                                         </div>
-                                        <div className="p-2 flex flex-col items-center text-center bg-black/40 w-full gap-1">
-                                            <h3 className="text-xs font-black font-display text-white uppercase drop-shadow leading-none">{pack.name} Pack</h3>
+                                        <div className="p-1.5 flex flex-col items-center text-center bg-black/40 w-full gap-1">
+                                            <h3 className="text-xs font-black font-display text-white uppercase drop-shadow leading-none">{pack.name}</h3>
                                             <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
                                                 className={`btn-3d w-full py-1 rounded-md font-bold text-white uppercase text-[9px] ${canDrawOne ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-700'}`}>
                                                 1x ({singleCost} 📦)
@@ -348,7 +346,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
                                                 className={`btn-3d w-full py-1 rounded-md font-bold text-white uppercase text-[9px] relative overflow-hidden ${canDrawTen ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:brightness-110' : 'bg-gray-700'}`}>
                                                 10x ({bulkCost} 📦)
-                                                {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">10% Off</div>}
+                                                {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</div>}
                                             </button>
                                         </div>
                                     </div>
@@ -379,27 +377,27 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <div ref={deckCardsScrollRef} className="flex-1 overflow-x-auto no-scrollbar">
                                 <div className="flex gap-2 h-full items-stretch min-w-max py-0.5">
                                     {decks.find(d => d.gameId === selectedDeckId)?.cards
-                                        .filter(card => card.icon.length > 2 || /\p{Emoji}/u.test(card.icon))
+                                        .filter(card => (card.icon.length > 2 || /\p{Emoji}/u.test(card.icon)) && !String(card.symbolType).startsWith('JACKPOT'))
                                         .map((card, i) => {
                                         const borderColor = getCardBorder(card.rarity);
                                         const isLocked = card.count === 0;
                                         return (
                                             <div key={i} className="flex-none rounded-xl flex flex-col items-center justify-between relative overflow-hidden"
-                                                style={{ width: '70px', height: '110px', background: getCardBg(card.rarity, isLocked), border: `2px solid ${isLocked ? borderColor + '44' : borderColor}`, boxShadow: isLocked ? 'none' : `0 4px 16px ${borderColor}44` }}>
+                                                style={{ width: '140px', height: '220px', background: getCardBg(card.rarity, isLocked), border: `2px solid ${isLocked ? borderColor + '44' : borderColor}`, boxShadow: isLocked ? 'none' : `0 4px 16px ${borderColor}44` }}>
                                                 {/* Rarity + count top bar */}
-                                                <div className="w-full flex items-center justify-between px-1 pt-1">
-                                                    <span className={`text-[6px] font-black uppercase px-1 py-0.5 rounded-sm ${card.rarity === 'LEGENDARY' ? 'bg-black/40 text-yellow-200' : card.rarity === 'EPIC' ? 'bg-black/40 text-purple-200' : card.rarity === 'RARE' ? 'bg-black/40 text-blue-200' : 'bg-black/40 text-white/70'}`}>{card.rarity[0]}</span>
+                                                <div className="w-full flex items-center justify-between px-2 pt-2">
+                                                    <span className={`text-[10px] font-black uppercase px-1.5 py-0.5 rounded-sm ${card.rarity === 'LEGENDARY' ? 'bg-black/40 text-yellow-200' : card.rarity === 'EPIC' ? 'bg-black/40 text-purple-200' : card.rarity === 'RARE' ? 'bg-black/40 text-blue-200' : 'bg-black/40 text-white/70'}`}>{card.rarity[0]}</span>
                                                     {card.count > 0 && (
-                                                        <span className="text-[6px] font-bold bg-black/50 text-white px-1 py-0.5 rounded-sm">×{card.count}</span>
+                                                        <span className="text-[10px] font-bold bg-black/50 text-white px-1.5 py-0.5 rounded-sm">×{card.count}</span>
                                                     )}
                                                 </div>
                                                 {/* Icon — centered */}
                                                 <div className="flex-1 flex items-center justify-center w-full">
-                                                    <span className="text-3xl leading-none drop-shadow-md">{isLocked ? '🔒' : card.icon}</span>
+                                                    <span className="text-6xl leading-none drop-shadow-md">{isLocked ? '🔒' : card.icon}</span>
                                                 </div>
                                                 {/* Name bar at bottom */}
-                                                <div className="w-full px-1 pb-1.5">
-                                                    <div className="text-[7px] font-black text-center w-full truncate leading-none py-0.5 rounded-sm"
+                                                <div className="w-full px-2 pb-2.5">
+                                                    <div className="text-[11px] font-black text-center w-full truncate leading-none py-1 rounded-sm"
                                                         style={{ background: 'rgba(0,0,0,0.35)', color: isLocked ? '#666' : 'white' }}>
                                                         {card.name}
                                                     </div>

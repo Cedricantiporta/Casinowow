@@ -16,6 +16,7 @@ interface MissionPassModalProps {
     onBuyLevel: () => void;
     onClaimAll: () => void;
     playerLevel: number;
+    maxBet?: number;
 }
 
 export const MissionPassModal: React.FC<MissionPassModalProps> = ({
@@ -31,7 +32,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     onBuyPass,
     onBuyLevel,
     onClaimAll,
-    playerLevel
+    playerLevel,
+    maxBet = 10000,
 }) => {
     const [view, setView] = useState<'MISSIONS' | 'PASS'>('MISSIONS');
     const [activeTab, setActiveTab] = useState<MissionFrequency>('DAILY');
@@ -91,10 +93,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
     const getDisplayValue = (reward: PassReward) => {
         if (reward.type === 'COINS') {
-            // Claimed rewards show the snapshot value from when they were collected
             if (reward.claimed && reward.claimedValue !== undefined) return formatK(reward.claimedValue);
-            // Uncollected rewards scale dynamically with current max bet
-            return formatK(SCALE_COIN_REWARD(reward.value, playerLevel));
+            return formatK(SCALE_COIN_REWARD(reward.value, playerLevel, maxBet));
         }
         return reward.label;
     };
