@@ -41,8 +41,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const rewardsContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!isOpen) {
+        if (isOpen) {
             setView(initialView);
+        } else {
             setShowPremiumInfo(false);
         }
     }, [isOpen, initialView]);

@@ -100,6 +100,14 @@ const App: React.FC = () => {
       jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
   }, [player.level]);
 
+  // Toggle XP mult display between multiplier and countdown every 15s when boost active
+  useEffect(() => {
+      const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
+      if (!boostActive) { setShowXpTimer(false); return; }
+      const interval = setInterval(() => setShowXpTimer(prev => !prev), 15000);
+      return () => clearInterval(interval);
+  }, [player.xpMultiplier, player.xpBoostEndTime]);
+
   // Instantly dismiss level toast when leaving game view
   useEffect(() => {
       if (currentView !== 'GAME') setShowLevelUp(false);
@@ -142,6 +150,7 @@ const App: React.FC = () => {
   const savedFastSpinRef = useRef<boolean>(false); 
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [piggyGlow, setPiggyGlow] = useState(false);
+  const [showXpTimer, setShowXpTimer] = useState(false);
   
   const [activeModal, setActiveModal] = useState<'NONE' | 'SHOP' | 'COLLECTION' | 'MINIGAME' | 'MISSIONS' | 'TIME_BONUS' | 'LOGIN_BONUS' | 'PIGGY' | 'FEATURE_UNLOCK'>('NONE');
   const [missionInitialView, setMissionInitialView] = useState<'MISSIONS' | 'PASS'>('MISSIONS');
@@ -974,7 +983,7 @@ const App: React.FC = () => {
       // Jackpot cell injection: during free spins for all slots; NEON always (20% boost)
       const isNeonJP = selectedGame.theme === 'NEON';
       if (freeSpinsRemaining > 0 || isNeonJP) {
-          const neonBoost = isNeonJP ? 1.8 : 1.0;
+          const neonBoost = isNeonJP ? 1.08 : 1.0;
           // 60/40 MINI:MINOR ratio; all tiers ~30% less than before to reduce 3-match frequency
           const JP_SPAWN = [
               { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * neonBoost },
@@ -1883,7 +1892,16 @@ const currentState: SavedGameState = {
 
                 {/* Active Multiplier indicator */}
                 <div className="mult shrink-0 ml-2" style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}>
-                    x{player.xpMultiplier}
+                    {(() => {
+                        const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
+                        if (boostActive && showXpTimer) {
+                            const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
+                            const h = Math.floor(rem / 3600000);
+                            const m = Math.floor((rem % 3600000) / 60000);
+                            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                        }
+                        return `x${player.xpMultiplier}`;
+                    })()}
                 </div>
 
                 {/* Settings button */}

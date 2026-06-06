@@ -119,27 +119,32 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const initBoard = useCallback(() => {
         const newBoard: BoardStep[] = [];
         const baseCoin = (maxBet || 10000) * diceStage * 0.2;
+        const preGoalIndex = boardLength - 1;
         for (let i = 0; i <= boardLength; i++) {
             let reward: MiniGameReward | undefined;
             if (i > 0 && i < boardLength) {
-                const r = Math.random();
-                if (r < 0.12) {
+                // 30% chance of BACK on the tile just before the goal
+                if (i === preGoalIndex && Math.random() < 0.30) {
                     reward = { type: 'BACK', value: 0, label: 'BACK!' };
-                } else if (r < 0.48) {
-                    const v = Math.floor(baseCoin * (0.5 + Math.random()));
-                    reward = { type: 'COINS', value: v, label: formatNumber(v) };
-                } else if (r < 0.63) {
-                    reward = { type: 'PICKS', value: 1, label: '×1' };
-                } else if (r < 0.72) {
-                    reward = { type: 'PICKS', value: 2, label: '×2' };
-                } else if (r < 0.84) {
-                    const gems = Math.floor(Math.random() * 46) + 5;
-                    reward = { type: 'DIAMONDS', value: gems, label: `+${gems}` };
-                } else if (r < 0.92) {
-                    const packs = Math.floor(Math.random() * 10) + 1;
-                    reward = { type: 'PACKS', value: packs, label: `+${packs}` };
+                } else {
+                    const r = Math.random();
+                    if (r < 0.12) {
+                        reward = { type: 'BACK', value: 0, label: 'BACK!' };
+                    } else if (r < 0.48) {
+                        const v = Math.floor(baseCoin * (0.5 + Math.random()));
+                        reward = { type: 'COINS', value: v, label: formatNumber(v) };
+                    } else if (r < 0.63) {
+                        reward = { type: 'PICKS', value: 1, label: '×1' };
+                    } else if (r < 0.72) {
+                        reward = { type: 'PICKS', value: 2, label: '×2' };
+                    } else if (r < 0.84) {
+                        const gems = Math.floor(Math.random() * 46) + 5;
+                        reward = { type: 'DIAMONDS', value: gems, label: `+${gems}` };
+                    } else if (r < 0.92) {
+                        const packs = Math.floor(Math.random() * 10) + 1;
+                        reward = { type: 'PACKS', value: packs, label: `+${packs}` };
+                    }
                 }
-                // ~8% empty cells
             }
             newBoard.push({ index: i, isStart: i === 0, isFinish: i === boardLength, reward });
         }
@@ -380,7 +385,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         : revealed && isBomb ? '💥' : null;
                                     const tileBg = revealed
                                         ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isBomb ? 'linear-gradient(180deg,#b45309,#78350f)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
-                                        : isBomb ? 'linear-gradient(180deg,#7f1d1d,#450a0a)' : 'linear-gradient(180deg,#4c1d95,#2e1065)';
+                                        : 'linear-gradient(180deg,#4c1d95,#2e1065)';
                                     return (
                                         <button key={i} onClick={() => handleTileClick(i)}
                                             disabled={revealed || wildCredits <= 0 || stageWinning}
@@ -399,8 +404,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                         {isReward && <span style={{ fontSize: Math.max(9, tileSize * 0.19) }} className="font-bold text-white/90 mt-0.5 leading-none">{cell.reward?.label}</span>}
                                                     </>
                                                 ) : null
-                                            ) : isBomb ? (
-                                                <span style={{ fontSize: tileSize * 0.72, lineHeight: 1, filter: 'drop-shadow(0 2px 6px rgba(255,80,0,0.8))' }}>💣</span>
                                             ) : (
                                                 <span style={{ fontSize: tileSize * 0.78, lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>🪨</span>
                                             )}
@@ -466,7 +469,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     : step.reward?.type === 'PACKS' ? '0 4px 0 #3b0764'
                                     : '0 4px 0 #0f0e1a';
 
-                                const cellIcon = step.reward?.type === 'BACK' ? '🔙'
+                                const cellIcon = step.reward?.type === 'BACK' ? '⬅️'
                                     : step.reward?.type === 'COINS' ? '🪙'
                                     : step.reward?.type === 'PICKS' ? '🎲'
                                     : step.reward?.type === 'DIAMONDS' ? '💎'

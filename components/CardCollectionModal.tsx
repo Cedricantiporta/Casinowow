@@ -170,8 +170,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     )}
                     {packStage === 'REVEAL' && (
                         <div className="w-full h-full flex flex-col items-center justify-center animate-pop-in relative py-4">
-                            <div className={`flex-1 w-full max-w-2xl px-2 overflow-y-auto grid gap-2 content-center justify-items-center ${openedCards.length >= 10 ? 'grid-cols-5' : 'grid-cols-3'}`}>
-                                {openedCards.map((card, i) => {
+                            <div className={`flex-1 w-full max-w-2xl px-2 overflow-y-auto grid gap-2 content-center justify-items-center ${openedCards.filter(c => { const st = String(c.symbolType); return !['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && c.icon !== '🪙'; }).length >= 10 ? 'grid-cols-5' : 'grid-cols-3'}`}>
+                                {openedCards.filter(card => { const st = String(card.symbolType); return !['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && card.icon !== '🪙'; }).map((card, i) => {
                                     const borderColor = getCardBorder(card.rarity);
                                     return (
                                     <div
@@ -249,10 +249,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <div className="gem"></div>
                             <span className="num">{formatNumber(diamonds)}</span>
                         </div>
-                        <div className="currency-pill flex items-center gap-1 shrink-0">
+                        <button onClick={() => { onClose(); onOpenShop('BOOSTS'); }}
+                            className="currency-pill flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
+                            style={{ cursor: 'pointer', border: '1px solid rgba(251,146,60,0.4)' }}>
                             <span style={{ fontSize: '12px', lineHeight: 1, flexShrink: 0 }}>📦</span>
                             <span className="num" style={{ color: '#fb923c' }}>{packCredits}</span>
-                        </div>
+                            <span style={{ fontSize: '8px', fontWeight: 900, color: '#fb923c', textTransform: 'uppercase', letterSpacing: '0.05em' }}>+Get</span>
+                        </button>
                         <div className="currency-pill flex items-center gap-1 shrink-0">
                             <span style={{ fontSize: '11px', lineHeight: 1, flexShrink: 0 }}>💳</span>
                             <span className="num">{formatNumber(tokens)}</span>
@@ -301,45 +304,52 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                     {/* PACKS view — card-shaped, centered */}
                     {!selectedDeckId && activeTab === 'PACKS' && (
-                        <div className="flex items-center justify-center gap-5 h-full w-full">
-                            {packOptions.map(pack => {
-                                const singleCost = pack.info.creditCost;
-                                const bulkCost = Math.ceil((singleCost * 10) * 0.9);
-                                const canDrawOne = packCredits >= singleCost;
-                                const canDrawTen = packCredits >= bulkCost;
-                                return (
-                                    <div key={pack.id} className={`rounded-2xl overflow-hidden shadow-xl flex flex-col bg-gradient-to-b ${pack.color} text-center`}
-                                        style={{ width: 150, height: 240, flexShrink: 0 }}>
-                                        {/* Card art */}
-                                        <div className="flex-1 flex flex-col items-center justify-center bg-black/20 gap-1">
-                                            <div className="text-6xl drop-shadow-md">{pack.icon}</div>
-                                            <h3 className="text-sm font-black font-display text-white uppercase drop-shadow leading-none mt-1">{pack.name}</h3>
-                                            {/* Credits display */}
-                                            <div className="flex items-center gap-1 bg-black/30 px-2 py-0.5 rounded-full mt-1">
-                                                <span className="text-orange-300 font-black text-[10px]">{packCredits}</span>
-                                                <span className="text-[10px]">📦</span>
+                        <div className="flex items-center justify-center gap-3 h-full w-full">
+                            {/* Pack cards */}
+                            <div className="flex items-center justify-center gap-4">
+                                {packOptions.map(pack => {
+                                    const singleCost = pack.info.creditCost;
+                                    const bulkCost = Math.ceil((singleCost * 10) * 0.9);
+                                    const canDrawOne = packCredits >= singleCost;
+                                    const canDrawTen = packCredits >= bulkCost;
+                                    return (
+                                        <div key={pack.id} className={`rounded-2xl overflow-hidden shadow-xl flex flex-col bg-gradient-to-b ${pack.color} text-center`}
+                                            style={{ width: 150, height: 240, flexShrink: 0 }}>
+                                            {/* Card art */}
+                                            <div className="flex-1 flex flex-col items-center justify-center bg-black/20 gap-1">
+                                                <div className="text-6xl drop-shadow-md">{pack.icon}</div>
+                                                <h3 className="text-sm font-black font-display text-white uppercase drop-shadow leading-none mt-1">{pack.name}</h3>
+                                            </div>
+                                            {/* Buttons */}
+                                            <div className="px-2 pb-2.5 pt-1 flex flex-col gap-1.5 bg-black/40">
+                                                <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
+                                                    className={`btn-3d w-full py-2 rounded-lg font-black text-white uppercase text-xs ${canDrawOne ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-700'}`}>
+                                                    1× ({singleCost} 📦)
+                                                </button>
+                                                <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
+                                                    className={`btn-3d w-full py-2 rounded-lg font-black text-white uppercase text-xs relative overflow-hidden ${canDrawTen ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:brightness-110' : 'bg-gray-700'}`}>
+                                                    10× ({bulkCost} 📦)
+                                                    {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</div>}
+                                                </button>
                                             </div>
                                         </div>
-                                        {/* Buttons + buy credits */}
-                                        <div className="px-2 pb-2.5 pt-1 flex flex-col gap-1.5 bg-black/40">
-                                            <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
-                                                className={`btn-3d w-full py-2 rounded-lg font-black text-white uppercase text-xs ${canDrawOne ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-700'}`}>
-                                                1× ({singleCost} 📦)
-                                            </button>
-                                            <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
-                                                className={`btn-3d w-full py-2 rounded-lg font-black text-white uppercase text-xs relative overflow-hidden ${canDrawTen ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:brightness-110' : 'bg-gray-700'}`}>
-                                                10× ({bulkCost} 📦)
-                                                {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</div>}
-                                            </button>
-                                            <button onClick={() => { onClose(); onOpenShop('BOOSTS'); }}
-                                                className="btn-3d w-full py-1.5 rounded-lg font-black text-white text-[9px] uppercase"
-                                                style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)' }}>
-                                                + Get 📦 Credits
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
+
+                            {/* Compact exchange panel */}
+                            <div className="flex flex-col gap-1.5 shrink-0" style={{ width: 110 }}>
+                                <div className="text-[8px] font-black text-purple-300/70 uppercase tracking-widest text-center mb-0.5">Exchange</div>
+                                {tokenExchanges.map((ex) => (
+                                    <button key={ex.credits} onClick={() => onBuyCreditsWithTokens && onBuyCreditsWithTokens(ex.credits, ex.cost)}
+                                        disabled={!onBuyCreditsWithTokens || tokens < ex.cost}
+                                        className={`btn-3d w-full py-2 rounded-xl font-black text-[10px] flex flex-col items-center gap-0.5 ${(!onBuyCreditsWithTokens || tokens < ex.cost) ? 'bg-gray-800 opacity-40 cursor-not-allowed' : ''}`}
+                                        style={(!onBuyCreditsWithTokens || tokens < ex.cost) ? {} : { background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
+                                        <span className="text-white leading-none">{ex.credits}× 📦</span>
+                                        <span className="text-purple-300 leading-none">{ex.cost} 💳</span>
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     )}
 
@@ -365,7 +375,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <div ref={deckCardsScrollRef} className="flex-1 overflow-x-auto no-scrollbar">
                                 <div className="flex gap-2 h-full items-stretch min-w-max py-0.5">
                                     {decks.find(d => d.gameId === selectedDeckId)?.cards
-                                        .filter(card => (card.icon.length > 2 || /\p{Emoji}/u.test(card.icon)) && !String(card.symbolType).startsWith('JACKPOT') && card.icon !== '🪙')
+                                        .filter(card => {
+                                            const st = String(card.symbolType);
+                                            if (['TEN','JACK','QUEEN','KING','ACE'].includes(st)) return false;
+                                            if (st.startsWith('JACKPOT')) return false;
+                                            if (card.icon === '🪙') return false;
+                                            return true;
+                                        })
                                         .map((card, i) => {
                                         const borderColor = getCardBorder(card.rarity);
                                         const isLocked = card.count === 0;

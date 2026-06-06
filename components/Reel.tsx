@@ -161,18 +161,28 @@ const getCellSeparatorStyle = (theme: GameTheme, isLastCell: boolean): React.CSS
 // 3D text-shadow per letter tier
 const getLetter3DShadow = (symbol: SymbolType): string | undefined => {
     if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
-        // plain white — dark extrusion
         return '1px 1px 0 rgba(0,0,0,0.7), 2px 2px 0 rgba(0,0,0,0.55), 3px 3px 0 rgba(0,0,0,0.35), 4px 4px 8px rgba(0,0,0,0.5)';
     }
     if (symbol === SymbolType.QUEEN || symbol === SymbolType.KING) {
-        // purple — dark violet extrusion
         return '1px 1px 0 #1a0040, 2px 2px 0 #25005a, 3px 3px 0 #25005a, 4px 4px 8px rgba(0,0,0,0.7)';
     }
     if (symbol === SymbolType.ACE) {
-        // amber — dark orange extrusion
         return '1px 1px 0 #6b3000, 2px 2px 0 #8a3e00, 3px 3px 0 #8a3e00, 4px 4px 8px rgba(0,0,0,0.7)';
     }
     return undefined;
+};
+
+// Gradient text fill per letter tier
+const getLetterGradient = (symbol: SymbolType): React.CSSProperties => {
+    let background = '';
+    if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
+        background = 'linear-gradient(180deg, #ffffff 0%, #c8c8c8 100%)';
+    } else if (symbol === SymbolType.QUEEN || symbol === SymbolType.KING) {
+        background = 'linear-gradient(180deg, #f0e6ff 0%, #c084fc 40%, #7c3aed 100%)';
+    } else if (symbol === SymbolType.ACE) {
+        background = 'linear-gradient(180deg, #fef08a 0%, #fbbf24 40%, #d97706 100%)';
+    }
+    return background ? { background, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' } : {};
 };
 
 const ReelCell: React.FC<{
@@ -274,7 +284,7 @@ const ReelCell: React.FC<{
                                 ${config?.style || ''}
                                 ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
                             `}
-                            style={isLetter ? { textShadow: getLetter3DShadow(symbol) } : undefined}
+                            style={isLetter ? { textShadow: getLetter3DShadow(symbol), ...getLetterGradient(symbol) } : undefined}
                         >
                             {config?.icon}
                         </div>

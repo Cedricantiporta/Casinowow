@@ -223,13 +223,13 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
 
 const TILE_BGS = {
     TRANSPARENT: '',
-    GREEN:   'bg-emerald-900/25',
-    BLUE:    'bg-blue-900/25',
-    PURPLE:  'bg-purple-900/25',
-    RED:     'bg-red-900/25',
-    YELLOW:  'bg-yellow-900/25',
+    GREEN:   'bg-gradient-to-b from-emerald-500 to-emerald-900',
+    BLUE:    'bg-gradient-to-b from-blue-500 to-blue-900',
+    PURPLE:  'bg-gradient-to-b from-purple-600 to-purple-950',
+    RED:     'bg-gradient-to-b from-red-500 to-red-900',
+    YELLOW:  'bg-gradient-to-b from-yellow-400 to-amber-800',
     WILD:    'bg-gradient-to-b from-yellow-300 via-yellow-500 to-yellow-600 shadow-[0_4px_0_rgb(180,83,9)]',
-    SCATTER: 'bg-indigo-900/30',
+    SCATTER: 'bg-gradient-to-b from-indigo-500 to-indigo-900',
 };
 
 const getThemeFont = (theme: GameTheme) => {
