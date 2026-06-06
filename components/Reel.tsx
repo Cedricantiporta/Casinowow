@@ -168,11 +168,11 @@ const ReelCell: React.FC<{
         [SymbolType.JACKPOT_GRAND]: 'GRAND',
     };
     const JP_BG_STYLES: Partial<Record<SymbolType, { border: string; glow: string; text: string; solidBg: string }>> = {
-        [SymbolType.JACKPOT_MINI]:  { border: '#16a34a', glow: 'rgba(34,197,94,0.6)',  text: '#bbf7d0', solidBg: '#14532d' },
-        [SymbolType.JACKPOT_MINOR]: { border: '#0891b2', glow: 'rgba(6,182,212,0.6)',  text: '#a5f3fc', solidBg: '#164e63' },
-        [SymbolType.JACKPOT_MAJOR]: { border: '#9333ea', glow: 'rgba(168,85,247,0.6)', text: '#e9d5ff', solidBg: '#3b0764' },
-        [SymbolType.JACKPOT_MEGA]:  { border: '#dc2626', glow: 'rgba(239,68,68,0.6)',  text: '#fecaca', solidBg: '#7f1d1d' },
-        [SymbolType.JACKPOT_GRAND]: { border: '#d97706', glow: 'rgba(245,158,11,0.6)', text: '#fef08a', solidBg: '#78350f' },
+        [SymbolType.JACKPOT_MINI]:  { border: '#16a34a', glow: 'rgba(34,197,94,0.8)',  text: 'white', solidBg: '#16a34a' },
+        [SymbolType.JACKPOT_MINOR]: { border: '#0891b2', glow: 'rgba(6,182,212,0.8)',  text: 'white', solidBg: '#0891b2' },
+        [SymbolType.JACKPOT_MAJOR]: { border: '#7c3aed', glow: 'rgba(124,58,237,0.8)', text: 'white', solidBg: '#7c3aed' },
+        [SymbolType.JACKPOT_MEGA]:  { border: '#dc2626', glow: 'rgba(220,38,38,0.8)',  text: 'white', solidBg: '#dc2626' },
+        [SymbolType.JACKPOT_GRAND]: { border: '#d97706', glow: 'rgba(217,119,6,0.8)',  text: 'white', solidBg: '#d97706' },
     };
     const isJackpot = symbol in JP_LABELS;
     const jpLabel = JP_LABELS[symbol];
@@ -234,14 +234,26 @@ const ReelCell: React.FC<{
                      relative flex flex-col items-center justify-center z-10 w-full h-full
                      ${activeBounce ? 'animate-bounce scale-110' : ''}
                  `}>
-                    <div className={`
-                        ${fontSize} select-none transform 
-                        ${config?.style || ''}
-                        ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
-                    `}>
-                        {config?.icon}
-                    </div>
-                    
+                    {isJackpot ? (
+                        <span
+                            className="font-titan font-black tracking-widest select-none text-white leading-none text-center px-1"
+                            style={{
+                                fontSize: 'clamp(0.5rem, 1.8vw, 1rem)',
+                                textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.7)',
+                            }}
+                        >
+                            {jpLabel}
+                        </span>
+                    ) : (
+                        <div className={`
+                            ${fontSize} select-none transform
+                            ${config?.style || ''}
+                            ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
+                        `}>
+                            {config?.icon}
+                        </div>
+                    )}
+
                     {isScatter && !blur && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
                             <span className={`
@@ -250,7 +262,7 @@ const ReelCell: React.FC<{
                                 tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]
                                 stroke-black stroke-2
                             `}
-                            style={{ textShadow: '0 0 4px black, 0 0 8px black' }} // Heavy shadow for readability
+                            style={{ textShadow: '0 0 4px black, 0 0 8px black' }}
                             >
                                 SCATTER
                             </span>
@@ -259,18 +271,10 @@ const ReelCell: React.FC<{
                     {isJackpot && !blur && (
                         <div className="absolute inset-0 rounded-none pointer-events-none z-20"
                             style={{
-                                border: `2px solid ${jpStyle?.border || '#f59e0b'}`,
-                                boxShadow: `inset 0 0 12px ${jpStyle?.glow || 'rgba(245,158,11,0.4)'}, 0 0 8px ${jpStyle?.glow || 'rgba(245,158,11,0.4)'}`,
+                                border: `4px solid ${jpStyle?.border || '#f59e0b'}`,
+                                boxShadow: `inset 0 0 14px ${jpStyle?.glow || 'rgba(245,158,11,0.5)'}, 0 0 10px ${jpStyle?.glow || 'rgba(245,158,11,0.5)'}`,
                             }}
                         />
-                    )}
-                    {isJackpot && !blur && (
-                        <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
-                            <span className="block font-titan text-[0.729rem] md:text-[0.972rem] font-black tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
-                                style={{ color: jpStyle?.text || '#fde68a', textShadow: '0 0 4px black, 0 0 8px black' }}>
-                                {jpLabel}
-                            </span>
-                        </div>
                     )}
                 </div>
             </div>

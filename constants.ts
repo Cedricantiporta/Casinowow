@@ -42,7 +42,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     rows: 3,
     reels: 3,
     scattersToTrigger: 3,
-    description: 'Classic 3x3 Action.',
+    description: 'Jackpot Hunter. Match 3 Jackpot cells to win!',
     color: 'from-fuchsia-600 via-purple-600 to-indigo-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #7c3aed 0%, #2e1065 100%)',
     reelBg: REEL_BGS.NEON

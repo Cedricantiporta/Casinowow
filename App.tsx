@@ -808,6 +808,8 @@ const App: React.FC = () => {
             }
             if (active) megaMatchActive = true;
       }
+      // NEON and PIGGY never use full-column same-symbol matches
+      if (selectedGame.theme === 'NEON' || selectedGame.theme === 'PIGGY') megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -830,6 +832,12 @@ const App: React.FC = () => {
                } else {
                    if (c === 1) wildStackChance = 0.15 * wildMult;
                    if (c === 2) wildStackChance = 0.20 * wildMult;
+               }
+               // PIGGY: 20% higher wild rate + extend to all 7 columns
+               if (selectedGame.theme === 'PIGGY') {
+                   if (c === 5) wildStackChance = 0.30 * wildMult;
+                   if (c === 6) wildStackChance = 0.36 * wildMult;
+                   wildStackChance *= 1.2;
                }
 
                if (c === 0) {
@@ -873,51 +881,54 @@ const App: React.FC = () => {
            }
       }
 
-      const scatterRoll = Math.random() * 100;
-      let targetScatters = 0;
-      // 3×3 slots: 20% less free spin chance (raise thresholds so fewer scatters spawn)
-      const s1 = isSmallGrid ? 68 : 60;
-      const s2 = isSmallGrid ? 85.6 : 82;
-      const s3 = isSmallGrid ? 99.2 : 99.0;
-      const s4 = isSmallGrid ? 99.8 : 99.75;
-      if (scatterRoll >= s1) targetScatters = 1;
-      if (scatterRoll >= s2) targetScatters = 2;
-      if (scatterRoll >= s3) targetScatters = 3;
-      if (scatterRoll >= s4) targetScatters = 4;
+      // NEON uses jackpot cells instead of scatters; PIGGY uses coin cells
+      if (selectedGame.theme !== 'NEON' && selectedGame.theme !== 'PIGGY') {
+          const scatterRoll = Math.random() * 100;
+          let targetScatters = 0;
+          // 3×3 slots: 20% less free spin chance (raise thresholds so fewer scatters spawn)
+          const s1 = isSmallGrid ? 68 : 60;
+          const s2 = isSmallGrid ? 85.6 : 82;
+          const s3 = isSmallGrid ? 99.2 : 99.0;
+          const s4 = isSmallGrid ? 99.8 : 99.75;
+          if (scatterRoll >= s1) targetScatters = 1;
+          if (scatterRoll >= s2) targetScatters = 2;
+          if (scatterRoll >= s3) targetScatters = 3;
+          if (scatterRoll >= s4) targetScatters = 4;
 
-      if (selectedGame.theme === 'DRAGON') {
-          if (scatterRoll >= 99.25) targetScatters = 4;
-      }
-      targetScatters = Math.min(targetScatters, cols);
-
-      let currentScatters = 0;
-      const scatterPositions: {c: number, r: number}[] = [];
-
-      for(let c=0; c<cols; c++) {
-          for(let r=0; r<rows; r++) {
-              if(newGrid[c][r] === SymbolType.SCATTER) {
-                  currentScatters++;
-                  scatterPositions.push({c, r});
-              }
+          if (selectedGame.theme === 'DRAGON') {
+              if (scatterRoll >= 99.25) targetScatters = 4;
           }
-      }
+          targetScatters = Math.min(targetScatters, cols);
 
-      if (currentScatters < targetScatters) {
-          let needed = targetScatters - currentScatters;
-          let attempts = 0;
-          while(needed > 0 && attempts < 200) {
-              const c = Math.floor(Math.random() * cols);
-              const r = Math.floor(Math.random() * rows);
-              const canOverwrite = newGrid[c][r] !== SymbolType.SCATTER && (newGrid[c][r] !== SymbolType.WILD || attempts > 100);
+          let currentScatters = 0;
+          const scatterPositions: {c: number, r: number}[] = [];
 
-              if (canOverwrite) {
-                  const hasScatterInCol = newGrid[c].includes(SymbolType.SCATTER);
-                  if (!hasScatterInCol) {
-                      newGrid[c][r] = SymbolType.SCATTER;
-                      needed--;
+          for(let c=0; c<cols; c++) {
+              for(let r=0; r<rows; r++) {
+                  if(newGrid[c][r] === SymbolType.SCATTER) {
+                      currentScatters++;
+                      scatterPositions.push({c, r});
                   }
               }
-              attempts++;
+          }
+
+          if (currentScatters < targetScatters) {
+              let needed = targetScatters - currentScatters;
+              let attempts = 0;
+              while(needed > 0 && attempts < 200) {
+                  const c = Math.floor(Math.random() * cols);
+                  const r = Math.floor(Math.random() * rows);
+                  const canOverwrite = newGrid[c][r] !== SymbolType.SCATTER && (newGrid[c][r] !== SymbolType.WILD || attempts > 100);
+
+                  if (canOverwrite) {
+                      const hasScatterInCol = newGrid[c].includes(SymbolType.SCATTER);
+                      if (!hasScatterInCol) {
+                          newGrid[c][r] = SymbolType.SCATTER;
+                          needed--;
+                      }
+                  }
+                  attempts++;
+              }
           }
       }
 
@@ -925,13 +936,13 @@ const App: React.FC = () => {
       if (selectedGame.theme === 'PIGGY') {
           const coinRoll = Math.random();
           let targetCoins = 0;
-          if (coinRoll >= 0.99)      targetCoins = 6;  // ~1%  → free spins
-          else if (coinRoll >= 0.96) targetCoins = 5;  // ~3%
-          else if (coinRoll >= 0.91) targetCoins = 4;  // ~5%
-          else if (coinRoll >= 0.81) targetCoins = 3;  // ~10%
-          else if (coinRoll >= 0.63) targetCoins = 2;  // ~18%
-          else if (coinRoll >= 0.35) targetCoins = 1;  // ~28%
-          // 0-34% → 0 coins
+          if (coinRoll >= 0.989)     targetCoins = 6;  // ~1.1% → free spins
+          else if (coinRoll >= 0.956) targetCoins = 5; // ~3.3%
+          else if (coinRoll >= 0.901) targetCoins = 4; // ~5.5%
+          else if (coinRoll >= 0.799) targetCoins = 3; // ~10.2%
+          else if (coinRoll >= 0.617) targetCoins = 2; // ~18.2%
+          else if (coinRoll >= 0.25)  targetCoins = 1; // ~36.7%
+          // 0-24.9% → 0 coins (increased spawn rate ~10%)
           if (targetCoins > 0) {
               const eligible: {c: number; r: number}[] = [];
               for (let c = 0; c < cols; c++) {
@@ -952,13 +963,16 @@ const App: React.FC = () => {
           }
       }
 
-      if (freeSpinsRemaining > 0) {
+      // Jackpot cell injection: during free spins for all slots; NEON always (20% boost)
+      const isNeonJP = selectedGame.theme === 'NEON';
+      if (freeSpinsRemaining > 0 || isNeonJP) {
+          const neonBoost = isNeonJP ? 1.2 : 1.0;
           const JP_SPAWN = [
-              { type: SymbolType.JACKPOT_MINI,  prob: 0.105 },
-              { type: SymbolType.JACKPOT_MINOR, prob: 0.049 },
-              { type: SymbolType.JACKPOT_MAJOR, prob: 0.021 },
-              { type: SymbolType.JACKPOT_MEGA,  prob: 0.007 },
-              { type: SymbolType.JACKPOT_GRAND, prob: 0.0021 },
+              { type: SymbolType.JACKPOT_MINI,  prob: 0.105 * neonBoost },
+              { type: SymbolType.JACKPOT_MINOR, prob: 0.049 * neonBoost },
+              { type: SymbolType.JACKPOT_MAJOR, prob: 0.021 * neonBoost },
+              { type: SymbolType.JACKPOT_MEGA,  prob: 0.007 * neonBoost },
+              { type: SymbolType.JACKPOT_GRAND, prob: 0.0021 * neonBoost },
           ];
           const jpCellPositions: { c: number; r: number }[] = [];
           for (let c = 0; c < cols; c++) {
@@ -1012,13 +1026,21 @@ const App: React.FC = () => {
 
   const handleDiceRoll = (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean) => {
       setQuest(q => ({ ...q, diceCredits: Math.max(0, q.diceCredits - 1), dicePosition: newPosition }));
-      let msgParts = [];
+      const msgParts: string[] = [];
       let totalCoins = 0;
-      rewards.forEach(r => { if (r.type === 'COINS') totalCoins += r.value; });
-      if (totalCoins > 0) {
-          setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
-          msgParts.push(`${formatCommaNumber(totalCoins)} Coins`);
-      }
+      let totalGems = 0;
+      let totalPacks = 0;
+      let diceGained = 0;
+      rewards.forEach(r => {
+          if (r.type === 'COINS') totalCoins += r.value;
+          else if (r.type === 'DIAMONDS') totalGems += r.value;
+          else if (r.type === 'PACKS') totalPacks += r.value;
+          else if (r.type === 'PICKS') diceGained += r.value;
+      });
+      if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
+      if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
+      if (totalPacks > 0) { setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks })); msgParts.push(`+${totalPacks} 📦`); }
+      if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
       if (isFinish) {
           const bonusCoins = 2000000 * quest.diceStage * player.level;
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
@@ -1026,10 +1048,7 @@ const App: React.FC = () => {
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
           setStageCompletePopup({ gameType: 'DICE', stage: currentStage, coins: bonusCoins, diamonds: 0 });
       }
-      if (msgParts.length > 0) {
-          setCelebrationMsg(msgParts.join('\n'));
-          audioService.playWinBig();
-      }
+      if (msgParts.length > 0) { setCelebrationMsg(msgParts.join(' · ')); audioService.playWinBig(); }
   };
 
   const spin = useCallback(() => {
@@ -1151,7 +1170,7 @@ const App: React.FC = () => {
             let coinCount = 0;
             targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
             if (coinCount >= 6) {
-                const spinsWon = coinCount === 6 ? 10 : coinCount === 7 ? 15 : 20;
+                const spinsWon = 15;
                 setFreeSpinsWon(spinsWon);
                 setTotalFreeSpins(prev => prev + spinsWon);
                 if (freeSpinsRemaining > 0) {

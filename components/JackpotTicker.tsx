@@ -9,7 +9,7 @@ const TIER_META = [
     { name: 'MINI',  tierClass: 't-green'  },
     { name: 'MINOR', tierClass: 't-cyan'   },
     { name: 'MAJOR', tierClass: 't-purple' },
-    { name: 'MAXI',  tierClass: 't-red'    },
+    { name: 'MEGA',  tierClass: 't-red'    },
     { name: 'GRAND', tierClass: 't-gold'   },
 ];
 
