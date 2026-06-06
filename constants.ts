@@ -28,7 +28,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     name: 'Piggy Riches',
     theme: 'PIGGY',
     rows: 3,
-    reels: 7,
+    reels: 6,
     scattersToTrigger: 999,
     description: 'Break the bank!',
     color: 'from-pink-500 via-rose-500 to-pink-800',
@@ -253,13 +253,13 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
   const icons = SYMBOL_MAP[theme];
   const themeFont = getThemeFont(theme);
 
-  // Colored + 3D letter/number symbol configs
+  // Letter/number cells: colored text + 3D shadow, transparent background
   const LTR = {
-    TEN:   { style: `text-cyan-100 font-black ${themeFont}`,    bg: 'bg-gradient-to-b from-cyan-600 to-cyan-900 shadow-[0_4px_0_rgb(14,116,144)]',       highlightClass: 'bg-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.9)] border-cyan-300/60' },
-    JACK:  { style: `text-lime-100 font-black ${themeFont}`,    bg: 'bg-gradient-to-b from-lime-600 to-lime-900 shadow-[0_4px_0_rgb(22,101,52)]',         highlightClass: 'bg-lime-500/40 shadow-[0_0_50px_rgba(132,204,22,0.9)] border-lime-300/60' },
-    QUEEN: { style: `text-fuchsia-100 font-black ${themeFont}`, bg: 'bg-gradient-to-b from-fuchsia-600 to-fuchsia-900 shadow-[0_4px_0_rgb(112,26,117)]',  highlightClass: 'bg-fuchsia-500/40 shadow-[0_0_50px_rgba(217,70,239,0.9)] border-fuchsia-300/60' },
-    KING:  { style: `text-amber-100 font-black ${themeFont}`,   bg: 'bg-gradient-to-b from-amber-500 to-amber-800 shadow-[0_4px_0_rgb(120,53,15)]',       highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
-    ACE:   { style: `text-red-100 font-black ${themeFont}`,     bg: 'bg-gradient-to-b from-red-600 to-red-900 shadow-[0_4px_0_rgb(127,29,29)]',           highlightClass: 'bg-red-500/40 shadow-[0_0_50px_rgba(239,68,68,0.9)] border-red-300/60' },
+    TEN:   { style: `text-cyan-300 font-black ${themeFont}`,    bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-cyan-500/40 shadow-[0_0_50px_rgba(6,182,212,0.9)] border-cyan-300/60' },
+    JACK:  { style: `text-lime-300 font-black ${themeFont}`,    bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-lime-500/40 shadow-[0_0_50px_rgba(132,204,22,0.9)] border-lime-300/60' },
+    QUEEN: { style: `text-fuchsia-300 font-black ${themeFont}`, bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-fuchsia-500/40 shadow-[0_0_50px_rgba(217,70,239,0.9)] border-fuchsia-300/60' },
+    KING:  { style: `text-amber-300 font-black ${themeFont}`,   bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
+    ACE:   { style: `text-red-300 font-black ${themeFont}`,     bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-red-500/40 shadow-[0_0_50px_rgba(239,68,68,0.9)] border-red-300/60' },
   };
 
   return {

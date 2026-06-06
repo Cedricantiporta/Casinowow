@@ -975,18 +975,19 @@ const App: React.FC = () => {
       const isNeonJP = selectedGame.theme === 'NEON';
       if (freeSpinsRemaining > 0 || isNeonJP) {
           const neonBoost = isNeonJP ? 1.2 : 1.0;
+          // 60/40 MINI:MINOR ratio; all tiers ~30% less than before to reduce 3-match frequency
           const JP_SPAWN = [
-              { type: SymbolType.JACKPOT_MINI,  prob: 0.105 * neonBoost },
-              { type: SymbolType.JACKPOT_MINOR, prob: 0.049 * neonBoost },
-              { type: SymbolType.JACKPOT_MAJOR, prob: 0.021 * neonBoost },
-              { type: SymbolType.JACKPOT_MEGA,  prob: 0.007 * neonBoost },
-              { type: SymbolType.JACKPOT_GRAND, prob: 0.0021 * neonBoost },
+              { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * neonBoost },
+              { type: SymbolType.JACKPOT_MINOR, prob: 0.048 * neonBoost },
+              { type: SymbolType.JACKPOT_MAJOR, prob: 0.015 * neonBoost },
+              { type: SymbolType.JACKPOT_MEGA,  prob: 0.005 * neonBoost },
+              { type: SymbolType.JACKPOT_GRAND, prob: 0.0015 * neonBoost },
           ];
           const jpCellPositions: { c: number; r: number }[] = [];
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
                   if (newGrid[c][r] === SymbolType.SCATTER || newGrid[c][r] === SymbolType.WILD) continue;
-                  if (jpCellPositions.length >= 5) break;
+                  if (jpCellPositions.length >= 4) break;
                   for (const jp of JP_SPAWN) {
                       if (Math.random() < jp.prob) {
                           newGrid[c][r] = jp.type;
@@ -995,7 +996,7 @@ const App: React.FC = () => {
                       }
                   }
               }
-              if (jpCellPositions.length >= 5) break;
+              if (jpCellPositions.length >= 4) break;
           }
           // 50% chance: upgrade one random jackpot cell to GRAND or MEGA
           if (jpCellPositions.length > 0 && Math.random() < 0.5) {
