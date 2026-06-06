@@ -154,6 +154,20 @@ const getCellSeparatorStyle = (_theme: GameTheme, _isLastCell: boolean): React.C
     return {};
 };
 
+const LETTER_DARK_BG: Partial<Record<GameTheme, string>> = {
+    NEON:       '#0a0315',
+    EGYPT:      '#150b00',
+    DRAGON:     '#150000',
+    PIRATE:     '#060f18',
+    SPACE:      '#000010',
+    CANDY:      '#250816',
+    JUNGLE:     '#03200e',
+    UNDERWATER: '#083248',
+    WESTERN:    '#351402',
+    SAMURAI:    '#1e0303',
+    PIGGY:      '#3b0519',
+};
+
 // 3D text-shadow per letter tier
 const getLetter3DShadow = (symbol: SymbolType): string => {
     if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
@@ -241,7 +255,11 @@ const ReelCell: React.FC<{
                 transition-all duration-300 overflow-hidden
                 ${bgClasses}
             `}
-            style={isJackpot && !highlight && jpStyle ? { background: jpStyle.solidBg } : undefined}
+            style={
+                isJackpot && !highlight && jpStyle ? { background: jpStyle.solidBg }
+                : isLetter && !highlight ? { background: LETTER_DARK_BG[theme] ?? '#0a0a1a' }
+                : undefined
+            }
             >
                 {/* Inner shine/border overlay */}
                 <div className="absolute inset-0 rounded-none border border-white/10 shadow-inner pointer-events-none"></div>

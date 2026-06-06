@@ -255,27 +255,12 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
 
   // Letter/number cells: 3D text effect, transparent bg. Three tiers:
   //  10, J = plain white 3D  |  Q, K = purple 3D  |  A = amber/gold 3D (color-coded)
-  // Letter cell bg matches the reel's dark bg per theme (not color-coded per symbol)
-  const themeDarkBg: Record<GameTheme, string> = {
-    NEON:       'bg-[#0a0315]',
-    EGYPT:      'bg-[#150b00]',
-    DRAGON:     'bg-[#150000]',
-    PIRATE:     'bg-[#060f18]',
-    SPACE:      'bg-[#000010]',
-    CANDY:      'bg-[#250816]',
-    JUNGLE:     'bg-[#03200e]',
-    UNDERWATER: 'bg-[#083248]',
-    WESTERN:    'bg-[#351402]',
-    SAMURAI:    'bg-[#1e0303]',
-    PIGGY:      'bg-[#3b0519]',
-  };
-  const ltrBg = themeDarkBg[theme] || 'bg-black/70';
   const LTR = {
-    TEN:   { style: `text-white font-black ${themeFont}`,          bg: ltrBg, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
-    JACK:  { style: `text-white font-black ${themeFont}`,          bg: ltrBg, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
-    QUEEN: { style: `text-violet-200 font-black ${themeFont}`,     bg: ltrBg, highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
-    KING:  { style: `text-violet-200 font-black ${themeFont}`,     bg: ltrBg, highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
-    ACE:   { style: `text-yellow-200 font-black ${themeFont}`,     bg: ltrBg, highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
+    TEN:   { style: `text-white font-black ${themeFont}`,        bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
+    JACK:  { style: `text-white font-black ${themeFont}`,        bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
+    QUEEN: { style: `text-violet-200 font-black ${themeFont}`,   bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
+    KING:  { style: `text-violet-200 font-black ${themeFont}`,   bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
+    ACE:   { style: `text-yellow-200 font-black ${themeFont}`,   bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
   };
 
   return {
