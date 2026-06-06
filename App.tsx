@@ -379,8 +379,9 @@ const App: React.FC = () => {
   useEffect(() => {
     const maxAllowed = MAX_BET_BY_LEVEL(player.level);
     
-    const normalBets = ALL_BETS.filter(b => b <= maxAllowed);
-    const vipBets = ALL_BETS.map(b => b * 10).filter(b => b <= maxAllowed * 10 && b >= 100000);
+    // Only expose the top 15 bets at current level — lowest bets drop off as level increases
+    const normalBets = ALL_BETS.filter(b => b <= maxAllowed).slice(-15);
+    const vipBets = ALL_BETS.map(b => b * 10).filter(b => b <= maxAllowed * 10 && b >= 100000).slice(-15);
 
     let allowed = isHighLimit ? vipBets : normalBets;
     
@@ -402,7 +403,14 @@ const App: React.FC = () => {
         });
         setBetIndex(closestIndex);
     }
-  }, [player.level, availableBets, betIndex, isHighLimit]); 
+  }, [player.level, availableBets, betIndex, isHighLimit]);
+
+  // Save current bet per slot to localStorage whenever it changes in GAME view
+  useEffect(() => {
+      if (currentView === 'GAME' && availableBets[betIndex] !== undefined) {
+          localStorage.setItem('cw_bet_' + selectedGame.id, String(availableBets[betIndex]));
+      }
+  }, [betIndex, currentView, selectedGame.id, availableBets]);
 
   useEffect(() => {
       if (player.xpBoostEndTime > 0) {
@@ -1621,6 +1629,15 @@ const currentState: SavedGameState = {
           return { ...prev, stats: { ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }), recentSlots: newRecent } };
       });
       setIsHighLimit(highLimit);
+      // Restore per-slot saved bet
+      const savedBetStr = localStorage.getItem('cw_bet_' + game.id);
+      if (savedBetStr) {
+          const savedBetVal = Number(savedBetStr);
+          const currentAllowed = ALL_BETS.filter(b => b <= MAX_BET_BY_LEVEL(player.level)).slice(-15);
+          let closest = 0, minD = Infinity;
+          currentAllowed.forEach((b, i) => { const d = Math.abs(b - savedBetVal); if (d < minD) { minD = d; closest = i; } });
+          setBetIndex(closest);
+      }
       setCurrentView('GAME');
       // Ensure we close any unlock modals when entering a game
       setActiveModal('NONE');
@@ -1906,7 +1923,7 @@ const currentState: SavedGameState = {
                 isHighLimit={isHighLimit}
                 isVip={!!player.isVip}
                 playerLevel={player.level}
-                currentBet={availableBets[betIndex]}
+                currentBet={MAX_BET_BY_LEVEL(player.level)}
                 piggyBank={player.piggyBank}
                 piggyMaxBet={MAX_BET_BY_LEVEL(player.level)}
             />
