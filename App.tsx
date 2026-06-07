@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD } from './constants';
 import { Reel } from './components/Reel';
 import { WinPopup } from './components/WinPopup';
+import { PaylinesOverlay } from './components/PaylinesOverlay';
 import { LeftSidebar } from './components/LeftSidebar';
 import { ShopModal } from './components/ShopModal';
 import { MiniGameModal } from './components/MiniGameModal';
@@ -19,15 +20,7 @@ import { LoginBonusModal } from './components/LoginBonusModal';
 import { JackpotTicker } from './components/JackpotTicker';
 import { PiggyBankModal } from './components/PiggyBankModal';
 import { FeatureUnlockModal } from './components/FeatureUnlockModal';
-import { SettingsModal } from './components/SettingsModal';
-import { VipLoungeModal } from './components/VipLoungeModal';
-import { HighLimitLobby } from './components/HighLimitLobby';
 import { audioService } from './services/audioService';
-import { jackpotService } from './services/jackpotService';
-import { JackpotCelebration } from './components/JackpotCelebration';
-import { StageCompleteModal } from './components/StageCompleteModal';
-import { PremiumModal } from './components/PremiumModal';
-import { ProfileModal } from './components/ProfileModal';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -63,24 +56,35 @@ const getWinTier = (amount: number, bet: number): string | null => {
   return null;
 };
 
-const formatBet = (num: number) => formatCommaNumber(num);
+const formatBet = (num: number) => {
+    if (num >= 10000000000) return formatNumber(num);
+    return formatCommaNumber(num);
+};
 
 const App: React.FC = () => {
   const toastCountRef = useRef(0);
   const spinButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
-  const [currentView, setCurrentView] = useState<'LOBBY' | 'GAME' | 'HIGH_LIMIT'>('LOBBY');
+  const [currentView, setCurrentView] = useState<'LOBBY' | 'GAME'>('LOBBY');
   const [selectedGame, setSelectedGame] = useState<GameConfig>(GAMES_CONFIG[0]);
   const [isHighLimit, setIsHighLimit] = useState(false);
   const [savedGameStates, setSavedGameStates] = useState<Record<string, SavedGameState>>({});
 
-  const [player, setPlayer] = useState<PlayerState>(() => {
-    try {
-      const saved = localStorage.getItem('cw_player');
-      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [] }, ...JSON.parse(saved) };
-    } catch {}
-    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [] };
+  const [player, setPlayer] = useState<PlayerState>({
+    balance: INITIAL_BALANCE,
+    diamonds: INITIAL_GEMS,
+    tokens: 0,
+    packCredits: 0,
+    premiumPackCredits: 0,
+    piggyBank: 0,
+    level: 1,
+    xp: 0,
+    xpToNextLevel: XP_BASE_REQ,
+    autoSpin: false,
+    xpMultiplier: 1,
+    xpBoostEndTime: 0,
+    freeStashClaimed: false
   });
   
   // Ref to track player state to avoid stale closures in callbacks (like feature unlocks)
@@ -95,68 +99,47 @@ const App: React.FC = () => {
       { id: 2, endTime: Date.now() + 3600000, reward: 1000000, label: 'Mega' } 
   ]);
 
-  // Sync jackpot max bet with current level's max bet
-  useEffect(() => {
-      jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
-  }, [player.level]);
-
-  // Toggle XP mult display between multiplier and countdown every 15s when boost active
-  useEffect(() => {
-      const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-      if (!boostActive) { setShowXpTimer(false); return; }
-      const interval = setInterval(() => setShowXpTimer(prev => !prev), 15000);
-      return () => clearInterval(interval);
-  }, [player.xpMultiplier, player.xpBoostEndTime]);
-
-  // Instantly dismiss level toast when leaving game view
-  useEffect(() => {
-      if (currentView !== 'GAME') setShowLevelUp(false);
-  }, [currentView]);
-
   // Effect to update Golden Treasury rewards when level changes
   useEffect(() => {
-      const maxBet = MAX_BET_BY_LEVEL(player.level);
-      // Quick = 5% maxBet, Daily = 25% maxBet, Mega = 100% maxBet
-      const pcts = [0.05, 0.25, 1.0];
+      const base = CALCULATE_TIME_BONUS(player.level);
+      // Logic: Quick = 0.5x, Daily = 2.5x, Mega = 10x Base
+      const multipliers = [0.5, 2.5, 10];
       setBonusTimers(prev => prev.map(t => ({
           ...t,
-          reward: Math.floor(maxBet * pcts[t.id])
+          reward: Math.floor(base * multipliers[t.id])
       })));
   }, [player.level]);
 
-  const [missionState, setMissionState] = useState<MissionState>(() => {
-    try {
-      const saved = localStorage.getItem('cw_missions');
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return { activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 500, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
+  const [missionState, setMissionState] = useState<MissionState>({
+      activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)],
+      passLevel: 1,
+      passXP: 0,
+      passXpToNext: 500, 
+      passRewards: GENERATE_PASS_REWARDS(),
+      isPremium: false,
+      premiumExpiry: 0,
+      passBoostMultiplier: 1,
+      passBoostEndTime: 0
   });
   const [decks, setDecks] = useState<Deck[]>(GENERATE_DECKS());
 
   const [availableBets, setAvailableBets] = useState<number[]>(ALL_BETS);
   const [betIndex, setBetIndex] = useState(0);
+  const [autoMaxBet, setAutoMaxBet] = useState(false);
   const [status, setStatus] = useState<GameStatus>(GameStatus.IDLE);
     const [grid, setGrid] = useState<SymbolType[][]>(Array(GAMES_CONFIG[0].reels).fill(null).map(() => Array(3).fill(SymbolType.SEVEN)));
   const [targetGrid, setTargetGrid] = useState<SymbolType[][]>([]);
   const [winData, setWinData] = useState<WinData | null>(null);
   const [stoppedReels, setStoppedReels] = useState(0);
-  const [instantStop, setInstantStop] = useState(false);
   const [fastSpin, setFastSpin] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
-  const [showVipLounge, setShowVipLounge] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const savedFastSpinRef = useRef<boolean>(false); 
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [piggyGlow, setPiggyGlow] = useState(false);
-  const [showXpTimer, setShowXpTimer] = useState(false);
   
   const [activeModal, setActiveModal] = useState<'NONE' | 'SHOP' | 'COLLECTION' | 'MINIGAME' | 'MISSIONS' | 'TIME_BONUS' | 'LOGIN_BONUS' | 'PIGGY' | 'FEATURE_UNLOCK'>('NONE');
   const [missionInitialView, setMissionInitialView] = useState<'MISSIONS' | 'PASS'>('MISSIONS');
   const [shopInitialTab, setShopInitialTab] = useState<'COINS' | 'BOOSTS' | 'DIAMONDS'>('COINS');
-  const [cardInitialTab, setCardInitialTab] = useState<'ALBUM' | 'PACKS'>('ALBUM');
-  const [cardModalReturnTab, setCardModalReturnTab] = useState<'ALBUM' | 'PACKS' | null>(null);
   
   const [featureUnlockData, setFeatureUnlockData] = useState({ name: '', icon: '', description: '', action: () => {} });
   const [shownUnlocks, setShownUnlocks] = useState<Set<number>>(new Set());
@@ -165,7 +148,6 @@ const App: React.FC = () => {
   const [freeSpinsWon, setFreeSpinsWon] = useState(0);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
-  const [showPackToast, setShowPackToast] = useState(false);
   const [levelUpReward, setLevelUpReward] = useState(0);
   const [maxBetIncreased, setMaxBetIncreased] = useState(false);
   const [mobileScale, setMobileScale] = useState(1);
@@ -183,40 +165,29 @@ const App: React.FC = () => {
   }, []);
 
   // Quest state initialized with separate stages
-  const [quest, setQuest] = useState<QuestState>({
-      diceCredits: 5,
-      wildCredits: 5,
-      wildStage: 1,
-      diceStage: 1,
-      max: 60,
-      dicePosition: 0,
-      activeGame: 'NONE',
-      wildGrid: []
-  });
+  const [quest, setQuest] = useState<QuestState>({ 
+      credits: 0, 
+      picks: 2, 
+      wildStage: 1, 
+      diceStage: 1, 
+      max: 60, 
+      dicePosition: 0, 
+      activeGame: 'NONE', 
+      wildGrid: [] 
+  }); 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
   const [showFreeSpinSummary, setShowFreeSpinSummary] = useState(false);
   const [spinsWithoutBonus, setSpinsWithoutBonus] = useState(0);
   
-  const [loginState, setLoginState] = useState<DailyLoginState>(() => {
-      try {
-          const saved = localStorage.getItem('cw_login');
-          if (saved) {
-              const parsed = JSON.parse(saved);
-              const lastDate = new Date(parsed.lastClaimTime).toDateString();
-              const today = new Date().toDateString();
-              if (lastDate !== today) return { ...parsed, claimedToday: false };
-              return parsed;
-          }
-      } catch {}
-      return { currentDay: 1, claimedToday: false, lastClaimTime: 0 };
+  const [loginState, setLoginState] = useState<DailyLoginState>({
+      currentDay: 1,
+      claimedToday: false,
+      lastClaimTime: 0
   });
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
-  const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE'; stage: number; coins: number; diamonds: number } | null>(null);
-  const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
-  const [pendingBigWin, setPendingBigWin] = useState(false);
 
   useEffect(() => {
     setBetIndex(0);
@@ -266,12 +237,6 @@ const App: React.FC = () => {
       audioService.playClick();
   }
 
-  const openShopFromCards = (tab: 'COINS' | 'BOOSTS' | 'DIAMONDS' = 'COINS') => {
-      setCardModalReturnTab('PACKS');
-      setActiveModal('NONE');
-      openShop(tab);
-  };
-
   const openMissionsModal = () => {
       setMissionInitialView('MISSIONS');
       openModal('MISSIONS');
@@ -295,43 +260,38 @@ const App: React.FC = () => {
       openModal('PIGGY');
   };
   
-  const handleBreakPiggy = (tierAmount: number, gemCost: number) => {
-      const brokenAmount = Math.floor(player.piggyBank);
-      if (brokenAmount > 0) {
-          setPlayer(p => ({
-              ...p,
-              balance: p.balance + brokenAmount,
-              diamonds: p.diamonds - gemCost,
-              piggyBank: 0,
-          }));
-          setCelebrationMsg(`🐷 +${formatCommaNumber(brokenAmount)} Coins!`);
-          audioService.playWinBig();
+  const handleBreakPiggy = () => {
+      // Dynamic Cost: Base 50 Gems, +1 Gem per 20,000 Coins
+      // Capped at 1000 Gems
+      const rawCost = Math.max(50, Math.floor(player.piggyBank / 20000));
+      const breakCost = Math.min(rawCost, 1000);
+
+      if (player.diamonds >= breakCost && player.piggyBank > 0) {
+          const brokenAmount = Math.floor(player.piggyBank);
+          if (brokenAmount > 0) {
+              setPlayer(p => ({ 
+                  ...p, 
+                  balance: p.balance + brokenAmount, 
+                  diamonds: p.diamonds - breakCost,
+                  piggyBank: 0 
+              }));
+              setCelebrationMsg(`+${formatCommaNumber(brokenAmount)} Coins`);
+              audioService.playWinBig();
+          }
       } else {
-          setCelebrationMsg("Piggy Bank is empty!");
+          if (player.diamonds < breakCost) setCelebrationMsg(`Need ${breakCost} Gems!`);
+          else setCelebrationMsg("Bank is empty!");
           audioService.playStoneBreak();
       }
   };
 
   const handleToggleVIP = () => {
-      if (player.isVip) {
-          setIsHighLimit(true);
-          setCurrentView('HIGH_LIMIT');
-      } else {
-          setShowVipLounge(true);
+      if (playerRef.current.level < 40) {
+          audioService.playStoneBreak();
+          setCelebrationMsg("VIP Limit Unlocks at Level 40");
+          return;
       }
-      audioService.playClick();
-  };
-
-  const handleJoinVip = () => {
-      setPlayer(p => ({
-          ...p,
-          isVip: true,
-          balance: p.balance + 500_000,
-          diamonds: p.diamonds + 500,
-      }));
-      setShowVipLounge(false);
-      setIsHighLimit(true);
-      setCurrentView('HIGH_LIMIT');
+      setIsHighLimit(prev => !prev);
       audioService.playClick();
   };
 
@@ -366,7 +326,7 @@ const App: React.FC = () => {
   const handleClaimLoginBonus = () => {
       const reward = DAILY_LOGIN_REWARDS.find(r => r.day === loginState.currentDay);
       if (reward) {
-          const scaledCoins = reward.multiplier * MAX_BET_BY_LEVEL(player.level);
+          const scaledCoins = SCALE_COIN_REWARD(reward.coins, player.level);
           setPlayer(p => ({ 
               ...p, 
               balance: p.balance + scaledCoins,
@@ -390,9 +350,8 @@ const App: React.FC = () => {
   useEffect(() => {
     const maxAllowed = MAX_BET_BY_LEVEL(player.level);
     
-    // Only expose the top 15 bets at current level — lowest bets drop off as level increases
-    const normalBets = ALL_BETS.filter(b => b <= maxAllowed).slice(-15);
-    const vipBets = ALL_BETS.map(b => b * 10).filter(b => b <= maxAllowed * 10 && b >= 100000).slice(-15);
+    const normalBets = ALL_BETS.filter(b => b <= maxAllowed);
+    const vipBets = ALL_BETS.map(b => b * 10).filter(b => b <= maxAllowed * 10 && b >= 100000);
 
     let allowed = isHighLimit ? vipBets : normalBets;
     
@@ -403,25 +362,24 @@ const App: React.FC = () => {
     if (JSON.stringify(allowed) !== JSON.stringify(availableBets)) {
         const currentBet = availableBets[betIndex];
         setAvailableBets(allowed);
-        let closestIndex = 0;
-        let minDiff = Infinity;
-        allowed.forEach((b, i) => {
-            const diff = Math.abs(b - currentBet);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closestIndex = i;
-            }
-        });
-        setBetIndex(closestIndex);
+        if (autoMaxBet) {
+             setBetIndex(allowed.length - 1);
+        } else {
+            let closestIndex = 0;
+            let minDiff = Infinity;
+            allowed.forEach((b, i) => {
+                const diff = Math.abs(b - currentBet);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closestIndex = i;
+                }
+            });
+            setBetIndex(closestIndex);
+        }
+    } else if (autoMaxBet) {
+         setBetIndex(allowed.length - 1);
     }
-  }, [player.level, availableBets, betIndex, isHighLimit]);
-
-  // Save current bet per slot to localStorage whenever it changes in GAME view
-  useEffect(() => {
-      if (currentView === 'GAME' && availableBets[betIndex] !== undefined) {
-          localStorage.setItem('cw_bet_' + selectedGame.id, String(availableBets[betIndex]));
-      }
-  }, [betIndex, currentView, selectedGame.id, availableBets]);
+  }, [player.level, availableBets, betIndex, autoMaxBet, isHighLimit]); 
 
   useEffect(() => {
       if (player.xpBoostEndTime > 0) {
@@ -446,18 +404,6 @@ const App: React.FC = () => {
           return () => clearInterval(interval);
       }
   }, [missionState.passBoostEndTime]);
-
-  useEffect(() => {
-    try { localStorage.setItem('cw_player', JSON.stringify(player)); } catch {}
-  }, [player]);
-
-  useEffect(() => {
-    try { localStorage.setItem('cw_missions', JSON.stringify(missionState)); } catch {}
-  }, [missionState]);
-
-  useEffect(() => {
-    try { localStorage.setItem('cw_login', JSON.stringify(loginState)); } catch {}
-  }, [loginState]);
 
   const updateMissions = (type: MissionType, amount: number) => {
       if (player.level < 10) return; 
@@ -529,31 +475,26 @@ const App: React.FC = () => {
 
   const handleClaimPassReward = (reward: PassReward) => {
       if (reward.claimed) return;
-      if (reward.tier === 'PREMIUM' && !missionState.isPremium) return;
+      if (reward.tier === 'PREMIUM' && !missionState.isPremium) return; 
+      setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true } : r) }));
+      
       let msg = "";
       if (reward.type === 'COINS') {
-          const scaledValue = SCALE_COIN_REWARD(reward.value, player.level, MAX_BET_BY_LEVEL(player.level));
-          setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true, claimedValue: scaledValue } : r) }));
+          const scaledValue = SCALE_COIN_REWARD(reward.value, player.level);
           setPlayer(p => ({ ...p, balance: p.balance + scaledValue }));
           msg = `+${formatCommaNumber(scaledValue)} Coins`;
-      } else {
-          setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true } : r) }));
-          if (reward.type === 'DIAMONDS') {
-              setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value }));
-              msg = `+${reward.value} Gems`;
-          } else if (reward.type === 'XP_BOOST') {
-              setPlayer(p => ({ ...p, xpMultiplier: reward.value, xpBoostEndTime: Date.now() + 1800000 }));
-              msg = `${reward.value}x XP Boost`;
-          } else if (reward.type === 'CREDIT_BACK') {
-              setPlayer(p => ({ ...p, packCredits: p.packCredits + reward.value }));
-              msg = `+${reward.value} Card Packs`;
-          } else if (reward.type === 'PICKS') {
-              setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value }));
-              msg = `+${reward.value} Picks`;
-          } else if (reward.type === 'DICE_CREDITS') {
-              setQuest(q => ({ ...q, diceCredits: q.diceCredits + reward.value }));
-              msg = `+${reward.value} Dice`;
-          }
+      } else if (reward.type === 'DIAMONDS') {
+          setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value }));
+          msg = `+${reward.value} Gems`;
+      } else if (reward.type === 'XP_BOOST') {
+          setPlayer(p => ({ ...p, xpMultiplier: reward.value, xpBoostEndTime: Date.now() + 1800000 })); 
+          msg = `${reward.value}x XP Boost`;
+      } else if (reward.type === 'CREDIT_BACK') {
+          setQuest(q => ({ ...q, credits: q.credits + reward.value }));
+          msg = `+${reward.value} Credits`;
+      } else if (reward.type === 'PICKS') {
+          setQuest(q => ({ ...q, picks: q.picks + reward.value }));
+          msg = `+${reward.value} Picks`;
       }
       setCelebrationMsg(msg);
       audioService.playWinBig();
@@ -569,17 +510,15 @@ const App: React.FC = () => {
 
       let totalCoins = 0;
       let totalDiamonds = 0;
-      let totalPackCredits = 0;
+      let totalCredits = 0;
       let totalPicks = 0;
-      let totalDice = 0;
       let xpBoostApplied = false;
 
       rewardsToClaim.forEach(r => {
-          if (r.type === 'COINS') totalCoins += SCALE_COIN_REWARD(r.value, player.level, MAX_BET_BY_LEVEL(player.level));
+          if (r.type === 'COINS') totalCoins += SCALE_COIN_REWARD(r.value, player.level);
           else if (r.type === 'DIAMONDS') totalDiamonds += r.value;
-          else if (r.type === 'CREDIT_BACK') totalPackCredits += r.value;
+          else if (r.type === 'CREDIT_BACK') totalCredits += r.value;
           else if (r.type === 'PICKS') totalPicks += r.value;
-          else if (r.type === 'DICE_CREDITS') totalDice += r.value;
           else if (r.type === 'XP_BOOST') {
               setPlayer(p => ({ ...p, xpMultiplier: r.value, xpBoostEndTime: Date.now() + 1800000 }));
               xpBoostApplied = true;
@@ -589,25 +528,18 @@ const App: React.FC = () => {
       setPlayer(p => ({
           ...p,
           balance: p.balance + totalCoins,
-          diamonds: p.diamonds + totalDiamonds,
-          packCredits: p.packCredits + totalPackCredits,
+          diamonds: p.diamonds + totalDiamonds
       }));
-      if (totalPicks > 0) {
-          setQuest(q => ({ ...q, wildCredits: q.wildCredits + totalPicks }));
-      }
-      if (totalDice > 0) {
-          setQuest(q => ({ ...q, diceCredits: q.diceCredits + totalDice }));
-      }
+      setQuest(q => ({
+          ...q,
+          credits: q.credits + totalCredits,
+          picks: q.picks + totalPicks
+      }));
       
-      const claimedMap = new Map(rewardsToClaim.map(r => [
-          r.id,
-          r.type === 'COINS' ? SCALE_COIN_REWARD(r.value, player.level, MAX_BET_BY_LEVEL(player.level)) : undefined,
-      ]));
+      const ids = new Set(rewardsToClaim.map(r => r.id));
       setMissionState(prev => ({
           ...prev,
-          passRewards: prev.passRewards.map(r => claimedMap.has(r.id)
-              ? { ...r, claimed: true, ...(claimedMap.get(r.id) !== undefined ? { claimedValue: claimedMap.get(r.id) } : {}) }
-              : r),
+          passRewards: prev.passRewards.map(r => ids.has(r.id) ? { ...r, claimed: true } : r)
       }));
 
       let msgParts = [];
@@ -663,19 +595,34 @@ const App: React.FC = () => {
       }
   }
 
+  const handleBuyPremiumPackCredits = (gemCost: number, credits: number) => {
+      if (player.diamonds >= gemCost) {
+          setPlayer(p => ({ ...p, diamonds: p.diamonds - gemCost, premiumPackCredits: (p.premiumPackCredits ?? 0) + credits }));
+          setCelebrationMsg(`+${credits} Premium Packs`);
+          audioService.playWinBig();
+      } else {
+          setCelebrationMsg("Not Enough Gems!");
+          audioService.playStoneBreak();
+      }
+  }
+
   const handleBuyPack = (packId: string, drawCount: number): Card[] => {
       let packInfo = PACK_COSTS.BASIC;
       if (packId === 'super') packInfo = PACK_COSTS.SUPER;
       if (packId === 'mega') packInfo = PACK_COSTS.MEGA;
       if (packId === 'ultra') packInfo = PACK_COSTS.ULTRA;
 
-      let totalCost = packInfo.creditCost * drawCount;
-      if (drawCount === 10) {
-          totalCost = Math.ceil(totalCost * 0.9);
-      }
-      
-      if (player.packCredits >= totalCost) {
-          setPlayer(p => ({ ...p, packCredits: p.packCredits - totalCost }));
+      const isPremiumPack = packId === 'ultra';
+      // New draw system: 1 credit per draw, 10x costs 9 credits (10% off)
+      const totalCost = drawCount === 10 ? 9 : drawCount;
+      const availableCredits = isPremiumPack ? (player.premiumPackCredits ?? 0) : player.packCredits;
+
+      if (availableCredits >= totalCost) {
+          if (isPremiumPack) {
+              setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) - totalCost }));
+          } else {
+              setPlayer(p => ({ ...p, packCredits: p.packCredits - totalCost }));
+          }
           
           const allDrawnCards: Card[] = [];
           let earnedTokens = 0;
@@ -763,26 +710,6 @@ const App: React.FC = () => {
       audioService.playWinBig();
   };
 
-  const handleCardDrop = useCallback((rarity: 'COMMON' | 'RARE') => {
-      setDecks(prev => {
-          const allCards: { deckIdx: number; cardIdx: number }[] = [];
-          prev.forEach((deck, di) => {
-              deck.cards.forEach((card, ci) => {
-                  if (card.rarity === rarity) allCards.push({ deckIdx: di, cardIdx: ci });
-              });
-          });
-          if (allCards.length === 0) return prev;
-          const pick = allCards[Math.floor(Math.random() * allCards.length)];
-          return prev.map((deck, di) => {
-              if (di !== pick.deckIdx) return deck;
-              const newCards = deck.cards.map((card, ci) =>
-                  ci !== pick.cardIdx ? card : { ...card, count: card.count + 1 }
-              );
-              return { ...deck, cards: newCards, isCompleted: newCards.every(c => c.count > 0) };
-          });
-      });
-  }, []);
-
   const generateSmartGrid = useCallback(() => {
       const cols = selectedGame.reels;
       const rows = selectedGame.rows;
@@ -794,9 +721,6 @@ const App: React.FC = () => {
           const colData: SymbolType[] = [];
           for(let r=0; r<rows; r++) {
               let sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
-              while (selectedGame.theme === 'PIGGY' && sym === SymbolType.SCATTER) {
-                  sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
-              }
               if (c === 2) {
                   const highPaying = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.SEVEN, SymbolType.CHERRY];
                   if (highPaying.includes(sym) && Math.random() < 0.5) {
@@ -821,10 +745,7 @@ const App: React.FC = () => {
       
       let megaMatchActive = false;
       let megaMatchSymbol = SymbolType.TEN;
-      const isNeon = selectedGame.theme === 'NEON';
-      // 3×3 grids get 80% less same-cell stacks (mega match) + 20% less wilds
-      const smallGridPenalty = isSmallGrid ? 0.20 : 1.0;
-      const megaMatchProb = isFreeSpin ? 0.34 * smallGridPenalty : (isNeon ? 0.08 : 0.16) * smallGridPenalty;
+      const megaMatchProb = isFreeSpin ? 0.24 : 0.16; 
       
       if (Math.random() < megaMatchProb) { 
             const targets = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN];
@@ -836,8 +757,6 @@ const App: React.FC = () => {
             }
             if (active) megaMatchActive = true;
       }
-      // NEON and PIGGY never use full-column same-symbol matches
-      if (selectedGame.theme === 'NEON' || selectedGame.theme === 'PIGGY') megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -848,24 +767,16 @@ const App: React.FC = () => {
            
            if (!eventTriggered) {
                let wildStackChance = 0.0;
-               const wildMult = isFreeSpin ? 1.20 : (isNeon ? 0.80 : 1.0);
                if (cols >= 5) {
-                    if (c === 2) wildStackChance = 0.12 * wildMult;
-                    if (c === 3) wildStackChance = 0.16 * wildMult;
-                    if (c === 4) wildStackChance = 0.24 * wildMult;
+                    if (c === 2) wildStackChance = 0.12; 
+                    if (c === 3) wildStackChance = 0.16;
+                    if (c === 4) wildStackChance = 0.24;
                } else if (isSmallGrid) {
-                   // 3×3: base chances × 0.8 (20% less wild column spawns)
-                   if (c === 1) wildStackChance = 0.06 * wildMult * 0.8;
-                   if (c === 2) wildStackChance = 0.08 * wildMult * 0.8;
+                   if (c === 1) wildStackChance = 0.06;
+                   if (c === 2) wildStackChance = 0.08;
                } else {
-                   if (c === 1) wildStackChance = 0.15 * wildMult;
-                   if (c === 2) wildStackChance = 0.20 * wildMult;
-               }
-               // PIGGY: 20% higher wild rate + extend to all 7 columns
-               if (selectedGame.theme === 'PIGGY') {
-                   if (c === 5) wildStackChance = 0.30 * wildMult;
-                   if (c === 6) wildStackChance = 0.36 * wildMult;
-                   wildStackChance *= 1.2;
+                   if (c === 1) wildStackChance = 0.15;
+                   if (c === 2) wildStackChance = 0.20;
                }
 
                if (c === 0) {
@@ -909,119 +820,46 @@ const App: React.FC = () => {
            }
       }
 
-      // NEON uses jackpot cells instead of scatters; PIGGY uses coin cells
-      if (selectedGame.theme !== 'NEON' && selectedGame.theme !== 'PIGGY') {
-          const scatterRoll = Math.random() * 100;
-          let targetScatters = 0;
-          // 3×3 slots: 20% less free spin chance (raise thresholds so fewer scatters spawn)
-          const s1 = isSmallGrid ? 68 : 60;
-          const s2 = isSmallGrid ? 85.6 : 82;
-          const s3 = isSmallGrid ? 99.2 : 99.0;
-          const s4 = isSmallGrid ? 99.8 : 99.75;
-          if (scatterRoll >= s1) targetScatters = 1;
-          if (scatterRoll >= s2) targetScatters = 2;
-          if (scatterRoll >= s3) targetScatters = 3;
-          if (scatterRoll >= s4) targetScatters = 4;
+      const scatterRoll = Math.random() * 100;
+      let targetScatters = 0;
+      if (scatterRoll >= 60) targetScatters = 1;
+      if (scatterRoll >= 82) targetScatters = 2;
+      if (scatterRoll >= 99.0) targetScatters = 3;
+      if (scatterRoll >= 99.75) targetScatters = 4;
 
-          if (selectedGame.theme === 'DRAGON') {
-              if (scatterRoll >= 99.25) targetScatters = 4;
-          }
-          targetScatters = Math.min(targetScatters, cols);
+      if (selectedGame.theme === 'DRAGON') {
+          if (scatterRoll >= 99.25) targetScatters = 4;
+      }
+      targetScatters = Math.min(targetScatters, cols);
 
-          let currentScatters = 0;
-          const scatterPositions: {c: number, r: number}[] = [];
+      let currentScatters = 0;
+      const scatterPositions: {c: number, r: number}[] = [];
 
-          for(let c=0; c<cols; c++) {
-              for(let r=0; r<rows; r++) {
-                  if(newGrid[c][r] === SymbolType.SCATTER) {
-                      currentScatters++;
-                      scatterPositions.push({c, r});
-                  }
-              }
-          }
-
-          if (currentScatters < targetScatters) {
-              let needed = targetScatters - currentScatters;
-              let attempts = 0;
-              while(needed > 0 && attempts < 200) {
-                  const c = Math.floor(Math.random() * cols);
-                  const r = Math.floor(Math.random() * rows);
-                  const canOverwrite = newGrid[c][r] !== SymbolType.SCATTER && (newGrid[c][r] !== SymbolType.WILD || attempts > 100);
-
-                  if (canOverwrite) {
-                      const hasScatterInCol = newGrid[c].includes(SymbolType.SCATTER);
-                      if (!hasScatterInCol) {
-                          newGrid[c][r] = SymbolType.SCATTER;
-                          needed--;
-                      }
-                  }
-                  attempts++;
+      for(let c=0; c<cols; c++) {
+          for(let r=0; r<rows; r++) {
+              if(newGrid[c][r] === SymbolType.SCATTER) {
+                  currentScatters++;
+                  scatterPositions.push({c, r});
               }
           }
       }
 
-      // PIGGY: inject coin symbols (1-6 cells), 6+ triggers free spins
-      if (selectedGame.theme === 'PIGGY') {
-          const coinRoll = Math.random();
-          let targetCoins = 0;
-          if (coinRoll >= 0.989)     targetCoins = 6;  // ~1.1% → free spins
-          else if (coinRoll >= 0.956) targetCoins = 5; // ~3.3%
-          else if (coinRoll >= 0.901) targetCoins = 4; // ~5.5%
-          else if (coinRoll >= 0.799) targetCoins = 3; // ~10.2%
-          else if (coinRoll >= 0.617) targetCoins = 2; // ~18.2%
-          else if (coinRoll >= 0.25)  targetCoins = 1; // ~36.7%
-          // 0-24.9% → 0 coins (increased spawn rate ~10%)
-          if (targetCoins > 0) {
-              const eligible: {c: number; r: number}[] = [];
-              for (let c = 0; c < cols; c++) {
-                  for (let r = 0; r < rows; r++) {
-                      const s = newGrid[c][r];
-                      if (s !== SymbolType.SCATTER && s !== SymbolType.WILD && !String(s).startsWith('JACKPOT')) {
-                          eligible.push({c, r});
-                      }
-                  }
-              }
-              for (let i = eligible.length - 1; i > 0; i--) {
-                  const j = Math.floor(Math.random() * (i + 1));
-                  [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
-              }
-              for (let i = 0; i < Math.min(targetCoins, eligible.length); i++) {
-                  newGrid[eligible[i].c][eligible[i].r] = SymbolType.COIN;
-              }
-          }
-      }
+      if (currentScatters < targetScatters) {
+          let needed = targetScatters - currentScatters;
+          let attempts = 0;
+          while(needed > 0 && attempts < 200) {
+              const c = Math.floor(Math.random() * cols);
+              const r = Math.floor(Math.random() * rows);
+              const canOverwrite = newGrid[c][r] !== SymbolType.SCATTER && (newGrid[c][r] !== SymbolType.WILD || attempts > 100);
 
-      // Jackpot cell injection: during free spins for all slots; NEON always (20% boost)
-      const isNeonJP = selectedGame.theme === 'NEON';
-      if (freeSpinsRemaining > 0 || isNeonJP) {
-          const neonBoost = isNeonJP ? 1.08 : 1.0;
-          // 60/40 MINI:MINOR ratio; all tiers ~30% less than before to reduce 3-match frequency
-          const JP_SPAWN = [
-              { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * neonBoost },
-              { type: SymbolType.JACKPOT_MINOR, prob: 0.048 * neonBoost },
-              { type: SymbolType.JACKPOT_MAJOR, prob: 0.015 * neonBoost },
-              { type: SymbolType.JACKPOT_MEGA,  prob: 0.005 * neonBoost },
-              { type: SymbolType.JACKPOT_GRAND, prob: 0.0015 * neonBoost },
-          ];
-          const jpCellPositions: { c: number; r: number }[] = [];
-          for (let c = 0; c < cols; c++) {
-              for (let r = 0; r < rows; r++) {
-                  if (newGrid[c][r] === SymbolType.SCATTER || newGrid[c][r] === SymbolType.WILD) continue;
-                  if (jpCellPositions.length >= 4) break;
-                  for (const jp of JP_SPAWN) {
-                      if (Math.random() < jp.prob) {
-                          newGrid[c][r] = jp.type;
-                          jpCellPositions.push({ c, r });
-                          break;
-                      }
+              if (canOverwrite) {
+                  const hasScatterInCol = newGrid[c].includes(SymbolType.SCATTER);
+                  if (!hasScatterInCol) {
+                      newGrid[c][r] = SymbolType.SCATTER;
+                      needed--;
                   }
               }
-              if (jpCellPositions.length >= 4) break;
-          }
-          // 50% chance: upgrade one random jackpot cell to GRAND or MEGA
-          if (jpCellPositions.length > 0 && Math.random() < 0.5) {
-              const pick = jpCellPositions[Math.floor(Math.random() * jpCellPositions.length)];
-              newGrid[pick.c][pick.r] = Math.random() < 0.5 ? SymbolType.JACKPOT_GRAND : SymbolType.JACKPOT_MEGA;
+              attempts++;
           }
       }
 
@@ -1034,16 +872,18 @@ const App: React.FC = () => {
 
   const handleStageComplete = (gameType: 'WILD' | 'DICE', bonusCoins: number, bonusDiamonds: number) => {
       const stage = gameType === 'WILD' ? quest.wildStage : quest.diceStage;
-
-      setPlayer(p => ({ ...p, balance: p.balance + bonusCoins, diamonds: p.diamonds + bonusDiamonds }));
-
+      const scaledBonus = 1000000 * stage * player.level; // Logic derived from MiniGameModal, ensure consistency
+      
+      setPlayer(p => ({ ...p, balance: p.balance + scaledBonus, diamonds: p.diamonds + bonusDiamonds }));
+      
+      // Separate Progress Logic
       if (gameType === 'WILD') {
-          setQuest(q => ({ ...q, wildStage: q.wildStage + 1, wildGrid: [] }));
+          setQuest(q => ({ ...q, wildStage: q.wildStage + 1, wildGrid: [] })); 
       } else {
-          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
+          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 })); 
       }
-
-      setStageCompletePopup({ gameType, stage, coins: bonusCoins, diamonds: bonusDiamonds });
+      
+      setCelebrationMsg(`${gameType === 'WILD' ? 'Wild' : 'Dice'} Stage Complete! +${formatCommaNumber(scaledBonus)}`);
       audioService.playWinBig();
   };
 
@@ -1053,30 +893,25 @@ const App: React.FC = () => {
   };
 
   const handleDiceRoll = (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean) => {
-      setQuest(q => ({ ...q, diceCredits: Math.max(0, q.diceCredits - 1), dicePosition: newPosition }));
-      const msgParts: string[] = [];
+      setQuest(q => ({ ...q, picks: Math.max(0, q.picks - 1), dicePosition: newPosition })); 
+      let msgParts = [];
       let totalCoins = 0;
-      let totalGems = 0;
-      let totalPacks = 0;
-      let diceGained = 0;
-      rewards.forEach(r => {
-          if (r.type === 'COINS') totalCoins += r.value;
-          else if (r.type === 'DIAMONDS') totalGems += r.value;
-          else if (r.type === 'PACKS') totalPacks += r.value;
-          else if (r.type === 'PICKS') diceGained += r.value;
-      });
-      if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
-      if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
-      if (totalPacks > 0) { setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks })); msgParts.push(`+${totalPacks} 📦`); }
-      if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
-      if (isFinish) {
-          const bonusCoins = Math.round(MAX_BET_BY_LEVEL(player.level) * quest.diceStage * 10);
-          setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
-          const currentStage = quest.diceStage;
-          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
-          setStageCompletePopup({ gameType: 'DICE', stage: currentStage, coins: bonusCoins, diamonds: 0 });
+      rewards.forEach(r => { if (r.type === 'COINS') totalCoins += r.value; });
+      if (totalCoins > 0) {
+          setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
+          msgParts.push(`${formatCommaNumber(totalCoins)} Coins`);
       }
-      if (msgParts.length > 0) { setCelebrationMsg(msgParts.join(' · ')); audioService.playWinBig(); }
+      if (isFinish) {
+          // Note: Logic here needs to match handleStageComplete regarding rewards scaling
+          const bonusCoins = 2000000 * quest.diceStage * player.level; 
+          setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
+          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
+          msgParts.push(`Stage Clear! +${formatCommaNumber(bonusCoins)}`);
+      }
+      if (msgParts.length > 0) {
+          setCelebrationMsg(msgParts.join('\n'));
+          audioService.playWinBig();
+      }
   };
 
   const spin = useCallback(() => {
@@ -1100,10 +935,10 @@ const App: React.FC = () => {
     }
 
     if (!isFreeSpin) {
-      // Piggy Bank Logic: 5% of Bet (10% if VIP), Capped. Only saves if Level >= 5.
+      // Piggy Bank Logic: 1% of Bet, Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
-          const savings = currentBet * (player.isVip ? 0.10 : 0.05);
-          const cap = MAX_BET_BY_LEVEL(player.level) * 5;
+          const savings = currentBet * 0.01;
+          const cap = player.level * 2500000;
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
@@ -1119,25 +954,10 @@ const App: React.FC = () => {
       setSpinsWithoutBonus(prev => prev + 1);
       updateMissions(MissionType.SPIN_COUNT, 1);
       updateMissions(MissionType.BET_COINS, currentBet);
-      setPlayer(prev => ({
-          ...prev,
-          stats: {
-              ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }),
-              totalSpins: (prev.stats?.totalSpins || 0) + 1
-          }
-      }));
     } else {
         setFreeSpinsRemaining(prev => prev - 1);
         updateMissions(MissionType.SPIN_COUNT, 1);
-        setPlayer(prev => ({
-            ...prev,
-            stats: {
-                ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }),
-                totalSpins: (prev.stats?.totalSpins || 0) + 1
-            }
-        }));
     }
-    setInstantStop(false);
     setStatus(GameStatus.SPINNING);
     setWinData(null);
     setStoppedReels(0);
@@ -1178,42 +998,20 @@ const App: React.FC = () => {
              const spinsWon = scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20;
              setFreeSpinsWon(spinsWon);
              setTotalFreeSpins(prev => prev + spinsWon);
-
+             
              if (freeSpinsRemaining > 0) {
                  setShowFreeSpinsPopup(true);
                  audioService.playWinBig();
              } else {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
-                 setSpinsWithoutBonus(0);
+                 setSpinsWithoutBonus(0); 
                  setTimeout(() => {
                      setShowFreeSpinsPopup(true);
                  }, 2000);
                  return next;
              }
         }
-
-        // PIGGY: 6+ coin cells triggers free spins
-        if (selectedGame.theme === 'PIGGY') {
-            let coinCount = 0;
-            targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
-            if (coinCount >= 6) {
-                const spinsWon = 15;
-                setFreeSpinsWon(spinsWon);
-                setTotalFreeSpins(prev => prev + spinsWon);
-                if (freeSpinsRemaining > 0) {
-                    setShowFreeSpinsPopup(true);
-                    audioService.playWinBig();
-                } else {
-                    setStatus(GameStatus.SCATTER_SHOWCASE);
-                    audioService.playScatterTrigger();
-                    setSpinsWithoutBonus(0);
-                    setTimeout(() => { setShowFreeSpinsPopup(true); }, 2000);
-                    return next;
-                }
-            }
-        }
-
         calculateWin(targetGrid);
       }
       return next;
@@ -1266,113 +1064,36 @@ const App: React.FC = () => {
         }
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
-
-    const JP_WIN_TYPES = [
-        SymbolType.JACKPOT_MINI,
-        SymbolType.JACKPOT_MINOR,
-        SymbolType.JACKPOT_MAJOR,
-        SymbolType.JACKPOT_MEGA,
-        SymbolType.JACKPOT_GRAND,
-    ];
-    const JP_META = [
-        { name: 'MINI',  color: '#cd7f32', icon: '🥉' },
-        { name: 'MINOR', color: '#c0c0c0', icon: '🥈' },
-        { name: 'MAJOR', color: '#ffd700', icon: '🥇' },
-        { name: 'MEGA',  color: '#ff8c00', icon: '👑' },
-        { name: 'GRAND', color: '#ff2244', icon: '🏆' },
-    ];
-    // Jackpot amounts: 10/20/30/50/100× current bet
-    const JP_BET_MULTIPLIERS = [10, 20, 30, 50, 100];
-    const jpAmounts = JP_BET_MULTIPLIERS.map(m => Math.floor(currentBet * m));
-    let jackpotWon = false;
-    JP_WIN_TYPES.forEach((jpType, tier) => {
-        let jpCount = 0;
-        const jpCells: {col: number, row: number}[] = [];
-        finalGrid.forEach((col, c) => col.forEach((s, r) => {
-            if (s === jpType) { jpCount++; jpCells.push({ col: c, row: r }); }
-        }));
-        if (jpCount >= 3) {
-            jackpotWon = true;
-            totalPayout += jpAmounts[tier];
-            winningCells.push(...jpCells);
-            setJackpotWinTier({ ...JP_META[tier], amount: jpAmounts[tier] });
-        }
-    });
-
-    if (totalPayout > 0) {
-        setPlayer(prev => ({
-            ...prev,
-            stats: {
-                maxSingleWin: Math.max(totalPayout, prev.stats?.maxSingleWin || 0),
-                maxJackpotWin: jackpotWon ? Math.max(
-                    jpAmounts.reduce((a, b) => a + b, 0),
-                    prev.stats?.maxJackpotWin || 0
-                ) : (prev.stats?.maxJackpotWin || 0),
-                totalCoinsWon: (prev.stats?.totalCoinsWon || 0) + totalPayout,
-                totalGemsEarned: prev.stats?.totalGemsEarned || 0,
-                totalSpins: prev.stats?.totalSpins || 0,
-                recentSlots: prev.stats?.recentSlots || [],
-            }
-        }));
-    }
-
+    
     const winTier = getWinTier(totalPayout, currentBet);
     setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: !!winTier, scattersFound: scatterCount, winType: winTier || undefined });
 
     if (totalFreeSpins > 0 && totalPayout > 0) setFreeSpinTotalWin(prev => prev + totalPayout);
 
-    // Per-spin drops — scale with bet level (±2% per step from max bet)
-    const maxBetIdx = availableBets.length - 1;
-    const questChance = Math.max(0.01, 0.20 - (maxBetIdx - betIndex) * 0.02);
-    if (player.level >= 20 && Math.random() < questChance) {
-        if (Math.random() < 0.5) {
-            setQuest(q => ({ ...q, diceCredits: q.diceCredits + 1 }));
-        } else {
-            setQuest(q => ({ ...q, wildCredits: q.wildCredits + 1 }));
-        }
-    }
-    const packDropChance = Math.max(0.01, 0.20 - (maxBetIdx - betIndex) * 0.02);
-    if (Math.random() < packDropChance) {
-        setPlayer(p => ({ ...p, packCredits: p.packCredits + 1 }));
-        setShowPackToast(true);
-        setTimeout(() => setShowPackToast(false), 2500);
-    } else if (player.level >= 30) {
-        const cardRoll = Math.random();
-        if (cardRoll < 0.10) handleCardDrop('RARE');
-        else if (cardRoll < 0.30) handleCardDrop('COMMON');
-    }
-
     if (totalPayout > 0) {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
-
-       const vipXpMult = player.isVip ? 1.2 : 1.0;
-       const spinsAtMaxBet = Math.max(1, player.level * 1.1);
-       const betFraction = currentBet / MAX_BET_BY_LEVEL(player.level);
-       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult);
-
+       
+       const xpGained = Math.floor(Math.sqrt(currentBet) * 10 * player.xpMultiplier); 
+       
        addXp(xpGained);
        updateMissions(MissionType.WIN_COINS, totalPayout);
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
+       if (player.level >= 20 && Math.random() > 0.5) {
+           setQuest(q => ({ ...q, credits: Math.min(q.max, q.credits + 1) }));
+       }
 
        if (winTier) {
            audioService.playWinBig();
-           if (jackpotWon) {
-               setPendingBigWin(true);
-           } else {
-               setShowWinPopup(true);
-           }
+           setShowWinPopup(true);
            setStatus(GameStatus.WIN_ANIMATION);
        } else {
            audioService.playWinSmall();
            setStatus(GameStatus.WIN_ANIMATION);
            const effectiveFastSpin = fastSpin;
-           setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 150 : 500);
+           setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 300 : 1000);
        }
     } else {
-       const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
-       const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
-       const betFractionLoss = currentBet / MAX_BET_BY_LEVEL(player.level);
-       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss);
+       const lossXp = Math.floor((Math.sqrt(currentBet) * 10 * 0.2) * player.xpMultiplier);
        addXp(lossXp);
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
@@ -1393,8 +1114,7 @@ const App: React.FC = () => {
           }
           if (leveledUp) {
               audioService.playLevelUp();
-              const isMilestone = newLevel % 5 === 0;
-              const reward = Math.floor(MAX_BET_BY_LEVEL(newLevel) * (isMilestone ? 0.2 : 0.05));
+              const reward = newLevel * 10000;
               const oldMax = MAX_BET_BY_LEVEL(prev.level);
               const newMax = MAX_BET_BY_LEVEL(newLevel);
               if (toastCountRef.current < 10) {
@@ -1404,14 +1124,6 @@ const App: React.FC = () => {
                   toastCountRef.current += 1;
               }
               updateMissions(MissionType.LEVEL_UP, 1);
-              const newMaxBet2 = MAX_BET_BY_LEVEL(newLevel);
-              setMissionState(prev => ({
-                  ...prev,
-                  passRewards: GENERATE_PASS_REWARDS(newMaxBet2).map(r => {
-                      const existing = prev.passRewards.find((pr: any) => pr.id === r.id);
-                      return existing ? { ...r, claimed: existing.claimed } : r;
-                  })
-              }));
 
               // CHECK FEATURE UNLOCKS
               const justUnlocked = (level: number) => {
@@ -1529,14 +1241,6 @@ const App: React.FC = () => {
       setShowWinPopup(false);
       setStatus(GameStatus.IDLE);
   };
-
-  const handleJackpotClose = () => {
-      setJackpotWinTier(null);
-      if (pendingBigWin) {
-          setPendingBigWin(false);
-          setShowWinPopup(true);
-      }
-  };
   const handleQuestClaim = () => {
       if (player.level < 20) {
            setCelebrationMsg("Quest Unlocks at Level 20!");
@@ -1546,65 +1250,36 @@ const App: React.FC = () => {
       openModal('MINIGAME');
       audioService.playClick();
   };
-
-  const handleWildQuestClaim = () => {
-      if (player.level < 20) {
-          setCelebrationMsg("Quest Unlocks at Level 20!");
-          audioService.playStoneBreak();
-          return;
-      }
-      setQuest(q => ({ ...q, activeGame: 'WILD' }));
-      openModal('MINIGAME');
-      audioService.playClick();
-  };
-
-  const handleDiceQuestClaim = () => {
-      if (player.level < 20) {
-          setCelebrationMsg("Quest Unlocks at Level 20!");
-          audioService.playStoneBreak();
-          return;
-      }
-      setQuest(q => ({ ...q, activeGame: 'DICE' }));
-      openModal('MINIGAME');
-      audioService.playClick();
-  };
   const handleBuyPicks = (amount: number, cost: number, currency: 'CREDITS' | 'GEMS') => {
-      if (currency === 'GEMS') {
+      if (currency === 'CREDITS') {
+          if (quest.credits >= cost) {
+              setQuest(q => ({ ...q, credits: q.credits - cost, picks: q.picks + amount }));
+              audioService.playClick();
+          }
+      } else {
           if (player.diamonds >= cost) {
               setPlayer(p => ({ ...p, diamonds: p.diamonds - cost }));
-              if (quest.activeGame === 'DICE') {
-                  setQuest(q => ({ ...q, diceCredits: q.diceCredits + amount }));
-              } else {
-                  setQuest(q => ({ ...q, wildCredits: q.wildCredits + amount }));
-              }
+              setQuest(q => ({ ...q, picks: q.picks + amount }));
               audioService.playClick();
           }
       }
   };
-  const handleBuyQuestBundle = (type: 'PICKS' | 'DICE', picks: number, dice: number, coins: number, gemCost: number, bonusGems: number = 0) => {
-      if (player.diamonds < gemCost) { setCelebrationMsg('Not Enough Gems!'); audioService.playStoneBreak(); return; }
-      setPlayer(p => ({ ...p, diamonds: p.diamonds - gemCost + bonusGems, balance: p.balance + coins }));
-      if (picks > 0) setQuest(q => ({ ...q, wildCredits: q.wildCredits + picks }));
-      if (dice > 0) setQuest(q => ({ ...q, diceCredits: q.diceCredits + dice }));
-      audioService.playWinBig();
-      setCelebrationMsg(`Bundle claimed!`);
-  };
   const handleMiniGamePick = (isGem: boolean, reward: MiniGameReward | null) => {
-      setQuest(q => ({ ...q, wildCredits: Math.max(0, q.wildCredits - 1) }));
+      setQuest(q => ({ ...q, picks: Math.max(0, q.picks - 1) }));
       if (reward) {
-          if (reward.type === 'COINS') {
-              setPlayer(p => ({ ...p, balance: p.balance + reward.value }));
-              setCelebrationMsg(`+${formatCommaNumber(reward.value)} Coins`);
+          if (reward.type === 'COINS') { 
+              setPlayer(p => ({ ...p, balance: p.balance + reward.value })); 
+              setCelebrationMsg(`+${formatCommaNumber(reward.value)} Coins`); 
           }
           else if (reward.type === 'DIAMONDS') { setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value })); setCelebrationMsg(`+${reward.value} Gems`); }
           else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Date.now() + 1800000 })); setCelebrationMsg(`XP Boost!`); }
-          else if (reward.type === 'PICKS') { setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value })); setCelebrationMsg(`+${reward.value} Credits`); }
+          else if (reward.type === 'PICKS') { setQuest(q => ({ ...q, picks: q.picks + reward.value })); setCelebrationMsg(`+${reward.value} Picks`); }
       }
   };
 
   const handleBatchPick = (picksUsed: number, rewards: MiniGameReward[]) => {
-      setQuest(q => ({ ...q, wildCredits: Math.max(0, q.wildCredits - picksUsed) }));
-
+      setQuest(q => ({ ...q, picks: Math.max(0, q.picks - picksUsed) }));
+      
       let totalCoins = 0;
       let totalGems = 0;
       let totalPicksFound = 0;
@@ -1619,15 +1294,15 @@ const App: React.FC = () => {
 
       if (totalCoins > 0) setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
       if (totalGems > 0) setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems }));
-      if (totalPicksFound > 0) setQuest(q => ({ ...q, wildCredits: q.wildCredits + totalPicksFound }));
+      if (totalPicksFound > 0) setQuest(q => ({ ...q, picks: q.picks + totalPicksFound }));
       if (xpBoostFound) setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Date.now() + 1800000 }));
 
       const parts = [];
       if (totalCoins > 0) parts.push(`${formatCommaNumber(totalCoins)} Coins`);
       if (totalGems > 0) parts.push(`${totalGems} Gems`);
-      if (totalPicksFound > 0) parts.push(`${totalPicksFound} Credits`);
+      if (totalPicksFound > 0) parts.push(`${totalPicksFound} Picks`);
       if (xpBoostFound) parts.push("XP Boost");
-
+      
       if (parts.length > 0) {
           setCelebrationMsg(`Auto Pick: +${parts.join(', ')}`);
           audioService.playWinBig();
@@ -1636,7 +1311,8 @@ const App: React.FC = () => {
 
   const handleGameSelect = (game: GameConfig, highLimit: boolean = false) => {
       const gameIndex = GAMES_CONFIG.findIndex(g => g.id === game.id);
-      const unlockLevel = gameIndex * 5;
+      let unlockLevel = 0;
+      if (gameIndex >= 3) unlockLevel = 32 + (gameIndex - 3) * 10;
       
       // Use a fresh reference to player level if available, or ref
       const currentLevel = playerRef.current.level;
@@ -1647,7 +1323,13 @@ const App: React.FC = () => {
           return;
       }
       
-const currentState: SavedGameState = {
+      if (highLimit && currentLevel < 40) {
+          audioService.playStoneBreak();
+          setCelebrationMsg("VIP Limit Unlocks at Level 40");
+          return;
+      }
+
+      const currentState: SavedGameState = {
           freeSpinsRemaining,
           totalFreeSpins,
           freeSpinsWon,
@@ -1658,20 +1340,7 @@ const currentState: SavedGameState = {
       setSavedGameStates(prev => ({ ...prev, [selectedGame.id]: currentState }));
     const modifiedGame = { ...game, rows: 3 };
     setSelectedGame(modifiedGame);
-      setPlayer(prev => {
-          const newRecent = [game.id, ...(prev.stats?.recentSlots || []).filter(id => id !== game.id)].slice(0, 5);
-          return { ...prev, stats: { ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }), recentSlots: newRecent } };
-      });
       setIsHighLimit(highLimit);
-      // Restore per-slot saved bet
-      const savedBetStr = localStorage.getItem('cw_bet_' + game.id);
-      if (savedBetStr) {
-          const savedBetVal = Number(savedBetStr);
-          const currentAllowed = ALL_BETS.filter(b => b <= MAX_BET_BY_LEVEL(player.level)).slice(-15);
-          let closest = 0, minD = Infinity;
-          currentAllowed.forEach((b, i) => { const d = Math.abs(b - savedBetVal); if (d < minD) { minD = d; closest = i; } });
-          setBetIndex(closest);
-      }
       setCurrentView('GAME');
       // Ensure we close any unlock modals when entering a game
       setActiveModal('NONE');
@@ -1736,9 +1405,6 @@ const currentState: SavedGameState = {
   const handleHeaderBack = () => {
     if (activeModal !== 'NONE') {
         setActiveModal('NONE');
-    } else if (currentView === 'HIGH_LIMIT') {
-        setIsHighLimit(false);
-        setCurrentView('LOBBY');
     } else if (currentView === 'GAME') {
         setSavedGameStates(prev => ({
             ...prev,
@@ -1779,7 +1445,7 @@ const currentState: SavedGameState = {
       }
       
       if (type === 'COIN') {
-          setPlayer(p => ({ ...p, balance: p.balance + amount, freeStashClaimedTime: cost === 0 ? Date.now() : p.freeStashClaimedTime }));
+          setPlayer(p => ({ ...p, balance: p.balance + amount, freeStashClaimed: cost === 0 ? true : p.freeStashClaimed }));
           setCelebrationMsg(`+${formatCommaNumber(amount)} Coins`);
           audioService.playWinBig();
       } else if (type === 'DIAMOND') {
@@ -1787,10 +1453,6 @@ const currentState: SavedGameState = {
           setCelebrationMsg(`+${amount} Gems`);
           audioService.playWinBig();
       }
-  };
-
-  const handleClaimShopItem = (label: string) => {
-      setPlayer(p => ({ ...p, shopClaimedItems: [...(p.shopClaimedItems || []), label] }));
   };
 
   const handleSpinMouseDown = () => {
@@ -1819,49 +1481,46 @@ const currentState: SavedGameState = {
               if (status === GameStatus.IDLE || (status === GameStatus.FREE_SPIN_INTRO && freeSpinsRemaining > 0)) {
                   spin();
               } else if (status === GameStatus.SPINNING || status === GameStatus.STOPPING) {
-                  setInstantStop(true);
                   if (status === GameStatus.SPINNING) setStatus(GameStatus.STOPPING);
               }
           }
       }
   };
 
-  const getDeckReward = (level: number) => MAX_BET_BY_LEVEL(level) * 100;
-  const getGrandAlbumReward = (level: number) => MAX_BET_BY_LEVEL(level) * 1000;
-
-  const showGoldHeader = isHighLimit || (player.isVip && currentView === 'LOBBY');
-  const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
-  const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
+  const getDeckReward = (level: number) => {
+      return (1000000 + (level * 500000)) * 100; 
+  };
+  const getGrandAlbumReward = (level: number) => {
+      return (10000000 + (level * 2000000)) * 10000;
+  };
 
   return (
     <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
       <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'top center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}>
-          <header className="w-full z-[100] border-b-2 flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
-            style={showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottomColor:'#8b6200' } : { background:'#7c3fb5', borderBottomColor:'#2a0d55' }}>
+          <header className="fixed top-0 w-full z-[100] bg-[#120024] border-b-2 border-[#2a0d55] flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[29px] md:h-[35px] select-none overflow-visible">
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
-            <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
+            <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6">
                 {/* Lobby Home Button */}
-                <div
-                    onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
-                    className="round-btn shrink-0 cursor-pointer"
-                    style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                <div 
+                    onClick={currentView !== 'LOBBY' ? handleHeaderBack : undefined}
+                    className={`round-btn shrink-0 ${currentView === 'LOBBY' ? 'opacity-65 cursor-default' : ''}`}
                 >
-                    <i className={currentView !== 'LOBBY' ? 'ti ti-arrow-left' : 'ti ti-user'}></i>
+                    <i className="ti ti-home"></i>
                 </div>
 
                 {/* Separate Coins & Gems pills joined closely */}
-                <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[290px] md:max-w-[430px] shrink-0">
-                    {/* Separate Coins Pill — 30% longer than before */}
-                    <div className="currency-pill flex-[4] max-w-[195px] md:max-w-[289px] flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[245px] md:max-w-[370px] shrink-0">
+                    {/* Separate Coins Pill */}
+                    <div className="currency-pill flex-1 max-w-[120px] md:max-w-[180px] flex items-center gap-1 shrink-0">
                         <div className="coin">$</div>
-                        <span className="num flex-1">{formatK(player.balance)}</span>
+                        <span className="num flex-1">{formatCommaNumber(player.balance)}</span>
                     </div>
 
                     {/* Separate Gem Pill */}
-                    <div className="currency-pill flex-[2] max-w-[100px] md:max-w-[148px] flex items-center gap-1 shrink-0">
+                    <div className="currency-pill flex-1 max-w-[120px] md:max-w-[180px] flex items-center gap-1 shrink-0">
                         <div className="gem"></div>
-                        <span className="num flex-1">{formatK(player.diamonds)}</span>
+                        <span className="num flex-1">{formatCommaNumber(player.diamonds)}</span>
                     </div>
                 </div>
 
@@ -1878,8 +1537,8 @@ const currentState: SavedGameState = {
                     </div>
 
                     {/* Sale Button */}
-                    <div
-                        onClick={() => setShowPremiumModal(true)}
+                    <div 
+                        onClick={() => openShop('BOOSTS')}
                         className="btn pink saleB shrink-0"
                     >
                         <div className="face text-center">
@@ -1891,171 +1550,70 @@ const currentState: SavedGameState = {
                     {/* Piggy Bank quick button (left icons) */}
                     <div
                         onClick={handleOpenPiggyBank}
-                        className={`round-btn shrink-0 ml-1 relative ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+                        className={`round-btn shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''} ${player.piggyBank > 0 ? 'animate-pulse' : ''}`}
                         title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
-                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', overflow:'visible' } : { overflow:'visible' }}
                     >
                         <span style={{fontSize:16}}>🐷</span>
                     </div>
 
                 {/* Star Experience Progression (No pill shape container, 2x long, star + bar) */}
-                <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent ml-2">
+                <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent">
                     <div className="star shrink-0"></div>
                     <div className="rtrack !flex-none w-[90px] md:w-[150px] overflow-hidden relative">
-                        <div
-                            className="rfill"
-                            style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, ...(player.xpMultiplier >= 2 ? { background: 'linear-gradient(180deg,#ffe04d,#d4a017 60%,#a07010)', boxShadow: 'inset 0 1px 1px rgba(255,255,180,0.7)' } : {}) }}
+                        <div 
+                            className="rfill" 
+                            style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%` }}
                         ></div>
-                        <span className="rnum relative z-10 font-black" style={{ fontSize: '18px' }}>{player.level}</span>
+                        <span className="rnum relative z-10 text-[9px] font-black">{player.level}</span>
                     </div>
                 </div>
 
                 {/* Active Multiplier indicator */}
-                <div className="mult shrink-0 ml-2" style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}>
-                    {(() => {
-                        const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                        if (boostActive && showXpTimer) {
-                            const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
-                            const h = Math.floor(rem / 3600000);
-                            const m = Math.floor((rem % 3600000) / 60000);
-                            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                        }
-                        return `x${player.xpMultiplier}`;
-                    })()}
+                <div className="mult shrink-0">
+                    x{player.xpMultiplier}
                 </div>
 
-                {/* Settings button */}
-                <div
-                    onClick={() => setShowSettings(true)}
+                {/* Dynamic Mute round-btn */}
+                <div 
+                    onClick={() => setIsMuted(audioService.toggleMute())}
                     className="round-btn shrink-0"
-                    style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
-                    <i className="ti ti-settings"></i>
+                    <i className={`ti ${isMuted ? 'ti-volume-3' : 'ti-volume'}`}></i>
                 </div>
             </div>
       </header>
 
-      <main className="relative pt-0 w-full flex-1 flex flex-col overflow-hidden min-h-0">
-        {currentView === 'HIGH_LIMIT' && (
-            <HighLimitLobby
-                onBack={() => setCurrentView('LOBBY')}
-                onSelectGame={handleGameSelect}
-                playerLevel={player.level}
-            />
-        )}
+      <main className="relative pt-[36px] md:pt-[44px] w-full h-screen flex flex-col overflow-hidden">
         {currentView === 'LOBBY' ? (
-            <Lobby
-                onSelectGame={handleGameSelect}
-                onOpenWildQuest={handleWildQuestClaim}
-                onOpenDiceQuest={handleDiceQuestClaim}
+            <Lobby 
+                onSelectGame={handleGameSelect} 
+                onOpenQuest={handleQuestClaim}
                 onOpenMissions={openMissionsModal}
                 onOpenBattlePass={openBattlePassModal}
                 onClaimBonus={handleOpenTimeBonus}
                 onOpenCollection={() => openModal('COLLECTION')}
                 onOpenPiggyBank={handleOpenPiggyBank}
-                onOpenInbox={() => setCelebrationMsg("Inbox coming soon!")}
                 onToggleVIP={handleToggleVIP}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
                 bonusAmount={CALCULATE_TIME_BONUS(player.level)}
                 isHighLimit={isHighLimit}
-                isVip={!!player.isVip}
                 playerLevel={player.level}
-                currentBet={MAX_BET_BY_LEVEL(player.level)}
-                piggyBank={player.piggyBank}
-                piggyMaxBet={MAX_BET_BY_LEVEL(player.level)}
-                packCredits={player.packCredits}
             />
         ) : (
-            <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
-
-                {/* Quest + Pass vertical panel — always visible in game view */}
-                {(() => {
-                    const qReady = false;
-                    const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
-                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
-                    const totalNotifs = missReady + passReady;
-                    const isQuestLocked = player.level < 20;
-                    const isPassLocked = player.level < 10;
-                    return (
-                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', border: isHighLimit ? '1.5px solid #8b6200' : '1.5px solid #38106e', borderRadius:'21px', padding:'6px 6px', gap:'2px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
-                            <button
-                                onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
-                            >
-                                {isQuestLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {quest.wildCredits > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.wildCredits}
-                                            </div>
-                                        )}
-                                        <span className="text-[36px] leading-none">🗿</span>
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
-                            </button>
-                            <button
-                                onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
-                            >
-                                {isQuestLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {quest.diceCredits > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.diceCredits}
-                                            </div>
-                                        )}
-                                        <span className="text-[36px] leading-none">🎲</span>
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
-                            </button>
-                            <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
-                            <button
-                                onClick={!isPassLocked ? openBattlePassModal : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
-                            >
-                                {isPassLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {totalNotifs > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-6 h-6 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[14px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {totalNotifs}
-                                            </div>
-                                        )}
-                                        <span className="text-[36px] leading-none">🎫</span>
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
-                            </button>
-                        </div>
-                    );
-                })()}
+            <div className="flex-1 flex flex-col items-center justify-center p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
                 <div className="w-full z-10 p-0 m-0">
-                    <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
+                    <JackpotTicker currentBet={availableBets[betIndex]} />
+                    {isHighLimit && (
+                        <div className="text-center mt-0">
+                            <span className="bg-red-650 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase tracking-widest shadow-lg inline-block text-shadow-md">High Limit</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
-                    <div
-                        className={`relative z-10 bg-black/60 p-1 md:p-1.5 shadow-2xl h-full max-h-full overflow-hidden
-                            ${selectedGame.theme === 'PIGGY' ? 'flex gap-2' : 'flex gap-0.5'}
-                            ${selectedGame.theme === 'EGYPT'   ? 'rounded-none border-[3px] border-yellow-600' : ''}
-                            ${selectedGame.theme === 'WESTERN' ? 'rounded-lg border-[4px] border-amber-800' : ''}
-                            ${selectedGame.theme === 'SPACE'   ? 'rounded-lg border-[2px] border-cyan-400' : ''}
-                            ${selectedGame.theme === 'CANDY'   ? 'rounded-lg border-[3px] border-pink-300' : ''}
-                            ${!['EGYPT','WESTERN','SPACE','CANDY'].includes(selectedGame.theme) ? 'rounded-xl' : ''}
-                            ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}
-                        `}
-                        style={{ aspectRatio: `${selectedGame.reels}/${selectedGame.rows}` }}
-                    >
+                    <div className={`relative z-10 bg-black/60 p-1 md:p-1.5 rounded-xl shadow-2xl flex gap-1 h-full max-h-full aspect-[5/3] overflow-hidden ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,38,38,0.35)] animate-pulse' : ''}`}>
                         {grid.map((col, i) => (
                             <Reel 
                                 key={i} 
@@ -2063,7 +1621,7 @@ const currentState: SavedGameState = {
                                 symbols={targetGrid.length > 0 ? targetGrid[i] : col} 
                                 spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} 
                                 stopping={status === GameStatus.STOPPING} 
-                                stopDelay={instantStop ? 0 : i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)}
+                                stopDelay={i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)} 
                                 duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION} 
                                 onStop={handleReelStop} 
                                 winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []} 
@@ -2071,45 +1629,49 @@ const currentState: SavedGameState = {
                                 isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE} 
                             />
                         ))}
+                        <PaylinesOverlay winData={winData} rowCount={selectedGame.rows} />
                     </div>
                 </div>
 
-
+                <div className="hidden md:block w-full">
+                    <LeftSidebar 
+                        quest={quest} 
+                        onQuestClaim={handleQuestClaim} 
+                        xpMultiplier={player.xpMultiplier} 
+                        xpBoostEndTime={player.xpBoostEndTime} 
+                        missionState={missionState} 
+                        onOpenMissions={openMissionsModal} 
+                        onOpenBattlePass={openBattlePassModal}
+                        picks={quest.picks}
+                        playerLevel={player.level}
+                    />
+                </div>
             </div>
         )}
       </main>
 
       {currentView === 'GAME' && (
-          <div className="fixed bottom-0 w-full z-50 border-t-2 shadow-[0_-10px_35px_rgba(0,0,0,0.85)] flex flex-col select-none"
-            style={isHighLimit ? { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTopColor:'#8b6200' } : { background:'#120024', borderTopColor:'#2a0d55' }}>
+          <div className="fixed bottom-0 w-full z-50 bg-[#120024] border-t-2 border-[#2a0d55] shadow-[0_-10px_35px_rgba(0,0,0,0.85)] flex flex-col select-none">
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
-              <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
-                style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
+              <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]">
                   {/* Missions Button */}
-                  {(() => {
-                      const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
-                      return (
-                          <div onClick={openMissionsModal} className="icon-btn shrink-0 flex flex-col items-center justify-end relative"
-                              style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', borderColor:'#8b6200' } : {}}>
-                              {missReady > 0 && (
-                                  <div className="absolute top-0 right-0 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>{missReady}</div>
-                              )}
-                              <i className="ti ti-target-arrow"></i>
-                              <span>MISSIONS</span>
-                          </div>
-                      );
-                  })()}
+                  <div 
+                      onClick={openMissionsModal}
+                      className="icon-btn shrink-0 flex flex-col items-center justify-end"
+                  >
+                      <i className="ti ti-target-arrow"></i>
+                      <span>MISSIONS</span>
+                  </div>
 
                   {/* Minus Bet */}
-                  <div
+                  <div 
                       onClick={() => {
                           if (betIndex > 0 && status === GameStatus.IDLE) {
                               setBetIndex(prev => prev - 1);
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
+                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || autoMaxBet ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       −
                   </div>
@@ -2117,19 +1679,18 @@ const currentState: SavedGameState = {
                   {/* Bet Display */}
                   <div className="bet-disp shrink-0 flex flex-col items-center justify-center">
                       <span className="bet-amt">{formatBet(availableBets[betIndex])}</span>
-                      <span className="bet-lbl" style={{ color: isHighLimit ? '#ffffff' : '#c79bff' }}>TOTAL BET</span>
+                      <span className="bet-lbl">TOTAL BET</span>
                   </div>
 
                   {/* Plus Bet */}
-                  <div
+                  <div 
                       onClick={() => {
                           if (betIndex < availableBets.length - 1 && status === GameStatus.IDLE) {
                               setBetIndex(prev => prev + 1);
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
+                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || autoMaxBet ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       +
                   </div>
@@ -2137,9 +1698,7 @@ const currentState: SavedGameState = {
                   {/* Win Panel */}
                   <div className="winpanel flex-1 flex flex-col items-center justify-center">
                       <span className="lets-spin">
-                          {freeSpinsRemaining > 0 ? (
-                              formatCommaNumber(freeSpinTotalWin)
-                          ) : status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
+                          {status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
                               'SPINNING...'
                           ) : winData?.payout && winData.payout > 0 ? (
                               formatWinNumber(winData.payout)
@@ -2153,14 +1712,15 @@ const currentState: SavedGameState = {
                   </div>
 
                   {/* Max Bet */}
-                  <div
+                  <div 
                       onClick={() => {
-                          if (status === GameStatus.IDLE && betIndex !== availableBets.length - 1) {
+                          if (status === GameStatus.IDLE) {
                               setBetIndex(availableBets.length - 1);
+                              setAutoMaxBet(prev => !prev);
                               audioService.playClick();
                           }
                       }}
-                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE || betIndex === availableBets.length - 1 || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -2171,15 +1731,12 @@ const currentState: SavedGameState = {
                   </div>
 
                   {/* Spin Button */}
-                  {(() => {
-                      const isStop = player.autoSpin || status === GameStatus.SPINNING || status === GameStatus.STOPPING;
-                      return (
-                  <div
+                  <div 
                       onMouseDown={handleSpinMouseDown}
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat green spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -2192,89 +1749,72 @@ const currentState: SavedGameState = {
                           </div>
                       </div>
                   </div>
-                  );
-                  })()}
               </div>
           </div>
       )}
 
-    <ShopModal isOpen={activeModal === 'SHOP'} onClose={() => {
-        setActiveModal('NONE');
-        if (cardModalReturnTab) {
-            const tab = cardModalReturnTab;
-            setCardModalReturnTab(null);
-            setTimeout(() => {
-                setCardInitialTab(tab);
-                setActiveModal('COLLECTION');
-            }, 50);
-        }
-    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} />
+    <ShopModal isOpen={activeModal === 'SHOP'} onClose={() => setActiveModal('NONE')} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={player.freeStashClaimed} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} />
       
       <CardCollectionModal
           isOpen={activeModal === 'COLLECTION'}
           onClose={() => setActiveModal('NONE')}
-          onOpenShop={openShopFromCards}
-          initialTab={cardInitialTab}
+          onOpenShop={openShop}
           decks={decks}
-          onClaimDeckReward={handleClaimDeckReward} 
+          onClaimDeckReward={handleClaimDeckReward}
           onBuyPack={handleBuyPack}
           onBuyCredits={handleBuyPackCredits}
           onBuyCreditsWithTokens={handleBuyPackCreditsWithTokens}
-          diamonds={player.diamonds} 
-          playerLevel={player.level} 
-          tokens={player.tokens} 
+          diamonds={player.diamonds}
+          playerLevel={player.level}
+          tokens={player.tokens}
           packCredits={player.packCredits}
+          premiumPackCredits={player.premiumPackCredits ?? 0}
+          onBuyPremiumCredits={handleBuyPremiumPackCredits}
           grandPrize={getGrandAlbumReward(player.level)}
           getDeckReward={(id) => getDeckReward(player.level)}
           balance={player.balance}
       />
       
-      <MiniGameModal
-        isOpen={activeModal === 'MINIGAME'}
-        diceCredits={quest.diceCredits}
-        wildCredits={quest.wildCredits}
+      <MiniGameModal 
+        isOpen={activeModal === 'MINIGAME'} 
+        credits={quest.credits} 
+        picks={quest.picks} 
         wildStage={quest.wildStage}
         diceStage={quest.diceStage}
         dicePosition={quest.dicePosition}
         activeGame={quest.activeGame}
-        savedGrid={quest.wildGrid}
-        balance={player.balance}
-        diamonds={player.diamonds}
+        savedGrid={quest.wildGrid} // Pass saved grid
         onSelectMode={handleQuestModeSelect}
-        onBuyPicks={handleBuyPicks}
-        onBuyQuestBundle={handleBuyQuestBundle}
-        onPickTile={handleMiniGamePick}
+        onBuyPicks={handleBuyPicks} 
+        onPickTile={handleMiniGamePick} 
         onBatchPick={handleBatchPick} 
         onStageComplete={(bonusCoins, bonusDiamonds) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds)} 
         onGridUpdate={handleWildGridUpdate} // Update grid
         onDiceRoll={handleDiceRoll}
-        onClose={() => setActiveModal('NONE')}
+        onClose={() => setActiveModal('NONE')} 
         playerLevel={player.level}
-        maxBet={MAX_BET_BY_LEVEL(player.level)}
       />
       
-      <MissionPassModal
-          isOpen={activeModal === 'MISSIONS'}
-          initialView={missionInitialView}
-          onClose={() => setActiveModal('NONE')}
-          missionState={missionState}
-          diamonds={player.diamonds}
-          balance={player.balance}
-          onClaimReward={handleClaimPassReward}
-          onFinishMission={handleFinishMission}
-          onClaimMissionReward={handleClaimMissionReward}
-          onBuyPass={handleBuyPass}
-          onBuyLevel={handleBuyPassLevel}
-          onClaimAll={handleClaimAllMissions}
+      <MissionPassModal 
+          isOpen={activeModal === 'MISSIONS'} 
+          initialView={missionInitialView} 
+          onClose={() => setActiveModal('NONE')} 
+          missionState={missionState} 
+          diamonds={player.diamonds} 
+          onClaimReward={handleClaimPassReward} 
+          onFinishMission={handleFinishMission} 
+          onClaimMissionReward={handleClaimMissionReward} 
+          onBuyPass={handleBuyPass} 
+          onBuyLevel={handleBuyPassLevel} 
+          onClaimAll={handleClaimAllMissions} 
           playerLevel={player.level}
-          maxBet={MAX_BET_BY_LEVEL(player.level)}
       />
       
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus} />
       
-      <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} />
+      <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} onClaim={handleClaimLoginBonus} />
       
-    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} />
+    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} balance={player.balance} />
 
       <FeatureUnlockModal 
         isOpen={activeModal === 'FEATURE_UNLOCK'} 
@@ -2288,125 +1828,17 @@ const currentState: SavedGameState = {
         onClose={() => setActiveModal('NONE')} 
       />
 
-      <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
-      <StageCompleteModal
-          isOpen={stageCompletePopup !== null}
-          gameType={stageCompletePopup?.gameType || 'WILD'}
-          stage={stageCompletePopup?.stage || 1}
-          coins={stageCompletePopup?.coins || 0}
-          diamonds={stageCompletePopup?.diamonds || 0}
-          onNext={() => setStageCompletePopup(null)}
-      />
       {showWinPopup && <WinPopup amount={winData?.payout || 0} type={winData?.winType || ''} onComplete={handleWinPopupComplete} />}
       
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />
       
       {showFreeSpinsPopup && <FreeSpinsWonPopup isOpen={showFreeSpinsPopup} count={freeSpinsWon} onComplete={handleStartFreeSpins} />}
       
-      {showLevelUp && currentView === 'GAME' && <LevelUpToast level={player.level} reward={levelUpReward} maxBetIncreased={maxBetIncreased} newMaxBet={MAX_BET_BY_LEVEL(player.level)} onClose={() => setShowLevelUp(false)} />}
-
-      {showPackToast && currentView === 'GAME' && (
-          <div className="fixed top-[40px] right-2 z-[200] animate-pop-in pointer-events-none"
-              style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
-              <div className="flex items-center gap-2">
-                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>📦</span>
-                  <div>
-                      <div className="font-black text-white text-xs uppercase tracking-widest">+1 Card Pack!</div>
-                      <div className="text-purple-300 text-[9px] font-bold">Added to your stash</div>
-                  </div>
-              </div>
-          </div>
-      )}
+      {showLevelUp && <LevelUpToast level={player.level} reward={levelUpReward} maxBetIncreased={maxBetIncreased} newMaxBet={MAX_BET_BY_LEVEL(player.level)} onClose={() => setShowLevelUp(false)} />}
       
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
       
       <BankruptcyModal isOpen={showBankruptcy} onCollect={() => { setPlayer(p => ({ ...p, balance: p.balance + 100000 })); setShowBankruptcy(false); setCelebrationMsg("+100,000 Coins"); audioService.playWinBig(); }} />
-
-      <SettingsModal
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          isMuted={isMuted}
-          onToggleMute={() => setIsMuted(audioService.toggleMute())}
-          fastSpin={fastSpin}
-          onToggleFastSpin={() => setFastSpin(f => !f)}
-          onRedeem={(code) => {
-              if (code === 'dev777') {
-                  setPlayer(p => ({ ...p, level: 50, balance: p.balance + 1_000_000_000_000 }));
-                  setCelebrationMsg('⚡ Level Rush! +1T Coins · Level 50');
-              } else if (code === 'dev999') {
-                  setPlayer(p => ({ ...p, balance: p.balance + 100_000_000_000_000 }));
-                  setCelebrationMsg('💰 Coin Flood! +100T Coins');
-              } else if (code === 'dev1') {
-                  const now = Date.now();
-                  setPlayer(p => ({ ...p, diamonds: p.diamonds + 50_000, isVip: true, xpMultiplier: 3, xpBoostEndTime: now + 24 * 60 * 60 * 1000 }));
-                  setMissionState(ms => ({
-                      ...ms,
-                      isPremium: true,
-                      premiumExpiry: now + 30 * 24 * 60 * 60 * 1000,
-                      passBoostMultiplier: 3,
-                      passBoostEndTime: now + 24 * 60 * 60 * 1000,
-                  }));
-                  setCelebrationMsg('👑 Full Premium Unlocked!');
-              } else if (code === 'dev111') {
-                  setPlayer(p => ({
-                      ...p,
-                      balance: p.balance + 10_000_000_000,
-                      diamonds: p.diamonds + 2_000,
-                  }));
-                  setCelebrationMsg('💰 +10B Coins · +2,000 Gems');
-              } else if (code === 'dev222') {
-                  const now = Date.now();
-                  setPlayer(p => ({
-                      ...p,
-                      isVip: true,
-                      xpMultiplier: 5,
-                      xpBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
-                  }));
-                  setMissionState(ms => ({
-                      ...ms,
-                      isPremium: true,
-                      premiumExpiry: now + 365 * 24 * 60 * 60 * 1000,
-                      passBoostMultiplier: 5,
-                      passBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
-                  }));
-                  setCelebrationMsg('👑 GOD MODE! All Premium · Max Boosts');
-              }
-              audioService.playWinBig();
-          }}
-      />
-
-      <VipLoungeModal
-          isOpen={showVipLounge}
-          onClose={() => setShowVipLounge(false)}
-          isVip={!!player.isVip}
-          onJoinVip={handleJoinVip}
-      />
-
-      <PremiumModal
-          isOpen={showPremiumModal}
-          onClose={() => setShowPremiumModal(false)}
-          isVip={!!player.isVip}
-          isPremium={missionState.isPremium}
-          maxBet={MAX_BET_BY_LEVEL(player.level)}
-          onBuyVip={() => {
-              setPlayer(p => ({ ...p, isVip: true }));
-              setShowPremiumModal(false);
-          }}
-          onBuyPremium={() => {
-              setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 }));
-              setShowPremiumModal(false);
-          }}
-      />
-
-      <ProfileModal
-          isOpen={showProfile}
-          onClose={() => setShowProfile(false)}
-          player={player}
-          isPremium={missionState.isPremium}
-          passBoostMultiplier={missionState.passBoostMultiplier}
-          passBoostEndTime={missionState.passBoostEndTime}
-          recentGames={GAMES_CONFIG.filter(g => (player.stats?.recentSlots || []).includes(g.id)).sort((a, b) => (player.stats?.recentSlots || []).indexOf(a.id) - (player.stats?.recentSlots || []).indexOf(b.id))}
-      />
 
         </div>
       </div>

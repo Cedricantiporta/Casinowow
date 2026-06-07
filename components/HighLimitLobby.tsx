@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { GAMES_CONFIG, formatK } from '../constants';
+import { GAMES_CONFIG, formatNumber } from '../constants';
 import { GameConfig } from '../types';
-import { jackpotService } from '../services/jackpotService';
 
 const VIP_SLOT_IDS = ['neon-vegas', 'dragon-fortune', 'cosmic-cash', 'samurai-honor', 'pharaoh-tomb', 'piggy-riches'];
 
@@ -16,6 +15,9 @@ const FONT_MAP: Record<string, string> = {
     CANDY: 'font-luckiest', PIRATE: 'font-luckiest', JUNGLE: 'font-luckiest', WESTERN: 'font-luckiest', PIGGY: 'font-luckiest',
 };
 
+// Simple formatK using formatNumber
+const formatK = (n: number) => formatNumber(n);
+
 interface HighLimitLobbyProps {
     onBack: () => void;
     onSelectGame: (game: GameConfig, isHighLimit: boolean) => void;
@@ -24,14 +26,15 @@ interface HighLimitLobbyProps {
 
 export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelectGame, playerLevel }) => {
     const vipGames = GAMES_CONFIG.filter(g => VIP_SLOT_IDS.includes(g.id));
-    const [jackpotTotals, setJackpotTotals] = useState(() =>
-        GAMES_CONFIG.map((_, idx) => jackpotService.getSlotTotal(idx))
+    const [jackpotTotals, setJackpotTotals] = useState<number[]>(() =>
+        GAMES_CONFIG.map((_, idx) => 100000 + idx * 37500 + Math.floor(Math.random() * 50000))
     );
 
     useEffect(() => {
-        return jackpotService.subscribe(() => {
-            setJackpotTotals(GAMES_CONFIG.map((_, idx) => jackpotService.getSlotTotal(idx)));
-        });
+        const interval = setInterval(() => {
+            setJackpotTotals(prev => prev.map(v => v + Math.floor(Math.random() * 1000)));
+        }, 1500);
+        return () => clearInterval(interval);
     }, []);
 
     return (
@@ -82,6 +85,19 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`} />
                             {/* Gold shimmer */}
                             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-yellow-400/10 to-yellow-300/5 pointer-events-none" />
+
+                            {/* Jackpot */}
+                            <div className="absolute top-2 left-0 right-0 flex justify-center z-20">
+                                <span style={{ fontSize: '12px', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }}>
+                                    {formatK(jackpotTotals[globalIdx] ?? 0)}
+                                </span>
+                            </div>
+
+                            {/* VIP badge */}
+                            <div className="absolute top-2 right-2 z-20">
+                                <span style={{ fontSize: '9px', background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00', padding: '2px 5px', borderRadius: '6px', fontWeight: 900, letterSpacing: '0.05em' }}>VIP</span>
+                            </div>
+
                             {/* Bottom dark gradient for text */}
                             <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Deck, Card, CardRarity } from '../types';
-import { formatNumber, PACK_COSTS, formatCommaNumber, formatK } from '../constants';
+import { formatNumber, PACK_COSTS, formatCommaNumber } from '../constants';
 import { audioService } from '../services/audioService';
 
 interface CardCollectionModalProps {
@@ -20,6 +20,8 @@ interface CardCollectionModalProps {
     balance: number;
     grandPrize?: number;
     getDeckReward?: (deckId: string) => number;
+    premiumPackCredits?: number;
+    onBuyPremiumCredits?: (gemCost: number, credits: number) => void;
 }
 
 export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
@@ -38,11 +40,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     packCredits,
     balance,
     grandPrize = 0,
-    getDeckReward = (_deckId: string) => 0
+    getDeckReward = (_deckId: string) => 0,
+    premiumPackCredits = 0,
+    onBuyPremiumCredits
 }) => {
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'ALBUM' | 'PACKS'>(initialTab || 'ALBUM');
-    const [showPackBuyPopup, setShowPackBuyPopup] = useState(false);
+    const [showPackBuyPopup, setShowPackBuyPopup] = useState<'standard' | 'premium' | null>(null);
     const [showExchangePanel, setShowExchangePanel] = useState(false);
     const [selectedDuplicateIds, setSelectedDuplicateIds] = useState<Set<string>>(new Set());
     const albumScrollRef = React.useRef<HTMLDivElement>(null);
@@ -148,14 +152,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     };
 
     const packOptions = [
-        { id: 'super', name: 'Standard', info: PACK_COSTS.SUPER, color: 'from-blue-700 to-blue-900', icon: '💼' },
-        { id: 'ultra', name: 'Premium', info: PACK_COSTS.ULTRA, color: 'from-yellow-600 to-yellow-800', icon: '👑' },
-    ];
-
-    const tokenExchanges = [
-        { credits: 1, cost: 50 },
-        { credits: 10, cost: 500 },
-        { credits: 100, cost: 5000 }
+        { id: 'super', name: 'Standard', credits: packCredits, emoji: '🃏', color: 'from-blue-700 to-blue-900', gemRate: 4.5 },
+        { id: 'ultra', name: 'Premium',  credits: premiumPackCredits, emoji: '🎴', color: 'from-yellow-600 to-yellow-800', gemRate: 18 },
     ];
 
     if (!isOpen) return null;
@@ -342,7 +340,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <div className="gem"></div>
                             <span className="num">{formatNumber(diamonds)}</span>
                         </div>
-                        <button onClick={() => setShowPackBuyPopup(true)}
+                        <button onClick={() => setShowPackBuyPopup('standard')}
                             className="currency-pill flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
                             style={{ cursor: 'pointer' }}>
                             <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>📦</span>
@@ -366,7 +364,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             {/* Grand reward — no container, no emoji, just text */}
                             <div className="shrink-0 text-center leading-tight">
                                 <div className="text-yellow-400 text-[9px] font-black uppercase tracking-widest">Grand Reward</div>
-                                <div className="text-white font-black text-xl font-mono">{formatK(grandPrize)}</div>
+                                <div className="text-white font-black text-xl font-mono">{formatNumber(grandPrize)}</div>
                             </div>
 
                             {/* Deck scroll — swipe/wheel only */}
@@ -395,49 +393,51 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         </div>
                     )}
 
-                    {/* PACKS view — card-shaped, centered */}
+                    {/* PACKS view */}
                     {!selectedDeckId && activeTab === 'PACKS' && (
-                        <div className="flex items-center h-full w-full">
-                            {/* Pack cards — centered */}
-                            <div className="flex-1 flex items-center justify-center gap-4">
-                                {packOptions.map(pack => {
-                                    const singleCost = pack.info.creditCost;
-                                    const bulkCost = Math.ceil((singleCost * 10) * 0.9);
-                                    const canDrawOne = packCredits >= singleCost;
-                                    const canDrawTen = packCredits >= bulkCost;
-                                    return (
-                                        <div key={pack.id} className={`rounded-2xl overflow-hidden shadow-xl flex flex-col bg-gradient-to-b ${pack.color} text-center`}
-                                            style={{ width: 150, height: 240, flexShrink: 0 }}>
-                                            {/* Card art */}
-                                            <div className="flex-1 flex flex-col items-center justify-center bg-black/20 gap-1">
-                                                <div className="text-6xl drop-shadow-md">{pack.icon}</div>
-                                                <h3 className="text-sm font-black font-display text-white uppercase drop-shadow leading-none mt-1">{pack.name}</h3>
-                                            </div>
-                                            {/* Buttons */}
-                                            <div className="px-2 pb-2.5 pt-1 flex flex-col gap-1.5 bg-black/40">
-                                                <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
-                                                    className={`btn-3d w-full py-2 rounded-lg font-black text-white uppercase text-xs ${canDrawOne ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-700'}`}>
-                                                    📦 Draw
-                                                </button>
-                                                <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
-                                                    className={`btn-3d w-full py-2 rounded-lg font-black text-white uppercase text-xs relative overflow-hidden ${canDrawTen ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:brightness-110' : 'bg-gray-700'}`}>
-                                                    10×
-                                                    {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</div>}
-                                                </button>
-                                            </div>
+                        <div className="flex items-center h-full w-full gap-4">
+                            {/* Two pack columns */}
+                            {packOptions.map(pack => {
+                                const singleCost = 1; // always 1 credit per draw
+                                const bulkCost = 9;   // 10 draws for 9 credits (10% off)
+                                const canDrawOne = pack.credits >= singleCost;
+                                const canDrawTen = pack.credits >= bulkCost;
+                                return (
+                                    <div key={pack.id} className={`flex flex-col items-center gap-2 flex-1`}>
+                                        {/* Pack art */}
+                                        <div className={`rounded-2xl overflow-hidden shadow-xl bg-gradient-to-b ${pack.color} flex flex-col items-center justify-center py-4 gap-1 w-full`}
+                                            style={{ minHeight: 110 }}>
+                                            <span style={{ fontSize: '3rem', lineHeight: 1 }}>{pack.emoji}</span>
+                                            <div className="font-black text-white text-xs uppercase tracking-widest">{pack.name}</div>
+                                            <div className="font-black text-white/60 text-[9px]">{pack.credits} packs</div>
                                         </div>
-                                    );
-                                })}
-                            </div>
+                                        {/* Draw 1x button */}
+                                        <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
+                                            className="btn-3d w-full py-2 rounded-xl font-black text-white uppercase text-xs"
+                                            style={{ background: canDrawOne ? 'linear-gradient(180deg,#22c55e,#15803d)' : '#374151', boxShadow: canDrawOne ? '0 3px 0 #14532d' : 'none' }}>
+                                            DRAW 1×
+                                        </button>
+                                        <div className="text-white/60 font-black text-xs -mt-1">1 {pack.emoji}</div>
+                                        {/* Draw 10x button */}
+                                        <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
+                                            className="btn-3d w-full py-2 rounded-xl font-black text-white uppercase text-xs relative overflow-hidden"
+                                            style={{ background: canDrawTen ? 'linear-gradient(180deg,#f59e0b,#b45309)' : '#374151', boxShadow: canDrawTen ? '0 3px 0 #78350f' : 'none' }}>
+                                            DRAW 10×
+                                            {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</div>}
+                                        </button>
+                                        <div className="text-white/60 font-black text-xs -mt-1">9 {pack.emoji}</div>
+                                        {/* Buy button */}
+                                        <button onClick={() => setShowPackBuyPopup(pack.id === 'super' ? 'standard' : 'premium')}
+                                            className="btn-3d w-full py-2 rounded-xl font-black text-[10px] text-white uppercase"
+                                            style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
+                                            💎 Buy {pack.name}
+                                        </button>
+                                    </div>
+                                );
+                            })}
 
-                            {/* Side panel — Buy Packs + Exchange Duplicates */}
-                            <div className="flex flex-col gap-2 shrink-0 ml-auto" style={{ width: 110 }}>
-                                <button onClick={() => setShowPackBuyPopup(true)}
-                                    className="btn-3d w-full py-2.5 rounded-xl font-black text-[10px] text-white uppercase flex flex-col items-center gap-0.5"
-                                    style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #14532d' }}>
-                                    <span style={{ fontSize: '1.2rem' }}>📦</span>
-                                    <span>Buy Packs</span>
-                                </button>
+                            {/* Side panel — Exchange Duplicates */}
+                            <div className="flex flex-col gap-2 shrink-0" style={{ width: 90 }}>
                                 <button onClick={() => setShowExchangePanel(true)}
                                     className="btn-3d w-full py-2.5 rounded-xl font-black text-[10px] text-white uppercase flex flex-col items-center gap-0.5"
                                     style={{ background: 'linear-gradient(180deg,#f59e0b,#b45309)', boxShadow: '0 3px 0 #78350f' }}>
@@ -514,16 +514,16 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
             {/* Card Pack Buy Popup */}
             {showPackBuyPopup && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-                    onClick={() => setShowPackBuyPopup(false)}>
-                    <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ width: 260, background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}
+                    onClick={() => setShowPackBuyPopup(null)}>
+                    <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ width: 300, background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}
                         onClick={e => e.stopPropagation()}>
-                        {/* Header: card packs count */}
-                        <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <span className="text-2xl">📦</span>
-                                <div>
-                                    <div className="text-white font-black text-base leading-none">{packCredits} Card Packs</div>
-                                    <div className="text-purple-300/60 text-[10px]">Buy more with gems</div>
+                        <div className="px-4 pt-4 pb-3 flex items-center justify-between">
+                            <div>
+                                <div className="text-white font-black text-base leading-none">
+                                    {showPackBuyPopup === 'standard' ? '🃏 Buy Standard Packs' : '🎴 Buy Premium Packs'}
+                                </div>
+                                <div className="text-purple-300/60 text-[10px] mt-0.5">
+                                    {showPackBuyPopup === 'premium' ? 'Shop-only · 4× value' : 'Obtainable via spinning'}
                                 </div>
                             </div>
                             <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full">
@@ -531,25 +531,34 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
                             </div>
                         </div>
-                        {/* Options */}
-                        <div className="px-4 pb-4 flex flex-col gap-2 mt-1">
-                            {[
-                                { packs: 10,  gemCost: 45  },
-                                { packs: 50,  gemCost: 200 },
-                                { packs: 100, gemCost: 350 },
-                            ].map(opt => {
+                        <div className="px-4 pb-4 flex flex-col gap-2">
+                            {(showPackBuyPopup === 'standard'
+                                ? [
+                                    { label: '10× 🃏',  packs: 10, gemCost: 45,  isBundle: false, bonusGems: 0, bonusCoins: 0 },
+                                    { label: '50× 🃏',  packs: 50, gemCost: 200, isBundle: false, bonusGems: 0, bonusCoins: 0 },
+                                    { label: '🎁 Starter Bundle', packs: 15, gemCost: 80,  isBundle: true, bonusGems: 30,  bonusCoins: 0 },
+                                    { label: '🎁 Pro Bundle',     packs: 60, gemCost: 280, isBundle: true, bonusGems: 100, bonusCoins: 0 },
+                                ]
+                                : [
+                                    { label: '10× 🎴',  packs: 10, gemCost: 180,  isBundle: false, bonusGems: 0, bonusCoins: 0 },
+                                    { label: '50× 🎴',  packs: 50, gemCost: 800,  isBundle: false, bonusGems: 0, bonusCoins: 0 },
+                                    { label: '🎁 Premium Starter', packs: 15, gemCost: 320,  isBundle: true, bonusGems: 50,  bonusCoins: 0 },
+                                    { label: '🎁 Premium Pro',     packs: 60, gemCost: 1100, isBundle: true, bonusGems: 200, bonusCoins: 0 },
+                                ]
+                            ).map(opt => {
                                 const canAfford = diamonds >= opt.gemCost;
+                                const buyFn = showPackBuyPopup === 'standard' ? onBuyCredits : onBuyPremiumCredits;
                                 return (
-                                    <button key={opt.packs}
-                                        onClick={() => { if (!canAfford) return; onBuyCredits(opt.gemCost, opt.packs); setShowPackBuyPopup(false); }}
+                                    <button key={opt.label}
+                                        onClick={() => { if (!canAfford || !buyFn) return; buyFn(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
                                         disabled={!canAfford}
-                                        className="btn-3d w-full py-3 rounded-xl flex items-center justify-between px-3"
+                                        className="btn-3d w-full py-2.5 rounded-xl flex items-center justify-between px-3"
                                         style={{
-                                            background: canAfford ? 'linear-gradient(180deg,#7c3aed,#4c1d95)' : 'rgba(0,0,0,0.4)',
-                                            boxShadow: canAfford ? '0 3px 0 #2e1065' : 'none',
+                                            background: canAfford ? (opt.isBundle ? 'linear-gradient(180deg,#f59e0b,#b45309)' : 'linear-gradient(180deg,#7c3aed,#4c1d95)') : 'rgba(0,0,0,0.4)',
+                                            boxShadow: canAfford ? (opt.isBundle ? '0 3px 0 #78350f' : '0 3px 0 #2e1065') : 'none',
                                             opacity: canAfford ? 1 : 0.5,
                                         }}>
-                                        <span className="text-white font-black text-sm">📦 ×{opt.packs}</span>
+                                        <span className="text-white font-black text-sm">{opt.label}</span>
                                         <span className="text-purple-200 font-black text-sm">💎 {opt.gemCost}</span>
                                     </button>
                                 );
