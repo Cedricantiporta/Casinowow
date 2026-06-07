@@ -14,28 +14,18 @@ const TIER_STYLES: Record<string, { border: string; textColor: string; shadow: s
     GRAND: { border: '#fbbf24', textColor: '#fde68a', shadow: 'rgba(251,191,36,0.6)' },
 };
 
-const ARCHIVO_3D = (color: string, shadow: string): React.CSSProperties => ({
-    fontFamily: "'Archivo Black', sans-serif",
-    color,
-    textShadow: `2px 2px 0 #000, 4px 4px 0 rgba(0,0,0,0.5), 0 0 20px ${shadow}`,
-    WebkitTextStroke: '1px rgba(0,0,0,0.6)',
-    paintOrder: 'stroke fill',
-});
-
 export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, onClose }) => {
-    const [canClose, setCanClose] = useState(false);
     const [displayAmount, setDisplayAmount] = useState(0);
+    const [secondsLeft, setSecondsLeft] = useState(3);
 
     useEffect(() => {
         if (!tier) return;
-        setCanClose(false);
         setDisplayAmount(0);
-        const isMini = tier.name === 'MINI';
-        // MINI auto-closes at 3s; others lock for 3s then show collect button
-        const lockTimer = setTimeout(() => {
-            if (isMini) onClose();
-            else setCanClose(true);
-        }, 3000);
+        setSecondsLeft(3);
+
+        const autoClose = setTimeout(onClose, 3000);
+        const countdown = setInterval(() => setSecondsLeft(s => Math.max(0, s - 1)), 1000);
+
         const startTime = Date.now();
         const duration = 2000;
         const interval = setInterval(() => {
@@ -44,7 +34,8 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
             const p = 1 - Math.pow(1 - elapsed / duration, 3);
             setDisplayAmount(Math.floor(tier.amount * p));
         }, 16);
-        return () => { clearTimeout(lockTimer); clearInterval(interval); };
+
+        return () => { clearTimeout(autoClose); clearInterval(countdown); clearInterval(interval); };
     }, [tier, onClose]);
 
     if (!tier) return null;
@@ -52,31 +43,31 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
     const style = TIER_STYLES[tier.name] || TIER_STYLES.GRAND;
 
     return (
-        <div className="fixed inset-0 z-[400] flex flex-col items-center justify-center select-none"
-            style={{ background: 'linear-gradient(160deg,#050505,#0d0d18,#050505)' }}
-            onClick={canClose ? onClose : undefined}>
+        <div className="fixed inset-0 z-[400] flex items-center justify-center select-none"
+            style={{ background: 'rgba(0,0,0,0.75)' }}
+            onClick={onClose}>
+            <div className="animate-pop-in flex flex-col items-center gap-3 p-6 rounded-3xl"
+                style={{ background: 'linear-gradient(160deg,#0a0018,#1a0035)', border: `3px solid ${style.border}`, boxShadow: `0 0 40px ${style.shadow}, 0 16px 48px rgba(0,0,0,0.9)`, minWidth: 260 }}
+                onClick={e => e.stopPropagation()}>
 
-            <div className="relative z-10 flex flex-col items-center gap-4 p-6">
                 {/* Tier name */}
-                <div style={{ fontSize: 'clamp(40px,10vw,80px)', lineHeight: 1, ...ARCHIVO_3D(style.textColor, style.shadow) }}>
+                <div style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor, textShadow: `0 0 20px ${style.shadow}` }}>
                     {tier.name} JACKPOT!
                 </div>
 
-                {/* Amount box */}
-                <div className="flex items-center justify-center px-8 py-3 rounded-2xl"
-                    style={{ background: '#000', border: `4px solid ${style.border}`, boxShadow: `0 0 24px ${style.shadow}, inset 0 0 12px rgba(0,0,0,0.8)` }}>
-                    <span style={{ fontSize: 'clamp(28px,7vw,56px)', lineHeight: 1, ...ARCHIVO_3D(style.textColor, style.shadow) }}>
+                {/* Amount */}
+                <div className="flex items-center justify-center px-6 py-2.5 rounded-xl"
+                    style={{ background: '#000', border: `2px solid ${style.border}`, boxShadow: `inset 0 0 12px rgba(0,0,0,0.8)` }}>
+                    <span style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor }}>
                         +{formatK(displayAmount)}
                     </span>
                 </div>
 
-                {canClose && (
-                    <button onClick={(e) => { e.stopPropagation(); onClose(); }}
-                        className="mt-2 px-10 py-3 rounded-2xl uppercase text-white btn-3d animate-pop-in"
-                        style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: '1.1rem', background: `linear-gradient(180deg,${style.border},rgba(0,0,0,0.6))`, boxShadow: `0 4px 0 rgba(0,0,0,0.7), 0 0 20px ${style.shadow}`, border: `1.5px solid ${style.textColor}` }}>
-                        COLLECT
-                    </button>
-                )}
+                <button onClick={onClose}
+                    className="btn-3d px-10 py-2.5 rounded-2xl uppercase text-white font-black text-sm tracking-widest"
+                    style={{ background: `linear-gradient(180deg,${style.border},rgba(0,0,0,0.6))`, boxShadow: `0 4px 0 rgba(0,0,0,0.7), 0 0 16px ${style.shadow}`, border: `1.5px solid ${style.textColor}` }}>
+                    COLLECT ({secondsLeft})
+                </button>
             </div>
         </div>
     );

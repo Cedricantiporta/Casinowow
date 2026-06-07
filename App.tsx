@@ -150,6 +150,11 @@ const App: React.FC = () => {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [levelUpReward, setLevelUpReward] = useState(0);
   const [maxBetIncreased, setMaxBetIncreased] = useState(false);
+  type ActiveToast = { type: 'LEVEL_UP'; level: number; reward: number; maxBetIncreased: boolean; newMaxBet: number } | { type: 'PACK' } | null;
+  const [activeToast, setActiveToast] = useState<ActiveToast>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
+  const [jackpotWin, setJackpotWin] = useState<{ tier: string; amount: number } | null>(null);
   const [mobileScale, setMobileScale] = useState(1);
 
   useEffect(() => {
@@ -202,6 +207,12 @@ const App: React.FC = () => {
         setTimeout(() => setActiveModal('LOGIN_BONUS'), 500);
     }
   }, []);
+
+  const showToast = (toast: NonNullable<ActiveToast>) => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+      setActiveToast(toast);
+      toastTimerRef.current = setTimeout(() => setActiveToast(null), 1000);
+  };
 
   const openModal = (modal: 'NONE' | 'SHOP' | 'COLLECTION' | 'MINIGAME' | 'MISSIONS' | 'TIME_BONUS' | 'LOGIN_BONUS' | 'PIGGY' | 'FEATURE_UNLOCK') => {
       const currentLevel = playerRef.current.level;
@@ -291,7 +302,10 @@ const App: React.FC = () => {
           setCelebrationMsg("VIP Limit Unlocks at Level 40");
           return;
       }
-      setIsHighLimit(prev => !prev);
+      setIsHighLimit(prev => {
+          if (!prev) setShowPurchaseModal('VIP');
+          return !prev;
+      });
       audioService.playClick();
   };
 
@@ -487,8 +501,8 @@ const App: React.FC = () => {
           setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value }));
           msg = `+${reward.value} Gems`;
       } else if (reward.type === 'XP_BOOST') {
-          setPlayer(p => ({ ...p, xpMultiplier: reward.value, xpBoostEndTime: Date.now() + 1800000 })); 
-          msg = `${reward.value}x XP Boost`;
+          setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 }));
+          msg = `2× XP Boost`;
       } else if (reward.type === 'CREDIT_BACK') {
           setQuest(q => ({ ...q, credits: q.credits + reward.value }));
           msg = `+${reward.value} Credits`;
@@ -520,7 +534,7 @@ const App: React.FC = () => {
           else if (r.type === 'CREDIT_BACK') totalCredits += r.value;
           else if (r.type === 'PICKS') totalPicks += r.value;
           else if (r.type === 'XP_BOOST') {
-              setPlayer(p => ({ ...p, xpMultiplier: r.value, xpBoostEndTime: Date.now() + 1800000 }));
+              setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 }));
               xpBoostApplied = true;
           }
       });
@@ -552,16 +566,16 @@ const App: React.FC = () => {
   };
 
   const handleBuyPass = () => {
-      setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 })); 
+      setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 }));
       setPlayer(p => ({ ...p, diamonds: p.diamonds + 100, balance: p.balance + 1000000 }));
-      addPassXp(2000); 
+      addPassXp(2000);
       for(let i=0; i<20; i++) {
           setMissionState(prev => {
               const nextLevel = Math.min(50, prev.passLevel + 1);
               return { ...prev, passLevel: nextLevel };
           });
       }
-      setCelebrationMsg("Premium Pass Unlocked! +20 Levels");
+      setShowPurchaseModal('PASS');
       audioService.playWinBig();
   };
 
@@ -583,17 +597,6 @@ const App: React.FC = () => {
           audioService.playStoneBreak();
       }
   }
-
-  const handleBuyPremiumPackCredits = (cost: number, credits: number) => {
-      if (player.diamonds >= cost) {
-          setPlayer(p => ({ ...p, diamonds: p.diamonds - cost, premiumPackCredits: (p.premiumPackCredits ?? 0) + credits }));
-          setCelebrationMsg(`+${credits} Premium Pack Credits`);
-          audioService.playWinBig();
-      } else {
-          setCelebrationMsg("Not Enough Gems!");
-          audioService.playStoneBreak();
-      }
-  };
 
   const handleBuyPackCreditsWithTokens = (amount: number, cost: number) => {
       if (player.tokens >= cost) {
@@ -1143,6 +1146,14 @@ const App: React.FC = () => {
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
     }
+
+    // Per-spin pack drop (bet-scaled: max bet = 20%, drops off 2% per step)
+    const maxBetIdx = availableBets.length - 1;
+    const packDropChance = Math.max(0.01, 0.20 - (maxBetIdx - betIndex) * 0.02);
+    if (Math.random() < packDropChance) {
+        setPlayer(p => ({ ...p, packCredits: p.packCredits + 1 }));
+        showToast({ type: 'PACK' });
+    }
   };
 
   const addXp = (amount: number) => {
@@ -1163,9 +1174,7 @@ const App: React.FC = () => {
               const oldMax = MAX_BET_BY_LEVEL(prev.level);
               const newMax = MAX_BET_BY_LEVEL(newLevel);
               if (toastCountRef.current < 10) {
-                  setLevelUpReward(reward);
-                  setShowLevelUp(true);
-                  setMaxBetIncreased(newMax > oldMax);
+                  showToast({ type: 'LEVEL_UP', level: newLevel, reward, maxBetIncreased: newMax > oldMax, newMaxBet: newMax });
                   toastCountRef.current += 1;
               }
               updateMissions(MissionType.LEVEL_UP, 1);
@@ -1317,7 +1326,7 @@ const App: React.FC = () => {
               setCelebrationMsg(`+${formatCommaNumber(reward.value)} Coins`); 
           }
           else if (reward.type === 'DIAMONDS') { setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value })); setCelebrationMsg(`+${reward.value} Gems`); }
-          else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Date.now() + 1800000 })); setCelebrationMsg(`XP Boost!`); }
+          else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 })); setCelebrationMsg(`2× XP Boost!`); }
           else if (reward.type === 'PICKS') { setQuest(q => ({ ...q, picks: q.picks + reward.value })); setCelebrationMsg(`+${reward.value} Picks`); }
       }
   };
@@ -1340,7 +1349,7 @@ const App: React.FC = () => {
       if (totalCoins > 0) setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
       if (totalGems > 0) setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems }));
       if (totalPicksFound > 0) setQuest(q => ({ ...q, picks: q.picks + totalPicksFound }));
-      if (xpBoostFound) setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Date.now() + 1800000 }));
+      if (xpBoostFound) setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 }));
 
       const parts = [];
       if (totalCoins > 0) parts.push(`${formatCommaNumber(totalCoins)} Coins`);
@@ -1472,7 +1481,7 @@ const App: React.FC = () => {
           if (type === 'BOOST' || type === 'PASS_XP' || type === 'PACK_CREDIT') {
              if (player.diamonds >= cost) {
                  setPlayer(p => ({...p, diamonds: p.diamonds - cost}));
-                 if (type === 'BOOST') setPlayer(p => ({ ...p, xpMultiplier: amount, xpBoostEndTime: Date.now() + (duration || 0) }));
+                 if (type === 'BOOST') setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + (duration || 0) }));
                  if (type === 'PASS_XP') setMissionState(prev => ({ ...prev, passBoostMultiplier: amount, passBoostEndTime: Date.now() + (duration || 0) }));
                  if (type === 'PACK_CREDIT') {
                      setPlayer(p => ({ ...p, packCredits: p.packCredits + amount }));
@@ -1883,10 +1892,63 @@ const App: React.FC = () => {
       
       {showFreeSpinsPopup && <FreeSpinsWonPopup isOpen={showFreeSpinsPopup} count={freeSpinsWon} onComplete={handleStartFreeSpins} />}
       
-      {showLevelUp && <LevelUpToast level={player.level} reward={levelUpReward} maxBetIncreased={maxBetIncreased} newMaxBet={MAX_BET_BY_LEVEL(player.level)} onClose={() => setShowLevelUp(false)} />}
-      
+      {/* Unified toast — level-up and pack drop, never stacks, 1 second */}
+      {activeToast && (
+          <div className="fixed top-[40px] right-2 z-[200] animate-pop-in pointer-events-none"
+              style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
+              <div className="flex items-center gap-2">
+                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{activeToast.type === 'LEVEL_UP' ? '⭐' : '📦'}</span>
+                  <div>
+                      {activeToast.type === 'LEVEL_UP' ? (
+                          <>
+                              <div className="font-black text-white text-xs uppercase tracking-widest">Level {activeToast.level}!</div>
+                              {activeToast.reward > 0 && <div className="text-purple-300 text-[9px] font-bold">+{formatNumber(activeToast.reward)} coins</div>}
+                              {activeToast.maxBetIncreased && <div className="text-yellow-300 text-[9px] font-bold">Max Bet ↑ {formatNumber(activeToast.newMaxBet)}</div>}
+                          </>
+                      ) : (
+                          <>
+                              <div className="font-black text-white text-xs uppercase tracking-widest">+1 Card Pack!</div>
+                              <div className="text-purple-300 text-[9px] font-bold">Added to your stash</div>
+                          </>
+                      )}
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* Purchase confirmation modal */}
+      {showPurchaseModal && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.75)' }}
+              onClick={() => setShowPurchaseModal(null)}>
+              <div className="animate-pop-in rounded-2xl px-6 py-5 flex flex-col items-center gap-3 text-center"
+                  style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 16px 48px rgba(0,0,0,0.8)', maxWidth: 280 }}
+                  onClick={e => e.stopPropagation()}>
+                  <span style={{ fontSize: '2.5rem' }}>{showPurchaseModal === 'VIP' ? '👑' : '📜'}</span>
+                  <div className="font-black text-white text-sm uppercase tracking-widest">
+                      {showPurchaseModal === 'VIP' ? 'VIP Lounge Activated!' : 'Monthly Pass Unlocked!'}
+                  </div>
+                  <div className="flex flex-col gap-1.5 w-full text-left">
+                      {(showPurchaseModal === 'VIP'
+                          ? ['10% Piggy Bank savings', '2× XP from spins', 'High-Limit Room access', 'VIP gold UI theme']
+                          : ['Premium reward track', 'Exclusive gem rewards', 'XP mission booster', '+100 Gems & +1M Coins', '+20 Pass Levels']
+                      ).map((b, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                              <span className="text-purple-400 text-xs shrink-0">✦</span>
+                              <span className="text-purple-100 text-[11px]">{b}</span>
+                          </div>
+                      ))}
+                  </div>
+                  <button onClick={() => setShowPurchaseModal(null)}
+                      className="btn-3d w-full py-2.5 rounded-xl font-black text-white uppercase text-sm tracking-widest"
+                      style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 #4c1d95' }}>
+                      Confirm
+                  </button>
+              </div>
+          </div>
+      )}
+
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
-      
+
       <BankruptcyModal isOpen={showBankruptcy} onCollect={() => { setPlayer(p => ({ ...p, balance: p.balance + 100000 })); setShowBankruptcy(false); setCelebrationMsg("+100,000 Coins"); audioService.playWinBig(); }} />
 
         </div>
