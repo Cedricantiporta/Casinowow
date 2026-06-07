@@ -91,9 +91,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     ];
 
     const boostPacks = [
-        { icon: '🚀', label: 'XP Boost 30m',   sub: '2× XP',      gemCost: 200, color: 'from-fuchsia-600 to-fuchsia-900', action: () => onBuy('BOOST',   2, 1_800_000,  200) },
+        { icon: '🚀', label: 'XP Boost 30m',   sub: '2× XP',      gemCost:  50, color: 'from-fuchsia-600 to-fuchsia-900', action: () => onBuy('BOOST',   2, 1_800_000,   50) },
         { icon: '🚀', label: 'XP Boost 12H',   sub: '2× XP',      gemCost: 500, color: 'from-fuchsia-700 to-purple-900',  action: () => onBuy('BOOST',   2, 43_200_000, 500) },
-        { icon: '📜', label: 'Mission XP 30m', sub: '2× Mission', gemCost: 300, color: 'from-indigo-500 to-indigo-800',   action: () => onBuy('PASS_XP', 2, 1_800_000,  300) },
+        { icon: '📜', label: 'Mission XP 30m', sub: '2× Mission', gemCost:  50, color: 'from-indigo-500 to-indigo-800',   action: () => onBuy('PASS_XP', 2, 1_800_000,   50) },
     ];
 
     const freeItem = {

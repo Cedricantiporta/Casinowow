@@ -230,7 +230,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             onBatchPick(1, surroundingRewards);
             if (gemFoundFromBomb) {
                 setStageWinning(true);
-                setTimeout(() => { onStageComplete(50000 * wildStage, 10 * wildStage); setStageWinning(false); }, 2000);
+                setTimeout(() => { onStageComplete(Math.round((maxBet || 10000) * wildStage * 10), 10 * wildStage); setStageWinning(false); }, 2000);
             }
             return;
         }
@@ -240,7 +240,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (cell.content === 'GEM') {
             audioService.playGemFound();
             setStageWinning(true);
-            setTimeout(() => { onStageComplete(50000 * wildStage, 10 * wildStage); setStageWinning(false); }, 2000);
+            setTimeout(() => { onStageComplete(Math.round((maxBet || 10000) * wildStage * 10), 10 * wildStage); setStageWinning(false); }, 2000);
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
             onPickTile(false, cell.reward!);
@@ -274,7 +274,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (gemFound) {
             audioService.playGemFound();
             setStageWinning(true);
-            setTimeout(() => { onStageComplete(50000 * wildStage, 10 * wildStage); setStageWinning(false); }, 2000);
+            setTimeout(() => { onStageComplete(Math.round((maxBet || 10000) * wildStage * 10), 10 * wildStage); setStageWinning(false); }, 2000);
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
 
