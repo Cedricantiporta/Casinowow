@@ -11,7 +11,13 @@ export enum SymbolType {
   CHERRY = 'CHERRY',
   SEVEN = 'SEVEN',
   WILD = 'WILD',
-  SCATTER = 'SCATTER'
+  SCATTER = 'SCATTER',
+  JACKPOT_MINI = 'JACKPOT_MINI',
+  JACKPOT_MINOR = 'JACKPOT_MINOR',
+  JACKPOT_MAJOR = 'JACKPOT_MAJOR',
+  JACKPOT_MEGA = 'JACKPOT_MEGA',
+  JACKPOT_GRAND = 'JACKPOT_GRAND',
+  COIN = 'COIN',
 }
 
 export type GameTheme = 'NEON' | 'EGYPT' | 'DRAGON' | 'PIRATE' | 'SPACE' | 'CANDY' | 'JUNGLE' | 'UNDERWATER' | 'WESTERN' | 'SAMURAI' | 'PIGGY';
@@ -53,6 +59,7 @@ export interface PlayerState {
   diamonds: number; // Renamed to Gems in UI, keeping var name for stability
   tokens: number; // Renamed from cardCredits
   packCredits: number; // New currency for opening packs
+  premiumPackCredits?: number;
   piggyBank: number; // Accumulated free coins from bets
   level: number;
   xp: number;
@@ -60,7 +67,17 @@ export interface PlayerState {
   autoSpin: boolean;
   xpMultiplier: number;
   xpBoostEndTime: number;
-  freeStashClaimed: boolean;
+  freeStashClaimedTime?: number;  // timestamp of last claim, 0/undefined = never
+  isVip?: boolean;
+  shopClaimedItems?: string[];
+  stats?: {
+    maxSingleWin: number;
+    maxJackpotWin: number;
+    totalCoinsWon: number;
+    totalGemsEarned: number;
+    totalSpins: number;
+    recentSlots: string[]; // game IDs, last 5
+  };
 }
 
 export interface Payline {
@@ -80,22 +97,22 @@ export interface WinData {
 
 export interface WildGridCell {
     revealed: boolean;
-    content: 'GEM' | 'REWARD' | 'BLANK';
+    content: 'GEM' | 'REWARD' | 'BLANK' | 'BOMB';
     reward?: MiniGameReward;
 }
 
 export interface QuestState {
-  credits: number;
-  picks: number; 
+  diceCredits: number;
+  wildCredits: number;
   wildStage: number; // Separated Stage
   diceStage: number; // Separated Stage
   max: 60;
-  dicePosition: number; 
+  dicePosition: number;
   activeGame: 'NONE' | 'WILD' | 'DICE';
   wildGrid: WildGridCell[]; // Persistence for Wild Quest
 }
 
-export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM';
+export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'PACKS' | 'BACK' | 'DICE_CREDITS';
 
 export interface MiniGameReward {
   type: RewardType;
@@ -135,7 +152,8 @@ export interface PassReward {
   value: number;
   label: string;
   claimed: boolean;
-  tier: 'FREE' | 'PREMIUM'; 
+  claimedValue?: number; // snapshot of actual coins at claim time — prevents display from re-scaling after collecting
+  tier: 'FREE' | 'PREMIUM';
 }
 
 export interface MissionState {

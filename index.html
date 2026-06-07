@@ -6,7 +6,7 @@
     <title>Scatter Pa More</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Condensed:wght@400;700&family=Luckiest+Cherry&family=Luckiest+Guy&family=Roboto:wght@900&family=Open+Sans:wght@800&family=Nunito:wght@800;900&family=Titan+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Audiowide&family=Boogaloo&family=Bubblegum+Sans&family=Cinzel+Decorative:wght@700;900&family=Exo+2:wght@700;900&family=Fredoka:wght@600;700&family=Germania+One&family=Luckiest+Guy&family=Noto+Serif+JP:wght@700;900&family=Nunito:wght@800;900&family=Orbitron:wght@700;900&family=Pirata+One&family=Rye&family=Titan+One&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
     <script>
       tailwind.config = {
@@ -15,12 +15,22 @@
             fontFamily: {
               'display': ['"Nunito"', 'sans-serif'],
               'body': ['"Nunito"', 'sans-serif'],
-              'cartoon': ['"Luckiest Cherry"', 'cursive'],
               'heavy': ['"Titan One"', 'cursive'],
               'clean': ['"Nunito"', 'sans-serif'],
               'nunito': ['"Nunito"', 'sans-serif'],
               'titan': ['"Titan One"', 'cursive'],
               'luckiest': ['"Luckiest Guy"', 'cursive'],
+              'neon':       ['"Orbitron"', 'sans-serif'],
+              'egypt':      ['"Cinzel Decorative"', 'serif'],
+              'dragon':     ['"Germania One"', 'cursive'],
+              'pirate':     ['"Pirata One"', 'cursive'],
+              'space':      ['"Audiowide"', 'sans-serif'],
+              'candy':      ['"Fredoka"', 'cursive'],
+              'jungle':     ['"Boogaloo"', 'cursive'],
+              'underwater': ['"Exo 2"', 'sans-serif'],
+              'western':    ['"Rye"', 'cursive'],
+              'samurai':    ['"Noto Serif JP"', 'serif'],
+              'piggy':      ['"Bubblegum Sans"', 'cursive'],
             },
             colors: {
               gold: {
@@ -48,7 +58,9 @@
             animation: {
               'spin-blur': 'spinReel 0.3s linear infinite',
               'bounce-land': 'bounceLand 0.4s ease-out forwards',
+              'bounce-sm': 'bounceSm 1s ease-in-out infinite',
               'pop-in': 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+              'shake': 'shake 0.4s ease',
               'coin-shower': 'coinShower 1s ease-out forwards',
               'shine': 'shine 1s linear infinite',
             },
@@ -73,6 +85,17 @@
               shine: {
                 '0%': { transform: 'translateX(-100%) skewX(-15deg)' },
                 '100%': { transform: 'translateX(200%) skewX(-15deg)' }
+              },
+              bounceSm: {
+                '0%, 100%': { transform: 'translateY(-12%) scale(1.05)', animationTimingFunction: 'cubic-bezier(0.8,0,1,1)' },
+                '50%': { transform: 'translateY(0) scale(1)', animationTimingFunction: 'cubic-bezier(0,0,0.2,1)' },
+              },
+              shake: {
+                '0%,100%': { transform: 'translateX(0)' },
+                '20%': { transform: 'translateX(-6px)' },
+                '40%': { transform: 'translateX(6px)' },
+                '60%': { transform: 'translateX(-4px)' },
+                '80%': { transform: 'translateX(4px)' },
               }
             }
           },
@@ -110,6 +133,10 @@
       .flat{cursor:pointer;flex-shrink:0;z-index:1;border-radius:12px;padding-bottom:4px;box-shadow:0 3px 4px rgba(0,0,0,0.4);}
       .flat.green{background:linear-gradient(180deg,#2c8800,#176000);}
       .flat.blue{background:linear-gradient(180deg,#1d56b0,#13408a);}
+      .flat.red{background:linear-gradient(180deg,#b81010,#8a0000);}
+      .flat.red .flat-face{background:linear-gradient(180deg,#ff5a5a 0%,#e82020 55%,#c80000 100%);}
+      .flat.red .lbl{-webkit-text-stroke:2.5px #5a0000;text-shadow:0 1px 2px rgba(120,0,0,0.7);paint-order:stroke fill;}
+      .flat.red .sub{color:#ff8888;-webkit-text-stroke:0.8px #7a0000;paint-order:stroke fill;}
       .flat-face{position:relative;border-radius:10px;overflow:hidden;height:100%;}
       .flat-face::before{content:"";position:absolute;left:0;right:0;top:0;height:55%;
         background:linear-gradient(180deg,rgba(255,255,255,0.8) 0%,rgba(255,255,255,0.4) 30%,rgba(255,255,255,0) 100%);pointer-events:none;}
@@ -133,19 +160,19 @@
         .jackpot { margin: 0 12px; gap: 3px; }
       }
       .jp{flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:0;}
-      .jp-tier{font-family:'Titan One',cursive !important;font-weight:900;font-size:10px;letter-spacing:0.2px;line-height:1;margin-bottom:1px;}
+      .jp-tier{font-family:'Titan One',cursive !important;font-weight:900;font-size:15px;letter-spacing:0.2px;line-height:1;margin-bottom:1px;}
       @media (min-width: 768px) {
-        .jp-tier { font-size: 11px; }
+        .jp-tier { font-size: 16px; }
       }
       .jp-box{width:100%;border-radius:4px;padding:1px 2px;background:#160835;
         box-shadow:inset 0 1px 2px rgba(0,0,0,0.73);border:1px solid;}
       @media (min-width: 768px) {
         .jp-box { border-radius: 5px; padding: 2px 4px; border-width: 1.5px; }
       }
-      .jp-amt{font-family:'Nunito',sans-serif !important;font-weight:900;font-size:6px;line-height:1.1;color:#fff;white-space:nowrap;
-        text-shadow:0 1px 1px rgba(0,0,0,0.9);overflow:hidden;text-overflow:ellipsis;}
+      .jp-amt{font-family:'Nunito',sans-serif !important;font-weight:900;font-size:9px;line-height:1.1;color:#fff;white-space:nowrap;
+        text-shadow:0 1px 2px rgba(0,0,0,0.9);}
       @media (min-width: 768px) {
-        .jp-amt { font-size: 7px; }
+        .jp-amt { font-size: 11px; }
       }
 
       /* tier colors: title gradient + box border */
@@ -230,10 +257,10 @@
       }
       .currency-pill{display:flex;align-items:center;gap:4px;z-index:1;
         background:linear-gradient(180deg,#2a0d52,#1a0838);border:1px solid #38106e;border-radius:18px;
-        padding:2px 8px 2px 3px;box-shadow:inset 0 2px 3px rgba(0,0,0,0.6);min-width: 100px; max-width: 190px;
-        height: 24px;}
+        padding:2px 8px 2px 3px;box-shadow:inset 0 2px 3px rgba(0,0,0,0.6);min-width: 80px; max-width: 190px;
+        height: 20px;}
       @media (min-width: 768px) {
-        .currency-pill { gap: 7px; padding: 3px 10px 3px 4px; min-width: 130px; max-width: none; height: 28px; }
+        .currency-pill { gap: 7px; padding: 3px 10px 3px 4px; min-width: 100px; max-width: none; height: 23px; }
       }
       .coin{position:relative;width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
         background:radial-gradient(circle at 36% 28%,#fff7c0,#ffd027 40%,#f29400 70%,#b85f00);
@@ -259,11 +286,31 @@
       @media (min-width: 768px) {
         .divider { height: 22px; }
       }
-      .buyB, .saleB{z-index:1; border-radius: 6px !important;}
-      .buyB .face, .saleB .face{padding:11px 8px; display:flex; align-items:center; justify-content:center; border-radius: 5px !important;}
+
+      /* 3D raised button effect — apply to any button with .btn-3d */
+      .btn-3d {
+        position: relative;
+        box-shadow: 0 4px 0 rgba(0,0,0,0.45), 0 5px 10px rgba(0,0,0,0.3);
+        transition: transform 0.08s ease, box-shadow 0.08s ease;
+      }
+      .btn-3d::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 50%);
+        pointer-events: none;
+      }
+      .btn-3d:active {
+        transform: translateY(4px) !important;
+        box-shadow: 0 0px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.2) !important;
+      }
+
+      .buyB, .saleB{z-index:1; border-radius: 6px !important; padding-bottom:1px !important;}
+      .buyB .face, .saleB .face{padding:7px 8px; display:flex; align-items:center; justify-content:center; border-radius: 5px !important; min-width:46px;}
       .buyB .lbl, .saleB .lbl{font-size:11px; font-family:'Nunito',sans-serif !important;}
       @media (min-width: 768px) {
-        .buyB .face, .saleB .face { padding: 17px 16px; }
+        .buyB .face, .saleB .face { padding: 9px 16px; min-width: 62px; }
         .buyB .lbl, .saleB .lbl { font-size: 15px; }
       }
       .reward{flex:1;display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.3);border:1px solid #38106e;border-radius:18px;z-index:1;
@@ -278,22 +325,22 @@
       @media (min-width: 768px) {
         .star { width: 28px; height: 28px; }
       }
-      .rtrack{flex:1;height:14px;border-radius:7.5px;overflow:hidden;background:#1a0533;
+      .rtrack{flex:1;height:20px;border-radius:10px;overflow:hidden;background:#1a0533;
         box-shadow:inset 0 1px 2px rgba(0,0,0,0.8);position:relative;display:flex;align-items:center;justify-content:center;min-width:32px;}
       @media (min-width: 768px) {
-        .rtrack { height: 20px; border-radius: 10px; min-width: 44px; }
+        .rtrack { height: 23px; border-radius: 12px; min-width: 44px; }
       }
       .rfill{position:absolute;left:0;top:0;bottom:0;width:55%;border-radius:inherit;
         background:linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0);box-shadow:inset 0 1px 1px rgba(255,255,255,0.6);}
-      .rnum{position:relative;z-index:1;font-size:8px;font-weight:900;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,0.8);line-height:1;}
+      .rnum{position:relative;z-index:1;font-size:14px;font-weight:900;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,0.8);line-height:1;}
       @media (min-width: 768px) {
-        .rnum { font-size: 10px; }
+        .rnum { font-size: 16px; }
       }
       .mult{width:24px;height:24px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;z-index:1;
         background:linear-gradient(180deg,#5a2090,#2a0d52);
         font-size:10px;font-weight:900;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,0.7);box-shadow:inset 0 1px 2px rgba(255,255,255,0.4);user-select:none;}
       @media (min-width: 768px) {
-        .mult { width: 33px; height: 33px; font-size: 12px; }
+        .mult { width: 28px; height: 28px; font-size: 11px; }
       }
     </style>
 <script type="importmap">

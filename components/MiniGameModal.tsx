@@ -5,15 +5,18 @@ import { audioService } from '../services/audioService';
 
 interface MiniGameModalProps {
     isOpen: boolean;
-    credits: number;
-    picks: number; // Acts as "Rolls" in Dice Quest
-    wildStage: number; // New Prop
-    diceStage: number; // New Prop
-    dicePosition: number; 
+    diceCredits: number;
+    wildCredits: number;
+    wildStage: number;
+    diceStage: number;
+    dicePosition: number;
     activeGame: 'NONE' | 'WILD' | 'DICE';
     savedGrid?: WildGridCell[];
+    balance?: number;
+    diamonds?: number;
     onSelectMode: (mode: 'NONE' | 'WILD' | 'DICE') => void;
     onBuyPicks: (amount: number, cost: number, currency: 'CREDITS' | 'GEMS') => void;
+    onBuyQuestBundle?: (type: 'PICKS' | 'DICE', picks: number, dice: number, coins: number, gemCost: number, bonusGems: number) => void;
     onPickTile: (isGem: boolean, reward: MiniGameReward | null) => void;
     onBatchPick: (picksUsed: number, rewards: MiniGameReward[]) => void;
     onStageComplete: (bonusCoins: number, bonusDiamonds: number) => void;
@@ -21,11 +24,12 @@ interface MiniGameModalProps {
     onDiceRoll: (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean) => void;
     onClose: () => void;
     playerLevel: number;
+    maxBet?: number;
 }
 
-const GRID_SIZES = [3, 4, 5, 5, 6]; 
-const EXCHANGE_RATE = 5; // 5 Credits per 1 Dice Roll
-const GEM_COST = 100; // 100 Gems per 1 Dice Roll
+// Grid grows every 5 stages: 3 (1-5), 4 (6-10), 5 (11-15), 6 (16+)
+const getGridSize = (stage: number) => Math.min(Math.floor((stage - 1) / 5) + 3, 6);
+const GEM_COST = 100;
 
 interface BoardStep {
     index: number;
@@ -34,18 +38,52 @@ interface BoardStep {
     isStart: boolean;
 }
 
-export const MiniGameModal: React.FC<MiniGameModalProps> = ({ 
-    isOpen, credits, picks, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid, onSelectMode, onBuyPicks, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel 
+// --- 3D Dice Face Component ---
+const DICE_DOTS: Record<number, number[]> = {
+    1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8],
+};
+
+const DiceFace: React.FC<{ value: number; rolling: boolean; size?: number }> = ({ value, rolling, size = 72 }) => {
+    const dots = DICE_DOTS[Math.max(1, Math.min(6, value))] || DICE_DOTS[1];
+    return (
+        <div className={`relative flex items-center justify-center select-none ${rolling ? 'animate-spin' : ''}`}
+            style={{ width: size, height: size, background: 'linear-gradient(145deg,#ffffff,#e0e0e0)', borderRadius: Math.round(size * 0.18), boxShadow: `0 ${Math.round(size*0.07)}px 0 #aaa, 0 ${Math.round(size*0.12)}px ${Math.round(size*0.2)}px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.9)` }}>
+            <div className="grid grid-cols-3 gap-0" style={{ width: size * 0.72, height: size * 0.72 }}>
+                {Array.from({ length: 9 }).map((_, i) => (
+                    <div key={i} className="flex items-center justify-center">
+                        {dots.includes(i) && <div style={{ width: size * 0.14, height: size * 0.14, borderRadius: '50%', background: 'radial-gradient(circle at 35% 35%,#555,#111)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)' }} />}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const HDR = "linear-gradient(180deg,#6b21a8,#4c1d95)";
+
+const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string; shadow?: string; className?: string; style?: React.CSSProperties; children: React.ReactNode }> = ({
+    onClick, disabled, color = 'linear-gradient(180deg,#a855f7,#7c3aed)', shadow = '0 4px 0 #3b0764', className = '', style, children
+}) => (
+    <button onClick={disabled ? undefined : onClick} disabled={disabled}
+        className={`btn-3d font-black uppercase tracking-wide transition-all active:translate-y-[2px] ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
+        style={{ background: disabled ? '#333' : color, boxShadow: disabled ? 'none' : shadow, border: '1px solid rgba(255,255,255,0.2)', ...style }}>
+        {children}
+    </button>
+);
+
+export const MiniGameModal: React.FC<MiniGameModalProps> = ({
+    isOpen, diceCredits, wildCredits, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
+    balance = 0, diamonds = 0,
+    onSelectMode, onBuyPicks, onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet
 }) => {
-    
-    // --- Wild Quest State ---
-    const currentGridSize = GRID_SIZES[Math.min(wildStage - 1, GRID_SIZES.length - 1)];
+    const currentGridSize = getGridSize(wildStage);
     const totalCells = currentGridSize * currentGridSize;
-    
+
     const [grid, setGrid] = useState<WildGridCell[]>([]);
     const [stageWinning, setStageWinning] = useState(false);
+    const [noPicksMsg, setNoPicksMsg] = useState(false);
+    const [showBuyPopup, setShowBuyPopup] = useState<'PICKS' | 'DICE' | null>(null);
 
-    // --- Dice Quest State ---
     const [isRolling, setIsRolling] = useState(false);
     const [isMoving, setIsMoving] = useState(false);
     const [diceValue, setDiceValue] = useState(1);
@@ -54,77 +92,81 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [autoRoll, setAutoRoll] = useState(false);
     const rollButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isLongPressRef = useRef(false);
-    
-    const boardLength = 10 + ((diceStage - 1) * 5); // Stage 1: 10, Stage 2: 15, etc.
-    
+
+    const boardLength = 10 + ((diceStage - 1) * 5);
     const boardContainerRef = useRef<HTMLDivElement>(null);
 
-    // Init Wild Grid
     const initGrid = useCallback(() => {
-        const cells: WildGridCell[] = Array(totalCells).fill({ revealed: false, content: 'BLANK' });
+        const cells: WildGridCell[] = Array(totalCells).fill(null).map(() => ({ revealed: false, content: 'BLANK' as const }));
         const gemIdx = Math.floor(Math.random() * totalCells);
         cells[gemIdx] = { revealed: false, content: 'GEM' };
-
-        const baseCoin = 25000 * wildStage * playerLevel;
-
-        for(let i=0; i<totalCells; i++) {
+        const baseCoin = (maxBet || 10000) * wildStage * 0.5;
+        for (let i = 0; i < totalCells; i++) {
             if (i === gemIdx) continue;
             if (Math.random() < 0.3) {
                 const r = Math.random();
                 let reward: MiniGameReward = { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) };
-                if (r < 0.5) {
-                    const highCoin = baseCoin * 2;
-                    reward = { type: 'COINS', value: highCoin, label: formatNumber(highCoin) };
-                }
+                if (r < 0.5) { const h = baseCoin * 2; reward = { type: 'COINS', value: h, label: formatNumber(h) }; }
                 else if (r < 0.7) reward = { type: 'PICKS', value: 1, label: '+1 Pick' };
                 else if (r < 0.9) reward = { type: 'PICKS', value: 2, label: '+2 Picks' };
-                else reward = { type: 'DIAMONDS', value: 5, label: '5 💎' };
+                else reward = { type: 'DIAMONDS', value: 5, label: '+5 Gems' };
                 cells[i] = { revealed: false, content: 'REWARD', reward };
             }
         }
+        // Add bomb cells on blank tiles (~10% chance each)
+        for (let i = 0; i < totalCells; i++) {
+            if (cells[i].content === 'BLANK' && Math.random() < 0.10) {
+                cells[i] = { revealed: false, content: 'BOMB' };
+            }
+        }
         setGrid(cells);
-        if(onGridUpdate) onGridUpdate(cells);
-    }, [wildStage, totalCells, playerLevel, onGridUpdate]);
+        if (onGridUpdate) onGridUpdate(cells);
+    }, [wildStage, totalCells, maxBet, onGridUpdate]);
 
-    // Init Board
     const initBoard = useCallback(() => {
         const newBoard: BoardStep[] = [];
-        const baseCoin = 10000 * diceStage * playerLevel; 
-
-        for(let i=0; i<=boardLength; i++) {
-            let reward: MiniGameReward | undefined = undefined;
-            if (i > 0 && i < boardLength && Math.random() < 0.35) {
-                 const r = Math.random();
-                 if (r < 0.6) reward = { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) };
-                 else if (r < 0.8) reward = { type: 'COINS', value: baseCoin * 2.5, label: formatNumber(baseCoin * 2.5) };
-                 else if (r < 0.9) reward = { type: 'DIAMONDS', value: 50, label: '50💎' };
-                 else reward = { type: 'PICKS', value: 1, label: '+1 Roll' };
+        const baseCoin = (maxBet || 10000) * diceStage * 0.2;
+        const preGoalIndex = boardLength - 1;
+        for (let i = 0; i <= boardLength; i++) {
+            let reward: MiniGameReward | undefined;
+            if (i > 0 && i < boardLength) {
+                // 30% chance of BACK on the tile just before the goal
+                if (i === preGoalIndex && Math.random() < 0.30) {
+                    reward = { type: 'BACK', value: 0, label: 'BACK!' };
+                } else {
+                    const r = Math.random();
+                    if (r < 0.12) {
+                        reward = { type: 'BACK', value: 0, label: 'BACK!' };
+                    } else if (r < 0.48) {
+                        const v = Math.floor(baseCoin * (0.5 + Math.random()));
+                        reward = { type: 'COINS', value: v, label: formatNumber(v) };
+                    } else if (r < 0.63) {
+                        reward = { type: 'PICKS', value: 1, label: '×1' };
+                    } else if (r < 0.72) {
+                        reward = { type: 'PICKS', value: 2, label: '×2' };
+                    } else if (r < 0.84) {
+                        const gems = Math.floor(Math.random() * 46) + 5;
+                        reward = { type: 'DIAMONDS', value: gems, label: `+${gems}` };
+                    } else if (r < 0.92) {
+                        const packs = Math.floor(Math.random() * 10) + 1;
+                        reward = { type: 'PACKS', value: packs, label: `+${packs}` };
+                    }
+                }
             }
-
-            newBoard.push({
-                index: i,
-                isStart: i === 0,
-                isFinish: i === boardLength,
-                reward
-            });
+            newBoard.push({ index: i, isStart: i === 0, isFinish: i === boardLength, reward });
         }
         setBoard(newBoard);
         setVisualPosition(0);
-    }, [boardLength, diceStage, playerLevel]);
+    }, [boardLength, diceStage, maxBet]);
 
     useEffect(() => {
         if (isOpen) {
             if (activeGame === 'WILD') {
-                if (savedGrid && savedGrid.length > 0) {
-                    setGrid(savedGrid);
-                } else {
-                    initGrid();
-                }
+                if (savedGrid && savedGrid.length > 0) setGrid(savedGrid);
+                else initGrid();
             }
             if (activeGame === 'DICE') {
-                if (board.length === 0 || board[board.length-1].index !== boardLength) {
-                    initBoard();
-                }
+                if (board.length === 0 || board[board.length - 1].index !== boardLength) initBoard();
                 if (!isMoving) setVisualPosition(dicePosition);
             }
             setStageWinning(false);
@@ -135,54 +177,70 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
     }, [isOpen, initGrid, activeGame, initBoard, boardLength, dicePosition, board.length, isMoving, savedGrid]);
 
-    // Scroll Effect for Dice Quest
     useEffect(() => {
         if (activeGame === 'DICE' && boardContainerRef.current) {
             const container = boardContainerRef.current;
-            const children = container.children;
-            
-            if (children && children[visualPosition]) {
-                const stepElement = children[visualPosition] as HTMLElement;
-                const containerCenter = container.clientWidth / 2;
-                const stepCenter = stepElement.offsetWidth / 2;
-                const stepLeft = stepElement.offsetLeft;
-
-                container.scrollTo({
-                    left: stepLeft - containerCenter + stepCenter,
-                    behavior: 'smooth'
-                });
-            }
+            const el = container.children[visualPosition] as HTMLElement;
+            if (el) container.scrollTo({ left: el.offsetLeft - container.clientWidth / 2 + el.offsetWidth / 2, behavior: 'smooth' });
         }
     }, [visualPosition, activeGame]);
 
-    // Auto Roll Effect
     useEffect(() => {
-        if (autoRoll && !isRolling && !isMoving && picks > 0) {
-            const timer = setTimeout(() => {
-                handleRollDice();
-            }, 1000);
-            return () => clearTimeout(timer);
-        } else if (autoRoll && picks <= 0) {
-            setAutoRoll(false);
-        }
-    }, [autoRoll, isRolling, isMoving, picks]);
+        if (autoRoll && !isRolling && !isMoving && diceCredits > 0) {
+            const t = setTimeout(handleRollDice, 1000);
+            return () => clearTimeout(t);
+        } else if (autoRoll && diceCredits <= 0) setAutoRoll(false);
+    }, [autoRoll, isRolling, isMoving, diceCredits]);
 
-    // --- Wild Quest Handlers ---
     const handleTileClick = (index: number) => {
-        if (picks <= 0 || grid[index].revealed || stageWinning) return;
+        if (grid[index].revealed || stageWinning) return;
+        if (wildCredits <= 0) {
+            setNoPicksMsg(true);
+            setTimeout(() => setNoPicksMsg(false), 2000);
+            return;
+        }
         const cell = grid[index];
-        const newGrid = [...grid];
+        const newGrid = [...grid.map(c => ({ ...c }))];
         newGrid[index] = { ...cell, revealed: true };
+
+        if (cell.content === 'BOMB') {
+            // Reveal all surrounding cells (up to 8)
+            const row = Math.floor(index / currentGridSize);
+            const col = index % currentGridSize;
+            const surroundingRewards: MiniGameReward[] = [];
+            let gemFoundFromBomb = false;
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const nr = row + dr;
+                    const nc = col + dc;
+                    if (nr >= 0 && nr < currentGridSize && nc >= 0 && nc < currentGridSize) {
+                        const ni = nr * currentGridSize + nc;
+                        if (!newGrid[ni].revealed) {
+                            newGrid[ni] = { ...newGrid[ni], revealed: true };
+                            if (newGrid[ni].content === 'GEM') gemFoundFromBomb = true;
+                            else if (newGrid[ni].content === 'REWARD' && newGrid[ni].reward) surroundingRewards.push(newGrid[ni].reward!);
+                        }
+                    }
+                }
+            }
+            setGrid(newGrid);
+            if (onGridUpdate) onGridUpdate(newGrid);
+            audioService.playWinBig();
+            onBatchPick(1, surroundingRewards);
+            if (gemFoundFromBomb) {
+                setStageWinning(true);
+                setTimeout(() => { onStageComplete(Math.round((maxBet || 10000) * wildStage * 10), 10 * wildStage); setStageWinning(false); }, 2000);
+            }
+            return;
+        }
+
         setGrid(newGrid);
         if (onGridUpdate) onGridUpdate(newGrid);
-
         if (cell.content === 'GEM') {
             audioService.playGemFound();
             setStageWinning(true);
-            setTimeout(() => {
-                onStageComplete(50000 * wildStage, 10 * wildStage);
-                setStageWinning(false);
-            }, 2000);
+            setTimeout(() => { onStageComplete(Math.round((maxBet || 10000) * wildStage * 10), 10 * wildStage); setStageWinning(false); }, 2000);
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
             onPickTile(false, cell.reward!);
@@ -193,389 +251,414 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     };
 
     const handleAutoPick = () => {
-        if (picks <= 0 || stageWinning) return;
-        const unrevealedIndices = grid.map((cell, index) => !cell.revealed ? index : -1).filter(index => index !== -1);
-        for (let i = unrevealedIndices.length - 1; i > 0; i--) {
+        if (wildCredits <= 0 || stageWinning) return;
+        const unrevealed = grid.map((c, i) => !c.revealed ? i : -1).filter(i => i !== -1);
+        for (let i = unrevealed.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
-            [unrevealedIndices[i], unrevealedIndices[j]] = [unrevealedIndices[j], unrevealedIndices[i]];
+            [unrevealed[i], unrevealed[j]] = [unrevealed[j], unrevealed[i]];
         }
-        const countToPick = Math.min(picks, unrevealedIndices.length);
-        const indicesToPick = unrevealedIndices.slice(0, countToPick);
-        
+        const count = Math.min(wildCredits, unrevealed.length);
         const newGrid = [...grid];
-        const collectedRewards: MiniGameReward[] = [];
+        const rewards: MiniGameReward[] = [];
         let gemFound = false;
-        let picksUsed = 0;
-
-        for (const idx of indicesToPick) {
-            picksUsed++;
+        let used = 0;
+        for (const idx of unrevealed.slice(0, count)) {
+            used++;
             newGrid[idx] = { ...newGrid[idx], revealed: true };
             if (newGrid[idx].content === 'GEM') { gemFound = true; break; }
-            else if (newGrid[idx].content === 'REWARD' && newGrid[idx].reward) collectedRewards.push(newGrid[idx].reward!);
+            else if (newGrid[idx].content === 'REWARD' && newGrid[idx].reward) rewards.push(newGrid[idx].reward!);
         }
         setGrid(newGrid);
         if (onGridUpdate) onGridUpdate(newGrid);
-        
-        if (picksUsed > 0) {
-            onBatchPick(picksUsed, collectedRewards);
-            audioService.playClick();
-        }
+        if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
             setStageWinning(true);
-            setTimeout(() => {
-                onStageComplete(50000 * wildStage, 10 * wildStage);
-                setStageWinning(false);
-            }, 2000);
-        } else {
-            if (collectedRewards.length > 0) audioService.playWinSmall();
-            else audioService.playStoneBreak();
-        }
+            setTimeout(() => { onStageComplete(Math.round((maxBet || 10000) * wildStage * 10), 10 * wildStage); setStageWinning(false); }, 2000);
+        } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
 
-    // --- Dice Quest Handlers ---
-    const movePlayerStepByStep = async (start: number, end: number, collectedRewards: MiniGameReward[]) => {
+    const movePlayerStepByStep = async (start: number, rollValue: number) => {
         setIsMoving(true);
-        const finalPos = Math.min(end, boardLength);
+        const endPos = Math.min(start + rollValue, boardLength);
 
-        for (let i = start + 1; i <= finalPos; i++) {
+        // Move forward step by step — no rewards collected mid-path
+        for (let i = start + 1; i <= endPos; i++) {
             setVisualPosition(i);
-            audioService.playClick(); 
-            
-            const step = board.find(s => s.index === i);
-            if (step?.reward) {
-                collectedRewards.push(step.reward);
-            }
-            await new Promise(resolve => setTimeout(resolve, 400));
+            audioService.playClick();
+            await new Promise(r => setTimeout(r, 380));
         }
 
-        setIsMoving(false);
-        const isFinish = finalPos >= boardLength;
-        onDiceRoll(0, finalPos, collectedRewards, isFinish); 
-        
-        if (isFinish) {
-             audioService.playWinBig();
-             setAutoRoll(false);
+        const isFinish = endPos >= boardLength;
+        const landedStep = board.find(s => s.index === endPos);
+
+        if (!isFinish && landedStep?.reward?.type === 'BACK') {
+            // Move backward by the same roll value
+            const backPos = Math.max(0, endPos - rollValue);
+            await new Promise(r => setTimeout(r, 300));
+            for (let i = endPos - 1; i >= backPos; i--) {
+                setVisualPosition(i);
+                audioService.playClick();
+                await new Promise(r => setTimeout(r, 280));
+            }
+            setIsMoving(false);
+            onDiceRoll(rollValue, backPos, [{ type: 'BACK', value: 0, label: 'BACK!' }], false);
+        } else {
+            const rewards: MiniGameReward[] = [];
+            if (landedStep?.reward && !isFinish && !landedStep.isStart) {
+                rewards.push(landedStep.reward);
+                audioService.playWinSmall();
+            }
+            setIsMoving(false);
+            onDiceRoll(rollValue, endPos, rewards, isFinish);
+            if (isFinish) { audioService.playWinBig(); setAutoRoll(false); }
         }
     };
 
     const handleRollDice = () => {
-        if (picks <= 0 || isRolling || isMoving) {
-            if (picks <= 0) setAutoRoll(false);
-            return;
-        }
-
+        if (diceCredits <= 0 || isRolling || isMoving) { if (diceCredits <= 0) setAutoRoll(false); return; }
         setIsRolling(true);
         audioService.playClick();
-
         let rolls = 0;
         const interval = setInterval(() => {
             setDiceValue(Math.floor(Math.random() * 6) + 1);
             rolls++;
             if (rolls > 12) {
                 clearInterval(interval);
-                const finalRoll = Math.floor(Math.random() * 6) + 1;
-                setDiceValue(finalRoll);
+                const final = Math.floor(Math.random() * 6) + 1;
+                setDiceValue(final);
                 setIsRolling(false);
-                
-                const collectedRewards: MiniGameReward[] = [];
-                movePlayerStepByStep(visualPosition, visualPosition + finalRoll, collectedRewards);
+                movePlayerStepByStep(visualPosition, final);
             }
         }, 80);
     };
 
-    // Roll Button Interaction
     const handleRollMouseDown = () => {
-        if (picks <= 0 || isRolling || isMoving) return;
+        if (diceCredits <= 0 || isRolling || isMoving) return;
         isLongPressRef.current = false;
         rollButtonTimeoutRef.current = setTimeout(() => {
             isLongPressRef.current = true;
-            if (!autoRoll) {
-                setAutoRoll(true);
-                audioService.playClick();
-            }
+            if (!autoRoll) { setAutoRoll(true); audioService.playClick(); }
         }, 800);
     };
 
     const handleRollMouseUp = () => {
-        if (rollButtonTimeoutRef.current) {
-            clearTimeout(rollButtonTimeoutRef.current);
-            rollButtonTimeoutRef.current = null;
-        }
-
+        if (rollButtonTimeoutRef.current) { clearTimeout(rollButtonTimeoutRef.current); rollButtonTimeoutRef.current = null; }
         if (!isLongPressRef.current) {
-            if (autoRoll) {
-                setAutoRoll(false);
-                audioService.playClick();
-            } else {
-                handleRollDice();
-            }
-        }
-    };
-
-    const handleExchangeCredits = () => {
-        if (credits >= EXCHANGE_RATE) { onBuyPicks(1, EXCHANGE_RATE, 'CREDITS'); audioService.playClick(); }
-    };
-    const handleBuyGems = () => {
-        if (credits >= 0) { 
-            onBuyPicks(1, GEM_COST, 'GEMS'); audioService.playClick();
-        }
-    };
-
-    const handleBackToSelection = () => {
-        onSelectMode('NONE');
-    };
-
-    const handleBoardScroll = (direction: 'LEFT' | 'RIGHT') => {
-        if (boardContainerRef.current) {
-            const amount = 120;
-            boardContainerRef.current.scrollBy({ left: direction === 'LEFT' ? -amount : amount, behavior: 'smooth' });
+            if (autoRoll) { setAutoRoll(false); audioService.playClick(); }
+            else handleRollDice();
         }
     };
 
     if (!isOpen) return null;
 
+    const isWild = activeGame === 'WILD';
+    const questTitle = isWild ? '⛏️ CoinMine' : '🎲 Fortune Trail';
+
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black animate-pop-in">
-            {/* GAME SELECTION SCREEN */}
-            {activeGame === 'NONE' && (
-                <div className="w-full h-full max-w-none flex flex-col items-center justify-center p-4 relative bg-[#180e07] rounded-none shadow-2xl overflow-hidden">
-                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-15 pointer-events-none"></div>
-                     <button onClick={onClose} className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-[10px] z-50">✕</button>
-                     
-                     <h2 className="text-lg font-black font-heavy text-[#e6c288] uppercase mb-4 text-center z-13">Choose Quest</h2>
-                     
-                     <div className="flex flex-row gap-3 z-10 items-center">
-                          {/* Wild Quest Card */}
-                          <button onClick={() => onSelectMode('WILD')} className="group relative w-32 h-44 bg-[#2a1b12] rounded-xl hover:scale-105 transition-transform flex flex-col items-center overflow-hidden">
-                              <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/85 z-10"></div>
-                              <div className="relative z-20 flex-1 flex items-center justify-center">
-                                  <div className="text-4xl group-hover:scale-105 transition-transform">🗿</div>
-                              </div>
-                              <div className="relative z-20 w-full bg-black/70 p-2 text-center">
-                                  <h3 className="text-[10px] font-black text-[#e6c288] uppercase tracking-wider leading-none">Wild</h3>
-                                  <p className="text-[#a1887f] text-[7px] font-bold mt-1 leading-none">Find gems!</p>
-                              </div>
-                          </button>
+        <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none"
+            style={{ background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
 
-                          {/* Dice Quest Card */}
-                          <button onClick={() => onSelectMode('DICE')} className="group relative w-32 h-44 bg-[#1a237e] rounded-xl hover:scale-105 transition-transform flex flex-col items-center overflow-hidden">
-                              <div className="absolute inset-0 bg-gradient-to-b from-black/0 to-black/85 z-10"></div>
-                              <div className="relative z-20 flex-1 flex items-center justify-center">
-                                  <div className="text-4xl group-hover:scale-105 transition-transform">🎲</div>
-                              </div>
-                              <div className="relative z-20 w-full bg-black/70 p-2 text-center">
-                                  <h3 className="text-[10px] font-black text-[#ffeb3b] uppercase tracking-wider leading-none">Dice</h3>
-                                  <p className="text-[#c5cae9] text-[7px] font-bold mt-1 leading-none">Roll & win!</p>
-                              </div>
-                          </button>
-                     </div>
+            {/* Topbar */}
+            <div className="shrink-0 flex items-center gap-2 px-3 h-[38px] z-20"
+                style={{ background: HDR, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-arrow-left"></i></div>
+                <span className="font-black text-white text-xs uppercase tracking-widest drop-shadow shrink-0">{questTitle}</span>
+                <div className="flex-1 flex items-center justify-center gap-1.5">
+                    <div className="currency-pill flex items-center gap-1">
+                        <div className="coin shrink-0">$</div>
+                        <span className="num" style={{ fontSize: '10px' }}>{formatCommaNumber(balance)}</span>
+                    </div>
+                    <div className="currency-pill flex items-center gap-1">
+                        <div className="gem shrink-0"></div>
+                        <span className="num" style={{ fontSize: '10px' }}>{diamonds}</span>
+                    </div>
                 </div>
-            )}
+                <div className="flex items-center gap-1 shrink-0">
+                    <span style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(253,230,138,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>Prize</span>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1 }}>
+                        {formatCommaNumber((maxBet || 10000) * (isWild ? wildStage : diceStage) * 10)}
+                    </span>
+                </div>
+            </div>
 
-            {/* WILD QUEST GAMEPLAY */}
+            {/* Stage bar — big white text, no bg, just below topbar */}
+            <div className="shrink-0 flex items-center justify-center py-1.5">
+                <span className="font-black text-white uppercase tracking-widest" style={{ fontSize: '2rem', lineHeight: 1, textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+                    STAGE {isWild ? wildStage : diceStage}
+                </span>
+            </div>
+
+            {/* ── COINMINE (Wild Quest) ── */}
             {activeGame === 'WILD' && (
-                <div className="w-full max-w-none h-full flex flex-col bg-[#2a1b12] rounded-none shadow-2xl relative overflow-hidden">
-                    <button onClick={onClose} className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-[10px] z-[60]">✕</button>
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/aztec.png')] opacity-10 pointer-events-none"></div>
-                    
-                    {/* Header */}
-                    <div className="flex justify-between items-center p-2.5 bg-[#1b0e07] shadow-md z-20">
-                        <button onClick={handleBackToSelection} className="bg-[#3e2723] text-[#e6c288] font-bold text-[8px] px-2 py-1 rounded-md">⬅ QUESTS</button>
-                        
-                        <div className="flex items-center gap-2.5 leading-none">
-                            <div className="flex flex-col items-center">
-                                <span className="text-[#a1887f] text-[7px] font-bold uppercase">Stg</span>
-                                <span className="text-xs font-black text-[#e6c288]">{wildStage}</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <span className="text-[#a1887f] text-[7px] font-bold uppercase">Cr</span>
-                                <span className="text-xs font-black text-green-400 font-mono">{credits}</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <span className="text-[#a1887f] text-[7px] font-bold uppercase">Picks</span>
-                                <span className="text-sm font-black text-white">{picks}</span>
+                <div className="flex-1 flex overflow-hidden relative">
+                    {noPicksMsg && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+                            <div className="animate-pop-in px-5 py-3 rounded-2xl font-black text-white text-base uppercase tracking-widest"
+                                style={{ background: 'rgba(0,0,0,0.9)', border: '2px solid #dc2626', boxShadow: '0 0 20px rgba(220,38,38,0.5)' }}>
+                                ⛏️ No picks left!
                             </div>
                         </div>
-
-                        <div className="flex gap-1 text-[8px]">
-                             <button onClick={handleExchangeCredits} className="bg-green-700 text-white px-2 py-0.5 rounded-md font-bold flex flex-col items-center">
-                                 <span>Pick (+{EXCHANGE_RATE}cr)</span>
-                              </button>
-                             <button onClick={handleBuyGems} className="bg-blue-600 text-white px-2 py-0.5 rounded-md font-bold flex flex-col items-center">
-                                 <span>Pick (+100💎)</span>
-                             </button>
+                    )}
+                    {stageWinning && (
+                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
+                            <div style={{ fontSize: '72px', lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce">💎</div>
+                            <div className="mt-3 text-2xl font-black text-white uppercase tracking-widest">Stage Clear!</div>
                         </div>
+                    )}
+
+                    {/* Left sidebar: stage counter, picks, buy button */}
+                    <div className="shrink-0 flex flex-col items-center justify-center gap-2 px-2 py-3"
+                        style={{ background: 'rgba(0,0,0,0.35)', borderRight: '1px solid rgba(255,255,255,0.06)', width: 80 }}>
+                        <div className="flex flex-col items-center leading-none">
+                            <span className="text-white/50 text-[8px] font-black uppercase tracking-widest">Stage</span>
+                            <span className="font-black text-white text-2xl leading-none">{wildStage}</span>
+                        </div>
+                        <div className="w-full h-px bg-white/10" />
+                        <div className="flex flex-col items-center leading-none">
+                            <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>⛏️</span>
+                            <span className="font-black text-white text-xl leading-none mt-0.5">{wildCredits}</span>
+                            <span className="text-white/50 text-[8px] font-black uppercase">Picks</span>
+                        </div>
+                        <Btn3D onClick={() => setShowBuyPopup('PICKS')}
+                            color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
+                            className="w-full py-1.5 rounded-lg text-white" style={{ fontSize: '0.6rem' }}>
+                            + Buy
+                        </Btn3D>
                     </div>
 
-                    {/* Main Area */}
-                    <div className="flex-1 flex items-center justify-center p-2.5 relative">
-                         <div className="bg-[#3e2723] p-2 rounded-xl shadow-lg relative">
-                             {stageWinning && (
-                                  <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-xl">
-                                      <div className="text-center">
-                                          <div className="text-4xl animate-bounce mb-2">💎</div>
-                                          <h2 className="text-base font-black text-[#e6c288] uppercase tracking-widest leading-none">Clear!</h2>
-                                      </div>
-                                  </div>
-                             )}
-
-                             <div 
-                                className="grid gap-1.5"
-                                style={{ 
-                                    gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))` 
-                                }}
-                             >
-                                  {grid.map((cell, i) => (
-                                      <button 
-                                         key={i}
-                                         onClick={() => handleTileClick(i)}
-                                         disabled={cell.revealed || picks <= 0}
-                                         className={`
-                                             w-10 h-10 md:w-12 md:h-12 rounded-lg active:translate-y-0.5 transition-all relative overflow-hidden flex items-center justify-center text-sm shadow-md
-                                             ${cell.revealed 
-                                                 ? 'bg-[#2a1b12] cursor-default' 
-                                                 : 'bg-[#6d4c41] hover:bg-[#795548] cursor-pointer'}
-                                         `}
-                                      >
-                                          {cell.revealed ? (
-                                              <span>
-                                                  {cell.content === 'GEM' ? '💎' : cell.content === 'REWARD' && cell.reward ? (
-                                                      cell.reward.type === 'COINS' ? '💰' : cell.reward.type === 'PICKS' ? '⛏️' : '💎'
-                                                  ) : ''}
-                                              </span>
-                                          ) : (
-                                              <span className="opacity-15 text-xs">?</span>
-                                          )}
-                                          {cell.revealed && cell.content === 'REWARD' && (
-                                              <span className="absolute bottom-0 text-[6px] font-bold text-white bg-black/60 px-0.5 rounded leading-none">{cell.reward?.label}</span>
-                                          )}
-                                      </button>
-                                  ))}
-                             </div>
-                         </div>
-                    </div>
-
-                    <div className="p-2.5 flex justify-center">
-                        <button 
-                            onClick={handleAutoPick}
-                            disabled={picks <= 0 || stageWinning}
-                            className={`px-5 py-1.5 rounded-lg font-black uppercase text-xs tracking-wider transition-all ${picks > 0 ? 'bg-[#e6c288] text-[#3e2723]' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
-                        >
-                            Auto Pick
-                        </button>
+                    {/* Rock grid */}
+                    <div className="flex-1 flex items-center justify-center p-3">
+                        <div className="relative p-2">
+                            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))` }}>
+                                {grid.map((cell, i) => {
+                                    const revealed = cell.revealed;
+                                    const isGem = revealed && cell.content === 'GEM';
+                                    const isReward = revealed && cell.content === 'REWARD';
+                                    const isBomb = cell.content === 'BOMB';
+                                    const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
+                                    const icon = isGem ? '💎' : isReward
+                                        ? (cell.reward?.type === 'COINS' ? '🪙' : cell.reward?.type === 'PICKS' ? '⛏️' : '💎')
+                                        : revealed && isBomb ? '💥' : null;
+                                    const tileBg = revealed
+                                        ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isBomb ? 'linear-gradient(180deg,#b45309,#78350f)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
+                                        : 'linear-gradient(180deg,#4c1d95,#2e1065)';
+                                    return (
+                                        <button key={i} onClick={() => handleTileClick(i)}
+                                            disabled={revealed || wildCredits <= 0 || stageWinning}
+                                            className="relative flex flex-col items-center justify-center rounded-xl active:translate-y-[2px] transition-all overflow-hidden"
+                                            style={{
+                                                width: tileSize, height: tileSize,
+                                                background: tileBg,
+                                                boxShadow: revealed ? 'none' : '0 4px 0 #1e0438, 0 6px 12px rgba(0,0,0,0.5)',
+                                                border: revealed ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                                                cursor: revealed || wildCredits <= 0 || stageWinning ? 'default' : 'pointer',
+                                            }}>
+                                            {revealed ? (
+                                                icon ? (
+                                                    <>
+                                                        <span style={{ fontSize: tileSize * 0.62, lineHeight: 1 }}>{icon}</span>
+                                                        {isReward && <span style={{ fontSize: Math.max(9, tileSize * 0.19) }} className="font-bold text-white/90 mt-0.5 leading-none">{cell.reward?.label}</span>}
+                                                    </>
+                                                ) : null
+                                            ) : (
+                                                <span style={{ fontSize: tileSize * 0.78, lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }}>🪨</span>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* DICE QUEST GAMEPLAY */}
+            {/* ── FORTUNE TRAIL (Dice Quest) ── */}
             {activeGame === 'DICE' && (
-                <div className="w-full max-w-none h-full flex flex-col bg-[#1a237e] rounded-none shadow-2xl relative overflow-hidden">
-                    <button onClick={onClose} className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white text-[10px] z-[60]">✕</button>
-                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 pointer-events-none"></div>
+                <>
+                    {/* Board */}
+                    <div className="flex-1 flex items-center justify-center relative w-full overflow-hidden px-2">
+                        <button onClick={() => boardContainerRef.current?.scrollBy({ left: -140, behavior: 'smooth' })}
+                            className="absolute left-1 z-30 w-8 h-8 rounded-full flex items-center justify-center font-black text-white text-sm"
+                            style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>◀</button>
+                        <button onClick={() => boardContainerRef.current?.scrollBy({ left: 140, behavior: 'smooth' })}
+                            className="absolute right-1 z-30 w-8 h-8 rounded-full flex items-center justify-center font-black text-white text-sm"
+                            style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>▶</button>
 
-                    {/* Header */}
-                    <div className="flex justify-between items-center p-2.5 bg-[#0d47a1] shadow-md z-20">
-                         <button onClick={handleBackToSelection} className="bg-[#1976d2] text-white font-bold text-[8px] px-2 py-1 rounded-md">⬅ QUESTS</button>
-                         
-                         <div className="flex items-center gap-2.5 leading-none">
-                            <div className="flex flex-col items-center">
-                                <span className="text-blue-200 text-[7px] font-bold uppercase">Stg</span>
-                                <span className="text-xs font-black text-yellow-400">{diceStage}</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <span className="text-blue-200 text-[7px] font-bold uppercase">Cr</span>
-                                <span className="text-xs font-black text-green-400 font-mono">{credits}</span>
-                            </div>
-                            <div className="flex flex-col items-center">
-                                <span className="text-blue-200 text-[7px] font-bold uppercase">Rolls</span>
-                                <span className="text-sm font-black text-white">{picks}</span>
-                            </div>
-                        </div>
+                        <div ref={boardContainerRef} className="flex items-end gap-2 overflow-x-auto no-scrollbar px-[45%] py-4" style={{ scrollBehavior: 'smooth' }}>
+                            {board.map((step) => {
+                                const isHere = step.index === visualPosition;
 
-                        <div className="flex gap-1 text-[8px]">
-                             <button onClick={handleExchangeCredits} className="bg-green-700 text-white px-2 py-0.5 rounded-md font-bold flex flex-col items-center">
-                                 <span>Roll (+{EXCHANGE_RATE}cr)</span>
-                              </button>
-                             <button onClick={handleBuyGems} className="bg-blue-500 text-white px-2 py-0.5 rounded-md font-bold flex flex-col items-center">
-                                 <span>Roll (+100💎)</span>
-                             </button>
-                        </div>
-                    </div>
+                                // Per-type background
+                                const bg = step.isFinish ? 'linear-gradient(180deg,#f59e0b,#b45309)'
+                                    : step.isStart ? 'linear-gradient(180deg,#22c55e,#15803d)'
+                                    : step.reward?.type === 'BACK' ? 'linear-gradient(180deg,#dc2626,#991b1b)'
+                                    : step.reward?.type === 'COINS' ? 'linear-gradient(180deg,#ca8a04,#713f12)'
+                                    : step.reward?.type === 'PICKS' ? 'linear-gradient(180deg,#7c3aed,#3b0764)'
+                                    : step.reward?.type === 'DIAMONDS' ? 'linear-gradient(180deg,#0891b2,#0c4a6e)'
+                                    : step.reward?.type === 'PACKS' ? 'linear-gradient(180deg,#d97706,#451a03)'
+                                    : 'linear-gradient(180deg,#312e81,#1e1b4b)';
 
-                    {/* Board Area */}
-                    <div className="flex-1 flex flex-col items-center justify-center relative w-full overflow-hidden">
-                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-16 bg-white/5 pointer-events-none"></div>
-                        
-                        <div className="w-full relative px-6">
-                             <button onClick={() => handleBoardScroll('LEFT')} className="absolute left-1 top-1/2 -translate-y-1/2 z-30 w-6 h-6 bg-black/50 text-white rounded-full text-xs">◀</button>
-                             <button onClick={() => handleBoardScroll('RIGHT')} className="absolute right-1 top-1/2 -translate-y-1/2 z-30 w-6 h-6 bg-black/50 text-white rounded-full text-xs">▶</button>
+                                const shadow = step.isFinish ? '0 4px 0 #78350f'
+                                    : step.isStart ? '0 4px 0 #14532d'
+                                    : step.reward?.type === 'BACK' ? '0 4px 0 #7f1d1d'
+                                    : step.reward?.type === 'COINS' ? '0 4px 0 #451a03'
+                                    : step.reward?.type === 'PICKS' ? '0 4px 0 #1e0438'
+                                    : step.reward?.type === 'DIAMONDS' ? '0 4px 0 #0c4a6e'
+                                    : step.reward?.type === 'PACKS' ? '0 4px 0 #3b0764'
+                                    : '0 4px 0 #0f0e1a';
 
-                             <div 
-                                ref={boardContainerRef}
-                                className="flex items-center gap-2.5 overflow-x-auto no-scrollbar px-[40%] py-4 snap-x snap-center"
-                                style={{ scrollBehavior: 'smooth' }}
-                             >
-                                 {board.map((step) => {
-                                     const isPlayerHere = step.index === visualPosition;
-                                     const isPast = step.index < visualPosition;
-                                     
-                                     return (
-                                         <div key={step.index} className={`relative shrink-0 w-16 h-16 rounded-xl flex flex-col items-center justify-center shadow snap-center ${step.isFinish ? 'bg-yellow-500' : step.isStart ? 'bg-green-600' : 'bg-[#283593]'}`}>
-                                             <div className="absolute top-1 left-1 text-[7px] font-bold opacity-50 text-white">#{step.index}</div>
-                                             
-                                             {step.isFinish && <div className="text-xl">🏆</div>}
-                                             {step.isStart && <div className="text-[10px] font-black uppercase text-white leading-none">Start</div>}
-                                             
-                                             {step.reward && !step.isFinish && (
-                                                  <div className="flex flex-col items-center">
-                                                      <span className="text-lg">{step.reward.type === 'COINS' ? '💰' : step.reward.type === 'DIAMONDS' ? '💎' : '⛏️'}</span>
-                                                      <span className="text-[7px] font-bold text-white bg-black/40 px-1 rounded">{step.reward.label}</span>
-                                                  </div>
-                                             )}
+                                const cellIcon = step.reward?.type === 'BACK' ? '⬅️'
+                                    : step.reward?.type === 'COINS' ? '🪙'
+                                    : step.reward?.type === 'PICKS' ? '🎲'
+                                    : step.reward?.type === 'DIAMONDS' ? '💎'
+                                    : step.reward?.type === 'PACKS' ? '📦'
+                                    : null;
 
-                                             {/* Player Avatar */}
-                                             {isPlayerHere && (
-                                                  <div className="absolute top-1 left-1/2 -translate-x-1/2 z-20 animate-bounce flex flex-col items-center">
-                                                      <div className="text-2xl drop-shadow-md">🤠</div>
-                                                  </div>
-                                             )}
+                                return (
+                                    <div key={step.index} className="relative shrink-0 flex flex-col items-center justify-center rounded-xl"
+                                        style={{ width: 74, height: isHere ? 98 : 82, background: bg, boxShadow: `${shadow}, 0 6px 16px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.15)`, border: isHere ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.12)', transition: 'all 0.3s ease' }}>
 
-                                             {isPast && !step.isStart && (
-                                                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-xl">
-                                                      <span className="text-green-400 text-lg">✔</span>
-                                                  </div>
-                                             )}
-                                         </div>
-                                     );
-                                 })}
-                             </div>
+                                        {/* Step label */}
+                                        <span className="absolute top-1 left-1.5 text-[8px] font-black text-white/50 leading-none">
+                                            {step.isStart ? 'GO' : step.isFinish ? '🏆' : `#${step.index}`}
+                                        </span>
+
+                                        {/* Player marker */}
+                                        {isHere && (
+                                            <div className="absolute -top-7 left-1/2 -translate-x-1/2 animate-bounce z-10">
+                                                <span style={{ fontSize: '1.9rem', lineHeight: 1, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }}>🎲</span>
+                                            </div>
+                                        )}
+
+                                        {step.isStart ? (
+                                            <span className="text-sm font-black text-white mt-2">Start</span>
+                                        ) : step.isFinish ? (
+                                            <span className="text-3xl mt-1">🏆</span>
+                                        ) : cellIcon ? (
+                                            <div className="flex flex-col items-center gap-1 pt-3">
+                                                <span style={{ fontSize: '1.7rem', lineHeight: 1 }}>{cellIcon}</span>
+                                                {step.reward?.type === 'PICKS' && (
+                                                    <span className="text-white font-black text-base leading-none">×{step.reward.value}</span>
+                                                )}
+                                                {step.reward?.type === 'BACK' && (
+                                                    <span className="text-red-200 font-black text-[11px] uppercase tracking-wide leading-none">BACK!</span>
+                                                )}
+                                                {(step.reward?.type === 'COINS' || step.reward?.type === 'DIAMONDS' || step.reward?.type === 'PACKS') && (
+                                                    <span className="text-white font-black text-sm leading-none">{step.reward.label}</span>
+                                                )}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
-                    {/* Controls */}
-                    <div className="p-3 bg-[#0d47a1] flex flex-col items-center shadow relative z-20">
-                         <div className="flex items-center gap-4">
-                             <div className="bg-[#1565c0] p-2 rounded-lg w-12 h-12 flex items-center justify-center shadow-inner">
-                                 <div className={`text-xl font-black text-white ${isRolling ? 'animate-spin' : ''}`}>{diceValue}</div>
-                             </div>
+                    {/* Controls footer */}
+                    <div className="shrink-0 flex items-center px-3 py-2 gap-4"
+                        style={{ background: 'rgba(0,0,0,0.45)', borderTop: '1px solid rgba(255,255,255,0.07)', minHeight: 96 }}>
 
-                             <button 
+                        {/* Left — dice pill + buy */}
+                        <div className="flex flex-col items-center gap-2 shrink-0">
+                            <div className="currency-pill flex items-center gap-1.5 px-3 py-1.5">
+                                <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🎲</span>
+                                <span className="font-black text-white text-lg leading-none">{diceCredits}</span>
+                                <span className="text-white/50 text-[10px] uppercase font-bold">Dice</span>
+                            </div>
+                            <Btn3D onClick={() => setShowBuyPopup('DICE')}
+                                color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
+                                className="px-4 py-1.5 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
+                                + Buy Dice
+                            </Btn3D>
+                        </div>
+
+                        {/* Center — dice face + roll button */}
+                        <div className="flex-1 flex items-center justify-center gap-4">
+                            <DiceFace value={diceValue} rolling={isRolling} size={72} />
+                            <button
                                 onMouseDown={handleRollMouseDown}
                                 onMouseUp={handleRollMouseUp}
                                 onMouseLeave={handleRollMouseUp}
                                 onTouchStart={handleRollMouseDown}
                                 onTouchEnd={handleRollMouseUp}
-                                disabled={picks <= 0 || isRolling || isMoving}
-                                className={`
-                                    w-16 h-16 rounded-full font-black text-xs uppercase tracking-widest active:translate-y-0.5 transition-all flex flex-col items-center justify-center leading-none
-                                    ${autoRoll ? 'bg-red-650 animate-pulse text-white' : picks > 0 ? 'bg-yellow-500 text-yellow-950 font-bold' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}
-                                `}
-                              >
-                                 {autoRoll ? 'STOP' : 'ROLL'}
-                                 <span className="text-[6px] opacity-70 mt-0.5">{autoRoll ? 'Auto' : 'Auto'}</span>
-                             </button>
-                         </div>
+                                disabled={diceCredits <= 0}
+                                className="relative w-[88px] h-[88px] rounded-full flex flex-col items-center justify-center font-black uppercase tracking-widest transition-all active:translate-y-[3px]"
+                                style={{
+                                    background: autoRoll ? 'linear-gradient(180deg,#ef4444,#b91c1c)' : diceCredits > 0 ? 'linear-gradient(180deg,#fbbf24,#d97706)' : '#374151',
+                                    boxShadow: diceCredits > 0 ? (autoRoll ? '0 5px 0 #7f1d1d, 0 8px 20px rgba(0,0,0,0.5)' : '0 5px 0 #92400e, 0 8px 20px rgba(0,0,0,0.5)') : 'none',
+                                    border: '2px solid rgba(255,255,255,0.2)',
+                                    color: diceCredits > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
+                                    cursor: diceCredits <= 0 ? 'not-allowed' : 'pointer',
+                                }}>
+                                <span className="text-xl leading-none">{autoRoll ? 'STOP' : 'ROLL'}</span>
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )}
+
+            {/* Buy Picks/Dice Popup */}
+            {showBuyPopup && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                    onClick={() => setShowBuyPopup(null)}>
+                    <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ width: 300, background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}
+                        onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="px-4 pt-4 pb-3 flex items-center justify-between">
+                            <div>
+                                <div className="text-white font-black text-base leading-none">
+                                    {showBuyPopup === 'PICKS' ? '⛏️ Buy Picks' : '🎲 Buy Dice'}
+                                </div>
+                                <div className="text-purple-300/60 text-[10px] mt-0.5">Bundles include coins & gems bonus</div>
+                            </div>
+                            <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full">
+                                <span className="text-sm">💎</span>
+                                <span className="text-white font-black text-sm">{diamonds}</span>
+                            </div>
+                        </div>
+                        {/* Bundle options */}
+                        <div className="px-4 pb-4 flex gap-3">
+                            {(showBuyPopup === 'PICKS'
+                                ? [
+                                    { label: 'Starter', picks: 5,  dice: 0,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 50,  gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
+                                    { label: 'Pro',     picks: 20, dice: 0,  coins: Math.round((maxBet || 10000) * 100), bonusGems: 200, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
+                                ]
+                                : [
+                                    { label: 'Starter', picks: 0,  dice: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 50,  gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
+                                    { label: 'Pro',     picks: 0,  dice: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 200, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
+                                ]
+                            ).map(opt => {
+                                const canAfford = diamonds >= opt.gemCost;
+                                return (
+                                    <button key={opt.label}
+                                        onClick={() => { if (!canAfford) return; onBuyQuestBundle?.(showBuyPopup, opt.picks, opt.dice, opt.coins, opt.gemCost, opt.bonusGems); setShowBuyPopup(null); }}
+                                        disabled={!canAfford}
+                                        className="flex-1 rounded-2xl flex flex-col items-center p-3 gap-1.5"
+                                        style={{ background: canAfford ? opt.color : 'rgba(0,0,0,0.5)', opacity: canAfford ? 1 : 0.5, border: '1px solid rgba(255,255,255,0.15)' }}>
+                                        <div className="text-white font-black text-sm uppercase tracking-wider">{opt.label}</div>
+                                        <div className="w-full flex flex-col gap-1 my-1">
+                                            <div className="flex items-center gap-1.5 text-white text-xs font-bold">
+                                                <span>{showBuyPopup === 'PICKS' ? '⛏️' : '🎲'}</span>
+                                                <span>+{showBuyPopup === 'PICKS' ? opt.picks : opt.dice} {showBuyPopup === 'PICKS' ? 'Picks' : 'Dice'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-yellow-200 text-xs font-bold">
+                                                <span>🪙</span>
+                                                <span>+{formatCommaNumber(opt.coins)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-cyan-200 text-xs font-bold">
+                                                <span>💎</span>
+                                                <span>+{opt.bonusGems} Gems</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full py-2 rounded-xl text-center font-black text-white text-sm"
+                                            style={{ background: canAfford ? 'linear-gradient(180deg,#7c3aed,#4c1d95)' : 'rgba(0,0,0,0.4)', boxShadow: canAfford ? '0 3px 0 #2e1065' : 'none' }}>
+                                            💎 {opt.gemCost}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             )}
