@@ -584,6 +584,17 @@ const App: React.FC = () => {
       }
   }
 
+  const handleBuyPremiumPackCredits = (cost: number, credits: number) => {
+      if (player.diamonds >= cost) {
+          setPlayer(p => ({ ...p, diamonds: p.diamonds - cost, premiumPackCredits: (p.premiumPackCredits ?? 0) + credits }));
+          setCelebrationMsg(`+${credits} Premium Pack Credits`);
+          audioService.playWinBig();
+      } else {
+          setCelebrationMsg("Not Enough Gems!");
+          audioService.playStoneBreak();
+      }
+  };
+
   const handleBuyPackCreditsWithTokens = (amount: number, cost: number) => {
       if (player.tokens >= cost) {
           setPlayer(p => ({ ...p, tokens: p.tokens - cost, packCredits: p.packCredits + amount }));
@@ -606,6 +617,21 @@ const App: React.FC = () => {
       }
   }
 
+  // Guaranteed rare/epic/legendary slots per 10-card draw, indexed by completed album count
+  const RARITY_TIERS: string[][] = [
+      ['RARE'],
+      ['RARE','RARE'],
+      ['RARE','RARE','RARE'],
+      ['RARE','RARE','EPIC'],
+      ['RARE','RARE','RARE','EPIC'],
+      ['RARE','EPIC','EPIC'],
+      ['RARE','RARE','EPIC','EPIC'],
+      ['RARE','RARE','RARE','EPIC','EPIC'],
+      ['RARE','RARE','RARE','EPIC','LEGENDARY'],
+      ['RARE','RARE','RARE','EPIC','EPIC','LEGENDARY'],
+      ['RARE','RARE','RARE','EPIC','EPIC','EPIC','LEGENDARY'],
+  ];
+
   const handleBuyPack = (packId: string, drawCount: number): Card[] => {
       let packInfo = PACK_COSTS.BASIC;
       if (packId === 'super') packInfo = PACK_COSTS.SUPER;
@@ -626,34 +652,53 @@ const App: React.FC = () => {
           
           const allDrawnCards: Card[] = [];
           let earnedTokens = 0;
-          
+
           let tempDecks = decks.map(d => ({ ...d, cards: d.cards.map(c => ({...c})) }));
           const prevCompletedIds = decks.filter(d => d.isCompleted).map(d => d.gameId);
+          const completedCount = prevCompletedIds.length;
+          const tierGuarantees = [...(RARITY_TIERS[Math.min(completedCount, RARITY_TIERS.length - 1)])];
+
+          // Build the full draw rarity list: guaranteed slots + commons for the rest
+          const drawRarities: string[] = [];
+          if (drawCount === 10) {
+              for (const r of tierGuarantees) drawRarities.push(r);
+              while (drawRarities.length < 10) drawRarities.push('COMMON');
+              // Shuffle
+              for (let i = drawRarities.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [drawRarities[i], drawRarities[j]] = [drawRarities[j], drawRarities[i]];
+              }
+          }
 
           for (let d = 0; d < drawCount; d++) {
-              let rarityWeights = [0.98, 0.02, 0.0, 0.0]; 
-              if (packId === 'ultra') rarityWeights = [0.0, 0.71, 0.25, 0.04]; 
-              else if (packId === 'mega') rarityWeights = [0.24, 0.60, 0.15, 0.01]; 
+              // For 10x draws use tier guarantees; for 1x use proportional weights
+              let rarityWeights = [0.98, 0.02, 0.0, 0.0];
+              if (packId === 'ultra') rarityWeights = [0.0, 0.71, 0.25, 0.04];
+              else if (packId === 'mega') rarityWeights = [0.24, 0.60, 0.15, 0.01];
               else if (packId === 'super') rarityWeights = [0.55, 0.40, 0.05, 0.0];
 
               const allCardsInTemp: { deckId: string, cardIndex: number, card: Card }[] = [];
-              tempDecks.forEach(d => d.cards.forEach((c, idx) => allCardsInTemp.push({ deckId: d.gameId, cardIndex: idx, card: c })));
-              
-              const hasAnyCards = tempDecks.some(d => d.cards.some(c => c.count > 0));
+              tempDecks.forEach(dk => dk.cards.forEach((c, idx) => allCardsInTemp.push({ deckId: dk.gameId, cardIndex: idx, card: c })));
+
+              const hasAnyCards = tempDecks.some(dk => dk.cards.some(c => c.count > 0));
 
               for(let i=0; i<packInfo.cardCount; i++) {
                   let pickObj: { deckId: string, cardIndex: number, card: Card };
-                  if (hasAnyCards && Math.random() < 0.4) { 
-                       const ownedCards = allCardsInTemp.filter(x => tempDecks.find(d => d.gameId === x.deckId)?.cards[x.cardIndex].count! > 0);
+                  if (hasAnyCards && Math.random() < 0.4) {
+                       const ownedCards = allCardsInTemp.filter(x => tempDecks.find(dk => dk.gameId === x.deckId)?.cards[x.cardIndex].count! > 0);
                        if (ownedCards.length > 0) pickObj = ownedCards[Math.floor(Math.random() * ownedCards.length)];
                        else pickObj = allCardsInTemp[Math.floor(Math.random() * allCardsInTemp.length)];
                   } else {
-                      const r = Math.random();
+                      // Use tier-guaranteed rarity for 10x draws, otherwise weighted random
                       let targetRarity: any = 'COMMON';
-                      if (r < rarityWeights[3]) targetRarity = 'LEGENDARY';
-                      else if (r < rarityWeights[3] + rarityWeights[2]) targetRarity = 'EPIC';
-                      else if (r < rarityWeights[3] + rarityWeights[2] + rarityWeights[1]) targetRarity = 'RARE';
-                      
+                      if (drawRarities.length > 0) {
+                          targetRarity = drawRarities[d] ?? 'COMMON';
+                      } else {
+                          const r = Math.random();
+                          if (r < rarityWeights[3]) targetRarity = 'LEGENDARY';
+                          else if (r < rarityWeights[3] + rarityWeights[2]) targetRarity = 'EPIC';
+                          else if (r < rarityWeights[3] + rarityWeights[2] + rarityWeights[1]) targetRarity = 'RARE';
+                      }
                       const pool = allCardsInTemp.filter(item => item.card.rarity === targetRarity);
                       pickObj = pool.length > 0 ? pool[Math.floor(Math.random() * pool.length)] : allCardsInTemp[Math.floor(Math.random() * allCardsInTemp.length)];
                   }
@@ -1487,12 +1532,16 @@ const App: React.FC = () => {
       }
   };
 
-  const getDeckReward = (level: number) => {
-      return (1000000 + (level * 500000)) * 100; 
+  const getDeckReward = (deckId: string, level: number) => {
+      const idx = GAMES_CONFIG.findIndex(g => g.id === deckId);
+      const pct = 0.5 + Math.max(0, idx) * 0.10; // 50% for first album, +10% each subsequent
+      return Math.round(MAX_BET_BY_LEVEL(level) * 100 * pct);
   };
-  const getGrandAlbumReward = (level: number) => {
-      return (10000000 + (level * 2000000)) * 10000;
-  };
+  const getGrandAlbumReward = (level: number) => MAX_BET_BY_LEVEL(level) * 1000;
+
+  const showGoldHeader = isHighLimit || (player.isVip && currentView === 'LOBBY');
+  const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
+  const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
   return (
     <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
@@ -1771,7 +1820,7 @@ const App: React.FC = () => {
           premiumPackCredits={player.premiumPackCredits ?? 0}
           onBuyPremiumCredits={handleBuyPremiumPackCredits}
           grandPrize={getGrandAlbumReward(player.level)}
-          getDeckReward={(id) => getDeckReward(player.level)}
+          getDeckReward={(id) => getDeckReward(id, player.level)}
           balance={player.balance}
       />
       

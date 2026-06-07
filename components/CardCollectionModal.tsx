@@ -396,14 +396,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     {/* PACKS view */}
                     {!selectedDeckId && activeTab === 'PACKS' && (
                         <div className="flex items-center h-full w-full gap-4">
-                            {/* Two pack columns */}
                             {packOptions.map(pack => {
-                                const singleCost = 1; // always 1 credit per draw
-                                const bulkCost = 9;   // 10 draws for 9 credits (10% off)
+                                const singleCost = 1;
+                                const bulkCost = 9;
                                 const canDrawOne = pack.credits >= singleCost;
                                 const canDrawTen = pack.credits >= bulkCost;
                                 return (
-                                    <div key={pack.id} className={`flex flex-col items-center gap-2 flex-1`}>
+                                    <div key={pack.id} className="flex flex-col items-center gap-2 flex-1">
                                         {/* Pack art */}
                                         <div className={`rounded-2xl overflow-hidden shadow-xl bg-gradient-to-b ${pack.color} flex flex-col items-center justify-center py-4 gap-1 w-full`}
                                             style={{ minHeight: 110 }}>
@@ -534,16 +533,16 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <div className="px-4 pb-4 flex flex-col gap-2">
                             {(showPackBuyPopup === 'standard'
                                 ? [
-                                    { label: '10× 🃏',  packs: 10, gemCost: 45,  isBundle: false, bonusGems: 0, bonusCoins: 0 },
-                                    { label: '50× 🃏',  packs: 50, gemCost: 200, isBundle: false, bonusGems: 0, bonusCoins: 0 },
-                                    { label: '🎁 Starter Bundle', packs: 15, gemCost: 80,  isBundle: true, bonusGems: 30,  bonusCoins: 0 },
-                                    { label: '🎁 Pro Bundle',     packs: 60, gemCost: 280, isBundle: true, bonusGems: 100, bonusCoins: 0 },
+                                    { label: '10× 🃏',  packs: 10, gemCost: 45,  isBundle: false },
+                                    { label: '50× 🃏',  packs: 50, gemCost: 200, isBundle: false },
+                                    { label: '🎁 Starter Bundle', packs: 15, gemCost: 80,  isBundle: true },
+                                    { label: '🎁 Pro Bundle',     packs: 60, gemCost: 280, isBundle: true },
                                 ]
                                 : [
-                                    { label: '10× 🎴',  packs: 10, gemCost: 180,  isBundle: false, bonusGems: 0, bonusCoins: 0 },
-                                    { label: '50× 🎴',  packs: 50, gemCost: 800,  isBundle: false, bonusGems: 0, bonusCoins: 0 },
-                                    { label: '🎁 Premium Starter', packs: 15, gemCost: 320,  isBundle: true, bonusGems: 50,  bonusCoins: 0 },
-                                    { label: '🎁 Premium Pro',     packs: 60, gemCost: 1100, isBundle: true, bonusGems: 200, bonusCoins: 0 },
+                                    { label: '10× 🎴',  packs: 10, gemCost: 180,  isBundle: false },
+                                    { label: '50× 🎴',  packs: 50, gemCost: 800,  isBundle: false },
+                                    { label: '🎁 Premium Starter', packs: 15, gemCost: 320,  isBundle: true },
+                                    { label: '🎁 Premium Pro',     packs: 60, gemCost: 1100, isBundle: true },
                                 ]
                             ).map(opt => {
                                 const canAfford = diamonds >= opt.gemCost;
