@@ -165,6 +165,7 @@ const App: React.FC = () => {
   const [freeSpinsWon, setFreeSpinsWon] = useState(0);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [showPackToast, setShowPackToast] = useState(false);
   const [levelUpReward, setLevelUpReward] = useState(0);
   const [maxBetIncreased, setMaxBetIncreased] = useState(false);
   const [mobileScale, setMobileScale] = useState(1);
@@ -1333,7 +1334,8 @@ const App: React.FC = () => {
     const packDropChance = Math.max(0.01, 0.20 - (maxBetIdx - betIndex) * 0.02);
     if (Math.random() < packDropChance) {
         setPlayer(p => ({ ...p, packCredits: p.packCredits + 1 }));
-        setCelebrationMsg('📦 +1 Card Pack!');
+        setShowPackToast(true);
+        setTimeout(() => setShowPackToast(false), 2500);
     } else if (player.level >= 30) {
         const cardRoll = Math.random();
         if (cardRoll < 0.10) handleCardDrop('RARE');
@@ -1963,6 +1965,7 @@ const currentState: SavedGameState = {
                 currentBet={MAX_BET_BY_LEVEL(player.level)}
                 piggyBank={player.piggyBank}
                 piggyMaxBet={MAX_BET_BY_LEVEL(player.level)}
+                packCredits={player.packCredits}
             />
         ) : (
             <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
@@ -2301,6 +2304,19 @@ const currentState: SavedGameState = {
       {showFreeSpinsPopup && <FreeSpinsWonPopup isOpen={showFreeSpinsPopup} count={freeSpinsWon} onComplete={handleStartFreeSpins} />}
       
       {showLevelUp && currentView === 'GAME' && <LevelUpToast level={player.level} reward={levelUpReward} maxBetIncreased={maxBetIncreased} newMaxBet={MAX_BET_BY_LEVEL(player.level)} onClose={() => setShowLevelUp(false)} />}
+
+      {showPackToast && currentView === 'GAME' && (
+          <div className="fixed top-[40px] right-2 z-[200] animate-pop-in pointer-events-none"
+              style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
+              <div className="flex items-center gap-2">
+                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>📦</span>
+                  <div>
+                      <div className="font-black text-white text-xs uppercase tracking-widest">+1 Card Pack!</div>
+                      <div className="text-purple-300 text-[9px] font-bold">Added to your stash</div>
+                  </div>
+              </div>
+          </div>
+      )}
       
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
       

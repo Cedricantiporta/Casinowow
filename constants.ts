@@ -217,7 +217,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   PIGGY: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '💵', [SymbolType.BELL]: '🔔', [SymbolType.BAR]: '🏦', [SymbolType.CHERRY]: '🔨', [SymbolType.SEVEN]: '🐷',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '💰', ...JP_ICONS
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🐷', ...JP_ICONS
   }
 };
 
