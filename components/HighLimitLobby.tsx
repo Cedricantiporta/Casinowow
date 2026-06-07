@@ -85,18 +85,6 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                             {/* Bottom dark gradient for text */}
                             <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
 
-                            {/* Jackpot */}
-                            <div className="absolute top-2 left-0 right-0 flex justify-center z-20">
-                                <span style={{ fontSize: '12px', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }}>
-                                    {formatK(jackpotTotals[globalIdx] ?? 0)}
-                                </span>
-                            </div>
-
-                            {/* VIP badge */}
-                            <div className="absolute top-2 right-2 z-20">
-                                <span style={{ fontSize: '9px', background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00', padding: '2px 5px', borderRadius: '6px', fontWeight: 900, letterSpacing: '0.05em' }}>VIP</span>
-                            </div>
-
                             {/* Icon */}
                             <div className="relative z-10 flex items-center justify-center h-full py-4">
                                 <span className="text-[4.5rem] leading-none drop-shadow-2xl">{icon}</span>
