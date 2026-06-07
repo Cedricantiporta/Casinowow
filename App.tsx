@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK } from './constants';
 import { Reel } from './components/Reel';
 import { WinPopup } from './components/WinPopup';
 import { PaylinesOverlay } from './components/PaylinesOverlay';
@@ -20,7 +20,15 @@ import { LoginBonusModal } from './components/LoginBonusModal';
 import { JackpotTicker } from './components/JackpotTicker';
 import { PiggyBankModal } from './components/PiggyBankModal';
 import { FeatureUnlockModal } from './components/FeatureUnlockModal';
+import { SettingsModal } from './components/SettingsModal';
+import { VipLoungeModal } from './components/VipLoungeModal';
+import { HighLimitLobby } from './components/HighLimitLobby';
 import { audioService } from './services/audioService';
+import { jackpotService } from './services/jackpotService';
+import { JackpotCelebration } from './components/JackpotCelebration';
+import { StageCompleteModal } from './components/StageCompleteModal';
+import { PremiumModal } from './components/PremiumModal';
+import { ProfileModal } from './components/ProfileModal';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -66,25 +74,34 @@ const App: React.FC = () => {
   const spinButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
-  const [currentView, setCurrentView] = useState<'LOBBY' | 'GAME'>('LOBBY');
+  const [currentView, setCurrentView] = useState<'LOBBY' | 'GAME' | 'HIGH_LIMIT'>('LOBBY');
   const [selectedGame, setSelectedGame] = useState<GameConfig>(GAMES_CONFIG[0]);
   const [isHighLimit, setIsHighLimit] = useState(false);
   const [savedGameStates, setSavedGameStates] = useState<Record<string, SavedGameState>>({});
 
-  const [player, setPlayer] = useState<PlayerState>({
-    balance: INITIAL_BALANCE,
-    diamonds: INITIAL_GEMS,
-    tokens: 0,
-    packCredits: 0,
-    premiumPackCredits: 0,
-    piggyBank: 0,
-    level: 1,
-    xp: 0,
-    xpToNextLevel: XP_BASE_REQ,
-    autoSpin: false,
-    xpMultiplier: 1,
-    xpBoostEndTime: 0,
-    freeStashClaimed: false
+  const [player, setPlayer] = useState<PlayerState>(() => {
+    const defaults: PlayerState = {
+      balance: INITIAL_BALANCE,
+      diamonds: INITIAL_GEMS,
+      tokens: 0,
+      packCredits: 0,
+      premiumPackCredits: 0,
+      piggyBank: 0,
+      level: 1,
+      xp: 0,
+      xpToNextLevel: XP_BASE_REQ,
+      autoSpin: false,
+      xpMultiplier: 1,
+      xpBoostEndTime: 0,
+      freeStashClaimed: false,
+      freeStashClaimedTime: 0,
+      shopClaimedItems: []
+    };
+    try {
+      const saved = localStorage.getItem('cw_player');
+      if (saved) return { ...defaults, ...JSON.parse(saved) };
+    } catch {}
+    return defaults;
   });
   
   // Ref to track player state to avoid stale closures in callbacks (like feature unlocks)
@@ -92,7 +109,25 @@ const App: React.FC = () => {
   useEffect(() => {
       playerRef.current = player;
   }, [player]);
-  
+
+  // Sync jackpot max bet with current level's max bet
+  useEffect(() => {
+      jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
+  }, [player.level]);
+
+  // Toggle XP mult display between multiplier and countdown every 15s when boost active
+  useEffect(() => {
+      const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
+      if (!boostActive) { setShowXpTimer(false); return; }
+      const interval = setInterval(() => setShowXpTimer(prev => !prev), 15000);
+      return () => clearInterval(interval);
+  }, [player.xpMultiplier, player.xpBoostEndTime]);
+
+  // Instantly dismiss level toast when leaving game view
+  useEffect(() => {
+      if (currentView !== 'GAME') setShowLevelUp(false);
+  }, [currentView]);
+
   const [bonusTimers, setBonusTimers] = useState([
       { id: 0, endTime: 0, reward: 50000, label: 'Quick' }, 
       { id: 1, endTime: Date.now() + 900000, reward: 250000, label: 'Daily' }, 
@@ -110,16 +145,12 @@ const App: React.FC = () => {
       })));
   }, [player.level]);
 
-  const [missionState, setMissionState] = useState<MissionState>({
-      activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)],
-      passLevel: 1,
-      passXP: 0,
-      passXpToNext: 500, 
-      passRewards: GENERATE_PASS_REWARDS(),
-      isPremium: false,
-      premiumExpiry: 0,
-      passBoostMultiplier: 1,
-      passBoostEndTime: 0
+  const [missionState, setMissionState] = useState<MissionState>(() => {
+    try {
+      const saved = localStorage.getItem('cw_missions');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return { activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 500, passRewards: GENERATE_PASS_REWARDS(), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
   });
   const [decks, setDecks] = useState<Deck[]>(GENERATE_DECKS());
 
@@ -132,8 +163,19 @@ const App: React.FC = () => {
   const [winData, setWinData] = useState<WinData | null>(null);
   const [stoppedReels, setStoppedReels] = useState(0);
   const [fastSpin, setFastSpin] = useState(false);
+  const [instantStop, setInstantStop] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
-  const savedFastSpinRef = useRef<boolean>(false); 
+  const [showSettings, setShowSettings] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showVipLounge, setShowVipLounge] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [showXpTimer, setShowXpTimer] = useState(false);
+  const [cardInitialTab, setCardInitialTab] = useState<'ALBUM' | 'PACKS'>('ALBUM');
+  const [cardModalReturnTab, setCardModalReturnTab] = useState<'ALBUM' | 'PACKS' | null>(null);
+  const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE'; stage: number; coins: number; diamonds: number } | null>(null);
+  const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
+  const [pendingBigWin, setPendingBigWin] = useState(false);
+  const savedFastSpinRef = useRef<boolean>(false);
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [piggyGlow, setPiggyGlow] = useState(false);
   
@@ -170,26 +212,36 @@ const App: React.FC = () => {
   }, []);
 
   // Quest state initialized with separate stages
-  const [quest, setQuest] = useState<QuestState>({ 
-      credits: 0, 
-      picks: 2, 
-      wildStage: 1, 
-      diceStage: 1, 
-      max: 60, 
-      dicePosition: 0, 
-      activeGame: 'NONE', 
-      wildGrid: [] 
-  }); 
+  const [quest, setQuest] = useState<QuestState>({
+      credits: 0,
+      picks: 2,
+      diceCredits: 0,
+      wildCredits: 0,
+      wildStage: 1,
+      diceStage: 1,
+      max: 60,
+      dicePosition: 0,
+      activeGame: 'NONE',
+      wildGrid: []
+  });
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
   const [showFreeSpinSummary, setShowFreeSpinSummary] = useState(false);
   const [spinsWithoutBonus, setSpinsWithoutBonus] = useState(0);
   
-  const [loginState, setLoginState] = useState<DailyLoginState>({
-      currentDay: 1,
-      claimedToday: false,
-      lastClaimTime: 0
+  const [loginState, setLoginState] = useState<DailyLoginState>(() => {
+      try {
+          const saved = localStorage.getItem('cw_login');
+          if (saved) {
+              const parsed = JSON.parse(saved);
+              const lastDate = new Date(parsed.lastClaimTime).toDateString();
+              const today = new Date().toDateString();
+              if (lastDate !== today) return { ...parsed, claimedToday: false };
+              return parsed;
+          }
+      } catch {}
+      return { currentDay: 1, claimedToday: false, lastClaimTime: 0 };
   });
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
@@ -297,15 +349,25 @@ const App: React.FC = () => {
   };
 
   const handleToggleVIP = () => {
-      if (playerRef.current.level < 40) {
-          audioService.playStoneBreak();
-          setCelebrationMsg("VIP Limit Unlocks at Level 40");
-          return;
+      if (player.isVip) {
+          setIsHighLimit(true);
+          setCurrentView('HIGH_LIMIT');
+      } else {
+          setShowVipLounge(true);
       }
-      setIsHighLimit(prev => {
-          if (!prev) setShowPurchaseModal('VIP');
-          return !prev;
-      });
+      audioService.playClick();
+  };
+
+  const handleJoinVip = () => {
+      setPlayer(p => ({
+          ...p,
+          isVip: true,
+          balance: p.balance + 500_000,
+          diamonds: p.diamonds + 500,
+      }));
+      setShowVipLounge(false);
+      setIsHighLimit(true);
+      setCurrentView('HIGH_LIMIT');
       audioService.playClick();
   };
 
@@ -418,6 +480,18 @@ const App: React.FC = () => {
           return () => clearInterval(interval);
       }
   }, [missionState.passBoostEndTime]);
+
+  useEffect(() => {
+    try { localStorage.setItem('cw_player', JSON.stringify(player)); } catch {}
+  }, [player]);
+
+  useEffect(() => {
+    try { localStorage.setItem('cw_missions', JSON.stringify(missionState)); } catch {}
+  }, [missionState]);
+
+  useEffect(() => {
+    try { localStorage.setItem('cw_login', JSON.stringify(loginState)); } catch {}
+  }, [loginState]);
 
   const updateMissions = (type: MissionType, amount: number) => {
       if (player.level < 10) return; 
@@ -920,18 +994,16 @@ const App: React.FC = () => {
 
   const handleStageComplete = (gameType: 'WILD' | 'DICE', bonusCoins: number, bonusDiamonds: number) => {
       const stage = gameType === 'WILD' ? quest.wildStage : quest.diceStage;
-      const scaledBonus = 1000000 * stage * player.level; // Logic derived from MiniGameModal, ensure consistency
-      
-      setPlayer(p => ({ ...p, balance: p.balance + scaledBonus, diamonds: p.diamonds + bonusDiamonds }));
-      
-      // Separate Progress Logic
+
+      setPlayer(p => ({ ...p, balance: p.balance + bonusCoins, diamonds: p.diamonds + bonusDiamonds }));
+
       if (gameType === 'WILD') {
-          setQuest(q => ({ ...q, wildStage: q.wildStage + 1, wildGrid: [] })); 
+          setQuest(q => ({ ...q, wildStage: q.wildStage + 1, wildGrid: [] }));
       } else {
-          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 })); 
+          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
       }
-      
-      setCelebrationMsg(`${gameType === 'WILD' ? 'Wild' : 'Dice'} Stage Complete! +${formatCommaNumber(scaledBonus)}`);
+
+      setStageCompletePopup({ gameType, stage, coins: bonusCoins, diamonds: bonusDiamonds });
       audioService.playWinBig();
   };
 
@@ -941,25 +1013,30 @@ const App: React.FC = () => {
   };
 
   const handleDiceRoll = (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean) => {
-      setQuest(q => ({ ...q, picks: Math.max(0, q.picks - 1), dicePosition: newPosition })); 
-      let msgParts = [];
+      setQuest(q => ({ ...q, diceCredits: Math.max(0, q.diceCredits - 1), dicePosition: newPosition }));
+      const msgParts: string[] = [];
       let totalCoins = 0;
-      rewards.forEach(r => { if (r.type === 'COINS') totalCoins += r.value; });
-      if (totalCoins > 0) {
-          setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
-          msgParts.push(`${formatCommaNumber(totalCoins)} Coins`);
-      }
+      let totalGems = 0;
+      let totalPacks = 0;
+      let diceGained = 0;
+      rewards.forEach(r => {
+          if (r.type === 'COINS') totalCoins += r.value;
+          else if (r.type === 'DIAMONDS') totalGems += r.value;
+          else if (r.type === 'PACKS') totalPacks += r.value;
+          else if (r.type === 'PICKS') diceGained += r.value;
+      });
+      if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
+      if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
+      if (totalPacks > 0) { setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks })); msgParts.push(`+${totalPacks} 📦`); }
+      if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
       if (isFinish) {
-          // Note: Logic here needs to match handleStageComplete regarding rewards scaling
-          const bonusCoins = 2000000 * quest.diceStage * player.level; 
+          const bonusCoins = Math.round(MAX_BET_BY_LEVEL(player.level) * quest.diceStage * 10);
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
+          const currentStage = quest.diceStage;
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
-          msgParts.push(`Stage Clear! +${formatCommaNumber(bonusCoins)}`);
+          setStageCompletePopup({ gameType: 'DICE', stage: currentStage, coins: bonusCoins, diamonds: 0 });
       }
-      if (msgParts.length > 0) {
-          setCelebrationMsg(msgParts.join('\n'));
-          audioService.playWinBig();
-      }
+      if (msgParts.length > 0) { setCelebrationMsg(msgParts.join(' · ')); audioService.playWinBig(); }
   };
 
   const spin = useCallback(() => {
