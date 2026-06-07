@@ -9,11 +9,11 @@ interface PiggyBankModalProps {
     diamonds: number;
     onBreak: (tierAmount: number, gemCost: number) => void;
     level: number;
-    maxBet: number;
+    maxBet?: number;
     balance?: number;
 }
 
-export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet, balance = 0 }) => {
+export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet = 0, balance = 0 }) => {
     const [breaking, setBreaking] = useState(false);
 
     if (!isOpen) return null;

@@ -11,7 +11,13 @@ export enum SymbolType {
   CHERRY = 'CHERRY',
   SEVEN = 'SEVEN',
   WILD = 'WILD',
-  SCATTER = 'SCATTER'
+  SCATTER = 'SCATTER',
+  JACKPOT_MINI = 'JACKPOT_MINI',
+  JACKPOT_MINOR = 'JACKPOT_MINOR',
+  JACKPOT_MAJOR = 'JACKPOT_MAJOR',
+  JACKPOT_MEGA = 'JACKPOT_MEGA',
+  JACKPOT_GRAND = 'JACKPOT_GRAND',
+  COIN = 'COIN'
 }
 
 export type GameTheme = 'NEON' | 'EGYPT' | 'DRAGON' | 'PIRATE' | 'SPACE' | 'CANDY' | 'JUNGLE' | 'UNDERWATER' | 'WESTERN' | 'SAMURAI' | 'PIGGY';
@@ -62,6 +68,8 @@ export interface PlayerState {
   xpMultiplier: number;
   xpBoostEndTime: number;
   freeStashClaimed: boolean;
+  isVip?: boolean;
+  freeStashClaimedTime?: number;
 }
 
 export interface Payline {
@@ -81,22 +89,24 @@ export interface WinData {
 
 export interface WildGridCell {
     revealed: boolean;
-    content: 'GEM' | 'REWARD' | 'BLANK';
+    content: 'GEM' | 'REWARD' | 'BLANK' | 'BOMB';
     reward?: MiniGameReward;
 }
 
 export interface QuestState {
   credits: number;
-  picks: number; 
+  picks: number;
   wildStage: number; // Separated Stage
   diceStage: number; // Separated Stage
   max: 60;
-  dicePosition: number; 
+  dicePosition: number;
   activeGame: 'NONE' | 'WILD' | 'DICE';
   wildGrid: WildGridCell[]; // Persistence for Wild Quest
+  wildCredits?: number;
+  diceCredits?: number;
 }
 
-export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM';
+export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'DICE_CREDITS' | 'BACK' | 'PACKS';
 
 export interface MiniGameReward {
   type: RewardType;

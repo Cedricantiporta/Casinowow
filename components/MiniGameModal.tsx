@@ -5,8 +5,10 @@ import { audioService } from '../services/audioService';
 
 interface MiniGameModalProps {
     isOpen: boolean;
-    diceCredits: number;
-    wildCredits: number;
+    credits?: number;
+    picks?: number;
+    diceCredits?: number;
+    wildCredits?: number;
     wildStage: number;
     diceStage: number;
     dicePosition: number;
@@ -72,10 +74,12 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 );
 
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
-    isOpen, diceCredits, wildCredits, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
+    isOpen, diceCredits: diceCreditsRaw, wildCredits: wildCreditsRaw, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
     balance = 0, diamonds = 0,
     onSelectMode, onBuyPicks, onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet
 }) => {
+    const diceCredits = diceCreditsRaw ?? 0;
+    const wildCredits = wildCreditsRaw ?? 0;
     const currentGridSize = getGridSize(wildStage);
     const totalCells = currentGridSize * currentGridSize;
 

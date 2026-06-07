@@ -4,7 +4,7 @@ import { DAILY_LOGIN_REWARDS, formatKShort } from '../constants';
 interface LoginBonusModalProps {
     isOpen: boolean;
     currentDay: number;
-    maxBet: number;
+    maxBet?: number;
     onClaim: () => void;
 }
 
@@ -19,7 +19,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
         const isPast = reward.day < currentDay;
         const isFuture = reward.day > currentDay;
         const isGoldenDay = reward.day === 7;
-        const coins = reward.multiplier * maxBet;
+        const coins = reward.multiplier * (maxBet ?? 0);
 
         return (
             <div

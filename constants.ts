@@ -820,11 +820,11 @@ export const GENERATE_DECKS = (): Deck[] => {
 };
 
 export const DAILY_LOGIN_REWARDS = [
-    { day: 1, multiplier: 5,  gems: 0  },
-    { day: 2, multiplier: 10, gems: 0  },
-    { day: 3, multiplier: 15, gems: 5  },
-    { day: 4, multiplier: 20, gems: 0  },
-    { day: 5, multiplier: 25, gems: 10 },
-    { day: 6, multiplier: 35, gems: 20 },
-    { day: 7, multiplier: 50, gems: 50 },
+    { day: 1, multiplier: 5,  gems: 0,  coins: 5  },
+    { day: 2, multiplier: 10, gems: 0,  coins: 10 },
+    { day: 3, multiplier: 15, gems: 5,  coins: 15 },
+    { day: 4, multiplier: 20, gems: 0,  coins: 20 },
+    { day: 5, multiplier: 25, gems: 10, coins: 25 },
+    { day: 6, multiplier: 35, gems: 20, coins: 35 },
+    { day: 7, multiplier: 50, gems: 50, coins: 50 },
 ];

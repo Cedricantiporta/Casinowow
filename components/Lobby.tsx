@@ -7,26 +7,27 @@ import { jackpotService, SLOT_VARS } from '../services/jackpotService';
 
 interface LobbyProps {
     onSelectGame: (game: GameConfig, isHighLimit: boolean) => void;
-    onOpenWildQuest: () => void;
-    onOpenDiceQuest: () => void;
+    onOpenWildQuest?: () => void;
+    onOpenDiceQuest?: () => void;
+    onOpenQuest?: () => void;
     onOpenMissions: () => void;
     onOpenBattlePass: () => void;
     onClaimBonus: () => void;
     onOpenCollection: () => void;
     onOpenPiggyBank: () => void;
-    onOpenInbox: () => void;
+    onOpenInbox?: () => void;
     onToggleVIP: () => void;
     questState: QuestState;
     missionState: MissionState;
     nextTimeBonus: number;
     bonusAmount: number;
     isHighLimit: boolean;
-    isVip: boolean;
+    isVip?: boolean;
     playerLevel: number;
-    currentBet: number;
-    piggyBank: number;
-    piggyMaxBet: number;
-    packCredits: number;
+    currentBet?: number;
+    piggyBank?: number;
+    piggyMaxBet?: number;
+    packCredits?: number;
 }
 
 export const Lobby: React.FC<LobbyProps> = ({
@@ -55,7 +56,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     
     const [timeLeft, setTimeLeft] = useState(0);
     const [jackpotTotals, setJackpotTotals] = useState<number[]>(() =>
-        GAMES_CONFIG.map((_, idx) => Math.floor(currentBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
+        GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
     );
     const [canScroll, setCanScroll] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -72,13 +73,13 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     useEffect(() => {
         setJackpotTotals(
-            GAMES_CONFIG.map((_, idx) => Math.floor(currentBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
+            GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
         );
     }, [currentBet]);
 
     useEffect(() => {
         return jackpotService.subscribe(() => {
-            setJackpotTotals(GAMES_CONFIG.map((_, idx) => Math.floor(currentBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1))));
+            setJackpotTotals(GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1))));
         });
     }, [currentBet]);
 
@@ -96,7 +97,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
     const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
     const totalMissionNotifs = missionsReady + passRewardsReady;
-    const questReady = questState.diceCredits > 0 || questState.wildCredits > 0;
+    const questReady = (questState.diceCredits ?? 0) > 0 || (questState.wildCredits ?? 0) > 0;
 
     const getQuestIcon = () => {
         if (questState.activeGame === 'DICE') return '🎲';
@@ -152,14 +153,14 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     // Quest credit states
     const QUEST_MAX = 60;
-    const wildFull = questState.wildCredits >= QUEST_MAX;
-    const diceFull = questState.diceCredits >= QUEST_MAX;
-    const wildCredits = Math.floor(questState.wildCredits);
-    const diceCredits = Math.floor(questState.diceCredits);
+    const wildFull = (questState.wildCredits ?? 0) >= QUEST_MAX;
+    const diceFull = (questState.diceCredits ?? 0) >= QUEST_MAX;
+    const wildCredits = Math.floor(questState.wildCredits ?? 0);
+    const diceCredits = Math.floor(questState.diceCredits ?? 0);
 
     // Piggy full state
-    const piggyCap = piggyMaxBet * 5;
-    const piggyFull = !isPiggyLocked && piggyBank >= piggyCap;
+    const piggyCap = (piggyMaxBet ?? 0) * 5;
+    const piggyFull = !isPiggyLocked && (piggyBank ?? 0) >= piggyCap;
 
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 relative overflow-hidden`}
@@ -397,9 +398,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
                                 <div className="relative">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
-                                    {packCredits > 0 && (
+                                    {(packCredits ?? 0) > 0 && (
                                         <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{packCredits > 99 ? '99+' : packCredits}</span>
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{(packCredits ?? 0) > 99 ? '99+' : packCredits}</span>
                                         </div>
                                     )}
                                 </div>
