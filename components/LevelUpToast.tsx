@@ -11,38 +11,20 @@ interface LevelUpToastProps {
 
 export const LevelUpToast: React.FC<LevelUpToastProps> = ({ level, reward, maxBetIncreased, newMaxBet, onClose }) => {
     useEffect(() => {
-        const timer = setTimeout(onClose, 1000);
+        const timer = setTimeout(onClose, 2500);
         return () => clearTimeout(timer);
     }, [onClose]);
 
     return (
-        <div className="fixed top-[40px] md:top-[70px] right-2 md:right-4 z-[200] w-full max-w-[180px] origin-top-right pointer-events-none">
-            <div 
-                onClick={onClose}
-                className="animate-pop-in cursor-pointer pointer-events-auto bg-zinc-950 rounded-xl p-3 shadow-2xl flex flex-col items-center text-center leading-tight"
-            >
-                <h3 className="text-xs font-display font-medium text-white mb-2 tracking-widest opacity-90">
-                    LEVEL {level}
-                </h3>
-                
-                {reward > 0 && (
-                    <div className="bg-green-800 px-2.5 py-0.5 rounded-md mb-2">
-                        <span className="text-green-200 font-mono font-bold text-xs">
-                            +{formatNumber(reward)}
-                        </span>
-                    </div>
-                )}
-                
-                {maxBetIncreased && (
-                    <div className="flex flex-col items-center mt-1 animate-pulse">
-                        <div className="text-gold-300 text-[8px] font-bold uppercase tracking-wider mb-0.5">
-                            MAX BET UP
-                        </div>
-                        <div className="bg-gold-900 px-2 py-0.5 rounded text-gold-100 font-mono font-bold text-[10px] shadow-md">
-                            {formatNumber(newMaxBet)}
-                        </div>
-                    </div>
-                )}
+        <div className="fixed top-[40px] right-2 z-[200] animate-pop-in pointer-events-none"
+            style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
+            <div className="flex items-center gap-2">
+                <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>⭐</span>
+                <div>
+                    <div className="font-black text-white text-xs uppercase tracking-widest">Level {level}!</div>
+                    {reward > 0 && <div className="text-purple-300 text-[9px] font-bold">+{formatNumber(reward)} coins</div>}
+                    {maxBetIncreased && <div className="text-yellow-300 text-[9px] font-bold">Max Bet ↑ {formatNumber(newMaxBet)}</div>}
+                </div>
             </div>
         </div>
     );
