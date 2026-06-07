@@ -315,16 +315,19 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                     {!selectedDeckId && (
                         <div className="flex items-center gap-1.5 ml-1">
-                            <button onClick={() => setActiveTab('PACKS')}
-                                className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white"
-                                style={{ background: activeTab === 'PACKS' ? 'linear-gradient(180deg,#22c55e,#15803d)' : 'rgba(255,255,255,0.1)', boxShadow: activeTab === 'PACKS' ? '0 3px 0 #14532d' : 'none' }}>
-                                🃏 Draw Cards
-                            </button>
-                            <button onClick={() => setActiveTab('ALBUM')}
-                                className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white"
-                                style={{ background: activeTab === 'ALBUM' ? 'linear-gradient(180deg,#a855f7,#6d28d9)' : 'rgba(255,255,255,0.1)', boxShadow: activeTab === 'ALBUM' ? '0 3px 0 #4c1d95' : 'none' }}>
-                                📚 Decks
-                            </button>
+                            {activeTab === 'ALBUM' ? (
+                                <button onClick={() => setActiveTab('PACKS')}
+                                    className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white"
+                                    style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #14532d' }}>
+                                    🃏 Draw Cards
+                                </button>
+                            ) : (
+                                <button onClick={() => setActiveTab('ALBUM')}
+                                    className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white"
+                                    style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 #4c1d95' }}>
+                                    📚 Decks
+                                </button>
+                            )}
                         </div>
                     )}
 
