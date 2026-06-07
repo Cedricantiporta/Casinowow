@@ -248,12 +248,6 @@ const App: React.FC = () => {
       audioService.playClick();
   }
 
-  const openShopFromCards = (tab: 'COINS' | 'BOOSTS' | 'DIAMONDS' = 'COINS') => {
-      setCardModalReturnTab('PACKS');
-      setActiveModal('NONE');
-      openShop(tab);
-  };
-
   const openMissionsModal = () => {
       setMissionInitialView('MISSIONS');
       openModal('MISSIONS');
@@ -1562,262 +1556,180 @@ const App: React.FC = () => {
     <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
       <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'top center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}>
-          <header className="w-full z-[100] border-b-2 flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
-            style={showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottomColor:'#8b6200' } : { background:'#7c3fb5', borderBottomColor:'#2a0d55' }}>
-            {/* Bar B */}
-            <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
-                {/* Lobby Home / Profile Button */}
-                <div
-                    onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
-                    className="round-btn shrink-0 cursor-pointer"
-                    style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+          <header className="fixed top-0 w-full z-[100] bg-[#120024] border-b-2 border-[#2a0d55] flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[29px] md:h-[35px] select-none overflow-visible">
+            {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
+            <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6">
+                {/* Lobby Home Button */}
+                <div 
+                    onClick={currentView !== 'LOBBY' ? handleHeaderBack : undefined}
+                    className={`round-btn shrink-0 ${currentView === 'LOBBY' ? 'opacity-65 cursor-default' : ''}`}
                 >
-                    <i className={currentView !== 'LOBBY' ? 'ti ti-arrow-left' : 'ti ti-user'}></i>
+                    <i className="ti ti-home"></i>
                 </div>
 
                 {/* Separate Coins & Gems pills joined closely */}
-                <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[290px] md:max-w-[430px] shrink-0">
-                    <div className="currency-pill flex-[4] max-w-[195px] md:max-w-[289px] flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[245px] md:max-w-[370px] shrink-0">
+                    {/* Separate Coins Pill */}
+                    <div className="currency-pill flex-1 max-w-[120px] md:max-w-[180px] flex items-center gap-1 shrink-0">
                         <div className="coin">$</div>
-                        <span className="num flex-1">{formatK(player.balance)}</span>
+                        <span className="num flex-1">{formatCommaNumber(player.balance)}</span>
                     </div>
-                    <div className="currency-pill flex-[2] max-w-[100px] md:max-w-[148px] flex items-center gap-1 shrink-0">
+
+                    {/* Separate Gem Pill */}
+                    <div className="currency-pill flex-1 max-w-[120px] md:max-w-[180px] flex items-center gap-1 shrink-0">
                         <div className="gem"></div>
-                        <span className="num flex-1">{formatK(player.diamonds)}</span>
+                        <span className="num flex-1">{formatCommaNumber(player.diamonds)}</span>
                     </div>
                 </div>
 
-                {/* Buy & Sale Buttons */}
+                {/* Buy & Sale Buttons (Adjacent to each other) */}
                 <div className="flex items-center gap-1 shrink-0">
-                    <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
-                        <div className="face text-center"><span className="lbl">BUY</span></div>
+                    {/* Buy Button */}
+                    <div 
+                        onClick={() => openShop('COINS')}
+                        className="btn green buyB shrink-0"
+                    >
+                        <div className="face text-center">
+                            <span className="lbl">BUY</span>
+                        </div>
                     </div>
-                    <div onClick={() => setShowPremiumModal(true)} className="btn pink saleB shrink-0">
-                        <div className="face text-center"><span className="lbl">SALE</span></div>
+
+                    {/* Sale Button */}
+                    <div 
+                        onClick={() => openShop('BOOSTS')}
+                        className="btn pink saleB shrink-0"
+                    >
+                        <div className="face text-center">
+                            <span className="lbl">SALE</span>
+                        </div>
                     </div>
                 </div>
 
-                {/* Piggy Bank quick button */}
-                <div
-                    onClick={handleOpenPiggyBank}
-                    className={`round-btn shrink-0 ml-1 relative ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
-                    title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
-                    style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', overflow:'visible' } : { overflow:'visible' }}
-                >
-                    <span style={{fontSize:16}}>🐷</span>
-                </div>
+                    {/* Piggy Bank quick button (left icons) */}
+                    <div
+                        onClick={handleOpenPiggyBank}
+                        className={`round-btn shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''} ${player.piggyBank > 0 ? 'animate-pulse' : ''}`}
+                        title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
+                    >
+                        <span style={{fontSize:16}}>🐷</span>
+                    </div>
 
-                {/* Star Experience Progression */}
-                <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent ml-2">
+                {/* Star Experience Progression (No pill shape container, 2x long, star + bar) */}
+                <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent">
                     <div className="star shrink-0"></div>
                     <div className="rtrack !flex-none w-[90px] md:w-[150px] overflow-hidden relative">
-                        <div
-                            className="rfill"
-                            style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, ...(player.xpMultiplier >= 2 ? { background: 'linear-gradient(180deg,#ffe04d,#d4a017 60%,#a07010)', boxShadow: 'inset 0 1px 1px rgba(255,255,180,0.7)' } : {}) }}
+                        <div 
+                            className="rfill" 
+                            style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%` }}
                         ></div>
-                        <span className="rnum relative z-10 font-black" style={{ fontSize: '18px' }}>{player.level}</span>
+                        <span className="rnum relative z-10 text-[9px] font-black">{player.level}</span>
                     </div>
                 </div>
 
                 {/* Active Multiplier indicator */}
-                <div className="mult shrink-0 ml-2" style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}>
-                    {(() => {
-                        const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                        if (boostActive && showXpTimer) {
-                            const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
-                            const h = Math.floor(rem / 3600000);
-                            const m = Math.floor((rem % 3600000) / 60000);
-                            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                        }
-                        return `x${player.xpMultiplier}`;
-                    })()}
+                <div className="mult shrink-0">
+                    x{player.xpMultiplier}
                 </div>
 
-                {/* Settings button */}
-                <div
-                    onClick={() => setShowSettings(true)}
+                {/* Dynamic Mute round-btn */}
+                <div 
+                    onClick={() => setIsMuted(audioService.toggleMute())}
                     className="round-btn shrink-0"
-                    style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
-                    <i className="ti ti-settings"></i>
+                    <i className={`ti ${isMuted ? 'ti-volume-3' : 'ti-volume'}`}></i>
                 </div>
             </div>
       </header>
 
-      <main className="relative pt-0 w-full flex-1 flex flex-col overflow-hidden min-h-0">
-        {currentView === 'HIGH_LIMIT' && (
-            <HighLimitLobby
-                onBack={() => setCurrentView('LOBBY')}
-                onSelectGame={handleGameSelect}
-                playerLevel={player.level}
-            />
-        )}
+      <main className="relative pt-[36px] md:pt-[44px] w-full h-screen flex flex-col overflow-hidden">
         {currentView === 'LOBBY' ? (
-            <Lobby
-                onSelectGame={handleGameSelect}
-                onOpenWildQuest={handleWildQuestClaim}
-                onOpenDiceQuest={handleDiceQuestClaim}
+            <Lobby 
+                onSelectGame={handleGameSelect} 
+                onOpenQuest={handleQuestClaim}
                 onOpenMissions={openMissionsModal}
                 onOpenBattlePass={openBattlePassModal}
                 onClaimBonus={handleOpenTimeBonus}
                 onOpenCollection={() => openModal('COLLECTION')}
                 onOpenPiggyBank={handleOpenPiggyBank}
-                onOpenInbox={() => setCelebrationMsg("Inbox coming soon!")}
                 onToggleVIP={handleToggleVIP}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
                 bonusAmount={CALCULATE_TIME_BONUS(player.level)}
                 isHighLimit={isHighLimit}
-                isVip={!!player.isVip}
                 playerLevel={player.level}
-                currentBet={MAX_BET_BY_LEVEL(player.level)}
-                piggyBank={player.piggyBank}
-                piggyMaxBet={MAX_BET_BY_LEVEL(player.level)}
-                packCredits={player.packCredits}
             />
         ) : (
-            <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
-
-                {/* Quest + Pass vertical panel — always visible in game view */}
-                {(() => {
-                    const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
-                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
-                    const totalNotifs = missReady + passReady;
-                    const isQuestLocked = player.level < 20;
-                    const isPassLocked = player.level < 10;
-                    return (
-                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', border: isHighLimit ? '1.5px solid #8b6200' : '1.5px solid #38106e', borderRadius:'21px', padding:'6px 6px', gap:'2px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
-                            <button
-                                onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
-                            >
-                                {isQuestLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {quest.wildCredits > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.wildCredits}
-                                            </div>
-                                        )}
-                                        <span className="text-[36px] leading-none">🗿</span>
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
-                            </button>
-                            <button
-                                onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
-                            >
-                                {isQuestLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {quest.diceCredits > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.diceCredits}
-                                            </div>
-                                        )}
-                                        <span className="text-[36px] leading-none">🎲</span>
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
-                            </button>
-                            <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
-                            <button
-                                onClick={!isPassLocked ? openBattlePassModal : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
-                            >
-                                {isPassLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {totalNotifs > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-6 h-6 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[14px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {totalNotifs}
-                                            </div>
-                                        )}
-                                        <span className="text-[36px] leading-none">🎫</span>
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
-                            </button>
-                        </div>
-                    );
-                })()}
-
+            <div className="flex-1 flex flex-col items-center justify-center p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
                 <div className="w-full z-10 p-0 m-0">
-                    <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
+                    <JackpotTicker currentBet={availableBets[betIndex]} />
+                    {isHighLimit && (
+                        <div className="text-center mt-0">
+                            <span className="bg-red-650 text-white text-[10px] font-bold px-2.5 py-0.5 rounded uppercase tracking-widest shadow-lg inline-block text-shadow-md">High Limit</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
-                    <div
-                        className={`relative z-10 bg-black/60 p-1 md:p-1.5 shadow-2xl h-full max-h-full overflow-hidden
-                            ${selectedGame.theme === 'PIGGY' ? 'flex gap-2' : 'flex gap-0.5'}
-                            ${selectedGame.theme === 'EGYPT'   ? 'rounded-none border-[3px] border-yellow-600' : ''}
-                            ${selectedGame.theme === 'WESTERN' ? 'rounded-lg border-[4px] border-amber-800' : ''}
-                            ${selectedGame.theme === 'SPACE'   ? 'rounded-lg border-[2px] border-cyan-400' : ''}
-                            ${selectedGame.theme === 'CANDY'   ? 'rounded-lg border-[3px] border-pink-300' : ''}
-                            ${!['EGYPT','WESTERN','SPACE','CANDY'].includes(selectedGame.theme) ? 'rounded-xl' : ''}
-                            ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}
-                        `}
-                        style={{ aspectRatio: `${selectedGame.reels}/${selectedGame.rows}` }}
-                    >
+                    <div className={`relative z-10 bg-black/60 p-1 md:p-1.5 rounded-xl shadow-2xl flex gap-1 h-full max-h-full aspect-[5/3] overflow-hidden ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,38,38,0.35)] animate-pulse' : ''}`}>
                         {grid.map((col, i) => (
-                            <Reel
-                                key={i}
-                                id={i}
-                                symbols={targetGrid.length > 0 ? targetGrid[i] : col}
-                                spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING}
-                                stopping={status === GameStatus.STOPPING}
-                                stopDelay={instantStop ? 0 : i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)}
-                                duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION}
-                                onStop={handleReelStop}
-                                winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []}
-                                gameConfig={selectedGame}
-                                isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE}
+                            <Reel 
+                                key={i} 
+                                id={i} 
+                                symbols={targetGrid.length > 0 ? targetGrid[i] : col} 
+                                spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} 
+                                stopping={status === GameStatus.STOPPING} 
+                                stopDelay={i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)} 
+                                duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION} 
+                                onStop={handleReelStop} 
+                                winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []} 
+                                gameConfig={selectedGame} 
+                                isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE} 
                             />
                         ))}
+                        <PaylinesOverlay winData={winData} rowCount={selectedGame.rows} />
                     </div>
                 </div>
 
+                <div className="hidden md:block w-full">
+                    <LeftSidebar 
+                        quest={quest} 
+                        onQuestClaim={handleQuestClaim} 
+                        xpMultiplier={player.xpMultiplier} 
+                        xpBoostEndTime={player.xpBoostEndTime} 
+                        missionState={missionState} 
+                        onOpenMissions={openMissionsModal} 
+                        onOpenBattlePass={openBattlePassModal}
+                        picks={quest.picks}
+                        playerLevel={player.level}
+                    />
+                </div>
             </div>
         )}
       </main>
 
       {currentView === 'GAME' && (
-          <div className="fixed bottom-0 w-full z-50 border-t-2 shadow-[0_-10px_35px_rgba(0,0,0,0.85)] flex flex-col select-none"
-            style={isHighLimit ? { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTopColor:'#8b6200' } : { background:'#120024', borderTopColor:'#2a0d55' }}>
-              {/* Bar A */}
-              <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
-                style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
+          <div className="fixed bottom-0 w-full z-50 bg-[#120024] border-t-2 border-[#2a0d55] shadow-[0_-10px_35px_rgba(0,0,0,0.85)] flex flex-col select-none">
+              {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
+              <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]">
                   {/* Missions Button */}
-                  {(() => {
-                      const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
-                      return (
-                          <div onClick={openMissionsModal} className="icon-btn shrink-0 flex flex-col items-center justify-end relative"
-                              style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', borderColor:'#8b6200' } : {}}>
-                              {missReady > 0 && (
-                                  <div className="absolute top-0 right-0 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10">{missReady}</div>
-                              )}
-                              <i className="ti ti-target-arrow"></i>
-                              <span>MISSIONS</span>
-                          </div>
-                      );
-                  })()}
+                  <div 
+                      onClick={openMissionsModal}
+                      className="icon-btn shrink-0 flex flex-col items-center justify-end"
+                  >
+                      <i className="ti ti-target-arrow"></i>
+                      <span>MISSIONS</span>
+                  </div>
 
                   {/* Minus Bet */}
-                  <div
+                  <div 
                       onClick={() => {
                           if (betIndex > 0 && status === GameStatus.IDLE) {
                               setBetIndex(prev => prev - 1);
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
+                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || autoMaxBet ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       −
                   </div>
@@ -1825,19 +1737,18 @@ const App: React.FC = () => {
                   {/* Bet Display */}
                   <div className="bet-disp shrink-0 flex flex-col items-center justify-center">
                       <span className="bet-amt">{formatBet(availableBets[betIndex])}</span>
-                      <span className="bet-lbl" style={{ color: isHighLimit ? '#ffffff' : '#c79bff' }}>TOTAL BET</span>
+                      <span className="bet-lbl">TOTAL BET</span>
                   </div>
 
                   {/* Plus Bet */}
-                  <div
+                  <div 
                       onClick={() => {
                           if (betIndex < availableBets.length - 1 && status === GameStatus.IDLE) {
                               setBetIndex(prev => prev + 1);
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
+                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || autoMaxBet ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       +
                   </div>
@@ -1845,9 +1756,7 @@ const App: React.FC = () => {
                   {/* Win Panel */}
                   <div className="winpanel flex-1 flex flex-col items-center justify-center">
                       <span className="lets-spin">
-                          {freeSpinsRemaining > 0 ? (
-                              formatCommaNumber(freeSpinTotalWin)
-                          ) : status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
+                          {status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
                               'SPINNING...'
                           ) : winData?.payout && winData.payout > 0 ? (
                               formatWinNumber(winData.payout)
@@ -1861,14 +1770,15 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Max Bet */}
-                  <div
+                  <div 
                       onClick={() => {
-                          if (status === GameStatus.IDLE && betIndex !== availableBets.length - 1) {
+                          if (status === GameStatus.IDLE) {
                               setBetIndex(availableBets.length - 1);
+                              setAutoMaxBet(prev => !prev);
                               audioService.playClick();
                           }
                       }}
-                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE || betIndex === availableBets.length - 1 || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -1879,15 +1789,12 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Spin Button */}
-                  {(() => {
-                      const isStop = player.autoSpin || status === GameStatus.SPINNING || status === GameStatus.STOPPING;
-                      return (
-                  <div
+                  <div 
                       onMouseDown={handleSpinMouseDown}
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat green spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -1900,29 +1807,16 @@ const App: React.FC = () => {
                           </div>
                       </div>
                   </div>
-                  );
-                  })()}
               </div>
           </div>
       )}
 
-    <ShopModal isOpen={activeModal === 'SHOP'} onClose={() => {
-        setActiveModal('NONE');
-        if (cardModalReturnTab) {
-            const tab = cardModalReturnTab;
-            setCardModalReturnTab(null);
-            setTimeout(() => {
-                setCardInitialTab(tab);
-                setActiveModal('COLLECTION');
-            }, 50);
-        }
-    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} />
-
+    <ShopModal isOpen={activeModal === 'SHOP'} onClose={() => setActiveModal('NONE')} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={player.freeStashClaimed} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} />
+      
       <CardCollectionModal
           isOpen={activeModal === 'COLLECTION'}
           onClose={() => setActiveModal('NONE')}
-          onOpenShop={openShopFromCards}
-          initialTab={cardInitialTab}
+          onOpenShop={openShop}
           decks={decks}
           onClaimDeckReward={handleClaimDeckReward}
           onBuyPack={handleBuyPack}
@@ -1938,83 +1832,66 @@ const App: React.FC = () => {
           getDeckReward={(id) => getDeckReward(id, player.level)}
           balance={player.balance}
       />
-
-      <MiniGameModal
-        isOpen={activeModal === 'MINIGAME'}
-        diceCredits={quest.diceCredits}
-        wildCredits={quest.wildCredits}
+      
+      <MiniGameModal 
+        isOpen={activeModal === 'MINIGAME'} 
+        credits={quest.credits} 
+        picks={quest.picks} 
         wildStage={quest.wildStage}
         diceStage={quest.diceStage}
         dicePosition={quest.dicePosition}
         activeGame={quest.activeGame}
-        savedGrid={quest.wildGrid}
-        balance={player.balance}
-        diamonds={player.diamonds}
+        savedGrid={quest.wildGrid} // Pass saved grid
         onSelectMode={handleQuestModeSelect}
-        onBuyPicks={handleBuyPicks}
-        onBuyQuestBundle={handleBuyQuestBundle}
-        onPickTile={handleMiniGamePick}
-        onBatchPick={handleBatchPick}
-        onStageComplete={(bonusCoins, bonusDiamonds) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds)}
-        onGridUpdate={handleWildGridUpdate}
+        onBuyPicks={handleBuyPicks} 
+        onPickTile={handleMiniGamePick} 
+        onBatchPick={handleBatchPick} 
+        onStageComplete={(bonusCoins, bonusDiamonds) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds)} 
+        onGridUpdate={handleWildGridUpdate} // Update grid
         onDiceRoll={handleDiceRoll}
-        onClose={() => setActiveModal('NONE')}
+        onClose={() => setActiveModal('NONE')} 
         playerLevel={player.level}
-        maxBet={MAX_BET_BY_LEVEL(player.level)}
       />
-
-      <MissionPassModal
-          isOpen={activeModal === 'MISSIONS'}
-          initialView={missionInitialView}
-          onClose={() => setActiveModal('NONE')}
-          missionState={missionState}
-          diamonds={player.diamonds}
-          balance={player.balance}
-          onClaimReward={handleClaimPassReward}
-          onFinishMission={handleFinishMission}
-          onClaimMissionReward={handleClaimMissionReward}
-          onBuyPass={handleBuyPass}
-          onBuyLevel={handleBuyPassLevel}
-          onClaimAll={handleClaimAllMissions}
+      
+      <MissionPassModal 
+          isOpen={activeModal === 'MISSIONS'} 
+          initialView={missionInitialView} 
+          onClose={() => setActiveModal('NONE')} 
+          missionState={missionState} 
+          diamonds={player.diamonds} 
+          onClaimReward={handleClaimPassReward} 
+          onFinishMission={handleFinishMission} 
+          onClaimMissionReward={handleClaimMissionReward} 
+          onBuyPass={handleBuyPass} 
+          onBuyLevel={handleBuyPassLevel} 
+          onClaimAll={handleClaimAllMissions} 
           playerLevel={player.level}
-          maxBet={MAX_BET_BY_LEVEL(player.level)}
       />
-
+      
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus} />
+      
+      <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} onClaim={handleClaimLoginBonus} />
+      
+    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} balance={player.balance} />
 
-      <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} />
-
-      <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} />
-
-      <FeatureUnlockModal
-        isOpen={activeModal === 'FEATURE_UNLOCK'}
-        featureName={featureUnlockData.name}
-        icon={featureUnlockData.icon}
-        description={featureUnlockData.description}
-        onOpenFeature={() => {
+      <FeatureUnlockModal 
+        isOpen={activeModal === 'FEATURE_UNLOCK'} 
+        featureName={featureUnlockData.name} 
+        icon={featureUnlockData.icon} 
+        description={featureUnlockData.description} 
+        onOpenFeature={() => { 
+            // Correctly trigger the action passed
             featureUnlockData.action();
-        }}
-        onClose={() => setActiveModal('NONE')}
-      />
-
-      <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
-      <StageCompleteModal
-          isOpen={stageCompletePopup !== null}
-          gameType={stageCompletePopup?.gameType || 'WILD'}
-          stage={stageCompletePopup?.stage || 1}
-          coins={stageCompletePopup?.coins || 0}
-          diamonds={stageCompletePopup?.diamonds || 0}
-          onNext={() => setStageCompletePopup(null)}
+        }} 
+        onClose={() => setActiveModal('NONE')} 
       />
 
       {showWinPopup && <WinPopup amount={winData?.payout || 0} type={winData?.winType || ''} onComplete={handleWinPopupComplete} />}
-
+      
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />
-
+      
       {showFreeSpinsPopup && <FreeSpinsWonPopup isOpen={showFreeSpinsPopup} count={freeSpinsWon} onComplete={handleStartFreeSpins} />}
-
-      {showLevelUp && currentView === 'GAME' && <LevelUpToast level={player.level} reward={levelUpReward} maxBetIncreased={maxBetIncreased} newMaxBet={MAX_BET_BY_LEVEL(player.level)} onClose={() => setShowLevelUp(false)} />}
-
+      
       {/* Unified toast — level-up and pack drop, never stacks, 1 second */}
       {activeToast && (
           <div className="fixed top-[40px] right-2 z-[200] animate-pop-in pointer-events-none"
@@ -2073,92 +1950,6 @@ const App: React.FC = () => {
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
 
       <BankruptcyModal isOpen={showBankruptcy} onCollect={() => { setPlayer(p => ({ ...p, balance: p.balance + 100000 })); setShowBankruptcy(false); setCelebrationMsg("+100,000 Coins"); audioService.playWinBig(); }} />
-
-      <SettingsModal
-          isOpen={showSettings}
-          onClose={() => setShowSettings(false)}
-          isMuted={isMuted}
-          onToggleMute={() => setIsMuted(audioService.toggleMute())}
-          fastSpin={fastSpin}
-          onToggleFastSpin={() => setFastSpin(f => !f)}
-          onRedeem={(code) => {
-              if (code === 'dev777') {
-                  setPlayer(p => ({ ...p, level: 50, balance: p.balance + 1_000_000_000_000 }));
-                  setCelebrationMsg('⚡ Level Rush! +1T Coins · Level 50');
-              } else if (code === 'dev999') {
-                  setPlayer(p => ({ ...p, balance: p.balance + 100_000_000_000_000 }));
-                  setCelebrationMsg('💰 Coin Flood! +100T Coins');
-              } else if (code === 'dev1') {
-                  const now = Date.now();
-                  setPlayer(p => ({ ...p, diamonds: p.diamonds + 50_000, isVip: true, xpMultiplier: 3, xpBoostEndTime: now + 24 * 60 * 60 * 1000 }));
-                  setMissionState(ms => ({
-                      ...ms,
-                      isPremium: true,
-                      premiumExpiry: now + 30 * 24 * 60 * 60 * 1000,
-                      passBoostMultiplier: 3,
-                      passBoostEndTime: now + 24 * 60 * 60 * 1000,
-                  }));
-                  setCelebrationMsg('👑 Full Premium Unlocked!');
-              } else if (code === 'dev111') {
-                  setPlayer(p => ({
-                      ...p,
-                      balance: p.balance + 10_000_000_000,
-                      diamonds: p.diamonds + 2_000,
-                  }));
-                  setCelebrationMsg('💰 +10B Coins · +2,000 Gems');
-              } else if (code === 'dev222') {
-                  const now = Date.now();
-                  setPlayer(p => ({
-                      ...p,
-                      isVip: true,
-                      xpMultiplier: 5,
-                      xpBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
-                  }));
-                  setMissionState(ms => ({
-                      ...ms,
-                      isPremium: true,
-                      premiumExpiry: now + 365 * 24 * 60 * 60 * 1000,
-                      passBoostMultiplier: 5,
-                      passBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
-                  }));
-                  setCelebrationMsg('👑 GOD MODE! All Premium · Max Boosts');
-              }
-              audioService.playWinBig();
-          }}
-      />
-
-      <VipLoungeModal
-          isOpen={showVipLounge}
-          onClose={() => setShowVipLounge(false)}
-          isVip={!!player.isVip}
-          onJoinVip={handleJoinVip}
-      />
-
-      <PremiumModal
-          isOpen={showPremiumModal}
-          onClose={() => setShowPremiumModal(false)}
-          isVip={!!player.isVip}
-          isPremium={missionState.isPremium}
-          maxBet={MAX_BET_BY_LEVEL(player.level)}
-          onBuyVip={() => {
-              setPlayer(p => ({ ...p, isVip: true }));
-              setShowPremiumModal(false);
-          }}
-          onBuyPremium={() => {
-              setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 }));
-              setShowPremiumModal(false);
-          }}
-      />
-
-      <ProfileModal
-          isOpen={showProfile}
-          onClose={() => setShowProfile(false)}
-          player={player}
-          isPremium={missionState.isPremium}
-          passBoostMultiplier={missionState.passBoostMultiplier}
-          passBoostEndTime={missionState.passBoostEndTime}
-          recentGames={GAMES_CONFIG.filter(g => (player.stats?.recentSlots || []).includes(g.id)).sort((a, b) => (player.stats?.recentSlots || []).indexOf(a.id) - (player.stats?.recentSlots || []).indexOf(b.id))}
-      />
 
         </div>
       </div>
