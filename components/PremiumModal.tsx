@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 
+import { formatCommaNumber } from '../constants';
+
 interface PremiumModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -7,11 +9,12 @@ interface PremiumModalProps {
     isPremium: boolean;
     onBuyVip: () => void;
     onBuyPremium: () => void;
+    maxBet?: number;
 }
 
 const CARD_W = 200;
 
-const bundles = [
+const getBundles = (maxBet: number) => [
     {
         id: 'starter',
         name: 'Starter Bundle',
@@ -19,9 +22,9 @@ const bundles = [
         tagColor: '#22c55e',
         bg: 'linear-gradient(160deg,#052e16,#166534,#052e16)',
         items: [
-            { icon: '🪙', label: '500,000 Coins' },
+            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
             { icon: '💎', label: '200 Gems' },
-            { icon: '📦', label: '5 Pack Credits' },
+            { icon: '📦', label: '5 Card Packs' },
         ],
         origPrice: '₱ 200',
         price: '₱ 99',
@@ -34,7 +37,7 @@ const bundles = [
         bg: 'linear-gradient(160deg,#2e1065,#5b21b6,#2e1065)',
         items: [
             { icon: '💎', label: '2,000 Gems' },
-            { icon: '🪙', label: '1,000,000 Coins' },
+            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 100))} Coins` },
             { icon: '🚀', label: '2× XP Boost (1h)' },
         ],
         origPrice: '₱ 500',
@@ -47,10 +50,10 @@ const bundles = [
         tagColor: '#0ea5e9',
         bg: 'linear-gradient(160deg,#0c1a5e,#1e3a8a,#0c1a5e)',
         items: [
-            { icon: '⛏️', label: '+20 Wild Credits' },
-            { icon: '🎲', label: '+20 Dice Credits' },
+            { icon: '⛏️', label: '+20 Picks' },
+            { icon: '🎲', label: '+20 Dice' },
             { icon: '💎', label: '500 Gems' },
-            { icon: '🪙', label: '250,000 Coins' },
+            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 25))} Coins` },
         ],
         origPrice: '₱ 350',
         price: '₱ 159',
@@ -62,11 +65,11 @@ const bundles = [
         tagColor: '#f59e0b',
         bg: 'linear-gradient(160deg,#451a03,#92400e,#451a03)',
         items: [
-            { icon: '🪙', label: '5,000,000 Coins' },
+            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
             { icon: '💎', label: '5,000 Gems' },
-            { icon: '📦', label: '50 Pack Credits' },
+            { icon: '📦', label: '50 Card Packs' },
             { icon: '🚀', label: '3× XP Boost (24h)' },
-            { icon: '⛏️', label: '+50 Quest Credits' },
+            { icon: '⛏️', label: '+50 Picks' },
         ],
         origPrice: '₱ 1,499',
         price: '₱ 449',
@@ -79,7 +82,7 @@ const bundles = [
         bg: 'linear-gradient(160deg,#4c0519,#9f1239,#4c0519)',
         items: [
             { icon: '👑', label: 'VIP Access (7 Days)' },
-            { icon: '🪙', label: '2,000,000 Coins' },
+            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 200))} Coins` },
             { icon: '💎', label: '1,000 Gems' },
             { icon: '🚀', label: '2× XP Boost (3h)' },
         ],
@@ -94,8 +97,8 @@ const bundles = [
         bg: 'linear-gradient(160deg,#083344,#0e7490,#083344)',
         items: [
             { icon: '💎', label: '10,000 Gems' },
-            { icon: '🪙', label: '3,000,000 Coins' },
-            { icon: '📦', label: '100 Pack Credits' },
+            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 300))} Coins` },
+            { icon: '📦', label: '100 Card Packs' },
             { icon: '📜', label: 'Monthly Pass (30d)' },
         ],
         origPrice: '₱ 3,999',
@@ -103,8 +106,9 @@ const bundles = [
     },
 ];
 
-export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isVip, isPremium, onBuyVip, onBuyPremium }) => {
+export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isVip, isPremium, onBuyVip, onBuyPremium, maxBet = 10000 }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
+    const bundles = getBundles(maxBet);
 
     useEffect(() => {
         const el = scrollRef.current;

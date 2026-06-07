@@ -44,14 +44,14 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
 
     const fmt = formatK;
 
-    // Tab scroll: Coins=idx 0, Gems=idx 5, Boosts=idx 10, Free=idx 15
+    // Tab scroll: Coins=idx 0 (5 items), Gems=idx 5 (3 items), Boosts=idx 8 (3 items), Free=idx 11
     const scrollToSection = (startIdx: number) => {
         scrollRef.current?.scrollTo({ left: startIdx * 152, behavior: 'smooth' });
     };
 
     useEffect(() => {
         if (!isOpen) return;
-        const tabIdxMap: Record<string, number> = { 'COINS': 0, 'DIAMONDS': 5, 'BOOSTS': 10 };
+        const tabIdxMap: Record<string, number> = { 'COINS': 0, 'DIAMONDS': 5, 'BOOSTS': 8 };
         const idx = tabIdxMap[initialTab || 'COINS'] ?? 0;
         if (idx > 0) {
             setTimeout(() => scrollToSection(idx), 80);
@@ -91,9 +91,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     ];
 
     const boostPacks = [
-        { icon: '🚀', label: 'XP Boost 30m',   sub: '2× XP',      pesosLabel: '200', color: 'from-fuchsia-600 to-fuchsia-900',action: () => onBuy('BOOST',  2, 1_800_000,  200) },
-        { icon: '🚀', label: 'XP Boost 12H',   sub: '2× XP',      pesosLabel: '500', color: 'from-fuchsia-700 to-purple-900', action: () => onBuy('BOOST',  2, 43_200_000, 500) },
-        { icon: '📜', label: 'Mission XP 30m', sub: '2× Mission', pesosLabel: '300', color: 'from-indigo-500 to-indigo-800',  action: () => onBuy('PASS_XP', 2, 1_800_000, 300) },
+        { icon: '🚀', label: 'XP Boost 30m',   sub: '2× XP',      gemCost: 200, color: 'from-fuchsia-600 to-fuchsia-900', action: () => onBuy('BOOST',   2, 1_800_000,  200) },
+        { icon: '🚀', label: 'XP Boost 12H',   sub: '2× XP',      gemCost: 500, color: 'from-fuchsia-700 to-purple-900',  action: () => onBuy('BOOST',   2, 43_200_000, 500) },
+        { icon: '📜', label: 'Mission XP 30m', sub: '2× Mission', gemCost: 300, color: 'from-indigo-500 to-indigo-800',   action: () => onBuy('PASS_XP', 2, 1_800_000,  300) },
     ];
 
     const freeItem = {
@@ -104,13 +104,14 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         color: isFreeStashClaimed ? 'from-gray-600 to-gray-800' : 'from-lime-500 to-green-700',
         isClaimed: !!isFreeStashClaimed,
         isRealMoney: false,
+        gemCost: undefined as number | undefined,
         action: () => !isFreeStashClaimed && onBuy('COIN', freeCoinsAmount, 0, 0),
     };
 
     const allItems = [
-        ...dynamicPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}` })),
-        ...gemPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}` })),
-        ...boostPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}` })),
+        ...dynamicPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined })),
+        ...gemPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined })),
+        ...boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false, price: `💎 ${item.gemCost}` })),
         freeItem,
     ];
 
@@ -134,9 +135,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 <div className="flex-1"></div>
                 {/* Section tabs */}
                 {[
-                    { label: '🪙', name: 'Coins',  idx: 0,  bg: '#b8860b' },
-                    { label: '💎', name: 'Gems',   idx: 5,  bg: '#0e7490' },
-                    { label: '🚀', name: 'Boosts', idx: 10, bg: '#7c3aed' },
+                    { label: '🪙', name: 'Coins',  idx: 0, bg: '#b8860b' },
+                    { label: '💎', name: 'Gems',   idx: 5, bg: '#0e7490' },
+                    { label: '🚀', name: 'Boosts', idx: 8, bg: '#7c3aed' },
                 ].map(tab => (
                     <button key={tab.name} onClick={() => scrollToSection(tab.idx)}
                         className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5"
@@ -145,7 +146,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                         <span>{tab.name}</span>
                     </button>
                 ))}
-                <button key="Free" onClick={() => scrollToSection(15)}
+                <button key="Free" onClick={() => scrollToSection(11)}
                     className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5 relative"
                     style={{ background: '#166534', minWidth: '34px' }}>
                     <span>🎁</span>
@@ -182,10 +183,12 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                     <div className="flex gap-3 h-full items-stretch min-w-max">
                         {allItems.map((item, i) => {
                             const btnDisabled = cooldown;
+                            const gemCost = (item as any).gemCost as number | undefined;
 
                             const onItemClick = () => {
                                 if (cooldown) return;
                                 if (item.isClaimed) { setPopup('nopay'); return; }
+                                if (gemCost !== undefined && diamonds < gemCost) { setPopup('nogems'); return; }
                                 handleBuy(item.action);
                             };
 
@@ -222,7 +225,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                                     ? 'linear-gradient(180deg,#6b7280,#374151)'
                                                     : item.price === 'FREE' || item.price === 'CLAIM'
                                                         ? 'linear-gradient(180deg,#22c55e,#15803d)'
-                                                        : 'linear-gradient(180deg,#f59e0b,#b45309)',
+                                                        : gemCost !== undefined
+                                                            ? 'linear-gradient(180deg,#a855f7,#6d28d9)'
+                                                            : 'linear-gradient(180deg,#f59e0b,#b45309)',
                                                 boxShadow: '0 3px 0 rgba(0,0,0,0.6)',
                                             }}
                                         >

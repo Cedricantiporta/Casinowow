@@ -1571,6 +1571,14 @@ const App: React.FC = () => {
           }
       }
   };
+  const handleBuyQuestBundle = (type: 'PICKS' | 'DICE', picks: number, dice: number, coins: number, gemCost: number, bonusGems: number = 0) => {
+      if (player.diamonds < gemCost) { setCelebrationMsg('Not Enough Gems!'); audioService.playStoneBreak(); return; }
+      setPlayer(p => ({ ...p, diamonds: p.diamonds - gemCost + bonusGems, balance: p.balance + coins }));
+      if (picks > 0) setQuest(q => ({ ...q, wildCredits: q.wildCredits + picks }));
+      if (dice > 0) setQuest(q => ({ ...q, diceCredits: q.diceCredits + dice }));
+      audioService.playWinBig();
+      setCelebrationMsg(`Bundle claimed!`);
+  };
   const handleMiniGamePick = (isGem: boolean, reward: MiniGameReward | null) => {
       setQuest(q => ({ ...q, wildCredits: Math.max(0, q.wildCredits - 1) }));
       if (reward) {
@@ -2222,8 +2230,9 @@ const currentState: SavedGameState = {
         balance={player.balance}
         diamonds={player.diamonds}
         onSelectMode={handleQuestModeSelect}
-        onBuyPicks={handleBuyPicks} 
-        onPickTile={handleMiniGamePick} 
+        onBuyPicks={handleBuyPicks}
+        onBuyQuestBundle={handleBuyQuestBundle}
+        onPickTile={handleMiniGamePick}
         onBatchPick={handleBatchPick} 
         onStageComplete={(bonusCoins, bonusDiamonds) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds)} 
         onGridUpdate={handleWildGridUpdate} // Update grid
@@ -2354,6 +2363,7 @@ const currentState: SavedGameState = {
           onClose={() => setShowPremiumModal(false)}
           isVip={!!player.isVip}
           isPremium={missionState.isPremium}
+          maxBet={MAX_BET_BY_LEVEL(player.level)}
           onBuyVip={() => {
               setPlayer(p => ({ ...p, isVip: true }));
               setShowPremiumModal(false);

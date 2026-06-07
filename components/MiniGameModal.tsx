@@ -16,6 +16,7 @@ interface MiniGameModalProps {
     diamonds?: number;
     onSelectMode: (mode: 'NONE' | 'WILD' | 'DICE') => void;
     onBuyPicks: (amount: number, cost: number, currency: 'CREDITS' | 'GEMS') => void;
+    onBuyQuestBundle?: (type: 'PICKS' | 'DICE', picks: number, dice: number, coins: number, gemCost: number, bonusGems: number) => void;
     onPickTile: (isGem: boolean, reward: MiniGameReward | null) => void;
     onBatchPick: (picksUsed: number, rewards: MiniGameReward[]) => void;
     onStageComplete: (bonusCoins: number, bonusDiamonds: number) => void;
@@ -73,7 +74,7 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     isOpen, diceCredits, wildCredits, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
     balance = 0, diamonds = 0,
-    onSelectMode, onBuyPicks, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet
+    onSelectMode, onBuyPicks, onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet
 }) => {
     const currentGridSize = getGridSize(wildStage);
     const totalCells = currentGridSize * currentGridSize;
@@ -81,6 +82,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [grid, setGrid] = useState<WildGridCell[]>([]);
     const [stageWinning, setStageWinning] = useState(false);
     const [noPicksMsg, setNoPicksMsg] = useState(false);
+    const [showBuyPopup, setShowBuyPopup] = useState<'PICKS' | 'DICE' | null>(null);
 
     const [isRolling, setIsRolling] = useState(false);
     const [isMoving, setIsMoving] = useState(false);
@@ -380,6 +382,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 </div>
             </div>
 
+            {/* Stage bar — big white text, no bg, just below topbar */}
+            <div className="shrink-0 flex items-center justify-center py-1.5">
+                <span className="font-black text-white uppercase tracking-widest" style={{ fontSize: '2rem', lineHeight: 1, textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+                    STAGE {isWild ? wildStage : diceStage}
+                </span>
+            </div>
+
             {/* ── COINMINE (Wild Quest) ── */}
             {activeGame === 'WILD' && (
                 <div className="flex-1 flex overflow-hidden relative">
@@ -442,21 +451,18 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Right sidebar */}
-                    <div className="shrink-0 flex flex-col gap-3 p-3 justify-center"
-                        style={{ width: 130, background: 'rgba(0,0,0,0.4)', borderLeft: '1px solid rgba(255,255,255,0.08)' }}>
-                        <div className="flex flex-col items-center px-3 py-2 rounded-xl" style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                            <span className="text-purple-300 text-[8px] font-bold uppercase tracking-wider leading-none">Stage</span>
-                            <span className="text-fuchsia-300 font-black text-base leading-tight font-mono">{wildStage}</span>
+                    {/* Bottom bar: picks pill + buy button */}
+                    <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-2"
+                        style={{ background: 'rgba(0,0,0,0.4)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                        <div className="currency-pill flex items-center gap-1.5 px-3 py-1.5">
+                            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>⛏️</span>
+                            <span className="font-black text-white text-lg leading-none">{wildCredits}</span>
+                            <span className="text-white/50 text-[10px] uppercase font-bold">Picks</span>
                         </div>
-                        <div className="flex flex-col items-center px-3 py-2 rounded-xl" style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                            <span className="text-[1.2rem] leading-none">⛏️</span>
-                            <span className="text-yellow-300 font-black text-xl leading-tight font-mono">{wildCredits}</span>
-                        </div>
-                        <Btn3D onClick={() => onBuyPicks(1, GEM_COST, 'GEMS')}
+                        <Btn3D onClick={() => setShowBuyPopup('PICKS')}
                             color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
-                            className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
-                            +1 ⛏️<br />{GEM_COST} 💎
+                            className="px-5 py-2 rounded-xl text-white text-xs">
+                            + Buy Picks
                         </Btn3D>
                     </div>
                 </div>
@@ -545,20 +551,25 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     </div>
 
                     {/* Controls footer */}
-                    <div className="shrink-0 flex items-center px-3 py-2 gap-3"
-                        style={{ background: 'rgba(0,0,0,0.45)', borderTop: '1px solid rgba(255,255,255,0.07)', minHeight: 100 }}>
+                    <div className="shrink-0 flex items-center px-3 py-2 gap-4"
+                        style={{ background: 'rgba(0,0,0,0.45)', borderTop: '1px solid rgba(255,255,255,0.07)', minHeight: 96 }}>
 
-                        {/* Left — buy dice */}
-                        <div className="flex flex-col gap-2" style={{ width: 130 }}>
-                            <Btn3D onClick={() => onBuyPicks(1, GEM_COST, 'GEMS')}
+                        {/* Left — dice pill + buy */}
+                        <div className="flex flex-col items-center gap-2 shrink-0">
+                            <div className="currency-pill flex items-center gap-1.5 px-3 py-1.5">
+                                <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🎲</span>
+                                <span className="font-black text-white text-lg leading-none">{diceCredits}</span>
+                                <span className="text-white/50 text-[10px] uppercase font-bold">Dice</span>
+                            </div>
+                            <Btn3D onClick={() => setShowBuyPopup('DICE')}
                                 color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
-                                className="w-full py-2 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
-                                +1 🎲 · {GEM_COST} 💎
+                                className="px-4 py-1.5 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
+                                + Buy Dice
                             </Btn3D>
                         </div>
 
-                        {/* Center — dice + roll button */}
-                        <div className="flex-1 flex items-center justify-center gap-5">
+                        {/* Center — dice face + roll button */}
+                        <div className="flex-1 flex items-center justify-center gap-4">
                             <DiceFace value={diceValue} rolling={isRolling} size={72} />
                             <button
                                 onMouseDown={handleRollMouseDown}
@@ -576,26 +587,75 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     cursor: diceCredits <= 0 ? 'not-allowed' : 'pointer',
                                 }}>
                                 <span className="text-xl leading-none">{autoRoll ? 'STOP' : 'ROLL'}</span>
-                                <div className="flex items-center gap-0.5 mt-1">
-                                    <span className="text-sm leading-none">🎲</span>
-                                    <span className="text-sm font-black leading-none">{diceCredits}</span>
-                                </div>
                             </button>
-                        </div>
-
-                        {/* Right — stage */}
-                        <div className="flex flex-col gap-2" style={{ width: 110 }}>
-                            <div className="flex flex-col items-center px-3 py-2 rounded-xl" style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                                <span className="text-purple-300 text-[8px] font-bold uppercase tracking-wider leading-none">Stage</span>
-                                <span className="text-fuchsia-300 font-black text-base leading-tight font-mono">{diceStage}</span>
-                            </div>
-                            <div className="flex flex-col items-center px-3 py-2 rounded-xl" style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                                <span className="text-[1.2rem] leading-none">🎲</span>
-                                <span className="text-yellow-300 font-black text-xl leading-tight font-mono">{diceCredits}</span>
-                            </div>
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* Buy Picks/Dice Popup */}
+            {showBuyPopup && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                    onClick={() => setShowBuyPopup(null)}>
+                    <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ width: 300, background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}
+                        onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="px-4 pt-4 pb-3 flex items-center justify-between">
+                            <div>
+                                <div className="text-white font-black text-base leading-none">
+                                    {showBuyPopup === 'PICKS' ? '⛏️ Buy Picks' : '🎲 Buy Dice'}
+                                </div>
+                                <div className="text-purple-300/60 text-[10px] mt-0.5">Bundles include coins & gems bonus</div>
+                            </div>
+                            <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full">
+                                <span className="text-sm">💎</span>
+                                <span className="text-white font-black text-sm">{diamonds}</span>
+                            </div>
+                        </div>
+                        {/* Bundle options */}
+                        <div className="px-4 pb-4 flex gap-3">
+                            {(showBuyPopup === 'PICKS'
+                                ? [
+                                    { label: 'Starter', picks: 5,  dice: 0,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 50,  gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
+                                    { label: 'Pro',     picks: 20, dice: 0,  coins: Math.round((maxBet || 10000) * 100), bonusGems: 200, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
+                                ]
+                                : [
+                                    { label: 'Starter', picks: 0,  dice: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 50,  gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
+                                    { label: 'Pro',     picks: 0,  dice: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 200, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
+                                ]
+                            ).map(opt => {
+                                const canAfford = diamonds >= opt.gemCost;
+                                return (
+                                    <button key={opt.label}
+                                        onClick={() => { if (!canAfford) return; onBuyQuestBundle?.(showBuyPopup, opt.picks, opt.dice, opt.coins, opt.gemCost, opt.bonusGems); setShowBuyPopup(null); }}
+                                        disabled={!canAfford}
+                                        className="flex-1 rounded-2xl flex flex-col items-center p-3 gap-1.5"
+                                        style={{ background: canAfford ? opt.color : 'rgba(0,0,0,0.5)', opacity: canAfford ? 1 : 0.5, border: '1px solid rgba(255,255,255,0.15)' }}>
+                                        <div className="text-white font-black text-sm uppercase tracking-wider">{opt.label}</div>
+                                        <div className="w-full flex flex-col gap-1 my-1">
+                                            <div className="flex items-center gap-1.5 text-white text-xs font-bold">
+                                                <span>{showBuyPopup === 'PICKS' ? '⛏️' : '🎲'}</span>
+                                                <span>+{showBuyPopup === 'PICKS' ? opt.picks : opt.dice} {showBuyPopup === 'PICKS' ? 'Picks' : 'Dice'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-yellow-200 text-xs font-bold">
+                                                <span>🪙</span>
+                                                <span>+{formatCommaNumber(opt.coins)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-cyan-200 text-xs font-bold">
+                                                <span>💎</span>
+                                                <span>+{opt.bonusGems} Gems</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full py-2 rounded-xl text-center font-black text-white text-sm"
+                                            style={{ background: canAfford ? 'linear-gradient(180deg,#7c3aed,#4c1d95)' : 'rgba(0,0,0,0.4)', boxShadow: canAfford ? '0 3px 0 #2e1065' : 'none' }}>
+                                            💎 {opt.gemCost}
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
