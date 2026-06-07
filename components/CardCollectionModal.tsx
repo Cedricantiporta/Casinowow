@@ -43,6 +43,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'ALBUM' | 'PACKS'>(initialTab || 'ALBUM');
     const [showPackBuyPopup, setShowPackBuyPopup] = useState(false);
+    const [showExchangePanel, setShowExchangePanel] = useState(false);
+    const [selectedDuplicateIds, setSelectedDuplicateIds] = useState<Set<string>>(new Set());
     const albumScrollRef = React.useRef<HTMLDivElement>(null);
     const deckCardsScrollRef = React.useRef<HTMLDivElement>(null);
 
@@ -158,8 +160,87 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
     if (!isOpen) return null;
 
+    // Gather all duplicate cards across all decks
+    const allDuplicates: { deckId: string; cardIdx: number; card: import('../types').Card }[] = [];
+    decks.forEach(deck => {
+        deck.cards.forEach((card, idx) => {
+            if (card.isDuplicate) {
+                const st = String(card.symbolType);
+                if (!['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && card.icon !== '🪙') {
+                    allDuplicates.push({ deckId: deck.gameId, cardIdx: idx, card });
+                }
+            }
+        });
+    });
+
+    const handleExchangeDuplicates = (ids: Set<string>) => {
+        const count = ids.size;
+        if (count > 0) {
+            onBuyCredits(0, count); // gives pack credits for free (exchange)
+        }
+        setShowExchangePanel(false);
+        setSelectedDuplicateIds(new Set());
+    };
+
     return (
         <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(160deg,#2e1065 0%,#0f0518 100%)' }}>
+            {/* Duplicate Exchange Overlay */}
+            {showExchangePanel && (
+                <div className="absolute inset-0 z-[170] bg-black/90 backdrop-blur-sm flex flex-col animate-pop-in">
+                    <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2" style={{ background: 'linear-gradient(180deg,#b45309,#78350f)' }}>
+                        <span className="font-black text-white text-sm uppercase tracking-widest flex-1">🔄 Exchange Duplicates</span>
+                        <span className="text-white/70 text-xs font-bold">1 Dup = 1 📦</span>
+                        <button onClick={() => { setShowExchangePanel(false); setSelectedDuplicateIds(new Set()); }}
+                            className="round-btn"><i className="ti ti-x" /></button>
+                    </div>
+                    {allDuplicates.length === 0 ? (
+                        <div className="flex-1 flex items-center justify-center text-white/50 text-sm font-bold uppercase">No duplicates yet</div>
+                    ) : (
+                        <>
+                            <div className="flex-1 overflow-y-auto p-3 grid grid-cols-5 gap-2 content-start">
+                                {allDuplicates.map((dup, i) => {
+                                    const key = `${dup.deckId}-${dup.cardIdx}`;
+                                    const sel = selectedDuplicateIds.has(key);
+                                    const borderColor = getCardBorder(dup.card.rarity);
+                                    return (
+                                        <button key={key} onClick={() => {
+                                            setSelectedDuplicateIds(prev => {
+                                                const next = new Set(prev);
+                                                sel ? next.delete(key) : next.add(key);
+                                                return next;
+                                            });
+                                        }} className="relative rounded-xl flex flex-col items-center justify-between overflow-hidden transition-all active:scale-95"
+                                            style={{ background: getCardBg(dup.card.rarity, false), border: `2px solid ${sel ? '#fde68a' : borderColor}`, aspectRatio: '2/3', boxShadow: sel ? '0 0 12px #fde68a88' : `0 2px 8px ${borderColor}33` }}>
+                                            {sel && <div className="absolute inset-0 bg-yellow-400/20 z-10 rounded-xl" />}
+                                            <div className="w-full px-1 pt-1 flex justify-center">
+                                                <span className="text-[7px] font-black uppercase px-1 py-0.5 rounded-full bg-black/40 text-white/80">{dup.card.rarity[0]}</span>
+                                            </div>
+                                            <div className="flex-1 flex items-center justify-center">
+                                                <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{dup.card.icon}</span>
+                                            </div>
+                                            <div className="w-full px-0.5 pb-1 text-center">
+                                                <div className="text-[7px] font-bold text-white/80 truncate">{dup.card.name}</div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <div className="shrink-0 flex items-center gap-3 px-4 py-3" style={{ background: 'rgba(0,0,0,0.6)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                                <span className="text-white/60 text-xs font-bold flex-1">{selectedDuplicateIds.size} selected → {selectedDuplicateIds.size} 📦</span>
+                                <button onClick={() => setSelectedDuplicateIds(new Set(allDuplicates.map(d => `${d.deckId}-${d.cardIdx}`)))}
+                                    className="btn-3d px-3 py-1.5 rounded-lg text-xs font-black text-white uppercase"
+                                    style={{ background: 'rgba(255,255,255,0.15)' }}>Select All</button>
+                                <button disabled={selectedDuplicateIds.size === 0}
+                                    onClick={() => handleExchangeDuplicates(selectedDuplicateIds)}
+                                    className="btn-3d px-4 py-1.5 rounded-lg text-xs font-black text-white uppercase"
+                                    style={{ background: selectedDuplicateIds.size > 0 ? 'linear-gradient(180deg,#f59e0b,#b45309)' : '#374151', boxShadow: selectedDuplicateIds.size > 0 ? '0 3px 0 #78350f' : 'none' }}>
+                                    Exchange {selectedDuplicateIds.size > 0 ? selectedDuplicateIds.size : ''}
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
             {/* Pack Opening Overlay */}
             {isOpeningPack && (
                 <div className="absolute inset-0 z-[160] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-3">
@@ -171,13 +252,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     )}
                     {packStage === 'REVEAL' && (
                         <div className="w-full h-full flex flex-col items-center justify-center animate-pop-in relative py-4">
-                            <div className={`flex-1 w-full max-w-2xl px-2 overflow-y-auto grid gap-2 content-center justify-items-center ${openedCards.filter(c => { const st = String(c.symbolType); return !['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && c.icon !== '🪙'; }).length >= 10 ? 'grid-cols-5' : 'grid-cols-3'}`}>
+                            <div className="flex-1 w-full max-w-2xl px-2 overflow-y-auto grid grid-cols-5 gap-2 content-center justify-items-center">
                                 {openedCards.filter(card => { const st = String(card.symbolType); return !['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && card.icon !== '🪙'; }).map((card, i) => {
                                     const borderColor = getCardBorder(card.rarity);
                                     return (
                                     <div
                                         key={i}
-                                        className={`relative w-full ${openedCards.length >= 10 ? 'max-w-[80px]' : 'max-w-[100px]'} rounded-xl flex flex-col items-center justify-between overflow-hidden animate-pop-in ${card.rarity === 'LEGENDARY' ? 'animate-pulse duration-700' : ''}`}
+                                        className={`relative w-full max-w-[80px] rounded-xl flex flex-col items-center justify-between overflow-hidden animate-pop-in ${card.rarity === 'LEGENDARY' ? 'animate-pulse duration-700' : ''}`}
                                         style={{ animationDelay: `${i * 30}ms`, background: getCardBg(card.rarity, false), border: `2px solid ${borderColor}`, aspectRatio: '2/3', boxShadow: `0 4px 20px ${borderColor}55` }}
                                     >
                                         {/* Rarity inside top */}
@@ -233,9 +314,17 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     </h2>
 
                     {!selectedDeckId && (
-                        <div className="flex items-center bg-black/30 p-0.5 rounded-lg ml-1">
-                            <button onClick={() => setActiveTab('ALBUM')} className={`px-4 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'ALBUM' ? 'bg-yellow-500 text-black shadow-md' : 'text-gray-400'}`}>Decks</button>
-                            <button onClick={() => setActiveTab('PACKS')} className={`px-4 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all ${activeTab === 'PACKS' ? 'bg-yellow-500 text-black shadow-md' : 'text-gray-400'}`}>Draw</button>
+                        <div className="flex items-center gap-1.5 ml-1">
+                            <button onClick={() => setActiveTab('PACKS')}
+                                className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white"
+                                style={{ background: activeTab === 'PACKS' ? 'linear-gradient(180deg,#22c55e,#15803d)' : 'rgba(255,255,255,0.1)', boxShadow: activeTab === 'PACKS' ? '0 3px 0 #14532d' : 'none' }}>
+                                🃏 Draw Cards
+                            </button>
+                            <button onClick={() => setActiveTab('ALBUM')}
+                                className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white"
+                                style={{ background: activeTab === 'ALBUM' ? 'linear-gradient(180deg,#a855f7,#6d28d9)' : 'rgba(255,255,255,0.1)', boxShadow: activeTab === 'ALBUM' ? '0 3px 0 #4c1d95' : 'none' }}>
+                                📚 Decks
+                            </button>
                         </div>
                     )}
 
@@ -325,11 +414,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             <div className="px-2 pb-2.5 pt-1 flex flex-col gap-1.5 bg-black/40">
                                                 <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
                                                     className={`btn-3d w-full py-2 rounded-lg font-black text-white uppercase text-xs ${canDrawOne ? 'bg-green-600 hover:bg-green-500' : 'bg-gray-700'}`}>
-                                                    1× ({singleCost} 📦)
+                                                    📦 Draw
                                                 </button>
                                                 <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
                                                     className={`btn-3d w-full py-2 rounded-lg font-black text-white uppercase text-xs relative overflow-hidden ${canDrawTen ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:brightness-110' : 'bg-gray-700'}`}>
-                                                    10× ({bulkCost} 📦)
+                                                    10×
                                                     {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</div>}
                                                 </button>
                                             </div>
@@ -338,18 +427,21 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 })}
                             </div>
 
-                            {/* Exchange panel — far right */}
-                            <div className="flex flex-col gap-1.5 shrink-0 ml-auto" style={{ width: 110 }}>
-                                <div className="text-[8px] font-black text-purple-300/70 uppercase tracking-widest text-center mb-0.5">Exchange</div>
-                                {tokenExchanges.map((ex) => (
-                                    <button key={ex.credits} onClick={() => onBuyCreditsWithTokens && onBuyCreditsWithTokens(ex.credits, ex.cost)}
-                                        disabled={!onBuyCreditsWithTokens || tokens < ex.cost}
-                                        className={`btn-3d w-full py-2 rounded-xl font-black text-[10px] flex flex-col items-center gap-0.5 ${(!onBuyCreditsWithTokens || tokens < ex.cost) ? 'bg-gray-800 opacity-40 cursor-not-allowed' : ''}`}
-                                        style={(!onBuyCreditsWithTokens || tokens < ex.cost) ? {} : { background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
-                                        <span className="text-white leading-none">{ex.credits}× 📦</span>
-                                        <span className="text-purple-300 leading-none">{ex.cost} 💳</span>
-                                    </button>
-                                ))}
+                            {/* Side panel — Buy Packs + Exchange Duplicates */}
+                            <div className="flex flex-col gap-2 shrink-0 ml-auto" style={{ width: 110 }}>
+                                <button onClick={() => setShowPackBuyPopup(true)}
+                                    className="btn-3d w-full py-2.5 rounded-xl font-black text-[10px] text-white uppercase flex flex-col items-center gap-0.5"
+                                    style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #14532d' }}>
+                                    <span style={{ fontSize: '1.2rem' }}>📦</span>
+                                    <span>Buy Packs</span>
+                                </button>
+                                <button onClick={() => setShowExchangePanel(true)}
+                                    className="btn-3d w-full py-2.5 rounded-xl font-black text-[10px] text-white uppercase flex flex-col items-center gap-0.5"
+                                    style={{ background: 'linear-gradient(180deg,#f59e0b,#b45309)', boxShadow: '0 3px 0 #78350f' }}>
+                                    <span style={{ fontSize: '1.2rem' }}>🔄</span>
+                                    <span>Exchange</span>
+                                    <span>Dupes</span>
+                                </button>
                             </div>
                         </div>
                     )}

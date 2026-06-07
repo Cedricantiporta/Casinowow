@@ -407,6 +407,26 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                     )}
 
+                    {/* Left sidebar: stage counter, picks, buy button */}
+                    <div className="shrink-0 flex flex-col items-center justify-center gap-2 px-2 py-3"
+                        style={{ background: 'rgba(0,0,0,0.35)', borderRight: '1px solid rgba(255,255,255,0.06)', width: 80 }}>
+                        <div className="flex flex-col items-center leading-none">
+                            <span className="text-white/50 text-[8px] font-black uppercase tracking-widest">Stage</span>
+                            <span className="font-black text-white text-2xl leading-none">{wildStage}</span>
+                        </div>
+                        <div className="w-full h-px bg-white/10" />
+                        <div className="flex flex-col items-center leading-none">
+                            <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>⛏️</span>
+                            <span className="font-black text-white text-xl leading-none mt-0.5">{wildCredits}</span>
+                            <span className="text-white/50 text-[8px] font-black uppercase">Picks</span>
+                        </div>
+                        <Btn3D onClick={() => setShowBuyPopup('PICKS')}
+                            color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
+                            className="w-full py-1.5 rounded-lg text-white" style={{ fontSize: '0.6rem' }}>
+                            + Buy
+                        </Btn3D>
+                    </div>
+
                     {/* Rock grid */}
                     <div className="flex-1 flex items-center justify-center p-3">
                         <div className="relative p-2">
@@ -449,21 +469,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 })}
                             </div>
                         </div>
-                    </div>
-
-                    {/* Bottom bar: picks pill + buy button */}
-                    <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-2"
-                        style={{ background: 'rgba(0,0,0,0.4)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                        <div className="currency-pill flex items-center gap-1.5 px-3 py-1.5">
-                            <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>⛏️</span>
-                            <span className="font-black text-white text-lg leading-none">{wildCredits}</span>
-                            <span className="text-white/50 text-[10px] uppercase font-bold">Picks</span>
-                        </div>
-                        <Btn3D onClick={() => setShowBuyPopup('PICKS')}
-                            color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
-                            className="px-5 py-2 rounded-xl text-white text-xs">
-                            + Buy Picks
-                        </Btn3D>
                     </div>
                 </div>
             )}

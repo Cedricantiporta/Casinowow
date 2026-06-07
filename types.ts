@@ -59,6 +59,7 @@ export interface PlayerState {
   diamonds: number; // Renamed to Gems in UI, keeping var name for stability
   tokens: number; // Renamed from cardCredits
   packCredits: number; // New currency for opening packs
+  premiumPackCredits?: number;
   piggyBank: number; // Accumulated free coins from bets
   level: number;
   xp: number;

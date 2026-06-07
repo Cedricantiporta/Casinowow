@@ -793,6 +793,9 @@ const App: React.FC = () => {
           const colData: SymbolType[] = [];
           for(let r=0; r<rows; r++) {
               let sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
+              while (selectedGame.theme === 'PIGGY' && sym === SymbolType.SCATTER) {
+                  sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
+              }
               if (c === 2) {
                   const highPaying = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.SEVEN, SymbolType.CHERRY];
                   if (highPaying.includes(sym) && Math.random() < 0.5) {
@@ -1030,9 +1033,8 @@ const App: React.FC = () => {
 
   const handleStageComplete = (gameType: 'WILD' | 'DICE', bonusCoins: number, bonusDiamonds: number) => {
       const stage = gameType === 'WILD' ? quest.wildStage : quest.diceStage;
-      const scaledBonus = 1000000 * stage * player.level;
 
-      setPlayer(p => ({ ...p, balance: p.balance + scaledBonus, diamonds: p.diamonds + bonusDiamonds }));
+      setPlayer(p => ({ ...p, balance: p.balance + bonusCoins, diamonds: p.diamonds + bonusDiamonds }));
 
       if (gameType === 'WILD') {
           setQuest(q => ({ ...q, wildStage: q.wildStage + 1, wildGrid: [] }));
@@ -1040,7 +1042,7 @@ const App: React.FC = () => {
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
       }
 
-      setStageCompletePopup({ gameType, stage, coins: scaledBonus, diamonds: bonusDiamonds });
+      setStageCompletePopup({ gameType, stage, coins: bonusCoins, diamonds: bonusDiamonds });
       audioService.playWinBig();
   };
 
@@ -1318,15 +1320,21 @@ const App: React.FC = () => {
 
     if (totalFreeSpins > 0 && totalPayout > 0) setFreeSpinTotalWin(prev => prev + totalPayout);
 
-    // Per-spin drops (every spin, not just wins)
-    if (player.level >= 20 && Math.random() < 0.20) {
+    // Per-spin drops — scale with bet level (±2% per step from max bet)
+    const maxBetIdx = availableBets.length - 1;
+    const questChance = Math.max(0.01, 0.20 - (maxBetIdx - betIndex) * 0.02);
+    if (player.level >= 20 && Math.random() < questChance) {
         if (Math.random() < 0.5) {
             setQuest(q => ({ ...q, diceCredits: q.diceCredits + 1 }));
         } else {
             setQuest(q => ({ ...q, wildCredits: q.wildCredits + 1 }));
         }
     }
-    if (player.level >= 30) {
+    const packDropChance = Math.max(0.01, 0.20 - (maxBetIdx - betIndex) * 0.02);
+    if (Math.random() < packDropChance) {
+        setPlayer(p => ({ ...p, packCredits: p.packCredits + 1 }));
+        setCelebrationMsg('📦 +1 Card Pack!');
+    } else if (player.level >= 30) {
         const cardRoll = Math.random();
         if (cardRoll < 0.10) handleCardDrop('RARE');
         else if (cardRoll < 0.30) handleCardDrop('COMMON');
