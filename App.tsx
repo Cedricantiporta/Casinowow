@@ -1389,14 +1389,14 @@ const App: React.FC = () => {
             setQuest(q => ({ ...q, wildCredits: q.wildCredits + 1 }));
         }
     }
-    const packDropChance = Math.max(0.01, 0.20 - (maxBetIdx - betIndex) * 0.02);
+    const packDropChance = Math.max(0.007, (0.20 - (maxBetIdx - betIndex) * 0.02) * 0.7);
     if (Math.random() < packDropChance) {
         setPlayer(p => ({ ...p, packCredits: p.packCredits + 1 }));
         showToast({ type: 'PACK' });
     } else if (player.level >= 30) {
         const cardRoll = Math.random();
-        if (cardRoll < 0.10) handleCardDrop('RARE');
-        else if (cardRoll < 0.30) handleCardDrop('COMMON');
+        if (cardRoll < 0.07) handleCardDrop('RARE');
+        else if (cardRoll < 0.21) handleCardDrop('COMMON');
     }
 
     if (totalPayout > 0) {
@@ -1656,6 +1656,16 @@ const App: React.FC = () => {
           else if (reward.type === 'DIAMONDS') { setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value })); setCelebrationMsg(`+${reward.value} Gems`); }
           else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 })); setCelebrationMsg(`2× XP Boost!`); }
           else if (reward.type === 'PICKS') { setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value })); setCelebrationMsg(`+${reward.value} Credits`); }
+          else if (reward.type === 'CREDIT_BACK') {
+              const isPremiumPack = Math.random() < 0.05;
+              if (isPremiumPack) {
+                  setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + reward.value }));
+                  setCelebrationMsg(`+${reward.value} 🎴 Premium Packs!`);
+              } else {
+                  setPlayer(p => ({ ...p, packCredits: p.packCredits + reward.value }));
+                  setCelebrationMsg(`+${reward.value} 🃏 Card Packs!`);
+              }
+          }
       }
   };
 
@@ -1666,24 +1676,34 @@ const App: React.FC = () => {
       let totalGems = 0;
       let totalPicksFound = 0;
       let xpBoostFound = false;
+      let totalPacks = 0;
+      let totalPremPacks = 0;
 
       rewards.forEach(r => {
           if (r.type === 'COINS') totalCoins += r.value;
           else if (r.type === 'DIAMONDS') totalGems += r.value;
           else if (r.type === 'PICKS') totalPicksFound += r.value;
           else if (r.type === 'XP_BOOST') xpBoostFound = true;
+          else if (r.type === 'CREDIT_BACK') {
+              if (Math.random() < 0.05) totalPremPacks += r.value;
+              else totalPacks += r.value;
+          }
       });
 
       if (totalCoins > 0) setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
       if (totalGems > 0) setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems }));
       if (totalPicksFound > 0) setQuest(q => ({ ...q, wildCredits: q.wildCredits + totalPicksFound }));
       if (xpBoostFound) setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 }));
+      if (totalPacks > 0) setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks }));
+      if (totalPremPacks > 0) setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPremPacks }));
 
       const parts = [];
       if (totalCoins > 0) parts.push(`${formatCommaNumber(totalCoins)} Coins`);
       if (totalGems > 0) parts.push(`${totalGems} Gems`);
       if (totalPicksFound > 0) parts.push(`${totalPicksFound} Credits`);
       if (xpBoostFound) parts.push("XP Boost");
+      if (totalPacks > 0) parts.push(`${totalPacks} 🃏 Packs`);
+      if (totalPremPacks > 0) parts.push(`${totalPremPacks} 🎴 Prem Packs`);
 
       if (parts.length > 0) {
           setCelebrationMsg(`Auto Pick: +${parts.join(', ')}`);
@@ -2468,8 +2488,10 @@ const currentState: SavedGameState = {
                       ...p,
                       balance: p.balance + 10_000_000_000,
                       diamonds: p.diamonds + 2_000,
+                      packCredits: p.packCredits + 100,
+                      premiumPackCredits: (p.premiumPackCredits ?? 0) + 20,
                   }));
-                  setCelebrationMsg('💰 +10B Coins · +2,000 Gems');
+                  setCelebrationMsg('💎 +10B Coins · +2,000 Gems · +100 🃏 · +20 🎴');
               } else if (code === 'dev222') {
                   const now = Date.now();
                   setPlayer(p => ({
@@ -2477,6 +2499,8 @@ const currentState: SavedGameState = {
                       isVip: true,
                       xpMultiplier: 5,
                       xpBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
+                      packCredits: p.packCredits + 500,
+                      premiumPackCredits: (p.premiumPackCredits ?? 0) + 100,
                   }));
                   setMissionState(ms => ({
                       ...ms,
@@ -2485,7 +2509,7 @@ const currentState: SavedGameState = {
                       passBoostMultiplier: 5,
                       passBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
                   }));
-                  setCelebrationMsg('👑 GOD MODE! All Premium · Max Boosts');
+                  setCelebrationMsg('👑 GOD MODE! VIP+Pass · 5× XP · +500🃏 · +100🎴');
               }
               audioService.playWinBig();
           }}

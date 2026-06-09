@@ -49,25 +49,25 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
             style={{ background: 'rgba(0,0,0,0.75)' }}
             onClick={onClose}>
             <div className="animate-pop-in flex flex-col items-center gap-3 p-6 rounded-3xl"
-                style={{ background: 'linear-gradient(160deg,#0a0018,#1a0035)', border: `3px solid ${style.border}`, boxShadow: `0 0 40px ${style.shadow}, 0 16px 48px rgba(0,0,0,0.9)`, minWidth: 260 }}
+                style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', boxShadow: '0 0 40px rgba(120,40,200,0.4), 0 16px 48px rgba(0,0,0,0.9)', minWidth: 260 }}
                 onClick={e => e.stopPropagation()}>
 
-                {/* Tier name */}
+                {/* Tier name — color coded */}
                 <div style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor, textShadow: `0 0 20px ${style.shadow}` }}>
                     {tier.name} JACKPOT!
                 </div>
 
-                {/* Amount */}
+                {/* Amount — color coded */}
                 <div className="flex items-center justify-center px-6 py-2.5 rounded-xl"
-                    style={{ background: '#000', border: `2px solid ${style.border}`, boxShadow: `inset 0 0 12px rgba(0,0,0,0.8)` }}>
-                    <span style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor }}>
+                    style={{ background: 'rgba(0,0,0,0.5)' }}>
+                    <span style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor, textShadow: `0 0 16px ${style.shadow}` }}>
                         +{formatK(displayAmount)}
                     </span>
                 </div>
 
                 <button onClick={onClose}
                     className="btn-3d px-10 py-2.5 rounded-2xl uppercase text-white font-black text-sm tracking-widest"
-                    style={{ background: `linear-gradient(180deg,${style.border},rgba(0,0,0,0.6))`, boxShadow: `0 4px 0 rgba(0,0,0,0.7), 0 0 16px ${style.shadow}`, border: `1.5px solid ${style.textColor}` }}>
+                    style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 4px 0 #4c1d95' }}>
                     COLLECT ({secondsLeft})
                 </button>
             </div>

@@ -124,7 +124,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
     if (!isOpen) return null;
 
-    const vipBenefits = ['10% Piggy Bank savings', '2× XP from spins', 'High-Limit Room access', 'VIP gold UI theme', '20% store discounts', '+Weekly gems'];
+    const vipBenefits = ['10% Piggy Bank savings', '2× XP from spins', 'High-Limit Room access', 'VIP gold UI theme', '5% daily cashback (Inbox)', '+Weekly gems'];
     const passBenefits = ['Premium reward track', 'Exclusive gem rewards', 'XP mission booster', 'Monthly bonus coins', 'Prestige profile badge', 'Unlimited daily bonus'];
 
     return (

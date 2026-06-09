@@ -12,7 +12,7 @@ const BENEFITS: { icon: string; title: string; desc: string }[] = [
     { icon: '🐷', title: '+10% Piggy Bank',   desc: 'Extra savings on every bet' },
     { icon: '🎰', title: 'High Limit Room',   desc: '4 exclusive VIP-level slots' },
     { icon: '⛏️', title: '+Quest Credits',    desc: 'Bonus credits per session' },
-    { icon: '💰', title: '+Coin Bonus',        desc: 'Daily coin deposit' },
+    { icon: '💰', title: '5% Daily Cashback', desc: 'Claim via Inbox each day' },
     { icon: '💎', title: '+Weekly Gems',       desc: 'Gem pack every week' },
     { icon: '⭐', title: '+20% XP',           desc: 'Level up faster on all spins' },
 ];
