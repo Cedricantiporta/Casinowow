@@ -791,18 +791,22 @@ const getSymbolDescription = (symbol: SymbolType): string => {
 };
 
 export const GENERATE_DECKS = (): Deck[] => {
+    const VALID_CARD_SYMBOLS = [
+        SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR,
+        SymbolType.CHERRY, SymbolType.SEVEN, SymbolType.WILD, SymbolType.SCATTER
+    ];
     return GAMES_CONFIG.map(game => {
         const symbols = SYMBOL_MAP[game.theme];
-        const cards: Card[] = Object.values(SymbolType).map(type => {
+        const cards: Card[] = VALID_CARD_SYMBOLS.map(type => {
             const icon = symbols[type];
             if (!icon) return null;
-            
+
             return {
                 id: `${game.id}-${type}`,
                 symbolType: type,
                 name: type.charAt(0) + type.slice(1).toLowerCase(),
                 rarity: determineRarity(type),
-                count: 0, // Start owned 0
+                count: 0,
                 icon: icon,
                 description: getSymbolDescription(type)
             };

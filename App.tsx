@@ -898,7 +898,12 @@ const App: React.FC = () => {
               else if (drawRarities[d] === 'LEGENDARY') rarityWeights = [0, 0, 0, 1];
 
               const allCardsInTemp: { deckId: string, cardIndex: number, card: Card }[] = [];
-              tempDecks.forEach(d => d.cards.forEach((c, idx) => allCardsInTemp.push({ deckId: d.gameId, cardIndex: idx, card: c })));
+              tempDecks.forEach(d => d.cards.forEach((c, idx) => {
+                  const st = String(c.symbolType);
+                  if (!['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && st !== 'COIN') {
+                      allCardsInTemp.push({ deckId: d.gameId, cardIndex: idx, card: c });
+                  }
+              }));
               
               const hasAnyCards = tempDecks.some(d => d.cards.some(c => c.count > 0));
 
@@ -2134,16 +2139,13 @@ const currentState: SavedGameState = {
                         <span style={{fontSize:22}}>🐷</span>
                     </div>
 
-                {/* Star Experience Progression — LVL text centered, star on right */}
-                <div className="rtrack !flex-none w-[110px] md:w-[150px] ml-2" style={{ justifyContent: 'center', gap: 4 }}>
-                    <div
-                        className="rfill"
-                        style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, ...(player.xpMultiplier >= 2 ? { background: 'linear-gradient(180deg,#ffe04d,#d4a017 60%,#a07010)', boxShadow: 'inset 0 1px 1px rgba(255,255,180,0.7)' } : {}) }}
-                    ></div>
-                    <span className="rnum font-black" style={{ fontSize: '11px', letterSpacing: '0.02em' }}>
+                {/* Level Pill — star on left, LVL.XX text larger */}
+                <div className="rtrack !flex-none w-[120px] md:w-[155px] ml-2" style={{ justifyContent: 'flex-start', gap: 5, paddingLeft: 3 }}>
+                    <div className="rfill" style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 'inherit', background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)' }}></div>
+                    <div className="rstar" style={{ flexShrink: 0, width: 22, height: 22 }}></div>
+                    <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em' }}>
                         {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LVL.${player.level}`}
                     </span>
-                    <div className="rstar"></div>
                 </div>
 
                 {/* Active Multiplier indicator */}
