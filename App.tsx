@@ -2593,12 +2593,12 @@ const currentState: SavedGameState = {
                   </div>
                   <div className="flex flex-col gap-1.5 w-full text-left">
                       {(showPurchaseModal === 'VIP'
-                          ? ['10% Piggy Bank savings', '2× XP from spins', 'High-Limit Room access', 'VIP gold UI theme']
-                          : ['Premium reward track', 'Exclusive gem rewards', 'XP mission booster', '+100 Gems & +1M Coins', '+20 Pass Levels']
+                          ? ['10% Piggy Bank savings', '2× XP from spins', 'High-Limit Room access', 'VIP gold UI theme', '5% daily cashback (Inbox)', '+Weekly gems']
+                          : ['Premium reward track', 'Exclusive gem rewards', 'XP mission booster', 'Monthly bonus coins', 'Prestige profile badge', 'Unlimited daily bonus']
                       ).map((b, i) => (
                           <div key={i} className="flex items-center gap-2">
-                              <span className="text-purple-400 text-xs shrink-0">✦</span>
-                              <span className="text-purple-100 text-[11px]">{b}</span>
+                              <span className={`text-xs shrink-0 ${showPurchaseModal === 'VIP' ? 'text-yellow-400' : 'text-purple-400'}`}>✦</span>
+                              <span className="text-white/90 text-[11px]">{b}</span>
                           </div>
                       ))}
                   </div>

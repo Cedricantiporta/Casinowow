@@ -472,73 +472,87 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {/* ── FORTUNE TRAIL (Dice Quest) ── */}
             {activeGame === 'DICE' && (
                 <>
-                    {/* S-shape board */}
+                    {/* S-shape board with bridge tiles */}
                     <div className="flex-1 flex items-center justify-center w-full overflow-hidden p-2">
                         <div ref={boardContainerRef} className="overflow-y-auto no-scrollbar flex flex-col gap-1.5">
                             {(() => {
-                                const COLS = 10;
-                                const numRows = Math.ceil(board.length / COLS);
-                                const rows = Array.from({ length: numRows }, (_, rowIdx) =>
-                                    board.slice(rowIdx * COLS, rowIdx * COLS + COLS)
-                                );
-                                return [...rows].reverse().map((row, displayIdx) => {
-                                    const rowIdx = rows.length - 1 - displayIdx;
-                                    const isEven = rowIdx % 2 === 0;
+                                const MAIN = 9;   // cells per main row
+                                const SEG = 10;   // cells per segment (9 main + 1 bridge)
+
+                                const numSegs = Math.ceil(board.length / SEG);
+                                const segments = Array.from({ length: numSegs }, (_, si) => ({
+                                    si,
+                                    main: board.slice(si * SEG, si * SEG + MAIN),
+                                    bridge: board[si * SEG + MAIN],
+                                }));
+
+                                const renderCell = (step: typeof board[0]) => {
+                                    const isHere = step.index === visualPosition;
+                                    const bg = step.isFinish ? 'linear-gradient(180deg,#f59e0b,#b45309)'
+                                        : step.isStart ? 'linear-gradient(180deg,#22c55e,#15803d)'
+                                        : step.reward?.type === 'BACK' ? 'linear-gradient(180deg,#dc2626,#991b1b)'
+                                        : step.reward?.type === 'COINS' ? 'linear-gradient(180deg,#ca8a04,#713f12)'
+                                        : step.reward?.type === 'PICKS' ? 'linear-gradient(180deg,#7c3aed,#3b0764)'
+                                        : step.reward?.type === 'DIAMONDS' ? 'linear-gradient(180deg,#0891b2,#0c4a6e)'
+                                        : step.reward?.type === 'PACKS' ? 'linear-gradient(180deg,#d97706,#451a03)'
+                                        : 'linear-gradient(180deg,#312e81,#1e1b4b)';
+                                    const cellIcon = step.isFinish ? '🏆'
+                                        : step.reward?.type === 'BACK' ? '⬅️'
+                                        : step.reward?.type === 'COINS' ? '🪙'
+                                        : step.reward?.type === 'PICKS' ? '🎲'
+                                        : step.reward?.type === 'DIAMONDS' ? '💎'
+                                        : step.reward?.type === 'PACKS' ? '📦'
+                                        : null;
                                     return (
-                                        <div key={rowIdx} className="flex gap-1.5" style={{ flexDirection: isEven ? 'row' : 'row-reverse' }}>
-                                            {row.map(step => {
-                                                const isHere = step.index === visualPosition;
-                                                const bg = step.isFinish ? 'linear-gradient(180deg,#f59e0b,#b45309)'
-                                                    : step.isStart ? 'linear-gradient(180deg,#22c55e,#15803d)'
-                                                    : step.reward?.type === 'BACK' ? 'linear-gradient(180deg,#dc2626,#991b1b)'
-                                                    : step.reward?.type === 'COINS' ? 'linear-gradient(180deg,#ca8a04,#713f12)'
-                                                    : step.reward?.type === 'PICKS' ? 'linear-gradient(180deg,#7c3aed,#3b0764)'
-                                                    : step.reward?.type === 'DIAMONDS' ? 'linear-gradient(180deg,#0891b2,#0c4a6e)'
-                                                    : step.reward?.type === 'PACKS' ? 'linear-gradient(180deg,#d97706,#451a03)'
-                                                    : 'linear-gradient(180deg,#312e81,#1e1b4b)';
-                                                const cellIcon = step.isFinish ? '🏆'
-                                                    : step.reward?.type === 'BACK' ? '⬅️'
-                                                    : step.reward?.type === 'COINS' ? '🪙'
-                                                    : step.reward?.type === 'PICKS' ? '🎲'
-                                                    : step.reward?.type === 'DIAMONDS' ? '💎'
-                                                    : step.reward?.type === 'PACKS' ? '📦'
-                                                    : null;
-                                                return (
-                                                    <div key={step.index}
-                                                        data-active={isHere ? 'true' : undefined}
-                                                        className="relative shrink-0 flex flex-col items-center justify-center rounded-lg"
-                                                        style={{
-                                                            width: 50, height: 50,
-                                                            background: bg,
-                                                            boxShadow: isHere
-                                                                ? '0 0 0 2px #fde68a, 0 4px 12px rgba(0,0,0,0.5)'
-                                                                : '0 3px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
-                                                            border: isHere ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.1)',
-                                                            transition: 'all 0.25s',
-                                                            transform: isHere ? 'scale(1.1)' : 'scale(1)',
-                                                        }}>
-                                                        <span className="absolute top-0.5 left-1 text-[7px] font-black text-white/40 leading-none">
-                                                            {step.isStart ? 'GO' : step.isFinish ? '' : `${step.index}`}
-                                                        </span>
-                                                        {isHere && (
-                                                            <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-                                                                <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>🎲</span>
-                                                            </div>
-                                                        )}
-                                                        {step.isStart ? (
-                                                            <span className="text-[9px] font-black text-white">START</span>
-                                                        ) : cellIcon ? (
-                                                            <div className="flex flex-col items-center gap-0.5">
-                                                                <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{cellIcon}</span>
-                                                                {step.reward?.label && step.reward.type !== 'BACK' && (
-                                                                    <span className="text-white font-black text-[8px] leading-none text-center px-0.5 truncate max-w-[46px]">{step.reward.label}</span>
-                                                                )}
-                                                            </div>
-                                                        ) : null}
-                                                    </div>
-                                                );
-                                            })}
+                                        <div key={step.index}
+                                            data-active={isHere ? 'true' : undefined}
+                                            className="relative shrink-0 flex flex-col items-center justify-center rounded-lg"
+                                            style={{
+                                                width: 46, height: 46,
+                                                background: bg,
+                                                boxShadow: isHere ? '0 0 0 2px #fde68a, 0 4px 12px rgba(0,0,0,0.5)' : '0 3px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
+                                                border: isHere ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.1)',
+                                                transition: 'all 0.25s',
+                                                transform: isHere ? 'scale(1.1)' : 'scale(1)',
+                                            }}>
+                                            <span className="absolute top-0.5 left-1 text-[7px] font-black text-white/40 leading-none">
+                                                {step.isStart ? 'GO' : step.isFinish ? '' : `${step.index}`}
+                                            </span>
+                                            {isHere && (
+                                                <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+                                                    <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>🎲</span>
+                                                </div>
+                                            )}
+                                            {step.isStart ? (
+                                                <span className="text-[9px] font-black text-white">START</span>
+                                            ) : cellIcon ? (
+                                                <div className="flex flex-col items-center gap-0.5">
+                                                    <span style={{ fontSize: '1rem', lineHeight: 1 }}>{cellIcon}</span>
+                                                    {step.reward?.label && step.reward.type !== 'BACK' && (
+                                                        <span className="text-white font-black text-[8px] leading-none text-center px-0.5 truncate max-w-[42px]">{step.reward.label}</span>
+                                                    )}
+                                                </div>
+                                            ) : null}
                                         </div>
+                                    );
+                                };
+
+                                // Render from top (high seg) to bottom (seg 0 = START)
+                                return [...segments].reverse().map(({ si, main, bridge }) => {
+                                    const isEven = si % 2 === 0;
+                                    return (
+                                        <React.Fragment key={si}>
+                                            {/* Bridge row — single cell at the turn connecting this seg to the one below */}
+                                            {bridge && (
+                                                <div className="flex" style={{ justifyContent: isEven ? 'flex-end' : 'flex-start' }}>
+                                                    {renderCell(bridge)}
+                                                </div>
+                                            )}
+                                            {/* Main row — 9 cells, direction alternates */}
+                                            <div className="flex gap-1" style={{ flexDirection: isEven ? 'row' : 'row-reverse' }}>
+                                                {main.map(step => renderCell(step))}
+                                            </div>
+                                        </React.Fragment>
                                     );
                                 });
                             })()}

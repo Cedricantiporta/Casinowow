@@ -67,8 +67,8 @@ const getBundles = (maxBet: number) => [
         items: [
             { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
             { icon: '💎', label: '5,000 Gems' },
-            { icon: '🎴', label: '50 Premium Packs' },
-            { icon: '🚀', label: '3× XP Boost (24h)' },
+            { icon: '🎴', label: '10 Premium Packs' },
+            { icon: '🚀', label: '2× XP Boost (24h)' },
             { icon: '⛏️', label: '+50 Picks' },
         ],
         origPrice: '₱ 1,499',
@@ -99,7 +99,7 @@ const getBundles = (maxBet: number) => [
         items: [
             { icon: '💎', label: '10,000 Gems' },
             { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 300))} Coins` },
-            { icon: '🎴', label: '100 Premium Packs' },
+            { icon: '🎴', label: '20 Premium Packs' },
             { icon: '📜', label: 'Monthly Pass (30d)' },
         ],
         origPrice: '₱ 3,999',
