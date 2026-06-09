@@ -2139,11 +2139,11 @@ const currentState: SavedGameState = {
                         <span style={{fontSize:22}}>🐷</span>
                     </div>
 
-                {/* Level Pill — star on left, LVL.XX text larger */}
-                <div className="rtrack !flex-none w-[120px] md:w-[155px] ml-2" style={{ justifyContent: 'flex-start', gap: 5, paddingLeft: 3 }}>
+                {/* Level Pill — star on left, LVL.XX text centered */}
+                <div className="rtrack !flex-none w-[120px] md:w-[155px] ml-2" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6 }}>
                     <div className="rfill" style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 'inherit', background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)' }}></div>
                     <div className="rstar" style={{ flexShrink: 0, width: 22, height: 22 }}></div>
-                    <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em' }}>
+                    <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
                         {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LVL.${player.level}`}
                     </span>
                 </div>

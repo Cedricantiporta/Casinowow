@@ -791,13 +791,41 @@ const getSymbolDescription = (symbol: SymbolType): string => {
 };
 
 export const GENERATE_DECKS = (): Deck[] => {
+    // Symbols ordered low→high value: GRAPE, BELL, BAR, CHERRY, SEVEN, WILD, SCATTER
     const VALID_CARD_SYMBOLS = [
         SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR,
         SymbolType.CHERRY, SymbolType.SEVEN, SymbolType.WILD, SymbolType.SCATTER
     ];
-    return GAMES_CONFIG.map(game => {
+    // Per-game rarity distribution (index matches GAMES_CONFIG order).
+    // Higher-value symbols get rarer rarities as albums progress.
+    const GAME_RARITIES: CardRarity[][] = [
+        // 0 Piggy Riches:   1 rare, 6 common
+        ['COMMON','COMMON','COMMON','COMMON','COMMON','COMMON','RARE'],
+        // 1 Neon Vegas:     2 rares, 5 common
+        ['COMMON','COMMON','COMMON','COMMON','COMMON','RARE','RARE'],
+        // 2 Pharaoh's Tomb: 3 rares, 4 common
+        ['COMMON','COMMON','COMMON','COMMON','RARE','RARE','RARE'],
+        // 3 Dragon's Fortune: 2 rares + 1 epic, 4 common
+        ['COMMON','COMMON','COMMON','COMMON','RARE','RARE','EPIC'],
+        // 4 Pirate's Bounty: 3 rares + 1 epic, 3 common
+        ['COMMON','COMMON','COMMON','RARE','RARE','RARE','EPIC'],
+        // 5 Cosmic Cash:    1 rare + 2 epics, 4 common
+        ['COMMON','COMMON','COMMON','COMMON','RARE','EPIC','EPIC'],
+        // 6 Sugar Rush:     2 rares + 2 epics, 3 common
+        ['COMMON','COMMON','COMMON','RARE','RARE','EPIC','EPIC'],
+        // 7 Jungle Rumble:  3 rares + 2 epics, 2 common
+        ['COMMON','COMMON','RARE','RARE','RARE','EPIC','EPIC'],
+        // 8 Deep Blue:      3 rares + 1 epic + 1 legendary, 2 common
+        ['COMMON','COMMON','RARE','RARE','RARE','EPIC','LEGENDARY'],
+        // 9 Gold Rush:      3 rares + 2 epics + 1 legendary, 1 common
+        ['COMMON','RARE','RARE','RARE','EPIC','EPIC','LEGENDARY'],
+        // 10 Samurai Honor: 3 rares + 3 epics + 1 legendary, 0 common
+        ['RARE','RARE','RARE','EPIC','EPIC','EPIC','LEGENDARY'],
+    ];
+    return GAMES_CONFIG.map((game, gameIdx) => {
         const symbols = SYMBOL_MAP[game.theme];
-        const cards: Card[] = VALID_CARD_SYMBOLS.map(type => {
+        const gameRarities = GAME_RARITIES[Math.min(gameIdx, GAME_RARITIES.length - 1)];
+        const cards: Card[] = VALID_CARD_SYMBOLS.map((type, symbolIdx) => {
             const icon = symbols[type];
             if (!icon) return null;
 
@@ -805,7 +833,7 @@ export const GENERATE_DECKS = (): Deck[] => {
                 id: `${game.id}-${type}`,
                 symbolType: type,
                 name: type.charAt(0) + type.slice(1).toLowerCase(),
-                rarity: determineRarity(type),
+                rarity: gameRarities[symbolIdx],
                 count: 0,
                 icon: icon,
                 description: getSymbolDescription(type)
