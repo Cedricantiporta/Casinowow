@@ -113,6 +113,13 @@ const App: React.FC = () => {
       if (currentView !== 'GAME') setShowLevelUp(false);
   }, [currentView]);
 
+  // Show XP % for 1 second when XP changes
+  useEffect(() => {
+      if (xpPctTimerRef.current) clearTimeout(xpPctTimerRef.current);
+      setShowXpPct(true);
+      xpPctTimerRef.current = setTimeout(() => setShowXpPct(false), 1000);
+  }, [player.xp]);
+
   // Effect to update Golden Treasury rewards when level changes
   useEffect(() => {
       const maxBet = MAX_BET_BY_LEVEL(player.level);
@@ -151,6 +158,8 @@ const App: React.FC = () => {
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [piggyGlow, setPiggyGlow] = useState(false);
   const [showXpTimer, setShowXpTimer] = useState(false);
+  const [showXpPct, setShowXpPct] = useState(false);
+  const xpPctTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const [activeModal, setActiveModal] = useState<'NONE' | 'SHOP' | 'COLLECTION' | 'MINIGAME' | 'MISSIONS' | 'TIME_BONUS' | 'LOGIN_BONUS' | 'PIGGY' | 'FEATURE_UNLOCK'>('NONE');
   const [missionInitialView, setMissionInitialView] = useState<'MISSIONS' | 'PASS'>('MISSIONS');
@@ -1947,17 +1956,19 @@ const currentState: SavedGameState = {
                         title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
                         style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', overflow:'visible' } : { overflow:'visible' }}
                     >
-                        <span style={{fontSize:16}}>🐷</span>
+                        <span style={{fontSize:22}}>🐷</span>
                     </div>
 
-                {/* Star Experience Progression — star inside pill on left */}
-                <div className="rtrack !flex-none w-[90px] md:w-[150px] ml-2">
+                {/* Star Experience Progression — star inside pill, centered LVL.XX or % */}
+                <div className="rtrack !flex-none w-[100px] md:w-[150px] ml-2" style={{ justifyContent: 'center', gap: 3 }}>
                     <div
                         className="rfill"
                         style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, ...(player.xpMultiplier >= 2 ? { background: 'linear-gradient(180deg,#ffe04d,#d4a017 60%,#a07010)', boxShadow: 'inset 0 1px 1px rgba(255,255,180,0.7)' } : {}) }}
                     ></div>
-                    <div className="rstar"></div>
-                    <span className="rnum font-black" style={{ fontSize: '18px' }}>{player.level}</span>
+                    <div className="rstar" style={{ width: 17, height: 17 }}></div>
+                    <span className="rnum font-black" style={{ fontSize: '11px', letterSpacing: '0.02em' }}>
+                        {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LVL.${player.level}`}
+                    </span>
                 </div>
 
                 {/* Active Multiplier indicator */}
