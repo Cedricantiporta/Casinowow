@@ -28,6 +28,7 @@ import { JackpotCelebration } from './components/JackpotCelebration';
 import { StageCompleteModal } from './components/StageCompleteModal';
 import { PremiumModal } from './components/PremiumModal';
 import { ProfileModal } from './components/ProfileModal';
+import { InboxModal, InboxMessage } from './components/InboxModal';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -232,16 +233,152 @@ const App: React.FC = () => {
   const [activeToast, setActiveToast] = useState<ActiveToast>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
+  const [showInbox, setShowInbox] = useState(false);
+  const [inbox, setInbox] = useState<InboxMessage[]>(() => {
+      try {
+          const saved = localStorage.getItem('cw_inbox');
+          if (saved) return JSON.parse(saved);
+      } catch {}
+      return [];
+  });
+
+  // Persist inbox to localStorage whenever it changes
+  useEffect(() => {
+      try { localStorage.setItem('cw_inbox', JSON.stringify(inbox)); } catch {}
+  }, [inbox]);
+
+  // Generate daily inbox messages on mount
+  useEffect(() => {
+      const todayStr = new Date().toDateString();
+      setInbox(prev => {
+          const next = [...prev];
+
+          // Welcome gift — one-time
+          const hasWelcome = next.some(m => m.type === 'WELCOME');
+          if (!hasWelcome) {
+              next.push({
+                  id: 'welcome',
+                  type: 'WELCOME' as const,
+                  title: 'Welcome Gift',
+                  body: '+500,000 Coins · +10 Standard Packs · +50 Gems',
+                  claimed: false,
+                  createdAt: Date.now(),
+              });
+          }
+
+          // Daily coin gift — days 1-10
+          const claimedCoinGifts = next.filter(m => m.type === 'DAILY_COINS' && m.claimed).length;
+          const hasTodayCoinGift = next.some(m => m.type === 'DAILY_COINS' && new Date(m.createdAt).toDateString() === todayStr);
+          if (!hasTodayCoinGift && claimedCoinGifts < 10) {
+              const day = claimedCoinGifts + 1;
+              const amount = day * 50_000;
+              next.push({
+                  id: `daily_coins_${todayStr}`,
+                  type: 'DAILY_COINS' as const,
+                  title: `Daily Coin Gift — Day ${day}`,
+                  body: `+${(amount / 1000).toFixed(0)}K Coins`,
+                  claimed: false,
+                  createdAt: Date.now(),
+              });
+          }
+
+          // Daily pack gift — random each day
+          const hasTodayPackGift = next.some(m => m.type === 'DAILY_PACK' && new Date(m.createdAt).toDateString() === todayStr);
+          if (!hasTodayPackGift) {
+              const roll = Math.random();
+              let packTitle = '';
+              let packBody = '';
+              if (roll < 0.33) {
+                  packTitle = 'Daily Pack Gift';
+                  packBody = '+5 Standard Card Packs';
+              } else if (roll < 0.66) {
+                  packTitle = 'Daily Premium Pack Gift';
+                  packBody = '+2 Premium Card Packs';
+              } else {
+                  packTitle = 'Daily Gem Gift';
+                  packBody = '+50 Gems';
+              }
+              next.push({
+                  id: `daily_pack_${todayStr}`,
+                  type: 'DAILY_PACK' as const,
+                  title: packTitle,
+                  body: packBody,
+                  claimed: false,
+                  createdAt: Date.now(),
+              });
+          }
+
+          return next;
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Generate VIP cashback when player becomes VIP
+  useEffect(() => {
+      if (!player.isVip) return;
+      const todayStr = new Date().toDateString();
+      setInbox(prev => {
+          const hasTodayVip = prev.some(m => m.type === 'VIP_CASHBACK' && new Date(m.createdAt).toDateString() === todayStr);
+          if (hasTodayVip) return prev;
+          const maxBet = MAX_BET_BY_LEVEL(player.level);
+          const cashback = Math.min(Math.max(Math.floor(player.balance * 0.05), 10_000), maxBet * 10);
+          return [...prev, {
+              id: `vip_cashback_${todayStr}`,
+              type: 'VIP_CASHBACK' as const,
+              title: 'VIP Daily Cashback',
+              body: `+${cashback.toLocaleString()} Coins (5% cashback)`,
+              claimed: false,
+              createdAt: Date.now(),
+          }];
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [player.isVip]);
+
+  const handleClaimInbox = (id: string) => {
+      setInbox(prev => {
+          const msg = prev.find(m => m.id === id);
+          if (!msg || msg.claimed) return prev;
+          // Apply reward
+          if (msg.type === 'WELCOME') {
+              setPlayer(p => ({ ...p, balance: p.balance + 500_000, packCredits: p.packCredits + 10, diamonds: p.diamonds + 50 }));
+              setCelebrationMsg('+500K Coins · +10 Packs · +50 Gems');
+          } else if (msg.type === 'DAILY_COINS') {
+              const claimedCount = prev.filter(m => m.type === 'DAILY_COINS' && m.claimed).length;
+              const day = claimedCount + 1;
+              const amount = day * 50_000;
+              setPlayer(p => ({ ...p, balance: p.balance + amount }));
+              setCelebrationMsg(`+${(amount / 1000).toFixed(0)}K Coins`);
+          } else if (msg.type === 'DAILY_PACK') {
+              if (msg.body.includes('Premium')) {
+                  setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + 2 }));
+                  setCelebrationMsg('+2 Premium Packs');
+              } else if (msg.body.includes('Gem')) {
+                  setPlayer(p => ({ ...p, diamonds: p.diamonds + 50 }));
+                  setCelebrationMsg('+50 Gems');
+              } else {
+                  setPlayer(p => ({ ...p, packCredits: p.packCredits + 5 }));
+                  setCelebrationMsg('+5 Card Packs');
+              }
+          } else if (msg.type === 'VIP_CASHBACK') {
+              const maxBet = MAX_BET_BY_LEVEL(playerRef.current.level);
+              const cashback = Math.min(Math.max(Math.floor(playerRef.current.balance * 0.05), 10_000), maxBet * 10);
+              setPlayer(p => ({ ...p, balance: p.balance + cashback }));
+              setCelebrationMsg(`+${cashback.toLocaleString()} VIP Cashback`);
+          }
+          audioService.playWinBig();
+          return prev.map(m => m.id === id ? { ...m, claimed: true } : m);
+      });
+  };
 
   useEffect(() => {
     setBetIndex(0);
     const unlockAudio = () => {
-        audioService.toggleMute(); 
+        audioService.toggleMute();
         audioService.toggleMute();
         document.removeEventListener('click', unlockAudio);
     };
     document.addEventListener('click', unlockAudio);
-    
+
     if (!loginState.claimedToday) {
         setTimeout(() => setActiveModal('LOGIN_BONUS'), 500);
     }
@@ -1979,16 +2116,16 @@ const currentState: SavedGameState = {
                         <span style={{fontSize:22}}>🐷</span>
                     </div>
 
-                {/* Star Experience Progression — star inside pill, centered LVL.XX or % */}
-                <div className="rtrack !flex-none w-[100px] md:w-[150px] ml-2" style={{ justifyContent: 'center', gap: 3 }}>
+                {/* Star Experience Progression — LVL text centered, star on right */}
+                <div className="rtrack !flex-none w-[110px] md:w-[150px] ml-2" style={{ justifyContent: 'center', gap: 4 }}>
                     <div
                         className="rfill"
                         style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, ...(player.xpMultiplier >= 2 ? { background: 'linear-gradient(180deg,#ffe04d,#d4a017 60%,#a07010)', boxShadow: 'inset 0 1px 1px rgba(255,255,180,0.7)' } : {}) }}
                     ></div>
-                    <div className="rstar" style={{ width: 17, height: 17 }}></div>
                     <span className="rnum font-black" style={{ fontSize: '11px', letterSpacing: '0.02em' }}>
                         {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LVL.${player.level}`}
                     </span>
+                    <div className="rstar"></div>
                 </div>
 
                 {/* Active Multiplier indicator */}
@@ -2034,7 +2171,7 @@ const currentState: SavedGameState = {
                 onClaimBonus={handleOpenTimeBonus}
                 onOpenCollection={() => openModal('COLLECTION')}
                 onOpenPiggyBank={handleOpenPiggyBank}
-                onOpenInbox={() => setCelebrationMsg("Inbox coming soon!")}
+                onOpenInbox={() => setShowInbox(true)}
                 onToggleVIP={handleToggleVIP}
                 questState={quest}
                 missionState={missionState}
@@ -2260,7 +2397,7 @@ const currentState: SavedGameState = {
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -2546,6 +2683,13 @@ const currentState: SavedGameState = {
           passBoostMultiplier={missionState.passBoostMultiplier}
           passBoostEndTime={missionState.passBoostEndTime}
           recentGames={GAMES_CONFIG.filter(g => (player.stats?.recentSlots || []).includes(g.id)).sort((a, b) => (player.stats?.recentSlots || []).indexOf(a.id) - (player.stats?.recentSlots || []).indexOf(b.id))}
+      />
+
+      <InboxModal
+          isOpen={showInbox}
+          onClose={() => setShowInbox(false)}
+          messages={inbox}
+          onClaim={handleClaimInbox}
       />
 
         </div>
