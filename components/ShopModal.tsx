@@ -22,6 +22,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     const [cooldown, setCooldown] = useState(false);
     const [popup, setPopup] = useState<'nopay' | 'nogems' | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const gemsSepRef = useRef<HTMLDivElement>(null);
+    const boostsSepRef = useRef<HTMLDivElement>(null);
+    const freeSepRef = useRef<HTMLDivElement>(null);
 
     // Non-passive wheel handler so we can preventDefault and scroll horizontally
     useEffect(() => {
@@ -44,17 +47,22 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
 
     const fmt = formatK;
 
-    // Tab scroll: Coins=idx 0 (5 items), Gems=idx 5 (3 items), Boosts=idx 8 (3 items), Free=idx 11
-    const scrollToSection = (startIdx: number) => {
-        scrollRef.current?.scrollTo({ left: startIdx * 152, behavior: 'smooth' });
+    const scrollToSection = (section: 'COINS' | 'DIAMONDS' | 'BOOSTS' | 'FREE' | number) => {
+        const container = scrollRef.current;
+        if (!container) return;
+        if (section === 'COINS' || section === 0) { container.scrollTo({ left: 0, behavior: 'smooth' }); return; }
+        const refMap: Record<string, React.RefObject<HTMLDivElement>> = { DIAMONDS: gemsSepRef, BOOSTS: boostsSepRef, FREE: freeSepRef };
+        const legacyIdxMap: Record<number, React.RefObject<HTMLDivElement>> = { 5: gemsSepRef, 8: boostsSepRef, 11: freeSepRef };
+        const ref = typeof section === 'string' ? refMap[section] : legacyIdxMap[section];
+        if (ref?.current) { container.scrollTo({ left: ref.current.offsetLeft - 8, behavior: 'smooth' }); }
     };
 
     useEffect(() => {
         if (!isOpen) return;
-        const tabIdxMap: Record<string, number> = { 'COINS': 0, 'DIAMONDS': 5, 'BOOSTS': 8 };
-        const idx = tabIdxMap[initialTab || 'COINS'] ?? 0;
-        if (idx > 0) {
-            setTimeout(() => scrollToSection(idx), 80);
+        const tabSectionMap: Record<string, 'COINS' | 'DIAMONDS' | 'BOOSTS'> = { 'COINS': 'COINS', 'DIAMONDS': 'DIAMONDS', 'BOOSTS': 'BOOSTS' };
+        const sec = tabSectionMap[initialTab || 'COINS'] ?? 'COINS';
+        if (sec !== 'COINS') {
+            setTimeout(() => scrollToSection(sec), 80);
         }
     }, [isOpen, initialTab]);
 
@@ -108,12 +116,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         action: () => !isFreeStashClaimed && onBuy('COIN', freeCoinsAmount, 0, 0),
     };
 
-    const allItems = [
-        ...dynamicPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined })),
-        ...gemPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined })),
-        ...boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false, price: `💎 ${item.gemCost}` })),
-        freeItem,
-    ];
+    const coinItems = dynamicPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined }));
+    const gemItems = gemPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined }));
+    const boostItems = boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false, price: `💎 ${item.gemCost}` }));
+    const freeItems = [freeItem];
 
     return (
         <div
@@ -135,13 +141,13 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 <div className="flex-1"></div>
                 {/* Section tabs */}
                 {[
-                    { label: '🪙', name: 'Coins',  idx: 0, bg: '#b8860b' },
-                    { label: '💎', name: 'Gems',   idx: 5, bg: '#0e7490' },
-                    { label: '🚀', name: 'Boosts', idx: 8, bg: '#7c3aed' },
+                    { label: '🪙', name: 'Coins',  sec: 'COINS'    as const, bg: '#b8860b' },
+                    { label: '💎', name: 'Gems',   sec: 'DIAMONDS' as const, bg: '#0e7490' },
+                    { label: '🚀', name: 'Boosts', sec: 'BOOSTS'   as const, bg: '#7c3aed' },
                 ].map((tab, i) => (
                     <React.Fragment key={tab.name}>
                         {i > 0 && <div className="w-px self-stretch bg-white/20 mx-0.5" />}
-                        <button onClick={() => scrollToSection(tab.idx)}
+                        <button onClick={() => scrollToSection(tab.sec)}
                             className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5"
                             style={{ background: tab.bg, minWidth: '34px' }}>
                             <span>{tab.label}</span>
@@ -150,7 +156,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                     </React.Fragment>
                 ))}
                 <div className="w-px self-stretch bg-white/20 mx-0.5" />
-                <button key="Free" onClick={() => scrollToSection(11)}
+                <button key="Free" onClick={() => scrollToSection('FREE')}
                     className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5 relative"
                     style={{ background: '#166534', minWidth: '34px' }}>
                     <span>🎁</span>
@@ -185,62 +191,65 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                     className="w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar py-3 px-4"
                 >
                     <div className="flex gap-3 h-full items-stretch min-w-max">
-                        {allItems.map((item, i) => {
-                            const btnDisabled = cooldown;
-                            const gemCost = (item as any).gemCost as number | undefined;
-
-                            const onItemClick = () => {
-                                if (cooldown) return;
-                                if (item.isClaimed) { setPopup('nopay'); return; }
-                                if (gemCost !== undefined && diamonds < gemCost) { setPopup('nogems'); return; }
-                                handleBuy(item.action);
-                            };
-
-                            return (
-                                <div
-                                    key={i}
-                                    className={`
-                                        flex-shrink-0 w-[140px]
-                                        flex flex-col items-center justify-between
-                                        rounded-2xl overflow-hidden
-                                        px-3 pt-3 pb-2
-                                        bg-gradient-to-b ${item.color}
-                                        shadow-xl transition-all
-                                    `}
-                                >
-                                    <div className="text-xs font-black uppercase text-white tracking-widest leading-none text-center">
-                                        {item.label}
-                                    </div>
-                                    <div className="flex-1 flex items-center justify-center py-1">
-                                        <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
-                                    </div>
-                                    <div className="w-full flex flex-col gap-1.5">
-                                        {item.sub && (
-                                            <div className="text-sm font-black text-white text-center leading-none drop-shadow-sm">
-                                                {item.sub}
+                        {[
+                            { items: coinItems, sepRef: null,         sepLabel: null,    sepColor: null },
+                            { items: gemItems,  sepRef: gemsSepRef,   sepLabel: 'Gems',  sepColor: '#0e7490' },
+                            { items: boostItems,sepRef: boostsSepRef, sepLabel: 'Boosts',sepColor: '#7c3aed' },
+                            { items: freeItems, sepRef: freeSepRef,   sepLabel: 'Free',  sepColor: '#166534' },
+                        ].map(({ items, sepRef, sepLabel, sepColor }) => (
+                            <React.Fragment key={sepLabel ?? 'coins'}>
+                                {sepRef && sepLabel && (
+                                    <div ref={sepRef} className="flex items-stretch shrink-0 gap-0.5">
+                                        <div className="w-px bg-white/15 self-stretch" />
+                                        <div className="flex flex-col justify-center px-1">
+                                            <div className="text-[8px] font-black uppercase tracking-widest"
+                                                style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', color: sepColor ?? '#fff', letterSpacing: '0.15em' }}>
+                                                {sepLabel}
                                             </div>
-                                        )}
-                                        <button
-                                            onClick={onItemClick}
-                                            disabled={btnDisabled}
-                                            className="btn-3d w-full py-2 rounded-xl text-xs font-black text-white uppercase text-center tracking-wide transition-all hover:brightness-110 active:scale-[0.97]"
-                                            style={{
-                                                background: item.isClaimed
-                                                    ? 'linear-gradient(180deg,#6b7280,#374151)'
-                                                    : item.price === 'FREE' || item.price === 'CLAIM'
-                                                        ? 'linear-gradient(180deg,#22c55e,#15803d)'
-                                                        : gemCost !== undefined
-                                                            ? 'linear-gradient(180deg,#a855f7,#6d28d9)'
-                                                            : 'linear-gradient(180deg,#f59e0b,#b45309)',
-                                                boxShadow: '0 3px 0 rgba(0,0,0,0.6)',
-                                            }}
-                                        >
-                                            {item.price}
-                                        </button>
+                                        </div>
+                                        <div className="w-px bg-white/15 self-stretch" />
                                     </div>
-                                </div>
-                            );
-                        })}
+                                )}
+                                {items.map((item, i) => {
+                                    const btnDisabled = cooldown;
+                                    const gemCost = (item as any).gemCost as number | undefined;
+                                    const onItemClick = () => {
+                                        if (cooldown) return;
+                                        if (item.isClaimed) { setPopup('nopay'); return; }
+                                        if (gemCost !== undefined && diamonds < gemCost) { setPopup('nogems'); return; }
+                                        handleBuy(item.action);
+                                    };
+                                    return (
+                                        <div key={i} className={`flex-shrink-0 w-[140px] flex flex-col items-center justify-between rounded-2xl overflow-hidden px-3 pt-3 pb-2 bg-gradient-to-b ${item.color} shadow-xl transition-all`}>
+                                            <div className="text-xs font-black uppercase text-white tracking-widest leading-none text-center">{item.label}</div>
+                                            <div className="flex-1 flex items-center justify-center py-1">
+                                                <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
+                                            </div>
+                                            <div className="w-full flex flex-col gap-1.5">
+                                                {item.sub && (
+                                                    <div className="text-sm font-black text-white text-center leading-none drop-shadow-sm">{item.sub}</div>
+                                                )}
+                                                <button
+                                                    onClick={onItemClick}
+                                                    disabled={btnDisabled}
+                                                    className="btn-3d w-full py-2 rounded-xl text-xs font-black text-white uppercase text-center tracking-wide transition-all hover:brightness-110 active:scale-[0.97]"
+                                                    style={{
+                                                        background: item.isClaimed
+                                                            ? 'linear-gradient(180deg,#6b7280,#374151)'
+                                                            : item.price === 'FREE' || item.price === 'CLAIM'
+                                                                ? 'linear-gradient(180deg,#22c55e,#15803d)'
+                                                                : gemCost !== undefined
+                                                                    ? 'linear-gradient(180deg,#a855f7,#6d28d9)'
+                                                                    : 'linear-gradient(180deg,#f59e0b,#b45309)',
+                                                        boxShadow: '0 3px 0 rgba(0,0,0,0.6)',
+                                                    }}
+                                                >{item.price}</button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </React.Fragment>
+                        ))}
                     </div>
                 </div>
             </div>

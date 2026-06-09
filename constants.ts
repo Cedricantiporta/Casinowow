@@ -706,7 +706,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         { type: 'PICKS',       fn: (_) => [2, '+2 Picks'] },
         { type: 'DICE_CREDITS',fn: (_) => [2, '+2 Dice'] },
         { type: 'CREDIT_BACK', fn: (_) => [10, '+10 Card Packs'] },
-        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP'] },
+        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP 30m'] },
     ];
     // PREMIUM tier special pattern (cycles): Gems, Picks, Dice, Card Packs, XP
     const premSpecials: { type: RewardType; fn: (i: number) => [number, string] }[] = [
@@ -714,7 +714,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         { type: 'PICKS',       fn: (_) => [10, '+10 Picks'] },
         { type: 'DICE_CREDITS',fn: (_) => [10, '+10 Dice'] },
         { type: 'CREDIT_BACK', fn: (_) => [5, '+5 Premium Packs'] },
-        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP'] },
+        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP 30m'] },
     ];
 
     for (let i = 1; i <= 50; i++) {

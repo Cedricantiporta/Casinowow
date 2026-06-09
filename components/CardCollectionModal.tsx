@@ -22,6 +22,7 @@ interface CardCollectionModalProps {
     getDeckReward?: (deckId: string) => number;
     premiumPackCredits?: number;
     onBuyPremiumCredits?: (gemCost: number, credits: number) => void;
+    maxBet?: number;
 }
 
 export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
@@ -42,7 +43,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     grandPrize = 0,
     getDeckReward = (_deckId: string) => 0,
     premiumPackCredits = 0,
-    onBuyPremiumCredits
+    onBuyPremiumCredits,
+    maxBet = 10000
 }) => {
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'ALBUM' | 'PACKS'>(initialTab || 'ALBUM');
@@ -533,19 +535,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         {/* Header */}
                         <div className="shrink-0 px-4 pt-3 pb-2 flex items-center gap-3">
                             <div className="font-black text-white text-sm uppercase tracking-widest flex-1">Pack Store</div>
-                            <div className="flex items-center rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.4)', padding: '3px 5px', gap: 4 }}>
-                                <button onClick={() => scrollPackStore('standard')}
-                                    className="btn-3d px-3 py-1 rounded-lg font-black text-[10px] uppercase text-white tracking-widest"
-                                    style={{ background: 'linear-gradient(180deg,#2563eb,#1d4ed8)', boxShadow: '0 2px 0 #1e3a8a' }}>
-                                    🃏 Standard
-                                </button>
-                                <div className="w-px self-stretch bg-white/20 mx-0.5" />
-                                <button onClick={() => scrollPackStore('premium')}
-                                    className="btn-3d px-3 py-1 rounded-lg font-black text-[10px] uppercase text-white tracking-widest"
-                                    style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 2px 0 #2e1065' }}>
-                                    🎴 Premium
-                                </button>
-                            </div>
                             <div className="flex items-center gap-1.5 ml-1">
                                 <span className="text-sm">💎</span>
                                 <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
@@ -564,8 +553,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 </div>
                                 {/* Standard cards */}
                                 {[
-                                    { name: 'Starter', emoji: '🃏', gemCost: 80, packs: 15, contents: ['15 Standard Packs', '+200 Coins', '+5 Gems'], bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)', accent: '#3b82f6', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
-                                    { name: 'Pro Bundle', emoji: '🃏', gemCost: 280, packs: 60, contents: ['60 Standard Packs', '+1,000 Coins', '+20 Gems'], bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)', accent: '#60a5fa', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                    { name: 'Starter', emoji: '🃏', gemCost: 80, packs: 15, contents: ['15 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 25))} Coins`], bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)', accent: '#3b82f6', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                    { name: 'Pro Bundle', emoji: '🃏', gemCost: 280, packs: 60, contents: ['60 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 100))} Coins`], bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)', accent: '#60a5fa', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
                                 ].map(opt => {
                                     const canAfford = diamonds >= opt.gemCost;
                                     return (
@@ -607,8 +596,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 </div>
                                 {/* Premium cards */}
                                 {[
-                                    { name: 'Starter', emoji: '🎴', gemCost: 320, packs: 15, contents: ['15 Premium Packs', '+500 Coins', '+15 Gems'], bg: 'linear-gradient(160deg,#2e1065,#5b21b6)', accent: '#a855f7', shadowClr: '#2e1065', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
-                                    { name: 'Pro Bundle', emoji: '🎴', gemCost: 1100, packs: 60, contents: ['60 Premium Packs', '+2,500 Coins', '+50 Gems'], bg: 'linear-gradient(160deg,#3b0764,#6d28d9)', accent: '#c084fc', shadowClr: '#3b0764', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                    { name: 'Starter', emoji: '🎴', gemCost: 320, packs: 15, contents: ['15 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 50))} Coins`], bg: 'linear-gradient(160deg,#2e1065,#5b21b6)', accent: '#a855f7', shadowClr: '#2e1065', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                    { name: 'Pro Bundle', emoji: '🎴', gemCost: 1100, packs: 60, contents: ['60 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 200))} Coins`], bg: 'linear-gradient(160deg,#3b0764,#6d28d9)', accent: '#c084fc', shadowClr: '#3b0764', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
                                 ].map(opt => {
                                     const canAfford = diamonds >= opt.gemCost;
                                     const buyFn = onBuyPremiumCredits;

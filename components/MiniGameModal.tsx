@@ -618,12 +618,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         <div className="px-4 pb-4 flex gap-3">
                             {(showBuyPopup === 'PICKS'
                                 ? [
-                                    { label: 'Starter', picks: 5,  dice: 0,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 50,  gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
-                                    { label: 'Pro',     picks: 20, dice: 0,  coins: Math.round((maxBet || 10000) * 100), bonusGems: 200, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
+                                    { label: 'Starter', picks: 5,  dice: 0,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
+                                    { label: 'Pro',     picks: 20, dice: 0,  coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
                                 ]
                                 : [
-                                    { label: 'Starter', picks: 0,  dice: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 50,  gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
-                                    { label: 'Pro',     picks: 0,  dice: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 200, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
+                                    { label: 'Starter', picks: 0,  dice: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
+                                    { label: 'Pro',     picks: 0,  dice: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
                                 ]
                             ).map(opt => {
                                 const canAfford = diamonds >= opt.gemCost;
@@ -642,10 +642,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             <div className="flex items-center gap-1.5 text-yellow-200 text-xs font-bold">
                                                 <span>🪙</span>
                                                 <span>+{formatCommaNumber(opt.coins)}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-cyan-200 text-xs font-bold">
-                                                <span>💎</span>
-                                                <span>+{opt.bonusGems} Gems</span>
                                             </div>
                                         </div>
                                         <div className="w-full py-2 rounded-xl text-center font-black text-white text-sm"

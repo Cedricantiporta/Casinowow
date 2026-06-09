@@ -2480,8 +2480,9 @@ const currentState: SavedGameState = {
           grandPrize={getGrandAlbumReward(player.level)}
           getDeckReward={(id) => getDeckReward(id, player.level)}
           balance={player.balance}
+          maxBet={MAX_BET_BY_LEVEL(player.level)}
       />
-      
+
       <MiniGameModal
         isOpen={activeModal === 'MINIGAME'}
         diceCredits={quest.diceCredits}

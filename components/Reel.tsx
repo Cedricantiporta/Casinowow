@@ -263,9 +263,6 @@ const ReelCell: React.FC<{
                 : undefined
             }
             >
-                {/* Inner shine/border overlay */}
-                <div className="absolute inset-0 rounded-none border border-white/10 shadow-inner pointer-events-none"></div>
-
                 {/* Content wrapper */}
                 <div className={`
                     relative flex flex-col items-center justify-center z-10 w-full h-full
