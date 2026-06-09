@@ -356,7 +356,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     if (!isOpen) return null;
 
     const isWild = activeGame === 'WILD';
-    const questTitle = isWild ? '⛏️ CoinMine' : '🎲 Fortune Trail';
+    const questTitle = isWild ? 'CoinMine' : 'Fortune Trail';
 
     return (
         <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none"
@@ -476,7 +476,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     <div className="flex-1 flex items-center justify-center w-full overflow-hidden p-2">
                         <div ref={boardContainerRef} className="overflow-y-auto no-scrollbar flex flex-col gap-1.5">
                             {(() => {
-                                const COLS = 5;
+                                const COLS = 10;
                                 const numRows = Math.ceil(board.length / COLS);
                                 const rows = Array.from({ length: numRows }, (_, rowIdx) =>
                                     board.slice(rowIdx * COLS, rowIdx * COLS + COLS)

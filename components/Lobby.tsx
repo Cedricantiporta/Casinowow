@@ -201,27 +201,28 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 else if (game.theme === 'PIRATE') icon = '🏴‍☠️';
                                 else if (game.theme === 'SPACE') icon = '👽';
                                 else if (game.theme === 'PIGGY') icon = '🐷';
-                                else if (game.theme === 'JUNGLE') icon = '🌴';
-                                else if (game.theme === 'UNDERWATER') icon = '🔱';
+                                else if (game.theme === 'JUNGLE') icon = '🦍';
+                                else if (game.theme === 'UNDERWATER') icon = '🦈';
                                 else if (game.theme === 'WESTERN') icon = '🤠';
-                                else if (game.theme === 'SAMURAI') icon = '👹';
+                                else if (game.theme === 'SAMURAI') icon = '⚔️';
+                                else if (game.theme === 'CANDY') icon = '🧁';
                                 const unlockLevel = getUnlockLevel(idx);
                                 const isLocked = playerLevel < unlockLevel;
                                 return (
                                     <button
                                         key={game.id}
                                         onClick={() => onSelectGame(game, false)}
-                                        className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-md overflow-visible border-none shadow-xl snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
+                                        className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-2xl overflow-visible border-none shadow-xl snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
                                     >
                                         {!isLocked && (
-                                            <div className="absolute -top-[20px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
-                                                <span style={{ fontSize:'9px', fontWeight:900, color:'#e9d5ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.85)', border:'1.5px solid #7c3aed', borderRadius:'999px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
+                                            <div className="absolute -top-[22px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
+                                                <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'2px solid #7c3aed', borderRadius:'999px', padding:'3px 8px', boxShadow:'0 0 8px rgba(124,58,237,0.6)' }}>
                                                     {formatK(jackpotTotals[idx] ?? 0)}
                                                 </span>
                                             </div>
                                         )}
-                                        <div className={`absolute inset-0 rounded-md overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
-                                        <div className="absolute inset-0 rounded-md overflow-hidden z-10 select-none">
+                                        <div className={`absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
+                                        <div className="absolute inset-0 rounded-2xl overflow-hidden z-10 select-none">
                                             <div className="absolute inset-0 flex items-start justify-center pt-2">
                                                 <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
                                             </div>
@@ -233,12 +234,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             </div>
                                         </div>
                                         {isLocked && (
-                                            <div className="absolute inset-0 rounded-md overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
+                                            <div className="absolute inset-0 rounded-2xl overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
                                                 <span className="text-3xl leading-none opacity-80">🔒</span>
                                                 <span className="text-white/70 font-bold text-[9px] mt-1 uppercase">Lvl {unlockLevel}</span>
                                             </div>
                                         )}
-                                        <div className="absolute inset-0 rounded-md overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
+                                        <div className="absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
                                     </button>
                                 );
                             })}
