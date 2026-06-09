@@ -138,14 +138,18 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                     { label: '🪙', name: 'Coins',  idx: 0, bg: '#b8860b' },
                     { label: '💎', name: 'Gems',   idx: 5, bg: '#0e7490' },
                     { label: '🚀', name: 'Boosts', idx: 8, bg: '#7c3aed' },
-                ].map(tab => (
-                    <button key={tab.name} onClick={() => scrollToSection(tab.idx)}
-                        className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5"
-                        style={{ background: tab.bg, minWidth: '34px' }}>
-                        <span>{tab.label}</span>
-                        <span>{tab.name}</span>
-                    </button>
+                ].map((tab, i) => (
+                    <React.Fragment key={tab.name}>
+                        {i > 0 && <div className="w-px self-stretch bg-white/20 mx-0.5" />}
+                        <button onClick={() => scrollToSection(tab.idx)}
+                            className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5"
+                            style={{ background: tab.bg, minWidth: '34px' }}>
+                            <span>{tab.label}</span>
+                            <span>{tab.name}</span>
+                        </button>
+                    </React.Fragment>
                 ))}
+                <div className="w-px self-stretch bg-white/20 mx-0.5" />
                 <button key="Free" onClick={() => scrollToSection(11)}
                     className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5 relative"
                     style={{ background: '#166534', minWidth: '34px' }}>

@@ -47,11 +47,21 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'ALBUM' | 'PACKS'>(initialTab || 'ALBUM');
     const [showPackBuyPopup, setShowPackBuyPopup] = useState<'standard' | 'premium' | null>(null);
-    const [packBuyTab, setPackBuyTab] = useState<'standard' | 'premium'>('standard');
     const [showExchangePanel, setShowExchangePanel] = useState(false);
     const [selectedDuplicateIds, setSelectedDuplicateIds] = useState<Set<string>>(new Set());
     const albumScrollRef = React.useRef<HTMLDivElement>(null);
     const deckCardsScrollRef = React.useRef<HTMLDivElement>(null);
+    const packStoreScrollRef = React.useRef<HTMLDivElement>(null);
+    const packStorePremiumRef = React.useRef<HTMLDivElement>(null);
+
+    const scrollPackStore = (section: 'standard' | 'premium') => {
+        if (!packStoreScrollRef.current) return;
+        if (section === 'premium' && packStorePremiumRef.current) {
+            packStoreScrollRef.current.scrollTo({ left: packStorePremiumRef.current.offsetLeft - 8, behavior: 'smooth' });
+        } else {
+            packStoreScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+    };
 
     const scrollAlbum = (dir: 'LEFT' | 'RIGHT') => {
         albumScrollRef.current?.scrollBy({ left: dir === 'LEFT' ? -160 : 160, behavior: 'smooth' });
@@ -517,126 +527,120 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
             {showPackBuyPopup && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
                     onClick={() => setShowPackBuyPopup(null)}>
-                    <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col" style={{ width: 340, maxHeight: '85%', background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}
+                    <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+                        style={{ width: 680, height: 240, background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}
                         onClick={e => e.stopPropagation()}>
                         {/* Header */}
-                        <div className="shrink-0 px-4 pt-4 pb-3 flex items-center justify-between">
-                            <div className="font-black text-white text-base uppercase tracking-widest">Pack Store</div>
-                            <div className="flex items-center gap-1.5">
+                        <div className="shrink-0 px-4 pt-3 pb-2 flex items-center gap-3">
+                            <div className="font-black text-white text-sm uppercase tracking-widest flex-1">Pack Store</div>
+                            <div className="flex items-center rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.4)', padding: '3px 5px', gap: 4 }}>
+                                <button onClick={() => scrollPackStore('standard')}
+                                    className="btn-3d px-3 py-1 rounded-lg font-black text-[10px] uppercase text-white tracking-widest"
+                                    style={{ background: 'linear-gradient(180deg,#2563eb,#1d4ed8)', boxShadow: '0 2px 0 #1e3a8a' }}>
+                                    🃏 Standard
+                                </button>
+                                <div className="w-px self-stretch bg-white/20 mx-0.5" />
+                                <button onClick={() => scrollPackStore('premium')}
+                                    className="btn-3d px-3 py-1 rounded-lg font-black text-[10px] uppercase text-white tracking-widest"
+                                    style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 2px 0 #2e1065' }}>
+                                    🎴 Premium
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-1.5 ml-1">
                                 <span className="text-sm">💎</span>
                                 <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
-                                <button onClick={() => setShowPackBuyPopup(null)} className="ml-2 round-btn"><i className="ti ti-x" /></button>
                             </div>
+                            <button onClick={() => setShowPackBuyPopup(null)} className="round-btn ml-1"><i className="ti ti-x" /></button>
                         </div>
-                        {/* Tabs */}
-                        <div className="shrink-0 flex mx-4 mb-3 rounded-xl overflow-hidden" style={{ background: 'rgba(0,0,0,0.4)' }}>
-                            <button onClick={() => setPackBuyTab('standard')}
-                                className="flex-1 py-2 font-black text-xs uppercase tracking-widest transition-all"
-                                style={{ background: packBuyTab === 'standard' ? 'linear-gradient(180deg,#2563eb,#1d4ed8)' : 'transparent', color: packBuyTab === 'standard' ? 'white' : 'rgba(255,255,255,0.4)', boxShadow: packBuyTab === 'standard' ? '0 3px 0 #1e3a8a' : 'none' }}>
-                                🃏 Standard
-                            </button>
-                            <button onClick={() => setPackBuyTab('premium')}
-                                className="flex-1 py-2 font-black text-xs uppercase tracking-widest transition-all"
-                                style={{ background: packBuyTab === 'premium' ? 'linear-gradient(180deg,#7c3aed,#4c1d95)' : 'transparent', color: packBuyTab === 'premium' ? 'white' : 'rgba(255,255,255,0.4)', boxShadow: packBuyTab === 'premium' ? '0 3px 0 #2e1065' : 'none' }}>
-                                🎴 Premium
-                            </button>
-                        </div>
-                        {/* Card grid */}
-                        <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-4 flex flex-col gap-3">
-                            {packBuyTab === 'standard' ? (
-                                <>
-                                    {[
-                                        {
-                                            name: 'Starter Bundle', emoji: '🃏', gemCost: 80, packs: 15,
-                                            contents: ['15 Standard Packs', '+200 Coins', '+5 Gems'],
-                                            bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)',
-                                            shadow: '0 4px 0 #1e3a8a',
-                                        },
-                                        {
-                                            name: 'Pro Bundle', emoji: '🃏', gemCost: 280, packs: 60,
-                                            contents: ['60 Standard Packs', '+1,000 Coins', '+20 Gems'],
-                                            bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)',
-                                            shadow: '0 4px 0 #1e3a8a',
-                                        },
-                                    ].map(opt => {
-                                        const canAfford = diamonds >= opt.gemCost;
-                                        return (
-                                            <div key={opt.name} className="rounded-2xl overflow-hidden shrink-0"
-                                                style={{ background: opt.bg, boxShadow: canAfford ? opt.shadow : 'none', opacity: canAfford ? 1 : 0.5 }}>
-                                                <div className="px-4 pt-4 pb-2 flex items-start gap-3">
-                                                    <span style={{ fontSize: '2.5rem', lineHeight: 1, flexShrink: 0 }}>{opt.emoji}</span>
-                                                    <div className="flex-1">
-                                                        <div className="font-black text-white text-sm uppercase tracking-wide leading-none">{opt.name}</div>
-                                                        <div className="mt-2 flex flex-col gap-1">
-                                                            {opt.contents.map((c, i) => (
-                                                                <div key={i} className="flex items-center gap-1.5">
-                                                                    <span className="text-blue-300 text-[9px]">✦</span>
-                                                                    <span className="text-blue-100/80 text-[11px] font-bold">{c}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                        {/* Horizontal scroll */}
+                        <div ref={packStoreScrollRef} className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar px-3 pb-3">
+                            <div className="flex gap-3 h-full items-stretch" style={{ minWidth: 'max-content' }}>
+                                {/* Standard section label */}
+                                <div className="flex flex-col justify-center shrink-0">
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-blue-300/60"
+                                        style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.2em' }}>
+                                        Standard
+                                    </div>
+                                </div>
+                                {/* Standard cards */}
+                                {[
+                                    { name: 'Starter', emoji: '🃏', gemCost: 80, packs: 15, contents: ['15 Standard Packs', '+200 Coins', '+5 Gems'], bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)', accent: '#3b82f6', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                    { name: 'Pro Bundle', emoji: '🃏', gemCost: 280, packs: 60, contents: ['60 Standard Packs', '+1,000 Coins', '+20 Gems'], bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)', accent: '#60a5fa', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                ].map(opt => {
+                                    const canAfford = diamonds >= opt.gemCost;
+                                    return (
+                                        <div key={opt.name} className="flex-none flex flex-col rounded-2xl overflow-hidden shrink-0"
+                                            style={{ width: 140, background: opt.bg, opacity: canAfford ? 1 : 0.55 }}>
+                                            <div className="px-3 pt-3 pb-1 flex items-start gap-2 flex-1">
+                                                <span style={{ fontSize: '2rem', lineHeight: 1, flexShrink: 0 }}>{opt.emoji}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-black text-white text-[10px] uppercase tracking-wide leading-none">{opt.name}</div>
+                                                    <div className="mt-1.5 flex flex-col gap-0.5">
+                                                        {opt.contents.map((c, ci) => (
+                                                            <div key={ci} className="flex items-center gap-1">
+                                                                <span className={`${opt.dotColor} text-[8px]`}>✦</span>
+                                                                <span className={`${opt.textColor} text-[9px] font-bold leading-tight`}>{c}</span>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
-                                                <div className="px-4 pb-4 pt-1">
-                                                    <button onClick={() => { if (!canAfford) return; onBuyCredits(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
-                                                        disabled={!canAfford}
-                                                        className="btn-3d w-full py-2.5 rounded-xl font-black text-white uppercase text-xs tracking-widest"
-                                                        style={{ background: canAfford ? 'linear-gradient(180deg,#3b82f6,#1d4ed8)' : '#374151', boxShadow: canAfford ? '0 3px 0 #1e3a8a' : 'none' }}>
-                                                        Buy · 💎 {opt.gemCost}
-                                                    </button>
-                                                </div>
                                             </div>
-                                        );
-                                    })}
-                                </>
-                            ) : (
-                                <>
-                                    {[
-                                        {
-                                            name: 'Premium Starter', emoji: '🎴', gemCost: 320, packs: 15,
-                                            contents: ['15 Premium Packs', '+500 Coins', '+15 Gems'],
-                                            bg: 'linear-gradient(160deg,#4a1a00,#7c3aed)',
-                                            shadow: '0 4px 0 #2e1065',
-                                        },
-                                        {
-                                            name: 'Premium Pro', emoji: '🎴', gemCost: 1100, packs: 60,
-                                            contents: ['60 Premium Packs', '+2,500 Coins', '+50 Gems'],
-                                            bg: 'linear-gradient(160deg,#2e1065,#5b21b6)',
-                                            shadow: '0 4px 0 #2e1065',
-                                        },
-                                    ].map(opt => {
-                                        const canAfford = diamonds >= opt.gemCost;
-                                        const buyFn = onBuyPremiumCredits;
-                                        return (
-                                            <div key={opt.name} className="rounded-2xl overflow-hidden shrink-0"
-                                                style={{ background: opt.bg, boxShadow: canAfford ? opt.shadow : 'none', opacity: canAfford ? 1 : 0.5 }}>
-                                                <div className="px-4 pt-4 pb-2 flex items-start gap-3">
-                                                    <span style={{ fontSize: '2.5rem', lineHeight: 1, flexShrink: 0 }}>{opt.emoji}</span>
-                                                    <div className="flex-1">
-                                                        <div className="font-black text-white text-sm uppercase tracking-wide leading-none">{opt.name}</div>
-                                                        <div className="mt-2 flex flex-col gap-1">
-                                                            {opt.contents.map((c, i) => (
-                                                                <div key={i} className="flex items-center gap-1.5">
-                                                                    <span className="text-purple-300 text-[9px]">✦</span>
-                                                                    <span className="text-purple-100/80 text-[11px] font-bold">{c}</span>
-                                                                </div>
-                                                            ))}
-                                                        </div>
+                                            <div className="px-3 pb-3 pt-1 shrink-0">
+                                                <button onClick={() => { if (!canAfford) return; onBuyCredits(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
+                                                    disabled={!canAfford}
+                                                    className="btn-3d w-full py-1.5 rounded-xl font-black text-white uppercase text-[10px] tracking-widest"
+                                                    style={{ background: canAfford ? `linear-gradient(180deg,${opt.accent},${opt.shadowClr})` : '#374151', boxShadow: canAfford ? `0 3px 0 ${opt.shadowClr}` : 'none' }}>
+                                                    💎 {opt.gemCost}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                {/* Section separator */}
+                                <div className="w-px self-stretch bg-white/15 mx-1 shrink-0" />
+                                {/* Premium section label */}
+                                <div ref={packStorePremiumRef} className="flex flex-col justify-center shrink-0">
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-purple-300/60"
+                                        style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.2em' }}>
+                                        Premium
+                                    </div>
+                                </div>
+                                {/* Premium cards */}
+                                {[
+                                    { name: 'Starter', emoji: '🎴', gemCost: 320, packs: 15, contents: ['15 Premium Packs', '+500 Coins', '+15 Gems'], bg: 'linear-gradient(160deg,#2e1065,#5b21b6)', accent: '#a855f7', shadowClr: '#2e1065', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                    { name: 'Pro Bundle', emoji: '🎴', gemCost: 1100, packs: 60, contents: ['60 Premium Packs', '+2,500 Coins', '+50 Gems'], bg: 'linear-gradient(160deg,#3b0764,#6d28d9)', accent: '#c084fc', shadowClr: '#3b0764', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                ].map(opt => {
+                                    const canAfford = diamonds >= opt.gemCost;
+                                    const buyFn = onBuyPremiumCredits;
+                                    return (
+                                        <div key={opt.name} className="flex-none flex flex-col rounded-2xl overflow-hidden shrink-0"
+                                            style={{ width: 140, background: opt.bg, opacity: canAfford ? 1 : 0.55 }}>
+                                            <div className="px-3 pt-3 pb-1 flex items-start gap-2 flex-1">
+                                                <span style={{ fontSize: '2rem', lineHeight: 1, flexShrink: 0 }}>{opt.emoji}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-black text-white text-[10px] uppercase tracking-wide leading-none">{opt.name}</div>
+                                                    <div className="mt-1.5 flex flex-col gap-0.5">
+                                                        {opt.contents.map((c, ci) => (
+                                                            <div key={ci} className="flex items-center gap-1">
+                                                                <span className={`${opt.dotColor} text-[8px]`}>✦</span>
+                                                                <span className={`${opt.textColor} text-[9px] font-bold leading-tight`}>{c}</span>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
-                                                <div className="px-4 pb-4 pt-1">
-                                                    <button onClick={() => { if (!canAfford || !buyFn) return; buyFn(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
-                                                        disabled={!canAfford}
-                                                        className="btn-3d w-full py-2.5 rounded-xl font-black text-white uppercase text-xs tracking-widest"
-                                                        style={{ background: canAfford ? 'linear-gradient(180deg,#a855f7,#6d28d9)' : '#374151', boxShadow: canAfford ? '0 3px 0 #2e1065' : 'none' }}>
-                                                        Buy · 💎 {opt.gemCost}
-                                                    </button>
-                                                </div>
                                             </div>
-                                        );
-                                    })}
-                                </>
-                            )}
+                                            <div className="px-3 pb-3 pt-1 shrink-0">
+                                                <button onClick={() => { if (!canAfford || !buyFn) return; buyFn(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
+                                                    disabled={!canAfford}
+                                                    className="btn-3d w-full py-1.5 rounded-xl font-black text-white uppercase text-[10px] tracking-widest"
+                                                    style={{ background: canAfford ? `linear-gradient(180deg,${opt.accent},${opt.shadowClr})` : '#374151', boxShadow: canAfford ? `0 3px 0 ${opt.shadowClr}` : 'none' }}>
+                                                    💎 {opt.gemCost}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 </div>
