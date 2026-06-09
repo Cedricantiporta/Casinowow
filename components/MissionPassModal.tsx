@@ -8,6 +8,8 @@ interface MissionPassModalProps {
     onClose: () => void;
     missionState: MissionState;
     diamonds: number;
+    balance?: number;
+    maxBet?: number;
     onClaimReward: (reward: PassReward) => void;
     onFinishMission: (mission: Mission) => void;
     onClaimMissionReward: (mission: Mission) => void; 

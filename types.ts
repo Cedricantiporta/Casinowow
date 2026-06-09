@@ -70,6 +70,15 @@ export interface PlayerState {
   freeStashClaimed: boolean;
   isVip?: boolean;
   freeStashClaimedTime?: number;
+  shopClaimedItems?: string[];
+  stats?: {
+    maxSingleWin: number;
+    maxJackpotWin: number;
+    totalCoinsWon: number;
+    totalGemsEarned: number;
+    totalSpins: number;
+    recentSlots: string[];
+  };
 }
 
 export interface Payline {
@@ -102,8 +111,8 @@ export interface QuestState {
   dicePosition: number;
   activeGame: 'NONE' | 'WILD' | 'DICE';
   wildGrid: WildGridCell[]; // Persistence for Wild Quest
-  wildCredits?: number;
-  diceCredits?: number;
+  wildCredits: number;
+  diceCredits: number;
 }
 
 export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'DICE_CREDITS' | 'BACK' | 'PACKS';
