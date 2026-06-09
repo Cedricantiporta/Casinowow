@@ -632,8 +632,8 @@ const App: React.FC = () => {
   };
 
   const handleBuyPass = () => {
-      setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 })); 
-      setPlayer(p => ({ ...p, diamonds: p.diamonds + 100, balance: p.balance + 1000000 }));
+      setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 }));
+      setPlayer(p => ({ ...p, diamonds: p.diamonds + 100, balance: p.balance + 1000000, premiumPackCredits: (p.premiumPackCredits ?? 0) + 20 }));
       addPassXp(2000); 
       for(let i=0; i<20; i++) {
           setMissionState(prev => {
