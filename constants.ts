@@ -713,7 +713,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         { type: 'DIAMONDS',    fn: (i) => { const v = i * 20; return [v, `${v} 💎`]; } },
         { type: 'PICKS',       fn: (_) => [10, '+10 Picks'] },
         { type: 'DICE_CREDITS',fn: (_) => [10, '+10 Dice'] },
-        { type: 'CREDIT_BACK', fn: (_) => [50, '+50 Card Packs'] },
+        { type: 'CREDIT_BACK', fn: (_) => [5, '+5 Premium Packs'] },
         { type: 'XP_BOOST',    fn: (_) => [2, '2x XP'] },
     ];
 

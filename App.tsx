@@ -241,8 +241,20 @@ const App: React.FC = () => {
       } catch {}
       return [];
   });
+  const [claimedCoinGiftCount, setClaimedCoinGiftCount] = useState<number>(() => {
+      try { return Number(localStorage.getItem('cw_coin_gift_count') || '0'); } catch { return 0; }
+  });
+  const [vipBetTracking, setVipBetTracking] = useState<{ date: string; total: number }>(() => {
+      try { return JSON.parse(localStorage.getItem('cw_vip_bets') || '{"date":"","total":0}'); } catch { return { date: '', total: 0 }; }
+  });
 
-  // Persist inbox to localStorage whenever it changes
+  // Persist inbox / coin-gift count / vip bet tracking to localStorage
+  useEffect(() => {
+      try { localStorage.setItem('cw_coin_gift_count', String(claimedCoinGiftCount)); } catch {}
+  }, [claimedCoinGiftCount]);
+  useEffect(() => {
+      try { localStorage.setItem('cw_vip_bets', JSON.stringify(vipBetTracking)); } catch {}
+  }, [vipBetTracking]);
   useEffect(() => {
       try { localStorage.setItem('cw_inbox', JSON.stringify(inbox)); } catch {}
   }, [inbox]);
@@ -266,17 +278,16 @@ const App: React.FC = () => {
               });
           }
 
-          // Daily coin gift — days 1-10
-          const claimedCoinGifts = next.filter(m => m.type === 'DAILY_COINS' && m.claimed).length;
+          // Daily coin gift — days 1-10 (uses claimedCoinGiftCount, 20× amount)
           const hasTodayCoinGift = next.some(m => m.type === 'DAILY_COINS' && new Date(m.createdAt).toDateString() === todayStr);
-          if (!hasTodayCoinGift && claimedCoinGifts < 10) {
-              const day = claimedCoinGifts + 1;
-              const amount = day * 50_000;
+          if (!hasTodayCoinGift && claimedCoinGiftCount < 10) {
+              const day = claimedCoinGiftCount + 1;
+              const amount = day * 50_000 * 20;
               next.push({
                   id: `daily_coins_${todayStr}`,
                   type: 'DAILY_COINS' as const,
-                  title: `Daily Coin Gift — Day ${day}`,
-                  body: `+${(amount / 1000).toFixed(0)}K Coins`,
+                  title: `Daily Coin Gift — Day ${day}/10`,
+                  body: `+${(amount / 1_000_000).toFixed(1)}M Coins`,
                   claimed: false,
                   createdAt: Date.now(),
               });
@@ -313,41 +324,42 @@ const App: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Generate VIP cashback when player becomes VIP
+  // VIP cashback: check on mount if previous day had VIP bets, and generate a cashback message
   useEffect(() => {
-      if (!player.isVip) return;
       const todayStr = new Date().toDateString();
-      setInbox(prev => {
-          const hasTodayVip = prev.some(m => m.type === 'VIP_CASHBACK' && new Date(m.createdAt).toDateString() === todayStr);
-          if (hasTodayVip) return prev;
-          const maxBet = MAX_BET_BY_LEVEL(player.level);
-          const cashback = Math.min(Math.max(Math.floor(player.balance * 0.05), 10_000), maxBet * 10);
-          return [...prev, {
-              id: `vip_cashback_${todayStr}`,
-              type: 'VIP_CASHBACK' as const,
-              title: 'VIP Daily Cashback',
-              body: `+${cashback.toLocaleString()} Coins (5% cashback)`,
-              claimed: false,
-              createdAt: Date.now(),
-          }];
-      });
+      if (vipBetTracking.date && vipBetTracking.date !== todayStr && vipBetTracking.total > 0) {
+          const cashback = Math.floor(vipBetTracking.total * 0.05);
+          setInbox(prev => {
+              const alreadyHas = prev.some(m => m.type === 'VIP_CASHBACK' && m.id === `vip_cashback_${vipBetTracking.date}`);
+              if (alreadyHas) return prev;
+              return [...prev, {
+                  id: `vip_cashback_${vipBetTracking.date}`,
+                  type: 'VIP_CASHBACK' as const,
+                  title: 'VIP Daily Cashback',
+                  body: `+${cashback.toLocaleString()} Coins (5% of yesterday's bets)`,
+                  claimed: false,
+                  createdAt: Date.now(),
+              }];
+          });
+          setVipBetTracking({ date: '', total: 0 });
+      }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [player.isVip]);
+  }, []);
 
   const handleClaimInbox = (id: string) => {
       setInbox(prev => {
           const msg = prev.find(m => m.id === id);
-          if (!msg || msg.claimed) return prev;
+          if (!msg) return prev;
           // Apply reward
           if (msg.type === 'WELCOME') {
               setPlayer(p => ({ ...p, balance: p.balance + 500_000, packCredits: p.packCredits + 10, diamonds: p.diamonds + 50 }));
               setCelebrationMsg('+500K Coins · +10 Packs · +50 Gems');
           } else if (msg.type === 'DAILY_COINS') {
-              const claimedCount = prev.filter(m => m.type === 'DAILY_COINS' && m.claimed).length;
-              const day = claimedCount + 1;
-              const amount = day * 50_000;
+              const day = claimedCoinGiftCount + 1;
+              const amount = day * 50_000 * 20;
               setPlayer(p => ({ ...p, balance: p.balance + amount }));
-              setCelebrationMsg(`+${(amount / 1000).toFixed(0)}K Coins`);
+              setCelebrationMsg(`+${(amount / 1_000_000).toFixed(1)}M Coins`);
+              setClaimedCoinGiftCount(c => c + 1);
           } else if (msg.type === 'DAILY_PACK') {
               if (msg.body.includes('Premium')) {
                   setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + 2 }));
@@ -360,13 +372,14 @@ const App: React.FC = () => {
                   setCelebrationMsg('+5 Card Packs');
               }
           } else if (msg.type === 'VIP_CASHBACK') {
-              const maxBet = MAX_BET_BY_LEVEL(playerRef.current.level);
-              const cashback = Math.min(Math.max(Math.floor(playerRef.current.balance * 0.05), 10_000), maxBet * 10);
-              setPlayer(p => ({ ...p, balance: p.balance + cashback }));
-              setCelebrationMsg(`+${cashback.toLocaleString()} VIP Cashback`);
+              const cashback = Math.floor((msg.body.match(/\+([\d,]+)/) ? Number(msg.body.match(/\+([\d,]+)/)?.[1].replace(/,/g, '')) : 0));
+              if (cashback > 0) {
+                  setPlayer(p => ({ ...p, balance: p.balance + cashback }));
+                  setCelebrationMsg(`+${cashback.toLocaleString()} VIP Cashback`);
+              }
           }
           audioService.playWinBig();
-          return prev.map(m => m.id === id ? { ...m, claimed: true } : m);
+          return prev.filter(m => m.id !== id);
       });
   };
 
@@ -1314,6 +1327,11 @@ const App: React.FC = () => {
       setSpinsWithoutBonus(prev => prev + 1);
       updateMissions(MissionType.SPIN_COUNT, 1);
       updateMissions(MissionType.BET_COINS, currentBet);
+      // Track VIP bets for end-of-day cashback
+      if (player.isVip) {
+          const today = new Date().toDateString();
+          setVipBetTracking(prev => ({ date: today, total: (prev.date === today ? prev.total : 0) + currentBet }));
+      }
       setPlayer(prev => ({
           ...prev,
           stats: {

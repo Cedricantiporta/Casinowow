@@ -16,16 +16,16 @@ const TIER_STYLES: Record<string, { border: string; textColor: string; shadow: s
 
 export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, onClose }) => {
     const [displayAmount, setDisplayAmount] = useState(0);
-    const [secondsLeft, setSecondsLeft] = useState(3);
+    const [secondsLeft, setSecondsLeft] = useState(5);
     const onCloseRef = React.useRef(onClose);
     onCloseRef.current = onClose;
 
     useEffect(() => {
         if (!tier) return;
         setDisplayAmount(0);
-        setSecondsLeft(3);
+        setSecondsLeft(5);
 
-        const autoClose = setTimeout(() => onCloseRef.current(), 3000);
+        const autoClose = setTimeout(() => onCloseRef.current(), 5000);
         const countdown = setInterval(() => setSecondsLeft(s => Math.max(0, s - 1)), 1000);
 
         const startTime = Date.now();
