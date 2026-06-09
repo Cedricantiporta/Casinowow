@@ -706,7 +706,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         { type: 'PICKS',       fn: (_) => [2, '+2 Picks'] },
         { type: 'DICE_CREDITS',fn: (_) => [2, '+2 Dice'] },
         { type: 'CREDIT_BACK', fn: (_) => [10, '+10 Card Packs'] },
-        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP 30m'] },
+        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP 1h'] },
     ];
     // PREMIUM tier special pattern (cycles): Gems, Picks, Dice, Card Packs, XP
     const premSpecials: { type: RewardType; fn: (i: number) => [number, string] }[] = [
@@ -714,20 +714,20 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         { type: 'PICKS',       fn: (_) => [10, '+10 Picks'] },
         { type: 'DICE_CREDITS',fn: (_) => [10, '+10 Dice'] },
         { type: 'CREDIT_BACK', fn: (_) => [5, '+5 Premium Packs'] },
-        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP 30m'] },
+        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP 1h'] },
     ];
 
     for (let i = 1; i <= 50; i++) {
-        // FREE TIER — alternates: odd = coins, even = special
+        // FREE TIER — every 10 levels: gems; odd = coins, even = special
         let typeFree: RewardType;
         let valueFree: number;
         let labelFree: string;
-        if (i % 2 === 1) {
-            // Coin reward on odd levels
+        if (i % 10 === 0) {
+            typeFree = 'DIAMONDS'; valueFree = 20; labelFree = '20 💎';
+        } else if (i % 2 === 1) {
             const v = Math.floor(10000 * 0.15 * Math.pow(1.2, i - 1));
             typeFree = 'COINS'; valueFree = v; labelFree = formatNumber(v);
         } else {
-            // Cycle through non-coin specials on even levels
             const spec = freeSpecials[1 + ((i / 2 - 1) % (freeSpecials.length - 1))];
             typeFree = spec.type;
             [valueFree, labelFree] = spec.fn(i);
@@ -735,12 +735,14 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
 
         rewards.push({ id: `free-${i}`, level: i, type: typeFree, value: valueFree, label: labelFree, claimed: false, tier: 'FREE' });
 
-        // PREMIUM TIER — 1 coin every 3 levels, rest are specials
+        // PREMIUM TIER — every 10 levels: gems; 1 coin every 3 levels, rest specials
         let typePrem: RewardType;
         let valuePrem: number;
         let labelPrem: string;
-        if (i % 3 === 0) {
-            const v = Math.floor(10000 * 0.5 * Math.pow(1.2, i - 1));
+        if (i % 10 === 0) {
+            typePrem = 'DIAMONDS'; valuePrem = 100; labelPrem = '100 💎';
+        } else if (i % 3 === 0) {
+            const v = Math.floor(10000 * 1.0 * Math.pow(1.2, i - 1));
             typePrem = 'COINS'; valuePrem = v; labelPrem = formatNumber(v);
         } else {
             const spec = premSpecials[1 + ((i - 1) % (premSpecials.length - 1))];

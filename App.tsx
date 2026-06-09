@@ -234,6 +234,7 @@ const App: React.FC = () => {
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
+  const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '🎭');
   const [showInbox, setShowInbox] = useState(false);
   const [inbox, setInbox] = useState<InboxMessage[]>(() => {
       try {
@@ -714,7 +715,7 @@ const App: React.FC = () => {
               setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value }));
               msg = `+${reward.value} Gems`;
           } else if (reward.type === 'XP_BOOST') {
-              setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 }));
+              setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 }));
               msg = `${reward.value}x XP Boost`;
           } else if (reward.type === 'CREDIT_BACK') {
               setPlayer(p => ({ ...p, packCredits: p.packCredits + reward.value }));
@@ -753,7 +754,7 @@ const App: React.FC = () => {
           else if (r.type === 'PICKS') totalPicks += r.value;
           else if (r.type === 'DICE_CREDITS') totalDice += r.value;
           else if (r.type === 'XP_BOOST') {
-              setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 }));
+              setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 }));
               xpBoostApplied = true;
           }
       });
@@ -1824,7 +1825,7 @@ const App: React.FC = () => {
               setCelebrationMsg(`+${formatCommaNumber(reward.value)} Coins`);
           }
           else if (reward.type === 'DIAMONDS') { setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value })); setCelebrationMsg(`+${reward.value} Gems`); }
-          else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 })); setCelebrationMsg(`2× XP Boost!`); }
+          else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 })); setCelebrationMsg(`2× XP Boost!`); }
           else if (reward.type === 'PICKS') { setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value })); setCelebrationMsg(`+${reward.value} Credits`); }
           else if (reward.type === 'CREDIT_BACK') {
               const premChance = Math.min(0.20, 0.10 + Math.floor(player.level / 5) * 0.01);
@@ -1864,7 +1865,7 @@ const App: React.FC = () => {
       if (totalCoins > 0) setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
       if (totalGems > 0) setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems }));
       if (totalPicksFound > 0) setQuest(q => ({ ...q, wildCredits: q.wildCredits + totalPicksFound }));
-      if (xpBoostFound) setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 }));
+      if (xpBoostFound) setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 }));
       if (totalPacks > 0) setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks }));
       if (totalPremPacks > 0) setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPremPacks }));
 
@@ -2099,7 +2100,10 @@ const currentState: SavedGameState = {
                     className="round-btn shrink-0 cursor-pointer"
                     style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
-                    <i className={currentView !== 'LOBBY' ? 'ti ti-arrow-left' : 'ti ti-user'}></i>
+                    {currentView !== 'LOBBY'
+                        ? <i className="ti ti-arrow-left"></i>
+                        : <span className="text-base leading-none">{profileEmoji}</span>
+                    }
                 </div>
 
                 {/* Separate Coins & Gems pills joined closely */}
@@ -2717,6 +2721,8 @@ const currentState: SavedGameState = {
           passBoostMultiplier={missionState.passBoostMultiplier}
           passBoostEndTime={missionState.passBoostEndTime}
           recentGames={GAMES_CONFIG.filter(g => (player.stats?.recentSlots || []).includes(g.id)).sort((a, b) => (player.stats?.recentSlots || []).indexOf(a.id) - (player.stats?.recentSlots || []).indexOf(b.id))}
+          profileEmoji={profileEmoji}
+          onSetProfileEmoji={(e) => { setProfileEmoji(e); try { localStorage.setItem('cw_profile_emoji', e); } catch {} }}
       />
 
       <InboxModal

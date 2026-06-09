@@ -454,10 +454,15 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     <span className="text-[10px] tracking-widest">Buy Packs</span>
                                 </button>
                                 <button onClick={() => setShowExchangePanel(true)}
-                                    className="btn-3d w-full rounded-xl font-black text-white uppercase flex flex-col items-center justify-center gap-1"
+                                    className="btn-3d w-full rounded-xl font-black text-white uppercase flex flex-col items-center justify-center gap-1 relative"
                                     style={{ background: 'linear-gradient(180deg,#f59e0b,#b45309)', boxShadow: '0 3px 0 #78350f', minHeight: 64, padding: '10px 8px' }}>
                                     <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🔄</span>
                                     <span className="text-[10px] tracking-widest">Exch. Dupes</span>
+                                    {allDuplicates.length > 0 && (
+                                        <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
+                                        </div>
+                                    )}
                                 </button>
                             </div>
                         </div>
