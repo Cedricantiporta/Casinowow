@@ -470,22 +470,21 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             )}
 
             {/* ── FORTUNE TRAIL (Dice Quest) ── */}
+            {/* ── FORTUNE TRAIL (Dice Quest) ── */}
             {activeGame === 'DICE' && (
-                <>
-                    {/* S-shape board with bridge tiles */}
-                    <div className="flex-1 flex items-center justify-center w-full overflow-hidden p-2">
+                <div className="flex-1 flex overflow-hidden">
+                    {/* S-shape board */}
+                    <div className="flex-1 flex items-center justify-center overflow-hidden p-2">
                         <div ref={boardContainerRef} className="overflow-y-auto no-scrollbar flex flex-col gap-1.5">
                             {(() => {
-                                const MAIN = 9;   // cells per main row
-                                const SEG = 10;   // cells per segment (9 main + 1 bridge)
-
+                                const MAIN = 9;
+                                const SEG = 10;
                                 const numSegs = Math.ceil(board.length / SEG);
                                 const segments = Array.from({ length: numSegs }, (_, si) => ({
                                     si,
                                     main: board.slice(si * SEG, si * SEG + MAIN),
                                     bridge: board[si * SEG + MAIN],
                                 }));
-
                                 const renderCell = (step: typeof board[0]) => {
                                     const isHere = step.index === visualPosition;
                                     const bg = step.isFinish ? 'linear-gradient(180deg,#f59e0b,#b45309)'
@@ -527,28 +526,24 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 <span className="text-[9px] font-black text-white">START</span>
                                             ) : cellIcon ? (
                                                 <div className="flex flex-col items-center gap-0.5">
-                                                    <span style={{ fontSize: '1rem', lineHeight: 1 }}>{cellIcon}</span>
+                                                    <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{cellIcon}</span>
                                                     {step.reward?.label && step.reward.type !== 'BACK' && (
-                                                        <span className="text-white font-black text-[8px] leading-none text-center px-0.5 truncate max-w-[42px]">{step.reward.label}</span>
+                                                        <span className="text-white font-black text-[8px] leading-none text-center px-0.5 truncate max-w-[50px]">{step.reward.label}</span>
                                                     )}
                                                 </div>
                                             ) : null}
                                         </div>
                                     );
                                 };
-
-                                // Render from top (high seg) to bottom (seg 0 = START)
                                 return [...segments].reverse().map(({ si, main, bridge }) => {
                                     const isEven = si % 2 === 0;
                                     return (
                                         <React.Fragment key={si}>
-                                            {/* Bridge row — single cell at the turn connecting this seg to the one below */}
                                             {bridge && (
                                                 <div className="flex" style={{ justifyContent: isEven ? 'flex-end' : 'flex-start' }}>
                                                     {renderCell(bridge)}
                                                 </div>
                                             )}
-                                            {/* Main row — 9 cells, direction alternates */}
                                             <div className="flex gap-1" style={{ flexDirection: isEven ? 'row' : 'row-reverse' }}>
                                                 {main.map(step => renderCell(step))}
                                             </div>
@@ -559,47 +554,45 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                     </div>
 
-                    {/* Controls footer */}
-                    <div className="shrink-0 flex items-center px-3 py-2 gap-4"
-                        style={{ background: 'rgba(0,0,0,0.45)', borderTop: '1px solid rgba(255,255,255,0.07)', minHeight: 96 }}>
-
-                        {/* Left — dice pill + buy */}
-                        <div className="flex flex-col items-center gap-2 shrink-0">
-                            <div className="currency-pill flex items-center gap-1.5 px-3 py-1.5">
-                                <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>🎲</span>
-                                <span className="font-black text-white text-lg leading-none">{diceCredits}</span>
-                                <span className="text-white/50 text-[10px] uppercase font-bold">Dice</span>
-                            </div>
-                            <Btn3D onClick={() => setShowBuyPopup('DICE')}
-                                color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
-                                className="px-4 py-1.5 rounded-xl text-white" style={{ fontSize: '0.68rem' }}>
-                                + Buy Dice
-                            </Btn3D>
+                    {/* Right sidebar — stage, dice counter, buy, dice face, roll button */}
+                    <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
+                        style={{ background: 'rgba(0,0,0,0.35)', borderLeft: '1px solid rgba(255,255,255,0.06)', width: 90 }}>
+                        <div className="flex flex-col items-center leading-none">
+                            <span className="text-white/50 text-[8px] font-black uppercase tracking-widest">Stage</span>
+                            <span className="font-black text-white text-2xl leading-none">{diceStage}</span>
                         </div>
-
-                        {/* Center — dice face + roll button */}
-                        <div className="flex-1 flex items-center justify-center gap-4">
-                            <DiceFace value={diceValue} rolling={isRolling} size={72} />
-                            <button
-                                onMouseDown={handleRollMouseDown}
-                                onMouseUp={handleRollMouseUp}
-                                onMouseLeave={handleRollMouseUp}
-                                onTouchStart={handleRollMouseDown}
-                                onTouchEnd={handleRollMouseUp}
-                                disabled={diceCredits <= 0}
-                                className="relative w-[88px] h-[88px] rounded-full flex flex-col items-center justify-center font-black uppercase tracking-widest transition-all active:translate-y-[3px]"
-                                style={{
-                                    background: autoRoll ? 'linear-gradient(180deg,#ef4444,#b91c1c)' : diceCredits > 0 ? 'linear-gradient(180deg,#fbbf24,#d97706)' : '#374151',
-                                    boxShadow: diceCredits > 0 ? (autoRoll ? '0 5px 0 #7f1d1d, 0 8px 20px rgba(0,0,0,0.5)' : '0 5px 0 #92400e, 0 8px 20px rgba(0,0,0,0.5)') : 'none',
-                                    border: '2px solid rgba(255,255,255,0.2)',
-                                    color: diceCredits > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
-                                    cursor: diceCredits <= 0 ? 'not-allowed' : 'pointer',
-                                }}>
-                                <span className="text-xl leading-none">{autoRoll ? 'STOP' : 'ROLL'}</span>
-                            </button>
+                        <div className="w-full h-px bg-white/10" />
+                        <div className="flex flex-col items-center leading-none">
+                            <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>🎲</span>
+                            <span className="font-black text-white text-xl leading-none mt-0.5">{diceCredits}</span>
+                            <span className="text-white/50 text-[8px] font-black uppercase">Dice</span>
                         </div>
+                        <Btn3D onClick={() => setShowBuyPopup('DICE')}
+                            color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
+                            className="w-full py-1.5 rounded-lg text-white" style={{ fontSize: '0.6rem' }}>
+                            + Buy
+                        </Btn3D>
+                        <div className="flex-1" />
+                        <DiceFace value={diceValue} rolling={isRolling} size={52} />
+                        <button
+                            onMouseDown={handleRollMouseDown}
+                            onMouseUp={handleRollMouseUp}
+                            onMouseLeave={handleRollMouseUp}
+                            onTouchStart={handleRollMouseDown}
+                            onTouchEnd={handleRollMouseUp}
+                            disabled={diceCredits <= 0}
+                            className="w-full py-2 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all active:translate-y-[2px]"
+                            style={{
+                                background: autoRoll ? 'linear-gradient(180deg,#ef4444,#b91c1c)' : diceCredits > 0 ? 'linear-gradient(180deg,#fbbf24,#d97706)' : '#374151',
+                                boxShadow: diceCredits > 0 ? (autoRoll ? '0 3px 0 #7f1d1d' : '0 3px 0 #92400e') : 'none',
+                                border: '2px solid rgba(255,255,255,0.15)',
+                                color: diceCredits > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
+                                cursor: diceCredits <= 0 ? 'not-allowed' : 'pointer',
+                            }}>
+                            {autoRoll ? 'STOP' : 'ROLL'}
+                        </button>
                     </div>
-                </>
+                </div>
             )}
 
             {/* Buy Picks/Dice Popup */}

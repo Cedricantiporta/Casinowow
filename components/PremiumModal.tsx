@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { formatCommaNumber } from '../constants';
 
@@ -110,6 +110,8 @@ const getBundles = (maxBet: number) => [
 export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isVip, isPremium, onBuyVip, onBuyPremium, maxBet = 10000 }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const bundles = getBundles(maxBet);
+    const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
+    const visibleBundles = bundles.filter(b => !purchasedIds.has(b.id));
 
     useEffect(() => {
         const el = scrollRef.current;
@@ -203,7 +205,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     </div>
 
                     {/* Bundle Cards */}
-                    {bundles.map(bundle => (
+                    {visibleBundles.map(bundle => (
                         <div key={bundle.id} className="flex flex-col rounded-2xl overflow-hidden shrink-0"
                             style={{ width: CARD_W, background: bundle.bg }}>
                             <div className="shrink-0 px-4 pt-4 pb-2">
@@ -224,7 +226,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                                 ))}
                             </div>
                             <div className="shrink-0 px-3 pb-3 pt-1">
-                                <button className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest text-white"
+                                <button onClick={() => setPurchasedIds(prev => new Set(prev).add(bundle.id))}
+                                    className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest text-white"
                                     style={{ background: `linear-gradient(180deg,${bundle.tagColor},${bundle.tagColor}88)`, boxShadow: `0 3px 0 rgba(0,0,0,0.5)` }}>
                                     Buy {bundle.price}
                                 </button>
