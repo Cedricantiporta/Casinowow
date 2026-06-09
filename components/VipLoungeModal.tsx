@@ -51,7 +51,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                     </div>
                 ) : (
                     <div className="px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-widest"
-                        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: '#9ca3af' }}>
+                        style={{ background: 'rgba(255,255,255,0.08)', color: '#9ca3af' }}>
                         LOCKED
                     </div>
                 )}
@@ -59,24 +59,16 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
 
             {/* Benefits — 2-column grid */}
             <div className="flex-1 overflow-y-auto px-4 pb-1">
-                <div className="grid grid-cols-2 gap-2 h-full content-start">
+                <div className="grid grid-cols-2 gap-2.5 h-full content-start">
                     {BENEFITS.map(b => (
                         <div key={b.title}
-                            className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 relative overflow-hidden"
-                            style={{
-                                background: isVip ? 'rgba(251,191,36,0.1)' : 'rgba(255,255,255,0.05)',
-                                border: `1px solid ${isVip ? 'rgba(251,191,36,0.3)' : 'rgba(255,255,255,0.1)'}`,
-                            }}>
-                            {isVip && (
-                                <div className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-xl"
-                                    style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)' }} />
-                            )}
-                            <span style={{ fontSize: '1.4rem', lineHeight: 1, flexShrink: 0 }}>{b.icon}</span>
+                            className="flex items-center gap-3 rounded-2xl px-3.5 py-3"
+                            style={{ background: isVip ? 'rgba(251,191,36,0.12)' : 'rgba(255,255,255,0.06)' }}>
+                            <span style={{ fontSize: '1.6rem', lineHeight: 1, flexShrink: 0 }}>{b.icon}</span>
                             <div className="min-w-0">
-                                <div className="font-black text-[11px] leading-none" style={{ color: isVip ? '#fde68a' : '#d1d5db' }}>{b.title}</div>
-                                <div className="text-[9px] mt-0.5 leading-tight" style={{ color: isVip ? 'rgba(253,230,138,0.55)' : 'rgba(209,213,219,0.45)' }}>{b.desc}</div>
+                                <div className="font-black text-[11px] leading-none" style={{ color: isVip ? '#fde68a' : '#f3f4f6' }}>{b.title}</div>
+                                <div className="text-[9px] mt-0.5 leading-tight" style={{ color: isVip ? 'rgba(253,230,138,0.5)' : 'rgba(243,244,246,0.4)' }}>{b.desc}</div>
                             </div>
-                            {isVip && <span className="ml-auto text-green-400 font-black text-sm shrink-0">✓</span>}
                         </div>
                     ))}
                 </div>
@@ -87,7 +79,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                 {!isVip ? (
                     <>
                         <div className="flex items-center justify-between w-full max-w-sm rounded-xl px-4 py-2"
-                            style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.25)' }}>
+                            style={{ background: 'rgba(251,191,36,0.12)' }}>
                             <div>
                                 <div className="text-yellow-100 font-black text-base leading-none">₱ 0.00</div>
                                 <div className="text-yellow-200/50 text-[9px] uppercase tracking-wide mt-0.5">Free with demo account</div>

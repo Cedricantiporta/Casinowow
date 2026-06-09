@@ -85,6 +85,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const [grid, setGrid] = useState<WildGridCell[]>([]);
     const [stageWinning, setStageWinning] = useState(false);
+    const [stageClearData, setStageClearData] = useState<{coins: number, gems: number} | null>(null);
     const [noPicksMsg, setNoPicksMsg] = useState(false);
     const [showBuyPopup, setShowBuyPopup] = useState<'PICKS' | 'DICE' | null>(null);
 
@@ -96,6 +97,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [autoRoll, setAutoRoll] = useState(false);
     const rollButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isLongPressRef = useRef(false);
+    const mouseIsDownRef = useRef(false);
 
     const boardLength = 10 + ((diceStage - 1) * 5);
     const boardContainerRef = useRef<HTMLDivElement>(null);
@@ -174,6 +176,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 if (!isMoving) setVisualPosition(dicePosition);
             }
             setStageWinning(false);
+            setStageClearData(null);
         } else {
             setIsRolling(false);
             setIsMoving(false);
@@ -232,8 +235,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             audioService.playWinBig();
             onBatchPick(1, surroundingRewards);
             if (gemFoundFromBomb) {
+                const clearCoins = Math.round((maxBet || 10000) * wildStage * 10);
+                const clearGems = 10 * wildStage;
+                setStageClearData({ coins: clearCoins, gems: clearGems });
                 setStageWinning(true);
-                setTimeout(() => { onStageComplete(Math.round((maxBet || 10000) * wildStage * 10), 10 * wildStage); setStageWinning(false); }, 2000);
             }
             return;
         }
@@ -242,8 +247,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (onGridUpdate) onGridUpdate(newGrid);
         if (cell.content === 'GEM') {
             audioService.playGemFound();
+            const clearCoins = Math.round((maxBet || 10000) * wildStage * 10);
+            const clearGems = 10 * wildStage;
+            setStageClearData({ coins: clearCoins, gems: clearGems });
             setStageWinning(true);
-            setTimeout(() => { onStageComplete(Math.round((maxBet || 10000) * wildStage * 10), 10 * wildStage); setStageWinning(false); }, 2000);
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
             onPickTile(false, cell.reward!);
@@ -276,8 +283,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
+            const clearCoins = Math.round((maxBet || 10000) * wildStage * 10);
+            const clearGems = 10 * wildStage;
+            setStageClearData({ coins: clearCoins, gems: clearGems });
             setStageWinning(true);
-            setTimeout(() => { onStageComplete(Math.round((maxBet || 10000) * wildStage * 10), 10 * wildStage); setStageWinning(false); }, 2000);
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
 
@@ -318,6 +327,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
     };
 
+    const handleNextStage = () => {
+        if (!stageClearData) return;
+        onStageComplete(stageClearData.coins, stageClearData.gems);
+        setStageClearData(null);
+        setStageWinning(false);
+    };
+
     const handleRollDice = () => {
         if (diceCredits <= 0 || isRolling || isMoving) { if (diceCredits <= 0) setAutoRoll(false); return; }
         setIsRolling(true);
@@ -338,6 +354,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const handleRollMouseDown = () => {
         if (diceCredits <= 0 || isRolling || isMoving) return;
+        mouseIsDownRef.current = true;
         isLongPressRef.current = false;
         rollButtonTimeoutRef.current = setTimeout(() => {
             isLongPressRef.current = true;
@@ -346,6 +363,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     };
 
     const handleRollMouseUp = () => {
+        if (!mouseIsDownRef.current) return;
+        mouseIsDownRef.current = false;
         if (rollButtonTimeoutRef.current) { clearTimeout(rollButtonTimeoutRef.current); rollButtonTimeoutRef.current = null; }
         if (!isLongPressRef.current) {
             if (autoRoll) { setAutoRoll(false); audioService.playClick(); }
@@ -400,6 +419,19 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
                             <div style={{ fontSize: '72px', lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce">💎</div>
                             <div className="mt-3 text-2xl font-black text-white uppercase tracking-widest">Stage Clear!</div>
+                            {stageClearData && (
+                                <>
+                                    <div className="mt-2 flex flex-col items-center gap-1">
+                                        <div className="font-black text-yellow-300 text-xl drop-shadow">🪙 +{formatCommaNumber(stageClearData.coins)}</div>
+                                        <div className="font-black text-blue-300 text-sm">💎 +{stageClearData.gems} Gems</div>
+                                    </div>
+                                    <button onClick={handleNextStage}
+                                        className="mt-5 btn-3d px-8 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-widest"
+                                        style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #0a4a23' }}>
+                                        Next Stage →
+                                    </button>
+                                </>
+                            )}
                         </div>
                     )}
 

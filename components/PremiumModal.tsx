@@ -145,7 +145,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                 <div className="flex gap-3 h-full items-stretch" style={{ minWidth: 'max-content' }}>
 
                     {/* VIP Lounge Card */}
-                    <div className="flex flex-col rounded-2xl overflow-hidden shrink-0"
+                    {!isVip && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0"
                         style={{ width: CARD_W, background: 'linear-gradient(160deg,#2a1500,#5c3000,#2a1500)' }}>
                         <div className="shrink-0 px-4 pt-4 pb-2">
                             <div className="flex items-center justify-between mb-1">
@@ -172,17 +172,15 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                                 {isVip ? '✓ Active' : '👑 Get VIP'}
                             </button>
                         </div>
-                    </div>
+                    </div>}
 
                     {/* Monthly Pass Card */}
-                    <div className="flex flex-col rounded-2xl overflow-hidden shrink-0"
+                    {!isPremium && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0"
                         style={{ width: CARD_W, background: 'linear-gradient(160deg,#0e0030,#2d0060,#0e0030)' }}>
                         <div className="shrink-0 px-4 pt-4 pb-2">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-2xl">📜</span>
-                                {isPremium
-                                    ? <span className="text-[9px] font-black bg-purple-500 text-white px-2 py-0.5 rounded-full uppercase">ACTIVE</span>
-                                    : <span className="text-[9px] font-black text-purple-300 uppercase tracking-wide">₱ 199</span>}
+                                <span className="text-[9px] font-black text-purple-300 uppercase tracking-wide">₱ 199</span>
                             </div>
                             <div className="font-black text-purple-300 text-sm uppercase tracking-wider leading-none">Monthly Pass</div>
                             <div className="text-purple-200/50 text-[10px] mt-0.5 leading-tight">30-day premium reward track</div>
@@ -196,13 +194,13 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             ))}
                         </div>
                         <div className="shrink-0 px-3 pb-3 pt-1">
-                            <button onClick={onBuyPremium} disabled={isPremium}
+                            <button onClick={onBuyPremium}
                                 className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest"
-                                style={{ background: isPremium ? 'linear-gradient(180deg,#6b7280,#374151)' : 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: isPremium ? '0 3px 0 #1f2937' : '0 3px 0 #4c1d95', color: '#fff', cursor: isPremium ? 'not-allowed' : 'pointer' }}>
-                                {isPremium ? '✓ Active' : '📜 Get Pass'}
+                                style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 #4c1d95', color: '#fff' }}>
+                                📜 Get Pass
                             </button>
                         </div>
-                    </div>
+                    </div>}
 
                     {/* Bundle Cards */}
                     {visibleBundles.map(bundle => (

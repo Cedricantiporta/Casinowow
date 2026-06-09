@@ -16,6 +16,7 @@ interface LobbyProps {
     onOpenCollection: () => void;
     onOpenPiggyBank: () => void;
     onOpenInbox?: () => void;
+    inboxCount?: number;
     onToggleVIP: () => void;
     questState: QuestState;
     missionState: MissionState;
@@ -40,6 +41,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     onOpenCollection,
     onOpenPiggyBank,
     onOpenInbox,
+    inboxCount,
     onToggleVIP,
     questState,
     missionState,
@@ -409,7 +411,14 @@ export const Lobby: React.FC<LobbyProps> = ({
                             </button>
 
                             <button onClick={onOpenInbox} className={iconBtn(false)}>
-                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📬</span>
+                                <div className="relative">
+                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📬</span>
+                                    {(inboxCount ?? 0) > 0 && (
+                                        <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{(inboxCount ?? 0) > 99 ? '99+' : inboxCount}</span>
+                                        </div>
+                                    )}
+                                </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Inbox</span>
                             </button>
 

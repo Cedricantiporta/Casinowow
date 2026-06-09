@@ -130,16 +130,16 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     </div>
 
                     {/* Perks grid — 2×2 */}
-                    <div className="flex-1 grid grid-cols-2 gap-2 px-4 py-3 content-center">
+                    <div className="flex-1 grid grid-cols-2 gap-2.5 px-4 py-3 content-center">
                         {[
                             { icon: '🎁', title: 'Double Rewards',   desc: 'FREE + PREMIUM on every level' },
                             { icon: '⚡', title: '+20 Levels',        desc: 'Instant level boost on purchase' },
                             { icon: '💎', title: 'Exclusive Gems',    desc: 'Extra gems on premium reward tiers' },
                             { icon: '⛏️', title: 'Quest Picks',       desc: 'Bonus picks for Wild & Dice quests' },
                         ].map(p => (
-                            <div key={p.title} className="flex items-center gap-2 rounded-xl px-2.5 py-2"
-                                style={{ background: 'rgba(255,200,0,0.06)', border: '1px solid rgba(255,200,0,0.15)' }}>
-                                <span style={{ fontSize: '22px', lineHeight: 1, flexShrink: 0 }}>{p.icon}</span>
+                            <div key={p.title} className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
+                                style={{ background: 'rgba(255,200,0,0.08)' }}>
+                                <span style={{ fontSize: '24px', lineHeight: 1, flexShrink: 0 }}>{p.icon}</span>
                                 <div className="min-w-0">
                                     <div className="text-yellow-200 font-black text-[10px] uppercase tracking-wide leading-none">{p.title}</div>
                                     <div className="text-yellow-200/50 text-[8px] mt-0.5 leading-snug">{p.desc}</div>
@@ -151,7 +151,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     {/* Price + CTA — centered, constrained */}
                     <div className="shrink-0 px-4 pb-3 pt-1 flex flex-col items-center gap-2">
                         <div className="flex items-center justify-between w-full max-w-xs rounded-xl px-3 py-2"
-                            style={{ background: 'rgba(255,200,0,0.1)', border: '1px solid rgba(255,200,0,0.25)' }}>
+                            style={{ background: 'rgba(255,200,0,0.12)' }}>
                             <div>
                                 <div className="text-yellow-100 font-black text-base leading-none">₱ 0.00</div>
                                 <div className="text-yellow-200/50 text-[9px] uppercase tracking-wide mt-0.5">Free with demo account</div>

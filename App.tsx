@@ -233,6 +233,7 @@ const App: React.FC = () => {
   const [activeToast, setActiveToast] = useState<ActiveToast>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
+  const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
   const [showInbox, setShowInbox] = useState(false);
   const [inbox, setInbox] = useState<InboxMessage[]>(() => {
       try {
@@ -2205,6 +2206,7 @@ const currentState: SavedGameState = {
                 onOpenCollection={() => openModal('COLLECTION')}
                 onOpenPiggyBank={handleOpenPiggyBank}
                 onOpenInbox={() => setShowInbox(true)}
+                inboxCount={inbox.filter((m: any) => !m.claimed).length}
                 onToggleVIP={handleToggleVIP}
                 questState={quest}
                 missionState={missionState}
@@ -2698,10 +2700,12 @@ const currentState: SavedGameState = {
           onBuyVip={() => {
               setPlayer(p => ({ ...p, isVip: true }));
               setShowPremiumModal(false);
+              setPurchaseConfirm('VIP');
           }}
           onBuyPremium={() => {
               setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 }));
               setShowPremiumModal(false);
+              setPurchaseConfirm('PASS');
           }}
       />
 
@@ -2721,6 +2725,54 @@ const currentState: SavedGameState = {
           messages={inbox}
           onClaim={handleClaimInbox}
       />
+
+      {/* Purchase Confirmation Popup */}
+      {purchaseConfirm && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-pop-in" onClick={() => setPurchaseConfirm(null)}>
+              <div className="rounded-2xl overflow-hidden shadow-2xl max-w-[300px] w-full mx-4 flex flex-col" onClick={e => e.stopPropagation()}
+                  style={{ background: purchaseConfirm === 'VIP' ? 'linear-gradient(160deg,#2a1500,#5c3000)' : 'linear-gradient(160deg,#0e0030,#2d0060)' }}>
+                  <div className="px-5 pt-5 pb-3 flex flex-col items-center text-center">
+                      <div style={{ fontSize: '3rem', lineHeight: 1, filter: purchaseConfirm === 'VIP' ? 'drop-shadow(0 0 16px rgba(251,191,36,0.8))' : 'drop-shadow(0 0 16px rgba(168,85,247,0.8))' }}>
+                          {purchaseConfirm === 'VIP' ? '👑' : '📜'}
+                      </div>
+                      <div className="font-black text-base uppercase tracking-widest mt-2"
+                          style={{ background: purchaseConfirm === 'VIP' ? 'linear-gradient(180deg,#fff8c0,#ffd700)' : 'linear-gradient(180deg,#e9d5ff,#a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                          {purchaseConfirm === 'VIP' ? 'VIP Activated!' : 'Monthly Pass Activated!'}
+                      </div>
+                      <div className="text-white/50 text-[10px] mt-0.5 uppercase tracking-wide">
+                          {purchaseConfirm === 'VIP' ? 'Welcome to the VIP Lounge' : '30-day premium rewards unlocked'}
+                      </div>
+                  </div>
+                  <div className="px-4 pb-3 flex flex-col gap-1.5">
+                      {(purchaseConfirm === 'VIP' ? [
+                          { icon: '🏷️', text: '20% Off Store' },
+                          { icon: '🐷', text: '+10% Piggy Bank savings' },
+                          { icon: '🎰', text: 'High Limit Room access' },
+                          { icon: '💰', text: '5% Daily Cashback via Inbox' },
+                          { icon: '💎', text: '+Weekly Gems' },
+                          { icon: '⭐', text: '+20% XP on all spins' },
+                      ] : [
+                          { icon: '🎁', text: 'Double Rewards on every level' },
+                          { icon: '⚡', text: '+20 Levels instant boost' },
+                          { icon: '💎', text: 'Exclusive Gems on premium tiers' },
+                          { icon: '⛏️', text: 'Bonus Quest Picks' },
+                      ]).map(b => (
+                          <div key={b.text} className="flex items-center gap-2">
+                              <span style={{ fontSize: '1rem', lineHeight: 1, flexShrink: 0 }}>{b.icon}</span>
+                              <span className="text-white/80 text-[10px] font-bold leading-tight">{b.text}</span>
+                          </div>
+                      ))}
+                  </div>
+                  <div className="px-4 pb-4">
+                      <button onClick={() => setPurchaseConfirm(null)}
+                          className="btn-3d w-full py-2.5 rounded-xl font-black text-sm uppercase tracking-widest text-black"
+                          style={{ background: purchaseConfirm === 'VIP' ? 'linear-gradient(180deg,#fbbf24,#d97706)' : 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 rgba(0,0,0,0.5)', color: purchaseConfirm === 'VIP' ? '#1c0a00' : '#fff' }}>
+                          Let's Go! 🎉
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
 
         </div>
       </div>
