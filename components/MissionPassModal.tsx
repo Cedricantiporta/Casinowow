@@ -188,20 +188,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <span className="num">{fmt(diamonds)}</span>
                             </div>
                             <div className="flex-1"></div>
-                            {/* Tabs — DAILY only */}
-                            <div className="flex items-center gap-0.5 shrink-0">
-                                {(() => {
-                                    const unclaimedCount = missionState.activeMissions.filter(m => m.frequency === 'DAILY' && m.completed && !m.claimed).length;
-                                    return (
-                                        <button className="relative px-2 py-1 rounded-md font-black uppercase text-[9px] leading-none btn-3d bg-gradient-to-b from-fuchsia-500 to-purple-700 text-white">
-                                            Daily
-                                            {unclaimedCount > 0 && (
-                                                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border border-white/60"></div>
-                                            )}
-                                        </button>
-                                    );
-                                })()}
-                            </div>
                         </div>
                     </div>
                 ) : (

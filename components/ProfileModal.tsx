@@ -138,13 +138,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, pla
                 <div className="flex-1 px-3 py-2 flex flex-col overflow-hidden">
                     <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${labelColor}`}>Recent Slots</div>
                     {recentGames.length > 0 ? (
-                        <div className="flex-1 grid grid-cols-2 gap-2 content-start overflow-y-auto no-scrollbar">
+                        <div className="flex-1 grid grid-cols-3 gap-1.5 content-start overflow-y-auto no-scrollbar">
                             {recentGames.map((game, i) => (
-                                <div key={i} className="rounded-xl overflow-hidden flex flex-col"
+                                <div key={i} className="rounded-lg overflow-hidden flex flex-col"
                                     style={{ background: game.color || 'rgba(255,255,255,0.07)' }}>
-                                    <div className="h-14 flex items-center justify-center text-3xl"
+                                    <div className="h-10 flex items-center justify-center text-2xl"
                                         style={{ background: 'rgba(0,0,0,0.35)' }}>🎰</div>
-                                    <div className="text-white font-black text-[9px] uppercase tracking-wide text-center px-1 py-1.5 leading-tight">{game.name}</div>
+                                    <div className="text-white font-black text-[8px] uppercase tracking-wide text-center px-0.5 py-1 leading-tight truncate">{game.name}</div>
                                 </div>
                             ))}
                         </div>

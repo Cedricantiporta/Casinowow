@@ -26,6 +26,8 @@ const ARCHIVO_3D = (color: string, shadow: string): React.CSSProperties => ({
 
 export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) => {
     const [displayAmount, setDisplayAmount] = useState(0);
+    const onCompleteRef = React.useRef(onComplete);
+    onCompleteRef.current = onComplete;
 
     useEffect(() => {
         audioService.playWinCheer();
@@ -41,9 +43,9 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
                 setDisplayAmount(Math.floor(amount * p));
             }
         }, 16);
-        const autoClose = setTimeout(onComplete, 3000);
+        const autoClose = setTimeout(() => onCompleteRef.current(), 3000);
         return () => { clearTimeout(autoClose); clearInterval(timerInterval); };
-    }, [type, amount, onComplete]);
+    }, [type, amount]);
 
     const s = WIN_STYLES[type] || WIN_STYLES['BIG WIN'];
 

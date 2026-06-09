@@ -395,56 +395,60 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                     {/* PACKS view */}
                     {!selectedDeckId && activeTab === 'PACKS' && (
-                        <div className="flex items-center h-full w-full gap-4">
-                            {packOptions.map(pack => {
-                                const singleCost = 1;
-                                const bulkCost = 9;
-                                const canDrawOne = pack.credits >= singleCost;
-                                const canDrawTen = pack.credits >= bulkCost;
-                                return (
-                                    <div key={pack.id} className="flex flex-col items-center gap-2 flex-1">
-                                        {/* Pack art */}
-                                        <div className={`rounded-2xl overflow-hidden shadow-xl bg-gradient-to-b ${pack.color} flex flex-col items-center justify-center py-4 gap-1 w-full`}
-                                            style={{ minHeight: 110 }}>
-                                            <span style={{ fontSize: '3rem', lineHeight: 1 }}>{pack.emoji}</span>
-                                            <div className="font-black text-white text-xs uppercase tracking-widest">{pack.name}</div>
-                                            <div className="font-black text-white/60 text-[9px]">{pack.credits} packs</div>
-                                        </div>
-                                        {/* Draw 1x button */}
-                                        <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
-                                            className="btn-3d w-full py-2 rounded-xl font-black text-white uppercase text-xs"
-                                            style={{ background: canDrawOne ? 'linear-gradient(180deg,#22c55e,#15803d)' : '#374151', boxShadow: canDrawOne ? '0 3px 0 #14532d' : 'none' }}>
-                                            DRAW 1×
-                                        </button>
-                                        <div className="text-white/60 font-black text-xs -mt-1">1 {pack.emoji}</div>
-                                        {/* Draw 10x button */}
-                                        <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
-                                            className="btn-3d w-full py-2 rounded-xl font-black text-white uppercase text-xs relative overflow-hidden"
-                                            style={{ background: canDrawTen ? 'linear-gradient(180deg,#f59e0b,#b45309)' : '#374151', boxShadow: canDrawTen ? '0 3px 0 #78350f' : 'none' }}>
-                                            DRAW 10×
-                                            {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</div>}
-                                        </button>
-                                        <div className="text-white/60 font-black text-xs -mt-1">9 {pack.emoji}</div>
-                                        {/* Buy button */}
-                                        <button onClick={() => setShowPackBuyPopup(pack.id === 'super' ? 'standard' : 'premium')}
-                                            className="btn-3d w-full py-2 rounded-xl font-black text-[10px] text-white uppercase"
-                                            style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
-                                            💎 Buy {pack.name}
-                                        </button>
-                                    </div>
-                                );
-                            })}
+                        <div className="flex flex-col items-center justify-center h-full gap-3">
+                            {/* Buy Packs button — above cards */}
+                            <button onClick={() => setShowPackBuyPopup('standard')}
+                                className="btn-3d px-6 py-2 rounded-xl font-black text-white uppercase text-xs tracking-widest"
+                                style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
+                                🃏 Buy Packs
+                            </button>
 
-                            {/* Side panel — Exchange Duplicates */}
-                            <div className="flex flex-col gap-2 shrink-0" style={{ width: 90 }}>
-                                <button onClick={() => setShowExchangePanel(true)}
-                                    className="btn-3d w-full py-2.5 rounded-xl font-black text-[10px] text-white uppercase flex flex-col items-center gap-0.5"
-                                    style={{ background: 'linear-gradient(180deg,#f59e0b,#b45309)', boxShadow: '0 3px 0 #78350f' }}>
-                                    <span style={{ fontSize: '1.2rem' }}>🔄</span>
-                                    <span>Exchange</span>
-                                    <span>Dupes</span>
-                                </button>
+                            {/* Two card-shaped pack containers */}
+                            <div className="flex gap-4 items-center justify-center">
+                                {packOptions.map(pack => {
+                                    const canDrawOne = pack.credits >= 1;
+                                    const canDrawTen = pack.credits >= 9;
+                                    return (
+                                        <div key={pack.id} className="flex flex-col items-center gap-2 rounded-2xl overflow-hidden"
+                                            style={{
+                                                width: 130,
+                                                background: pack.id === 'super'
+                                                    ? 'linear-gradient(160deg,#1e3a8a,#1e40af,#1e3a8a)'
+                                                    : 'linear-gradient(160deg,#78350f,#b45309,#78350f)',
+                                                border: pack.id === 'super' ? '2px solid #3b82f6' : '2px solid #f59e0b',
+                                                boxShadow: pack.id === 'super' ? '0 4px 20px rgba(59,130,246,0.3)' : '0 4px 20px rgba(245,158,11,0.3)',
+                                                padding: '12px 10px 10px',
+                                            }}>
+                                            {/* Pack emoji */}
+                                            <span style={{ fontSize: '2.8rem', lineHeight: 1 }}>{pack.emoji}</span>
+                                            {/* Pack name */}
+                                            <div className="font-black text-white text-[11px] uppercase tracking-widest text-center leading-none">{pack.name}</div>
+                                            {/* Credits count */}
+                                            <div className="font-bold text-white/60 text-[10px]">{pack.credits} packs</div>
+                                            {/* Draw 1x */}
+                                            <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
+                                                className="btn-3d w-full py-1.5 rounded-lg font-black text-white uppercase text-[10px]"
+                                                style={{ background: canDrawOne ? 'linear-gradient(180deg,#22c55e,#15803d)' : '#374151', boxShadow: canDrawOne ? '0 2px 0 #14532d' : 'none' }}>
+                                                DRAW 1×
+                                            </button>
+                                            {/* Draw 10x */}
+                                            <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
+                                                className="btn-3d w-full py-1.5 rounded-lg font-black text-white uppercase text-[10px] relative overflow-hidden"
+                                                style={{ background: canDrawTen ? 'linear-gradient(180deg,#f59e0b,#b45309)' : '#374151', boxShadow: canDrawTen ? '0 2px 0 #78350f' : 'none' }}>
+                                                DRAW 10×
+                                                {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</div>}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
+
+                            {/* Exchange Dupes button — below cards */}
+                            <button onClick={() => setShowExchangePanel(true)}
+                                className="btn-3d px-5 py-2 rounded-xl font-black text-white uppercase text-[10px] flex items-center gap-1.5"
+                                style={{ background: 'linear-gradient(180deg,#f59e0b,#b45309)', boxShadow: '0 3px 0 #78350f' }}>
+                                <span>🔄</span> Exchange Dupes
+                            </button>
                         </div>
                     )}
 
