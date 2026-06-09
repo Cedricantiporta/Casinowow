@@ -1116,7 +1116,7 @@ const App: React.FC = () => {
       });
       if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
       if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
-      if (totalPacks > 0) { setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks })); msgParts.push(`+${totalPacks} 📦`); }
+      if (totalPacks > 0) { setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks })); msgParts.push(`+${totalPacks} 🃏`); }
       if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
       if (isFinish) {
           const bonusCoins = Math.round(MAX_BET_BY_LEVEL(player.level) * quest.diceStage * 10);
@@ -1950,16 +1950,14 @@ const currentState: SavedGameState = {
                         <span style={{fontSize:16}}>🐷</span>
                     </div>
 
-                {/* Star Experience Progression (No pill shape container, 2x long, star + bar) */}
-                <div className="flex items-center gap-1 shadow-none shrink-0 border-none bg-transparent ml-2">
-                    <div className="star shrink-0"></div>
-                    <div className="rtrack !flex-none w-[90px] md:w-[150px] overflow-hidden relative">
-                        <div
-                            className="rfill"
-                            style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, ...(player.xpMultiplier >= 2 ? { background: 'linear-gradient(180deg,#ffe04d,#d4a017 60%,#a07010)', boxShadow: 'inset 0 1px 1px rgba(255,255,180,0.7)' } : {}) }}
-                        ></div>
-                        <span className="rnum relative z-10 font-black" style={{ fontSize: '18px' }}>{player.level}</span>
-                    </div>
+                {/* Star Experience Progression — star inside pill on left */}
+                <div className="rtrack !flex-none w-[90px] md:w-[150px] ml-2">
+                    <div
+                        className="rfill"
+                        style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, ...(player.xpMultiplier >= 2 ? { background: 'linear-gradient(180deg,#ffe04d,#d4a017 60%,#a07010)', boxShadow: 'inset 0 1px 1px rgba(255,255,180,0.7)' } : {}) }}
+                    ></div>
+                    <div className="rstar"></div>
+                    <span className="rnum font-black" style={{ fontSize: '18px' }}>{player.level}</span>
                 </div>
 
                 {/* Active Multiplier indicator */}
@@ -2363,7 +2361,7 @@ const currentState: SavedGameState = {
           <div className="fixed top-[40px] right-2 z-[200] animate-pop-in pointer-events-none"
               style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
               <div className="flex items-center gap-2">
-                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>📦</span>
+                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🃏</span>
                   <div>
                       <div className="font-black text-white text-xs uppercase tracking-widest">+1 Card Pack!</div>
                       <div className="text-purple-300 text-[9px] font-bold">Added to your stash</div>
@@ -2376,7 +2374,7 @@ const currentState: SavedGameState = {
           <div className="fixed top-[40px] right-2 z-[201] animate-pop-in pointer-events-none"
               style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
               <div className="flex items-center gap-2">
-                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{activeToast.type === 'LEVEL_UP' ? '⭐' : '📦'}</span>
+                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{activeToast.type === 'LEVEL_UP' ? '⭐' : '🃏'}</span>
                   <div>
                       {activeToast.type === 'LEVEL_UP' ? (
                           <>

@@ -24,7 +24,7 @@ const getBundles = (maxBet: number) => [
         items: [
             { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
             { icon: '💎', label: '200 Gems' },
-            { icon: '📦', label: '5 Card Packs' },
+            { icon: '🃏', label: '5 Standard Packs' },
         ],
         origPrice: '₱ 200',
         price: '₱ 99',
@@ -67,7 +67,7 @@ const getBundles = (maxBet: number) => [
         items: [
             { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
             { icon: '💎', label: '5,000 Gems' },
-            { icon: '📦', label: '50 Card Packs' },
+            { icon: '🎴', label: '50 Premium Packs' },
             { icon: '🚀', label: '3× XP Boost (24h)' },
             { icon: '⛏️', label: '+50 Picks' },
         ],
@@ -99,7 +99,7 @@ const getBundles = (maxBet: number) => [
         items: [
             { icon: '💎', label: '10,000 Gems' },
             { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 300))} Coins` },
-            { icon: '📦', label: '100 Card Packs' },
+            { icon: '🎴', label: '100 Premium Packs' },
             { icon: '📜', label: 'Monthly Pass (30d)' },
         ],
         origPrice: '₱ 3,999',

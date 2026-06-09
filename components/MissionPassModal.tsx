@@ -335,7 +335,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         <div className={`flex-1 bg-gradient-to-b from-[#382952] to-[#231833] rounded-xl p-1.5 flex flex-col items-center justify-between relative shadow ${freeReward?.claimed ? 'opacity-50 grayscale' : ''}`}>
                                             <span className="text-[8px] text-gray-300 uppercase font-bold bg-black/50 px-2 py-0.5 rounded-full mt-0.5">Free</span>
                                             <div className="flex-1 flex flex-col items-center justify-center w-full gap-1">
-                                                <div className="text-5xl">{freeReward?.type === 'COINS' ? '🪙' : freeReward?.type === 'DIAMONDS' ? '💎' : freeReward?.type === 'PICKS' ? '⛏️' : freeReward?.type === 'DICE_CREDITS' ? '🎲' : freeReward?.type === 'CREDIT_BACK' ? '📦' : '⭐'}</div>
+                                                <div className="text-5xl">{freeReward?.type === 'COINS' ? '🪙' : freeReward?.type === 'DIAMONDS' ? '💎' : freeReward?.type === 'PICKS' ? '⛏️' : freeReward?.type === 'DICE_CREDITS' ? '🎲' : freeReward?.type === 'CREDIT_BACK' ? '🃏' : '⭐'}</div>
                                                 <span className="font-black text-white text-[12px] text-center leading-tight drop-shadow-md">{freeReward ? getDisplayValue(freeReward) : ''}</span>
                                             </div>
                                             <button onClick={() => freeReward && onClaimReward(freeReward)} disabled={!isUnlocked || freeReward?.claimed}
@@ -369,7 +369,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             <span className={`text-[8px] uppercase font-bold px-2 py-0.5 rounded-full mt-0.5 ${missionState.isPremium ? 'text-yellow-400 bg-black/50' : 'text-gray-500 bg-black/20'}`}>Premium</span>
                                             <div className="flex-1 flex flex-col items-center justify-center w-full relative gap-1">
                                                 {!missionState.isPremium && <div className="absolute inset-0 flex items-center justify-center z-10"><span className="text-4xl text-gray-400">🔒</span></div>}
-                                                <div className="text-5xl">{premReward?.type === 'COINS' ? '💰' : premReward?.type === 'DIAMONDS' ? '💎' : premReward?.type === 'PICKS' ? '⛏️' : premReward?.type === 'DICE_CREDITS' ? '🎲' : premReward?.type === 'CREDIT_BACK' ? '📦' : '👑'}</div>
+                                                <div className="text-5xl">{premReward?.type === 'COINS' ? '💰' : premReward?.type === 'DIAMONDS' ? '💎' : premReward?.type === 'PICKS' ? '⛏️' : premReward?.type === 'DICE_CREDITS' ? '🎲' : premReward?.type === 'CREDIT_BACK' ? '🎴' : '👑'}</div>
                                                 <span className={`font-black text-[12px] text-center leading-tight drop-shadow-md ${missionState.isPremium ? 'text-yellow-100' : 'text-gray-500'}`}>{premReward ? getDisplayValue(premReward) : ''}</span>
                                             </div>
                                             <button onClick={() => premReward && onClaimReward(premReward)} disabled={!isUnlocked || premReward?.claimed || !missionState.isPremium}

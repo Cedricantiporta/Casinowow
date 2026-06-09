@@ -340,13 +340,14 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <div className="gem"></div>
                             <span className="num">{formatNumber(diamonds)}</span>
                         </div>
-                        <button onClick={() => setShowPackBuyPopup('standard')}
-                            className="currency-pill flex items-center gap-1 shrink-0 active:scale-95 transition-transform"
-                            style={{ cursor: 'pointer' }}>
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
                             <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>🃏</span>
                             <span className="num">{packCredits}</span>
-                            <span style={{ fontSize: '9px', fontWeight: 900, color: '#4ade80', textTransform: 'uppercase' }}>+GET</span>
-                        </button>
+                        </div>
+                        <div className="currency-pill flex items-center gap-1 shrink-0">
+                            <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>🎴</span>
+                            <span className="num">{premiumPackCredits}</span>
+                        </div>
                         <div className="currency-pill flex items-center gap-1 shrink-0">
                             <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>💳</span>
                             <span className="num">{formatNumber(tokens)}</span>
