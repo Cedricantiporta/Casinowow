@@ -889,10 +889,10 @@ const App: React.FC = () => {
           }
 
           for (let d = 0; d < drawCount; d++) {
-              let rarityWeights = [0.98, 0.02, 0.0, 0.0];
-              if (packId === 'ultra') rarityWeights = [0.0, 0.71, 0.25, 0.04];
-              else if (packId === 'mega') rarityWeights = [0.24, 0.60, 0.15, 0.01];
-              else if (packId === 'super') rarityWeights = [0.55, 0.40, 0.05, 0.0];
+              let rarityWeights = [0.70, 0.29, 0.01, 0.0];
+              if (packId === 'ultra') rarityWeights = [0.30, 0.50, 0.19, 0.01];
+              else if (packId === 'mega') rarityWeights = [0.30, 0.50, 0.19, 0.01];
+              else if (packId === 'super') rarityWeights = [0.70, 0.29, 0.01, 0.0];
               if (drawRarities[d] === 'RARE') rarityWeights = [0, 1, 0, 0];
               else if (drawRarities[d] === 'EPIC') rarityWeights = [0, 0, 1, 0];
               else if (drawRarities[d] === 'LEGENDARY') rarityWeights = [0, 0, 0, 1];
@@ -1280,7 +1280,16 @@ const App: React.FC = () => {
       });
       if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
       if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
-      if (totalPacks > 0) { setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks })); msgParts.push(`+${totalPacks} 🃏`); }
+      if (totalPacks > 0) {
+          const premChance = Math.min(0.20, 0.10 + Math.floor(player.level / 5) * 0.01);
+          if (Math.random() < premChance) {
+              setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPacks }));
+              msgParts.push(`+${totalPacks} 🎴`);
+          } else {
+              setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks }));
+              msgParts.push(`+${totalPacks} 🃏`);
+          }
+      }
       if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
       if (isFinish) {
           const bonusCoins = Math.round(MAX_BET_BY_LEVEL(player.level) * quest.diceStage * 10);
@@ -1817,8 +1826,8 @@ const App: React.FC = () => {
           else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 1800000 })); setCelebrationMsg(`2× XP Boost!`); }
           else if (reward.type === 'PICKS') { setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value })); setCelebrationMsg(`+${reward.value} Credits`); }
           else if (reward.type === 'CREDIT_BACK') {
-              const isPremiumPack = Math.random() < 0.05;
-              if (isPremiumPack) {
+              const premChance = Math.min(0.20, 0.10 + Math.floor(player.level / 5) * 0.01);
+              if (Math.random() < premChance) {
                   setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + reward.value }));
                   setCelebrationMsg(`+${reward.value} 🎴 Premium Packs!`);
               } else {
@@ -1845,7 +1854,8 @@ const App: React.FC = () => {
           else if (r.type === 'PICKS') totalPicksFound += r.value;
           else if (r.type === 'XP_BOOST') xpBoostFound = true;
           else if (r.type === 'CREDIT_BACK') {
-              if (Math.random() < 0.05) totalPremPacks += r.value;
+              const premChance = Math.min(0.20, 0.10 + Math.floor(player.level / 5) * 0.01);
+              if (Math.random() < premChance) totalPremPacks += r.value;
               else totalPacks += r.value;
           }
       });
@@ -2141,7 +2151,10 @@ const currentState: SavedGameState = {
 
                 {/* Level Pill — star on left, LVL.XX text centered */}
                 <div className="rtrack !flex-none w-[120px] md:w-[155px] ml-2" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6 }}>
-                    <div className="rfill" style={{ width: `${(player.xp / player.xpToNextLevel) * 100}%`, position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 'inherit', background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)' }}></div>
+                    {/* Fill bar — wrapped in overflow:hidden div so it clips to pill border-radius */}
+                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 10, pointerEvents: 'none', zIndex: 0 }}>
+                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />
+                    </div>
                     <div className="rstar" style={{ flexShrink: 0, width: 22, height: 22 }}></div>
                     <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
                         {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LVL.${player.level}`}
@@ -2645,10 +2658,8 @@ const currentState: SavedGameState = {
                       ...p,
                       balance: p.balance + 10_000_000_000,
                       diamonds: p.diamonds + 2_000,
-                      packCredits: p.packCredits + 100,
-                      premiumPackCredits: (p.premiumPackCredits ?? 0) + 20,
                   }));
-                  setCelebrationMsg('💎 +10B Coins · +2,000 Gems · +100 🃏 · +20 🎴');
+                  setCelebrationMsg('💎 +10B Coins · +2,000 Gems');
               } else if (code === 'dev222') {
                   const now = Date.now();
                   setPlayer(p => ({
@@ -2656,8 +2667,6 @@ const currentState: SavedGameState = {
                       isVip: true,
                       xpMultiplier: 5,
                       xpBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
-                      packCredits: p.packCredits + 500,
-                      premiumPackCredits: (p.premiumPackCredits ?? 0) + 100,
                   }));
                   setMissionState(ms => ({
                       ...ms,
@@ -2666,7 +2675,7 @@ const currentState: SavedGameState = {
                       passBoostMultiplier: 5,
                       passBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
                   }));
-                  setCelebrationMsg('👑 GOD MODE! VIP+Pass · 5× XP · +500🃏 · +100🎴');
+                  setCelebrationMsg('👑 GOD MODE! VIP+Pass · 5× XP');
               }
               audioService.playWinBig();
           }}

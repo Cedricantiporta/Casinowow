@@ -508,7 +508,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             data-active={isHere ? 'true' : undefined}
                                             className="relative shrink-0 flex flex-col items-center justify-center rounded-lg"
                                             style={{
-                                                width: 46, height: 46,
+                                                width: 54, height: 54,
                                                 background: bg,
                                                 boxShadow: isHere ? '0 0 0 2px #fde68a, 0 4px 12px rgba(0,0,0,0.5)' : '0 3px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
                                                 border: isHere ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.1)',
