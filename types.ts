@@ -155,7 +155,8 @@ export interface PassReward {
   value: number;
   label: string;
   claimed: boolean;
-  tier: 'FREE' | 'PREMIUM'; 
+  claimedValue?: number;
+  tier: 'FREE' | 'PREMIUM';
 }
 
 export interface MissionState {
