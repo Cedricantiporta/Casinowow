@@ -175,7 +175,6 @@ const App: React.FC = () => {
   const [freeSpinsWon, setFreeSpinsWon] = useState(0);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
   const [showWelcomeGift, setShowWelcomeGift] = useState(() => !localStorage.getItem('cw_player'));
-  const [showPotShake, setShowPotShake] = useState(false);
   const [giftCountDone, setGiftCountDone] = useState(false);
   const [giftDisplayAmount, setGiftDisplayAmount] = useState(0);
   const [animBalance, setAnimBalance] = useState<number | null>(null);
@@ -1055,7 +1054,7 @@ const App: React.FC = () => {
           const colData: SymbolType[] = [];
           for(let r=0; r<rows; r++) {
               let sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
-              while (selectedGame.theme === 'PIGGY' && sym === SymbolType.SCATTER) {
+              while ((selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') && sym === SymbolType.SCATTER) {
                   sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
               }
               if (c === 2) {
@@ -1097,8 +1096,8 @@ const App: React.FC = () => {
             }
             if (active) megaMatchActive = true;
       }
-      // NEON and PIGGY never use full-column same-symbol matches
-      if (selectedGame.theme === 'NEON' || selectedGame.theme === 'PIGGY') megaMatchActive = false;
+      // NEON, PIGGY, and LEPRECHAUN never use full-column same-symbol matches
+      if (selectedGame.theme === 'NEON' || selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -1122,8 +1121,8 @@ const App: React.FC = () => {
                    if (c === 1) wildStackChance = 0.15 * wildMult;
                    if (c === 2) wildStackChance = 0.20 * wildMult;
                }
-               // PIGGY: 20% higher wild rate + extend to all 7 columns
-               if (selectedGame.theme === 'PIGGY') {
+               // PIGGY/LEPRECHAUN: 20% higher wild rate + extend to extra columns
+               if (selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') {
                    if (c === 5) wildStackChance = 0.30 * wildMult;
                    if (c === 6) wildStackChance = 0.36 * wildMult;
                    wildStackChance *= 1.2;
@@ -1221,8 +1220,8 @@ const App: React.FC = () => {
           }
       }
 
-      // PIGGY: inject coin symbols (1-6 cells), 6+ triggers free spins
-      if (selectedGame.theme === 'PIGGY') {
+      // PIGGY / LEPRECHAUN: inject coin symbols (1-6 cells), 6+ triggers free spins
+      if (selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') {
           const coinRoll = Math.random();
           let targetCoins = 0;
           if (coinRoll >= 0.989)     targetCoins = 6;  // ~1.1% → free spins
@@ -1485,32 +1484,11 @@ const App: React.FC = () => {
             }
         }
 
-        // GOLDEN_POT: random ~7% chance per spin triggers free spins via pot animation
-        if (selectedGame.theme === 'GOLDEN_POT' && Math.random() < 0.07) {
-            const spinsWon = 15;
-            setFreeSpinsWon(spinsWon);
-            setTotalFreeSpins(prev => prev + spinsWon);
-            if (freeSpinsRemaining > 0) {
-                setShowFreeSpinsPopup(true);
-                audioService.playWinBig();
-            } else {
-                setShowPotShake(true);
-                audioService.playScatterTrigger();
-                setSpinsWithoutBonus(0);
-                setTimeout(() => {
-                    setShowPotShake(false);
-                    setShowFreeSpinsPopup(true);
-                }, 2400);
-                calculateWin(targetGrid);
-                return next;
-            }
-        }
-
-        // LEPRECHAUN: 6+ clovers (CHERRY symbol = 🍀) trigger free spins
+        // LEPRECHAUN: same coin-count mechanic as PIGGY — 6+ 🍀 cells trigger free spins
         if (selectedGame.theme === 'LEPRECHAUN') {
-            let cloverCount = 0;
-            targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.CHERRY) cloverCount++; }));
-            if (cloverCount >= 6) {
+            let coinCount = 0;
+            targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
+            if (coinCount >= 6) {
                 const spinsWon = 15;
                 setFreeSpinsWon(spinsWon);
                 setTotalFreeSpins(prev => prev + spinsWon);
@@ -2771,17 +2749,7 @@ const currentState: SavedGameState = {
           </div>
         </div>
       )}
-      {showPotShake && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center pointer-events-none">
-          <div className="flex flex-col items-center gap-3 animate-pop-in">
-            <div className="animate-[potWiggle_0.5s_ease-in-out_infinite]" style={{ fontSize: '7rem', lineHeight: 1 }}>🏺</div>
-            <div className="font-black text-yellow-300 text-xl uppercase tracking-widest"
-              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)', WebkitTextStroke: '1px rgba(0,0,0,0.8)', paintOrder: 'stroke fill' }}>
-              Lucky Pot!
-            </div>
-          </div>
-        </div>
-      )}
+
       <BankruptcyModal isOpen={showBankruptcy} onCollect={() => { setPlayer(p => ({ ...p, balance: p.balance + 100000 })); setShowBankruptcy(false); setCelebrationMsg("+100,000 Coins"); audioService.playWinBig(); }} />
 
       <SettingsModal
