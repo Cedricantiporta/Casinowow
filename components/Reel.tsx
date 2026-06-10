@@ -17,10 +17,13 @@ interface ReelProps {
   isScatterShowcase?: boolean; 
 }
 
-const getRandomSymbol = () => {
-  let sum = WEIGHTS.reduce((acc, el) => acc + el.weight, 0);
+const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
+
+const makeRandomSymbol = (excludeScatter: boolean) => {
+  const weights = excludeScatter ? WEIGHTS.filter(w => w.type !== SymbolType.SCATTER) : WEIGHTS;
+  let sum = weights.reduce((acc, el) => acc + el.weight, 0);
   let rand = Math.random() * sum;
-  for (let w of WEIGHTS) {
+  for (let w of weights) {
     rand -= w.weight;
     if (rand <= 0) return w.type;
   }
@@ -29,33 +32,35 @@ const getRandomSymbol = () => {
 
 export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
-  const [landing, setLanding] = useState(false); 
+  const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
   const VISIBLE_ROWS = gameConfig.rows;
-  
+  const noScatter = NO_SCATTER_THEMES.has(gameConfig.theme);
+  const getRandSym = () => makeRandomSymbol(noScatter);
+
   // Initialize strip on mount or config change
   useEffect(() => {
-    setStrip(Array(VISIBLE_ROWS).fill(null).map(getRandomSymbol));
-  }, [VISIBLE_ROWS]);
+    setStrip(Array(VISIBLE_ROWS).fill(null).map(getRandSym));
+  }, [VISIBLE_ROWS, noScatter]); // eslint-disable-line
 
   // Effect 1: Handle Spin Start
   useEffect(() => {
     if (spinning && !stopping) {
       setLanding(false);
-      setStrip(Array(VISIBLE_ROWS * 4).fill(null).map(getRandomSymbol));
+      setStrip(Array(VISIBLE_ROWS * 4).fill(null).map(getRandSym));
     }
-  }, [spinning, stopping, VISIBLE_ROWS]);
+  }, [spinning, stopping, VISIBLE_ROWS, noScatter]); // eslint-disable-line
 
   // Effect 2: Handle Stop Trigger
   useEffect(() => {
     if (stopping && !landing) {
         const timer = setTimeout(() => {
-            setLanding(true); 
-            
+            setLanding(true);
+
             // Set final strip: Random symbols on top + Final symbols at bottom
             const finalStrip = [
-                ...Array(VISIBLE_ROWS).fill(null).map(getRandomSymbol),
-                ...symbols 
+                ...Array(VISIBLE_ROWS).fill(null).map(getRandSym),
+                ...symbols
             ];
             setStrip(finalStrip);
         }, stopDelay);

@@ -62,9 +62,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const [jackpotTotals, setJackpotTotals] = useState<number[]>(() =>
         GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
     );
-    const [canScroll, setCanScroll] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -86,16 +84,6 @@ export const Lobby: React.FC<LobbyProps> = ({
             setJackpotTotals(GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1))));
         });
     }, [currentBet]);
-
-    useEffect(() => {
-        const el = scrollRef.current;
-        if (!el) return;
-        const check = () => setCanScroll(el.scrollWidth > el.clientWidth + 4);
-        check();
-        const ro = new ResizeObserver(check);
-        ro.observe(el);
-        return () => ro.disconnect();
-    }, []);
 
     const isReadyToCollect = timeLeft === 0;
     const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
@@ -125,27 +113,6 @@ export const Lobby: React.FC<LobbyProps> = ({
             case 'LEPRECHAUN': return 'font-jungle';
             case 'ARCTIC':     return 'font-space';
             default:           return 'font-titan';
-        }
-    };
-
-    const startScroll = (direction: 'LEFT' | 'RIGHT') => {
-        if (scrollInterval.current) return;
-        const amount = direction === 'LEFT' ? -20 : 20;
-        
-        const scrollAction = () => {
-             if (scrollRef.current) {
-                scrollRef.current.scrollBy({ left: amount, behavior: 'auto' });
-             }
-        };
-        
-        scrollAction(); 
-        scrollInterval.current = setInterval(scrollAction, 16); 
-    };
-
-    const stopScroll = () => {
-        if (scrollInterval.current) {
-            clearInterval(scrollInterval.current);
-            scrollInterval.current = null;
         }
     };
 
@@ -257,31 +224,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <div className="w-8"></div>
                         </div>
 
-                        {/* Left arrow — only when scrollable */}
-                        {canScroll && (
-                            <button
-                                onMouseDown={() => startScroll('LEFT')}
-                                onMouseUp={stopScroll}
-                                onMouseLeave={stopScroll}
-                                onTouchStart={() => startScroll('LEFT')}
-                                onTouchEnd={stopScroll}
-                                className="absolute left-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
-                                style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
-                            >◀</button>
-                        )}
-
-                        {/* Right arrow — only when scrollable */}
-                        {canScroll && (
-                            <button
-                                onMouseDown={() => startScroll('RIGHT')}
-                                onMouseUp={stopScroll}
-                                onMouseLeave={stopScroll}
-                                onTouchStart={() => startScroll('RIGHT')}
-                                onTouchEnd={stopScroll}
-                                className="absolute right-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
-                                style={{ background:'linear-gradient(180deg,#9050cc,#5020a0)', border:'1.5px solid #38106e', borderRadius:'8px', boxShadow:'0 3px 0 #1a0838,0 4px 8px rgba(0,0,0,0.6)' }}
-                            >▶</button>
-                        )}
                     </>
             </div>
  

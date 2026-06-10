@@ -1713,16 +1713,20 @@ const App: React.FC = () => {
                   return false;
               };
 
-              // CHECK SLOT UNLOCKS
+              // CHECK SLOT UNLOCKS — levels match GAMES_CONFIG index * 5
               const justUnlockedSlot = (level: number) => {
-                  if (level === 32 && !shownUnlocks.has(32)) return { id: 'dragon-fortune', name: "Dragon's Fortune", icon: '🐉', lvl: 32 };
-                  if (level === 42 && !shownUnlocks.has(42)) return { id: 'pirate-bounty', name: "Pirate's Bounty", icon: '🏴‍☠️', lvl: 42 };
-                  if (level === 52 && !shownUnlocks.has(52)) return { id: 'cosmic-cash', name: "Cosmic Cash", icon: '👽', lvl: 52 };
-                  if (level === 62 && !shownUnlocks.has(62)) return { id: 'sugar-rush', name: "Sugar Rush", icon: '🍭', lvl: 62 };
-                  if (level === 72 && !shownUnlocks.has(72)) return { id: 'jungle-rumble', name: "Jungle Rumble", icon: '🌴', lvl: 72 };
-                  if (level === 82 && !shownUnlocks.has(82)) return { id: 'deep-blue', name: "Deep Blue", icon: '🔱', lvl: 82 };
-                  if (level === 92 && !shownUnlocks.has(92)) return { id: 'wild-west', name: "Gold Rush", icon: '🤠', lvl: 92 };
-                  if (level === 102 && !shownUnlocks.has(102)) return { id: 'samurai-honor', name: "Samurai Honor", icon: '👹', lvl: 102 };
+                  if (level === 5  && !shownUnlocks.has(5))  return { id: 'neon-vegas',     name: 'Neon Vegas',       icon: '🎰', lvl: 5  };
+                  if (level === 10 && !shownUnlocks.has(10)) return { id: 'pharaoh-tomb',   name: "Pharaoh's Tomb",   icon: '🦂', lvl: 10 };
+                  if (level === 15 && !shownUnlocks.has(15)) return { id: 'dragon-fortune', name: "Dragon's Fortune", icon: '🐉', lvl: 15 };
+                  if (level === 20 && !shownUnlocks.has(20)) return { id: 'pirate-bounty',  name: "Pirate's Bounty",  icon: '🏴‍☠️', lvl: 20 };
+                  if (level === 25 && !shownUnlocks.has(25)) return { id: 'cosmic-cash',    name: 'Cosmic Cash',      icon: '👽', lvl: 25 };
+                  if (level === 30 && !shownUnlocks.has(30)) return { id: 'sugar-rush',     name: 'Sugar Rush',       icon: '🧁', lvl: 30 };
+                  if (level === 35 && !shownUnlocks.has(35)) return { id: 'jungle-rumble',  name: 'Jungle Rumble',    icon: '🦍', lvl: 35 };
+                  if (level === 40 && !shownUnlocks.has(40)) return { id: 'deep-blue',      name: 'Deep Blue',        icon: '🦈', lvl: 40 };
+                  if (level === 45 && !shownUnlocks.has(45)) return { id: 'wild-west',      name: 'Gold Rush',        icon: '🤠', lvl: 45 };
+                  if (level === 50 && !shownUnlocks.has(50)) return { id: 'samurai-honor',  name: 'Samurai Honor',    icon: '⚔️', lvl: 50 };
+                  if (level === 55 && !shownUnlocks.has(55)) return { id: 'lucky-leprechaun', name: 'Lucky Leprechaun', icon: '🍀', lvl: 55 };
+                  if (level === 60 && !shownUnlocks.has(60)) return { id: 'arctic-freeze',  name: 'Arctic Freeze',    icon: '🐧', lvl: 60 };
                   return null;
               };
 
