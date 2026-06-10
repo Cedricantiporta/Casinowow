@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GAMES_CONFIG, formatK } from '../constants';
 import { GameConfig } from '../types';
-import { jackpotService, SLOT_VARS } from '../services/jackpotService';
+import { jackpotService } from '../services/jackpotService';
 
 interface HighLimitLobbyProps {
     onBack: () => void;
@@ -53,28 +53,18 @@ const getTitleStyle = (theme: string) => {
 };
 
 export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelectGame, playerLevel, currentBet = 10000 }) => {
-    // VIP jackpots = same logic as normal lobby × 10 (VIP bet is 10x)
-    const vipMaxBet = currentBet * 10;
     const [jackpotTotals, setJackpotTotals] = useState<number[]>(() =>
-        GAMES_CONFIG.map((_, idx) => Math.floor(vipMaxBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
+        GAMES_CONFIG.map((_, idx) => jackpotService.getSlotTotal(idx) * 10)
     );
     const scrollRef = useRef<HTMLDivElement>(null);
     const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const [canScroll, setCanScroll] = useState(false);
 
     useEffect(() => {
-        return jackpotService.subscribe(() => {
-            setJackpotTotals(GAMES_CONFIG.map((_, idx) =>
-                Math.floor(vipMaxBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1))
-            ));
-        });
-    }, [vipMaxBet]);
-
-    useEffect(() => {
-        setJackpotTotals(GAMES_CONFIG.map((_, idx) =>
-            Math.floor(vipMaxBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1))
-        ));
-    }, [vipMaxBet]);
+        const update = () => setJackpotTotals(GAMES_CONFIG.map((_, idx) => jackpotService.getSlotTotal(idx) * 10));
+        update();
+        return jackpotService.subscribe(update);
+    }, []);
 
     useEffect(() => {
         const el = scrollRef.current;

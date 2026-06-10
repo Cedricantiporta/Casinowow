@@ -29,6 +29,7 @@ interface LobbyProps {
     piggyBank?: number;
     piggyMaxBet?: number;
     packCredits?: number;
+    premiumPackCredits?: number;
 }
 
 export const Lobby: React.FC<LobbyProps> = ({
@@ -53,7 +54,8 @@ export const Lobby: React.FC<LobbyProps> = ({
     currentBet,
     piggyBank,
     piggyMaxBet,
-    packCredits
+    packCredits,
+    premiumPackCredits
 }) => {
     
     const [timeLeft, setTimeLeft] = useState(0);
@@ -408,9 +410,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
                                 <div className="relative">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
-                                    {(packCredits ?? 0) > 0 && (
+                                    {((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 0 && (
                                         <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{(packCredits ?? 0) > 99 ? '99+' : packCredits}</span>
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 99 ? '99+' : (packCredits ?? 0) + (premiumPackCredits ?? 0)}</span>
                                         </div>
                                     )}
                                 </div>

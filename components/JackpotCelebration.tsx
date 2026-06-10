@@ -49,18 +49,18 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
             style={{ background: 'rgba(0,0,0,0.75)' }}
             onClick={onClose}>
             <div className="animate-pop-in flex flex-col items-center gap-3 p-6 rounded-3xl"
-                style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', boxShadow: '0 0 40px rgba(120,40,200,0.4), 0 16px 48px rgba(0,0,0,0.9)', minWidth: 260 }}
+                style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', boxShadow: '0 16px 48px rgba(0,0,0,0.9)', minWidth: 260 }}
                 onClick={e => e.stopPropagation()}>
 
                 {/* Tier name — color coded */}
-                <div style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor, textShadow: `0 0 20px ${style.shadow}` }}>
+                <div style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor }}>
                     {tier.name} JACKPOT!
                 </div>
 
                 {/* Amount — color coded */}
                 <div className="flex items-center justify-center px-6 py-2.5 rounded-xl"
                     style={{ background: 'rgba(0,0,0,0.5)' }}>
-                    <span style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor, textShadow: `0 0 16px ${style.shadow}` }}>
+                    <span style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor }}>
                         +{formatK(displayAmount)}
                     </span>
                 </div>

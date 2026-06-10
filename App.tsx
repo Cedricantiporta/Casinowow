@@ -175,6 +175,10 @@ const App: React.FC = () => {
   const [freeSpinsWon, setFreeSpinsWon] = useState(0);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
   const [showWelcomeGift, setShowWelcomeGift] = useState(() => !localStorage.getItem('cw_player'));
+  const [giftCountDone, setGiftCountDone] = useState(false);
+  const [giftDisplayAmount, setGiftDisplayAmount] = useState(0);
+  const [animBalance, setAnimBalance] = useState<number | null>(null);
+  const pendingLoginBonusRef = useRef(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [showPackToast, setShowPackToast] = useState(false);
   const [levelUpReward, setLevelUpReward] = useState(0);
@@ -396,7 +400,12 @@ const App: React.FC = () => {
     document.addEventListener('click', unlockAudio);
 
     if (!loginState.claimedToday) {
-        setTimeout(() => setActiveModal('LOGIN_BONUS'), 500);
+        if (!localStorage.getItem('cw_player')) {
+            // First-time player — defer login bonus until they return from Piggy Riches
+            pendingLoginBonusRef.current = true;
+        } else {
+            setTimeout(() => setActiveModal('LOGIN_BONUS'), 500);
+        }
     }
   }, []);
 
@@ -620,6 +629,36 @@ const App: React.FC = () => {
           return () => clearInterval(interval);
       }
   }, [missionState.passBoostEndTime]);
+
+  // Gift coin count-up animation
+  useEffect(() => {
+    if (!showWelcomeGift) return;
+    setGiftDisplayAmount(0);
+    setGiftCountDone(false);
+    const target = 10000000;
+    const duration = 2000;
+    const start = Date.now();
+    const interval = setInterval(() => {
+        const elapsed = Date.now() - start;
+        if (elapsed >= duration) {
+            setGiftDisplayAmount(target);
+            setGiftCountDone(true);
+            clearInterval(interval);
+            return;
+        }
+        const p = 1 - Math.pow(1 - elapsed / duration, 3);
+        setGiftDisplayAmount(Math.floor(target * p));
+    }, 16);
+    return () => clearInterval(interval);
+  }, [showWelcomeGift]);
+
+  // Show login bonus when returning to lobby for the first time after welcome gift
+  useEffect(() => {
+    if (currentView === 'LOBBY' && pendingLoginBonusRef.current) {
+        pendingLoginBonusRef.current = false;
+        setTimeout(() => setActiveModal('LOGIN_BONUS'), 800);
+    }
+  }, [currentView]);
 
   useEffect(() => {
     try { localStorage.setItem('cw_player', JSON.stringify(player)); } catch {}
@@ -1249,8 +1288,6 @@ const App: React.FC = () => {
   };
 
   const handleStageComplete = (gameType: 'WILD' | 'DICE', bonusCoins: number, bonusDiamonds: number) => {
-      const stage = gameType === 'WILD' ? quest.wildStage : quest.diceStage;
-
       setPlayer(p => ({ ...p, balance: p.balance + bonusCoins, diamonds: p.diamonds + bonusDiamonds }));
 
       if (gameType === 'WILD') {
@@ -1258,9 +1295,6 @@ const App: React.FC = () => {
       } else {
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
       }
-
-      setStageCompletePopup({ gameType, stage, coins: bonusCoins, diamonds: bonusDiamonds });
-      audioService.playWinBig();
   };
 
   // Handler to update Wild Grid state from modal to maintain persistence
@@ -2115,7 +2149,7 @@ const currentState: SavedGameState = {
                     {/* Separate Coins Pill — 30% longer than before */}
                     <div className="currency-pill flex-[4] max-w-[195px] md:max-w-[289px] flex items-center gap-1 shrink-0">
                         <div className="coin">$</div>
-                        <span className="num flex-1">{formatK(player.balance)}</span>
+                        <span className="num flex-1">{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                     </div>
 
                     {/* Separate Gem Pill */}
@@ -2227,6 +2261,7 @@ const currentState: SavedGameState = {
                 piggyBank={player.piggyBank}
                 piggyMaxBet={MAX_BET_BY_LEVEL(player.level)}
                 packCredits={player.packCredits}
+                premiumPackCredits={player.premiumPackCredits ?? 0}
             />
         ) : (
             <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
@@ -2566,14 +2601,6 @@ const currentState: SavedGameState = {
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
-      <StageCompleteModal
-          isOpen={stageCompletePopup !== null}
-          gameType={stageCompletePopup?.gameType || 'WILD'}
-          stage={stageCompletePopup?.stage || 1}
-          coins={stageCompletePopup?.coins || 0}
-          diamonds={stageCompletePopup?.diamonds || 0}
-          onNext={() => setStageCompletePopup(null)}
-      />
       {showWinPopup && <WinPopup amount={winData?.payout || 0} type={winData?.winType || ''} onComplete={handleWinPopupComplete} />}
       
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />
@@ -2651,25 +2678,43 @@ const currentState: SavedGameState = {
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
       
       {showWelcomeGift && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }}>
-          <div className="animate-pop-in flex flex-col items-center gap-4 rounded-3xl p-8 mx-4 text-center"
-            style={{ background: 'linear-gradient(160deg,#1a0a2e,#2d0060,#0d0220)', border: '2px solid rgba(210,150,255,0.4)', boxShadow: '0 0 40px rgba(160,80,255,0.3)', maxWidth: 320, width: '100%' }}>
-            <div style={{ fontSize: '64px', lineHeight: 1, filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.6))' }}>🎁</div>
-            <div className="font-black text-white text-xl uppercase tracking-widest">Welcome Gift!</div>
-            <div className="text-purple-200 text-sm font-bold leading-relaxed">
-              You received a special gift to start your journey!
-            </div>
-            <div className="font-black text-yellow-300 text-3xl" style={{ textShadow: '0 0 16px rgba(255,200,0,0.6)', fontVariantNumeric: 'tabular-nums' }}>
-              🪙 10,000,000
+        <div className="fixed inset-0 z-[500] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.55)' }}>
+          <div className="animate-pop-in flex flex-col items-center gap-3 rounded-3xl p-7 mx-4 text-center"
+            style={{ background: 'linear-gradient(160deg,#1a0a2e,#2d0060,#0d0220)', maxWidth: 300, width: '100%' }}>
+            <div style={{ fontSize: '56px', lineHeight: 1 }}>🎁</div>
+            <div className="font-black text-white text-lg uppercase tracking-widest">Welcome Gift!</div>
+            <div className="text-purple-200 text-xs font-bold">A special gift to start your journey</div>
+            <div className="font-black text-yellow-300 text-2xl" style={{ fontVariantNumeric: 'tabular-nums', minWidth: 180 }}>
+              🪙 {giftDisplayAmount.toLocaleString('en-US')}
             </div>
             <button
               onClick={() => {
-                setPlayer(p => ({ ...p, balance: p.balance + 10000000 }));
                 setShowWelcomeGift(false);
-                handleGameSelect(GAMES_CONFIG[0]);
+                // Animate topbar balance from 0 to 10M
+                const target = 10000000;
+                const duration = 1500;
+                const start = Date.now();
+                const iv = setInterval(() => {
+                    const elapsed = Date.now() - start;
+                    if (elapsed >= duration) {
+                        setAnimBalance(null);
+                        setPlayer(p => ({ ...p, balance: p.balance + target }));
+                        clearInterval(iv);
+                        handleGameSelect(GAMES_CONFIG[0]);
+                        return;
+                    }
+                    const p2 = 1 - Math.pow(1 - elapsed / duration, 3);
+                    setAnimBalance(Math.floor(target * p2));
+                }, 16);
               }}
-              className="btn-3d w-full py-3 rounded-2xl font-black text-base uppercase tracking-widest text-black"
-              style={{ background: 'linear-gradient(180deg,#ffd700,#ff9500)', boxShadow: '0 4px 0 #b06000,0 6px 20px rgba(255,150,0,0.4)' }}>
+              className="btn-3d w-full py-2.5 rounded-2xl font-black text-sm uppercase tracking-widest text-black"
+              style={{
+                background: giftCountDone ? 'linear-gradient(180deg,#ffd700,#ff9500)' : 'rgba(255,255,255,0.1)',
+                boxShadow: giftCountDone ? '0 4px 0 #b06000' : 'none',
+                color: giftCountDone ? '#1a0800' : 'rgba(255,255,255,0.3)',
+                cursor: giftCountDone ? 'pointer' : 'default',
+                transition: 'all 0.3s',
+              }}>
               CLAIM
             </button>
           </div>
