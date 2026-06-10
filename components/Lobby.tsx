@@ -216,8 +216,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                         {isLocked && (
                                             <div className="absolute inset-0 rounded-xl z-20 flex flex-col items-center justify-center pointer-events-none">
-                                                <span className="text-2xl leading-none drop-shadow-[0_1px_4px_rgba(0,0,0,1)]">🔒</span>
-                                                <span className="text-white font-black text-[10px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
+                                                <span className="text-4xl leading-none grayscale drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">🔒</span>
+                                                <span className="text-white/60 font-black text-[11px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                             </div>
                                         )}
                                         <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
@@ -236,8 +236,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                     `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform`;
                 const lockBadge = (unlockLevel: number) => (
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
-                        <span className="text-white text-base leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">🔒</span>
-                        <span className="text-white font-black text-[9px] mt-0.5 uppercase leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
+                        <span className="text-2xl leading-none grayscale drop-shadow-[0_1px_4px_rgba(0,0,0,1)]">🔒</span>
+                        <span className="text-white/60 font-black text-[10px] mt-0.5 uppercase leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                     </div>
                 );
                 const isGolden = isVip;
