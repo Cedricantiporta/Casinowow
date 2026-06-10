@@ -202,8 +202,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                 </span>
                                             </div>
                                         )}
-                                        <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
-                                        <div className="absolute inset-0 rounded-xl overflow-hidden z-10 select-none">
+                                        <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity${isLocked ? ' blur-[1.5px]' : ''}`}></div>
+                                        <div className={`absolute inset-0 rounded-xl overflow-hidden z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
                                             <div className="absolute inset-0 flex items-start justify-center pt-2">
                                                 <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
                                             </div>
@@ -217,7 +217,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         {isLocked && (
                                             <div className="absolute inset-0 rounded-xl z-20 flex flex-col items-center justify-center pointer-events-none">
                                                 <span className="text-4xl leading-none grayscale drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">🔒</span>
-                                                <span className="text-white/60 font-black text-[11px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
+                                                <span className="text-white font-black text-[11px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                             </div>
                                         )}
                                         <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
@@ -233,11 +233,11 @@ export const Lobby: React.FC<LobbyProps> = ({
             {/* Bottom bar — centered floating platform, icons protrude above */}
             {(() => {
                 const iconBtn = (locked: boolean) =>
-                    `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform`;
+                    `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform${locked ? ' [&>*:not(.lock-badge)]:blur-[1.5px]' : ''}`;
                 const lockBadge = (unlockLevel: number) => (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
+                    <div className="lock-badge absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
                         <span className="text-2xl leading-none grayscale drop-shadow-[0_1px_4px_rgba(0,0,0,1)]">🔒</span>
-                        <span className="text-white/60 font-black text-[10px] mt-0.5 uppercase leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
+                        <span className="text-white font-black text-[10px] mt-0.5 uppercase leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                     </div>
                 );
                 const isGolden = isVip;
