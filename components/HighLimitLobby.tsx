@@ -22,6 +22,7 @@ const getIcon = (theme: string) => {
     if (theme === 'WESTERN')    return '🤠';
     if (theme === 'SAMURAI')    return '⚔️';
     if (theme === 'CANDY')      return '🧁';
+    if (theme === 'GOLDEN_POT') return '🏮';
     if (theme === 'LEPRECHAUN') return '🍀';
     if (theme === 'ARCTIC')     return '🐧';
     return '🍭';
@@ -40,6 +41,7 @@ const getFontClass = (theme: string) => {
         case 'WESTERN':    return 'font-western';
         case 'SAMURAI':    return 'font-samurai';
         case 'PIGGY':      return 'font-piggy';
+        case 'GOLDEN_POT': return 'font-dragon';
         case 'LEPRECHAUN': return 'font-jungle';
         case 'ARCTIC':     return 'font-space';
         default:           return 'font-titan';
@@ -53,6 +55,7 @@ const getTitleStyle = (theme: string) => {
     if (theme === 'PIRATE') return 'text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]';
     if (theme === 'SPACE')  return 'text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]';
     if (theme === 'PIGGY')      return 'text-pink-300 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]';
+    if (theme === 'GOLDEN_POT') return 'text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]';
     if (theme === 'LEPRECHAUN') return 'text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]';
     if (theme === 'ARCTIC')     return 'text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]';
     return 'text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]';

@@ -110,13 +110,14 @@ export const Lobby: React.FC<LobbyProps> = ({
             case 'WESTERN':    return 'font-western';
             case 'SAMURAI':    return 'font-samurai';
             case 'PIGGY':      return 'font-piggy';
+            case 'GOLDEN_POT': return 'font-dragon';
             case 'LEPRECHAUN': return 'font-jungle';
             case 'ARCTIC':     return 'font-space';
             default:           return 'font-titan';
         }
     };
 
-    const getUnlockLevel = (index: number) => index * 5;
+    const getUnlockLevel = (index: number) => index === 0 ? 0 : index * 5 + 1;
 
     // Feature Locks
     const isPiggyLocked = playerLevel < 5;
@@ -166,6 +167,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     game.theme === 'PIRATE' ? 'text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]' :
                                     game.theme === 'SPACE' ? 'text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]' :
                                     game.theme === 'PIGGY' ? 'text-pink-300 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]' :
+                                    game.theme === 'GOLDEN_POT' ? 'text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]' :
                                     game.theme === 'LEPRECHAUN' ? 'text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]' :
                                     game.theme === 'ARCTIC' ? 'text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]' :
                                     'text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]';
@@ -181,6 +183,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 else if (game.theme === 'WESTERN') icon = '🤠';
                                 else if (game.theme === 'SAMURAI') icon = '⚔️';
                                 else if (game.theme === 'CANDY') icon = '🧁';
+                                else if (game.theme === 'GOLDEN_POT') icon = '🏮';
                                 else if (game.theme === 'LEPRECHAUN') icon = '🍀';
                                 else if (game.theme === 'ARCTIC') icon = '🐧';
                                 const unlockLevel = getUnlockLevel(idx);

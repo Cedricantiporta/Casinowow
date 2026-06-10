@@ -1713,20 +1713,21 @@ const App: React.FC = () => {
                   return false;
               };
 
-              // CHECK SLOT UNLOCKS — levels match GAMES_CONFIG index * 5
+              // CHECK SLOT UNLOCKS — levels: idx*5+1 (6,11,16...) to avoid colliding with feature unlocks (5,10,20,30)
               const justUnlockedSlot = (level: number) => {
-                  if (level === 5  && !shownUnlocks.has(5))  return { id: 'neon-vegas',     name: 'Neon Vegas',       icon: '🎰', lvl: 5  };
-                  if (level === 10 && !shownUnlocks.has(10)) return { id: 'pharaoh-tomb',   name: "Pharaoh's Tomb",   icon: '🦂', lvl: 10 };
-                  if (level === 15 && !shownUnlocks.has(15)) return { id: 'dragon-fortune', name: "Dragon's Fortune", icon: '🐉', lvl: 15 };
-                  if (level === 20 && !shownUnlocks.has(20)) return { id: 'pirate-bounty',  name: "Pirate's Bounty",  icon: '🏴‍☠️', lvl: 20 };
-                  if (level === 25 && !shownUnlocks.has(25)) return { id: 'cosmic-cash',    name: 'Cosmic Cash',      icon: '👽', lvl: 25 };
-                  if (level === 30 && !shownUnlocks.has(30)) return { id: 'sugar-rush',     name: 'Sugar Rush',       icon: '🧁', lvl: 30 };
-                  if (level === 35 && !shownUnlocks.has(35)) return { id: 'jungle-rumble',  name: 'Jungle Rumble',    icon: '🦍', lvl: 35 };
-                  if (level === 40 && !shownUnlocks.has(40)) return { id: 'deep-blue',      name: 'Deep Blue',        icon: '🦈', lvl: 40 };
-                  if (level === 45 && !shownUnlocks.has(45)) return { id: 'wild-west',      name: 'Gold Rush',        icon: '🤠', lvl: 45 };
-                  if (level === 50 && !shownUnlocks.has(50)) return { id: 'samurai-honor',  name: 'Samurai Honor',    icon: '⚔️', lvl: 50 };
-                  if (level === 55 && !shownUnlocks.has(55)) return { id: 'lucky-leprechaun', name: 'Lucky Leprechaun', icon: '🍀', lvl: 55 };
-                  if (level === 60 && !shownUnlocks.has(60)) return { id: 'arctic-freeze',  name: 'Arctic Freeze',    icon: '🐧', lvl: 60 };
+                  if (level === 6  && !shownUnlocks.has(6))  return { id: 'neon-vegas',       name: 'Neon Vegas',         icon: '🎰', lvl: 6  };
+                  if (level === 11 && !shownUnlocks.has(11)) return { id: 'pharaoh-tomb',     name: "Pharaoh's Tomb",     icon: '🦂', lvl: 11 };
+                  if (level === 16 && !shownUnlocks.has(16)) return { id: 'dragon-fortune',   name: "Dragon's Fortune",   icon: '🐉', lvl: 16 };
+                  if (level === 21 && !shownUnlocks.has(21)) return { id: 'pirate-bounty',    name: "Pirate's Bounty",    icon: '🏴‍☠️', lvl: 21 };
+                  if (level === 26 && !shownUnlocks.has(26)) return { id: 'cosmic-cash',      name: 'Cosmic Cash',        icon: '👽', lvl: 26 };
+                  if (level === 31 && !shownUnlocks.has(31)) return { id: 'sugar-rush',       name: 'Sugar Rush',         icon: '🧁', lvl: 31 };
+                  if (level === 36 && !shownUnlocks.has(36)) return { id: 'jungle-rumble',    name: 'Jungle Rumble',      icon: '🦍', lvl: 36 };
+                  if (level === 41 && !shownUnlocks.has(41)) return { id: 'deep-blue',        name: 'Deep Blue',          icon: '🦈', lvl: 41 };
+                  if (level === 46 && !shownUnlocks.has(46)) return { id: 'wild-west',        name: 'Gold Rush',          icon: '🤠', lvl: 46 };
+                  if (level === 51 && !shownUnlocks.has(51)) return { id: 'samurai-honor',    name: 'Samurai Honor',      icon: '⚔️', lvl: 51 };
+                  if (level === 56 && !shownUnlocks.has(56)) return { id: 'golden-lucky-pot', name: 'Golden Lucky Pot',   icon: '🏮', lvl: 56 };
+                  if (level === 61 && !shownUnlocks.has(61)) return { id: 'lucky-leprechaun', name: 'Lucky Leprechaun',   icon: '🍀', lvl: 61 };
+                  if (level === 66 && !shownUnlocks.has(66)) return { id: 'arctic-freeze',    name: 'Arctic Freeze',      icon: '🐧', lvl: 66 };
                   return null;
               };
 
@@ -1951,7 +1952,7 @@ const App: React.FC = () => {
 
   const handleGameSelect = (game: GameConfig, highLimit: boolean = false) => {
       const gameIndex = GAMES_CONFIG.findIndex(g => g.id === game.id);
-      const unlockLevel = gameIndex * 5;
+      const unlockLevel = gameIndex === 0 ? 0 : gameIndex * 5 + 1;
       
       // Use a fresh reference to player level if available, or ref
       const currentLevel = playerRef.current.level;
