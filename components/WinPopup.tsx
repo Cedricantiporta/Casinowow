@@ -28,8 +28,14 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
     const [displayAmount, setDisplayAmount] = useState(0);
     const onCompleteRef = React.useRef(onComplete);
     onCompleteRef.current = onComplete;
+    const mountTimeRef = React.useRef(Date.now());
+
+    const guardedComplete = React.useCallback(() => {
+        if (Date.now() - mountTimeRef.current > 1500) onCompleteRef.current();
+    }, []);
 
     useEffect(() => {
+        mountTimeRef.current = Date.now();
         audioService.playWinCheer();
         const startTime = Date.now();
         const countDuration = 1500;
@@ -50,7 +56,7 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
     const s = WIN_STYLES[type] || WIN_STYLES['BIG WIN'];
 
     return (
-        <div onClick={onComplete}
+        <div onClick={guardedComplete}
             className="fixed inset-0 z-[200] flex flex-col items-center justify-center cursor-pointer"
             style={{ background: 'linear-gradient(160deg,#050505,#0d0d18,#050505)' }}>
 

@@ -19,9 +19,15 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
     const [secondsLeft, setSecondsLeft] = useState(5);
     const onCloseRef = React.useRef(onClose);
     onCloseRef.current = onClose;
+    const mountTimeRef = React.useRef(0);
+
+    const guardedClose = React.useCallback(() => {
+        if (Date.now() - mountTimeRef.current > 1500) onCloseRef.current();
+    }, []);
 
     useEffect(() => {
         if (!tier) return;
+        mountTimeRef.current = Date.now();
         setDisplayAmount(0);
         setSecondsLeft(5);
 
@@ -47,7 +53,7 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
     return (
         <div className="fixed inset-0 z-[400] flex items-center justify-center select-none"
             style={{ background: 'rgba(0,0,0,0.75)' }}
-            onClick={onClose}>
+            onClick={guardedClose}>
             <div className="animate-pop-in flex flex-col items-center gap-3 p-6 rounded-3xl"
                 style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', boxShadow: '0 16px 48px rgba(0,0,0,0.9)', minWidth: 260 }}
                 onClick={e => e.stopPropagation()}>
@@ -65,7 +71,7 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
                     </span>
                 </div>
 
-                <button onClick={onClose}
+                <button onClick={guardedClose}
                     className="btn-3d px-10 py-2.5 rounded-2xl uppercase text-white font-black text-sm tracking-widest"
                     style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 4px 0 #4c1d95' }}>
                     COLLECT ({secondsLeft})
