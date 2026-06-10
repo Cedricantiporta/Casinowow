@@ -171,14 +171,17 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
     if (!isOpen) return null;
 
-    // Gather all duplicate cards across all decks
-    const allDuplicates: { deckId: string; cardIdx: number; card: import('../types').Card }[] = [];
+    // Gather all duplicate cards across all decks (count-1 entries per card with count>1)
+    const allDuplicates: { deckId: string; cardIdx: number; card: import('../types').Card; dupIndex: number }[] = [];
     decks.forEach(deck => {
         deck.cards.forEach((card, idx) => {
-            if (card.isDuplicate) {
+            const extraCopies = (card.count || 0) - 1;
+            if (extraCopies > 0) {
                 const st = String(card.symbolType);
                 if (!['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && card.icon !== '🪙') {
-                    allDuplicates.push({ deckId: deck.gameId, cardIdx: idx, card });
+                    for (let d = 0; d < extraCopies; d++) {
+                        allDuplicates.push({ deckId: deck.gameId, cardIdx: idx, card, dupIndex: d });
+                    }
                 }
             }
         });
@@ -210,11 +213,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <>
                             <div className="flex-1 overflow-y-auto p-3 grid grid-cols-5 gap-2 content-start">
                                 {allDuplicates.map((dup, i) => {
-                                    const key = `${dup.deckId}-${dup.cardIdx}`;
+                                    const key = `${dup.deckId}-${dup.cardIdx}-${dup.dupIndex}`;
                                     const sel = selectedDuplicateIds.has(key);
                                     const borderColor = getCardBorder(dup.card.rarity);
                                     return (
-                                        <button key={key} onClick={() => {
+                                        <button key={i} onClick={() => {
                                             setSelectedDuplicateIds(prev => {
                                                 const next = new Set(prev);
                                                 sel ? next.delete(key) : next.add(key);
@@ -237,8 +240,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 })}
                             </div>
                             <div className="shrink-0 flex items-center gap-3 px-4 py-3" style={{ background: 'rgba(0,0,0,0.6)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                                <span className="text-white/60 text-xs font-bold flex-1">{selectedDuplicateIds.size} selected → {selectedDuplicateIds.size} 🃏</span>
-                                <button onClick={() => setSelectedDuplicateIds(new Set(allDuplicates.map(d => `${d.deckId}-${d.cardIdx}`)))}
+                                <span className="text-white/60 text-xs font-bold flex-1">{selectedDuplicateIds.size} selected → {selectedDuplicateIds.size} 📦</span>
+                                <button onClick={() => setSelectedDuplicateIds(new Set(allDuplicates.map(d => `${d.deckId}-${d.cardIdx}-${d.dupIndex}`)))}
                                     className="btn-3d px-3 py-1.5 rounded-lg text-xs font-black text-white uppercase"
                                     style={{ background: 'rgba(255,255,255,0.15)' }}>Select All</button>
                                 <button disabled={selectedDuplicateIds.size === 0}

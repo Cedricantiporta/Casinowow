@@ -85,7 +85,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const [grid, setGrid] = useState<WildGridCell[]>([]);
     const [stageWinning, setStageWinning] = useState(false);
-    const [stageClearData, setStageClearData] = useState<{coins: number, gems: number} | null>(null);
+    const [stageClearData, setStageClearData] = useState<{coins: number; gems: number} | null>(null);
     const [noPicksMsg, setNoPicksMsg] = useState(false);
     const [showBuyPopup, setShowBuyPopup] = useState<'PICKS' | 'DICE' | null>(null);
 
@@ -168,8 +168,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     useEffect(() => {
         if (isOpen) {
             if (activeGame === 'WILD') {
-                if (savedGrid && savedGrid.length > 0) setGrid(savedGrid);
-                else initGrid();
+                if (!(savedGrid && savedGrid.length > 0)) initGrid();
             }
             if (activeGame === 'DICE') {
                 if (board.length === 0 || board[board.length - 1].index !== boardLength) initBoard();
@@ -182,7 +181,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             setIsMoving(false);
             setAutoRoll(false);
         }
-    }, [isOpen, initGrid, activeGame, initBoard, boardLength, dicePosition, board.length, isMoving, savedGrid]);
+    }, [isOpen, initGrid, activeGame, initBoard, boardLength, dicePosition, board.length, isMoving]);
+
+    // Restore saved grid without touching stage-clear state
+    useEffect(() => {
+        if (isOpen && activeGame === 'WILD' && savedGrid && savedGrid.length > 0) {
+            setGrid(savedGrid);
+        }
+    }, [isOpen, activeGame, savedGrid]);
 
     useEffect(() => {
         if (activeGame === 'DICE' && boardContainerRef.current) {
@@ -235,9 +241,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             audioService.playWinBig();
             onBatchPick(1, surroundingRewards);
             if (gemFoundFromBomb) {
-                const clearCoins = Math.round((maxBet || 10000) * wildStage * 10);
-                const clearGems = 10 * wildStage;
-                setStageClearData({ coins: clearCoins, gems: clearGems });
+                setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
                 setStageWinning(true);
             }
             return;
@@ -247,9 +251,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (onGridUpdate) onGridUpdate(newGrid);
         if (cell.content === 'GEM') {
             audioService.playGemFound();
-            const clearCoins = Math.round((maxBet || 10000) * wildStage * 10);
-            const clearGems = 10 * wildStage;
-            setStageClearData({ coins: clearCoins, gems: clearGems });
+            setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
             setStageWinning(true);
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
@@ -283,9 +285,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
-            const clearCoins = Math.round((maxBet || 10000) * wildStage * 10);
-            const clearGems = 10 * wildStage;
-            setStageClearData({ coins: clearCoins, gems: clearGems });
+            setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
             setStageWinning(true);
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
@@ -372,6 +372,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
     };
 
+    const handleNextStage = () => {
+        if (!stageClearData) return;
+        onStageComplete(stageClearData.coins, stageClearData.gems);
+        setStageClearData(null);
+        setStageWinning(false);
+    };
+
     if (!isOpen) return null;
 
     const isWild = activeGame === 'WILD';
@@ -416,12 +423,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                     )}
                     {stageWinning && (
-                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
+                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.88)' }}>
                             <div style={{ fontSize: '72px', lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce">💎</div>
                             <div className="mt-3 text-2xl font-black text-white uppercase tracking-widest">Stage Clear!</div>
                             {stageClearData && (
                                 <>
-                                    <div className="mt-2 flex flex-col items-center gap-1">
+                                    <div className="mt-3 flex flex-col items-center gap-1">
                                         <div className="font-black text-yellow-300 text-xl drop-shadow">🪙 +{formatCommaNumber(stageClearData.coins)}</div>
                                         <div className="font-black text-blue-300 text-sm">💎 +{stageClearData.gems} Gems</div>
                                     </div>
