@@ -280,7 +280,7 @@ const App: React.FC = () => {
                   id: 'welcome',
                   type: 'WELCOME' as const,
                   title: 'Welcome Gift',
-                  body: '+5,000,000 Coins',
+                  body: '+5,000,000 Coins · +500 Gems',
                   claimed: false,
                   createdAt: Date.now(),
               });
@@ -361,8 +361,8 @@ const App: React.FC = () => {
           if (!msg) return prev;
           // Apply reward
           if (msg.type === 'WELCOME') {
-              setPlayer(p => ({ ...p, balance: p.balance + 5_000_000 }));
-              setCelebrationMsg('+5,000,000 Coins');
+              setPlayer(p => ({ ...p, balance: p.balance + 5_000_000, diamonds: p.diamonds + 500 }));
+              setCelebrationMsg('+5,000,000 Coins · +500 Gems');
           } else if (msg.type === 'DAILY_COINS') {
               const day = claimedCoinGiftCount + 1;
               const amount = day * 50_000 * 20;
@@ -1323,7 +1323,7 @@ const App: React.FC = () => {
       });
       if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
       if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
-      if (totalPacks > 0) {
+      if (totalPacks > 0 && player.level >= 30) {
           const premChance = Math.min(0.20, 0.10 + Math.floor(player.level / 5) * 0.01);
           if (Math.random() < premChance) {
               setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPacks }));
@@ -1624,7 +1624,7 @@ const App: React.FC = () => {
         }
     }
     const packDropChance = Math.max(0.007, (0.20 - (maxBetIdx - betIndex) * 0.02) * 0.7);
-    if (Math.random() < packDropChance) {
+    if (player.level >= 30 && Math.random() < packDropChance) {
         setPlayer(p => ({ ...p, packCredits: p.packCredits + 1 }));
         showToast({ type: 'PACK' });
     } else if (player.level >= 30) {

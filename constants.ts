@@ -422,7 +422,7 @@ export const GET_PAYLINES = (rowCount: number, colCount: number = 5): Payline[] 
 };
 
 export const INITIAL_BALANCE = 0;
-export const INITIAL_GEMS = 500; 
+export const INITIAL_GEMS = 0; 
 export const BASE_XP_PER_SPIN = 1000; 
 export const XP_BASE_REQ = 2000;
 export const AUTO_SPIN_DELAY = 1500;

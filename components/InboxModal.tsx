@@ -47,7 +47,7 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
                         <span style={{ fontSize: '2rem', lineHeight: 1, flexShrink: 0 }}>{getMessageIcon(msg.type)}</span>
                         <div className="flex-1 min-w-0">
                             <div className="font-black text-white text-xs uppercase tracking-wide leading-none">{msg.title}</div>
-                            <div className="text-purple-300/70 text-[10px] mt-0.5 leading-tight">{msg.body}</div>
+                            <div className="text-purple-300/80 text-xs mt-0.5 leading-tight">{msg.body}</div>
                         </div>
                         <button onClick={() => onClaim(msg.id)}
                             className="btn-3d px-3 py-1.5 rounded-lg font-black text-xs uppercase shrink-0"
