@@ -2497,6 +2497,7 @@ const currentState: SavedGameState = {
                   })};
               }));
           }}
+          onGainGems={(amount) => setPlayer(p => ({ ...p, diamonds: p.diamonds + amount }))}
           grandPrize={getGrandAlbumReward(player.level)}
           getDeckReward={(id) => getDeckReward(id, player.level)}
           balance={player.balance}

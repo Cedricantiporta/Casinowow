@@ -23,6 +23,7 @@ interface CardCollectionModalProps {
     premiumPackCredits?: number;
     onBuyPremiumCredits?: (gemCost: number, credits: number) => void;
     onExchangeCards?: (exchanges: { deckId: string; cardIdx: number; removeCount: number }[]) => void;
+    onGainGems?: (amount: number) => void;
     maxBet?: number;
 }
 
@@ -46,6 +47,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     premiumPackCredits = 0,
     onBuyPremiumCredits,
     onExchangeCards,
+    onGainGems,
     maxBet = 10000
 }) => {
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
@@ -187,28 +189,21 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         });
     });
 
-    const getExchangeRewards = (ids: Set<string>) => {
-        let standardCredits = 0;
-        let premiumCredits = 0;
+    const getExchangeGems = (ids: Set<string>) => {
+        let gems = 0;
         allDuplicates.forEach(dup => {
             const key = `${dup.deckId}-${dup.cardIdx}`;
             if (!ids.has(key)) return;
-            switch (dup.card.rarity) {
-                case 'COMMON': standardCredits += dup.extraCount * 1; break;
-                case 'RARE': standardCredits += dup.extraCount * 2; break;
-                case 'EPIC': premiumCredits += dup.extraCount * 1; break;
-                case 'LEGENDARY': premiumCredits += dup.extraCount * 3; break;
-            }
+            const perCard = dup.card.rarity === 'COMMON' ? 1 : dup.card.rarity === 'RARE' ? 2 : dup.card.rarity === 'EPIC' ? 4 : 10;
+            gems += dup.extraCount * perCard;
         });
-        return { standardCredits, premiumCredits };
+        return gems;
     };
 
     const handleExchangeDuplicates = (ids: Set<string>) => {
         if (ids.size === 0) return;
-        const { standardCredits, premiumCredits } = getExchangeRewards(ids);
-        if (standardCredits > 0) onBuyCredits(0, standardCredits);
-        if (premiumCredits > 0 && onBuyPremiumCredits) onBuyPremiumCredits(0, premiumCredits);
-        // Remove the extra copies from decks
+        const gems = getExchangeGems(ids);
+        if (gems > 0) onGainGems?.(gems);
         const exchanges = allDuplicates
             .filter(dup => ids.has(`${dup.deckId}-${dup.cardIdx}`))
             .map(dup => ({ deckId: dup.deckId, cardIdx: dup.cardIdx, removeCount: dup.extraCount }));
@@ -268,13 +263,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             </div>
                             <div className="shrink-0 flex items-center gap-2 px-3 py-2" style={{ background: 'rgba(0,0,0,0.5)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                                 {(() => {
-                                    const { standardCredits, premiumCredits } = getExchangeRewards(selectedDuplicateIds);
+                                    const gems = getExchangeGems(selectedDuplicateIds);
                                     return (
                                         <div className="flex-1 flex items-center gap-2 flex-wrap">
                                             <span className="text-white/60 text-xs font-black uppercase tracking-wide shrink-0">{selectedDuplicateIds.size} Selected:</span>
-                                            {standardCredits > 0 && <span className="text-yellow-300 text-sm font-black shrink-0">📦 {standardCredits} Standard</span>}
-                                            {premiumCredits > 0 && <span className="text-purple-300 text-sm font-black shrink-0">💎 {premiumCredits} Premium</span>}
-                                            {standardCredits === 0 && premiumCredits === 0 && <span className="text-white/20 text-xs font-bold">—</span>}
+                                            {gems > 0 ? <span className="text-blue-300 text-sm font-black shrink-0">💎 {gems} Gems</span> : <span className="text-white/20 text-xs font-bold">—</span>}
                                         </div>
                                     );
                                 })()}

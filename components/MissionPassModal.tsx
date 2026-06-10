@@ -182,53 +182,30 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </div>
                     </div>
                 ) : (
-                    /* PASS topbar: back | coins | gems | title + XP | spacer | action buttons */
+                    /* PASS topbar: title | spacer | CLAIM ALL | Buy Monthly Pass / ACTIVE | X */
                     <div className={topbarBase} style={topbarStyle}>
-                        <div className="flex items-center gap-1.5 px-3 h-[40px]">
-                            {/* Action buttons — all same size */}
+                        <div className="flex items-center gap-2 px-3 h-[40px]">
+                            {/* Title */}
+                            <span className="font-black text-white text-xs uppercase tracking-widest shrink-0">Monthly Pass</span>
+                            <div className="flex-1"></div>
+                            {/* Action buttons */}
                             <div className="flex items-center gap-1 shrink-0">
-                                <button onClick={jumpToCurrentLevel}
-                                    className={`${passBtn} bg-gradient-to-b from-white/20 to-white/5 text-white`}
-                                    style={{ ...passBtnSize, border: '1px solid rgba(255,255,255,0.2)' }}>
-                                    JUMP
-                                </button>
                                 <button onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
                                     className={`${passBtn} ${rewardsToClaimCount > 0 ? 'bg-gradient-to-b from-green-400 to-green-700 text-white' : 'text-gray-500'}`}
                                     style={{ ...passBtnSize, background: rewardsToClaimCount > 0 ? undefined : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                    {rewardsToClaimCount > 0 ? `CLAIM(${rewardsToClaimCount})` : 'CLAIM'}
-                                </button>
-                                <button onClick={onBuyLevel}
-                                    className={`${passBtn} bg-gradient-to-b from-indigo-500 to-indigo-800 text-white`}
-                                    style={passBtnSize}>
-                                    +LVL 100
+                                    CLAIM ALL
                                 </button>
                                 {!missionState.isPremium ? (
                                     <button onClick={() => setShowPremiumInfo(true)}
                                         className={`${passBtn} bg-gradient-to-b from-yellow-300 to-yellow-600 text-black`}
-                                        style={passBtnSize}>
-                                        MONTHLY
+                                        style={{ width: '90px', height: '26px', flexShrink: 0 }}>
+                                        Buy Monthly Pass
                                     </button>
                                 ) : (
                                     <div className="flex items-center justify-center text-yellow-300 font-black text-[9px]" style={passBtnSize}>
                                         ACTIVE
                                     </div>
                                 )}
-                            </div>
-                            <div className="flex-1"></div>
-                            {/* Pass level + XP bar */}
-                            <div className="flex items-center gap-1.5 ml-1 shrink-0">
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center shadow-md">
-                                    <span className="font-black text-[10px] text-white">{missionState.passLevel}</span>
-                                </div>
-                                <div className="flex flex-col justify-center">
-                                    <span className="text-white font-black text-[9px] uppercase leading-none">Monthly Pass</span>
-                                    <div className="flex items-center gap-1 mt-0.5">
-                                        <div className="w-16 h-1.5 bg-black/60 rounded-full overflow-hidden border border-white/10">
-                                            <div className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
-                                        </div>
-                                        <span className="text-yellow-300 font-mono text-[7px]">{missionState.passXP}/{missionState.passXpToNext}</span>
-                                    </div>
-                                </div>
                             </div>
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
@@ -340,18 +317,26 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             <div className="absolute left-0 right-[50%]" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#7c3aed,#a855f7)' : '#1e1b4b' }} />
                                             {/* Right line half */}
                                             <div className="absolute left-[50%] right-0" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#7c3aed)' : '#1e1b4b' }} />
-                                            {/* Circle node */}
-                                            <div className="relative z-10 flex items-center justify-center font-black text-[9px] rounded-full"
-                                                style={{
-                                                    width: 28, height: 28,
-                                                    background: isUnlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827',
-                                                    border: `2px solid ${isUnlocked ? '#e879f9' : '#374151'}`,
-                                                    boxShadow: isUnlocked ? '0 2px 8px rgba(168,85,247,0.6),inset 0 1px 2px rgba(255,255,255,0.3)' : 'none',
-                                                    color: isUnlocked ? 'white' : '#4b5563',
-                                                    flexShrink: 0,
-                                                }}>
-                                                {lvl}
-                                            </div>
+                                            {/* Circle node — or Buy Level button for next available level */}
+                                            {lvl === missionState.passLevel + 1 ? (
+                                                <button onClick={onBuyLevel}
+                                                    className="relative z-10 btn-3d font-black text-[8px] rounded-lg text-white flex items-center justify-center"
+                                                    style={{ width: 64, height: 22, background: 'linear-gradient(180deg,#6366f1,#3730a3)', boxShadow: '0 2px 0 #1e1b4b', flexShrink: 0 }}>
+                                                    💎 100
+                                                </button>
+                                            ) : (
+                                                <div className="relative z-10 flex items-center justify-center font-black text-[9px] rounded-full"
+                                                    style={{
+                                                        width: 28, height: 28,
+                                                        background: isUnlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827',
+                                                        border: `2px solid ${isUnlocked ? '#e879f9' : '#374151'}`,
+                                                        boxShadow: isUnlocked ? '0 2px 8px rgba(168,85,247,0.6),inset 0 1px 2px rgba(255,255,255,0.3)' : 'none',
+                                                        color: isUnlocked ? 'white' : '#4b5563',
+                                                        flexShrink: 0,
+                                                    }}>
+                                                    {lvl}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* PREMIUM card — greyed/grayscale when locked, no blur */}
