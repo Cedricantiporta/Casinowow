@@ -19,6 +19,9 @@ const REEL_BGS: Record<GameTheme, string> = {
     WESTERN: 'bg-gradient-to-b from-[#451a03] via-[#78350f] to-[#2e1005]',
     SAMURAI: 'bg-gradient-to-b from-[#300505] via-[#500a0a] to-[#1a0000]',
     PIGGY: 'bg-gradient-to-b from-[#500724] via-[#831843] to-[#500724]',
+    GOLDEN_POT: 'bg-gradient-to-b from-[#2d1200] via-[#4a1e00] to-[#1a0a00]',
+    LEPRECHAUN: 'bg-gradient-to-b from-[#011a05] via-[#013a0c] to-[#011505]',
+    ARCTIC:     'bg-gradient-to-b from-[#001428] via-[#001e3a] to-[#000e1e]',
 };
 
 // --- Games Configuration ---
@@ -154,7 +157,43 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-red-700 via-red-900 to-black',
     bgImage: 'radial-gradient(circle at 50% 0%, #991b1b 0%, #450a0a 100%)',
     reelBg: REEL_BGS.SAMURAI
-  }
+  },
+  {
+    id: 'golden-lucky-pot',
+    name: 'Golden Lucky Pot',
+    theme: 'GOLDEN_POT',
+    rows: 3,
+    reels: 5,
+    scattersToTrigger: 999,
+    description: 'Chinese fortune — the lucky pot triggers free spins!',
+    color: 'from-yellow-500 via-amber-700 to-red-900',
+    bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #7f1d1d 100%)',
+    reelBg: REEL_BGS.GOLDEN_POT
+  },
+  {
+    id: 'lucky-leprechaun',
+    name: 'Lucky Leprechaun',
+    theme: 'LEPRECHAUN',
+    rows: 4,
+    reels: 5,
+    scattersToTrigger: 999,
+    description: 'Collect 6 clovers for a pot of gold!',
+    color: 'from-green-500 via-emerald-600 to-green-900',
+    bgImage: 'radial-gradient(circle at 50% 0%, #16a34a 0%, #052e16 100%)',
+    reelBg: REEL_BGS.LEPRECHAUN
+  },
+  {
+    id: 'arctic-freeze',
+    name: 'Arctic Freeze',
+    theme: 'ARCTIC',
+    rows: 3,
+    reels: 5,
+    scattersToTrigger: 3,
+    description: 'Icy wins in the frozen tundra. 3 snowflakes trigger free spins!',
+    color: 'from-cyan-400 via-sky-600 to-indigo-900',
+    bgImage: 'radial-gradient(circle at 50% 0%, #22d3ee 0%, #1e3a8a 100%)',
+    reelBg: REEL_BGS.ARCTIC
+  },
 ];
 
 // --- Themed Symbol Maps ---
@@ -218,7 +257,22 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '💵', [SymbolType.BELL]: '🔔', [SymbolType.BAR]: '🏦', [SymbolType.CHERRY]: '🔨', [SymbolType.SEVEN]: '🐷',
     [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🐷', ...JP_ICONS
-  }
+  },
+  GOLDEN_POT: {
+    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+    [SymbolType.GRAPE]: '🎋', [SymbolType.BELL]: '🏮', [SymbolType.BAR]: '🀄', [SymbolType.CHERRY]: '🐲', [SymbolType.SEVEN]: '🪷',
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🏺', ...JP_ICONS
+  },
+  LEPRECHAUN: {
+    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+    [SymbolType.GRAPE]: '🌿', [SymbolType.BELL]: '🪄', [SymbolType.BAR]: '🌈', [SymbolType.CHERRY]: '🍀', [SymbolType.SEVEN]: '💰',
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🌟', ...JP_ICONS
+  },
+  ARCTIC: {
+    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+    [SymbolType.GRAPE]: '❄️', [SymbolType.BELL]: '🐟', [SymbolType.BAR]: '🌊', [SymbolType.CHERRY]: '🦭', [SymbolType.SEVEN]: '🐧',
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🧊', ...JP_ICONS
+  },
 };
 
 const TILE_BGS = {
@@ -245,6 +299,9 @@ const getThemeFont = (theme: GameTheme) => {
         case 'WESTERN':    return 'font-western';
         case 'SAMURAI':    return 'font-samurai';
         case 'PIGGY':      return 'font-piggy';
+        case 'GOLDEN_POT': return 'font-dragon';
+        case 'LEPRECHAUN': return 'font-jungle';
+        case 'ARCTIC':     return 'font-space';
         default:           return 'font-titan';
     }
 }

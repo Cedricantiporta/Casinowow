@@ -175,6 +175,7 @@ const App: React.FC = () => {
   const [freeSpinsWon, setFreeSpinsWon] = useState(0);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
   const [showWelcomeGift, setShowWelcomeGift] = useState(() => !localStorage.getItem('cw_player'));
+  const [showPotShake, setShowPotShake] = useState(false);
   const [giftCountDone, setGiftCountDone] = useState(false);
   const [giftDisplayAmount, setGiftDisplayAmount] = useState(0);
   const [animBalance, setAnimBalance] = useState<number | null>(null);
@@ -1484,6 +1485,48 @@ const App: React.FC = () => {
             }
         }
 
+        // GOLDEN_POT: random ~7% chance per spin triggers free spins via pot animation
+        if (selectedGame.theme === 'GOLDEN_POT' && Math.random() < 0.07) {
+            const spinsWon = 15;
+            setFreeSpinsWon(spinsWon);
+            setTotalFreeSpins(prev => prev + spinsWon);
+            if (freeSpinsRemaining > 0) {
+                setShowFreeSpinsPopup(true);
+                audioService.playWinBig();
+            } else {
+                setShowPotShake(true);
+                audioService.playScatterTrigger();
+                setSpinsWithoutBonus(0);
+                setTimeout(() => {
+                    setShowPotShake(false);
+                    setShowFreeSpinsPopup(true);
+                }, 2400);
+                calculateWin(targetGrid);
+                return next;
+            }
+        }
+
+        // LEPRECHAUN: 6+ clovers (CHERRY symbol = 🍀) trigger free spins
+        if (selectedGame.theme === 'LEPRECHAUN') {
+            let cloverCount = 0;
+            targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.CHERRY) cloverCount++; }));
+            if (cloverCount >= 6) {
+                const spinsWon = 15;
+                setFreeSpinsWon(spinsWon);
+                setTotalFreeSpins(prev => prev + spinsWon);
+                if (freeSpinsRemaining > 0) {
+                    setShowFreeSpinsPopup(true);
+                    audioService.playWinBig();
+                } else {
+                    setStatus(GameStatus.SCATTER_SHOWCASE);
+                    audioService.playScatterTrigger();
+                    setSpinsWithoutBonus(0);
+                    setTimeout(() => { setShowFreeSpinsPopup(true); }, 2000);
+                    return next;
+                }
+            }
+        }
+
         calculateWin(targetGrid);
       }
       return next;
@@ -2722,6 +2765,17 @@ const currentState: SavedGameState = {
               }}>
               CLAIM
             </button>
+          </div>
+        </div>
+      )}
+      {showPotShake && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center pointer-events-none">
+          <div className="flex flex-col items-center gap-3 animate-pop-in">
+            <div className="animate-[potWiggle_0.5s_ease-in-out_infinite]" style={{ fontSize: '7rem', lineHeight: 1 }}>🏺</div>
+            <div className="font-black text-yellow-300 text-xl uppercase tracking-widest"
+              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9)', WebkitTextStroke: '1px rgba(0,0,0,0.8)', paintOrder: 'stroke fill' }}>
+              Lucky Pot!
+            </div>
           </div>
         </div>
       )}
