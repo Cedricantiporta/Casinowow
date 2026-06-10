@@ -280,7 +280,7 @@ const App: React.FC = () => {
                   id: 'welcome',
                   type: 'WELCOME' as const,
                   title: 'Welcome Gift',
-                  body: '+500,000 Coins · +10 Standard Packs · +50 Gems',
+                  body: '+5,000,000 Coins',
                   claimed: false,
                   createdAt: Date.now(),
               });
@@ -295,15 +295,16 @@ const App: React.FC = () => {
                   id: `daily_coins_${todayStr}`,
                   type: 'DAILY_COINS' as const,
                   title: `Daily Coin Gift — Day ${day}/10`,
-                  body: `+${(amount / 1_000_000).toFixed(1)}M Coins`,
+                  body: `+${amount.toLocaleString()} Coins`,
                   claimed: false,
                   createdAt: Date.now(),
               });
           }
 
-          // Daily pack gift — random each day
+          // Daily pack gift — only once cards are unlocked (level 30)
           const hasTodayPackGift = next.some(m => m.type === 'DAILY_PACK' && new Date(m.createdAt).toDateString() === todayStr);
-          if (!hasTodayPackGift) {
+          const cardsUnlocked = playerRef.current.level >= 30;
+          if (!hasTodayPackGift && cardsUnlocked) {
               const roll = Math.random();
               let packTitle = '';
               let packBody = '';
@@ -360,13 +361,13 @@ const App: React.FC = () => {
           if (!msg) return prev;
           // Apply reward
           if (msg.type === 'WELCOME') {
-              setPlayer(p => ({ ...p, balance: p.balance + 500_000, packCredits: p.packCredits + 10, diamonds: p.diamonds + 50 }));
-              setCelebrationMsg('+500K Coins · +10 Packs · +50 Gems');
+              setPlayer(p => ({ ...p, balance: p.balance + 5_000_000 }));
+              setCelebrationMsg('+5,000,000 Coins');
           } else if (msg.type === 'DAILY_COINS') {
               const day = claimedCoinGiftCount + 1;
               const amount = day * 50_000 * 20;
               setPlayer(p => ({ ...p, balance: p.balance + amount }));
-              setCelebrationMsg(`+${(amount / 1_000_000).toFixed(1)}M Coins`);
+              setCelebrationMsg(`+${amount.toLocaleString()} Coins`);
               setClaimedCoinGiftCount(c => c + 1);
           } else if (msg.type === 'DAILY_PACK') {
               if (msg.body.includes('Premium')) {

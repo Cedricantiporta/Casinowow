@@ -233,7 +233,13 @@ export const Lobby: React.FC<LobbyProps> = ({
             {/* Bottom bar — centered floating platform, icons protrude above */}
             {(() => {
                 const iconBtn = (locked: boolean) =>
-                    `flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform ${locked ? 'grayscale opacity-50' : ''}`;
+                    `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform ${locked ? 'grayscale' : ''}`;
+                const lockBadge = (unlockLevel: number) => (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-black/50 pointer-events-none z-10">
+                        <span className="text-white/70 text-[10px] leading-none">🔒</span>
+                        <span className="text-white/60 font-black text-[7px] mt-0.5 uppercase leading-none">Lvl {unlockLevel}</span>
+                    </div>
+                );
                 const isGolden = isVip;
                 const barBg = isGolden
                     ? 'linear-gradient(180deg,#e8b020 0%,#c9901a 30%,#7a5000 100%)'
@@ -267,6 +273,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* Piggy */}
                             <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
+                                {isPiggyLocked && lockBadge(5)}
                                 <div className="relative leading-none">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🐷</span>
                                     {piggyFull && (
@@ -279,6 +286,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* Wild */}
                             <button onClick={!isQuestLocked ? onOpenWildQuest : undefined} className={iconBtn(isQuestLocked)}>
+                                {isQuestLocked && lockBadge(20)}
                                 <div className="relative leading-none">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🗿</span>
                                     {!isQuestLocked && wildCredits > 0 && (
@@ -293,6 +301,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* Dice */}
                             <button onClick={!isQuestLocked ? onOpenDiceQuest : undefined} className={iconBtn(isQuestLocked)}>
+                                {isQuestLocked && lockBadge(20)}
                                 <div className="relative leading-none">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎲</span>
                                     {!isQuestLocked && diceCredits > 0 && (
@@ -307,6 +316,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* Pass */}
                             <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
+                                {isMissionsLocked && lockBadge(10)}
                                 <div className="relative leading-none">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎫</span>
                                     {totalMissionNotifs > 0 && !isMissionsLocked && (
@@ -352,11 +362,13 @@ export const Lobby: React.FC<LobbyProps> = ({
                             </button>
 
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
+                                {isMissionsLocked && lockBadge(10)}
                                 <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📜</span>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
                             </button>
 
                             <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
+                                {isCardsLocked && lockBadge(30)}
                                 <div className="relative">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
                                     {((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 0 && (
