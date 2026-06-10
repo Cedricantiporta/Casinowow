@@ -503,58 +503,44 @@ export const formatK = (n: number): string => {
 // 5x Rewards for Missions, Extra multiplier for Win/Bet coins
 const MISSION_COIN_MULTIPLIER = 5; 
 
-export const GENERATE_REPLACEMENT_MISSION = (level: number, frequency: MissionFrequency): Mission => {
-    const multiplier = frequency === 'DAILY' ? Math.max(1, level) : 
-                       frequency === 'WEEKLY' ? Math.max(1, level * 5) : 
-                       Math.max(1, level * 10);
+export const GENERATE_REPLACEMENT_MISSION = (level: number, frequency: MissionFrequency, maxBet?: number): Mission => {
+    const mb = maxBet && maxBet > 0 ? maxBet : 10000;
 
     let possibleTypes = [MissionType.SPIN_COUNT, MissionType.WIN_COINS, MissionType.BET_COINS, MissionType.BIG_WIN_COUNT];
     if (frequency === 'MONTHLY') possibleTypes = [MissionType.SPIN_COUNT, MissionType.WIN_COINS, MissionType.LEVEL_UP];
 
     const type = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
-    let base = 500; 
     let desc = "Spin the reels";
-    
-    switch(type) {
-        case MissionType.SPIN_COUNT: 
-            base = frequency === 'DAILY' ? 125 : frequency === 'WEEKLY' ? 2500 : 12500;
-            desc = "Spin the reels"; 
-            break;
-        case MissionType.WIN_COINS: 
-            base = frequency === 'DAILY' ? 5000000 : frequency === 'WEEKLY' ? 500000000 : 5000000000;
-            desc = "Win total coins"; 
-            break;
-        case MissionType.BET_COINS: 
-            base = 10000000; 
-            desc = "Bet total coins"; 
-            break;
-        case MissionType.BIG_WIN_COUNT: 
-            base = frequency === 'DAILY' ? 10 : 200;
-            desc = "Hit Big Wins"; 
-            break;
-        case MissionType.LEVEL_UP: 
-            base = 50; 
-            desc = "Level Up"; 
-            break;
-    }
+    let target = 0;
 
-    let target = base;
-    if (type === MissionType.WIN_COINS || type === MissionType.BET_COINS) {
-            // Reduced to 2.5x (1/4 of previous 10x)
-            target = Math.floor(base * multiplier * 2.5);
-            if (frequency === 'MONTHLY') target *= 10; 
-    } else if (type === MissionType.SPIN_COUNT && frequency === 'DAILY') {
-            target = base + (level * 5); 
+    const scale = 1 + (Math.random() * 1.2);
+
+    switch(type) {
+        case MissionType.SPIN_COUNT:
+            desc = "Spin the reels";
+            target = Math.ceil((frequency === 'DAILY' ? 125 + level * 5 : frequency === 'WEEKLY' ? 2500 : 12500) * scale);
+            break;
+        case MissionType.WIN_COINS:
+            desc = "Win total coins";
+            target = Math.ceil(mb * (frequency === 'DAILY' ? 12 : frequency === 'WEEKLY' ? 80 : 350) * scale);
+            break;
+        case MissionType.BET_COINS:
+            desc = "Bet total coins";
+            target = Math.ceil(mb * (frequency === 'DAILY' ? 20 : frequency === 'WEEKLY' ? 100 : 500) * scale);
+            break;
+        case MissionType.BIG_WIN_COUNT:
+            desc = "Hit Big Wins";
+            target = Math.ceil((frequency === 'DAILY' ? 10 : 200) * scale);
+            break;
+        case MissionType.LEVEL_UP:
+            desc = "Level Up";
+            target = Math.ceil(50 * scale);
+            break;
     }
-    
-    const scale = 1 + (Math.random() * 1.5);
-    target = Math.ceil(target * scale);
 
     const baseXP = frequency === 'DAILY' ? 30 : frequency === 'WEEKLY' ? 1500 : 8000;
     const xpReward = Math.floor(baseXP * (1 + (level * 0.02)) * scale);
-    
-    // 1 Million Coins per 10 XP
-    const coinReward = Math.floor((xpReward / 10) * 1000000);
+    const coinReward = Math.floor(mb * (frequency === 'DAILY' ? 5 : frequency === 'WEEKLY' ? 30 : 100) * scale);
 
     return {
         id: `${frequency.toLowerCase()}-${Date.now()}-${Math.floor(Math.random()*1000)}`,
@@ -599,7 +585,7 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
 
         const xpReward = 30 + (i * 15);
         const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-        const coinReward = mb;
+        const coinReward = Math.floor(mb * (5 + i * 1.5));
         
         missions.push({
             id: `daily-${Date.now()}-${i}`,
@@ -640,7 +626,7 @@ export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number, maxBet?: number): 
 
         const xpReward = 1500 + (i * 500);
         const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-        const coinReward = mb * 7;
+        const coinReward = Math.floor(mb * (30 + i * 8));
 
         missions.push({
             id: `weekly-${Date.now()}-${i}`,
@@ -680,7 +666,7 @@ export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number, maxBet?: number):
 
         const xpReward = 8000 + (i * 2000);
         const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-        const coinReward = mb * 30;
+        const coinReward = Math.floor(mb * (100 + i * 20));
 
         missions.push({
             id: `monthly-${Date.now()}-${i}`,

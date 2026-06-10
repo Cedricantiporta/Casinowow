@@ -372,13 +372,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
     };
 
-    const handleNextStage = () => {
-        if (!stageClearData) return;
-        onStageComplete(stageClearData.coins, stageClearData.gems);
-        setStageClearData(null);
-        setStageWinning(false);
-    };
-
     if (!isOpen) return null;
 
     const isWild = activeGame === 'WILD';

@@ -187,11 +187,27 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         });
     });
 
+    const getExchangeRewards = (ids: Set<string>) => {
+        let standardCredits = 0;
+        let premiumCredits = 0;
+        allDuplicates.forEach(dup => {
+            const key = `${dup.deckId}-${dup.cardIdx}-${dup.dupIndex}`;
+            if (!ids.has(key)) return;
+            switch (dup.card.rarity) {
+                case 'COMMON': standardCredits += 1; break;
+                case 'RARE': standardCredits += 2; break;
+                case 'EPIC': premiumCredits += 1; break;
+                case 'LEGENDARY': premiumCredits += 3; break;
+            }
+        });
+        return { standardCredits, premiumCredits };
+    };
+
     const handleExchangeDuplicates = (ids: Set<string>) => {
-        const count = ids.size;
-        if (count > 0) {
-            onBuyCredits(0, count); // gives pack credits for free (exchange)
-        }
+        if (ids.size === 0) return;
+        const { standardCredits, premiumCredits } = getExchangeRewards(ids);
+        if (standardCredits > 0) onBuyCredits(0, standardCredits);
+        if (premiumCredits > 0 && onBuyPremiumCredits) onBuyPremiumCredits(0, premiumCredits);
         setShowExchangePanel(false);
         setSelectedDuplicateIds(new Set());
     };
@@ -203,7 +219,10 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 <div className="absolute inset-0 z-[170] bg-black/90 backdrop-blur-sm flex flex-col animate-pop-in">
                     <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2" style={{ background: 'linear-gradient(180deg,#b45309,#78350f)' }}>
                         <span className="font-black text-white text-sm uppercase tracking-widest flex-1">🔄 Exchange Duplicates</span>
-                        <span className="text-white/70 text-xs font-bold">1 Dup = 1 🃏</span>
+                        <div className="flex flex-col items-end gap-0.5 text-[9px] font-bold text-white/70">
+                            <span>C→1 std · R→2 std</span>
+                            <span>E→1 prem · L→3 prem</span>
+                        </div>
                         <button onClick={() => { setShowExchangePanel(false); setSelectedDuplicateIds(new Set()); }}
                             className="round-btn"><i className="ti ti-x" /></button>
                     </div>
@@ -239,16 +258,28 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     );
                                 })}
                             </div>
-                            <div className="shrink-0 flex items-center gap-3 px-4 py-3" style={{ background: 'rgba(0,0,0,0.6)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                                <span className="text-white/60 text-xs font-bold flex-1">{selectedDuplicateIds.size} selected → {selectedDuplicateIds.size} 📦</span>
+                            <div className="shrink-0 flex items-center gap-2 px-4 py-3" style={{ background: 'rgba(0,0,0,0.6)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                                {(() => {
+                                    const { standardCredits, premiumCredits } = getExchangeRewards(selectedDuplicateIds);
+                                    return (
+                                        <div className="flex-1 flex flex-col gap-0.5">
+                                            <span className="text-white/50 text-[9px] font-bold uppercase tracking-wider">{selectedDuplicateIds.size} selected →</span>
+                                            <div className="flex gap-2">
+                                                {standardCredits > 0 && <span className="text-yellow-300 text-xs font-black">📦 {standardCredits} Std</span>}
+                                                {premiumCredits > 0 && <span className="text-purple-300 text-xs font-black">💎 {premiumCredits} Prem</span>}
+                                                {standardCredits === 0 && premiumCredits === 0 && <span className="text-white/30 text-xs font-bold">—</span>}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                                 <button onClick={() => setSelectedDuplicateIds(new Set(allDuplicates.map(d => `${d.deckId}-${d.cardIdx}-${d.dupIndex}`)))}
                                     className="btn-3d px-3 py-1.5 rounded-lg text-xs font-black text-white uppercase"
-                                    style={{ background: 'rgba(255,255,255,0.15)' }}>Select All</button>
+                                    style={{ background: 'rgba(255,255,255,0.15)' }}>All</button>
                                 <button disabled={selectedDuplicateIds.size === 0}
                                     onClick={() => handleExchangeDuplicates(selectedDuplicateIds)}
                                     className="btn-3d px-4 py-1.5 rounded-lg text-xs font-black text-white uppercase"
                                     style={{ background: selectedDuplicateIds.size > 0 ? 'linear-gradient(180deg,#f59e0b,#b45309)' : '#374151', boxShadow: selectedDuplicateIds.size > 0 ? '0 3px 0 #78350f' : 'none' }}>
-                                    Exchange {selectedDuplicateIds.size > 0 ? selectedDuplicateIds.size : ''}
+                                    Exchange
                                 </button>
                             </div>
                         </>

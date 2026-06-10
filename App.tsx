@@ -675,7 +675,7 @@ const App: React.FC = () => {
           
           addPassXp(xpGain);
           setPlayer(p => ({ ...p, balance: p.balance + coinGain }));
-          const newMission = GENERATE_REPLACEMENT_MISSION(player.level, mission.frequency);
+          const newMission = GENERATE_REPLACEMENT_MISSION(player.level, mission.frequency, availableBets[availableBets.length - 1]);
           setMissionState(prev => {
               const others = prev.activeMissions.filter(m => m.id !== mission.id);
               return { ...prev, activeMissions: [...others, newMission] };
@@ -2090,8 +2090,10 @@ const currentState: SavedGameState = {
     <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
       <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'top center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}>
-          <header className="w-full z-[100] border-b-2 flex justify-between items-center shadow-[0_8px_15px_rgba(0,0,0,0.6)] h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
-            style={showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottomColor:'#8b6200' } : { background:'#7c3fb5', borderBottomColor:'#2a0d55' }}>
+          <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
+            style={showGoldHeader ?
+              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'2px solid #b87c10', boxShadow:'0 2px 0 rgba(255,200,60,0.2), 0 8px 15px rgba(0,0,0,0.6)' } :
+              { background:'#7c3fb5', borderBottom:'2px solid #5a22a0', boxShadow:'0 2px 0 rgba(200,150,255,0.18), 0 8px 15px rgba(0,0,0,0.6)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
                 {/* Lobby Home Button */}
@@ -2337,8 +2339,10 @@ const currentState: SavedGameState = {
       </main>
 
       {currentView === 'GAME' && (
-          <div className="fixed bottom-0 w-full z-50 border-t-2 shadow-[0_-10px_35px_rgba(0,0,0,0.85)] flex flex-col select-none"
-            style={isHighLimit ? { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTopColor:'#8b6200' } : { background:'#120024', borderTopColor:'#2a0d55' }}>
+          <div className="fixed bottom-0 w-full z-50 flex flex-col select-none"
+            style={isHighLimit ?
+              { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTop:'2px solid #b87c10', boxShadow:'0 -1px 0 rgba(255,200,60,0.22), 0 -10px 35px rgba(0,0,0,0.85)' } :
+              { background:'#120024', borderTop:'2px solid #5a22a0', boxShadow:'0 -1px 0 rgba(200,150,255,0.2), 0 -10px 35px rgba(0,0,0,0.85)' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
                 style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
