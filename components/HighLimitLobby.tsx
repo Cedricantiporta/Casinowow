@@ -139,7 +139,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                                 <button
                                     key={game.id}
                                     onClick={() => onSelectGame(game, true)}
-                                    className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-2xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
+                                    className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
                                     style={{ boxShadow: 'inset 0 2px 0 rgba(251,191,36,0.85), 0 0 12px rgba(217,119,6,0.3), 0 6px 18px rgba(0,0,0,0.6)' }}
                                 >
                                     {/* Gold jackpot pill — protrudes above card */}
@@ -152,13 +152,13 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                                     )}
 
                                     {/* Card bg */}
-                                    <div className={`absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} />
+                                    <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} />
 
                                     {/* Gold shimmer overlay */}
-                                    <div className="absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-tr from-transparent via-yellow-400/8 to-yellow-300/5 pointer-events-none" />
+                                    <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-tr from-transparent via-yellow-400/8 to-yellow-300/5 pointer-events-none" />
 
                                     {/* Icon + name */}
-                                    <div className="absolute inset-0 rounded-2xl overflow-hidden z-10 select-none">
+                                    <div className="absolute inset-0 rounded-xl overflow-hidden z-10 select-none">
                                         <div className="absolute inset-0 flex items-start justify-center pt-2">
                                             <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
                                         </div>
@@ -172,12 +172,12 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
 
                                     {/* Lock overlay */}
                                     {isLocked && (
-                                        <div className="absolute inset-0 rounded-2xl overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
+                                        <div className="absolute inset-0 rounded-xl overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
                                             <span className="text-3xl leading-none opacity-80">🔒</span>
                                             <span className="text-white/70 font-bold text-[9px] mt-1 uppercase">Lvl {unlockLevel}</span>
                                         </div>
                                     )}
-                                    <div className="absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" />
+                                    <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" />
                                 </button>
                             );
                         })}

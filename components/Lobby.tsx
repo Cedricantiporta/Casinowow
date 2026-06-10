@@ -100,7 +100,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const isReadyToCollect = timeLeft === 0;
     const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
     const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
-    const totalMissionNotifs = missionsReady + passRewardsReady;
+    const totalMissionNotifs = passRewardsReady;
     const questReady = (questState.diceCredits ?? 0) > 0 || (questState.wildCredits ?? 0) > 0;
 
     const getQuestIcon = () => {
@@ -225,7 +225,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     <button
                                         key={game.id}
                                         onClick={() => onSelectGame(game, false)}
-                                        className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-2xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
+                                        className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
                                         style={{ boxShadow: 'inset 0 2px 0 rgba(210,150,255,0.85), 0 0 12px rgba(160,80,255,0.28), 0 6px 18px rgba(0,0,0,0.55)' }}
                                     >
                                         {!isLocked && (
@@ -235,8 +235,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                 </span>
                                             </div>
                                         )}
-                                        <div className={`absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
-                                        <div className="absolute inset-0 rounded-2xl overflow-hidden z-10 select-none">
+                                        <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
+                                        <div className="absolute inset-0 rounded-xl overflow-hidden z-10 select-none">
                                             <div className="absolute inset-0 flex items-start justify-center pt-2">
                                                 <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
                                             </div>
@@ -248,12 +248,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             </div>
                                         </div>
                                         {isLocked && (
-                                            <div className="absolute inset-0 rounded-2xl overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
+                                            <div className="absolute inset-0 rounded-xl overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
                                                 <span className="text-3xl leading-none opacity-80">🔒</span>
                                                 <span className="text-white/70 font-bold text-[9px] mt-1 uppercase">Lvl {unlockLevel}</span>
                                             </div>
                                         )}
-                                        <div className="absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
+                                        <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
                                     </button>
                                 );
                             })}
@@ -300,9 +300,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 const topInset = isGolden
                     ? 'inset 0 2px 0 rgba(255,210,80,0.85)'
                     : 'inset 0 2px 0 rgba(220,170,255,0.95)';
-                const barGlow = isGolden
-                    ? `${topInset}, 0 -4px 14px rgba(200,130,0,0.45), 0 -6px 24px rgba(0,0,0,0.7)`
-                    : `${topInset}, 0 -4px 14px rgba(180,80,255,0.6), 0 -6px 24px rgba(0,0,0,0.7)`;
+                const barGlow = topInset;
 
                 return (
                     <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center select-none font-nunito">

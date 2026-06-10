@@ -177,18 +177,26 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         <div className="flex items-center gap-2 px-3 h-[40px]">
                             <span className="font-black text-white text-xs uppercase tracking-widest shrink-0">Missions</span>
                             <div className="flex-1 flex items-center justify-center gap-1">
-                                {(['DAILY', 'WEEKLY', 'MONTHLY'] as MissionFrequency[]).map(tab => (
-                                    <button key={tab} onClick={() => setActiveTab(tab)}
-                                        className="font-black uppercase text-[8px] tracking-widest px-2.5 py-1 rounded-full transition-all"
-                                        style={{
-                                            background: activeTab === tab ? 'linear-gradient(180deg,#c060ff,#8020e0)' : 'rgba(255,255,255,0.08)',
-                                            color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.5)',
-                                            border: activeTab === tab ? '1px solid rgba(210,130,255,0.6)' : '1px solid transparent',
-                                            boxShadow: activeTab === tab ? '0 2px 8px rgba(160,80,255,0.4)' : 'none',
-                                        }}>
-                                        {tab}
-                                    </button>
-                                ))}
+                                {(['DAILY', 'WEEKLY', 'MONTHLY'] as MissionFrequency[]).map(tab => {
+                                    const tabHasReward = missionState.activeMissions.some(
+                                        m => m.frequency === tab && m.completed && !m.claimed
+                                    );
+                                    return (
+                                        <button key={tab} onClick={() => setActiveTab(tab)}
+                                            className="relative font-black uppercase text-[8px] tracking-widest px-2.5 py-1 rounded-full transition-all"
+                                            style={{
+                                                background: activeTab === tab ? 'linear-gradient(180deg,#c060ff,#8020e0)' : 'rgba(255,255,255,0.08)',
+                                                color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.5)',
+                                                border: activeTab === tab ? '1px solid rgba(210,130,255,0.6)' : '1px solid transparent',
+                                                boxShadow: activeTab === tab ? '0 2px 8px rgba(160,80,255,0.4)' : 'none',
+                                            }}>
+                                            {tab}
+                                            {tabHasReward && (
+                                                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 border border-black" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
