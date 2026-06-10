@@ -135,7 +135,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2">
-                <span className="text-xl">🏷️</span>
                 <h2 className="font-black text-white text-base uppercase tracking-widest flex-1">Sale</h2>
                 <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></div>
             </div>

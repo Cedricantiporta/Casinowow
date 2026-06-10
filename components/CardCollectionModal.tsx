@@ -232,7 +232,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <div className="flex-1 flex items-center justify-center text-white/50 text-sm font-bold uppercase">No duplicates yet</div>
                     ) : (
                         <>
-                            <div className="flex-1 overflow-y-auto no-scrollbar p-2 grid grid-cols-7 gap-1.5 content-start">
+                            <div className="flex-1 overflow-y-auto no-scrollbar p-2 grid grid-cols-10 gap-1.5 content-start">
                                 {allDuplicates.map((dup) => {
                                     const key = `${dup.deckId}-${dup.cardIdx}`;
                                     const sel = selectedDuplicateIds.has(key);
@@ -249,18 +249,18 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             {sel && <div className="absolute inset-0 bg-yellow-400/20 z-10 rounded-lg" />}
                                             {/* Rarity label top-left */}
                                             <div className="w-full px-0.5 pt-0.5 flex justify-between items-start">
-                                                <span className="text-[6px] font-black uppercase px-1 py-0.5 rounded-full bg-black/50 text-white/80 leading-none">{dup.card.rarity[0]}</span>
+                                                <span className="text-[8px] font-black uppercase px-1 py-0.5 rounded-full bg-black/50 text-white/80 leading-none">{dup.card.rarity[0]}</span>
                                                 {dup.extraCount > 1 && (
-                                                    <span className="text-[6px] font-black text-yellow-300 bg-black/60 px-0.5 rounded leading-none">×{dup.extraCount}</span>
+                                                    <span className="text-[8px] font-black text-yellow-300 bg-black/60 px-0.5 rounded leading-none">×{dup.extraCount}</span>
                                                 )}
                                             </div>
                                             {/* Icon */}
                                             <div className="flex-1 flex items-center justify-center">
-                                                <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{dup.card.icon}</span>
+                                                <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{dup.card.icon}</span>
                                             </div>
                                             {/* Name */}
                                             <div className="w-full px-0.5 pb-0.5 text-center">
-                                                <div className="text-[5px] font-bold text-white/70 truncate leading-tight">{dup.card.name}</div>
+                                                <div className="text-[7px] font-bold text-white/70 truncate leading-tight">{dup.card.name}</div>
                                             </div>
                                         </button>
                                     );
@@ -270,13 +270,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 {(() => {
                                     const { standardCredits, premiumCredits } = getExchangeRewards(selectedDuplicateIds);
                                     return (
-                                        <div className="flex-1 flex flex-col gap-0.5">
-                                            <span className="text-white/40 text-[8px] font-bold uppercase tracking-wider">{selectedDuplicateIds.size} selected →</span>
-                                            <div className="flex gap-2">
-                                                {standardCredits > 0 && <span className="text-yellow-300 text-[10px] font-black">📦 {standardCredits} Std</span>}
-                                                {premiumCredits > 0 && <span className="text-purple-300 text-[10px] font-black">💎 {premiumCredits} Prem</span>}
-                                                {standardCredits === 0 && premiumCredits === 0 && <span className="text-white/20 text-[10px] font-bold">—</span>}
-                                            </div>
+                                        <div className="flex-1 flex items-center gap-2 flex-wrap">
+                                            <span className="text-white/60 text-xs font-black uppercase tracking-wide shrink-0">{selectedDuplicateIds.size} Selected:</span>
+                                            {standardCredits > 0 && <span className="text-yellow-300 text-sm font-black shrink-0">📦 {standardCredits} Standard</span>}
+                                            {premiumCredits > 0 && <span className="text-purple-300 text-sm font-black shrink-0">💎 {premiumCredits} Premium</span>}
+                                            {standardCredits === 0 && premiumCredits === 0 && <span className="text-white/20 text-xs font-bold">—</span>}
                                         </div>
                                     );
                                 })()}

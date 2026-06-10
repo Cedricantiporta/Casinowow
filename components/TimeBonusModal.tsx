@@ -22,7 +22,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
     if (!isOpen) return null;
 
     const getTimerColor = (id: number) => {
-        // 0: Quick(Blue), 1: Daily(Red), 2: Mega(Gold)
+        // 0: Quick(Blue), 1: Super(Red), 2: Mega(Gold)
         if (id === 0) return { bg: 'bg-blue-900/40', text: 'text-blue-300', btn: 'bg-blue-600' };
         if (id === 1) return { bg: 'bg-red-900/40', text: 'text-red-300', btn: 'bg-red-600' };
         return { bg: 'bg-yellow-900/40', text: 'text-yellow-300', btn: 'bg-yellow-600' };
@@ -39,7 +39,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                     <div className="round-btn absolute top-3 right-3 z-50 cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
 
                     <h2 className="relative z-10 text-xl md:text-2xl font-black font-display text-white uppercase tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-1 text-shadow-lg">Golden Treasury</h2>
-                    <p className="relative z-10 text-purple-200 font-bold text-[10px] md:text-xs uppercase tracking-wide mb-4">Wait longer for bigger rewards!</p>
+                    <p className="relative z-10 text-purple-200 font-bold text-[10px] md:text-xs uppercase tracking-wide mb-4">Quick: 5min · Super: 15min · Mega: 1hr</p>
 
                     <div className="relative z-10 flex flex-col md:flex-row gap-3 w-full px-4 md:px-8 flex-1 min-h-0">
                         {timers.map((timer) => {

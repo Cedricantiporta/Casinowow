@@ -33,7 +33,6 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
         <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(180deg,#0d0814,#1a0535)' }}>
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2" style={{ background: 'linear-gradient(180deg,#4c1d95,#2e1065)' }}>
-                <span className="text-xl">📬</span>
                 <h2 className="font-black text-white text-sm uppercase tracking-widest flex-1">Inbox</h2>
                 <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></div>
             </div>

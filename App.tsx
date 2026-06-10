@@ -91,9 +91,9 @@ const App: React.FC = () => {
   }, [player]);
   
   const [bonusTimers, setBonusTimers] = useState([
-      { id: 0, endTime: 0, reward: 50000, label: 'Quick' }, 
-      { id: 1, endTime: Date.now() + 900000, reward: 250000, label: 'Daily' }, 
-      { id: 2, endTime: Date.now() + 3600000, reward: 1000000, label: 'Mega' } 
+      { id: 0, endTime: 0, reward: 500000, label: 'Quick' },
+      { id: 1, endTime: Date.now() + 900000, reward: 2500000, label: 'Super' },
+      { id: 2, endTime: Date.now() + 3600000, reward: 10000000, label: 'Mega' }
   ]);
 
   // Sync jackpot max bet with current level's max bet
@@ -124,8 +124,8 @@ const App: React.FC = () => {
   // Effect to update Golden Treasury rewards when level changes
   useEffect(() => {
       const maxBet = MAX_BET_BY_LEVEL(player.level);
-      // Quick = 5% maxBet, Daily = 25% maxBet, Mega = 100% maxBet
-      const pcts = [0.05, 0.25, 1.0];
+      // Quick = 50% maxBet, Super = 250% maxBet, Mega = 1000% maxBet
+      const pcts = [0.5, 2.5, 10.0];
       setBonusTimers(prev => prev.map(t => ({
           ...t,
           reward: Math.floor(maxBet * pcts[t.id])
@@ -512,16 +512,16 @@ const App: React.FC = () => {
 
   const handleClaimTimeBonus = (id: number, _reward: number) => {
       const now = Date.now();
-      const multipliers = [0.5, 2.5, 10];
+      const multipliers = [5.0, 25.0, 100.0];
       const base = CALCULATE_TIME_BONUS(player.level);
-      
+
       const scaledReward = Math.floor(base * multipliers[id]);
 
       setBonusTimers(prev => prev.map(t => {
           if (t.id === id) {
-              let nextWait = 900000; // 15m
-              if (id === 1) nextWait = 3600000; // 1H
-              if (id === 2) nextWait = 14400000; // 4H
+              let nextWait = 300000; // 5m (Quick)
+              if (id === 1) nextWait = 900000; // 15m (Super)
+              if (id === 2) nextWait = 3600000; // 1H (Mega)
               return { ...t, endTime: now + nextWait, reward: scaledReward }; // Keep reward updated
           }
           return t;

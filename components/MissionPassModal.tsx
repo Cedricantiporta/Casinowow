@@ -251,8 +251,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? '💰' : mission.type === 'BET_COINS' ? '🪙' : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : '⭐'}
                                 </div>
 
+                                {/* Title */}
+                                <div className="text-white font-black text-[11px] uppercase text-center leading-none relative z-10">
+                                    {mission.type === 'SPIN_COUNT' ? 'Spin Challenge' : mission.type === 'WIN_COINS' ? 'Win Challenge' : mission.type === 'BET_COINS' ? 'Bet Challenge' : mission.type === 'BIG_WIN_COUNT' ? 'Big Win Challenge' : mission.type === 'LEVEL_UP' ? 'Level Challenge' : 'Challenge'}
+                                </div>
+
                                 {/* Label */}
-                                <div className="text-fuchsia-400 text-[9px] font-bold uppercase text-center leading-none relative z-10">Mission</div>
+                                <div className="text-fuchsia-400 text-[9px] font-bold uppercase text-center leading-none relative z-10">{mission.frequency === 'DAILY' ? 'Daily' : mission.frequency === 'WEEKLY' ? 'Weekly' : 'Monthly'} Mission</div>
 
                                 {/* Description */}
                                 <div className="text-white font-black text-[12px] leading-snug text-center flex-1 relative z-10">{mission.description}</div>
@@ -273,7 +278,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 {/* Rewards */}
                                 <div className="flex items-center justify-between relative z-10">
                                     <span className={`font-mono text-[11px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
-                                        +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} XP
+                                        +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} Pass XP
                                     </span>
                                     <span className="text-yellow-300 font-mono text-[11px] font-black">+{formatK(mission.coinReward)}</span>
                                 </div>
