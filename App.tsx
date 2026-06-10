@@ -2093,7 +2093,7 @@ const currentState: SavedGameState = {
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
               { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'2px solid #8b6200', boxShadow:'0 8px 15px rgba(0,0,0,0.6)' } :
-              { background:'linear-gradient(180deg,#9b3ff8,#5a10cc)', borderBottom:'2px solid #3a0880', boxShadow:'0 8px 15px rgba(0,0,0,0.6)' }}>
+              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'2px solid #5a10b0', boxShadow:'0 8px 15px rgba(0,0,0,0.6)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
                 {/* Lobby Home Button */}
@@ -2342,7 +2342,7 @@ const currentState: SavedGameState = {
           <div className="fixed bottom-0 w-full z-50 flex flex-col select-none"
             style={isHighLimit ?
               { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTop:'2px solid rgba(220,160,40,0.75)', boxShadow:'0 -4px 14px rgba(200,130,0,0.45), 0 -10px 35px rgba(0,0,0,0.85)' } :
-              { background:'#0a001a', borderTop:'2px solid rgba(180,100,255,0.75)', boxShadow:'0 -4px 14px rgba(160,70,255,0.45), 0 -10px 35px rgba(0,0,0,0.85)' }}>
+              { background:'#0a001a', borderTop:'2px solid rgba(210,130,255,0.9)', boxShadow:'0 -4px 14px rgba(180,80,255,0.6), 0 -10px 35px rgba(0,0,0,0.85)' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
                 style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>

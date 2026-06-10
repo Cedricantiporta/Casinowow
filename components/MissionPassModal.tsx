@@ -160,7 +160,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         <button onClick={handlePremiumPurchase}
                             className="btn-3d px-8 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest text-black relative overflow-hidden"
                             style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 4px 0 #7a5000,0 6px 16px rgba(0,0,0,0.5)' }}>
-                            <span className="relative z-10">👑 Unlock Monthly Pass</span>
+                            <span className="relative z-10">Unlock Monthly Pass</span>
                             <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none"></div>
                         </button>
                     </div>
@@ -200,7 +200,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <button onClick={onBuyLevel}
                                     className={`${passBtn} bg-gradient-to-b from-indigo-500 to-indigo-800 text-white`}
                                     style={passBtnSize}>
-                                    +LVL💎100
+                                    +LVL 100
                                 </button>
                                 {!missionState.isPremium ? (
                                     <button onClick={() => setShowPremiumInfo(true)}
@@ -210,7 +210,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     </button>
                                 ) : (
                                     <div className="flex items-center justify-center text-yellow-300 font-black text-[9px]" style={passBtnSize}>
-                                        👑 ACTIVE
+                                        ACTIVE
                                     </div>
                                 )}
                             </div>
@@ -288,7 +288,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     ) : (
                                         <button onClick={() => onFinishMission(mission)}
                                             className="btn-3d w-full py-1.5 bg-gradient-to-b from-[#4a2e61] to-[#2e1845] text-cyan-200 text-[9px] font-bold uppercase rounded-lg flex items-center justify-center gap-1">
-                                            SKIP 💎{diamondCostToSkip(mission.xpReward)}
+                                            SKIP {diamondCostToSkip(mission.xpReward)}
                                         </button>
                                     )}
                                 </div>

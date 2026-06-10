@@ -84,7 +84,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                         <button onClick={onJoinVip}
                             className="btn-3d font-black text-sm uppercase tracking-widest text-black relative overflow-hidden px-10 py-3 rounded-xl"
                             style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 4px 0 #7a5000,0 6px 16px rgba(0,0,0,0.5)' }}>
-                            <span className="relative z-10">👑 Join VIP Lounge</span>
+                            <span className="relative z-10">Join VIP Lounge</span>
                             <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
                         </button>
                     </>

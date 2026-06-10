@@ -637,7 +637,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         <div className="px-4 pt-4 pb-3 flex items-center justify-between">
                             <div>
                                 <div className="text-white font-black text-base leading-none">
-                                    {showBuyPopup === 'PICKS' ? '⛏️ Buy Picks' : '🎲 Buy Dice'}
+                                    {showBuyPopup === 'PICKS' ? 'Buy Picks' : 'Buy Dice'}
                                 </div>
                                 <div className="text-purple-300/60 text-[10px] mt-0.5">Bundles include coins & gems bonus</div>
                             </div>

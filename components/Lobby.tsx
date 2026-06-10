@@ -214,7 +214,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     <button
                                         key={game.id}
                                         onClick={() => onSelectGame(game, false)}
-                                        className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-2xl overflow-visible border-none shadow-xl snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
+                                        className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-2xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
+                                        style={{ border: '2px solid rgba(170,90,255,0.65)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.22), 0 0 10px rgba(160,80,255,0.35), 0 6px 18px rgba(0,0,0,0.55)' }}
                                     >
                                         {!isLocked && (
                                             <div className="absolute -top-[22px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
@@ -283,14 +284,14 @@ export const Lobby: React.FC<LobbyProps> = ({
                 const isGolden = isVip;
                 const barBg = isGolden
                     ? 'linear-gradient(180deg,#e8b020 0%,#c9901a 30%,#7a5000 100%)'
-                    : 'linear-gradient(180deg,#b050ff 0%,#9b3ff8 25%,#5a10cc 100%)';
-                const borderCol = isGolden ? '#b07010' : '#7030c0';
+                    : 'linear-gradient(180deg,#d060ff 0%,#b040f8 25%,#7020d0 100%)';
+                const borderCol = isGolden ? '#b07010' : '#9030d0';
                 const topInset = isGolden
                     ? 'inset 0 2px 0 rgba(255,210,80,0.85)'
-                    : 'inset 0 2px 0 rgba(210,150,255,0.9)';
+                    : 'inset 0 2px 0 rgba(220,170,255,0.95)';
                 const barGlow = isGolden
                     ? `${topInset}, 0 -4px 14px rgba(200,130,0,0.45), 0 -6px 24px rgba(0,0,0,0.7)`
-                    : `${topInset}, 0 -4px 14px rgba(160,70,255,0.5), 0 -6px 24px rgba(0,0,0,0.7)`;
+                    : `${topInset}, 0 -4px 14px rgba(180,80,255,0.6), 0 -6px 24px rgba(0,0,0,0.7)`;
 
                 return (
                     <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center select-none font-nunito">
