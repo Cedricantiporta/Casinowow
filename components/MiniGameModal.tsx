@@ -384,7 +384,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {/* Topbar */}
             <div className="shrink-0 flex items-center gap-2 px-3 h-[38px] z-20"
                 style={{ background: HDR, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
-                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
                 <span className="font-black text-white text-xs uppercase tracking-widest drop-shadow shrink-0">{questTitle}</span>
                 <div className="flex-1 flex items-center justify-center gap-1.5">
                     <div className="currency-pill flex items-center gap-1">
@@ -402,6 +401,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         {formatCommaNumber((maxBet || 10000) * (isWild ? wildStage : diceStage) * 10)}
                     </span>
                 </div>
+                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
             {/* ── COINMINE (Wild Quest) ── */}

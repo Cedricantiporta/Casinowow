@@ -116,7 +116,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     {/* Header row */}
                     <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative"
                         style={{ background: 'linear-gradient(180deg,#92400e,#78350f)' }}>
-                        <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
                         <div className="flex-1">
                             <h2 className="font-black text-base uppercase tracking-widest leading-none"
                                 style={{ background: 'linear-gradient(180deg,#fff8c0,#f0c000)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -126,6 +125,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </div>
                         <div className="shrink-0 px-2 py-0.5 rounded-full font-black text-[8px] uppercase tracking-widest"
                             style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)', color: '#fde68a' }}>Demo</div>
+                        <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
                     </div>
 
                     {/* Perks grid — 2×2 */}
@@ -175,19 +175,16 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     /* MISSIONS topbar: single row — back | pills | spacer | tabs */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-1.5 px-3 h-[38px]">
+                            <div className="flex-1"></div>
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
                             </div>
-                            <div className="flex-1"></div>
                         </div>
                     </div>
                 ) : (
                     /* PASS topbar: back | coins | gems | title + XP | spacer | action buttons */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-1.5 px-3 h-[40px]">
-                            <div className="round-btn shrink-0" onClick={onClose}>
-                                <i className="ti ti-x"></i>
-                            </div>
                             {/* Action buttons — all same size */}
                             <div className="flex items-center gap-1 shrink-0">
                                 <button onClick={jumpToCurrentLevel}
@@ -232,6 +229,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         <span className="text-yellow-300 font-mono text-[7px]">{missionState.passXP}/{missionState.passXpToNext}</span>
                                     </div>
                                 </div>
+                            </div>
+                            <div className="round-btn shrink-0" onClick={onClose}>
+                                <i className="ti ti-x"></i>
                             </div>
                         </div>
                     </div>

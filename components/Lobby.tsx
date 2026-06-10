@@ -285,10 +285,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                     ? 'linear-gradient(180deg,#e8b020 0%,#c9901a 30%,#7a5000 100%)'
                     : 'linear-gradient(180deg,#b050ff 0%,#9b3ff8 25%,#5a10cc 100%)';
                 const borderCol = isGolden ? '#b07010' : '#7030c0';
+                const topInset = isGolden
+                    ? 'inset 0 2px 0 rgba(255,210,80,0.85)'
+                    : 'inset 0 2px 0 rgba(210,150,255,0.9)';
                 const barGlow = isGolden
-                    ? '0 -4px 14px rgba(200,130,0,0.45), 0 -6px 24px rgba(0,0,0,0.7)'
-                    : '0 -4px 14px rgba(160,70,255,0.5), 0 -6px 24px rgba(0,0,0,0.7)';
-                const topLineColor = isGolden ? 'rgba(255,210,80,0.8)' : 'rgba(210,150,255,0.85)';
+                    ? `${topInset}, 0 -4px 14px rgba(200,130,0,0.45), 0 -6px 24px rgba(0,0,0,0.7)`
+                    : `${topInset}, 0 -4px 14px rgba(160,70,255,0.5), 0 -6px 24px rgba(0,0,0,0.7)`;
 
                 return (
                     <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center select-none font-nunito">
@@ -307,8 +309,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     boxShadow: barGlow,
                                     zIndex: -1,
                                 }}>
-                                {/* 3D bright top-edge line */}
-                                <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'2px', borderRadius:'18px 18px 0 0', background: topLineColor }} />
                                 <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'45%', borderRadius:'18px 18px 0 0', background:'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }}></div>
                                 <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'35%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
                             </div>

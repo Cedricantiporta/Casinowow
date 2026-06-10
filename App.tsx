@@ -2487,6 +2487,16 @@ const currentState: SavedGameState = {
           packCredits={player.packCredits}
           premiumPackCredits={player.premiumPackCredits ?? 0}
           onBuyPremiumCredits={handleBuyPremiumPackCredits}
+          onExchangeCards={(exchanges) => {
+              setDecks(prev => prev.map(deck => {
+                  const updates = exchanges.filter(e => e.deckId === deck.gameId);
+                  if (updates.length === 0) return deck;
+                  return { ...deck, cards: deck.cards.map((card, idx) => {
+                      const u = updates.find(e => e.cardIdx === idx);
+                      return u ? { ...card, count: Math.max(1, card.count - u.removeCount) } : card;
+                  })};
+              }));
+          }}
           grandPrize={getGrandAlbumReward(player.level)}
           getDeckReward={(id) => getDeckReward(id, player.level)}
           balance={player.balance}

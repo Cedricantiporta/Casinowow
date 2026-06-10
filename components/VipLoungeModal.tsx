@@ -27,33 +27,29 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
             style={{ background: 'linear-gradient(160deg,#1c0900 0%,#2a1200 50%,#0f0600 100%)' }}>
 
             {/* Hero section */}
-            <div className="shrink-0 flex items-center justify-between px-4 py-3 relative">
-                {/* Back button */}
-                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
-                    style={{ background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' }}>
-                    <i className="ti ti-x"></i>
-                </div>
-
+            <div className="shrink-0 flex items-center gap-3 px-4 py-3 relative">
                 {/* Crown + title */}
-                <div className="flex items-center gap-2">
-                    <span className="font-black text-xl uppercase tracking-widest"
-                        style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        VIP Lounge
-                    </span>
-                </div>
+                <span className="font-black text-xl uppercase tracking-widest flex-1"
+                    style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    VIP Lounge
+                </span>
 
                 {/* Status badge */}
                 {isVip ? (
-                    <div className="px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-widest"
+                    <div className="px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-widest shrink-0"
                         style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 2px 8px rgba(251,191,36,0.4)' }}>
                         ✓ ACTIVE
                     </div>
                 ) : (
-                    <div className="px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-widest"
+                    <div className="px-3 py-1 rounded-full font-black text-[10px] uppercase tracking-widest shrink-0"
                         style={{ background: 'rgba(255,255,255,0.08)', color: '#9ca3af' }}>
                         LOCKED
                     </div>
                 )}
+                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
+                    style={{ background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' }}>
+                    <i className="ti ti-x"></i>
+                </div>
             </div>
 
             {/* Benefits — 2-column grid */}

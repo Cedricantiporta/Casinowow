@@ -22,6 +22,7 @@ interface CardCollectionModalProps {
     getDeckReward?: (deckId: string) => number;
     premiumPackCredits?: number;
     onBuyPremiumCredits?: (gemCost: number, credits: number) => void;
+    onExchangeCards?: (exchanges: { deckId: string; cardIdx: number; removeCount: number }[]) => void;
     maxBet?: number;
 }
 
@@ -44,6 +45,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     getDeckReward = (_deckId: string) => 0,
     premiumPackCredits = 0,
     onBuyPremiumCredits,
+    onExchangeCards,
     maxBet = 10000
 }) => {
     const [selectedDeckId, setSelectedDeckId] = useState<string | null>(null);
@@ -171,17 +173,15 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
     if (!isOpen) return null;
 
-    // Gather all duplicate cards across all decks (count-1 entries per card with count>1)
-    const allDuplicates: { deckId: string; cardIdx: number; card: import('../types').Card; dupIndex: number }[] = [];
+    // Gather duplicate cards grouped by card identity (one entry per unique card that has extras)
+    const allDuplicates: { deckId: string; cardIdx: number; card: import('../types').Card; extraCount: number }[] = [];
     decks.forEach(deck => {
         deck.cards.forEach((card, idx) => {
             const extraCopies = (card.count || 0) - 1;
             if (extraCopies > 0) {
                 const st = String(card.symbolType);
                 if (!['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && card.icon !== '🪙') {
-                    for (let d = 0; d < extraCopies; d++) {
-                        allDuplicates.push({ deckId: deck.gameId, cardIdx: idx, card, dupIndex: d });
-                    }
+                    allDuplicates.push({ deckId: deck.gameId, cardIdx: idx, card, extraCount: extraCopies });
                 }
             }
         });
@@ -191,13 +191,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         let standardCredits = 0;
         let premiumCredits = 0;
         allDuplicates.forEach(dup => {
-            const key = `${dup.deckId}-${dup.cardIdx}-${dup.dupIndex}`;
+            const key = `${dup.deckId}-${dup.cardIdx}`;
             if (!ids.has(key)) return;
             switch (dup.card.rarity) {
-                case 'COMMON': standardCredits += 1; break;
-                case 'RARE': standardCredits += 2; break;
-                case 'EPIC': premiumCredits += 1; break;
-                case 'LEGENDARY': premiumCredits += 3; break;
+                case 'COMMON': standardCredits += dup.extraCount * 1; break;
+                case 'RARE': standardCredits += dup.extraCount * 2; break;
+                case 'EPIC': premiumCredits += dup.extraCount * 1; break;
+                case 'LEGENDARY': premiumCredits += dup.extraCount * 3; break;
             }
         });
         return { standardCredits, premiumCredits };
@@ -208,6 +208,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         const { standardCredits, premiumCredits } = getExchangeRewards(ids);
         if (standardCredits > 0) onBuyCredits(0, standardCredits);
         if (premiumCredits > 0 && onBuyPremiumCredits) onBuyPremiumCredits(0, premiumCredits);
+        // Remove the extra copies from decks
+        const exchanges = allDuplicates
+            .filter(dup => ids.has(`${dup.deckId}-${dup.cardIdx}`))
+            .map(dup => ({ deckId: dup.deckId, cardIdx: dup.cardIdx, removeCount: dup.extraCount }));
+        if (exchanges.length > 0) onExchangeCards?.(exchanges);
         setShowExchangePanel(false);
         setSelectedDuplicateIds(new Set());
     };
@@ -216,63 +221,66 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(160deg,#2e1065 0%,#0f0518 100%)' }}>
             {/* Duplicate Exchange Overlay */}
             {showExchangePanel && (
-                <div className="absolute inset-0 z-[170] bg-black/90 backdrop-blur-sm flex flex-col animate-pop-in">
-                    <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2" style={{ background: 'linear-gradient(180deg,#b45309,#78350f)' }}>
-                        <span className="font-black text-white text-sm uppercase tracking-widest flex-1">Exchange Duplicates</span>
-                        <div className="flex flex-col items-end gap-0.5 text-[9px] font-bold text-white/70">
-                            <span>C→1 std · R→2 std</span>
-                            <span>E→1 prem · L→3 prem</span>
-                        </div>
+                <div className="absolute inset-0 z-[170] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(160deg,#2e1065 0%,#0f0518 100%)' }}>
+                    {/* Purple topbar — compact */}
+                    <div className="shrink-0 flex items-center gap-2 px-3 py-1.5" style={{ background: 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                        <span className="font-black text-white text-xs uppercase tracking-widest flex-1">Exchange Duplicates</span>
                         <button onClick={() => { setShowExchangePanel(false); setSelectedDuplicateIds(new Set()); }}
-                            className="round-btn"><i className="ti ti-x" /></button>
+                            className="round-btn" style={{ width:24, height:24, fontSize:14 }}><i className="ti ti-x" /></button>
                     </div>
                     {allDuplicates.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center text-white/50 text-sm font-bold uppercase">No duplicates yet</div>
                     ) : (
                         <>
-                            <div className="flex-1 overflow-y-auto p-3 grid grid-cols-5 gap-2 content-start">
-                                {allDuplicates.map((dup, i) => {
-                                    const key = `${dup.deckId}-${dup.cardIdx}-${dup.dupIndex}`;
+                            <div className="flex-1 overflow-y-auto no-scrollbar p-2 grid grid-cols-7 gap-1.5 content-start">
+                                {allDuplicates.map((dup) => {
+                                    const key = `${dup.deckId}-${dup.cardIdx}`;
                                     const sel = selectedDuplicateIds.has(key);
                                     const borderColor = getCardBorder(dup.card.rarity);
                                     return (
-                                        <button key={i} onClick={() => {
+                                        <button key={key} onClick={() => {
                                             setSelectedDuplicateIds(prev => {
                                                 const next = new Set(prev);
                                                 sel ? next.delete(key) : next.add(key);
                                                 return next;
                                             });
-                                        }} className="relative rounded-xl flex flex-col items-center justify-between overflow-hidden transition-all active:scale-95"
-                                            style={{ background: getCardBg(dup.card.rarity, false), border: `2px solid ${sel ? '#fde68a' : borderColor}`, aspectRatio: '2/3', boxShadow: sel ? '0 0 12px #fde68a88' : `0 2px 8px ${borderColor}33` }}>
-                                            {sel && <div className="absolute inset-0 bg-yellow-400/20 z-10 rounded-xl" />}
-                                            <div className="w-full px-1 pt-1 flex justify-center">
-                                                <span className="text-[7px] font-black uppercase px-1 py-0.5 rounded-full bg-black/40 text-white/80">{dup.card.rarity[0]}</span>
+                                        }} className="relative rounded-lg flex flex-col items-center justify-between overflow-hidden transition-all active:scale-95"
+                                            style={{ background: getCardBg(dup.card.rarity, false), border: `2px solid ${sel ? '#fde68a' : borderColor}`, aspectRatio: '2/3', boxShadow: sel ? '0 0 8px #fde68a88' : `0 1px 4px ${borderColor}44` }}>
+                                            {sel && <div className="absolute inset-0 bg-yellow-400/20 z-10 rounded-lg" />}
+                                            {/* Rarity label top-left */}
+                                            <div className="w-full px-0.5 pt-0.5 flex justify-between items-start">
+                                                <span className="text-[6px] font-black uppercase px-1 py-0.5 rounded-full bg-black/50 text-white/80 leading-none">{dup.card.rarity[0]}</span>
+                                                {dup.extraCount > 1 && (
+                                                    <span className="text-[6px] font-black text-yellow-300 bg-black/60 px-0.5 rounded leading-none">×{dup.extraCount}</span>
+                                                )}
                                             </div>
+                                            {/* Icon */}
                                             <div className="flex-1 flex items-center justify-center">
-                                                <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{dup.card.icon}</span>
+                                                <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>{dup.card.icon}</span>
                                             </div>
-                                            <div className="w-full px-0.5 pb-1 text-center">
-                                                <div className="text-[7px] font-bold text-white/80 truncate">{dup.card.name}</div>
+                                            {/* Name */}
+                                            <div className="w-full px-0.5 pb-0.5 text-center">
+                                                <div className="text-[5px] font-bold text-white/70 truncate leading-tight">{dup.card.name}</div>
                                             </div>
                                         </button>
                                     );
                                 })}
                             </div>
-                            <div className="shrink-0 flex items-center gap-2 px-4 py-3" style={{ background: 'rgba(0,0,0,0.6)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                            <div className="shrink-0 flex items-center gap-2 px-3 py-2" style={{ background: 'rgba(0,0,0,0.5)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
                                 {(() => {
                                     const { standardCredits, premiumCredits } = getExchangeRewards(selectedDuplicateIds);
                                     return (
                                         <div className="flex-1 flex flex-col gap-0.5">
-                                            <span className="text-white/50 text-[9px] font-bold uppercase tracking-wider">{selectedDuplicateIds.size} selected →</span>
+                                            <span className="text-white/40 text-[8px] font-bold uppercase tracking-wider">{selectedDuplicateIds.size} selected →</span>
                                             <div className="flex gap-2">
-                                                {standardCredits > 0 && <span className="text-yellow-300 text-xs font-black">📦 {standardCredits} Std</span>}
-                                                {premiumCredits > 0 && <span className="text-purple-300 text-xs font-black">💎 {premiumCredits} Prem</span>}
-                                                {standardCredits === 0 && premiumCredits === 0 && <span className="text-white/30 text-xs font-bold">—</span>}
+                                                {standardCredits > 0 && <span className="text-yellow-300 text-[10px] font-black">📦 {standardCredits} Std</span>}
+                                                {premiumCredits > 0 && <span className="text-purple-300 text-[10px] font-black">💎 {premiumCredits} Prem</span>}
+                                                {standardCredits === 0 && premiumCredits === 0 && <span className="text-white/20 text-[10px] font-bold">—</span>}
                                             </div>
                                         </div>
                                     );
                                 })()}
-                                <button onClick={() => setSelectedDuplicateIds(new Set(allDuplicates.map(d => `${d.deckId}-${d.cardIdx}-${d.dupIndex}`)))}
+                                <button onClick={() => setSelectedDuplicateIds(new Set(allDuplicates.map(d => `${d.deckId}-${d.cardIdx}`)))}
                                     className="btn-3d px-3 py-1.5 rounded-lg text-xs font-black text-white uppercase"
                                     style={{ background: 'rgba(255,255,255,0.15)' }}>All</button>
                                 <button disabled={selectedDuplicateIds.size === 0}
