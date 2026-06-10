@@ -1,47 +1,110 @@
-import React, { useState, useEffect } from 'react';
-import { GAMES_CONFIG, formatNumber } from '../constants';
+import React, { useState, useEffect, useRef } from 'react';
+import { GAMES_CONFIG, formatK } from '../constants';
 import { GameConfig } from '../types';
-
-const VIP_SLOT_IDS = ['neon-vegas', 'dragon-fortune', 'cosmic-cash', 'samurai-honor', 'pharaoh-tomb', 'piggy-riches'];
-
-const ICON_MAP: Record<string, string> = {
-    NEON: '🎰', DRAGON: '🐉', SPACE: '👽', SAMURAI: '👹',
-    PIRATE: '🏴‍☠️', EGYPT: '🦂', PIGGY: '🐷', JUNGLE: '🌴',
-    UNDERWATER: '🔱', WESTERN: '🤠', CANDY: '🍭',
-};
-
-const FONT_MAP: Record<string, string> = {
-    NEON: 'font-titan', DRAGON: 'font-titan', SPACE: 'font-titan', SAMURAI: 'font-titan',
-    CANDY: 'font-luckiest', PIRATE: 'font-luckiest', JUNGLE: 'font-luckiest', WESTERN: 'font-luckiest', PIGGY: 'font-luckiest',
-};
-
-// Simple formatK using formatNumber
-const formatK = (n: number) => formatNumber(n);
+import { jackpotService, SLOT_VARS } from '../services/jackpotService';
 
 interface HighLimitLobbyProps {
     onBack: () => void;
     onSelectGame: (game: GameConfig, isHighLimit: boolean) => void;
     playerLevel: number;
+    currentBet?: number;
 }
 
-export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelectGame, playerLevel }) => {
-    const vipGames = GAMES_CONFIG.filter(g => VIP_SLOT_IDS.includes(g.id));
+const getIcon = (theme: string) => {
+    if (theme === 'NEON')       return '🎰';
+    if (theme === 'EGYPT')      return '🦂';
+    if (theme === 'DRAGON')     return '🐉';
+    if (theme === 'PIRATE')     return '🏴‍☠️';
+    if (theme === 'SPACE')      return '👽';
+    if (theme === 'PIGGY')      return '🐷';
+    if (theme === 'JUNGLE')     return '🦍';
+    if (theme === 'UNDERWATER') return '🦈';
+    if (theme === 'WESTERN')    return '🤠';
+    if (theme === 'SAMURAI')    return '⚔️';
+    if (theme === 'CANDY')      return '🧁';
+    return '🍭';
+};
+
+const getFontClass = (theme: string) => {
+    switch (theme) {
+        case 'NEON':       return 'font-neon';
+        case 'EGYPT':      return 'font-egypt';
+        case 'DRAGON':     return 'font-dragon';
+        case 'PIRATE':     return 'font-pirate';
+        case 'SPACE':      return 'font-space';
+        case 'CANDY':      return 'font-candy';
+        case 'JUNGLE':     return 'font-jungle';
+        case 'UNDERWATER': return 'font-underwater';
+        case 'WESTERN':    return 'font-western';
+        case 'SAMURAI':    return 'font-samurai';
+        case 'PIGGY':      return 'font-piggy';
+        default:           return 'font-titan';
+    }
+};
+
+const getTitleStyle = (theme: string) => {
+    if (theme === 'NEON')   return 'text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.8)]';
+    if (theme === 'EGYPT')  return 'text-amber-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+    if (theme === 'DRAGON') return 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]';
+    if (theme === 'PIRATE') return 'text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]';
+    if (theme === 'SPACE')  return 'text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]';
+    if (theme === 'PIGGY')  return 'text-pink-300 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]';
+    return 'text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]';
+};
+
+export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelectGame, playerLevel, currentBet = 10000 }) => {
+    // VIP jackpots = same logic as normal lobby × 10 (VIP bet is 10x)
+    const vipMaxBet = currentBet * 10;
     const [jackpotTotals, setJackpotTotals] = useState<number[]>(() =>
-        GAMES_CONFIG.map((_, idx) => 100000 + idx * 37500 + Math.floor(Math.random() * 50000))
+        GAMES_CONFIG.map((_, idx) => Math.floor(vipMaxBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
     );
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const scrollInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+    const [canScroll, setCanScroll] = useState(false);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setJackpotTotals(prev => prev.map(v => v + Math.floor(Math.random() * 1000)));
-        }, 1500);
-        return () => clearInterval(interval);
+        return jackpotService.subscribe(() => {
+            setJackpotTotals(GAMES_CONFIG.map((_, idx) =>
+                Math.floor(vipMaxBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1))
+            ));
+        });
+    }, [vipMaxBet]);
+
+    useEffect(() => {
+        setJackpotTotals(GAMES_CONFIG.map((_, idx) =>
+            Math.floor(vipMaxBet * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1))
+        ));
+    }, [vipMaxBet]);
+
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const check = () => setCanScroll(el.scrollWidth > el.clientWidth + 4);
+        check();
+        const ro = new ResizeObserver(check);
+        ro.observe(el);
+        return () => ro.disconnect();
     }, []);
+
+    const startScroll = (direction: 'LEFT' | 'RIGHT') => {
+        if (scrollInterval.current) return;
+        const amount = direction === 'LEFT' ? -20 : 20;
+        const scrollAction = () => scrollRef.current?.scrollBy({ left: amount, behavior: 'auto' });
+        scrollAction();
+        scrollInterval.current = setInterval(scrollAction, 16);
+    };
+
+    const stopScroll = () => {
+        if (scrollInterval.current) { clearInterval(scrollInterval.current); scrollInterval.current = null; }
+    };
+
+    const getUnlockLevel = (index: number) => index * 5;
 
     return (
         <div className="fixed inset-0 z-[60] flex flex-col select-none"
             style={{ backgroundImage: 'url(/lobby-bg-vip.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
 
-            {/* Dark overlay for readability */}
+            {/* Dark overlay */}
             <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
             {/* Topbar */}
@@ -50,7 +113,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                 <div className="round-btn cursor-pointer shrink-0" onClick={onBack}><i className="ti ti-arrow-left"></i></div>
                 <span className="font-black text-xl uppercase tracking-widest flex-1"
                     style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.8))' }}>
-                    🎰 High Limit Room
+                    High Limit Room
                 </span>
                 <div className="px-3 py-1 rounded-full font-black text-[9px] uppercase tracking-widest"
                     style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' }}>
@@ -58,64 +121,88 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                 </div>
             </div>
 
-            {/* 3×2 slot grid */}
-            <div className="relative z-10 flex-1 grid grid-cols-3 gap-3 p-4">
-                {vipGames.map(game => {
-                    const globalIdx = GAMES_CONFIG.findIndex(g => g.id === game.id);
-                    const icon = ICON_MAP[game.theme] ?? '🎰';
-                    const fontClass = FONT_MAP[game.theme] ?? 'font-titan';
-                    const titleColor = game.theme === 'NEON' ? 'text-fuchsia-300' :
-                        game.theme === 'DRAGON' ? 'text-red-400' :
-                        game.theme === 'SPACE' ? 'text-indigo-300' :
-                        game.theme === 'EGYPT' ? 'text-yellow-300' :
-                        game.theme === 'PIGGY' ? 'text-pink-300' :
-                        'text-amber-300';
+            {/* Slot grid — same horizontal 2-row layout as normal lobby */}
+            <div className="relative z-10 flex-1 flex items-center justify-center p-0.5 pt-2 pb-8">
+                <>
+                    <div
+                        ref={scrollRef}
+                        className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 px-3 overflow-x-auto no-scrollbar snap-x"
+                        style={{ gridTemplateRows: 'repeat(2, 1fr)', gridAutoFlow: 'column' }}
+                    >
+                        {GAMES_CONFIG.map((game, idx) => {
+                            const icon = getIcon(game.theme);
+                            const fontClass = getFontClass(game.theme);
+                            const titleStyle = getTitleStyle(game.theme);
+                            const unlockLevel = getUnlockLevel(idx);
+                            const isLocked = playerLevel < unlockLevel;
 
-                    return (
+                            return (
+                                <button
+                                    key={game.id}
+                                    onClick={() => onSelectGame(game, true)}
+                                    className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-2xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
+                                    style={{ boxShadow: 'inset 0 2px 0 rgba(251,191,36,0.85), 0 0 12px rgba(217,119,6,0.3), 0 6px 18px rgba(0,0,0,0.6)' }}
+                                >
+                                    {/* Gold jackpot pill — protrudes above card */}
+                                    {!isLocked && (
+                                        <div className="absolute -top-[22px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
+                                            <span style={{ fontSize: '11px', fontWeight: 900, color: '#fde68a', whiteSpace: 'nowrap', lineHeight: 1, background: 'rgba(20,10,0,0.92)', border: '2px solid #d97706', borderRadius: '999px', padding: '3px 8px', boxShadow: '0 0 8px rgba(217,119,6,0.7)' }}>
+                                                {formatK(jackpotTotals[idx] ?? 0)}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Card bg */}
+                                    <div className={`absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} />
+
+                                    {/* Gold shimmer overlay */}
+                                    <div className="absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-tr from-transparent via-yellow-400/8 to-yellow-300/5 pointer-events-none" />
+
+                                    {/* Icon + name */}
+                                    <div className="absolute inset-0 rounded-2xl overflow-hidden z-10 select-none">
+                                        <div className="absolute inset-0 flex items-start justify-center pt-2">
+                                            <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
+                                        </div>
+                                        <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
+                                            <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${fontClass} ${titleStyle}`}
+                                                style={{ WebkitTextStroke: '1.5px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
+                                                {game.name}
+                                            </h3>
+                                        </div>
+                                    </div>
+
+                                    {/* Lock overlay */}
+                                    {isLocked && (
+                                        <div className="absolute inset-0 rounded-2xl overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
+                                            <span className="text-3xl leading-none opacity-80">🔒</span>
+                                            <span className="text-white/70 font-bold text-[9px] mt-1 uppercase">Lvl {unlockLevel}</span>
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-0 rounded-2xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" />
+                                </button>
+                            );
+                        })}
+                        <div className="w-8" />
+                    </div>
+
+                    {/* Scroll arrows */}
+                    {canScroll && (
                         <button
-                            key={game.id}
-                            onClick={() => onSelectGame(game, true)}
-                            className="relative rounded-2xl overflow-hidden active:scale-95 transition-transform"
-                            style={{
-                                border: '1.5px solid rgba(251,191,36,0.5)',
-                                boxShadow: '0 6px 24px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.15)',
-                            }}
-                        >
-                            {/* Gradient bg */}
-                            <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`} />
-                            {/* Gold shimmer */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-yellow-400/10 to-yellow-300/5 pointer-events-none" />
-
-                            {/* Jackpot */}
-                            <div className="absolute top-2 left-0 right-0 flex justify-center z-20">
-                                <span style={{ fontSize: '12px', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }}>
-                                    {formatK(jackpotTotals[globalIdx] ?? 0)}
-                                </span>
-                            </div>
-
-                            {/* VIP badge */}
-                            <div className="absolute top-2 right-2 z-20">
-                                <span style={{ fontSize: '9px', background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00', padding: '2px 5px', borderRadius: '6px', fontWeight: 900, letterSpacing: '0.05em' }}>VIP</span>
-                            </div>
-
-                            {/* Bottom dark gradient for text */}
-                            <div className="absolute bottom-0 left-0 right-0 h-14 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" />
-
-                            {/* Icon */}
-                            <div className="relative z-10 flex items-center justify-center h-full py-4">
-                                <span className="text-[4.5rem] leading-none drop-shadow-2xl">{icon}</span>
-                            </div>
-
-                            {/* Name */}
-                            <div className="absolute bottom-0 left-0 right-0 pb-2 px-2 text-center z-10">
-                                <h3 className={`font-black uppercase tracking-wide leading-none text-[14px] ${fontClass} ${titleColor}`}
-                                    style={{ WebkitTextStroke: '1px rgba(0,0,0,0.9)', paintOrder: 'stroke fill' }}>
-                                    {game.name}
-                                </h3>
-                            </div>
-                        </button>
-                    );
-                })}
+                            onMouseDown={() => startScroll('LEFT')} onMouseUp={stopScroll} onMouseLeave={stopScroll}
+                            onTouchStart={() => startScroll('LEFT')} onTouchEnd={stopScroll}
+                            className="absolute left-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
+                            style={{ background: 'linear-gradient(180deg,#c9901a,#7a5000)', border: '1.5px solid #8b6200', borderRadius: '8px', boxShadow: '0 3px 0 #5a3000,0 4px 8px rgba(0,0,0,0.6)' }}
+                        >◀</button>
+                    )}
+                    {canScroll && (
+                        <button
+                            onMouseDown={() => startScroll('RIGHT')} onMouseUp={stopScroll} onMouseLeave={stopScroll}
+                            onTouchStart={() => startScroll('RIGHT')} onTouchEnd={stopScroll}
+                            className="absolute right-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
+                            style={{ background: 'linear-gradient(180deg,#c9901a,#7a5000)', border: '1.5px solid #8b6200', borderRadius: '8px', boxShadow: '0 3px 0 #5a3000,0 4px 8px rgba(0,0,0,0.6)' }}
+                        >▶</button>
+                    )}
+                </>
             </div>
         </div>
     );

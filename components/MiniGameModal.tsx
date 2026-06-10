@@ -167,19 +167,23 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     useEffect(() => {
         if (isOpen) {
-            if (activeGame === 'WILD') {
-                if (!(savedGrid && savedGrid.length > 0)) initGrid();
-            }
-            if (activeGame === 'DICE') {
-                if (board.length === 0 || board[board.length - 1].index !== boardLength) initBoard();
-                if (!isMoving) setVisualPosition(dicePosition);
-            }
             setStageWinning(false);
             setStageClearData(null);
         } else {
             setIsRolling(false);
             setIsMoving(false);
             setAutoRoll(false);
+        }
+    }, [isOpen, activeGame]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        if (activeGame === 'WILD') {
+            if (!(savedGrid && savedGrid.length > 0)) initGrid();
+        }
+        if (activeGame === 'DICE') {
+            if (board.length === 0 || board[board.length - 1].index !== boardLength) initBoard();
+            if (!isMoving) setVisualPosition(dicePosition);
         }
     }, [isOpen, initGrid, activeGame, initBoard, boardLength, dicePosition, board.length, isMoving]);
 
@@ -445,6 +449,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isReward = revealed && cell.content === 'REWARD';
                                     const isBomb = cell.content === 'BOMB';
                                     const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
+                                    const gemPrize = Math.round((maxBet || 10000) * wildStage * 10);
                                     const icon = isGem ? '💎' : isReward
                                         ? (cell.reward?.type === 'COINS' ? '🪙' : cell.reward?.type === 'PICKS' ? '⛏️' : '💎')
                                         : revealed && isBomb ? '💥' : null;
@@ -466,6 +471,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 icon ? (
                                                     <>
                                                         <span style={{ fontSize: tileSize * 0.62, lineHeight: 1 }}>{icon}</span>
+                                                        {isGem && <span style={{ fontSize: Math.max(8, tileSize * 0.16) }} className="font-black text-yellow-300 mt-0.5 leading-none text-center px-0.5">+{formatCommaNumber(gemPrize)}</span>}
                                                         {isReward && <span style={{ fontSize: Math.max(9, tileSize * 0.19) }} className="font-bold text-white/90 mt-0.5 leading-none">{cell.reward?.label}</span>}
                                                     </>
                                                 ) : null
