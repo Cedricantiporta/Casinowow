@@ -172,10 +172,24 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                 {/* ===== TOPBAR ===== */}
                 {view === 'MISSIONS' ? (
-                    /* MISSIONS topbar: single row — back | pills | spacer | tabs */
+                    /* MISSIONS topbar: title | frequency tabs | X */
                     <div className={topbarBase} style={topbarStyle}>
-                        <div className="flex items-center gap-1.5 px-3 h-[38px]">
-                            <div className="flex-1"></div>
+                        <div className="flex items-center gap-2 px-3 h-[40px]">
+                            <span className="font-black text-white text-xs uppercase tracking-widest shrink-0">Missions</span>
+                            <div className="flex-1 flex items-center justify-center gap-1">
+                                {(['DAILY', 'WEEKLY', 'MONTHLY'] as MissionFrequency[]).map(tab => (
+                                    <button key={tab} onClick={() => setActiveTab(tab)}
+                                        className="font-black uppercase text-[8px] tracking-widest px-2.5 py-1 rounded-full transition-all"
+                                        style={{
+                                            background: activeTab === tab ? 'linear-gradient(180deg,#c060ff,#8020e0)' : 'rgba(255,255,255,0.08)',
+                                            color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.5)',
+                                            border: activeTab === tab ? '1px solid rgba(210,130,255,0.6)' : '1px solid transparent',
+                                            boxShadow: activeTab === tab ? '0 2px 8px rgba(160,80,255,0.4)' : 'none',
+                                        }}>
+                                        {tab}
+                                    </button>
+                                ))}
+                            </div>
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
                             </div>
@@ -225,12 +239,12 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                                 {/* Icon */}
                                 <div className="flex-1 bg-black/30 rounded-xl flex items-center justify-center shrink-0 shadow-inner mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(3rem, 8vw, 5rem)' }}>
-                                    {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? '💰' : mission.type === 'BET_COINS' ? '🪙' : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : '⭐'}
+                                    {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? '💰' : mission.type === 'BET_COINS' ? '🪙' : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : mission.type === 'MAX_BET_SPIN' ? '💎' : '⭐'}
                                 </div>
 
                                 {/* Title */}
                                 <div className="text-white font-black text-[11px] uppercase text-center leading-none relative z-10">
-                                    {mission.type === 'SPIN_COUNT' ? 'Spin Challenge' : mission.type === 'WIN_COINS' ? 'Win Challenge' : mission.type === 'BET_COINS' ? 'Bet Challenge' : mission.type === 'BIG_WIN_COUNT' ? 'Big Win Challenge' : mission.type === 'LEVEL_UP' ? 'Level Challenge' : 'Challenge'}
+                                    {mission.type === 'SPIN_COUNT' ? 'Spin Challenge' : mission.type === 'WIN_COINS' ? 'Win Challenge' : mission.type === 'BET_COINS' ? 'Bet Challenge' : mission.type === 'BIG_WIN_COUNT' ? 'Big Win Challenge' : mission.type === 'LEVEL_UP' ? 'Level Up Challenge' : mission.type === 'MAX_BET_SPIN' ? 'Max Bet Challenge' : 'Challenge'}
                                 </div>
 
                                 {/* Label */}

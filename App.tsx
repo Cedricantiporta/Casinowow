@@ -174,6 +174,7 @@ const App: React.FC = () => {
   const [showFreeSpinsPopup, setShowFreeSpinsPopup] = useState(false);
   const [freeSpinsWon, setFreeSpinsWon] = useState(0);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
+  const [showWelcomeGift, setShowWelcomeGift] = useState(() => !localStorage.getItem('cw_player'));
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [showPackToast, setShowPackToast] = useState(false);
   const [levelUpReward, setLevelUpReward] = useState(0);
@@ -1343,6 +1344,7 @@ const App: React.FC = () => {
       setSpinsWithoutBonus(prev => prev + 1);
       updateMissions(MissionType.SPIN_COUNT, 1);
       updateMissions(MissionType.BET_COINS, currentBet);
+      if (betIndex === availableBets.length - 1) updateMissions(MissionType.MAX_BET_SPIN, 1);
       // Track VIP bets for end-of-day cashback
       if (player.isVip) {
           const today = new Date().toDateString();
@@ -2648,6 +2650,31 @@ const currentState: SavedGameState = {
 
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
       
+      {showWelcomeGift && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }}>
+          <div className="animate-pop-in flex flex-col items-center gap-4 rounded-3xl p-8 mx-4 text-center"
+            style={{ background: 'linear-gradient(160deg,#1a0a2e,#2d0060,#0d0220)', border: '2px solid rgba(210,150,255,0.4)', boxShadow: '0 0 40px rgba(160,80,255,0.3)', maxWidth: 320, width: '100%' }}>
+            <div style={{ fontSize: '64px', lineHeight: 1, filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.6))' }}>🎁</div>
+            <div className="font-black text-white text-xl uppercase tracking-widest">Welcome Gift!</div>
+            <div className="text-purple-200 text-sm font-bold leading-relaxed">
+              You received a special gift to start your journey!
+            </div>
+            <div className="font-black text-yellow-300 text-3xl" style={{ textShadow: '0 0 16px rgba(255,200,0,0.6)', fontVariantNumeric: 'tabular-nums' }}>
+              🪙 10,000,000
+            </div>
+            <button
+              onClick={() => {
+                setPlayer(p => ({ ...p, balance: p.balance + 10000000 }));
+                setShowWelcomeGift(false);
+                handleGameSelect(GAMES_CONFIG[0]);
+              }}
+              className="btn-3d w-full py-3 rounded-2xl font-black text-base uppercase tracking-widest text-black"
+              style={{ background: 'linear-gradient(180deg,#ffd700,#ff9500)', boxShadow: '0 4px 0 #b06000,0 6px 20px rgba(255,150,0,0.4)' }}>
+              CLAIM
+            </button>
+          </div>
+        </div>
+      )}
       <BankruptcyModal isOpen={showBankruptcy} onCollect={() => { setPlayer(p => ({ ...p, balance: p.balance + 100000 })); setShowBankruptcy(false); setCelebrationMsg("+100,000 Coins"); audioService.playWinBig(); }} />
 
       <SettingsModal

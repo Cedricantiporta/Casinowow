@@ -364,7 +364,7 @@ export const GET_PAYLINES = (rowCount: number, colCount: number = 5): Payline[] 
     return lines;
 };
 
-export const INITIAL_BALANCE = 10000000;
+export const INITIAL_BALANCE = 0;
 export const INITIAL_GEMS = 500; 
 export const BASE_XP_PER_SPIN = 1000; 
 export const XP_BASE_REQ = 2000;
@@ -505,7 +505,7 @@ const MISSION_COIN_MULTIPLIER = 5;
 export const GENERATE_REPLACEMENT_MISSION = (level: number, frequency: MissionFrequency, maxBet?: number): Mission => {
     const mb = maxBet && maxBet > 0 ? maxBet : 10000;
 
-    let possibleTypes = [MissionType.SPIN_COUNT, MissionType.WIN_COINS, MissionType.BET_COINS, MissionType.BIG_WIN_COUNT];
+    let possibleTypes = [MissionType.SPIN_COUNT, MissionType.WIN_COINS, MissionType.BET_COINS, MissionType.BIG_WIN_COUNT, MissionType.LEVEL_UP, MissionType.MAX_BET_SPIN];
     if (frequency === 'MONTHLY') possibleTypes = [MissionType.SPIN_COUNT, MissionType.WIN_COINS, MissionType.LEVEL_UP];
 
     const type = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
@@ -534,6 +534,10 @@ export const GENERATE_REPLACEMENT_MISSION = (level: number, frequency: MissionFr
         case MissionType.LEVEL_UP:
             desc = "Level Up";
             target = Math.ceil(50 * scale);
+            break;
+        case MissionType.MAX_BET_SPIN:
+            desc = "Spin on max bet";
+            target = Math.ceil((frequency === 'DAILY' ? 30 : 300) * scale);
             break;
     }
 
@@ -564,6 +568,8 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
         { type: MissionType.WIN_COINS, base: 5000000, desc: "Win total coins" },
         { type: MissionType.BET_COINS, base: 10000000, desc: "Bet total coins" },
         { type: MissionType.BIG_WIN_COUNT, base: 10, desc: "Hit Big Wins" },
+        { type: MissionType.LEVEL_UP, base: 3, desc: "Level Up" },
+        { type: MissionType.MAX_BET_SPIN, base: 30, desc: "Spin on max bet" },
     ];
 
     // 10 per day
@@ -578,6 +584,8 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
             target = Math.floor(target * scale);
         } else if (t.type === MissionType.SPIN_COUNT) {
              target = (t.base + (playerLevel * 5)) * scale;
+        } else if (t.type === MissionType.MAX_BET_SPIN) {
+             target = Math.ceil((t.base + playerLevel) * scale);
         } else {
              target = Math.ceil(t.base * scale);
         }
@@ -612,8 +620,8 @@ export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number, maxBet?: number): 
         { type: MissionType.WIN_COINS, base: 500000000, desc: "Weekly: Win total coins" },
         { type: MissionType.BIG_WIN_COUNT, base: 200, desc: "Weekly: Hit Big Wins" },
         { type: MissionType.BET_COINS, base: 1000000000, desc: "Weekly: Bet total coins" },
-        { type: MissionType.SPIN_COUNT, base: 3000, desc: "Weekly: Spin the reels" },
-        { type: MissionType.WIN_COINS, base: 750000000, desc: "Weekly: Win total coins" },
+        { type: MissionType.LEVEL_UP, base: 10, desc: "Weekly: Level Up" },
+        { type: MissionType.MAX_BET_SPIN, base: 300, desc: "Weekly: Spin on max bet" },
     ];
 
     templates.forEach((t, i) => {

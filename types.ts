@@ -130,7 +130,8 @@ export enum MissionType {
   WIN_COINS = 'WIN_COINS',
   BET_COINS = 'BET_COINS',
   LEVEL_UP = 'LEVEL_UP',
-  BIG_WIN_COUNT = 'BIG_WIN_COUNT'
+  BIG_WIN_COUNT = 'BIG_WIN_COUNT',
+  MAX_BET_SPIN = 'MAX_BET_SPIN'
 }
 
 export type MissionFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY';
