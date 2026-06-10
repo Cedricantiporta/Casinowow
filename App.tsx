@@ -179,6 +179,7 @@ const App: React.FC = () => {
   const [giftDisplayAmount, setGiftDisplayAmount] = useState(0);
   const [animBalance, setAnimBalance] = useState<number | null>(null);
   const pendingLoginBonusRef = useRef(false);
+  const hasLeftLobbyRef = useRef(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [showPackToast, setShowPackToast] = useState(false);
   const [levelUpReward, setLevelUpReward] = useState(0);
@@ -652,9 +653,13 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [showWelcomeGift]);
 
-  // Show login bonus when returning to lobby for the first time after welcome gift
+  // Show login bonus only when returning to lobby after having left (e.g. after Piggy Riches)
   useEffect(() => {
-    if (currentView === 'LOBBY' && pendingLoginBonusRef.current) {
+    if (currentView !== 'LOBBY') {
+        hasLeftLobbyRef.current = true;
+        return;
+    }
+    if (hasLeftLobbyRef.current && pendingLoginBonusRef.current) {
         pendingLoginBonusRef.current = false;
         setTimeout(() => setActiveModal('LOGIN_BONUS'), 800);
     }
