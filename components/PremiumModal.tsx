@@ -196,7 +196,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <button onClick={onBuyPremium}
                                 className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest"
                                 style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 #4c1d95', color: '#fff' }}>
-                                📜 Get Pass
+                                Get Pass
                             </button>
                         </div>
                     </div>}

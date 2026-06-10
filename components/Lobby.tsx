@@ -215,7 +215,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         key={game.id}
                                         onClick={() => onSelectGame(game, false)}
                                         className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-2xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed grayscale' : ''}`}
-                                        style={{ border: '2px solid rgba(170,90,255,0.65)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.22), 0 0 10px rgba(160,80,255,0.35), 0 6px 18px rgba(0,0,0,0.55)' }}
+                                        style={{ boxShadow: 'inset 0 2px 0 rgba(210,150,255,0.85), 0 0 12px rgba(160,80,255,0.28), 0 6px 18px rgba(0,0,0,0.55)' }}
                                     >
                                         {!isLocked && (
                                             <div className="absolute -top-[22px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
