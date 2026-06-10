@@ -29,6 +29,7 @@ interface ProfileModalProps {
     recentGames: GameConfig[];
     profileEmoji?: string;
     onSetProfileEmoji?: (emoji: string) => void;
+    onNavigateToGame?: (game: GameConfig) => void;
 }
 
 const PROFILE_EMOJIS = ['🎭', '🦁', '🐲', '🦅', '🐺', '👾', '🤖'];
@@ -49,7 +50,7 @@ const StatRow: React.FC<{ icon: string; label: string; value: string; vip?: bool
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
     isOpen, onClose, player, isPremium, passBoostMultiplier = 1, passBoostEndTime = 0,
-    recentGames, profileEmoji = '🎭', onSetProfileEmoji
+    recentGames, profileEmoji = '', onSetProfileEmoji, onNavigateToGame
 }) => {
     const [playerName] = useState(() => localStorage.getItem('playerName') || 'Player');
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -88,7 +89,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         onClick={() => setShowEmojiPicker(v => !v)}
                         className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center text-3xl leading-none shrink-0 cursor-pointer transition-transform active:scale-95"
                         style={{ background: vip ? 'linear-gradient(135deg,#f59e0b,#b45309)' : 'linear-gradient(135deg,#a855f7,#7c3aed)', border: vip ? '2px solid #f0c000' : '2px solid rgba(255,255,255,0.25)' }}>
-                        {profileEmoji}
+                        {profileEmoji ? profileEmoji : <i className="ti ti-user" style={{ fontSize: '1.6rem' }} />}
                     </button>
                     {/* Emoji picker dropdown */}
                     {showEmojiPicker && (
@@ -97,7 +98,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                             {PROFILE_EMOJIS.map(e => (
                                 <button key={e} onClick={() => { onSetProfileEmoji?.(e); setShowEmojiPicker(false); }}
                                     className="w-9 h-9 rounded-xl flex items-center justify-center text-2xl transition-transform active:scale-90 hover:brightness-125"
-                                    style={{ background: e === profileEmoji ? (vip ? 'rgba(251,191,36,0.3)' : 'rgba(168,85,247,0.3)') : 'rgba(255,255,255,0.07)' }}>
+                                    style={{ background: (profileEmoji && e === profileEmoji) ? (vip ? 'rgba(251,191,36,0.3)' : 'rgba(168,85,247,0.3)') : 'rgba(255,255,255,0.07)' }}>
                                     {e}
                                 </button>
                             ))}
@@ -176,15 +177,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                             {recentGames.map((game, i) => {
                                 const icon = THEME_ICONS[game.theme] || '🎰';
                                 return (
-                                    <div key={i} className="rounded-xl overflow-hidden flex flex-col"
-                                        style={{ background: 'rgba(0,0,0,0.25)' }}>
+                                    <button key={i} className="rounded-xl overflow-hidden flex flex-col cursor-pointer active:scale-95 transition-transform"
+                                        style={{ background: 'rgba(0,0,0,0.25)' }}
+                                        onClick={() => { onNavigateToGame?.(game); onClose(); }}>
                                         <div className={`h-11 flex items-center justify-center bg-gradient-to-br ${game.color}`}>
                                             <span className="text-2xl leading-none drop-shadow-lg">{icon}</span>
                                         </div>
                                         <div className="text-white font-black text-[8px] uppercase tracking-wide text-center px-0.5 py-1 leading-tight truncate">
                                             {game.name}
                                         </div>
-                                    </div>
+                                    </button>
                                 );
                             })}
                         </div>

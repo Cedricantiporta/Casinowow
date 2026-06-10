@@ -234,7 +234,7 @@ const App: React.FC = () => {
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
-  const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '🎭');
+  const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '');
   const [showInbox, setShowInbox] = useState(false);
   const [inbox, setInbox] = useState<InboxMessage[]>(() => {
       try {
@@ -2092,8 +2092,8 @@ const currentState: SavedGameState = {
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
-              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'2px solid #b87c10', boxShadow:'0 2px 0 rgba(255,200,60,0.2), 0 8px 15px rgba(0,0,0,0.6)' } :
-              { background:'#7c3fb5', borderBottom:'2px solid #5a22a0', boxShadow:'0 2px 0 rgba(200,150,255,0.18), 0 8px 15px rgba(0,0,0,0.6)' }}>
+              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'2px solid #8b6200', boxShadow:'0 8px 15px rgba(0,0,0,0.6)' } :
+              { background:'linear-gradient(180deg,#9b3ff8,#5a10cc)', borderBottom:'2px solid #3a0880', boxShadow:'0 8px 15px rgba(0,0,0,0.6)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
                 {/* Lobby Home Button */}
@@ -2104,7 +2104,7 @@ const currentState: SavedGameState = {
                 >
                     {currentView !== 'LOBBY'
                         ? <i className="ti ti-arrow-left"></i>
-                        : <span className="text-base leading-none">{profileEmoji}</span>
+                        : (profileEmoji ? <span className="text-base leading-none">{profileEmoji}</span> : <i className="ti ti-user" />)
                     }
                 </div>
 
@@ -2341,8 +2341,8 @@ const currentState: SavedGameState = {
       {currentView === 'GAME' && (
           <div className="fixed bottom-0 w-full z-50 flex flex-col select-none"
             style={isHighLimit ?
-              { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTop:'2px solid #b87c10', boxShadow:'0 -1px 0 rgba(255,200,60,0.22), 0 -10px 35px rgba(0,0,0,0.85)' } :
-              { background:'#120024', borderTop:'2px solid #5a22a0', boxShadow:'0 -1px 0 rgba(200,150,255,0.2), 0 -10px 35px rgba(0,0,0,0.85)' }}>
+              { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTop:'2px solid rgba(220,160,40,0.75)', boxShadow:'0 -4px 14px rgba(200,130,0,0.45), 0 -10px 35px rgba(0,0,0,0.85)' } :
+              { background:'#0a001a', borderTop:'2px solid rgba(180,100,255,0.75)', boxShadow:'0 -4px 14px rgba(160,70,255,0.45), 0 -10px 35px rgba(0,0,0,0.85)' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
                 style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
@@ -2727,6 +2727,7 @@ const currentState: SavedGameState = {
           recentGames={GAMES_CONFIG.filter(g => (player.stats?.recentSlots || []).includes(g.id)).sort((a, b) => (player.stats?.recentSlots || []).indexOf(a.id) - (player.stats?.recentSlots || []).indexOf(b.id))}
           profileEmoji={profileEmoji}
           onSetProfileEmoji={(e) => { setProfileEmoji(e); try { localStorage.setItem('cw_profile_emoji', e); } catch {} }}
+          onNavigateToGame={(game) => { setShowProfile(false); handleGameSelect(game as GameConfig); }}
       />
 
       <InboxModal

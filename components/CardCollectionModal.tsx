@@ -218,7 +218,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
             {showExchangePanel && (
                 <div className="absolute inset-0 z-[170] bg-black/90 backdrop-blur-sm flex flex-col animate-pop-in">
                     <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2" style={{ background: 'linear-gradient(180deg,#b45309,#78350f)' }}>
-                        <span className="font-black text-white text-sm uppercase tracking-widest flex-1">🔄 Exchange Duplicates</span>
+                        <span className="font-black text-white text-sm uppercase tracking-widest flex-1">Exchange Duplicates</span>
                         <div className="flex flex-col items-end gap-0.5 text-[9px] font-bold text-white/70">
                             <span>C→1 std · R→2 std</span>
                             <span>E→1 prem · L→3 prem</span>

@@ -116,8 +116,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     {/* Header row */}
                     <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative"
                         style={{ background: 'linear-gradient(180deg,#92400e,#78350f)' }}>
-                        <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-arrow-left"></i></div>
-                        <div style={{ fontSize: '28px', lineHeight: 1, filter: 'drop-shadow(0 0 10px rgba(250,200,0,0.7))' }}>👑</div>
+                        <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
                         <div className="flex-1">
                             <h2 className="font-black text-base uppercase tracking-widest leading-none"
                                 style={{ background: 'linear-gradient(180deg,#fff8c0,#f0c000)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -177,15 +176,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-1.5 px-3 h-[38px]">
                             <div className="round-btn shrink-0" onClick={onClose}>
-                                <i className="ti ti-arrow-left"></i>
-                            </div>
-                            <div className="currency-pill flex items-center gap-1 shrink-0">
-                                <div className="coin">$</div>
-                                <span className="num">{fmt(Math.floor(balance))}</span>
-                            </div>
-                            <div className="currency-pill flex items-center gap-1 shrink-0">
-                                <div className="gem"></div>
-                                <span className="num">{fmt(diamonds)}</span>
+                                <i className="ti ti-x"></i>
                             </div>
                             <div className="flex-1"></div>
                         </div>
@@ -195,32 +186,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-1.5 px-3 h-[40px]">
                             <div className="round-btn shrink-0" onClick={onClose}>
-                                <i className="ti ti-arrow-left"></i>
+                                <i className="ti ti-x"></i>
                             </div>
-                            <div className="currency-pill flex items-center gap-1 shrink-0">
-                                <div className="coin">$</div>
-                                <span className="num">{fmt(Math.floor(balance))}</span>
-                            </div>
-                            <div className="currency-pill flex items-center gap-1 shrink-0">
-                                <div className="gem"></div>
-                                <span className="num">{fmt(diamonds)}</span>
-                            </div>
-                            {/* Pass level + XP bar */}
-                            <div className="flex items-center gap-1.5 ml-1 shrink-0">
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center shadow-md">
-                                    <span className="font-black text-[10px] text-white">{missionState.passLevel}</span>
-                                </div>
-                                <div className="flex flex-col justify-center">
-                                    <span className="text-white font-black text-[9px] uppercase leading-none">Monthly Pass</span>
-                                    <div className="flex items-center gap-1 mt-0.5">
-                                        <div className="w-16 h-1.5 bg-black/60 rounded-full overflow-hidden border border-white/10">
-                                            <div className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
-                                        </div>
-                                        <span className="text-yellow-300 font-mono text-[7px]">{missionState.passXP}/{missionState.passXpToNext}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex-1"></div>
                             {/* Action buttons — all same size */}
                             <div className="flex items-center gap-1 shrink-0">
                                 <button onClick={jumpToCurrentLevel}
@@ -250,6 +217,22 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     </div>
                                 )}
                             </div>
+                            <div className="flex-1"></div>
+                            {/* Pass level + XP bar */}
+                            <div className="flex items-center gap-1.5 ml-1 shrink-0">
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center shadow-md">
+                                    <span className="font-black text-[10px] text-white">{missionState.passLevel}</span>
+                                </div>
+                                <div className="flex flex-col justify-center">
+                                    <span className="text-white font-black text-[9px] uppercase leading-none">Monthly Pass</span>
+                                    <div className="flex items-center gap-1 mt-0.5">
+                                        <div className="w-16 h-1.5 bg-black/60 rounded-full overflow-hidden border border-white/10">
+                                            <div className="h-full bg-gradient-to-r from-yellow-400 to-orange-500 transition-all" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
+                                        </div>
+                                        <span className="text-yellow-300 font-mono text-[7px]">{missionState.passXP}/{missionState.passXpToNext}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -275,22 +258,24 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <div className="text-white font-black text-[12px] leading-snug text-center flex-1 relative z-10">{mission.description}</div>
 
                                 {/* Progress */}
-                                <div className="flex items-center gap-1.5 relative z-10">
-                                    <div className="flex-1 h-2 bg-black rounded-full overflow-hidden">
-                                        <div className={`h-full ${mission.completed ? 'bg-green-500' : 'bg-fuchsia-500'}`}
-                                            style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%` }}></div>
+                                <div className="relative z-10">
+                                    <div className="relative h-5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                                        <div className={`absolute inset-y-0 left-0 rounded-full transition-all ${mission.completed ? 'bg-green-500' : 'bg-fuchsia-500'}`}
+                                            style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%` }} />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="text-[10px] font-black leading-none text-white" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                                                {mission.completed ? '✓ DONE' : `${formatK(mission.current)} / ${formatK(mission.target)}`}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <span className="text-purple-300 font-mono text-[9px] shrink-0 whitespace-nowrap">
-                                        {mission.completed ? '✓' : `${formatK(mission.current)}/${formatK(mission.target)}`}
-                                    </span>
                                 </div>
 
                                 {/* Rewards */}
                                 <div className="flex items-center justify-between relative z-10">
-                                    <span className={`font-mono text-[9px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
+                                    <span className={`font-mono text-[11px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
                                         +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} XP
                                     </span>
-                                    <span className="text-yellow-300 font-mono text-[9px] font-black">+{formatK(mission.coinReward)}</span>
+                                    <span className="text-yellow-300 font-mono text-[11px] font-black">+{formatK(mission.coinReward)}</span>
                                 </div>
 
                                 {/* Action */}

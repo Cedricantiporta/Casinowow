@@ -31,12 +31,11 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                 {/* Back button */}
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
                     style={{ background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' }}>
-                    <i className="ti ti-arrow-left"></i>
+                    <i className="ti ti-x"></i>
                 </div>
 
                 {/* Crown + title */}
                 <div className="flex items-center gap-2">
-                    <span style={{ fontSize: '2rem', lineHeight: 1, filter: 'drop-shadow(0 0 12px rgba(251,191,36,0.8))' }}>👑</span>
                     <span className="font-black text-xl uppercase tracking-widest"
                         style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                         VIP Lounge
