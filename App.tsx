@@ -1915,6 +1915,7 @@ const App: React.FC = () => {
                         setTimeout(() => {
                             setDragonPotShaking(false);
                             setShowDragonTriggerPopup(true);
+                            setPlayer(p => ({ ...p, autoSpin: false }));
                         }, 1000);
                     }, 400);
                 }
@@ -2328,10 +2329,10 @@ const App: React.FC = () => {
               audioService.playWinSmall();
               if (jpTier) {
                   setJackpotWinTier({ name: jpTier, color: JP_COLORS_MAP[jpTier], icon: JP_ICONS_MAP[jpTier], amount: cellValue });
-                  hwCountContinuationRef.current = () => setTimeout(() => countNext(idx + 1), 200);
+                  hwCountContinuationRef.current = () => setTimeout(() => countNext(idx + 1), 1000);
                   return;
               }
-              setTimeout(() => countNext(idx + 1), 160);
+              setTimeout(() => countNext(idx + 1), 1000);
           };
           countNext(0);
       };
@@ -3052,30 +3053,32 @@ const App: React.FC = () => {
 
                     {/* Dragon pot — right of reel grid */}
                     {selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0 && (
-                        <div className="flex flex-col items-center gap-1 ml-2 self-center shrink-0">
-                            <div className="relative flex items-center justify-center">
-                                <span
-                                    className={dragonPotShaking ? 'animate-vibrate' : ''}
-                                    style={{ fontSize: 'clamp(28px,5vw,42px)', lineHeight: 1, display: 'block' }}
-                                >🏆</span>
-                                {dragonCoinAbsorbing && (
+                        <div className="flex flex-col items-center justify-center gap-2 ml-3 shrink-0" style={{ alignSelf: 'stretch' }}>
+                            <div className="flex flex-col items-center gap-1.5">
+                                <div className="relative flex items-center justify-center">
+                                    {dragonCoinAbsorbing && (
+                                        <span
+                                            className="animate-coin-absorb"
+                                            style={{ position: 'absolute', fontSize: 'clamp(18px,3.5vw,28px)', lineHeight: 1, top: '-14px', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none' }}
+                                        >🪙</span>
+                                    )}
                                     <span
-                                        className="animate-coin-absorb"
-                                        style={{ position: 'absolute', fontSize: 'clamp(14px,2.5vw,18px)', lineHeight: 1, bottom: '20%', right: '-10px', pointerEvents: 'none' }}
-                                    >🪙</span>
-                                )}
-                            </div>
-                            <div className="flex flex-col items-center gap-0.5">
-                                {[10, 20, 30, 40, 50].map((threshold, idx) => {
-                                    const filled = dragonPickSpinsRef.current >= threshold;
-                                    return (
-                                        <div key={idx} className="rounded-full" style={{
-                                            width: 5, height: 5,
-                                            background: filled ? '#fbbf24' : 'rgba(255,255,255,0.15)',
-                                            boxShadow: filled ? '0 0 4px rgba(251,191,36,0.8)' : 'none',
-                                        }} />
-                                    );
-                                })}
+                                        className={dragonPotShaking ? 'animate-vibrate' : ''}
+                                        style={{ fontSize: 'clamp(52px,10vw,80px)', lineHeight: 1, display: 'block' }}
+                                    >🏆</span>
+                                </div>
+                                <div className="flex flex-row items-center gap-1">
+                                    {[10, 20, 30, 40, 50].map((threshold, idx) => {
+                                        const filled = dragonPickSpinsRef.current >= threshold;
+                                        return (
+                                            <div key={idx} className="rounded-full" style={{
+                                                width: 7, height: 7,
+                                                background: filled ? '#fbbf24' : 'rgba(255,255,255,0.15)',
+                                                boxShadow: filled ? '0 0 5px rgba(251,191,36,0.9)' : 'none',
+                                            }} />
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
                     )}
