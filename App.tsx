@@ -26,6 +26,7 @@ import { audioService } from './services/audioService';
 import { jackpotService } from './services/jackpotService';
 import { JackpotCelebration } from './components/JackpotCelebration';
 import { StageCompleteModal } from './components/StageCompleteModal';
+import { SlotLoadingScreen } from './components/SlotLoadingScreen';
 import { PremiumModal } from './components/PremiumModal';
 import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
@@ -250,6 +251,7 @@ const App: React.FC = () => {
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
   const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '');
   const [showInbox, setShowInbox] = useState(false);
+  const [gameLoadingConfig, setGameLoadingConfig] = useState<GameConfig | null>(null);
   const [inbox, setInbox] = useState<InboxMessage[]>(() => {
       try {
           const saved = localStorage.getItem('cw_inbox');
@@ -2115,8 +2117,7 @@ const App: React.FC = () => {
   const handleGameSelect = (game: GameConfig, highLimit: boolean = false) => {
       const gameIndex = GAMES_CONFIG.findIndex(g => g.id === game.id);
       const unlockLevel = gameIndex === 0 ? 0 : gameIndex * 5 + 1;
-      
-      // Use a fresh reference to player level if available, or ref
+
       const currentLevel = playerRef.current.level;
 
       if (currentLevel < unlockLevel) {
@@ -2124,8 +2125,9 @@ const App: React.FC = () => {
           setCelebrationMsg(`Locked! Unlock at Level ${unlockLevel}`);
           return;
       }
-      
-const currentState: SavedGameState = {
+
+      // Save current slot state before leaving
+      const currentState: SavedGameState = {
           freeSpinsRemaining,
           totalFreeSpins,
           freeSpinsWon,
@@ -2134,45 +2136,49 @@ const currentState: SavedGameState = {
           grid
       };
       setSavedGameStates(prev => ({ ...prev, [selectedGame.id]: currentState }));
-    const modifiedGame = { ...game, rows: 3 };
-    setSelectedGame(modifiedGame);
-      setPlayer(prev => {
-          const newRecent = [game.id, ...((prev.stats?.recentSlots as string[]) || []).filter((id: string) => id !== game.id)].slice(0, 5);
-          return { ...prev, stats: { ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }), recentSlots: newRecent } };
-      });
-      setIsHighLimit(highLimit);
-      // Restore per-slot saved bet
-      const savedBetStr = localStorage.getItem('cw_bet_' + game.id);
-      if (savedBetStr) {
-          const savedBetVal = Number(savedBetStr);
-          const currentAllowed = ALL_BETS.filter(b => b <= MAX_BET_BY_LEVEL(player.level)).slice(-15);
-          let closest = 0, minD = Infinity;
-          currentAllowed.forEach((b, i) => { const d = Math.abs(b - savedBetVal); if (d < minD) { minD = d; closest = i; } });
-          setBetIndex(closest);
-      }
-      setCurrentView('GAME');
-      // Ensure we close any unlock modals when entering a game
-      setActiveModal('NONE');
-      setStatus(GameStatus.IDLE);
-      const savedState = savedGameStates[game.id];
-      if (savedState) {
-          setFreeSpinsRemaining(savedState.freeSpinsRemaining);
-          setTotalFreeSpins(savedState.totalFreeSpins);
-          setFreeSpinsWon(savedState.freeSpinsWon);
-          setFreeSpinTotalWin(savedState.freeSpinTotalWin);
-          setSpinsWithoutBonus(savedState.spinsWithoutBonus);
-          setGrid(savedState.grid);
-          setWinData(null); 
-      } else {
-          setFreeSpinsRemaining(0);
-          setTotalFreeSpins(0);
-          setFreeSpinsWon(0);
-          setFreeSpinTotalWin(0);
-          setSpinsWithoutBonus(0);
-          setGrid(Array(game.reels).fill(null).map(() => Array(3).fill(SymbolType.SEVEN)));
-          setWinData(null);
-      }
-      setTargetGrid([]); 
+
+      // Show loading screen immediately, then set up the game
+      setGameLoadingConfig(game);
+      setTimeout(() => {
+          const modifiedGame = { ...game, rows: 3 };
+          setSelectedGame(modifiedGame);
+          setPlayer(prev => {
+              const newRecent = [game.id, ...((prev.stats?.recentSlots as string[]) || []).filter((id: string) => id !== game.id)].slice(0, 5);
+              return { ...prev, stats: { ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }), recentSlots: newRecent } };
+          });
+          setIsHighLimit(highLimit);
+          const savedBetStr = localStorage.getItem('cw_bet_' + game.id);
+          if (savedBetStr) {
+              const savedBetVal = Number(savedBetStr);
+              const currentAllowed = ALL_BETS.filter(b => b <= MAX_BET_BY_LEVEL(playerRef.current.level)).slice(-15);
+              let closest = 0, minD = Infinity;
+              currentAllowed.forEach((b, i) => { const d = Math.abs(b - savedBetVal); if (d < minD) { minD = d; closest = i; } });
+              setBetIndex(closest);
+          }
+          setCurrentView('GAME');
+          setActiveModal('NONE');
+          setStatus(GameStatus.IDLE);
+          const savedState = savedGameStates[game.id];
+          if (savedState) {
+              setFreeSpinsRemaining(savedState.freeSpinsRemaining);
+              setTotalFreeSpins(savedState.totalFreeSpins);
+              setFreeSpinsWon(savedState.freeSpinsWon);
+              setFreeSpinTotalWin(savedState.freeSpinTotalWin);
+              setSpinsWithoutBonus(savedState.spinsWithoutBonus);
+              setGrid(savedState.grid);
+              setWinData(null);
+          } else {
+              setFreeSpinsRemaining(0);
+              setTotalFreeSpins(0);
+              setFreeSpinsWon(0);
+              setFreeSpinTotalWin(0);
+              setSpinsWithoutBonus(0);
+              setGrid(Array(game.reels).fill(null).map(() => Array(3).fill(SymbolType.SEVEN)));
+              setWinData(null);
+          }
+          setTargetGrid([]);
+          setGameLoadingConfig(null);
+      }, 700);
   };
 
   const handleStartFreeSpins = () => {
@@ -2726,7 +2732,7 @@ const currentState: SavedGameState = {
           </div>
       )}
 
-    <ShopModal isOpen={activeModal === 'SHOP'} onClose={() => {
+    {activeModal === 'SHOP' && <ShopModal isOpen onClose={() => {
         setActiveModal('NONE');
         if (cardModalReturnTab) {
             const tab = cardModalReturnTab;
@@ -2736,21 +2742,21 @@ const currentState: SavedGameState = {
                 setActiveModal('COLLECTION');
             }, 50);
         }
-    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} />
-      
-      <CardCollectionModal
-          isOpen={activeModal === 'COLLECTION'}
+    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} />}
+
+      {activeModal === 'COLLECTION' && <CardCollectionModal
+          isOpen
           onClose={() => setActiveModal('NONE')}
           onOpenShop={openShopFromCards}
           initialTab={cardInitialTab}
           decks={decks}
-          onClaimDeckReward={handleClaimDeckReward} 
+          onClaimDeckReward={handleClaimDeckReward}
           onBuyPack={handleBuyPack}
           onBuyCredits={handleBuyPackCredits}
           onBuyCreditsWithTokens={handleBuyPackCreditsWithTokens}
-          diamonds={player.diamonds} 
-          playerLevel={player.level} 
-          tokens={player.tokens} 
+          diamonds={player.diamonds}
+          playerLevel={player.level}
+          tokens={player.tokens}
           packCredits={player.packCredits}
           premiumPackCredits={player.premiumPackCredits ?? 0}
           onBuyPremiumCredits={handleBuyPremiumPackCredits}
@@ -2769,10 +2775,10 @@ const currentState: SavedGameState = {
           getDeckReward={(id) => getDeckReward(id, player.level)}
           balance={player.balance}
           maxBet={MAX_BET_BY_LEVEL(player.level)}
-      />
+      />}
 
-      <MiniGameModal
-        isOpen={activeModal === 'MINIGAME'}
+      {activeModal === 'MINIGAME' && <MiniGameModal
+        isOpen
         diceCredits={quest.diceCredits}
         wildCredits={quest.wildCredits}
         wildStage={quest.wildStage}
@@ -2786,17 +2792,17 @@ const currentState: SavedGameState = {
         onBuyPicks={handleBuyPicks}
         onBuyQuestBundle={handleBuyQuestBundle}
         onPickTile={handleMiniGamePick}
-        onBatchPick={handleBatchPick} 
-        onStageComplete={(bonusCoins, bonusDiamonds) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds)} 
-        onGridUpdate={handleWildGridUpdate} // Update grid
+        onBatchPick={handleBatchPick}
+        onStageComplete={(bonusCoins, bonusDiamonds) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds)}
+        onGridUpdate={handleWildGridUpdate}
         onDiceRoll={handleDiceRoll}
         onClose={() => setActiveModal('NONE')}
         playerLevel={player.level}
         maxBet={MAX_BET_BY_LEVEL(player.level)}
-      />
-      
-      <MissionPassModal
-          isOpen={activeModal === 'MISSIONS'}
+      />}
+
+      {activeModal === 'MISSIONS' && <MissionPassModal
+          isOpen
           initialView={missionInitialView}
           onClose={() => setActiveModal('NONE')}
           missionState={missionState}
@@ -2810,7 +2816,7 @@ const currentState: SavedGameState = {
           onClaimAll={handleClaimAllMissions}
           playerLevel={player.level}
           maxBet={MAX_BET_BY_LEVEL(player.level)}
-      />
+      />}
       
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus} />
       
@@ -2829,6 +2835,8 @@ const currentState: SavedGameState = {
         }} 
         onClose={() => setActiveModal('NONE')} 
       />
+
+      {gameLoadingConfig && <SlotLoadingScreen game={gameLoadingConfig} />}
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
       {showWinPopup && <WinPopup amount={winData?.payout || 0} type={winData?.winType || ''} onComplete={handleWinPopupComplete} />}

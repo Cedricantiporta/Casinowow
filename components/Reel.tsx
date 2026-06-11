@@ -197,7 +197,7 @@ const ReelCell: React.FC<{
     isScatterShowcase?: boolean,
     theme: GameTheme,
     isLastCell: boolean,
-}> = ({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell }) => {
+}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell }) => {
 
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
@@ -318,4 +318,4 @@ const ReelCell: React.FC<{
             </div>
         </div>
     );
-}
+});
