@@ -266,6 +266,7 @@ const App: React.FC = () => {
   const [cascadeGrid, setCascadeGrid] = useState<SymbolType[][] | null>(null);
   const [cascadeNewCells, setCascadeNewCells] = useState<boolean[][] | null>(null);
   const [cascadeDissolving, setCascadeDissolving] = useState(false);
+  const [reelTransitioning, setReelTransitioning] = useState<false | 'out' | 'in'>(false);
   const runCascadeRef = useRef<(g: SymbolType[][], m: number, acc: number, wc: {col:number,row:number}[]) => void>();
 
   // Dragon's Fortune Pick-and-Win state
@@ -1647,8 +1648,9 @@ const App: React.FC = () => {
 
   const spin = useCallback(() => {
     if (status !== GameStatus.IDLE && status !== GameStatus.FREE_SPIN_INTRO) return;
-    if (activeModal !== 'NONE') return; 
+    if (activeModal !== 'NONE') return;
     if (showFreeSpinsPopup) return;
+    if (dragonPotShaking || showDragonTriggerPopup) return;
 
     const currentBet = availableBets[betIndex];
     const isFreeSpin = freeSpinsRemaining > 0;
@@ -1919,6 +1921,7 @@ const App: React.FC = () => {
                     dragonPickBonusMultRef.current = 0;
                     setTimeout(() => {
                         setDragonPotShaking(true);
+                        setInstantStop(true);
                         audioService.playScatterTrigger();
                         setTimeout(() => {
                             setDragonPotShaking(false);
@@ -2291,7 +2294,12 @@ const App: React.FC = () => {
 
   const handleWinPopupComplete = () => {
       setShowWinPopup(false);
-      setStatus(GameStatus.IDLE);
+      // If free spins just ended, show summary immediately rather than going through IDLE
+      if (freeSpinsWon > 0 && freeSpinsRemaining === 0) {
+          setShowFreeSpinSummary(true);
+      } else {
+          setStatus(GameStatus.IDLE);
+      }
   };
 
   const startHwCounting = (finalLockedGrid: boolean[][], finalCoinValues: number[][], finalJpGrid: (string|null)[][], isFull: boolean, currentBet: number) => {
@@ -2570,9 +2578,17 @@ const App: React.FC = () => {
 
   const handleStartFreeSpins = () => {
       setShowFreeSpinsPopup(false);
-      setFreeSpinsRemaining(prev => prev + freeSpinsWon);
-      savedFastSpinRef.current = fastSpin;
-      setStatus(GameStatus.IDLE);
+      setReelTransitioning('out');
+      setTimeout(() => {
+          setFreeSpinsRemaining(prev => prev + freeSpinsWon);
+          savedFastSpinRef.current = fastSpin;
+          setStatus(GameStatus.IDLE);
+          // Double rAF ensures browser paints the new free-spin reel state before fading in
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+              setReelTransitioning('in');
+              setTimeout(() => setReelTransitioning(false), 500);
+          }));
+      }, 380);
   };
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
@@ -2930,7 +2946,7 @@ const App: React.FC = () => {
                 <div className="w-full z-10 p-0 m-0">
                     {selectedGame.theme === 'ARCTIC' ? (
                         <ArcticMultiplierBar
-                            mults={freeSpinsRemaining > 0 ? [5,10,20,50,100] : [2,3,4,5,6]}
+                            mults={freeSpinsRemaining > 0 ? [2,5,10,15,20] : [2,3,4,5,6]}
                             stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
                             isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
                         />
@@ -2949,6 +2965,7 @@ const App: React.FC = () => {
                             ${selectedGame.theme === 'CANDY'   ? 'rounded-lg border-[3px] border-pink-300' : ''}
                             ${!['EGYPT','WESTERN','SPACE','CANDY'].includes(selectedGame.theme) ? 'rounded-xl' : ''}
                             ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}
+                            ${reelTransitioning === 'out' ? 'animate-reel-out' : reelTransitioning === 'in' ? 'animate-reel-in' : ''}
                         `}
                         style={{ aspectRatio: `${selectedGame.reels}/${selectedGame.rows}` }}
                     >

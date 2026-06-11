@@ -68,6 +68,8 @@
               'pot-shake': 'potShake 0.5s ease-in-out infinite',
               'vibrate': 'vibrate 0.08s linear infinite',
               'coin-absorb': 'coinAbsorb 0.55s ease-in forwards',
+              'reel-out': 'reelOut 0.35s ease-in forwards',
+              'reel-in': 'reelIn 0.45s cubic-bezier(0.2,1.2,0.4,1) forwards',
             },
             keyframes: {
               spinReel: {
@@ -141,6 +143,14 @@
                 '0%':   { transform: 'translate(0,0) scale(1)', opacity: '1' },
                 '60%':  { transform: 'translate(8px,-6px) scale(0.5)', opacity: '0.8' },
                 '100%': { transform: 'translate(12px,-10px) scale(0)', opacity: '0' },
+              },
+              reelOut: {
+                '0%':   { opacity: '1', transform: 'scale(1)' },
+                '100%': { opacity: '0', transform: 'scale(0.88)' },
+              },
+              reelIn: {
+                '0%':   { opacity: '0', transform: 'scale(0.88)' },
+                '100%': { opacity: '1', transform: 'scale(1)' },
               },
             }
           },
