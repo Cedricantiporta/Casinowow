@@ -31,8 +31,8 @@ interface MiniGameModalProps {
 
 // Grid grows every 5 stages: 3 (1-5), 4 (6-10), 5 (11-15), 6 (16+)
 const getGridSize = (stage: number) => Math.min(Math.floor((stage - 1) / 5) + 3, 6);
-// Gems in grid: 1 at stage 1, +1 every 5 stages, max 5
-const getGemCount = (stage: number) => Math.min(Math.floor(stage / 5) + 1, 5);
+// Picks needed to open before the hidden gem appears: 2 at stage 1, +1 every 3 stages, max 12
+const getGemRequirement = (stage: number) => Math.min(Math.floor((stage - 1) / 3) + 2, 12);
 const GEM_COST = 100;
 
 interface BoardStep {
@@ -108,17 +108,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const initGrid = useCallback(() => {
         const cells: WildGridCell[] = Array(totalCells).fill(null).map(() => ({ revealed: false, content: 'BLANK' as const }));
-        // Place gems (scales with stage: 1 at stage 1, +1 every 5 stages, max 5)
-        const gemCount = getGemCount(wildStage);
-        const gemIndices = new Set<number>();
-        while (gemIndices.size < Math.min(gemCount, totalCells)) {
-            gemIndices.add(Math.floor(Math.random() * totalCells));
-        }
-        gemIndices.forEach(gi => { cells[gi] = { revealed: false, content: 'GEM' }; });
         // Rock distribution: 30% blank, 40% coins (50% reduced), 20% picks, 10% diamonds
+        // No gem is placed at init — it appears dynamically after enough rocks are opened
         const baseCoin = (maxBet || 10000) * wildStage * 0.25;
         for (let i = 0; i < totalCells; i++) {
-            if (gemIndices.has(i)) continue;
             const r = Math.random();
             if (r < 0.30) {
                 // stays BLANK
@@ -141,6 +134,21 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         setGrid(cells);
         if (onGridUpdate) onGridUpdate(cells);
     }, [wildStage, totalCells, maxBet, onGridUpdate]);
+
+    // Place gem on a random unrevealed blank/reward tile once enough rocks have been opened
+    const checkAndPlaceGem = useCallback((currentGrid: WildGridCell[]): WildGridCell[] => {
+        if (currentGrid.some(c => c.content === 'GEM')) return currentGrid;
+        const revealed = currentGrid.filter(c => c.revealed).length;
+        if (revealed < getGemRequirement(wildStage)) return currentGrid;
+        const candidates = currentGrid
+            .map((c, i) => (!c.revealed && (c.content === 'BLANK' || c.content === 'REWARD')) ? i : -1)
+            .filter(i => i !== -1);
+        if (candidates.length === 0) return currentGrid;
+        const pick = candidates[Math.floor(Math.random() * candidates.length)];
+        const next = [...currentGrid];
+        next[pick] = { revealed: false, content: 'GEM' };
+        return next;
+    }, [wildStage]);
 
     const initBoard = useCallback(() => {
         const newBoard: BoardStep[] = [];
@@ -287,8 +295,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     if (finalGrid[ni].content === 'GEM') gemFoundFromBomb = true;
                     else if (finalGrid[ni].content === 'REWARD' && finalGrid[ni].reward) surroundingRewards.push(finalGrid[ni].reward!);
                 }
-                setGrid(finalGrid);
-                if (onGridUpdate) onGridUpdate(finalGrid);
+                const finalGridWithGem = gemFoundFromBomb ? finalGrid : checkAndPlaceGem(finalGrid);
+                setGrid(finalGridWithGem);
+                if (onGridUpdate) onGridUpdate(finalGridWithGem);
                 onBatchPick(1, surroundingRewards);
                 if (gemFoundFromBomb) {
                     setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
@@ -298,8 +307,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             return;
         }
 
-        setGrid(newGrid);
-        if (onGridUpdate) onGridUpdate(newGrid);
+        const gridAfterGem = cell.content === 'GEM' ? newGrid : checkAndPlaceGem(newGrid);
+        setGrid(gridAfterGem);
+        if (onGridUpdate) onGridUpdate(gridAfterGem);
         if (cell.content === 'GEM') {
             audioService.playGemFound();
             setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
@@ -331,8 +341,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             if (newGrid[idx].content === 'GEM') { gemFound = true; break; }
             else if (newGrid[idx].content === 'REWARD' && newGrid[idx].reward) rewards.push(newGrid[idx].reward!);
         }
-        setGrid(newGrid);
-        if (onGridUpdate) onGridUpdate(newGrid);
+        const autoGrid = gemFound ? newGrid : checkAndPlaceGem(newGrid);
+        setGrid(autoGrid);
+        if (onGridUpdate) onGridUpdate(autoGrid);
         if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
@@ -585,8 +596,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     <div className="flex-1 flex overflow-hidden p-2">
                         <div ref={boardContainerRef} className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-1.5 py-2">
                             {(() => {
-                                const MAIN = 9;
-                                const SEG = 10;
+                                // 8 main tiles per row + 1 bridge = 9 per segment
+                                // Layout: 12-column CSS grid, tiles in cols 3-10, bridge at col 10 (even) or col 3 (odd)
+                                const MAIN = 8;
+                                const SEG = 9;
                                 const numSegs = Math.ceil(board.length / SEG);
                                 const segments = Array.from({ length: numSegs }, (_, si) => ({
                                     si,
@@ -617,33 +630,34 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     return (
                                         <div key={step.index}
                                             data-active={isHere ? 'true' : undefined}
-                                            className={`relative shrink-0 flex flex-col items-center justify-center rounded-lg${isBuffed ? ' animate-pulse' : ''}`}
+                                            className={`relative flex flex-col items-center justify-center rounded-lg${isBuffed ? ' animate-pulse' : ''}`}
                                             style={{
-                                                width: 54, height: 54,
+                                                aspectRatio: '1',
                                                 background: bg,
+                                                overflow: 'hidden',
                                                 boxShadow: isHere ? '0 0 0 2px #fde68a, 0 4px 12px rgba(0,0,0,0.5)'
                                                     : isBuffed ? '0 0 10px #fbbf24, 0 0 20px rgba(251,191,36,0.5), 0 3px 0 rgba(0,0,0,0.4)'
                                                     : isFiveX ? '0 0 8px #fbbf24, 0 3px 0 rgba(0,0,0,0.4)'
-                                                    : '0 3px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
+                                                    : '0 2px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
                                                 border: isHere ? '2px solid #fde68a' : (isBuffed || isFiveX) ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.1)',
-                                                transition: 'all 0.25s',
-                                                transform: isHere ? 'scale(1.1)' : 'scale(1)',
+                                                transition: 'all 0.2s',
+                                                transform: isHere ? 'scale(1.08)' : 'scale(1)',
                                             }}>
-                                            <span className="absolute top-0.5 left-1 text-[7px] font-black text-white/40 leading-none">
-                                                {step.isStart ? 'GO' : step.isFinish ? '' : `${step.index}`}
+                                            <span className="absolute top-0.5 left-0.5 font-black text-white/30 leading-none" style={{ fontSize: 'clamp(5px,1vw,7px)' }}>
+                                                {step.isStart ? '' : step.isFinish ? '' : step.index}
                                             </span>
                                             {isHere && (
-                                                <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-                                                    <span style={{ fontSize: '0.95rem', lineHeight: 1 }}>🎲</span>
+                                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+                                                    <span style={{ fontSize: 'clamp(10px,2vw,14px)', lineHeight: 1 }}>🎲</span>
                                                 </div>
                                             )}
                                             {step.isStart ? (
-                                                <span className="text-[9px] font-black text-white">START</span>
+                                                <span style={{ fontSize: 'clamp(6px,1.5vw,9px)', fontWeight: 900, color: 'white', lineHeight: 1 }}>START</span>
                                             ) : cellIcon ? (
-                                                <div className="flex flex-col items-center gap-0.5">
-                                                    <span style={{ fontSize: '1.1rem', lineHeight: 1 }}>{cellIcon}</span>
+                                                <div className="flex flex-col items-center" style={{ gap: 1 }}>
+                                                    <span style={{ fontSize: 'clamp(12px,2.5vw,18px)', lineHeight: 1 }}>{cellIcon}</span>
                                                     {step.reward?.label && step.reward.type !== 'BACK' && (
-                                                        <span className="text-white font-black text-[8px] leading-none text-center px-0.5 truncate max-w-[50px]">{step.reward.label}</span>
+                                                        <span style={{ fontSize: 'clamp(5px,1.2vw,8px)', fontWeight: 900, color: 'white', lineHeight: 1, textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.reward.label}</span>
                                                     )}
                                                 </div>
                                             ) : null}
@@ -652,13 +666,20 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 };
                                 return [...segments].reverse().map(({ si, main, bridge }) => {
                                     const isEven = si % 2 === 0;
-                                    // Merge bridge into the same row — appending to the array and letting
-                                    // row-reverse handle visual order, so bridge always ends up at the
-                                    // far edge (right for even, left for odd) with no extra gap div.
-                                    const rowTiles = bridge ? [...main, bridge] : main;
+                                    // Single 12-column CSS grid per segment: cols 1-2 blank, cols 3-10 for 8 main tiles, cols 11-12 blank
+                                    // Bridge (9th tile) sits at col 10 (even) or col 3 (odd) in row 1 — directly above the corner main tile in row 2
                                     return (
-                                        <div key={si} className="flex gap-1" style={{ flexDirection: isEven ? 'row' : 'row-reverse' }}>
-                                            {rowTiles.map(step => renderCell(step))}
+                                        <div key={si} style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 3 }}>
+                                            {bridge && (
+                                                <div style={{ gridColumn: isEven ? 10 : 3, gridRow: 1, minWidth: 0 }}>
+                                                    {renderCell(bridge)}
+                                                </div>
+                                            )}
+                                            {main.map((step, idx) => (
+                                                <div key={step.index} style={{ gridColumn: isEven ? 3 + idx : 10 - idx, gridRow: bridge ? 2 : 1, minWidth: 0 }}>
+                                                    {renderCell(step)}
+                                                </div>
+                                            ))}
                                         </div>
                                     );
                                 });
