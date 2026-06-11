@@ -312,14 +312,7 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
 
   // Letter/number cells: 3D text effect, transparent bg. Three tiers:
   //  10, J = plain white 3D  |  Q, K = purple 3D  |  A = amber/gold 3D (color-coded)
-  const isArctic = theme === 'ARCTIC';
-  const LTR = isArctic ? {
-    TEN:   { style: `text-sky-100 font-black ${themeFont}`,        bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-sky-400/30 shadow-[0_0_50px_rgba(56,189,248,0.8)] border-sky-300/60' },
-    JACK:  { style: `text-sky-100 font-black ${themeFont}`,        bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-sky-400/30 shadow-[0_0_50px_rgba(56,189,248,0.8)] border-sky-300/60' },
-    QUEEN: { style: `text-teal-100 font-black ${themeFont}`,       bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-teal-400/30 shadow-[0_0_50px_rgba(45,212,191,0.9)] border-teal-300/60' },
-    KING:  { style: `text-teal-100 font-black ${themeFont}`,       bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-teal-400/30 shadow-[0_0_50px_rgba(45,212,191,0.9)] border-teal-300/60' },
-    ACE:   { style: `text-yellow-200 font-black ${themeFont}`,     bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
-  } : {
+  const LTR = {
     TEN:   { style: `text-white font-black ${themeFont}`,        bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
     JACK:  { style: `text-white font-black ${themeFont}`,        bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-white/20 shadow-[0_0_50px_rgba(255,255,255,0.8)] border-white/50' },
     QUEEN: { style: `text-violet-200 font-black ${themeFont}`,   bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-violet-500/40 shadow-[0_0_50px_rgba(139,92,246,0.9)] border-violet-300/60' },
@@ -327,17 +320,12 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
     ACE:   { style: `text-yellow-200 font-black ${themeFont}`,   bg: TILE_BGS.TRANSPARENT, highlightClass: 'bg-amber-400/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60' },
   };
 
-  // Arctic letter values are boosted so normal payline wins are meaningful
-  const ltrValues = isArctic
-    ? { TEN: 1, JACK: 1.5, QUEEN: 2.5, KING: 4, ACE: 6 }
-    : { TEN: 0.5, JACK: 0.75, QUEEN: 1, KING: 1.5, ACE: 2 };
-
   return {
-    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: icons.TEN,   value: ltrValues.TEN,   ...LTR.TEN },
-    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: icons.JACK,  value: ltrValues.JACK,  ...LTR.JACK },
-    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: icons.QUEEN, value: ltrValues.QUEEN, ...LTR.QUEEN },
-    [SymbolType.KING]:  { type: SymbolType.KING,  icon: icons.KING,  value: ltrValues.KING,  ...LTR.KING },
-    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: icons.ACE,   value: ltrValues.ACE,   ...LTR.ACE },
+    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: icons.TEN,   value: 0.5,  ...LTR.TEN },
+    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: icons.JACK,  value: 0.75, ...LTR.JACK },
+    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: icons.QUEEN, value: 1,    ...LTR.QUEEN },
+    [SymbolType.KING]:  { type: SymbolType.KING,  icon: icons.KING,  value: 1.5,  ...LTR.KING },
+    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: icons.ACE,   value: 2,    ...LTR.ACE },
     [SymbolType.GRAPE]:   { type: SymbolType.GRAPE,   icon: icons.GRAPE, value: 2.5,  style: 'text-emerald-100 drop-shadow-md', bg: TILE_BGS.GREEN, highlightClass: 'bg-emerald-600/40 shadow-[0_0_50px_rgba(5,150,105,0.8)] border-emerald-400/50' }, 
     [SymbolType.BELL]:    { type: SymbolType.BELL,    icon: icons.BELL, value: 4.5,  style: 'text-blue-100 drop-shadow-[0_0_5px_#3b82f6]', bg: TILE_BGS.BLUE, highlightClass: 'bg-blue-600/40 shadow-[0_0_50px_rgba(37,99,235,0.8)] border-blue-400/50' }, 
     [SymbolType.BAR]:     { type: SymbolType.BAR,     icon: icons.BAR, value: 7.5,  style: 'text-purple-100 drop-shadow-[0_0_5px_#a855f7]', bg: TILE_BGS.PURPLE, highlightClass: 'bg-purple-600/40 shadow-[0_0_50px_rgba(147,51,234,0.8)] border-purple-400/50' }, 

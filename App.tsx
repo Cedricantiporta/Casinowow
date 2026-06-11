@@ -1509,6 +1509,19 @@ const App: React.FC = () => {
           }
       }
 
+      // NEON: no letter (10/J/Q/K/A) symbols — replace with non-letter randoms
+      const LETTER_SYMS = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE];
+      const NON_LETTER_SYMS = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN];
+      if (selectedGame.theme === 'NEON') {
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  if (LETTER_SYMS.includes(newGrid[c][r])) {
+                      newGrid[c][r] = NON_LETTER_SYMS[Math.floor(Math.random() * NON_LETTER_SYMS.length)];
+                  }
+              }
+          }
+      }
+
       // ARCTIC: no jackpot or coin symbols — replace them with regular symbols
       // Then 10% chance to spawn a single wild on column 2, 3, or 4 (1-indexed)
       if (selectedGame.theme === 'ARCTIC') {
@@ -3089,8 +3102,8 @@ const App: React.FC = () => {
                                                                 {jpTier}
                                                             </span>
                                                         ) : val ? (
-                                                            <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#fbbf24', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 8px rgba(0,0,0,0.9)', lineHeight: 1, position: 'absolute', bottom: 3 }}>
-                                                                +{formatK(val)}
+                                                            <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
+                                                                {formatK(val)}
                                                             </span>
                                                         ) : null
                                                     ) : null}
