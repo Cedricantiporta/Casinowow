@@ -2057,6 +2057,25 @@ const App: React.FC = () => {
             const effectiveFastSpin = fastSpin;
             setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
         }
+        // Per-spin drops for Arctic (same logic as normal slots)
+        const arcticMaxBetIdx = availableBets.length - 1;
+        const arcticQuestChance = Math.max(0.01, 0.20 - (arcticMaxBetIdx - betIndex) * 0.02);
+        if (player.level >= 20 && Math.random() < arcticQuestChance) {
+            if (Math.random() < 0.5) {
+                setQuest(q => ({ ...q, diceCredits: q.diceCredits + 1 }));
+            } else {
+                setQuest(q => ({ ...q, wildCredits: q.wildCredits + 1 }));
+            }
+        }
+        const arcticPackDropChance = Math.max(0.007, (0.20 - (arcticMaxBetIdx - betIndex) * 0.02) * 0.7);
+        if (player.level >= 30 && Math.random() < arcticPackDropChance) {
+            setPlayer(p => ({ ...p, packCredits: p.packCredits + 1 }));
+            showToast({ type: 'PACK' });
+        } else if (player.level >= 30) {
+            const cardRoll = Math.random();
+            if (cardRoll < 0.07) handleCardDrop('RARE');
+            else if (cardRoll < 0.21) handleCardDrop('COMMON');
+        }
         return;
     }
 
@@ -3423,7 +3442,17 @@ const App: React.FC = () => {
                       JACKPOT PICK<br />TRIGGERED!
                   </div>
                   <button
-                      onClick={() => { setShowDragonTriggerPopup(false); setShowDragonPickModal(true); }}
+                      onClick={() => {
+                          setShowDragonTriggerPopup(false);
+                          setReelTransitioning('out');
+                          setTimeout(() => {
+                              setShowDragonPickModal(true);
+                              requestAnimationFrame(() => requestAnimationFrame(() => {
+                                  setReelTransitioning('in');
+                                  setTimeout(() => setReelTransitioning(false), 1100);
+                              }));
+                          }, 900);
+                      }}
                       className="font-black uppercase tracking-widest rounded-xl px-6 py-2.5"
                       style={{ background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#1a0000', fontSize: 'clamp(12px,2.2vw,16px)', boxShadow: '0 4px 18px rgba(251,191,36,0.6)' }}
                   >LET'S GO!</button>

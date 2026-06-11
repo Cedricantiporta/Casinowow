@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { formatCommaNumber, formatNumber } from '../constants';
+import { formatK } from '../constants';
 
 interface FreeSpinSummaryProps {
     isOpen: boolean;
@@ -12,7 +12,7 @@ export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalW
 
     useEffect(() => {
         if (isOpen) {
-            const timer = setTimeout(() => { onClose(); }, 3000);
+            const timer = setTimeout(() => { onClose(); }, 5000);
             return () => clearTimeout(timer);
         }
     }, [isOpen, onClose]);
@@ -38,7 +38,7 @@ export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalW
                     <div className="rounded-xl p-3 mb-4 w-full shadow-inner relative z-10 flex items-center justify-center"
                         style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div className="text-white text-3xl font-mono font-black tracking-tighter whitespace-nowrap drop-shadow">
-                            {totalWin > 10000000000 ? formatNumber(totalWin) : formatCommaNumber(totalWin)}
+                            {formatK(totalWin)}
                         </div>
                     </div>
 
