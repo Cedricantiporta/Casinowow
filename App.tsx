@@ -30,7 +30,7 @@ import { SlotLoadingScreen } from './components/SlotLoadingScreen';
 import { PremiumModal } from './components/PremiumModal';
 import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
-import { DragonPickModal } from './components/DragonPickModal';
+import { DragonPickGrid } from './components/DragonPickModal';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -238,7 +238,9 @@ const App: React.FC = () => {
 
   // Dragon's Fortune Pick-and-Win state
   const [showDragonPickModal, setShowDragonPickModal] = useState(false);
+  const [showDragonTriggerPopup, setShowDragonTriggerPopup] = useState(false);
   const [dragonPotShaking, setDragonPotShaking] = useState(false);
+  const [dragonCoinAbsorbing, setDragonCoinAbsorbing] = useState(false);
   const dragonPickSpinsRef = useRef(0);
   const dragonPickBonusMultRef = useRef(0); // accumulated +5% per 100 spins
 
@@ -1095,11 +1097,11 @@ const App: React.FC = () => {
 
   const rollHoldWinJackpot = (): string | null => {
       const r = Math.random();
-      if (r < 0.00125) return 'GRAND';   // 0.125%
-      if (r < 0.00375) return 'MEGA';    // 0.25%
-      if (r < 0.01375) return 'MAJOR';   // 1%
-      if (r < 0.03125) return 'MINOR';   // 1.75%
-      if (r < 0.05625) return 'MINI';    // 2.5%
+      if (r < 0.001)  return 'GRAND';   // 0.1% (1% of jackpot ~10% chance)
+      if (r < 0.011)  return 'MEGA';    // 1% (10% of jackpot ~10% chance)
+      if (r < 0.031)  return 'MAJOR';   // 2%
+      if (r < 0.061)  return 'MINOR';   // 3%
+      if (r < 0.111)  return 'MINI';    // 5%
       return null;
   };
 
@@ -1208,9 +1210,9 @@ const App: React.FC = () => {
       // EGYPT Hold and Win: generate respin grid keeping locked cells as COIN
       if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
           const lockedGrid = holdWinRef.current.lockedGrid;
-          // Base 60% chance any coins appear; decreases 12% for each non-productive respin
+          // Base 50% chance any coins appear; decreases 15% for each non-productive respin (last slot ~1%)
           const respinsUsed = 3 - holdWinRef.current.respins; // 0 on first respin, 1 on second, etc.
-          const baseCoinChance = Math.max(0, 0.60 - respinsUsed * 0.12);
+          const baseCoinChance = respinsUsed >= 2 ? 0.01 : Math.max(0, 0.50 - respinsUsed * 0.15);
 
           // Collect empty cell positions
           const emptyCells: {c: number, r: number}[] = [];
@@ -1224,7 +1226,7 @@ const App: React.FC = () => {
           const coinCellKeys = new Set<number>();
           if (emptyCells.length > 0 && Math.random() < baseCoinChance) {
               const cr = Math.random();
-              const count = cr < 0.632 ? 1 : cr < 0.948 ? 2 : 3; // 60% / 30% / 5% (normalized to 95%)
+              const count = cr < 0.60 ? 1 : cr < 0.90 ? 2 : 3; // ~30% 1-coin, ~15% 2-coin, ~5% 3-coin (of baseCoinChance)
               const shuffled = [...emptyCells].sort(() => Math.random() - 0.5);
               for (let i = 0; i < Math.min(count, shuffled.length); i++) {
                   coinCellKeys.add(shuffled[i].c * rows + shuffled[i].r);
@@ -1851,7 +1853,11 @@ const App: React.FC = () => {
             }
         }
 
-        // DRAGON: count normal spins for Pick-and-Win trigger
+        // DRAGON: coin absorb animation + count spins for Pick-and-Win trigger
+        if (selectedGame.theme === 'DRAGON') {
+            setDragonCoinAbsorbing(true);
+            setTimeout(() => setDragonCoinAbsorbing(false), 600);
+        }
         if (selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0) {
             dragonPickSpinsRef.current++;
             const spins = dragonPickSpinsRef.current;
@@ -1865,8 +1871,8 @@ const App: React.FC = () => {
                         setDragonPotShaking(true);
                         setTimeout(() => {
                             setDragonPotShaking(false);
-                            setShowDragonPickModal(true);
-                        }, 3000);
+                            setShowDragonTriggerPopup(true);
+                        }, 1000);
                     }, 400);
                 }
             }
@@ -1928,6 +1934,12 @@ const App: React.FC = () => {
     // ARCTIC: no jackpot logic — start cascade sequence
     if (selectedGame.theme === 'ARCTIC') {
         setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: false, scattersFound: scatterCount, winType: undefined });
+        // Award XP for arctic spins
+        const arcticVipMult = player.isVip ? 1.2 : 1.0;
+        const arcticSpinsAtMax = Math.max(1, player.level * 1.1);
+        const arcticBetFraction = currentBet / MAX_BET_BY_LEVEL(player.level);
+        const arcticXp = Math.floor((player.xpToNextLevel / arcticSpinsAtMax) * arcticBetFraction * player.xpMultiplier * arcticVipMult);
+        addXp(arcticXp);
         if (totalPayout > 0) {
             setPlayer(prev => ({
                 ...prev,
@@ -2094,6 +2106,7 @@ const App: React.FC = () => {
                   setShowLevelUp(true);
                   setMaxBetIncreased(newMax > oldMax);
                   toastCountRef.current += 1;
+                  setTimeout(() => setShowLevelUp(false), 2000);
               }
               updateMissions(MissionType.LEVEL_UP, 1);
               const newMaxBet2 = MAX_BET_BY_LEVEL(newLevel);
@@ -2154,6 +2167,7 @@ const App: React.FC = () => {
                        });
                        setShownUnlocks(prev => new Set(prev).add(slotUnlock.lvl));
                        setActiveModal('FEATURE_UNLOCK');
+                       setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 5000);
                   }
                   else if (justUnlocked(newLevel)) {
                       if (newLevel === 5) {
@@ -2213,6 +2227,7 @@ const App: React.FC = () => {
                           setShownUnlocks(prev => new Set(prev).add(40));
                       }
                       setActiveModal('FEATURE_UNLOCK');
+                      setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 5000);
                   }
               }, 500);
 
@@ -2270,10 +2285,10 @@ const App: React.FC = () => {
               audioService.playWinSmall();
               if (jpTier) {
                   setJackpotWinTier({ name: jpTier, color: JP_COLORS_MAP[jpTier], icon: JP_ICONS_MAP[jpTier], amount: cellValue });
-                  hwCountContinuationRef.current = () => setTimeout(() => countNext(idx + 1), 400);
+                  hwCountContinuationRef.current = () => setTimeout(() => countNext(idx + 1), 200);
                   return;
               }
-              setTimeout(() => countNext(idx + 1), 320);
+              setTimeout(() => countNext(idx + 1), 160);
           };
           countNext(0);
       };
@@ -2283,9 +2298,9 @@ const App: React.FC = () => {
           runningTotal += grandBonus;
           setHwCountingTotal(grandBonus);
           setJackpotWinTier({ name: 'GRAND', color: '#fbbf24', icon: '🏆', amount: grandBonus });
-          hwCountContinuationRef.current = () => setTimeout(beginCounting, 480);
+          hwCountContinuationRef.current = () => setTimeout(beginCounting, 240);
       } else {
-          setTimeout(beginCounting, 640);
+          setTimeout(beginCounting, 320);
       }
   };
 
@@ -2891,39 +2906,6 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
-                    {/* Dragon's Fortune Pick-and-Win pot — left of reel grid */}
-                    {selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0 && (
-                        <div
-                            className={`flex flex-col items-center gap-0.5 px-1.5 py-2 mr-2 rounded-xl self-center shrink-0 ${dragonPotShaking ? 'animate-pot-shake' : ''}`}
-                            style={{
-                                background: 'linear-gradient(160deg,#1a0000,#380000)',
-                                border: `2px solid ${dragonPotShaking ? '#f43f5e' : 'rgba(180,30,0,0.6)'}`,
-                                boxShadow: dragonPotShaking ? '0 0 18px rgba(244,63,94,0.7)' : '0 0 8px rgba(0,0,0,0.8)',
-                                minWidth: 44,
-                                transition: 'border-color 0.3s, box-shadow 0.3s',
-                            }}
-                        >
-                            <span style={{ fontSize: 'clamp(16px,3vw,22px)', lineHeight: 1 }}>🏆</span>
-                            <span style={{ fontSize: 'clamp(6px,1.1vw,8px)', color: '#fde68a', fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', textAlign: 'center', lineHeight: 1.2 }}>
-                                PICK<br />&amp;WIN
-                            </span>
-                            {dragonPotShaking && (
-                                <span style={{ fontSize: 'clamp(14px,2.5vw,18px)', lineHeight: 1 }}>🪙</span>
-                            )}
-                            <div className="flex flex-col items-center gap-0.5 mt-1">
-                                {[10, 20, 30, 40, 50].map((threshold, idx) => {
-                                    const filled = dragonPickSpinsRef.current >= threshold;
-                                    return (
-                                        <div key={idx} className="rounded-full" style={{
-                                            width: 5, height: 5,
-                                            background: filled ? '#fbbf24' : 'rgba(255,255,255,0.15)',
-                                            boxShadow: filled ? '0 0 4px rgba(251,191,36,0.8)' : 'none',
-                                        }} />
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
                     <div
                         className={`relative z-10 bg-black/60 p-1 md:p-1.5 shadow-2xl h-full max-h-full overflow-hidden
                             ${selectedGame.theme === 'PIGGY' ? 'flex gap-2' : 'flex gap-0.5'}
@@ -3030,7 +3012,48 @@ const App: React.FC = () => {
                                 ))}
                             </div>
                         )}
+
+                        {/* Dragon Pick-and-Win grid — renders inside reel container as absolute overlay */}
+                        {showDragonPickModal && selectedGame.theme === 'DRAGON' && (
+                            <DragonPickGrid
+                                jackpotAmounts={jackpotService.getAmounts()}
+                                currentBet={availableBets[betIndex]}
+                                onWin={handleDragonPickWin}
+                                rows={selectedGame.rows}
+                                cols={selectedGame.reels}
+                            />
+                        )}
                     </div>
+
+                    {/* Dragon pot — right of reel grid */}
+                    {selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0 && (
+                        <div className="flex flex-col items-center gap-1 ml-2 self-center shrink-0">
+                            <div className="relative flex items-center justify-center">
+                                <span
+                                    className={dragonPotShaking ? 'animate-vibrate' : ''}
+                                    style={{ fontSize: 'clamp(28px,5vw,42px)', lineHeight: 1, display: 'block' }}
+                                >🏆</span>
+                                {dragonCoinAbsorbing && (
+                                    <span
+                                        className="animate-coin-absorb"
+                                        style={{ position: 'absolute', fontSize: 'clamp(14px,2.5vw,18px)', lineHeight: 1, bottom: '20%', right: '-10px', pointerEvents: 'none' }}
+                                    >🪙</span>
+                                )}
+                            </div>
+                            <div className="flex flex-col items-center gap-0.5">
+                                {[10, 20, 30, 40, 50].map((threshold, idx) => {
+                                    const filled = dragonPickSpinsRef.current >= threshold;
+                                    return (
+                                        <div key={idx} className="rounded-full" style={{
+                                            width: 5, height: 5,
+                                            background: filled ? '#fbbf24' : 'rgba(255,255,255,0.15)',
+                                            boxShadow: filled ? '0 0 4px rgba(251,191,36,0.8)' : 'none',
+                                        }} />
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Egypt HW respin counter — right of reel grid */}
                     {holdWinActive && selectedGame.theme === 'EGYPT' && (
@@ -3157,7 +3180,7 @@ const App: React.FC = () => {
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -3282,12 +3305,22 @@ const App: React.FC = () => {
 
       {gameLoadingConfig && <SlotLoadingScreen game={gameLoadingConfig} />}
 
-      {showDragonPickModal && (
-          <DragonPickModal
-              jackpotAmounts={jackpotService.getAmounts()}
-              currentBet={availableBets[betIndex]}
-              onWin={handleDragonPickWin}
-          />
+      {/* Dragon Trigger Popup */}
+      {showDragonTriggerPopup && (
+          <div className="fixed inset-0 z-[250] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
+              <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
+                  style={{ background: 'linear-gradient(160deg,#1a0000,#380000)', border: '2px solid #fbbf24', boxShadow: '0 0 40px rgba(251,191,36,0.5)', maxWidth: 300, textAlign: 'center' }}>
+                  <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>🏆</span>
+                  <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: '0 0 12px rgba(251,191,36,0.8)' }}>
+                      JACKPOT PICK<br />TRIGGERED!
+                  </div>
+                  <button
+                      onClick={() => { setShowDragonTriggerPopup(false); setShowDragonPickModal(true); }}
+                      className="font-black uppercase tracking-widest rounded-xl px-6 py-2.5"
+                      style={{ background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#1a0000', fontSize: 'clamp(12px,2.2vw,16px)', boxShadow: '0 4px 18px rgba(251,191,36,0.6)' }}
+                  >LET'S GO!</button>
+              </div>
+          </div>
       )}
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
@@ -3422,8 +3455,8 @@ const App: React.FC = () => {
           onToggleFastSpin={() => setFastSpin(f => !f)}
           onRedeem={(code) => {
               if (code === 'dev777') {
-                  setPlayer(p => ({ ...p, level: 50, balance: p.balance + 1_000_000_000_000 }));
-                  setCelebrationMsg('⚡ Level Rush! +1T Coins · Level 50');
+                  setPlayer(p => ({ ...p, level: 50, balance: p.balance + 100_000_000_000 }));
+                  setCelebrationMsg('⚡ Level Rush! +100B Coins · Level 50');
               } else if (code === 'dev999') {
                   setPlayer(p => ({ ...p, balance: p.balance + 100_000_000_000_000 }));
                   setCelebrationMsg('💰 Coin Flood! +100T Coins');

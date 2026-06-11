@@ -66,6 +66,8 @@
               'drop-in': 'dropIn 0.45s cubic-bezier(0.2, 1.2, 0.5, 1) forwards',
               'dissolve-out': 'dissolveOut 0.32s ease-in forwards',
               'pot-shake': 'potShake 0.5s ease-in-out infinite',
+              'vibrate': 'vibrate 0.08s linear infinite',
+              'coin-absorb': 'coinAbsorb 0.55s ease-in forwards',
             },
             keyframes: {
               spinReel: {
@@ -122,6 +124,23 @@
                 '45%':     { transform: 'translateX(-4px) rotate(-3deg)' },
                 '60%':     { transform: 'translateX(4px) rotate(3deg)' },
                 '75%':     { transform: 'translateX(-2px) rotate(-2deg)' },
+              },
+              vibrate: {
+                '0%,100%': { transform: 'translate(0,0) rotate(0deg)' },
+                '10%':     { transform: 'translate(-2px,-1px) rotate(-2deg)' },
+                '20%':     { transform: 'translate(2px,1px) rotate(2deg)' },
+                '30%':     { transform: 'translate(-2px,1px) rotate(-1deg)' },
+                '40%':     { transform: 'translate(2px,-1px) rotate(1deg)' },
+                '50%':     { transform: 'translate(-1px,-2px) rotate(-2deg)' },
+                '60%':     { transform: 'translate(1px,2px) rotate(2deg)' },
+                '70%':     { transform: 'translate(-2px,1px) rotate(-1deg)' },
+                '80%':     { transform: 'translate(2px,-1px) rotate(1deg)' },
+                '90%':     { transform: 'translate(-1px,0px) rotate(0deg)' },
+              },
+              coinAbsorb: {
+                '0%':   { transform: 'translate(0,0) scale(1)', opacity: '1' },
+                '60%':  { transform: 'translate(8px,-6px) scale(0.5)', opacity: '0.8' },
+                '100%': { transform: 'translate(12px,-10px) scale(0)', opacity: '0' },
               },
             }
           },

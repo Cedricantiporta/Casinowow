@@ -379,7 +379,11 @@ export const GET_DYNAMIC_WEIGHTS = (isFreeSpin: boolean, spinsWithoutBonus: numb
     return WEIGHTS;
 };
 
+const PAYLINES_CACHE = new Map<string, Payline[]>();
+
 export const GET_PAYLINES = (rowCount: number, colCount: number = 5): Payline[] => {
+    const key = `${rowCount}x${colCount}`;
+    if (PAYLINES_CACHE.has(key)) return PAYLINES_CACHE.get(key)!;
     const lines: Payline[] = [];
     const fillArr = (val: number) => Array(colCount).fill(val);
     
@@ -412,12 +416,13 @@ export const GET_PAYLINES = (rowCount: number, colCount: number = 5): Payline[] 
     }
     while(lines.length < 50) {
         const indices = Array(colCount).fill(0).map(() => Math.floor(Math.random() * rowCount));
-        lines.push({ 
-            id: lines.length + 1, 
-            indices, 
-            color: '#' + Math.floor(Math.random()*16777215).toString(16) 
+        lines.push({
+            id: lines.length + 1,
+            indices,
+            color: '#' + Math.floor(Math.random()*16777215).toString(16)
         });
     }
+    PAYLINES_CACHE.set(key, lines);
     return lines;
 };
 
