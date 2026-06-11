@@ -221,8 +221,15 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     useEffect(() => {
         if (activeGame === 'DICE' && boardContainerRef.current) {
-            const active = boardContainerRef.current.querySelector('[data-active="true"]') as HTMLElement;
-            if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const container = boardContainerRef.current;
+            const active = container.querySelector('[data-active="true"]') as HTMLElement;
+            if (active && container.offsetHeight > 0) {
+                const containerRect = container.getBoundingClientRect();
+                const activeRect = active.getBoundingClientRect();
+                const relativeTop = activeRect.top - containerRect.top + container.scrollTop;
+                const target = relativeTop - container.offsetHeight / 2 + active.offsetHeight / 2;
+                container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+            }
         }
     }, [visualPosition, activeGame]);
 
@@ -645,17 +652,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 };
                                 return [...segments].reverse().map(({ si, main, bridge }) => {
                                     const isEven = si % 2 === 0;
+                                    // Merge bridge into the same row — appending to the array and letting
+                                    // row-reverse handle visual order, so bridge always ends up at the
+                                    // far edge (right for even, left for odd) with no extra gap div.
+                                    const rowTiles = bridge ? [...main, bridge] : main;
                                     return (
-                                        <React.Fragment key={si}>
-                                            {bridge && (
-                                                <div className="flex" style={{ justifyContent: isEven ? 'flex-end' : 'flex-start' }}>
-                                                    {renderCell(bridge)}
-                                                </div>
-                                            )}
-                                            <div className="flex gap-1" style={{ flexDirection: isEven ? 'row' : 'row-reverse' }}>
-                                                {main.map(step => renderCell(step))}
-                                            </div>
-                                        </React.Fragment>
+                                        <div key={si} className="flex gap-1" style={{ flexDirection: isEven ? 'row' : 'row-reverse' }}>
+                                            {rowTiles.map(step => renderCell(step))}
+                                        </div>
                                     );
                                 });
                             })()}
