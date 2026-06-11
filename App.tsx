@@ -221,6 +221,11 @@ const App: React.FC = () => {
   const [holdWinRespins, setHoldWinRespins] = useState(3);
   const holdWinRef = useRef({ active: false, lockedGrid: [] as boolean[][], coinValues: [] as number[][], jpGrid: [] as (string|null)[][], respins: 3 });
 
+  const [cascadeMultiplier, setCascadeMultiplier] = useState(1);
+  const [cascadeTotalWin, setCascadeTotalWin] = useState(0);
+  const [cascadeGrid, setCascadeGrid] = useState<SymbolType[][] | null>(null);
+  const runCascadeRef = useRef<(g: SymbolType[][], m: number, acc: number, wc: {col:number,row:number}[]) => void>();
+
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
@@ -1082,6 +1087,89 @@ const App: React.FC = () => {
       return null;
   };
 
+  // Cascade: remove winning cells and fill from top with new random symbols
+  const compactGrid = (currentGrid: SymbolType[][], winCells: {col: number, row: number}[]): SymbolType[][] => {
+      return currentGrid.map((col, c) => {
+          const winRows = new Set(winCells.filter(wc => wc.col === c).map(wc => wc.row));
+          const remaining = col.filter((_, r) => !winRows.has(r));
+          const newCount = col.length - remaining.length;
+          const newSyms = Array(newCount).fill(null).map(() => {
+              let sym: SymbolType;
+              do { sym = getRandomSymbol(false, 0); }
+              while (sym === SymbolType.SCATTER || String(sym).startsWith('JACKPOT') || sym === SymbolType.COIN);
+              return sym;
+          });
+          return [...newSyms, ...remaining];
+      });
+  };
+
+  // Pure payline win evaluation (used for cascade steps)
+  const computeGridWins = (finalGrid: SymbolType[][], bet: number): {
+      payout: number; winningLines: number[]; winningCells: {col: number, row: number}[];
+  } => {
+      let totalPayout = 0;
+      const winningLines: number[] = [];
+      const winningCells: {col: number, row: number}[] = [];
+      const currentPaylines = GET_PAYLINES(selectedGame.rows, selectedGame.reels);
+      currentPaylines.forEach(line => {
+          const syms = line.indices.map((row, col) => (finalGrid[col]?.[row]) || SymbolType.TEN);
+          let matchLen = 1, matchSym = syms[0];
+          for (let i = 1; i < syms.length; i++) {
+              const s = syms[i];
+              if (s === matchSym || s === SymbolType.WILD || matchSym === SymbolType.WILD) {
+                  if (matchSym === SymbolType.WILD && s !== SymbolType.WILD) matchSym = s;
+                  matchLen++;
+              } else break;
+          }
+          if (matchLen >= 3) {
+              const cfg = GET_SYMBOLS(selectedGame.theme)[matchSym];
+              if (cfg) {
+                  const lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
+                  const lineWin = Math.floor(bet * (cfg.value / 3) * lenMult);
+                  if (lineWin > 0) {
+                      totalPayout += lineWin;
+                      winningLines.push(line.id);
+                      for (let i = 0; i < matchLen; i++) winningCells.push({ col: i, row: line.indices[i] });
+                  }
+              }
+          }
+      });
+      return { payout: totalPayout, winningLines, winningCells };
+  };
+
+  runCascadeRef.current = (currentCascadeGrid: SymbolType[][], mult: number, accWin: number, winCells: {col: number, row: number}[]) => {
+      const newGrid = compactGrid(currentCascadeGrid, winCells);
+      setCascadeGrid(newGrid);
+      const bet = currentBetRef.current;
+      const result = computeGridWins(newGrid, bet);
+      if (result.payout > 0) {
+          const cascadeWin = result.payout * mult;
+          const newAccWin = accWin + cascadeWin;
+          setPlayer(p => ({ ...p, balance: p.balance + cascadeWin }));
+          setCascadeMultiplier(mult);
+          setCascadeTotalWin(newAccWin);
+          setWinData({ payout: newAccWin, winningLines: result.winningLines, winningCells: result.winningCells, isBigWin: false, scattersFound: 0, winType: undefined });
+          setTimeout(() => runCascadeRef.current!(newGrid, mult + 1, newAccWin, result.winningCells), 700);
+      } else {
+          const winTier = getWinTier(accWin, bet);
+          setWinData({ payout: accWin, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
+          setCascadeGrid(null);
+          setCascadeMultiplier(1);
+          setCascadeTotalWin(0);
+          if (winTier) {
+              audioService.playWinBig();
+              setShowWinPopup(true);
+              setStatus(GameStatus.WIN_ANIMATION);
+          } else if (accWin > 0) {
+              audioService.playWinSmall();
+              setStatus(GameStatus.WIN_ANIMATION);
+              setTimeout(() => setStatus(GameStatus.IDLE), 500);
+          } else {
+              setStatus(GameStatus.IDLE);
+          }
+      }
+  };
+
   const generateSmartGrid = useCallback(() => {
       const cols = selectedGame.reels;
       const rows = selectedGame.rows;
@@ -1314,6 +1402,17 @@ const App: React.FC = () => {
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
                   if (newGrid[c][r] === SymbolType.SCATTER) newGrid[c][r] = SymbolType.TEN;
+              }
+          }
+      }
+
+      // ARCTIC: no jackpot or coin symbols — replace them with regular symbols
+      if (selectedGame.theme === 'ARCTIC') {
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  while (String(newGrid[c][r]).startsWith('JACKPOT') || newGrid[c][r] === SymbolType.COIN) {
+                      newGrid[c][r] = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
+                  }
               }
           }
       }
@@ -1770,6 +1869,36 @@ const App: React.FC = () => {
         }
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
+
+    // ARCTIC: no jackpot logic — start cascade sequence
+    if (selectedGame.theme === 'ARCTIC') {
+        setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: false, scattersFound: scatterCount, winType: undefined });
+        if (totalPayout > 0) {
+            setPlayer(prev => ({
+                ...prev,
+                balance: prev.balance + totalPayout,
+                stats: {
+                    maxSingleWin: Math.max(totalPayout, prev.stats?.maxSingleWin || 0),
+                    maxJackpotWin: prev.stats?.maxJackpotWin || 0,
+                    totalCoinsWon: (prev.stats?.totalCoinsWon || 0) + totalPayout,
+                    totalGemsEarned: prev.stats?.totalGemsEarned || 0,
+                    totalSpins: prev.stats?.totalSpins || 0,
+                    recentSlots: prev.stats?.recentSlots || [],
+                }
+            }));
+            updateMissions(MissionType.WIN_COINS, totalPayout);
+            setCascadeMultiplier(1);
+            setCascadeTotalWin(totalPayout);
+            setCascadeGrid([...finalGrid.map(c => [...c])]);
+            setStatus(GameStatus.CASCADE);
+            audioService.playWinSmall();
+            setTimeout(() => runCascadeRef.current!(finalGrid, 2, totalPayout, winningCells), 700);
+        } else {
+            const effectiveFastSpin = fastSpin;
+            setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
+        }
+        return;
+    }
 
     const JP_WIN_TYPES = [
         SymbolType.JACKPOT_MINI,
@@ -2590,7 +2719,21 @@ const App: React.FC = () => {
                     );
                 })()}
                 <div className="w-full z-10 p-0 m-0">
-                    <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
+                    {selectedGame.theme === 'ARCTIC' ? (
+                        <div className="flex items-center justify-center gap-3 py-1 px-3" style={{ background: 'rgba(0,20,40,0.7)', borderBottom: '1px solid rgba(34,211,238,0.15)' }}>
+                            <span className="text-white/50 text-[10px] uppercase tracking-widest font-bold">Cascade</span>
+                            <span className="font-black" style={{ fontSize: '1.05rem', color: cascadeMultiplier > 1 ? '#67e8f9' : 'rgba(255,255,255,0.3)', textShadow: cascadeMultiplier > 1 ? '0 0 14px rgba(34,211,238,0.9)' : 'none', transition: 'color 0.3s, text-shadow 0.3s' }}>
+                                ×{cascadeMultiplier}
+                            </span>
+                            {cascadeTotalWin > 0 && (
+                                <span className="text-cyan-300/80 text-[11px] font-black">
+                                    +{formatK(cascadeTotalWin)}
+                                </span>
+                            )}
+                        </div>
+                    ) : (
+                        <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
+                    )}
                 </div>
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
@@ -2619,6 +2762,7 @@ const App: React.FC = () => {
                                 winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []}
                                 gameConfig={selectedGame}
                                 isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE}
+                                forcedSymbols={status === GameStatus.CASCADE && cascadeGrid ? cascadeGrid[i] : undefined}
                             />
                         ))}
 
@@ -2726,7 +2870,9 @@ const App: React.FC = () => {
                   {/* Win Panel */}
                   <div className="winpanel flex-1 flex flex-col items-center justify-center">
                       <span className="lets-spin">
-                          {holdWinActive ? (
+                          {status === GameStatus.CASCADE && cascadeTotalWin > 0 ? (
+                              formatCommaNumber(cascadeTotalWin)
+                          ) : holdWinActive ? (
                               formatCommaNumber(holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
                           ) : freeSpinsRemaining > 0 ? (
                               formatCommaNumber(freeSpinTotalWin)
@@ -2739,7 +2885,7 @@ const App: React.FC = () => {
                           )}
                       </span>
                       <span className="total-win">
-                          {holdWinActive ? `HOLD & WIN  ·  ${holdWinRespins}/3 RESPINS` : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
+                          {status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? `HOLD & WIN  ·  ${holdWinRespins}/3 RESPINS` : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
                       </span>
                   </div>
 
@@ -2770,7 +2916,7 @@ const App: React.FC = () => {
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier || holdWinActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">

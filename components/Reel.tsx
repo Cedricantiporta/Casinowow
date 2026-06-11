@@ -102,10 +102,40 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
       translateY = `-${shiftPercent}%`;
   } 
   
+  // Cascade display mode: bypass animation, show symbols directly
+  if (forcedSymbols && forcedSymbols.length > 0) {
+      return (
+          <div
+              className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
+              style={{ aspectRatio: `1 / ${gameConfig.rows}` }}
+          >
+              <div className="w-full h-full flex flex-col">
+                  {forcedSymbols.map((s, i) => {
+                      const isWinner = winningIndices.includes(i);
+                      return (
+                          <ReelCell
+                              key={i}
+                              symbol={s}
+                              config={SYMBOL_CONFIGS[s]}
+                              blur={false}
+                              highlight={isWinner}
+                              isScatterShowcase={false}
+                              heightPercent={100 / gameConfig.rows}
+                              theme={gameConfig.theme}
+                              isLastCell={i === forcedSymbols.length - 1}
+                          />
+                      );
+                  })}
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 pointer-events-none z-10" />
+          </div>
+      );
+  }
+
   return (
-    <div 
+    <div
         className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
-        style={{ aspectRatio: `1 / ${gameConfig.rows}` }} 
+        style={{ aspectRatio: `1 / ${gameConfig.rows}` }}
     >
        {/* Scroll Wrapper - Static Position Adjustments */}
        <div 
