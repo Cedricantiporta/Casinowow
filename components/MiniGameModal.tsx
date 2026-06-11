@@ -460,9 +460,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const questTitle = isWild ? 'CoinMine' : 'Fortune Trail';
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3">
-        <div className="w-full max-w-[500px] flex flex-col animate-pop-in select-none rounded-2xl overflow-hidden"
-            style={{ height: 'min(88vh, 680px)', background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
+        <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none"
+            style={{ background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
 
             {/* Topbar */}
             <div className="shrink-0 flex items-center gap-2 px-3 h-[38px] z-20"
@@ -789,7 +788,6 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     </div>
                 </div>
             )}
-        </div>
         </div>
     );
 };

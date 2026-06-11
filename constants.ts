@@ -205,7 +205,7 @@ const JP_ICONS = {
 const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   NEON: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🍒', [SymbolType.BELL]: '🍋', [SymbolType.BAR]: '💎', [SymbolType.CHERRY]: '7️⃣', [SymbolType.SEVEN]: '💸',
+    [SymbolType.GRAPE]: '🍒', [SymbolType.BELL]: '🍋', [SymbolType.BAR]: '💎', [SymbolType.CHERRY]: '7️⃣', [SymbolType.SEVEN]: '🎰',
     [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🎰', ...JP_ICONS
   },
   EGYPT: {
@@ -359,12 +359,11 @@ export const WEIGHTS = [
 ];
 
 export const NEON_WEIGHTS = [
-  { type: SymbolType.GRAPE,   weight: 20 },
-  { type: SymbolType.BELL,    weight: 15 },
-  { type: SymbolType.BAR,     weight: 25 },
-  { type: SymbolType.CHERRY,  weight: 20 },
-  { type: SymbolType.SEVEN,   weight: 10 },
-  { type: SymbolType.SCATTER, weight: 10 },
+  { type: SymbolType.GRAPE,  weight: 20 },
+  { type: SymbolType.BELL,   weight: 15 },
+  { type: SymbolType.BAR,    weight: 21 },
+  { type: SymbolType.CHERRY, weight: 16 },
+  { type: SymbolType.SEVEN,  weight: 7.5 },
 ];
 
 export const FREE_SPIN_WEIGHTS = [

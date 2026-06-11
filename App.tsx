@@ -1510,7 +1510,7 @@ const App: React.FC = () => {
       }
 
       // NEON: no letters (10/J/Q/K/A) and no wilds — replace with weighted NEON_WEIGHTS random
-      const NEON_EXCLUDE_SYMS = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE, SymbolType.WILD];
+      const NEON_EXCLUDE_SYMS = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE, SymbolType.WILD, SymbolType.SCATTER];
       if (selectedGame.theme === 'NEON') {
           const nwSum = NEON_WEIGHTS.reduce((a, w) => a + w.weight, 0);
           const pickNeonSym = () => {
