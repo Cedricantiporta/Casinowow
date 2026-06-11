@@ -143,6 +143,7 @@ const App: React.FC = () => {
 
   const [availableBets, setAvailableBets] = useState<number[]>(ALL_BETS);
   const [betIndex, setBetIndex] = useState(0);
+  const currentBetRef = useRef(ALL_BETS[0]);
   const [status, setStatus] = useState<GameStatus>(GameStatus.IDLE);
     const [grid, setGrid] = useState<SymbolType[][]>(Array(GAMES_CONFIG[0].reels).fill(null).map(() => Array(3).fill(SymbolType.SEVEN)));
   const [targetGrid, setTargetGrid] = useState<SymbolType[][]>([]);
@@ -211,6 +212,13 @@ const App: React.FC = () => {
       activeGame: 'NONE',
       wildGrid: []
   });
+  // Hold and Win state (Egypt / Pharaoh's Tomb)
+  const [holdWinActive, setHoldWinActive] = useState(false);
+  const [holdWinLockedGrid, setHoldWinLockedGrid] = useState<boolean[][]>([]);
+  const [holdWinCoinValues, setHoldWinCoinValues] = useState<number[][]>([]);
+  const [holdWinRespins, setHoldWinRespins] = useState(3);
+  const holdWinRef = useRef({ active: false, lockedGrid: [] as boolean[][], coinValues: [] as number[][], respins: 3 });
+
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
@@ -600,6 +608,9 @@ const App: React.FC = () => {
         setBetIndex(closestIndex);
     }
   }, [player.level, availableBets, betIndex, isHighLimit]);
+
+  // Keep currentBetRef in sync for use inside callbacks
+  useEffect(() => { currentBetRef.current = availableBets[betIndex]; }, [availableBets, betIndex]);
 
   // Save current bet per slot to localStorage whenever it changes in GAME view
   useEffect(() => {
@@ -1044,12 +1055,47 @@ const App: React.FC = () => {
       });
   }, []);
 
+  const getHoldWinCoinValue = (bet: number): number => {
+      const roll = Math.random();
+      if (roll < 0.40) return bet * 1;
+      if (roll < 0.60) return bet * 2;
+      if (roll < 0.73) return bet * 3;
+      if (roll < 0.83) return bet * 5;
+      if (roll < 0.91) return bet * 10;
+      if (roll < 0.96) return bet * 20;
+      if (roll < 0.99) return bet * 50;
+      return bet * 100;
+  };
+
   const generateSmartGrid = useCallback(() => {
       const cols = selectedGame.reels;
       const rows = selectedGame.rows;
       const isFreeSpin = freeSpinsRemaining > 0;
       const newGrid: SymbolType[][] = [];
       const isSmallGrid = cols <= 3;
+
+      // EGYPT Hold and Win: generate respin grid keeping locked cells as COIN
+      if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
+          const lockedGrid = holdWinRef.current.lockedGrid;
+          for (let c = 0; c < cols; c++) {
+              const col: SymbolType[] = [];
+              for (let r = 0; r < rows; r++) {
+                  if (lockedGrid[c]?.[r]) {
+                      col.push(SymbolType.COIN);
+                  } else if (Math.random() < 0.28) {
+                      col.push(SymbolType.COIN);
+                  } else {
+                      let sym = getRandomSymbol(false, spinsWithoutBonus);
+                      while (sym === SymbolType.SCATTER || sym === SymbolType.COIN) {
+                          sym = getRandomSymbol(false, spinsWithoutBonus);
+                      }
+                      col.push(sym);
+                  }
+              }
+              newGrid.push(col);
+          }
+          return newGrid;
+      }
 
       for(let c=0; c<cols; c++) {
           const colData: SymbolType[] = [];
@@ -1221,6 +1267,36 @@ const App: React.FC = () => {
           }
       }
 
+      // EGYPT: inject coin symbols (1-6 cells) in base game; 6+ triggers Hold and Win
+      if (selectedGame.theme === 'EGYPT' && !isFreeSpin) {
+          const coinRoll = Math.random();
+          let targetCoins = 0;
+          if (coinRoll >= 0.994)      targetCoins = 6;
+          else if (coinRoll >= 0.979) targetCoins = 5;
+          else if (coinRoll >= 0.949) targetCoins = 4;
+          else if (coinRoll >= 0.869) targetCoins = 3;
+          else if (coinRoll >= 0.739) targetCoins = 2;
+          else if (coinRoll >= 0.489) targetCoins = 1;
+          if (targetCoins > 0) {
+              const eligible: {c: number; r: number}[] = [];
+              for (let c = 0; c < cols; c++) {
+                  for (let r = 0; r < rows; r++) {
+                      const s = newGrid[c][r];
+                      if (s !== SymbolType.SCATTER && s !== SymbolType.WILD && !String(s).startsWith('JACKPOT')) {
+                          eligible.push({c, r});
+                      }
+                  }
+              }
+              for (let i = eligible.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+              }
+              for (let i = 0; i < Math.min(targetCoins, eligible.length); i++) {
+                  newGrid[eligible[i].c][eligible[i].r] = SymbolType.COIN;
+              }
+          }
+      }
+
       // PIGGY / LEPRECHAUN: inject coin symbols (1-6 cells), 6+ triggers free spins
       if (selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') {
           const coinRoll = Math.random();
@@ -1351,9 +1427,10 @@ const App: React.FC = () => {
 
     const currentBet = availableBets[betIndex];
     const isFreeSpin = freeSpinsRemaining > 0;
-    
+    const isHoldWinRespin = holdWinRef.current.active;
+
     // Insufficient Funds Check
-    if (!isFreeSpin && player.balance < currentBet) {
+    if (!isFreeSpin && !isHoldWinRespin && player.balance < currentBet) {
       if (player.balance < 10000) {
           setShowBankruptcy(true);
       } else {
@@ -1364,7 +1441,7 @@ const App: React.FC = () => {
       return;
     }
 
-    if (!isFreeSpin) {
+    if (!isFreeSpin && !isHoldWinRespin) {
       // Piggy Bank Logic: 5% of Bet (10% if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
           const savings = currentBet * (player.isVip ? 0.10 : 0.05);
@@ -1397,6 +1474,8 @@ const App: React.FC = () => {
               totalSpins: (prev.stats?.totalSpins || 0) + 1
           }
       }));
+    } else if (isHoldWinRespin) {
+        // Hold and Win respin: free, no missions, no stats
     } else {
         setFreeSpinsRemaining(prev => prev - 1);
         updateMissions(MissionType.SPIN_COUNT, 1);
@@ -1434,6 +1513,88 @@ const App: React.FC = () => {
       const next = prev + 1;
       audioService.playReelStop();
       if (next === selectedGame.reels) {
+
+        // EGYPT: Hold and Win respin handling
+        if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
+            const lockedGrid = holdWinRef.current.lockedGrid;
+            const coinValues = holdWinRef.current.coinValues;
+            const currentBet = currentBetRef.current;
+            const newLockedGrid = lockedGrid.map(c => [...c]);
+            const newCoinValues = coinValues.map(c => [...c]);
+            let newCoinsFound = 0;
+            targetGrid.forEach((col, c) => {
+                col.forEach((sym, r) => {
+                    if (!lockedGrid[c]?.[r] && sym === SymbolType.COIN) {
+                        newCoinsFound++;
+                        newLockedGrid[c][r] = true;
+                        const roll = Math.random();
+                        let mult = roll < 0.40 ? 1 : roll < 0.60 ? 2 : roll < 0.73 ? 3 : roll < 0.83 ? 5 : roll < 0.91 ? 10 : roll < 0.96 ? 20 : roll < 0.99 ? 50 : 100;
+                        newCoinValues[c][r] = currentBet * mult;
+                    }
+                });
+            });
+            const lockedCount = newLockedGrid.reduce((s, col) => s + col.filter(Boolean).length, 0);
+            const isFull = lockedCount === selectedGame.reels * selectedGame.rows;
+            const newRespins = newCoinsFound > 0 ? 3 : holdWinRef.current.respins - 1;
+            holdWinRef.current.lockedGrid = newLockedGrid;
+            holdWinRef.current.coinValues = newCoinValues;
+            holdWinRef.current.respins = newRespins;
+            setHoldWinLockedGrid(newLockedGrid);
+            setHoldWinCoinValues(newCoinValues);
+            if (isFull || newRespins <= 0) {
+                const totalPayout = newCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0);
+                const grandBonus = isFull ? currentBet * 100 : 0;
+                const finalPayout = totalPayout + grandBonus;
+                holdWinRef.current = { active: false, lockedGrid: [], coinValues: [], respins: 3 };
+                setHoldWinActive(false); setHoldWinLockedGrid([]); setHoldWinCoinValues([]); setHoldWinRespins(3);
+                setPlayer(prev => ({ ...prev, balance: prev.balance + finalPayout }));
+                const winTier = getWinTier(finalPayout, currentBet);
+                setWinData({ payout: finalPayout, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
+                if (isFull) {
+                    setJackpotWinTier({ name: 'GRAND', color: '#ff2244', icon: '🏆', amount: finalPayout });
+                    if (winTier) setPendingBigWin(true);
+                    audioService.playWinBig(); setStatus(GameStatus.WIN_ANIMATION);
+                } else if (winTier) {
+                    audioService.playWinBig(); setShowWinPopup(true); setStatus(GameStatus.WIN_ANIMATION);
+                } else {
+                    audioService.playWinSmall(); setStatus(GameStatus.WIN_ANIMATION);
+                    setTimeout(() => setStatus(GameStatus.IDLE), 500);
+                }
+            } else {
+                setHoldWinRespins(newRespins);
+                setTimeout(() => setStatus(GameStatus.IDLE), 800);
+            }
+            return next;
+        }
+
+        // EGYPT: Hold and Win trigger check (base game, 6+ COINs)
+        if (selectedGame.theme === 'EGYPT' && freeSpinsRemaining === 0) {
+            let coinCount = 0;
+            targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
+            if (coinCount >= 6) {
+                const currentBet = currentBetRef.current;
+                const lockedGrid: boolean[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(false));
+                const coinValues: number[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(0));
+                targetGrid.forEach((col, c) => {
+                    col.forEach((sym, r) => {
+                        if (sym === SymbolType.COIN) {
+                            lockedGrid[c][r] = true;
+                            const roll = Math.random();
+                            let mult = roll < 0.40 ? 1 : roll < 0.60 ? 2 : roll < 0.73 ? 3 : roll < 0.83 ? 5 : roll < 0.91 ? 10 : roll < 0.96 ? 20 : roll < 0.99 ? 50 : 100;
+                            coinValues[c][r] = currentBet * mult;
+                        }
+                    });
+                });
+                holdWinRef.current = { active: true, lockedGrid, coinValues, respins: 3 };
+                setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinRespins(3);
+                audioService.playScatterTrigger();
+                setStatus(GameStatus.SCATTER_SHOWCASE);
+                setSpinsWithoutBonus(0);
+                setTimeout(() => setStatus(GameStatus.IDLE), 1800);
+                return next;
+            }
+        }
+
         let scatterCount = 0;
         const scatters: {col: number, row: number}[] = [];
         targetGrid.forEach((col, colIdx) => {
@@ -2039,16 +2200,19 @@ const currentState: SavedGameState = {
 
   useEffect(() => {
       if (status === GameStatus.IDLE) {
-          if (freeSpinsRemaining > 0) {
+          if (holdWinActive) {
+              // Auto-continue Hold and Win respins
+              if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 900);
+          } else if (freeSpinsRemaining > 0) {
               const delay = fastSpin ? 50 : 1200;
-              if (activeModal === 'NONE' && !showFreeSpinsPopup) setTimeout(() => spin(), delay); 
+              if (activeModal === 'NONE' && !showFreeSpinsPopup) setTimeout(() => spin(), delay);
           } else if (freeSpinsWon > 0 && !showFreeSpinsPopup) {
               setShowFreeSpinSummary(true);
           } else if (player.autoSpin) {
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 50 : AUTO_SPIN_DELAY);
           }
       }
-  }, [status, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup]);
+  }, [status, holdWinActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup]);
 
   const handleHeaderBack = () => {
     if (activeModal !== 'NONE') {
@@ -2388,20 +2552,49 @@ const currentState: SavedGameState = {
                         style={{ aspectRatio: `${selectedGame.reels}/${selectedGame.rows}` }}
                     >
                         {grid.map((col, i) => (
-                            <Reel 
-                                key={i} 
-                                id={i} 
-                                symbols={targetGrid.length > 0 ? targetGrid[i] : col} 
-                                spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} 
-                                stopping={status === GameStatus.STOPPING} 
+                            <Reel
+                                key={i}
+                                id={i}
+                                symbols={targetGrid.length > 0 ? targetGrid[i] : col}
+                                spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING}
+                                stopping={status === GameStatus.STOPPING}
                                 stopDelay={instantStop ? 0 : i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)}
-                                duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION} 
-                                onStop={handleReelStop} 
-                                winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []} 
-                                gameConfig={selectedGame} 
-                                isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE} 
+                                duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION}
+                                onStop={handleReelStop}
+                                winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []}
+                                gameConfig={selectedGame}
+                                isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE}
                             />
                         ))}
+
+                        {/* Hold and Win locked-cell overlay */}
+                        {holdWinActive && selectedGame.theme === 'EGYPT' && (
+                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
+                                {Array(selectedGame.reels).fill(null).map((_, c) => (
+                                    <div key={c} className="flex-1 flex flex-col gap-0.5">
+                                        {Array(selectedGame.rows).fill(null).map((_, r) => {
+                                            const locked = holdWinLockedGrid[c]?.[r];
+                                            const val = holdWinCoinValues[c]?.[r];
+                                            return (
+                                                <div key={r} className="flex-1 relative flex items-center justify-center"
+                                                    style={{
+                                                        border: locked ? '2px solid #fbbf24' : '2px solid transparent',
+                                                        boxShadow: locked ? '0 0 10px rgba(251,191,36,0.8), inset 0 0 8px rgba(251,191,36,0.25)' : 'none',
+                                                        background: locked ? 'rgba(251,191,36,0.08)' : 'transparent',
+                                                        borderRadius: 3,
+                                                    }}>
+                                                    {locked && val ? (
+                                                        <span style={{ fontSize: '7px', fontWeight: 900, color: '#fde68a', textShadow: '0 0 4px rgba(0,0,0,0.9)', lineHeight: 1, position: 'absolute', bottom: 2 }}>
+                                                            +{formatK(val)}
+                                                        </span>
+                                                    ) : null}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -2470,7 +2663,9 @@ const currentState: SavedGameState = {
                   {/* Win Panel */}
                   <div className="winpanel flex-1 flex flex-col items-center justify-center">
                       <span className="lets-spin">
-                          {freeSpinsRemaining > 0 ? (
+                          {holdWinActive ? (
+                              formatCommaNumber(holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
+                          ) : freeSpinsRemaining > 0 ? (
                               formatCommaNumber(freeSpinTotalWin)
                           ) : status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
                               'SPINNING...'
@@ -2481,7 +2676,7 @@ const currentState: SavedGameState = {
                           )}
                       </span>
                       <span className="total-win">
-                          {freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
+                          {holdWinActive ? `HOLD & WIN · RESPINS: ${holdWinRespins}` : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
                       </span>
                   </div>
 
@@ -2512,7 +2707,7 @@ const currentState: SavedGameState = {
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier || holdWinActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
