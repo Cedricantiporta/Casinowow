@@ -115,17 +115,21 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             gemIndices.add(Math.floor(Math.random() * totalCells));
         }
         gemIndices.forEach(gi => { cells[gi] = { revealed: false, content: 'GEM' }; });
-        // Coin rewards: 1× base only, reduced by 60% vs original
-        const baseCoin = (maxBet || 10000) * wildStage * 0.2;
+        // Rock distribution: 30% blank, 40% coins (50% reduced), 20% picks, 10% diamonds
+        const baseCoin = (maxBet || 10000) * wildStage * 0.25;
         for (let i = 0; i < totalCells; i++) {
             if (gemIndices.has(i)) continue;
-            if (Math.random() < 0.3) {
-                const r = Math.random();
-                let reward: MiniGameReward = { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) };
-                if (r < 0.7) reward = { type: 'PICKS', value: 1, label: '+1 Pick' };
-                else if (r < 0.9) reward = { type: 'PICKS', value: 2, label: '+2 Picks' };
-                else reward = { type: 'DIAMONDS', value: 5, label: '+5 Gems' };
-                cells[i] = { revealed: false, content: 'REWARD', reward };
+            const r = Math.random();
+            if (r < 0.30) {
+                // stays BLANK
+            } else if (r < 0.70) {
+                cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) } };
+            } else if (r < 0.85) {
+                cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'PICKS', value: 1, label: '+1 Pick' } };
+            } else if (r < 0.95) {
+                cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'PICKS', value: 2, label: '+2 Picks' } };
+            } else {
+                cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'DIAMONDS', value: 5, label: '+5 Gems' } };
             }
         }
         // Add bomb cells on blank tiles (~10% chance each)
@@ -260,7 +264,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 const j = Math.floor(Math.random() * (i + 1));
                 [neighbors[i], neighbors[j]] = [neighbors[j], neighbors[i]];
             }
-            const explodeTargets = neighbors.slice(0, 3);
+            const explodeCount = Math.floor(Math.random() * 3) + 1; // 1, 2, or 3
+            const explodeTargets = neighbors.slice(0, explodeCount);
             setExplodingCells(new Set(explodeTargets));
             setGrid(newGrid);
             if (onGridUpdate) onGridUpdate(newGrid);
