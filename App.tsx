@@ -84,14 +84,15 @@ const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive
             return (
                 <div key={idx} className="flex items-center justify-center rounded transition-all duration-200"
                     style={{
-                        padding: '2px 7px',
-                        background: active ? c.bg : 'rgba(255,255,255,0.03)',
-                        border: `1.5px solid ${active ? c.border : 'rgba(255,255,255,0.08)'}`,
+                        padding: '2px 8px',
+                        background: active ? c.solid : 'rgba(255,255,255,0.06)',
+                        border: 'none',
                     }}>
                     <span style={{
                         fontFamily: "'Archivo Black', sans-serif",
                         fontSize: 'clamp(9px,1.6vw,12px)',
-                        color: active ? c.solid : 'rgba(255,255,255,0.18)',
+                        color: active ? '#000' : 'rgba(255,255,255,0.20)',
+                        fontWeight: 900,
                     }}>×{m}</span>
                 </div>
             );
@@ -1144,8 +1145,8 @@ const App: React.FC = () => {
           const remaining = col.filter((_, r) => !winRows.has(r));
           const newCount = col.length - remaining.length;
           const newSyms = Array(newCount).fill(null).map(() => {
-              // Arctic: 10% chance each new falling cell is WILD (cols 2-4, 1-indexed)
-              if (selectedGame.theme === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < 0.10) {
+              // Arctic: 20% chance each new falling cell is WILD (cols 2-4, 1-indexed)
+              if (selectedGame.theme === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < 0.20) {
                   return SymbolType.WILD;
               }
               let sym: SymbolType;
@@ -1506,10 +1507,16 @@ const App: React.FC = () => {
                   }
               }
           }
-          if (Math.random() < 0.10) {
-              const wildCol = 1 + Math.floor(Math.random() * 3); // col index 1, 2, or 3
+          // 5% chance: full column of wilds on col 2 (3rd column, 0-indexed)
+          if (Math.random() < 0.05) {
+              for (let r = 0; r < rows; r++) {
+                  if (newGrid[2]?.[r] !== SymbolType.SCATTER) newGrid[2][r] = SymbolType.WILD;
+              }
+          } else if (Math.random() < 0.20) {
+              // 20% chance: single wild on a random cell in cols 1-3
+              const wildCol = 1 + Math.floor(Math.random() * 3);
               const wildRow = Math.floor(Math.random() * rows);
-              if (newGrid[wildCol] && newGrid[wildCol][wildRow] !== SymbolType.SCATTER) {
+              if (newGrid[wildCol]?.[wildRow] !== SymbolType.SCATTER) {
                   newGrid[wildCol][wildRow] = SymbolType.WILD;
               }
           }
@@ -1912,11 +1919,12 @@ const App: React.FC = () => {
                     dragonPickBonusMultRef.current = 0;
                     setTimeout(() => {
                         setDragonPotShaking(true);
+                        audioService.playScatterTrigger();
                         setTimeout(() => {
                             setDragonPotShaking(false);
                             setShowDragonTriggerPopup(true);
                             setPlayer(p => ({ ...p, autoSpin: false }));
-                        }, 1000);
+                        }, 3000);
                     }, 400);
                 }
             }
@@ -2922,9 +2930,9 @@ const App: React.FC = () => {
                 <div className="w-full z-10 p-0 m-0">
                     {selectedGame.theme === 'ARCTIC' ? (
                         <ArcticMultiplierBar
-                            mults={freeSpinsRemaining > 0 ? [1,5,10,20,50] : [1,2,3,4,5]}
-                            stepIdx={Math.min(cascadeMultiplier - 1, 4)}
-                            isActive={status === GameStatus.CASCADE}
+                            mults={freeSpinsRemaining > 0 ? [5,10,20,50,100] : [2,3,4,5,6]}
+                            stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
+                            isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
                         />
                     ) : (
                         <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />

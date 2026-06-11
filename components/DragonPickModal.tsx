@@ -85,8 +85,8 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
         });
     };
 
-    // Dots to show per tier: 3 for winning tier, 2 for others (matches their cell count)
-    const dotsFor = (t: Tier) => t === winningTier ? 3 : 2;
+    // Always show 3 dots per tier — only winning tier has 7 cells so only it can reach 3
+    const dotsFor = (_t: Tier) => 3;
 
     return (
         <div className="absolute inset-0 z-30 flex flex-col rounded-xl overflow-hidden"
