@@ -122,8 +122,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
-        <div className="w-full max-w-[480px] flex flex-col rounded-2xl overflow-hidden"
-            style={{ height: 'min(88vh, 600px)', background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
+        <div className="w-full max-w-[600px] flex flex-col rounded-2xl overflow-hidden"
+            style={{ height: 'min(88vh, 680px)', background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 py-2.5"
@@ -166,7 +166,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                     onChange={e => setRedeemInput(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') handleRedeem(); }}
                                     placeholder="Enter code..."
-                                    className="flex-1 bg-black/50 text-white text-xs px-3 py-2 rounded-lg border border-white/10 outline-none font-mono placeholder:text-white/25 focus:border-purple-500/60"
+                                    className="w-28 bg-black/50 text-white text-xs px-3 py-2 rounded-lg border border-white/10 outline-none font-mono placeholder:text-white/25 focus:border-purple-500/60"
                                 />
                                 <button
                                     onClick={handleRedeem}

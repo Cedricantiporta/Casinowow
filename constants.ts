@@ -205,7 +205,7 @@ const JP_ICONS = {
 const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   NEON: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🍒', [SymbolType.BELL]: '🍋', [SymbolType.BAR]: '💎', [SymbolType.CHERRY]: '7️⃣', [SymbolType.SEVEN]: '🎰',
+    [SymbolType.GRAPE]: '🍒', [SymbolType.BELL]: '🍋', [SymbolType.BAR]: '💎', [SymbolType.CHERRY]: '7️⃣', [SymbolType.SEVEN]: '7',
     [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🎰', ...JP_ICONS
   },
   EGYPT: {

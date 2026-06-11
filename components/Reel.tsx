@@ -247,6 +247,7 @@ const ReelCell: React.FC<{
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
     const isLetter = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
+    const isNeonSeven = theme === 'NEON' && symbol === SymbolType.SEVEN;
 
     const JP_LABELS: Partial<Record<SymbolType, string>> = {
         [SymbolType.JACKPOT_MINI]:  'MINI',
@@ -283,7 +284,7 @@ const ReelCell: React.FC<{
 
     const fontSize = isWild
         ? 'text-[1.296rem] md:text-[1.746rem] lg:text-[2.187rem]'
-        : isLetter
+        : (isLetter || isNeonSeven)
             ? 'text-[2.73rem] md:text-[3.28rem] lg:text-[4.37rem]'
             : 'text-[3.0375rem] md:text-[3.645rem] lg:text-[4.86rem]';
 
@@ -311,6 +312,7 @@ const ReelCell: React.FC<{
             `}
             style={
                 isJackpot && !highlight && jpStyle ? { background: jpStyle.solidBg }
+                : isNeonSeven && !highlight ? { background: '#6b0000' }
                 : isLetter && !highlight ? { background: LETTER_DARK_BG[theme] ?? '#0a0a1a' }
                 : undefined
             }
@@ -336,7 +338,7 @@ const ReelCell: React.FC<{
                                 ${fontSize} select-none transform
                                 ${config?.style || ''}
                                 `}
-                            style={isLetter ? { textShadow: getLetter3DShadow(symbol, theme) } : undefined}
+                            style={(isLetter || isNeonSeven) ? { textShadow: getLetter3DShadow(symbol, theme), color: isNeonSeven ? '#ffffff' : undefined } : undefined}
                         >
                             {config?.icon}
                         </div>

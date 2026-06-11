@@ -2018,7 +2018,8 @@ const App: React.FC = () => {
             if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0; 
 
             const neonMult = selectedGame.theme === 'NEON' ? 0.7 : 1.0;
-            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult);
+            const arcticMult = selectedGame.theme === 'ARCTIC' ? 0.7 : 1.0;
+            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * arcticMult);
             if (lineWin > 0) {
                 totalPayout += lineWin;
                 winningLines.push(line.id);
