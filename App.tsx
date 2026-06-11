@@ -2082,9 +2082,9 @@ const App: React.FC = () => {
         const arcticQuestChance = Math.max(0.01, 0.20 - (arcticMaxBetIdx - betIndex) * 0.02);
         if (player.level >= 20 && Math.random() < arcticQuestChance) {
             if (Math.random() < 0.5) {
-                setQuest(q => ({ ...q, diceCredits: q.diceCredits + 1 }));
+                setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
             } else {
-                setQuest(q => ({ ...q, wildCredits: q.wildCredits + 1 }));
+                setQuest(q => ({ ...q, wildCredits: Math.min(60, q.wildCredits + 1) }));
             }
         }
         const arcticPackDropChance = Math.max(0.007, (0.20 - (arcticMaxBetIdx - betIndex) * 0.02) * 0.7);
@@ -2158,9 +2158,9 @@ const App: React.FC = () => {
     const questChance = Math.max(0.01, 0.20 - (maxBetIdx - betIndex) * 0.02);
     if (player.level >= 20 && Math.random() < questChance) {
         if (Math.random() < 0.5) {
-            setQuest(q => ({ ...q, diceCredits: q.diceCredits + 1 }));
+            setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
         } else {
-            setQuest(q => ({ ...q, wildCredits: q.wildCredits + 1 }));
+            setQuest(q => ({ ...q, wildCredits: Math.min(60, q.wildCredits + 1) }));
         }
     }
     const packDropChance = Math.max(0.007, (0.20 - (maxBetIdx - betIndex) * 0.02) * 0.7);

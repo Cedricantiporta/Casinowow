@@ -248,6 +248,7 @@ const ReelCell: React.FC<{
     const isWild = symbol === SymbolType.WILD;
     const isLetter = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
     const isNeonSeven = theme === 'NEON' && symbol === SymbolType.SEVEN;
+    const isNeonCherry = theme === 'NEON' && symbol === SymbolType.CHERRY;
 
     const JP_LABELS: Partial<Record<SymbolType, string>> = {
         [SymbolType.JACKPOT_MINI]:  'MINI',
@@ -278,6 +279,9 @@ const ReelCell: React.FC<{
     }
     if (isJackpot && !highlight) {
         bgClasses = '';
+    }
+    if (isNeonCherry && !highlight) {
+        bgClasses = 'bg-gradient-to-b from-yellow-400 to-amber-800';
     }
 
     const activeBounce = highlight || isScatterShowcase;
@@ -337,8 +341,9 @@ const ReelCell: React.FC<{
                             className={`
                                 ${fontSize} select-none transform
                                 ${config?.style || ''}
+                                ${isNeonSeven ? 'font-heavy text-white' : ''}
                                 `}
-                            style={(isLetter || isNeonSeven) ? { textShadow: getLetter3DShadow(symbol, theme), color: isNeonSeven ? '#ffffff' : undefined } : undefined}
+                            style={(isLetter || isNeonSeven) ? { textShadow: getLetter3DShadow(symbol, theme), color: '#ffffff' } : undefined}
                         >
                             {config?.icon}
                         </div>
