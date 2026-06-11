@@ -16,6 +16,8 @@ interface ReelProps {
   gameConfig: GameConfig;
   isScatterShowcase?: boolean;
   forcedSymbols?: SymbolType[];
+  newCells?: boolean[];
+  dissolving?: boolean;
 }
 
 const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
@@ -31,7 +33,7 @@ const makeRandomSymbol = (excludeScatter: boolean) => {
   return SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
   const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
@@ -112,6 +114,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
               <div className="w-full h-full flex flex-col">
                   {forcedSymbols.map((s, i) => {
                       const isWinner = winningIndices.includes(i);
+                      const isNew = newCells?.[i] ?? false;
                       return (
                           <ReelCell
                               key={i}
@@ -123,6 +126,8 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                               heightPercent={100 / gameConfig.rows}
                               theme={gameConfig.theme}
                               isLastCell={i === forcedSymbols.length - 1}
+                              isNewCell={isNew}
+                              dissolving={dissolving}
                           />
                       );
                   })}
@@ -173,6 +178,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                             heightPercent={100 / totalItems}
                             theme={gameConfig.theme}
                             isLastCell={i === renderStrip.length - 1}
+                            dissolving={dissolving}
                         />
                     );
                 })}
@@ -228,7 +234,9 @@ const ReelCell: React.FC<{
     isScatterShowcase?: boolean,
     theme: GameTheme,
     isLastCell: boolean,
-}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell }) => {
+    isNewCell?: boolean,
+    dissolving?: boolean,
+}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving }) => {
 
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
@@ -255,9 +263,9 @@ const ReelCell: React.FC<{
     let bgClasses = config?.bg || 'bg-transparent';
 
     if (highlight) {
-        // Shiny border only — no background fill or icon glow
+        // Keep original bg color, add shiny border on top
         const borderColor = config?.highlightClass?.match(/border-(\S+)/)?.[1] ?? 'yellow-300/60';
-        bgClasses = `border-2 border-${borderColor} shadow-[0_0_12px_rgba(255,255,255,0.6)] z-20`;
+        bgClasses = `${config?.bg || 'bg-transparent'} border-2 border-${borderColor} shadow-[0_0_12px_rgba(255,255,255,0.6)] z-20`;
     } else if (isScatter && isScatterShowcase) {
         bgClasses = 'border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
     }
@@ -280,7 +288,9 @@ const ReelCell: React.FC<{
             className={`
                 w-full flex items-center justify-center relative
                 ${blur ? 'blur-[2px] opacity-80' : ''}
-                transition-all duration-300
+                ${isNewCell ? 'animate-drop-in' : ''}
+                ${highlight && dissolving ? 'animate-dissolve-out' : ''}
+                ${!isNewCell && !(highlight && dissolving) ? 'transition-all duration-300' : ''}
             `}
             style={{
                 height: `${heightPercent}%`,

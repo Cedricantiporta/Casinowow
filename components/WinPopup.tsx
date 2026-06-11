@@ -16,10 +16,10 @@ const WIN_STYLES: Record<string, { border: string; textColor: string; shadow: st
     'BIG WIN':      { border: '#22c55e', textColor: '#86efac', shadow: 'rgba(34,197,94,0.7)'  },
 };
 
-const ARCHIVO_3D = (color: string, shadow: string): React.CSSProperties => ({
+const ARCHIVO_3D = (color: string, _shadow: string): React.CSSProperties => ({
     fontFamily: "'Archivo Black', sans-serif",
     color,
-    textShadow: `2px 2px 0 #000, 4px 4px 0 rgba(0,0,0,0.5), 0 0 20px ${shadow}`,
+    textShadow: `2px 2px 0 #000, 4px 4px 0 rgba(0,0,0,0.5)`,
     WebkitTextStroke: '1px rgba(0,0,0,0.6)',
     paintOrder: 'stroke fill',
 });
@@ -68,7 +68,7 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
 
                 {/* Amount box */}
                 <div className="flex items-center justify-center px-8 py-3 rounded-2xl"
-                    style={{ background: '#000', border: `4px solid ${s.border}`, boxShadow: `0 0 24px ${s.shadow}, inset 0 0 12px rgba(0,0,0,0.8)` }}>
+                    style={{ background: '#000', border: `4px solid ${s.border}`, boxShadow: `inset 0 0 12px rgba(0,0,0,0.8)` }}>
                     <span style={{ fontSize: 'clamp(28px,7vw,56px)', lineHeight: 1, ...ARCHIVO_3D(s.textColor, s.shadow) }}>
                         {formatK(displayAmount)}
                     </span>
