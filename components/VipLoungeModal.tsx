@@ -77,9 +77,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                             style={{ background: 'rgba(251,191,36,0.12)' }}>
                             <div>
                                 <div className="text-yellow-100 font-black text-base leading-none">₱ 0.00</div>
-                                <div className="text-yellow-200/50 text-[9px] uppercase tracking-wide mt-0.5">Free with demo account</div>
                             </div>
-                            <div className="text-yellow-400 font-black text-[9px] bg-yellow-900/40 px-2 py-0.5 rounded-full uppercase tracking-wide">Demo</div>
                         </div>
                         <button onClick={onJoinVip}
                             className="btn-3d font-black text-sm uppercase tracking-widest text-black relative overflow-hidden px-10 py-3 rounded-xl"

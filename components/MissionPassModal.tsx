@@ -123,8 +123,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             </h2>
                             <p className="text-yellow-200/50 text-[9px] font-bold uppercase tracking-wider mt-0.5">Unlock exclusive rewards</p>
                         </div>
-                        <div className="shrink-0 px-2 py-0.5 rounded-full font-black text-[8px] uppercase tracking-widest"
-                            style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)', color: '#fde68a' }}>Demo</div>
                         <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
                     </div>
 
@@ -153,9 +151,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             style={{ background: 'rgba(255,200,0,0.12)' }}>
                             <div>
                                 <div className="text-yellow-100 font-black text-base leading-none">₱ 0.00</div>
-                                <div className="text-yellow-200/50 text-[9px] uppercase tracking-wide mt-0.5">Free with demo account</div>
                             </div>
-                            <div className="text-yellow-400 font-black text-[9px] bg-yellow-900/40 px-2 py-0.5 rounded-full uppercase">Demo</div>
                         </div>
                         <button onClick={handlePremiumPurchase}
                             className="btn-3d px-8 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest text-black relative overflow-hidden"

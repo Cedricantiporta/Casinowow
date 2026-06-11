@@ -168,7 +168,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <button onClick={onBuyVip} disabled={isVip}
                                 className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest"
                                 style={{ background: isVip ? 'linear-gradient(180deg,#6b7280,#374151)' : 'linear-gradient(180deg,#fbbf24,#b45309)', boxShadow: isVip ? '0 3px 0 #1f2937' : '0 3px 0 #78350f', color: '#fff', cursor: isVip ? 'not-allowed' : 'pointer' }}>
-                                {isVip ? '✓ Active' : 'Get VIP — FREE'}
+                                {isVip ? '✓ Active' : 'Get VIP'}
                             </button>
                         </div>
                     </div>}
@@ -196,7 +196,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <button onClick={onBuyPremium}
                                 className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest"
                                 style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 #4c1d95', color: '#fff' }}>
-                                Get Pass — FREE
+                                Get Pass
                             </button>
                         </div>
                     </div>}
@@ -225,10 +225,9 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <div className="shrink-0 px-3 pb-3 pt-1">
                                 <button onClick={() => setPurchasedIds(prev => new Set(prev).add(bundle.id))}
                                     className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest text-white"
-                                    style={{ background: `linear-gradient(180deg,${bundle.tagColor},${bundle.tagColor}88)`, boxShadow: `0 3px 0 rgba(0,0,0,0.5)`, opacity: 0.5, cursor: 'not-allowed' }}>
-                                    Demo Only
+                                    style={{ background: `linear-gradient(180deg,${bundle.tagColor},${bundle.tagColor}88)`, boxShadow: `0 3px 0 rgba(0,0,0,0.5)` }}>
+                                    Buy — {bundle.price}
                                 </button>
-                                <div className="text-center text-[8px] text-white/30 mt-1 uppercase tracking-wide">Real purchases unavailable</div>
                             </div>
                         </div>
                     ))}

@@ -358,6 +358,15 @@ export const WEIGHTS = [
   { type: SymbolType.COIN, weight: 0 },
 ];
 
+export const NEON_WEIGHTS = [
+  { type: SymbolType.GRAPE,   weight: 20 },
+  { type: SymbolType.BELL,    weight: 15 },
+  { type: SymbolType.BAR,     weight: 25 },
+  { type: SymbolType.CHERRY,  weight: 20 },
+  { type: SymbolType.SEVEN,   weight: 10 },
+  { type: SymbolType.SCATTER, weight: 10 },
+];
+
 export const FREE_SPIN_WEIGHTS = [
   { type: SymbolType.TEN, weight: 35 },
   { type: SymbolType.JACK, weight: 30 },

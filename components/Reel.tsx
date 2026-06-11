@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { SymbolType, SymbolConfig, GameTheme } from '../types';
-import { WEIGHTS, GET_SYMBOLS } from '../constants';
+import { WEIGHTS, NEON_WEIGHTS, GET_SYMBOLS } from '../constants';
 import { GameConfig } from '../types';
 
 interface ReelProps {
@@ -23,15 +23,15 @@ interface ReelProps {
 
 const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
 
-const makeRandomSymbol = (excludeScatter: boolean) => {
-  const weights = excludeScatter ? WEIGHTS.filter(w => w.type !== SymbolType.SCATTER) : WEIGHTS;
+const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean) => {
+  let weights = neon ? NEON_WEIGHTS : (excludeScatter ? WEIGHTS.filter(w => w.type !== SymbolType.SCATTER) : WEIGHTS);
   let sum = weights.reduce((acc, el) => acc + el.weight, 0);
   let rand = Math.random() * sum;
   for (let w of weights) {
     rand -= w.weight;
     if (rand <= 0) return w.type;
   }
-  return SymbolType.TEN;
+  return neon ? SymbolType.GRAPE : SymbolType.TEN;
 };
 
 export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation }) => {
@@ -40,7 +40,8 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
   const VISIBLE_ROWS = gameConfig.rows;
   const noScatter = NO_SCATTER_THEMES.has(gameConfig.theme);
-  const getRandSym = () => makeRandomSymbol(noScatter);
+  const isNeon = gameConfig.theme === 'NEON';
+  const getRandSym = () => makeRandomSymbol(noScatter, isNeon);
 
   // Initialize strip on mount or config change
   useEffect(() => {

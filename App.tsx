@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, NEON_WEIGHTS } from './constants';
 import { Reel } from './components/Reel';
 import { WinPopup } from './components/WinPopup';
 import { LeftSidebar } from './components/LeftSidebar';
@@ -1509,14 +1509,19 @@ const App: React.FC = () => {
           }
       }
 
-      // NEON: no letter (10/J/Q/K/A) symbols — replace with non-letter randoms
-      const LETTER_SYMS = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE];
-      const NON_LETTER_SYMS = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN];
+      // NEON: no letters (10/J/Q/K/A) and no wilds — replace with weighted NEON_WEIGHTS random
+      const NEON_EXCLUDE_SYMS = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE, SymbolType.WILD];
       if (selectedGame.theme === 'NEON') {
+          const nwSum = NEON_WEIGHTS.reduce((a, w) => a + w.weight, 0);
+          const pickNeonSym = () => {
+              let rand = Math.random() * nwSum;
+              for (const w of NEON_WEIGHTS) { rand -= w.weight; if (rand <= 0) return w.type; }
+              return SymbolType.GRAPE;
+          };
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
-                  if (LETTER_SYMS.includes(newGrid[c][r])) {
-                      newGrid[c][r] = NON_LETTER_SYMS[Math.floor(Math.random() * NON_LETTER_SYMS.length)];
+                  if (NEON_EXCLUDE_SYMS.includes(newGrid[c][r])) {
+                      newGrid[c][r] = pickNeonSym();
                   }
               }
           }
@@ -2012,7 +2017,8 @@ const App: React.FC = () => {
             let lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
             if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0; 
 
-            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult);
+            const neonMult = selectedGame.theme === 'NEON' ? 0.7 : 1.0;
+            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult);
             if (lineWin > 0) {
                 totalPayout += lineWin;
                 winningLines.push(line.id);
