@@ -213,10 +213,20 @@ const LETTER_DARK_BG: Partial<Record<GameTheme, string>> = {
     WESTERN:    '#351402',
     SAMURAI:    '#1e0303',
     PIGGY:      '#3b0519',
+    ARCTIC:     '#001e3a',
 };
 
 // 3D text-shadow per letter tier
-const getLetter3DShadow = (symbol: SymbolType): string => {
+const getLetter3DShadow = (symbol: SymbolType, theme?: GameTheme): string => {
+    if (theme === 'ARCTIC') {
+        if (symbol === SymbolType.TEN || symbol === SymbolType.JACK)
+            return '0 0 6px rgba(186,230,255,0.9), 1px 1px 0 #00334d, 2px 2px 0 #001e3a, 3px 3px 6px rgba(0,0,0,0.8)';
+        if (symbol === SymbolType.QUEEN || symbol === SymbolType.KING)
+            return '0 0 8px rgba(167,243,208,0.9), 1px 1px 0 #003322, 2px 2px 0 #001e14, 3px 3px 6px rgba(0,0,0,0.8)';
+        if (symbol === SymbolType.ACE)
+            return '0 0 10px rgba(251,191,36,0.9), 1px 1px 0 #7c5e00, 2px 2px 0 #4a3800, 3px 3px 6px rgba(0,0,0,0.8)';
+        return '';
+    }
     if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
         return '1px 1px 0 rgba(0,0,0,0.8), 2px 2px 0 rgba(0,0,0,0.6), 3px 3px 0 rgba(0,0,0,0.4), 4px 4px 8px rgba(0,0,0,0.5)';
     }
@@ -335,7 +345,7 @@ const ReelCell: React.FC<{
                                 ${fontSize} select-none transform
                                 ${config?.style || ''}
                                 `}
-                            style={isLetter ? { textShadow: getLetter3DShadow(symbol) } : undefined}
+                            style={isLetter ? { textShadow: getLetter3DShadow(symbol, theme) } : undefined}
                         >
                             {config?.icon}
                         </div>

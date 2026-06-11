@@ -359,7 +359,14 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
                                 {isMissionsLocked && lockBadge(10)}
-                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📜</span>
+                                <div className="relative">
+                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📜</span>
+                                    {missionsReady > 0 && !isMissionsLocked && (
+                                        <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{missionsReady > 99 ? '99+' : missionsReady}</span>
+                                        </div>
+                                    )}
+                                </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
                             </button>
 

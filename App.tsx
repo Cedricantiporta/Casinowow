@@ -2026,7 +2026,7 @@ const App: React.FC = () => {
         const arcticVipMult = player.isVip ? 1.2 : 1.0;
         const arcticSpinsAtMax = Math.max(1, player.level * 1.1);
         const arcticBetFraction = currentBet / MAX_BET_BY_LEVEL(player.level);
-        const arcticXp = Math.floor((player.xpToNextLevel / arcticSpinsAtMax) * arcticBetFraction * player.xpMultiplier * arcticVipMult);
+        const arcticXp = Math.floor((player.xpToNextLevel / arcticSpinsAtMax) * arcticBetFraction * player.xpMultiplier * arcticVipMult * 2);
         addXp(arcticXp);
         if (totalPayout > 0) {
             setPlayer(prev => ({
@@ -2159,7 +2159,7 @@ const App: React.FC = () => {
        const vipXpMult = player.isVip ? 1.2 : 1.0;
        const spinsAtMaxBet = Math.max(1, player.level * 1.1);
        const betFraction = currentBet / MAX_BET_BY_LEVEL(player.level);
-       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult);
+       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult * 2);
 
        addXp(xpGained);
        updateMissions(MissionType.WIN_COINS, totalPayout);
@@ -2183,7 +2183,7 @@ const App: React.FC = () => {
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
        const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
        const betFractionLoss = currentBet / MAX_BET_BY_LEVEL(player.level);
-       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss);
+       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss * 2);
        addXp(lossXp);
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
@@ -3089,7 +3089,7 @@ const App: React.FC = () => {
                                                                 {jpTier}
                                                             </span>
                                                         ) : val ? (
-                                                            <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: isCounting ? '#ffffff' : '#fde68a', textShadow: '0 0 5px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3 }}>
+                                                            <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#fbbf24', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 8px rgba(0,0,0,0.9)', lineHeight: 1, position: 'absolute', bottom: 3 }}>
                                                                 +{formatK(val)}
                                                             </span>
                                                         ) : null
@@ -3126,7 +3126,7 @@ const App: React.FC = () => {
                                                             {jpTier}
                                                         </span>
                                                     ) : (
-                                                        <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#fde68a', textShadow: '0 0 5px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3 }}>
+                                                        <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#fbbf24', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 8px rgba(0,0,0,0.9)', lineHeight: 1, position: 'absolute', bottom: 3 }}>
                                                             +{formatK(val)}
                                                         </span>
                                                     )}
