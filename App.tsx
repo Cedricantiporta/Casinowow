@@ -1427,7 +1427,7 @@ const App: React.FC = () => {
           const isArctic = selectedGame.theme === 'ARCTIC';
           const s1 = isSmallGrid ? 68 : (isArctic ? 50 : 60);
           const s2 = isSmallGrid ? 85.6 : (isArctic ? 72 : 82);
-          const s3 = isSmallGrid ? 99.2 : (isArctic && isFreeSpin ? 94.0 : 99.0);
+          const s3 = isSmallGrid ? 99.2 : 99.0;
           const s4 = isSmallGrid ? 99.8 : 99.75;
           if (scatterRoll >= s1) targetScatters = 1;
           if (scatterRoll >= s2) targetScatters = 2;
@@ -1755,14 +1755,17 @@ const App: React.FC = () => {
     setStoppedReels(prev => {
       const next = prev + 1;
       audioService.playReelStop();
-      // Arctic scatter anticipation: detect 2 scatters in stopped reels, signal remaining
-      if (selectedGame.theme === 'ARCTIC' && !fastSpinRef.current && !scatterAnticipationRef.current && next < selectedGame.reels) {
+      // Arctic scatter anticipation: highlight remaining reels when 2 scatters found; clear when 3rd lands
+      if (selectedGame.theme === 'ARCTIC' && !fastSpinRef.current && next < selectedGame.reels) {
           const tGrid = targetGridRef.current;
           let scattersSoFar = 0;
           for (let c = 0; c < next; c++) {
               if (tGrid[c]?.some(s => s === SymbolType.SCATTER)) scattersSoFar++;
           }
-          if (scattersSoFar >= 2) {
+          if (scattersSoFar >= 3 && scatterAnticipationRef.current) {
+              scatterAnticipationRef.current = false;
+              setScatterAnticipation(false);
+          } else if (scattersSoFar === 2 && !scatterAnticipationRef.current) {
               scatterAnticipationRef.current = true;
               setScatterAnticipation(true);
           }
@@ -2606,17 +2609,23 @@ const App: React.FC = () => {
 
   const handleStartFreeSpins = () => {
       setShowFreeSpinsPopup(false);
+      if (freeSpinsRemaining > 0) {
+          // Retrigger during free spins — no transition animation
+          setFreeSpinsRemaining(prev => prev + freeSpinsWon);
+          setStatus(GameStatus.IDLE);
+          return;
+      }
+      // Normal → Free Spins: 2-second transition animation
       setReelTransitioning('out');
       setTimeout(() => {
           setFreeSpinsRemaining(prev => prev + freeSpinsWon);
           savedFastSpinRef.current = fastSpin;
           setStatus(GameStatus.IDLE);
-          // Double rAF ensures browser paints the new free-spin reel state before fading in
           requestAnimationFrame(() => requestAnimationFrame(() => {
               setReelTransitioning('in');
-              setTimeout(() => setReelTransitioning(false), 500);
+              setTimeout(() => setReelTransitioning(false), 1100);
           }));
-      }, 380);
+      }, 900);
   };
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
@@ -3406,7 +3415,9 @@ const App: React.FC = () => {
       )}
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
-      {showWinPopup && <WinPopup amount={winData?.payout || 0} type={winData?.winType || ''} onComplete={handleWinPopupComplete} />}
+      {showWinPopup && winData && winData.payout > 0 && winData.winType && (
+          <WinPopup amount={winData.payout} type={winData.winType} onComplete={handleWinPopupComplete} />
+      )}
       
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />
       

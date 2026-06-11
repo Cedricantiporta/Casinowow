@@ -8,21 +8,29 @@ interface WinPopupProps {
     onComplete: () => void;
 }
 
-const WIN_STYLES: Record<string, { border: string; textColor: string; shadow: string }> = {
-    'ULTIMATE WIN': { border: '#fbbf24', textColor: '#fde68a', shadow: 'rgba(251,191,36,0.7)' },
-    'MEGA WIN':     { border: '#f43f5e', textColor: '#fda4af', shadow: 'rgba(244,63,94,0.7)'  },
-    'EPIC WIN':     { border: '#a855f7', textColor: '#d8b4fe', shadow: 'rgba(168,85,247,0.7)' },
-    'GREAT WIN':    { border: '#22d3ee', textColor: '#67e8f9', shadow: 'rgba(34,211,238,0.7)' },
-    'BIG WIN':      { border: '#22c55e', textColor: '#86efac', shadow: 'rgba(34,197,94,0.7)'  },
+const WIN_STYLES: Record<string, { textColor: string; shadow: string }> = {
+    'ULTIMATE WIN': { textColor: '#fde68a', shadow: 'rgba(251,191,36,0.7)' },
+    'MEGA WIN':     { textColor: '#fda4af', shadow: 'rgba(244,63,94,0.7)'  },
+    'EPIC WIN':     { textColor: '#d8b4fe', shadow: 'rgba(168,85,247,0.7)' },
+    'GREAT WIN':    { textColor: '#67e8f9', shadow: 'rgba(34,211,238,0.7)' },
+    'BIG WIN':      { textColor: '#86efac', shadow: 'rgba(34,197,94,0.7)'  },
 };
 
-const ARCHIVO_3D = (color: string, _shadow: string): React.CSSProperties => ({
+const ARCHIVO_3D = (color: string): React.CSSProperties => ({
     fontFamily: "'Archivo Black', sans-serif",
     color,
     textShadow: `2px 2px 0 #000, 4px 4px 0 rgba(0,0,0,0.5)`,
     WebkitTextStroke: '1px rgba(0,0,0,0.6)',
     paintOrder: 'stroke fill',
 });
+
+const AMOUNT_STYLE: React.CSSProperties = {
+    fontFamily: "'Archivo Black', sans-serif",
+    color: '#ffffff',
+    textShadow: '2px 2px 0 #000, 0 0 8px rgba(0,0,0,0.9)',
+    WebkitTextStroke: '1.5px #000',
+    paintOrder: 'stroke fill',
+};
 
 export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) => {
     const [displayAmount, setDisplayAmount] = useState(0);
@@ -57,19 +65,18 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
 
     return (
         <div onClick={guardedComplete}
-            className="fixed inset-0 z-[200] flex flex-col items-center justify-center cursor-pointer"
-            style={{ background: 'linear-gradient(160deg,#050505,#0d0d18,#050505)' }}>
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center cursor-pointer">
 
             <div className="flex flex-col items-center gap-4 p-6">
                 {/* Win type */}
-                <div style={{ fontSize: 'clamp(40px,11vw,88px)', lineHeight: 1, ...ARCHIVO_3D(s.textColor, s.shadow) }}>
+                <div style={{ fontSize: 'clamp(40px,11vw,88px)', lineHeight: 1, ...ARCHIVO_3D(s.textColor) }}>
                     {type}
                 </div>
 
-                {/* Amount box */}
-                <div className="flex items-center justify-center px-8 py-3 rounded-2xl"
-                    style={{ background: '#000', border: `4px solid ${s.border}`, boxShadow: `inset 0 0 12px rgba(0,0,0,0.8)` }}>
-                    <span style={{ fontSize: 'clamp(28px,7vw,56px)', lineHeight: 1, ...ARCHIVO_3D(s.textColor, s.shadow) }}>
+                {/* Amount box — solid gold, square corners, no border */}
+                <div className="flex items-center justify-center px-8 py-3"
+                    style={{ background: '#d97706', borderRadius: 0 }}>
+                    <span style={{ fontSize: 'clamp(28px,7vw,56px)', lineHeight: 1, ...AMOUNT_STYLE }}>
                         {formatK(displayAmount)}
                     </span>
                 </div>
