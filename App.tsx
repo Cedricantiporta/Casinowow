@@ -1167,6 +1167,7 @@ const App: React.FC = () => {
           const cascadeWin = result.payout * mult;
           const newAccWin = accWin + cascadeWin;
           setPlayer(p => ({ ...p, balance: p.balance + cascadeWin }));
+          if (totalFreeSpins > 0) setFreeSpinTotalWin(p => p + cascadeWin);
           setCascadeMultiplier(mult);
           setCascadeTotalWin(newAccWin);
           setWinData({ payout: newAccWin, winningLines: result.winningLines, winningCells: result.winningCells, isBigWin: false, scattersFound: 0, winType: undefined });
@@ -1176,15 +1177,12 @@ const App: React.FC = () => {
               setTimeout(() => runCascadeRef.current!(newGrid, mult + 1, newAccWin, result.winningCells), 350);
           }, 500);
       } else {
-          // No further wins — show the compacted grid (with drop-in animation) briefly before settling
+          // No further wins — keep cascade grid visible until next spin(); clear it there
           const winTier = getWinTier(accWin, bet);
           setWinData({ payout: accWin, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
           setCascadeMultiplier(1);
           setCascadeTotalWin(0);
           setTimeout(() => {
-              setCascadeGrid(null);
-              setCascadeNewCells(null);
-              setCascadeDissolving(false);
               if (winTier) {
                   audioService.playWinBig();
                   setShowWinPopup(true);
@@ -1210,9 +1208,9 @@ const App: React.FC = () => {
       // EGYPT Hold and Win: generate respin grid keeping locked cells as COIN
       if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
           const lockedGrid = holdWinRef.current.lockedGrid;
-          // Base 30% chance any coins appear; decreases 15% for each non-productive respin
+          // Base 60% chance any coins appear; decreases 12% for each non-productive respin
           const respinsUsed = 3 - holdWinRef.current.respins; // 0 on first respin, 1 on second, etc.
-          const baseCoinChance = Math.max(0, 0.30 - respinsUsed * 0.15);
+          const baseCoinChance = Math.max(0, 0.60 - respinsUsed * 0.12);
 
           // Collect empty cell positions
           const emptyCells: {c: number, r: number}[] = [];
@@ -1663,6 +1661,9 @@ const App: React.FC = () => {
         }));
     }
     setInstantStop(false);
+    setCascadeGrid(null);
+    setCascadeNewCells(null);
+    setCascadeDissolving(false);
     setStatus(GameStatus.SPINNING);
     setWinData(null);
     setEgyptCoinMeta(null);
@@ -1940,6 +1941,7 @@ const App: React.FC = () => {
                     recentSlots: prev.stats?.recentSlots || [],
                 }
             }));
+            if (totalFreeSpins > 0) setFreeSpinTotalWin(p => p + totalPayout);
             updateMissions(MissionType.WIN_COINS, totalPayout);
             setCascadeMultiplier(1);
             setCascadeTotalWin(totalPayout);
@@ -2947,8 +2949,8 @@ const App: React.FC = () => {
                                 winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []}
                                 gameConfig={selectedGame}
                                 isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE}
-                                forcedSymbols={status === GameStatus.CASCADE && cascadeGrid ? cascadeGrid[i] : undefined}
-                                newCells={status === GameStatus.CASCADE && cascadeNewCells ? cascadeNewCells[i] : undefined}
+                                forcedSymbols={cascadeGrid ? cascadeGrid[i] : undefined}
+                                newCells={cascadeNewCells ? cascadeNewCells[i] : undefined}
                                 dissolving={cascadeDissolving}
                             />
                         ))}
