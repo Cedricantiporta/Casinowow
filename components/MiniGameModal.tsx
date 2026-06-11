@@ -31,6 +31,8 @@ interface MiniGameModalProps {
 
 // Grid grows every 5 stages: 3 (1-5), 4 (6-10), 5 (11-15), 6 (16+)
 const getGridSize = (stage: number) => Math.min(Math.floor((stage - 1) / 5) + 3, 6);
+// Gems in grid: 1 at stage 1, +1 every 5 stages, max 5
+const getGemCount = (stage: number) => Math.min(Math.floor(stage / 5) + 1, 5);
 const GEM_COST = 100;
 
 interface BoardStep {
@@ -88,6 +90,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [stageClearData, setStageClearData] = useState<{coins: number; gems: number} | null>(null);
     const [noPicksMsg, setNoPicksMsg] = useState(false);
     const [showBuyPopup, setShowBuyPopup] = useState<'PICKS' | 'DICE' | null>(null);
+    const [explodingCells, setExplodingCells] = useState<Set<number>>(new Set());
 
     const [isRolling, setIsRolling] = useState(false);
     const [isMoving, setIsMoving] = useState(false);
@@ -104,16 +107,21 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const initGrid = useCallback(() => {
         const cells: WildGridCell[] = Array(totalCells).fill(null).map(() => ({ revealed: false, content: 'BLANK' as const }));
-        const gemIdx = Math.floor(Math.random() * totalCells);
-        cells[gemIdx] = { revealed: false, content: 'GEM' };
-        const baseCoin = (maxBet || 10000) * wildStage * 0.5;
+        // Place gems (scales with stage: 1 at stage 1, +1 every 5 stages, max 5)
+        const gemCount = getGemCount(wildStage);
+        const gemIndices = new Set<number>();
+        while (gemIndices.size < Math.min(gemCount, totalCells)) {
+            gemIndices.add(Math.floor(Math.random() * totalCells));
+        }
+        gemIndices.forEach(gi => { cells[gi] = { revealed: false, content: 'GEM' }; });
+        // Coin rewards: 1× base only, reduced by 60% vs original
+        const baseCoin = (maxBet || 10000) * wildStage * 0.2;
         for (let i = 0; i < totalCells; i++) {
-            if (i === gemIdx) continue;
+            if (gemIndices.has(i)) continue;
             if (Math.random() < 0.3) {
                 const r = Math.random();
                 let reward: MiniGameReward = { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) };
-                if (r < 0.5) { const h = baseCoin * 2; reward = { type: 'COINS', value: h, label: formatNumber(h) }; }
-                else if (r < 0.7) reward = { type: 'PICKS', value: 1, label: '+1 Pick' };
+                if (r < 0.7) reward = { type: 'PICKS', value: 1, label: '+1 Pick' };
                 else if (r < 0.9) reward = { type: 'PICKS', value: 2, label: '+2 Picks' };
                 else reward = { type: 'DIAMONDS', value: 5, label: '+5 Gems' };
                 cells[i] = { revealed: false, content: 'REWARD', reward };
@@ -160,6 +168,17 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 }
             }
             newBoard.push({ index: i, isStart: i === 0, isFinish: i === boardLength, reward });
+        }
+        // Every 3rd stage, place one 5× coin tile on a random coin tile
+        if (diceStage % 3 === 0) {
+            const coinIndices = newBoard
+                .filter(s => !s.isStart && !s.isFinish && s.reward?.type === 'COINS')
+                .map(s => s.index);
+            if (coinIndices.length > 0) {
+                const pick = coinIndices[Math.floor(Math.random() * coinIndices.length)];
+                const step = newBoard.find(s => s.index === pick)!;
+                step.reward = { type: 'COINS', value: baseCoin * 5, label: '5×' };
+            }
         }
         setBoard(newBoard);
         setVisualPosition(0);
@@ -220,11 +239,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         newGrid[index] = { ...cell, revealed: true };
 
         if (cell.content === 'BOMB') {
-            // Reveal all surrounding cells (up to 8)
+            // Collect up to 3 random unrevealed neighbors with explode animation
             const row = Math.floor(index / currentGridSize);
             const col = index % currentGridSize;
-            const surroundingRewards: MiniGameReward[] = [];
-            let gemFoundFromBomb = false;
+            const neighbors: number[] = [];
             for (let dr = -1; dr <= 1; dr++) {
                 for (let dc = -1; dc <= 1; dc++) {
                     if (dr === 0 && dc === 0) continue;
@@ -232,22 +250,37 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     const nc = col + dc;
                     if (nr >= 0 && nr < currentGridSize && nc >= 0 && nc < currentGridSize) {
                         const ni = nr * currentGridSize + nc;
-                        if (!newGrid[ni].revealed) {
-                            newGrid[ni] = { ...newGrid[ni], revealed: true };
-                            if (newGrid[ni].content === 'GEM') gemFoundFromBomb = true;
-                            else if (newGrid[ni].content === 'REWARD' && newGrid[ni].reward) surroundingRewards.push(newGrid[ni].reward!);
-                        }
+                        if (!newGrid[ni].revealed) neighbors.push(ni);
                     }
                 }
             }
+            for (let i = neighbors.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [neighbors[i], neighbors[j]] = [neighbors[j], neighbors[i]];
+            }
+            const explodeTargets = neighbors.slice(0, 3);
+            setExplodingCells(new Set(explodeTargets));
             setGrid(newGrid);
             if (onGridUpdate) onGridUpdate(newGrid);
             audioService.playWinBig();
-            onBatchPick(1, surroundingRewards);
-            if (gemFoundFromBomb) {
-                setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
-                setStageWinning(true);
-            }
+            setTimeout(() => {
+                setExplodingCells(new Set());
+                const finalGrid = newGrid.map(c => ({ ...c }));
+                const surroundingRewards: MiniGameReward[] = [];
+                let gemFoundFromBomb = false;
+                for (const ni of explodeTargets) {
+                    finalGrid[ni] = { ...finalGrid[ni], revealed: true };
+                    if (finalGrid[ni].content === 'GEM') gemFoundFromBomb = true;
+                    else if (finalGrid[ni].content === 'REWARD' && finalGrid[ni].reward) surroundingRewards.push(finalGrid[ni].reward!);
+                }
+                setGrid(finalGrid);
+                if (onGridUpdate) onGridUpdate(finalGrid);
+                onBatchPick(1, surroundingRewards);
+                if (gemFoundFromBomb) {
+                    setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
+                    setStageWinning(true);
+                }
+            }, 600);
             return;
         }
 
@@ -317,8 +350,15 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 audioService.playClick();
                 await new Promise(r => setTimeout(r, 280));
             }
+            // Collect reward at the tile where player landed after going back
+            const backRewards: MiniGameReward[] = [{ type: 'BACK', value: 0, label: 'BACK!' }];
+            const backPosStep = board.find(s => s.index === backPos);
+            if (backPosStep?.reward && !backPosStep.isStart && backPosStep.reward.type !== 'BACK') {
+                backRewards.push(backPosStep.reward);
+                audioService.playWinSmall();
+            }
             setIsMoving(false);
-            onDiceRoll(rollValue, backPos, [{ type: 'BACK', value: 0, label: 'BACK!' }], false);
+            onDiceRoll(rollValue, backPos, backRewards, false);
         } else {
             const rewards: MiniGameReward[] = [];
             if (landedStep?.reward && !isFinish && !landedStep.isStart) {
@@ -445,6 +485,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))` }}>
                                 {grid.map((cell, i) => {
                                     const revealed = cell.revealed;
+                                    const isExploding = explodingCells.has(i);
                                     const isGem = revealed && cell.content === 'GEM';
                                     const isReward = revealed && cell.content === 'REWARD';
                                     const isBomb = cell.content === 'BOMB';
@@ -459,15 +500,17 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     return (
                                         <button key={i} onClick={() => handleTileClick(i)}
                                             disabled={revealed || wildCredits <= 0 || stageWinning}
-                                            className="relative flex flex-col items-center justify-center rounded-xl active:translate-y-[2px] transition-all overflow-hidden"
+                                            className={`relative flex flex-col items-center justify-center rounded-xl active:translate-y-[2px] transition-all overflow-hidden${isExploding ? ' animate-bounce' : ''}`}
                                             style={{
                                                 width: tileSize, height: tileSize,
-                                                background: tileBg,
-                                                boxShadow: revealed ? 'none' : '0 4px 0 #1e0438, 0 6px 12px rgba(0,0,0,0.5)',
+                                                background: isExploding ? 'linear-gradient(180deg,#f97316,#c2410c)' : tileBg,
+                                                boxShadow: isExploding ? '0 0 16px #f97316' : revealed ? 'none' : '0 4px 0 #1e0438, 0 6px 12px rgba(0,0,0,0.5)',
                                                 border: revealed ? '1px solid rgba(255,255,255,0.1)' : 'none',
                                                 cursor: revealed || wildCredits <= 0 || stageWinning ? 'default' : 'pointer',
                                             }}>
-                                            {revealed ? (
+                                            {isExploding ? (
+                                                <span style={{ fontSize: tileSize * 0.72, lineHeight: 1 }}>💥</span>
+                                            ) : revealed ? (
                                                 icon ? (
                                                     <>
                                                         <span style={{ fontSize: tileSize * 0.62, lineHeight: 1 }}>{icon}</span>
@@ -525,9 +568,11 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 }));
                                 const renderCell = (step: typeof board[0]) => {
                                     const isHere = step.index === visualPosition;
+                                    const isFiveX = step.reward?.type === 'COINS' && step.reward.label === '5×';
                                     const bg = step.isFinish ? 'linear-gradient(180deg,#f59e0b,#b45309)'
                                         : step.isStart ? 'linear-gradient(180deg,#22c55e,#15803d)'
                                         : step.reward?.type === 'BACK' ? 'linear-gradient(180deg,#dc2626,#991b1b)'
+                                        : isFiveX ? 'linear-gradient(180deg,#fbbf24,#d97706)'
                                         : step.reward?.type === 'COINS' ? 'linear-gradient(180deg,#ca8a04,#713f12)'
                                         : step.reward?.type === 'PICKS' ? 'linear-gradient(180deg,#7c3aed,#3b0764)'
                                         : step.reward?.type === 'DIAMONDS' ? 'linear-gradient(180deg,#0891b2,#0c4a6e)'
@@ -535,6 +580,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         : 'linear-gradient(180deg,#312e81,#1e1b4b)';
                                     const cellIcon = step.isFinish ? '🏆'
                                         : step.reward?.type === 'BACK' ? '⬅️'
+                                        : isFiveX ? '⭐'
                                         : step.reward?.type === 'COINS' ? '🪙'
                                         : step.reward?.type === 'PICKS' ? '🎲'
                                         : step.reward?.type === 'DIAMONDS' ? '💎'
@@ -547,8 +593,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             style={{
                                                 width: 54, height: 54,
                                                 background: bg,
-                                                boxShadow: isHere ? '0 0 0 2px #fde68a, 0 4px 12px rgba(0,0,0,0.5)' : '0 3px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
-                                                border: isHere ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.1)',
+                                                boxShadow: isHere ? '0 0 0 2px #fde68a, 0 4px 12px rgba(0,0,0,0.5)' : isFiveX ? '0 0 8px #fbbf24, 0 3px 0 rgba(0,0,0,0.4)' : '0 3px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
+                                                border: isHere ? '2px solid #fde68a' : isFiveX ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.1)',
                                                 transition: 'all 0.25s',
                                                 transform: isHere ? 'scale(1.1)' : 'scale(1)',
                                             }}>
