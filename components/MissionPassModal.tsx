@@ -109,9 +109,11 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const topbarStyle = { background: 'transparent', borderBottom: '1px solid rgba(255,255,255,0.06)' };
 
     return (
-        <div className="fixed inset-0 z-[150] flex flex-col bg-[#0d0814]">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3">
+        <div className="w-full max-w-[480px] flex flex-col bg-[#0d0814] rounded-2xl overflow-hidden relative"
+            style={{ height: 'min(88vh, 680px)' }}>
             {showPremiumInfo && (
-                <div className="fixed inset-0 z-[200] flex flex-col animate-pop-in overflow-hidden"
+                <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
                     {/* Header row */}
                     <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative"
@@ -357,6 +359,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     </div>
                 )}
             </div>
+        </div>
         </div>
     );
 };

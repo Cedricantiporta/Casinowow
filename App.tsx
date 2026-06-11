@@ -1840,8 +1840,8 @@ const App: React.FC = () => {
             return next;
         }
 
-        // EGYPT: assign values to all COIN cells (shown on overlay) + trigger HW if 6+
-        if (selectedGame.theme === 'EGYPT' && !holdWinRef.current.active && freeSpinsRemaining === 0) {
+        // EGYPT: assign values to all COIN cells (shown on overlay) + trigger HW if 6+ (normal spins only)
+        if (selectedGame.theme === 'EGYPT' && !holdWinRef.current.active) {
             const currentBet = currentBetRef.current;
             const preValues: (number|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
             const preJpGrid: (string|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
@@ -1857,7 +1857,7 @@ const App: React.FC = () => {
                 });
             });
             setEgyptCoinMeta({ values: preValues, jpGrid: preJpGrid });
-            if (coinCount >= 6) {
+            if (coinCount >= 6 && freeSpinsRemaining === 0) {
                 const lockedGrid: boolean[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(false));
                 const coinValues: number[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(0));
                 const jpGrid: (string|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
@@ -3103,15 +3103,18 @@ const App: React.FC = () => {
                                                         borderRadius: 3,
                                                     }}>
                                                     {locked ? (
-                                                        jpTier ? (
-                                                            <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: isCounting ? '#ffffff' : JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3, letterSpacing: '0.04em' }}>
-                                                                {jpTier}
-                                                            </span>
-                                                        ) : val ? (
-                                                            <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
-                                                                {formatK(val)}
-                                                            </span>
-                                                        ) : null
+                                                        <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
+                                                            {jpTier && (
+                                                                <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: isCounting ? '#ffffff' : JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, letterSpacing: '0.04em' }}>
+                                                                    {jpTier}
+                                                                </span>
+                                                            )}
+                                                            {val ? (
+                                                                <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
+                                                                    {formatK(val)}
+                                                                </span>
+                                                            ) : null}
+                                                        </div>
                                                     ) : null}
                                                 </div>
                                             );
@@ -3121,9 +3124,9 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Egypt coin meta overlay — show values on COIN cells during normal spins */}
+                        {/* Egypt coin meta overlay — show values on COIN cells during normal/free spins */}
                         {!holdWinActive && selectedGame.theme === 'EGYPT' && egyptCoinMeta &&
-                         status !== GameStatus.SPINNING && status !== GameStatus.STOPPING && (
+                         status !== GameStatus.SPINNING && (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
                                     <div key={c} className="flex-1 flex flex-col gap-0.5">
@@ -3140,15 +3143,16 @@ const App: React.FC = () => {
                                                         background: jpTier ? JP_COLORS[jpTier] + '15' : 'rgba(251,191,36,0.06)',
                                                         borderRadius: 3,
                                                     }}>
-                                                    {jpTier ? (
-                                                        <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3, letterSpacing: '0.04em' }}>
-                                                            {jpTier}
+                                                    <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
+                                                        {jpTier && (
+                                                            <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, letterSpacing: '0.04em' }}>
+                                                                {jpTier}
+                                                            </span>
+                                                        )}
+                                                        <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
+                                                            {formatK(val)}
                                                         </span>
-                                                    ) : (
-                                                        <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#fbbf24', textShadow: '1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 0 0 8px rgba(0,0,0,0.9)', lineHeight: 1, position: 'absolute', bottom: 3 }}>
-                                                            +{formatK(val)}
-                                                        </span>
-                                                    )}
+                                                    </div>
                                                 </div>
                                             );
                                         })}
