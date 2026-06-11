@@ -6,15 +6,16 @@ import { GameConfig } from '../types';
 
 interface ReelProps {
   id: number;
-  symbols: SymbolType[]; 
-  spinning: boolean; 
-  stopping: boolean; 
+  symbols: SymbolType[];
+  spinning: boolean;
+  stopping: boolean;
   stopDelay: number;
   duration: number;
   onStop: () => void;
-  winningIndices: number[]; 
+  winningIndices: number[];
   gameConfig: GameConfig;
-  isScatterShowcase?: boolean; 
+  isScatterShowcase?: boolean;
+  forcedSymbols?: SymbolType[];
 }
 
 const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
@@ -30,7 +31,7 @@ const makeRandomSymbol = (excludeScatter: boolean) => {
   return SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
   const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);

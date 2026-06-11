@@ -63,6 +63,18 @@ export const GAMES_CONFIG: GameConfig[] = [
     reelBg: REEL_BGS.EGYPT
   },
   {
+    id: 'arctic-freeze',
+    name: 'Arctic Freeze',
+    theme: 'ARCTIC',
+    rows: 3,
+    reels: 5,
+    scattersToTrigger: 3,
+    description: 'Cascading Reels! Wins explode and new symbols fall. 3 snowflakes for free spins!',
+    color: 'from-cyan-400 via-sky-600 to-indigo-900',
+    bgImage: 'radial-gradient(circle at 50% 0%, #22d3ee 0%, #1e3a8a 100%)',
+    reelBg: REEL_BGS.ARCTIC
+  },
+  {
     id: 'dragon-fortune',
     name: 'Dragon\'s Fortune',
     theme: 'DRAGON',
@@ -109,18 +121,6 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-pink-400 via-pink-600 to-rose-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #ec4899 0%, #831843 100%)',
     reelBg: REEL_BGS.CANDY
-  },
-  {
-    id: 'jungle-rumble',
-    name: 'Jungle Rumble',
-    theme: 'JUNGLE',
-    rows: 4,
-    reels: 5,
-    scattersToTrigger: 3,
-    description: 'Wild wins in the deep rainforest.',
-    color: 'from-green-600 via-emerald-700 to-green-900',
-    bgImage: 'radial-gradient(circle at 50% 0%, #059669 0%, #064e3b 100%)',
-    reelBg: REEL_BGS.JUNGLE
   },
   {
     id: 'deep-blue',
@@ -183,16 +183,16 @@ export const GAMES_CONFIG: GameConfig[] = [
     reelBg: REEL_BGS.LEPRECHAUN
   },
   {
-    id: 'arctic-freeze',
-    name: 'Arctic Freeze',
-    theme: 'ARCTIC',
-    rows: 3,
+    id: 'jungle-rumble',
+    name: 'Jungle Rumble',
+    theme: 'JUNGLE',
+    rows: 4,
     reels: 5,
     scattersToTrigger: 3,
-    description: 'Icy wins in the frozen tundra. 3 snowflakes trigger free spins!',
-    color: 'from-cyan-400 via-sky-600 to-indigo-900',
-    bgImage: 'radial-gradient(circle at 50% 0%, #22d3ee 0%, #1e3a8a 100%)',
-    reelBg: REEL_BGS.ARCTIC
+    description: 'Wild wins in the deep rainforest.',
+    color: 'from-green-600 via-emerald-700 to-green-900',
+    bgImage: 'radial-gradient(circle at 50% 0%, #059669 0%, #064e3b 100%)',
+    reelBg: REEL_BGS.JUNGLE
   },
 ];
 
