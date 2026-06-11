@@ -190,7 +190,13 @@ const App: React.FC = () => {
   const [showProfile, setShowProfile] = useState(false);
   const [showVipLounge, setShowVipLounge] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const savedFastSpinRef = useRef<boolean>(false); 
+  const savedFastSpinRef = useRef<boolean>(false);
+  const [scatterAnticipation, setScatterAnticipation] = useState(false);
+  const scatterAnticipationRef = useRef(false);
+  const targetGridRef = useRef<SymbolType[][]>([]);
+  const fastSpinRef = useRef(fastSpin);
+  useEffect(() => { fastSpinRef.current = fastSpin; }, [fastSpin]);
+  useEffect(() => { targetGridRef.current = targetGrid; }, [targetGrid]);
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [piggyGlow, setPiggyGlow] = useState(false);
   const [showXpTimer, setShowXpTimer] = useState(false);
@@ -1146,8 +1152,9 @@ const App: React.FC = () => {
           const remaining = col.filter((_, r) => !winRows.has(r));
           const newCount = col.length - remaining.length;
           const newSyms = Array(newCount).fill(null).map(() => {
-              // Arctic: 20% chance each new falling cell is WILD (cols 2-4, 1-indexed)
-              if (selectedGame.theme === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < 0.20) {
+              // Arctic: wild chance on falling cells (free spins +3%)
+              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.23 : 0.17;
+              if (selectedGame.theme === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < arcticCascadeWildChance) {
                   return SymbolType.WILD;
               }
               let sym: SymbolType;
@@ -1416,9 +1423,11 @@ const App: React.FC = () => {
           const scatterRoll = Math.random() * 100;
           let targetScatters = 0;
           // 3×3 slots: 20% less free spin chance (raise thresholds so fewer scatters spawn)
-          const s1 = isSmallGrid ? 68 : 60;
-          const s2 = isSmallGrid ? 85.6 : 82;
-          const s3 = isSmallGrid ? 99.2 : 99.0;
+          // Arctic: 1&2-scatter thresholds lowered by 10%; retrigger (s3) lowered extra 5% during free spins
+          const isArctic = selectedGame.theme === 'ARCTIC';
+          const s1 = isSmallGrid ? 68 : (isArctic ? 50 : 60);
+          const s2 = isSmallGrid ? 85.6 : (isArctic ? 72 : 82);
+          const s3 = isSmallGrid ? 99.2 : (isArctic && isFreeSpin ? 94.0 : 99.0);
           const s4 = isSmallGrid ? 99.8 : 99.75;
           if (scatterRoll >= s1) targetScatters = 1;
           if (scatterRoll >= s2) targetScatters = 2;
@@ -1508,13 +1517,14 @@ const App: React.FC = () => {
                   }
               }
           }
-          // 5% chance: full column of wilds on col 2 (3rd column, 0-indexed)
-          if (Math.random() < 0.05) {
+          // Wild chances: free spins get +3% boost, normal spins -3%
+          const fullColChance = isFreeSpin ? 0.08 : 0.02;
+          const singleWildChance = isFreeSpin ? 0.23 : 0.17;
+          if (Math.random() < fullColChance) {
               for (let r = 0; r < rows; r++) {
                   if (newGrid[2]?.[r] !== SymbolType.SCATTER) newGrid[2][r] = SymbolType.WILD;
               }
-          } else if (Math.random() < 0.20) {
-              // 20% chance: single wild on a random cell in cols 1-3
+          } else if (Math.random() < singleWildChance) {
               const wildCol = 1 + Math.floor(Math.random() * 3);
               const wildRow = Math.floor(Math.random() * rows);
               if (newGrid[wildCol]?.[wildRow] !== SymbolType.SCATTER) {
@@ -1715,6 +1725,8 @@ const App: React.FC = () => {
         }));
     }
     setInstantStop(false);
+    setScatterAnticipation(false);
+    scatterAnticipationRef.current = false;
     setCascadeGrid(null);
     setCascadeNewCells(null);
     setCascadeDissolving(false);
@@ -1743,7 +1755,21 @@ const App: React.FC = () => {
     setStoppedReels(prev => {
       const next = prev + 1;
       audioService.playReelStop();
+      // Arctic scatter anticipation: detect 2 scatters in stopped reels, signal remaining
+      if (selectedGame.theme === 'ARCTIC' && !fastSpinRef.current && !scatterAnticipationRef.current && next < selectedGame.reels) {
+          const tGrid = targetGridRef.current;
+          let scattersSoFar = 0;
+          for (let c = 0; c < next; c++) {
+              if (tGrid[c]?.some(s => s === SymbolType.SCATTER)) scattersSoFar++;
+          }
+          if (scattersSoFar >= 2) {
+              scatterAnticipationRef.current = true;
+              setScatterAnticipation(true);
+          }
+      }
       if (next === selectedGame.reels) {
+        setScatterAnticipation(false);
+        scatterAnticipationRef.current = false;
 
         // EGYPT: Hold and Win respin handling
         if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
@@ -1845,7 +1871,9 @@ const App: React.FC = () => {
         }
 
         if (scatterCount >= selectedGame.scattersToTrigger) {
-             const spinsWon = scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20;
+             const spinsWon = selectedGame.theme === 'ARCTIC'
+                 ? (scatterCount === 3 ? 15 : scatterCount === 4 ? 20 : 25)
+                 : (scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20);
              setFreeSpinsWon(spinsWon);
              setTotalFreeSpins(prev => prev + spinsWon);
 
@@ -2946,8 +2974,8 @@ const App: React.FC = () => {
                 <div className="w-full z-10 p-0 m-0">
                     {selectedGame.theme === 'ARCTIC' ? (
                         <ArcticMultiplierBar
-                            mults={freeSpinsRemaining > 0 ? [2,5,10,15,20] : [2,3,4,5,6]}
-                            stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
+                            mults={freeSpinsRemaining > 0 ? [2,5,10,15,20] : [2,3]}
+                            stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), freeSpinsRemaining > 0 ? 4 : 1)}
                             isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
                         />
                     ) : (
@@ -2985,6 +3013,7 @@ const App: React.FC = () => {
                                 forcedSymbols={cascadeGrid ? cascadeGrid[i] : undefined}
                                 newCells={cascadeNewCells ? cascadeNewCells[i] : undefined}
                                 dissolving={cascadeDissolving}
+                                anticipation={scatterAnticipation && i >= stoppedReels}
                             />
                         ))}
 

@@ -18,6 +18,7 @@ interface ReelProps {
   forcedSymbols?: SymbolType[];
   newCells?: boolean[];
   dissolving?: boolean;
+  anticipation?: boolean;
 }
 
 const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
@@ -33,7 +34,7 @@ const makeRandomSymbol = (excludeScatter: boolean) => {
   return SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
   const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
@@ -57,6 +58,8 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   // Effect 2: Handle Stop Trigger
   useEffect(() => {
     if (stopping && !landing) {
+        // Anticipation: 2× longer spin when 2 scatters detected in earlier reels
+        const totalDelay = anticipation ? stopDelay + 900 : stopDelay;
         const timer = setTimeout(() => {
             setLanding(true);
 
@@ -66,10 +69,10 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                 ...symbols
             ];
             setStrip(finalStrip);
-        }, stopDelay);
+        }, totalDelay);
         return () => clearTimeout(timer);
     }
-  }, [stopping, landing, stopDelay, symbols, VISIBLE_ROWS]);
+  }, [stopping, landing, stopDelay, symbols, VISIBLE_ROWS, anticipation]);
 
   // Effect 3: Handle Animation Completion (Signal Parent)
   useEffect(() => {
@@ -140,7 +143,10 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   return (
     <div
         className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
-        style={{ aspectRatio: `1 / ${gameConfig.rows}` }}
+        style={{
+            aspectRatio: `1 / ${gameConfig.rows}`,
+            ...(anticipation ? { boxShadow: '0 0 0 2px #fbbf24, 0 0 18px rgba(251,191,36,0.7)', transition: 'box-shadow 0.2s' } : {}),
+        }}
     >
        {/* Scroll Wrapper - Static Position Adjustments */}
        <div 
