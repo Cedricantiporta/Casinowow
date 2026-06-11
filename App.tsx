@@ -68,6 +68,37 @@ const getWinTier = (amount: number, bet: number): string | null => {
 
 const formatBet = (num: number) => formatCommaNumber(num);
 
+const ARCTIC_MULT_COLORS = [
+    { solid: '#22c55e', border: '#16a34a', bg: '#052e16' },
+    { solid: '#3b82f6', border: '#2563eb', bg: '#0c1a3a' },
+    { solid: '#a855f7', border: '#7c3aed', bg: '#1a0535' },
+    { solid: '#ef4444', border: '#b91c1c', bg: '#2d0a0a' },
+    { solid: '#eab308', border: '#a16207', bg: '#2a1800' },
+];
+
+const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive: boolean }> = ({ mults, stepIdx, isActive }) => (
+    <div className="flex items-center justify-center gap-1.5 py-1.5 px-3" style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        {mults.map((m, idx) => {
+            const active = isActive && stepIdx === idx;
+            const c = ARCTIC_MULT_COLORS[idx];
+            return (
+                <div key={idx} className="flex items-center justify-center rounded transition-all duration-200"
+                    style={{
+                        padding: '2px 7px',
+                        background: active ? c.bg : 'rgba(255,255,255,0.03)',
+                        border: `1.5px solid ${active ? c.border : 'rgba(255,255,255,0.08)'}`,
+                    }}>
+                    <span style={{
+                        fontFamily: "'Archivo Black', sans-serif",
+                        fontSize: 'clamp(9px,1.6vw,12px)',
+                        color: active ? c.solid : 'rgba(255,255,255,0.18)',
+                    }}>×{m}</span>
+                </div>
+            );
+        })}
+    </div>
+);
+
 const App: React.FC = () => {
   const toastCountRef = useRef(0);
   const spinButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1113,6 +1144,10 @@ const App: React.FC = () => {
           const remaining = col.filter((_, r) => !winRows.has(r));
           const newCount = col.length - remaining.length;
           const newSyms = Array(newCount).fill(null).map(() => {
+              // Arctic: 10% chance each new falling cell is WILD (cols 2-4, 1-indexed)
+              if (selectedGame.theme === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < 0.10) {
+                  return SymbolType.WILD;
+              }
               let sym: SymbolType;
               do { sym = getRandomSymbol(false, 0); }
               while (sym === SymbolType.SCATTER || String(sym).startsWith('JACKPOT') || sym === SymbolType.COIN);
@@ -1462,12 +1497,20 @@ const App: React.FC = () => {
       }
 
       // ARCTIC: no jackpot or coin symbols — replace them with regular symbols
+      // Then 10% chance to spawn a single wild on column 2, 3, or 4 (1-indexed)
       if (selectedGame.theme === 'ARCTIC') {
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
                   while (String(newGrid[c][r]).startsWith('JACKPOT') || newGrid[c][r] === SymbolType.COIN) {
                       newGrid[c][r] = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
                   }
+              }
+          }
+          if (Math.random() < 0.10) {
+              const wildCol = 1 + Math.floor(Math.random() * 3); // col index 1, 2, or 3
+              const wildRow = Math.floor(Math.random() * rows);
+              if (newGrid[wildCol] && newGrid[wildCol][wildRow] !== SymbolType.SCATTER) {
+                  newGrid[wildCol][wildRow] = SymbolType.WILD;
               }
           }
       }
@@ -2877,29 +2920,11 @@ const App: React.FC = () => {
                 })()}
                 <div className="w-full z-10 p-0 m-0">
                     {selectedGame.theme === 'ARCTIC' ? (
-                        <div className="flex items-center justify-center gap-1.5 py-1.5 px-3" style={{ background: 'rgba(0,20,40,0.7)', borderBottom: '1px solid rgba(34,211,238,0.15)' }}>
-                            {(freeSpinsRemaining > 0 ? [1,5,10,20,50] : [1,2,3,4,5]).map((m, idx) => {
-                                const stepIdx = Math.min(cascadeMultiplier - 1, 4);
-                                const isActive = (status === GameStatus.CASCADE) && stepIdx === idx;
-                                return (
-                                    <div key={idx}
-                                        className="flex items-center justify-center rounded transition-all duration-200"
-                                        style={{
-                                            padding: '2px 7px',
-                                            background: isActive ? 'rgba(34,211,238,0.18)' : 'rgba(255,255,255,0.04)',
-                                            border: `1px solid ${isActive ? 'rgba(34,211,238,0.65)' : 'rgba(255,255,255,0.1)'}`,
-                                            boxShadow: isActive ? '0 0 8px rgba(34,211,238,0.45)' : 'none',
-                                        }}>
-                                        <span style={{
-                                            fontFamily: "'Archivo Black', sans-serif",
-                                            fontSize: 'clamp(9px,1.6vw,12px)',
-                                            color: isActive ? '#67e8f9' : 'rgba(255,255,255,0.22)',
-                                            textShadow: isActive ? '0 0 8px rgba(34,211,238,0.8)' : 'none',
-                                        }}>×{m}</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        <ArcticMultiplierBar
+                            mults={freeSpinsRemaining > 0 ? [1,5,10,20,50] : [1,2,3,4,5]}
+                            stepIdx={Math.min(cascadeMultiplier - 1, 4)}
+                            isActive={status === GameStatus.CASCADE}
+                        />
                     ) : (
                         <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
                     )}
