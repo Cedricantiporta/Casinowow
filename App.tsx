@@ -1088,11 +1088,11 @@ const App: React.FC = () => {
 
   const rollHoldWinJackpot = (): string | null => {
       const r = Math.random();
-      if (r < 0.0025) return 'GRAND';
-      if (r < 0.0075) return 'MEGA';
-      if (r < 0.0275) return 'MAJOR';
-      if (r < 0.0625) return 'MINOR';
-      if (r < 0.1125) return 'MINI';
+      if (r < 0.00125) return 'GRAND';   // 0.125%
+      if (r < 0.00375) return 'MEGA';    // 0.25%
+      if (r < 0.01375) return 'MAJOR';   // 1%
+      if (r < 0.03125) return 'MINOR';   // 1.75%
+      if (r < 0.05625) return 'MINI';    // 2.5%
       return null;
   };
 
@@ -1200,12 +1200,35 @@ const App: React.FC = () => {
       // EGYPT Hold and Win: generate respin grid keeping locked cells as COIN
       if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
           const lockedGrid = holdWinRef.current.lockedGrid;
+          // Base 30% chance any coins appear; decreases 15% for each non-productive respin
+          const respinsUsed = 3 - holdWinRef.current.respins; // 0 on first respin, 1 on second, etc.
+          const baseCoinChance = Math.max(0, 0.30 - respinsUsed * 0.15);
+
+          // Collect empty cell positions
+          const emptyCells: {c: number, r: number}[] = [];
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  if (!lockedGrid[c]?.[r]) emptyCells.push({ c, r });
+              }
+          }
+
+          // Determine how many new coins to place
+          const coinCellKeys = new Set<number>();
+          if (emptyCells.length > 0 && Math.random() < baseCoinChance) {
+              const cr = Math.random();
+              const count = cr < 0.632 ? 1 : cr < 0.948 ? 2 : 3; // 60% / 30% / 5% (normalized to 95%)
+              const shuffled = [...emptyCells].sort(() => Math.random() - 0.5);
+              for (let i = 0; i < Math.min(count, shuffled.length); i++) {
+                  coinCellKeys.add(shuffled[i].c * rows + shuffled[i].r);
+              }
+          }
+
           for (let c = 0; c < cols; c++) {
               const col: SymbolType[] = [];
               for (let r = 0; r < rows; r++) {
                   if (lockedGrid[c]?.[r]) {
                       col.push(SymbolType.COIN);
-                  } else if (Math.random() < 0.28) {
+                  } else if (coinCellKeys.has(c * rows + r)) {
                       col.push(SymbolType.COIN);
                   } else {
                       let sym = getRandomSymbol(false, spinsWithoutBonus);
@@ -1696,7 +1719,7 @@ const App: React.FC = () => {
                 startHwCounting(newLockedGrid, newCoinValues, newJpGrid, isFull, currentBet);
             } else {
                 setHoldWinRespins(newRespins);
-                setTimeout(() => setStatus(GameStatus.IDLE), 800);
+                setTimeout(() => setStatus(GameStatus.IDLE), 960);
             }
             return next;
         }
@@ -2212,10 +2235,10 @@ const App: React.FC = () => {
               audioService.playWinSmall();
               if (jpTier) {
                   setJackpotWinTier({ name: jpTier, color: JP_COLORS_MAP[jpTier], icon: JP_ICONS_MAP[jpTier], amount: cellValue });
-                  hwCountContinuationRef.current = () => setTimeout(() => countNext(idx + 1), 250);
+                  hwCountContinuationRef.current = () => setTimeout(() => countNext(idx + 1), 400);
                   return;
               }
-              setTimeout(() => countNext(idx + 1), 200);
+              setTimeout(() => countNext(idx + 1), 320);
           };
           countNext(0);
       };
@@ -2225,9 +2248,9 @@ const App: React.FC = () => {
           runningTotal += grandBonus;
           setHwCountingTotal(grandBonus);
           setJackpotWinTier({ name: 'GRAND', color: '#fbbf24', icon: '🏆', amount: grandBonus });
-          hwCountContinuationRef.current = () => setTimeout(beginCounting, 300);
+          hwCountContinuationRef.current = () => setTimeout(beginCounting, 480);
       } else {
-          setTimeout(beginCounting, 400);
+          setTimeout(beginCounting, 640);
       }
   };
 
@@ -2456,7 +2479,7 @@ const App: React.FC = () => {
       if (status === GameStatus.IDLE) {
           if (holdWinActive) {
               // Auto-continue Hold and Win respins
-              if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 900);
+              if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 1080);
           } else if (freeSpinsRemaining > 0) {
               const delay = fastSpin ? 50 : 1200;
               if (activeModal === 'NONE' && !showFreeSpinsPopup) setTimeout(() => spin(), delay);
