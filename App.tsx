@@ -286,6 +286,8 @@ const App: React.FC = () => {
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
+  const freeSpinTotalWinRef = useRef(0);
+  useEffect(() => { freeSpinTotalWinRef.current = freeSpinTotalWin; }, [freeSpinTotalWin]);
   const [showFreeSpinSummary, setShowFreeSpinSummary] = useState(false);
   const [spinsWithoutBonus, setSpinsWithoutBonus] = useState(0);
   
@@ -1152,8 +1154,8 @@ const App: React.FC = () => {
           const remaining = col.filter((_, r) => !winRows.has(r));
           const newCount = col.length - remaining.length;
           const newSyms = Array(newCount).fill(null).map(() => {
-              // Arctic: wild chance on falling cells (free spins +3%)
-              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.23 : 0.17;
+              // Arctic: wild chance on falling cells (boosted in free spins)
+              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.40 : 0.17;
               if (selectedGame.theme === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < arcticCascadeWildChance) {
                   return SymbolType.WILD;
               }
@@ -1517,9 +1519,9 @@ const App: React.FC = () => {
                   }
               }
           }
-          // Wild chances: free spins get +3% boost, normal spins -3%
-          const fullColChance = isFreeSpin ? 0.08 : 0.02;
-          const singleWildChance = isFreeSpin ? 0.23 : 0.17;
+          // Wild chances: free spins heavily boosted
+          const fullColChance = isFreeSpin ? 0.20 : 0.02;
+          const singleWildChance = isFreeSpin ? 0.50 : 0.17;
           if (Math.random() < fullColChance) {
               for (let r = 0; r < rows; r++) {
                   if (newGrid[2]?.[r] !== SymbolType.SCATTER) newGrid[2][r] = SymbolType.WILD;
@@ -1628,7 +1630,7 @@ const App: React.FC = () => {
       let totalPacks = 0;
       let diceGained = 0;
       rewards.forEach(r => {
-          if (r.type === 'COINS') totalCoins += r.value;
+          if (r.type === 'COINS' || r.type === 'STAR') totalCoins += r.value;
           else if (r.type === 'DIAMONDS') totalGems += r.value;
           else if (r.type === 'PACKS') totalPacks += r.value;
           else if (r.type === 'PICKS') diceGained += r.value;
@@ -2630,9 +2632,10 @@ const App: React.FC = () => {
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
       const currentBet = availableBets[betIndex];
-      const tier = getWinTier(freeSpinTotalWin, currentBet);
+      const latestTotalWin = freeSpinTotalWinRef.current;
+      const tier = latestTotalWin > 0 ? getWinTier(latestTotalWin, currentBet) : null;
       if (tier) {
-          setWinData({ payout: freeSpinTotalWin, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: tier });
+          setWinData({ payout: latestTotalWin, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: tier });
           audioService.playWinBig();
           setShowWinPopup(true);
           setStatus(GameStatus.WIN_ANIMATION);
@@ -3006,14 +3009,27 @@ const App: React.FC = () => {
                         `}
                         style={{ aspectRatio: `${selectedGame.reels}/${selectedGame.rows}` }}
                     >
-                        {grid.map((col, i) => (
+                        {(() => {
+                            // Pre-compute which reel starts the anticipation window so ALL remaining reels
+                            // get the same +900 ms extension (not just the last one).
+                            let anticipationStartReel = -1;
+                            if (selectedGame.theme === 'ARCTIC' && !fastSpin && targetGrid.length > 0) {
+                                let sc = 0;
+                                for (let c = 0; c < targetGrid.length - 1; c++) {
+                                    if (targetGrid[c]?.some(s => s === SymbolType.SCATTER)) {
+                                        sc++;
+                                        if (sc >= 2) { anticipationStartReel = c + 1; break; }
+                                    }
+                                }
+                            }
+                            return grid.map((col, i) => (
                             <Reel
                                 key={i}
                                 id={i}
                                 symbols={targetGrid.length > 0 ? targetGrid[i] : col}
                                 spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING}
                                 stopping={status === GameStatus.STOPPING}
-                                stopDelay={instantStop ? 0 : i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)}
+                                stopDelay={instantStop ? 0 : i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY) + (anticipationStartReel !== -1 && i >= anticipationStartReel ? 900 : 0)}
                                 duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION}
                                 onStop={handleReelStop}
                                 winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []}
@@ -3024,7 +3040,8 @@ const App: React.FC = () => {
                                 dissolving={cascadeDissolving}
                                 anticipation={scatterAnticipation && i >= stoppedReels}
                             />
-                        ))}
+                            ));
+                        })()}
 
                         {/* Hold and Win locked-cell overlay */}
                         {holdWinActive && selectedGame.theme === 'EGYPT' && (
@@ -3224,17 +3241,17 @@ const App: React.FC = () => {
                   <div className="winpanel flex-1 flex flex-col items-center justify-center">
                       <span className="lets-spin">
                           {hwCounting ? (
-                              formatCommaNumber(hwCountingTotal)
+                              formatK(hwCountingTotal)
                           ) : status === GameStatus.CASCADE && cascadeTotalWin > 0 ? (
-                              formatCommaNumber(cascadeTotalWin)
+                              formatK(cascadeTotalWin)
                           ) : holdWinActive ? (
-                              formatCommaNumber(holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
+                              formatK(holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
                           ) : freeSpinsRemaining > 0 ? (
-                              formatCommaNumber(freeSpinTotalWin)
+                              formatK(freeSpinTotalWin)
                           ) : status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
                               'SPINNING...'
                           ) : winData?.payout && winData.payout > 0 ? (
-                              formatWinNumber(winData.payout)
+                              formatK(winData.payout)
                           ) : (
                               "LET'S SPIN!"
                           )}

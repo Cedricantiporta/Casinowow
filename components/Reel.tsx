@@ -58,8 +58,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   // Effect 2: Handle Stop Trigger
   useEffect(() => {
     if (stopping && !landing) {
-        // Anticipation: 2× longer spin when 2 scatters detected in earlier reels
-        const totalDelay = anticipation ? stopDelay + 900 : stopDelay;
+        // stopDelay already includes any anticipation extension baked in by the parent
         const timer = setTimeout(() => {
             setLanding(true);
 
@@ -69,10 +68,10 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                 ...symbols
             ];
             setStrip(finalStrip);
-        }, totalDelay);
+        }, stopDelay);
         return () => clearTimeout(timer);
     }
-  }, [stopping, landing, stopDelay, symbols, VISIBLE_ROWS, anticipation]);
+  }, [stopping, landing, stopDelay, symbols, VISIBLE_ROWS]);
 
   // Effect 3: Handle Animation Completion (Signal Parent)
   useEffect(() => {

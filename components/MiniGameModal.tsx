@@ -113,7 +113,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const baseCoin = (maxBet || 10000) * wildStage * 0.25;
         for (let i = 0; i < totalCells; i++) {
             const r = Math.random();
-            if (r < 0.30) {
+            if (r < 0.10) {
                 // stays BLANK
             } else if (r < 0.70) {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) } };
@@ -190,7 +190,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             if (coinIndices.length > 0) {
                 const pick = coinIndices[Math.floor(Math.random() * coinIndices.length)];
                 const step = newBoard.find(s => s.index === pick)!;
-                step.reward = { type: 'COINS', value: baseCoin * 5, label: '5×' };
+                step.reward = { type: 'STAR', value: baseCoin * 5, label: '5×' };
             }
         }
         setBoard(newBoard);
@@ -389,9 +389,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             if (landedStep?.reward && !isFinish && !landedStep.isStart) {
                 rewards.push(landedStep.reward);
                 // Star tile: apply 3× buff to all remaining coin/gem tiles
-                if (landedStep.reward.label === '5×') {
+                if (landedStep.reward.type === 'STAR') {
                     setBoard(prev => prev.map(step => {
-                        if ((step.reward?.type === 'COINS' || step.reward?.type === 'DIAMONDS') && step.reward.label !== '5×' && step.index > endPos) {
+                        if ((step.reward?.type === 'COINS' || step.reward?.type === 'DIAMONDS') && step.index > endPos) {
                             const newValue = step.reward.value * 3;
                             return { ...step, reward: { ...step.reward, value: newValue, label: step.reward.type === 'COINS' ? formatNumber(newValue) : `+${Math.round(newValue)}` } };
                         }
@@ -608,7 +608,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 }));
                                 const renderCell = (step: typeof board[0]) => {
                                     const isHere = step.index === visualPosition;
-                                    const isFiveX = step.reward?.type === 'COINS' && step.reward.label === '5×';
+                                    const isFiveX = step.reward?.type === 'STAR';
                                     const isBuffed = starBuff && !isFiveX && (step.reward?.type === 'COINS' || step.reward?.type === 'DIAMONDS') && step.index > visualPosition;
                                     const bg = step.isFinish ? 'linear-gradient(180deg,#f59e0b,#b45309)'
                                         : step.isStart ? 'linear-gradient(180deg,#22c55e,#15803d)'

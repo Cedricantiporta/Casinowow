@@ -65,7 +65,8 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
 
     return (
         <div onClick={guardedComplete}
-            className="fixed inset-0 z-[200] flex flex-col items-center justify-center cursor-pointer">
+            className="fixed inset-0 z-[200] flex flex-col items-center justify-center cursor-pointer"
+            style={{ background: 'rgba(0,0,0,0.45)' }}>
 
             <div className="flex flex-col items-center gap-4 p-6">
                 {/* Win type */}

@@ -116,7 +116,7 @@ export interface QuestState {
   diceCredits: number;
 }
 
-export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'DICE_CREDITS' | 'BACK' | 'PACKS';
+export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'DICE_CREDITS' | 'BACK' | 'PACKS' | 'STAR';
 
 export interface MiniGameReward {
   type: RewardType;
