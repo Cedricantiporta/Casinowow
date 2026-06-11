@@ -60,7 +60,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     if (!isOpen) return null;
 
     const currentMissions = missionState.activeMissions
-        .filter(m => m.frequency === activeTab && !m.claimed)
+        .filter(m => m.frequency === 'DAILY' && !m.claimed)
         .slice(0, 4);
 
     const levels = Array.from(new Set(missionState.passRewards.map(r => r.level))).sort((a: number, b: number) => a - b);
@@ -106,10 +106,10 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const passBtnSize = { width: '54px', height: '26px', flexShrink: 0 as const };
 
     const topbarBase = "font-nunito w-full flex flex-col shrink-0 select-none";
-    const topbarStyle = { background: 'linear-gradient(180deg,#7c3fb5,#4a1880)', boxShadow: '0 4px 8px rgba(0,0,0,0.4)' };
+    const topbarStyle = { background: 'transparent', borderBottom: '1px solid rgba(255,255,255,0.06)' };
 
     return (
-        <div className="fixed inset-0 z-[150] flex flex-col bg-[#0d0814] animate-pop-in">
+        <div className="fixed inset-0 z-[150] flex flex-col bg-[#0d0814]">
             {showPremiumInfo && (
                 <div className="fixed inset-0 z-[200] flex flex-col animate-pop-in overflow-hidden"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
@@ -172,32 +172,11 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                 {/* ===== TOPBAR ===== */}
                 {view === 'MISSIONS' ? (
-                    /* MISSIONS topbar: title | frequency tabs | X */
+                    /* MISSIONS topbar: title | X */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-2 px-3 h-[40px]">
-                            <span className="font-black text-white text-xs uppercase tracking-widest shrink-0">Missions</span>
-                            <div className="flex-1 flex items-center justify-center gap-1">
-                                {(['DAILY', 'WEEKLY', 'MONTHLY'] as MissionFrequency[]).map(tab => {
-                                    const tabHasReward = missionState.activeMissions.some(
-                                        m => m.frequency === tab && m.completed && !m.claimed
-                                    );
-                                    return (
-                                        <button key={tab} onClick={() => setActiveTab(tab)}
-                                            className="relative font-black uppercase text-[8px] tracking-widest px-2.5 py-1 rounded-full transition-all"
-                                            style={{
-                                                background: activeTab === tab ? 'linear-gradient(180deg,#c060ff,#8020e0)' : 'rgba(255,255,255,0.08)',
-                                                color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.5)',
-                                                border: activeTab === tab ? '1px solid rgba(210,130,255,0.6)' : '1px solid transparent',
-                                                boxShadow: activeTab === tab ? '0 2px 8px rgba(160,80,255,0.4)' : 'none',
-                                            }}>
-                                            {tab}
-                                            {tabHasReward && (
-                                                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 border border-black" />
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <span className="font-black text-white text-xs uppercase tracking-widest shrink-0">Daily Missions</span>
+                            <div className="flex-1" />
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
                             </div>
@@ -256,7 +235,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 </div>
 
                                 {/* Label */}
-                                <div className="text-fuchsia-400 text-[9px] font-bold uppercase text-center leading-none relative z-10">{mission.frequency === 'DAILY' ? 'Daily' : mission.frequency === 'WEEKLY' ? 'Weekly' : 'Monthly'} Mission</div>
+                                <div className="text-fuchsia-400 text-[9px] font-bold uppercase text-center leading-none relative z-10">Daily Mission</div>
 
                                 {/* Description */}
                                 <div className="text-white font-black text-[12px] leading-snug text-center flex-1 relative z-10">{mission.description}</div>

@@ -165,6 +165,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                         <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full" style={{ background: '#dc2626', border: '1.5px solid #f0c000' }} />
                     )}
                 </button>
+                <div className="shrink-0 px-2 py-0.5 rounded-full font-black text-[8px] uppercase tracking-widest" style={{ background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.4)', color: '#a5b4fc' }}>DEMO</div>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
@@ -172,12 +173,12 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             {popup && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setPopup(null)}>
                     <div className="bg-[#1e0d30] rounded-2xl px-6 py-5 max-w-[260px] text-center shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
-                        <div className="text-3xl mb-2">{popup === 'nogems' ? '💎' : '🚫'}</div>
+                        <div className="text-3xl mb-2">{popup === 'nogems' ? '💎' : '🎮'}</div>
                         <div className="text-white font-black text-sm uppercase tracking-wide mb-1">
-                            {popup === 'nogems' ? 'Not Enough Gems' : 'No Payment Environment'}
+                            {popup === 'nogems' ? 'Not Enough Gems' : 'Demo Mode'}
                         </div>
                         <div className="text-white/50 text-[10px] mb-3">
-                            {popup === 'nogems' ? 'You need more gems to purchase this item.' : 'Payment processing is not available in this environment.'}
+                            {popup === 'nogems' ? 'You need more gems to purchase this item.' : 'This is a free demo — real money purchases are not available. All premium features can be unlocked for free!'}
                         </div>
                         <button onClick={() => setPopup(null)} className="btn-3d px-5 py-1.5 rounded-lg font-black text-white text-xs uppercase" style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)' }}>OK</button>
                     </div>

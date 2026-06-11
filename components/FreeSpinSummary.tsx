@@ -19,10 +19,16 @@ export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalW
 
     if (!isOpen) return null;
 
+    const formatted = formatK(totalWin);
+    // Shrink font as the formatted number grows longer
+    const amountFontSize = formatted.length <= 7 ? '2.25rem' : formatted.length <= 11 ? '1.75rem' : formatted.length <= 15 ? '1.375rem' : '1.125rem';
+    // Widen the popup for very long numbers
+    const popupWidth = formatted.length <= 10 ? '260px' : formatted.length <= 14 ? '320px' : '380px';
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-transparent pointer-events-auto animate-pop-in">
             {/* 3D container */}
-            <div className="relative w-full max-w-[260px]">
+            <div className="relative w-full mx-4" style={{ maxWidth: popupWidth }}>
                 <div className="absolute inset-0 rounded-2xl" style={{ background: '#2e0660', transform: 'translateY(8px)', borderRadius: '16px' }}></div>
                 <div className="relative rounded-2xl p-4 flex flex-col items-center text-center overflow-hidden"
                     style={{
@@ -35,10 +41,11 @@ export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalW
                     <div className="text-[8px] font-black text-purple-200 uppercase tracking-[0.2em] mb-1 relative z-10">Free Spins Complete</div>
                     <h2 className="text-lg font-black font-display mb-2 tracking-wider text-white drop-shadow relative z-10">TOTAL WIN</h2>
 
-                    <div className="rounded-xl p-3 mb-4 w-full shadow-inner relative z-10 flex items-center justify-center"
+                    <div className="rounded-xl px-4 py-3 mb-4 w-full shadow-inner relative z-10 flex items-center justify-center"
                         style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div className="text-white text-3xl font-mono font-black tracking-tighter whitespace-nowrap drop-shadow">
-                            {formatK(totalWin)}
+                        <div className="text-white font-mono font-black tracking-tighter whitespace-nowrap drop-shadow"
+                            style={{ fontSize: amountFontSize, lineHeight: 1.1 }}>
+                            {formatted}
                         </div>
                     </div>
 
