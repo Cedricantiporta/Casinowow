@@ -91,6 +91,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [noPicksMsg, setNoPicksMsg] = useState(false);
     const [showBuyPopup, setShowBuyPopup] = useState<'PICKS' | 'DICE' | null>(null);
     const [explodingCells, setExplodingCells] = useState<Set<number>>(new Set());
+    const [starBuff, setStarBuff] = useState(false);
 
     const [isRolling, setIsRolling] = useState(false);
     const [isMoving, setIsMoving] = useState(false);
@@ -182,6 +183,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
         setBoard(newBoard);
         setVisualPosition(0);
+        setStarBuff(false);
     }, [boardLength, diceStage, maxBet]);
 
     useEffect(() => {
@@ -216,7 +218,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     useEffect(() => {
         if (activeGame === 'DICE' && boardContainerRef.current) {
             const active = boardContainerRef.current.querySelector('[data-active="true"]') as HTMLElement;
-            if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            if (active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }, [visualPosition, activeGame]);
 
@@ -363,7 +365,20 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             const rewards: MiniGameReward[] = [];
             if (landedStep?.reward && !isFinish && !landedStep.isStart) {
                 rewards.push(landedStep.reward);
-                audioService.playWinSmall();
+                // Star tile: apply 3× buff to all remaining coin/gem tiles
+                if (landedStep.reward.label === '5×') {
+                    setBoard(prev => prev.map(step => {
+                        if ((step.reward?.type === 'COINS' || step.reward?.type === 'DIAMONDS') && step.reward.label !== '5×' && step.index > endPos) {
+                            const newValue = step.reward.value * 3;
+                            return { ...step, reward: { ...step.reward, value: newValue, label: step.reward.type === 'COINS' ? formatNumber(newValue) : `+${Math.round(newValue)}` } };
+                        }
+                        return step;
+                    }));
+                    setStarBuff(true);
+                    audioService.playWinBig();
+                } else {
+                    audioService.playWinSmall();
+                }
             }
             setIsMoving(false);
             onDiceRoll(rollValue, endPos, rewards, isFinish);
@@ -554,9 +569,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {/* ── FORTUNE TRAIL (Dice Quest) ── */}
             {activeGame === 'DICE' && (
                 <div className="flex-1 flex overflow-hidden">
-                    {/* S-shape board */}
-                    <div className="flex-1 flex items-center justify-center overflow-hidden p-2">
-                        <div ref={boardContainerRef} className="overflow-y-auto no-scrollbar flex flex-col gap-1.5">
+                    {/* S-shape board — scrollable, snaps back to player on roll */}
+                    <div className="flex-1 flex overflow-hidden p-2">
+                        <div ref={boardContainerRef} className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-1.5 py-2">
                             {(() => {
                                 const MAIN = 9;
                                 const SEG = 10;
@@ -569,6 +584,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 const renderCell = (step: typeof board[0]) => {
                                     const isHere = step.index === visualPosition;
                                     const isFiveX = step.reward?.type === 'COINS' && step.reward.label === '5×';
+                                    const isBuffed = starBuff && !isFiveX && (step.reward?.type === 'COINS' || step.reward?.type === 'DIAMONDS') && step.index > visualPosition;
                                     const bg = step.isFinish ? 'linear-gradient(180deg,#f59e0b,#b45309)'
                                         : step.isStart ? 'linear-gradient(180deg,#22c55e,#15803d)'
                                         : step.reward?.type === 'BACK' ? 'linear-gradient(180deg,#dc2626,#991b1b)'
@@ -589,12 +605,15 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     return (
                                         <div key={step.index}
                                             data-active={isHere ? 'true' : undefined}
-                                            className="relative shrink-0 flex flex-col items-center justify-center rounded-lg"
+                                            className={`relative shrink-0 flex flex-col items-center justify-center rounded-lg${isBuffed ? ' animate-pulse' : ''}`}
                                             style={{
                                                 width: 54, height: 54,
                                                 background: bg,
-                                                boxShadow: isHere ? '0 0 0 2px #fde68a, 0 4px 12px rgba(0,0,0,0.5)' : isFiveX ? '0 0 8px #fbbf24, 0 3px 0 rgba(0,0,0,0.4)' : '0 3px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
-                                                border: isHere ? '2px solid #fde68a' : isFiveX ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.1)',
+                                                boxShadow: isHere ? '0 0 0 2px #fde68a, 0 4px 12px rgba(0,0,0,0.5)'
+                                                    : isBuffed ? '0 0 10px #fbbf24, 0 0 20px rgba(251,191,36,0.5), 0 3px 0 rgba(0,0,0,0.4)'
+                                                    : isFiveX ? '0 0 8px #fbbf24, 0 3px 0 rgba(0,0,0,0.4)'
+                                                    : '0 3px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
+                                                border: isHere ? '2px solid #fde68a' : (isBuffed || isFiveX) ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.1)',
                                                 transition: 'all 0.25s',
                                                 transform: isHere ? 'scale(1.1)' : 'scale(1)',
                                             }}>

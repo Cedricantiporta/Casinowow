@@ -138,11 +138,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 relative overflow-hidden`}
-            style={isVip ? {
-                backgroundImage: 'url(/lobby-bg-vip.jpg)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-            } : {
+            style={{
                 backgroundImage: 'url(/lobby-bg.jpg)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
