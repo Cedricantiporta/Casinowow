@@ -1289,8 +1289,8 @@ const App: React.FC = () => {
             }
             if (active) megaMatchActive = true;
       }
-      // NEON, PIGGY, and LEPRECHAUN never use full-column same-symbol matches
-      if (selectedGame.theme === 'NEON' || selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') megaMatchActive = false;
+      // NEON, PIGGY, LEPRECHAUN, EGYPT, and ARCTIC never use full-column same-symbol matches
+      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC'].includes(selectedGame.theme)) megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -1491,9 +1491,9 @@ const App: React.FC = () => {
           }
       }
 
-      // Jackpot cell injection: during free spins for all slots; NEON always (20% boost)
+      // Jackpot cell injection: during free spins for all slots except ARCTIC; NEON always (20% boost)
       const isNeonJP = selectedGame.theme === 'NEON';
-      if (freeSpinsRemaining > 0 || isNeonJP) {
+      if ((freeSpinsRemaining > 0 || isNeonJP) && selectedGame.theme !== 'ARCTIC') {
           const neonBoost = isNeonJP ? 1.08 : 1.0;
           // 60/40 MINI:MINOR ratio; all tiers ~30% less than before to reduce 3-match frequency
           const JP_SPAWN = [
