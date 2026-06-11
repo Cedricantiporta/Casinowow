@@ -220,6 +220,13 @@ const App: React.FC = () => {
   const [holdWinJpGrid, setHoldWinJpGrid] = useState<(string|null)[][]>([]);
   const [holdWinRespins, setHoldWinRespins] = useState(3);
   const holdWinRef = useRef({ active: false, lockedGrid: [] as boolean[][], coinValues: [] as number[][], jpGrid: [] as (string|null)[][], respins: 3 });
+  // Egypt: coin values shown on all COIN cells (even before HW triggers)
+  const [egyptCoinMeta, setEgyptCoinMeta] = useState<{values:(number|null)[][], jpGrid:(string|null)[][]} | null>(null);
+  // HW end: counting animation state
+  const [hwCounting, setHwCounting] = useState(false);
+  const [hwCountingCell, setHwCountingCell] = useState<{c:number,r:number}|null>(null);
+  const [hwCountingTotal, setHwCountingTotal] = useState(0);
+  const hwCountContinuationRef = useRef<(() => void) | null>(null);
 
   const [cascadeMultiplier, setCascadeMultiplier] = useState(1);
   const [cascadeTotalWin, setCascadeTotalWin] = useState(0);
@@ -1079,11 +1086,11 @@ const App: React.FC = () => {
 
   const rollHoldWinJackpot = (): string | null => {
       const r = Math.random();
-      if (r < 0.005) return 'GRAND';
-      if (r < 0.015) return 'MEGA';
-      if (r < 0.055) return 'MAJOR';
-      if (r < 0.125) return 'MINOR';
-      if (r < 0.225) return 'MINI';
+      if (r < 0.0025) return 'GRAND';
+      if (r < 0.0075) return 'MEGA';
+      if (r < 0.0275) return 'MAJOR';
+      if (r < 0.0625) return 'MINOR';
+      if (r < 0.1125) return 'MINI';
       return null;
   };
 
@@ -1610,8 +1617,9 @@ const App: React.FC = () => {
     setInstantStop(false);
     setStatus(GameStatus.SPINNING);
     setWinData(null);
+    setEgyptCoinMeta(null);
     setStoppedReels(0);
-    setTargetGrid([]); 
+    setTargetGrid([]);
   }, [status, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, player.level]);
 
   useEffect(() => {
@@ -1672,35 +1680,7 @@ const App: React.FC = () => {
             setHoldWinCoinValues(newCoinValues);
             setHoldWinJpGrid(newJpGrid);
             if (isFull || newRespins <= 0) {
-                const totalPayout = newCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0);
-                const grandBonus = isFull ? currentBet * 100 : 0;
-                const finalPayout = totalPayout + grandBonus;
-                // Find highest jackpot tier won for celebration
-                let highestJpTier: string | null = null;
-                newJpGrid.forEach(col => col.forEach(tier => {
-                    if (tier && (!highestJpTier || HW_JP_IDX[tier] > HW_JP_IDX[highestJpTier!])) highestJpTier = tier;
-                }));
-                holdWinRef.current = { active: false, lockedGrid: [], coinValues: [], jpGrid: [], respins: 3 };
-                setHoldWinActive(false); setHoldWinLockedGrid([]); setHoldWinCoinValues([]); setHoldWinJpGrid([]); setHoldWinRespins(3);
-                setPlayer(prev => ({ ...prev, balance: prev.balance + finalPayout }));
-                const winTier = getWinTier(finalPayout, currentBet);
-                setWinData({ payout: finalPayout, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
-                if (isFull) {
-                    setJackpotWinTier({ name: 'GRAND', color: '#ff2244', icon: '🏆', amount: finalPayout });
-                    if (winTier) setPendingBigWin(true);
-                    audioService.playWinBig(); setStatus(GameStatus.WIN_ANIMATION);
-                } else if (highestJpTier) {
-                    const jpColors: Record<string, string> = { MINI: '#22c55e', MINOR: '#22d3ee', MAJOR: '#a855f7', MEGA: '#f43f5e', GRAND: '#fbbf24' };
-                    const jpIcons: Record<string, string> = { MINI: '🟢', MINOR: '🔵', MAJOR: '🟣', MEGA: '🔴', GRAND: '🏆' };
-                    setJackpotWinTier({ name: highestJpTier, color: jpColors[highestJpTier], icon: jpIcons[highestJpTier], amount: finalPayout });
-                    if (winTier) setPendingBigWin(true);
-                    audioService.playWinBig(); setStatus(GameStatus.WIN_ANIMATION);
-                } else if (winTier) {
-                    audioService.playWinBig(); setShowWinPopup(true); setStatus(GameStatus.WIN_ANIMATION);
-                } else {
-                    audioService.playWinSmall(); setStatus(GameStatus.WIN_ANIMATION);
-                    setTimeout(() => setStatus(GameStatus.IDLE), 500);
-                }
+                startHwCounting(newLockedGrid, newCoinValues, newJpGrid, isFull, currentBet);
             } else {
                 setHoldWinRespins(newRespins);
                 setTimeout(() => setStatus(GameStatus.IDLE), 800);
@@ -1708,12 +1688,24 @@ const App: React.FC = () => {
             return next;
         }
 
-        // EGYPT: Hold and Win trigger check (base game, 6+ COINs)
-        if (selectedGame.theme === 'EGYPT' && freeSpinsRemaining === 0) {
+        // EGYPT: assign values to all COIN cells (shown on overlay) + trigger HW if 6+
+        if (selectedGame.theme === 'EGYPT' && !holdWinRef.current.active && freeSpinsRemaining === 0) {
+            const currentBet = currentBetRef.current;
+            const preValues: (number|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
+            const preJpGrid: (string|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
             let coinCount = 0;
-            targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
+            targetGrid.forEach((col, c) => {
+                col.forEach((sym, r) => {
+                    if (sym === SymbolType.COIN) {
+                        coinCount++;
+                        const jpTier = rollHoldWinJackpot();
+                        preJpGrid[c][r] = jpTier;
+                        preValues[c][r] = jpTier ? jackpotService.getAmounts()[HW_JP_IDX[jpTier]] : getHoldWinCoinValue(currentBet);
+                    }
+                });
+            });
+            setEgyptCoinMeta({ values: preValues, jpGrid: preJpGrid });
             if (coinCount >= 6) {
-                const currentBet = currentBetRef.current;
                 const lockedGrid: boolean[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(false));
                 const coinValues: number[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(0));
                 const jpGrid: (string|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
@@ -1721,15 +1713,8 @@ const App: React.FC = () => {
                     col.forEach((sym, r) => {
                         if (sym === SymbolType.COIN) {
                             lockedGrid[c][r] = true;
-                            const jpTier = rollHoldWinJackpot();
-                            jpGrid[c][r] = jpTier;
-                            if (jpTier) {
-                                coinValues[c][r] = jackpotService.getAmounts()[HW_JP_IDX[jpTier]];
-                            } else {
-                                const roll = Math.random();
-                                const mult = roll < 0.40 ? 1 : roll < 0.60 ? 2 : roll < 0.73 ? 3 : roll < 0.83 ? 5 : roll < 0.91 ? 10 : roll < 0.96 ? 20 : roll < 0.99 ? 50 : 100;
-                                coinValues[c][r] = currentBet * mult;
-                            }
+                            coinValues[c][r] = preValues[c][r] || 0;
+                            jpGrid[c][r] = preJpGrid[c][r];
                         }
                     });
                 });
@@ -2167,8 +2152,76 @@ const App: React.FC = () => {
       setStatus(GameStatus.IDLE);
   };
 
+  const startHwCounting = (finalLockedGrid: boolean[][], finalCoinValues: number[][], finalJpGrid: (string|null)[][], isFull: boolean, currentBet: number) => {
+      setStatus(GameStatus.WIN_ANIMATION);
+      setHwCounting(true);
+      setHwCountingTotal(0);
+
+      const JP_COLORS_MAP: Record<string, string> = { MINI: '#22c55e', MINOR: '#22d3ee', MAJOR: '#a855f7', MEGA: '#f43f5e', GRAND: '#fbbf24' };
+      const JP_ICONS_MAP: Record<string, string> = { MINI: '🟢', MINOR: '🔵', MAJOR: '🟣', MEGA: '🔴', GRAND: '🏆' };
+
+      let runningTotal = 0;
+
+      const finalize = (total: number) => {
+          setHwCounting(false);
+          setHwCountingCell(null);
+          setHwCountingTotal(0);
+          holdWinRef.current = { active: false, lockedGrid: [], coinValues: [], jpGrid: [], respins: 3 };
+          setHoldWinActive(false); setHoldWinLockedGrid([]); setHoldWinCoinValues([]); setHoldWinJpGrid([]); setHoldWinRespins(3);
+          setPlayer(p => ({ ...p, balance: p.balance + total }));
+          const winTier = getWinTier(total, currentBet);
+          setWinData({ payout: total, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
+          if (winTier) { audioService.playWinBig(); setShowWinPopup(true); setStatus(GameStatus.WIN_ANIMATION); }
+          else if (total > 0) { audioService.playWinSmall(); setStatus(GameStatus.WIN_ANIMATION); setTimeout(() => setStatus(GameStatus.IDLE), 500); }
+          else setStatus(GameStatus.IDLE);
+      };
+
+      const beginCounting = () => {
+          const cells: {c:number,r:number}[] = [];
+          for (let c = 0; c < finalLockedGrid.length; c++) {
+              for (let r = 0; r < (finalLockedGrid[c]?.length || 0); r++) {
+                  if (finalLockedGrid[c][r]) cells.push({ c, r });
+              }
+          }
+
+          const countNext = (idx: number) => {
+              if (idx >= cells.length) { finalize(runningTotal); return; }
+              const { c, r } = cells[idx];
+              const cellValue = finalCoinValues[c]?.[r] || 0;
+              const jpTier = finalJpGrid[c]?.[r];
+              runningTotal += cellValue;
+              setHwCountingCell({ c, r });
+              setHwCountingTotal(runningTotal);
+              audioService.playWinSmall();
+              if (jpTier) {
+                  setJackpotWinTier({ name: jpTier, color: JP_COLORS_MAP[jpTier], icon: JP_ICONS_MAP[jpTier], amount: cellValue });
+                  hwCountContinuationRef.current = () => setTimeout(() => countNext(idx + 1), 250);
+                  return;
+              }
+              setTimeout(() => countNext(idx + 1), 200);
+          };
+          countNext(0);
+      };
+
+      if (isFull) {
+          const grandBonus = currentBet * 100;
+          runningTotal += grandBonus;
+          setHwCountingTotal(grandBonus);
+          setJackpotWinTier({ name: 'GRAND', color: '#fbbf24', icon: '🏆', amount: grandBonus });
+          hwCountContinuationRef.current = () => setTimeout(beginCounting, 300);
+      } else {
+          setTimeout(beginCounting, 400);
+      }
+  };
+
   const handleJackpotClose = () => {
       setJackpotWinTier(null);
+      if (hwCountContinuationRef.current) {
+          const cont = hwCountContinuationRef.current;
+          hwCountContinuationRef.current = null;
+          cont();
+          return;
+      }
       if (pendingBigWin) {
           setPendingBigWin(false);
           setShowWinPopup(true);
@@ -2776,21 +2829,24 @@ const App: React.FC = () => {
                                             const val = holdWinCoinValues[c]?.[r];
                                             const jpTier = holdWinJpGrid[c]?.[r];
                                             const JP_COLORS: Record<string, string> = { MINI: '#4ade80', MINOR: '#67e8f9', MAJOR: '#d8b4fe', MEGA: '#fda4af', GRAND: '#fde68a' };
+                                            const isCounting = hwCountingCell?.c === c && hwCountingCell?.r === r;
+                                            const borderColor = isCounting ? '#ffffff' : (locked ? (jpTier ? JP_COLORS[jpTier] : '#fbbf24') : 'transparent');
+                                            const glowColor = isCounting ? 'rgba(255,255,255,0.9)' : (locked ? (jpTier ? JP_COLORS[jpTier] + 'cc' : 'rgba(251,191,36,0.8)') : 'transparent');
                                             return (
-                                                <div key={r} className="flex-1 relative flex items-center justify-center"
+                                                <div key={r} className={`flex-1 relative flex items-center justify-center ${isCounting ? 'animate-bounce-sm' : ''}`}
                                                     style={{
-                                                        border: locked ? `2px solid ${jpTier ? JP_COLORS[jpTier] : '#fbbf24'}` : '2px solid transparent',
-                                                        boxShadow: locked ? `0 0 10px ${jpTier ? JP_COLORS[jpTier] + 'cc' : 'rgba(251,191,36,0.8)'}, inset 0 0 8px ${jpTier ? JP_COLORS[jpTier] + '44' : 'rgba(251,191,36,0.25)'}` : 'none',
-                                                        background: locked ? (jpTier ? JP_COLORS[jpTier] + '18' : 'rgba(251,191,36,0.08)') : 'transparent',
+                                                        border: `2px solid ${borderColor}`,
+                                                        boxShadow: locked ? `0 0 ${isCounting ? 18 : 10}px ${glowColor}, inset 0 0 8px ${jpTier ? JP_COLORS[jpTier] + '44' : 'rgba(251,191,36,0.25)'}` : 'none',
+                                                        background: locked ? (isCounting ? 'rgba(255,255,255,0.12)' : (jpTier ? JP_COLORS[jpTier] + '18' : 'rgba(251,191,36,0.08)')) : 'transparent',
                                                         borderRadius: 3,
                                                     }}>
                                                     {locked ? (
                                                         jpTier ? (
-                                                            <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3, letterSpacing: '0.04em' }}>
+                                                            <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: isCounting ? '#ffffff' : JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3, letterSpacing: '0.04em' }}>
                                                                 {jpTier}
                                                             </span>
                                                         ) : val ? (
-                                                            <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#fde68a', textShadow: '0 0 5px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3 }}>
+                                                            <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: isCounting ? '#ffffff' : '#fde68a', textShadow: '0 0 5px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3 }}>
                                                                 +{formatK(val)}
                                                             </span>
                                                         ) : null
@@ -2802,7 +2858,54 @@ const App: React.FC = () => {
                                 ))}
                             </div>
                         )}
+
+                        {/* Egypt coin meta overlay — show values on COIN cells during normal spins */}
+                        {!holdWinActive && selectedGame.theme === 'EGYPT' && egyptCoinMeta &&
+                         status !== GameStatus.SPINNING && status !== GameStatus.STOPPING && (
+                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
+                                {Array(selectedGame.reels).fill(null).map((_, c) => (
+                                    <div key={c} className="flex-1 flex flex-col gap-0.5">
+                                        {Array(selectedGame.rows).fill(null).map((_, r) => {
+                                            const val = egyptCoinMeta.values[c]?.[r];
+                                            const jpTier = egyptCoinMeta.jpGrid[c]?.[r];
+                                            const JP_COLORS: Record<string, string> = { MINI: '#4ade80', MINOR: '#67e8f9', MAJOR: '#d8b4fe', MEGA: '#fda4af', GRAND: '#fde68a' };
+                                            if (val === null || val === undefined) return <div key={r} className="flex-1" />;
+                                            return (
+                                                <div key={r} className="flex-1 relative flex items-center justify-center"
+                                                    style={{
+                                                        border: `2px solid ${jpTier ? JP_COLORS[jpTier] : '#fbbf24'}`,
+                                                        boxShadow: `0 0 8px ${jpTier ? JP_COLORS[jpTier] + 'aa' : 'rgba(251,191,36,0.6)'}`,
+                                                        background: jpTier ? JP_COLORS[jpTier] + '15' : 'rgba(251,191,36,0.06)',
+                                                        borderRadius: 3,
+                                                    }}>
+                                                    {jpTier ? (
+                                                        <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3, letterSpacing: '0.04em' }}>
+                                                            {jpTier}
+                                                        </span>
+                                                    ) : (
+                                                        <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#fde68a', textShadow: '0 0 5px rgba(0,0,0,1)', lineHeight: 1, position: 'absolute', bottom: 3 }}>
+                                                            +{formatK(val)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
+
+                    {/* Egypt HW respin counter — right of reel grid */}
+                    {holdWinActive && selectedGame.theme === 'EGYPT' && (
+                        <div className="flex flex-col items-center gap-1 px-2 py-2 ml-2 rounded-lg self-center shrink-0"
+                            style={{ background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(251,191,36,0.5)', boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}>
+                            <span style={{ fontSize: 'clamp(7px,1.3vw,10px)', color: '#fbbf24', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>RESPINS</span>
+                            <span style={{ fontSize: 'clamp(14px,2.8vw,20px)', color: '#fde68a', fontWeight: 900, textShadow: '0 0 10px rgba(251,191,36,0.8)', lineHeight: 1 }}>
+                                {holdWinRespins}/3
+                            </span>
+                        </div>
+                    )}
                 </div>
 
 
@@ -2870,7 +2973,9 @@ const App: React.FC = () => {
                   {/* Win Panel */}
                   <div className="winpanel flex-1 flex flex-col items-center justify-center">
                       <span className="lets-spin">
-                          {status === GameStatus.CASCADE && cascadeTotalWin > 0 ? (
+                          {hwCounting ? (
+                              formatCommaNumber(hwCountingTotal)
+                          ) : status === GameStatus.CASCADE && cascadeTotalWin > 0 ? (
                               formatCommaNumber(cascadeTotalWin)
                           ) : holdWinActive ? (
                               formatCommaNumber(holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
@@ -2885,7 +2990,7 @@ const App: React.FC = () => {
                           )}
                       </span>
                       <span className="total-win">
-                          {status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? `HOLD & WIN  ·  ${holdWinRespins}/3 RESPINS` : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
+                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
                       </span>
                   </div>
 
