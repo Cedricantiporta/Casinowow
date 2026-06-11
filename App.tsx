@@ -1169,24 +1169,27 @@ const App: React.FC = () => {
               setTimeout(() => runCascadeRef.current!(newGrid, mult + 1, newAccWin, result.winningCells), 350);
           }, 500);
       } else {
+          // No further wins — show the compacted grid (with drop-in animation) briefly before settling
           const winTier = getWinTier(accWin, bet);
           setWinData({ payout: accWin, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
-          setCascadeGrid(null);
-          setCascadeNewCells(null);
-          setCascadeDissolving(false);
           setCascadeMultiplier(1);
           setCascadeTotalWin(0);
-          if (winTier) {
-              audioService.playWinBig();
-              setShowWinPopup(true);
-              setStatus(GameStatus.WIN_ANIMATION);
-          } else if (accWin > 0) {
-              audioService.playWinSmall();
-              setStatus(GameStatus.WIN_ANIMATION);
-              setTimeout(() => setStatus(GameStatus.IDLE), 500);
-          } else {
-              setStatus(GameStatus.IDLE);
-          }
+          setTimeout(() => {
+              setCascadeGrid(null);
+              setCascadeNewCells(null);
+              setCascadeDissolving(false);
+              if (winTier) {
+                  audioService.playWinBig();
+                  setShowWinPopup(true);
+                  setStatus(GameStatus.WIN_ANIMATION);
+              } else if (accWin > 0) {
+                  audioService.playWinSmall();
+                  setStatus(GameStatus.WIN_ANIMATION);
+                  setTimeout(() => setStatus(GameStatus.IDLE), 500);
+              } else {
+                  setStatus(GameStatus.IDLE);
+              }
+          }, 500);
       }
   };
 
