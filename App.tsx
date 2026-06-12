@@ -31,6 +31,7 @@ import { PremiumModal } from './components/PremiumModal';
 import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
 import { DragonPickGrid } from './components/DragonPickModal';
+import { NeonRouletteModal } from './components/NeonRouletteModal';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -274,6 +275,10 @@ const App: React.FC = () => {
   const [cascadeDissolving, setCascadeDissolving] = useState(false);
   const [reelTransitioning, setReelTransitioning] = useState<false | 'out' | 'in'>(false);
   const runCascadeRef = useRef<(g: SymbolType[][], m: number, acc: number, wc: {col:number,row:number}[]) => void>();
+
+  // Neon Vegas Scatter Roulette state
+  const [showNeonRoulette, setShowNeonRoulette] = useState(false);
+  const [neonRouletteBet, setNeonRouletteBet] = useState(0);
 
   // Dragon's Fortune Pick-and-Win state
   const [showDragonPickModal, setShowDragonPickModal] = useState(false);
@@ -1509,8 +1514,8 @@ const App: React.FC = () => {
           }
       }
 
-      // NEON: no letters (10/J/Q/K/A) and no wilds — replace with weighted NEON_WEIGHTS random
-      const NEON_EXCLUDE_SYMS = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE, SymbolType.WILD, SymbolType.SCATTER];
+      // NEON: no wilds — replace with weighted NEON_WEIGHTS random
+      const NEON_EXCLUDE_SYMS = [SymbolType.WILD];
       if (selectedGame.theme === 'NEON') {
           const nwSum = NEON_WEIGHTS.reduce((a, w) => a + w.weight, 0);
           const pickNeonSym = () => {
@@ -1584,10 +1589,9 @@ const App: React.FC = () => {
           }
       }
 
-      // Jackpot cell injection: during free spins for all slots except ARCTIC; NEON always (20% boost)
-      const isNeonJP = selectedGame.theme === 'NEON';
-      if ((freeSpinsRemaining > 0 || isNeonJP) && selectedGame.theme !== 'ARCTIC') {
-          const neonBoost = isNeonJP ? 1.08 : 1.0;
+      // Jackpot cell injection: during free spins only, except ARCTIC and NEON
+      if (freeSpinsRemaining > 0 && selectedGame.theme !== 'ARCTIC' && selectedGame.theme !== 'NEON') {
+          const neonBoost = 1.0;
           // 60/40 MINI:MINOR ratio; all tiers ~30% less than before to reduce 3-match frequency
           const JP_SPAWN = [
               { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * neonBoost },
@@ -1894,6 +1898,18 @@ const App: React.FC = () => {
         }
 
         if (scatterCount >= selectedGame.scattersToTrigger) {
+             if (selectedGame.theme === 'NEON') {
+                 setStatus(GameStatus.SCATTER_SHOWCASE);
+                 audioService.playScatterTrigger();
+                 setSpinsWithoutBonus(0);
+                 const betAmt = currentBetRef.current;
+                 setTimeout(() => {
+                     setShowNeonRoulette(true);
+                     setNeonRouletteBet(betAmt);
+                 }, 2000);
+                 return next;
+             }
+
              const spinsWon = selectedGame.theme === 'ARCTIC'
                  ? (scatterCount === 3 ? 15 : scatterCount === 4 ? 20 : 25)
                  : (scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20);
@@ -2448,6 +2464,16 @@ const App: React.FC = () => {
       };
       const meta = TIER_META[tier] || { color: '#fde68a', icon: '🏆' };
       setJackpotWinTier({ name: tier, color: meta.color, icon: meta.icon, amount });
+  };
+
+  const handleNeonRouletteComplete = (prize: number) => {
+      setShowNeonRoulette(false);
+      setStatus(GameStatus.IDLE);
+      setPlayer(p => ({ ...p, balance: p.balance + prize }));
+      const currentBet = availableBets[betIndex];
+      const winTier = getWinTier(prize, currentBet);
+      setWinData({ payout: prize, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
+      if (winTier) setShowWinPopup(true);
   };
 
   const handleJackpotClose = () => {
@@ -3483,6 +3509,13 @@ const App: React.FC = () => {
               </div>
           </div>
       )}
+
+      <NeonRouletteModal
+          isOpen={showNeonRoulette}
+          bet={neonRouletteBet}
+          jackpotAmounts={jackpotService.getAmounts()}
+          onComplete={handleNeonRouletteComplete}
+      />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
       {showWinPopup && winData && winData.payout > 0 && winData.winType && (

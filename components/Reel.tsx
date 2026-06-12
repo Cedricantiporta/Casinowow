@@ -31,7 +31,7 @@ const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean) => {
     rand -= w.weight;
     if (rand <= 0) return w.type;
   }
-  return neon ? SymbolType.GRAPE : SymbolType.TEN;
+  return neon ? SymbolType.TEN : SymbolType.TEN;
 };
 
 export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation }) => {
@@ -246,9 +246,16 @@ const ReelCell: React.FC<{
 
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
-    const isLetter = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
-    const isNeonSeven = theme === 'NEON' && symbol === SymbolType.SEVEN;
-    const isNeonCherry = theme === 'NEON' && symbol === SymbolType.CHERRY;
+    const isLetter = theme !== 'NEON' && [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
+
+    const NEON_FRUIT_BG: Partial<Record<SymbolType, string>> = {
+        [SymbolType.TEN]:   'bg-gradient-to-b from-red-400 to-rose-800',
+        [SymbolType.JACK]:  'bg-gradient-to-b from-yellow-300 to-amber-700',
+        [SymbolType.QUEEN]: 'bg-gradient-to-b from-purple-500 to-purple-900',
+        [SymbolType.KING]:  'bg-gradient-to-b from-emerald-500 to-emerald-900',
+        [SymbolType.ACE]:   'bg-gradient-to-b from-blue-400 to-indigo-900',
+    };
+    const isNeonFruit = theme === 'NEON' && symbol in NEON_FRUIT_BG;
 
     const JP_LABELS: Partial<Record<SymbolType, string>> = {
         [SymbolType.JACKPOT_MINI]:  'MINI',
@@ -280,15 +287,15 @@ const ReelCell: React.FC<{
     if (isJackpot && !highlight) {
         bgClasses = '';
     }
-    if (isNeonCherry && !highlight) {
-        bgClasses = 'bg-gradient-to-b from-yellow-400 to-amber-800';
+    if (isNeonFruit && !highlight) {
+        bgClasses = NEON_FRUIT_BG[symbol]!;
     }
 
     const activeBounce = highlight || isScatterShowcase;
 
     const fontSize = isWild
         ? 'text-[1.296rem] md:text-[1.746rem] lg:text-[2.187rem]'
-        : (isLetter || isNeonSeven)
+        : isLetter
             ? 'text-[2.73rem] md:text-[3.28rem] lg:text-[4.37rem]'
             : 'text-[3.0375rem] md:text-[3.645rem] lg:text-[4.86rem]';
 
@@ -316,7 +323,6 @@ const ReelCell: React.FC<{
             `}
             style={
                 isJackpot && !highlight && jpStyle ? { background: jpStyle.solidBg }
-                : isNeonSeven && !highlight ? { background: '#6b0000' }
                 : isLetter && !highlight ? { background: LETTER_DARK_BG[theme] ?? '#0a0a1a' }
                 : undefined
             }
@@ -341,9 +347,8 @@ const ReelCell: React.FC<{
                             className={`
                                 ${fontSize} select-none transform
                                 ${config?.style || ''}
-                                ${isNeonSeven ? 'font-heavy text-white' : ''}
                                 `}
-                            style={(isLetter || isNeonSeven) ? { textShadow: getLetter3DShadow(symbol, theme), color: '#ffffff' } : undefined}
+                            style={isLetter ? { textShadow: getLetter3DShadow(symbol, theme), color: '#ffffff' } : undefined}
                         >
                             {config?.icon}
                         </div>
