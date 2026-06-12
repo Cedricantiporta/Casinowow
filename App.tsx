@@ -1532,18 +1532,19 @@ const App: React.FC = () => {
       }
 
       // NEON: replace any non-NEON symbols (coin, jackpot types) with NEON_WEIGHTS random
-      const NEON_EXCLUDE_SYMS: SymbolType[] = [];
       if (selectedGame.theme === 'NEON') {
-          const nwSum = NEON_WEIGHTS.reduce((a, w) => a + w.weight, 0);
-          const pickNeonSym = () => {
-              let rand = Math.random() * nwSum;
-              for (const w of NEON_WEIGHTS) { rand -= w.weight; if (rand <= 0) return w.type; }
-              return SymbolType.GRAPE;
+          const nwNoScatter = NEON_WEIGHTS.filter(w => w.type !== SymbolType.SCATTER);
+          const nwNoScatterSum = nwNoScatter.reduce((a, w) => a + w.weight, 0);
+          const pickNeonNoScatter = () => {
+              let rand = Math.random() * nwNoScatterSum;
+              for (const w of nwNoScatter) { rand -= w.weight; if (rand <= 0) return w.type; }
+              return SymbolType.TEN;
           };
+          // Scatter only allowed on column 2 (3rd reel)
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
-                  if (NEON_EXCLUDE_SYMS.includes(newGrid[c][r])) {
-                      newGrid[c][r] = pickNeonSym();
+                  if (c !== 2 && newGrid[c][r] === SymbolType.SCATTER) {
+                      newGrid[c][r] = pickNeonNoScatter();
                   }
               }
           }
@@ -2032,14 +2033,21 @@ const App: React.FC = () => {
                     arcticProgressRef.current = 0;
                     arcticPickSpinsRef.current = 0;
                     setArcticSpinProgress(0);
+                    setPlayer(p => ({ ...p, autoSpin: false }));
                     setTimeout(() => {
                         setShowArcticTriggerPopup(true);
                         setInstantStop(true);
                         audioService.playScatterTrigger();
                         setTimeout(() => {
                             setShowArcticTriggerPopup(false);
-                            setShowArcticPickModal(true);
-                            setPlayer(p => ({ ...p, autoSpin: false }));
+                            setReelTransitioning('out');
+                            setTimeout(() => {
+                                setShowArcticPickModal(true);
+                                requestAnimationFrame(() => requestAnimationFrame(() => {
+                                    setReelTransitioning('in');
+                                    setTimeout(() => setReelTransitioning(false), 1100);
+                                }));
+                            }, 900);
                         }, 3000);
                     }, 400);
                 }
@@ -3432,7 +3440,7 @@ const App: React.FC = () => {
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">

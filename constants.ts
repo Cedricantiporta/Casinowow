@@ -44,8 +44,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     theme: 'NEON',
     rows: 3,
     reels: 3,
-    scattersToTrigger: 3,
-    description: 'Jackpot Hunter. Match 3 Jackpot cells to win!',
+    scattersToTrigger: 1,
+    description: 'Scatter Roulette! Land the 💎 gem on reel 3 to spin the wheel!',
     color: 'from-fuchsia-600 via-purple-600 to-indigo-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #7c3aed 0%, #2e1065 100%)',
     reelBg: REEL_BGS.NEON
@@ -370,7 +370,7 @@ export const NEON_WEIGHTS = [
   { type: SymbolType.CHERRY,  weight: 4    },
   { type: SymbolType.SEVEN,   weight: 2.5  },
   { type: SymbolType.WILD,    weight: 3    },
-  { type: SymbolType.SCATTER, weight: 6.5  },
+  { type: SymbolType.SCATTER, weight: 2    },
 ];
 
 export const FREE_SPIN_WEIGHTS = [
