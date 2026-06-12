@@ -2087,7 +2087,7 @@ const App: React.FC = () => {
             let lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
             if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0; 
 
-            const neonMult = selectedGame.theme === 'NEON' ? 1.89 : 1.0;
+            const neonMult = selectedGame.theme === 'NEON' ? 1.323 : 1.0;
             const arcticMult = selectedGame.theme === 'ARCTIC' ? 0.7 : 1.0;
             const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * arcticMult);
             if (lineWin > 0) {

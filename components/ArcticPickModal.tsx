@@ -18,7 +18,7 @@ const TIER_COLOR: Record<Tier, string> = {
     MEGA:  '#fda4af',
     GRAND: '#fde68a',
 };
-const BET_MULTS: Record<Tier, number> = { MINI: 10, MINOR: 20, MAJOR: 30, MEGA: 50, GRAND: 100 };
+const BET_MULTS: Record<Tier, number> = { MINI: 10, MINOR: 20, MAJOR: 40, MEGA: 60, GRAND: 100 };
 
 const HW_JP_IDX: Record<Tier, number> = { MINI: 0, MINOR: 1, MAJOR: 2, MEGA: 3, GRAND: 4 };
 

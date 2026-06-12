@@ -1,7 +1,7 @@
 
 // Singleton jackpot service — amounts tied to current max bet
-// Tiers: Mini=20x, Minor=40x, Major=45x, Mega=70x, Grand=100x of max bet
-const TIER_MULTIPLIERS = [20, 40, 45, 70, 100];
+// Tiers: Mini=10x, Minor=20x, Major=40x, Mega=60x, Grand=100x of max bet
+const TIER_MULTIPLIERS = [10, 20, 40, 60, 100];
 const KEY = 'cw_jackpots';
 // Per-slot variation factors (5–20% variation, deterministic by slot index)
 const SLOT_VARS = [1.00, 0.88, 1.14, 1.08, 0.93, 1.19, 0.96, 1.07, 1.12, 0.87, 1.21];

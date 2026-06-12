@@ -19,7 +19,7 @@ const TIER_COLOR: Record<Tier, string> = {
     MEGA:  '#fda4af',
     GRAND: '#fde68a',
 };
-const BET_MULTS: Record<Tier, number> = { MINI: 10, MINOR: 20, MAJOR: 30, MEGA: 50, GRAND: 100 };
+const BET_MULTS: Record<Tier, number> = { MINI: 10, MINOR: 20, MAJOR: 40, MEGA: 60, GRAND: 100 };
 
 const WINNING_WEIGHTS = [
     { tier: 'MINI'  as Tier, weight: 60 },
