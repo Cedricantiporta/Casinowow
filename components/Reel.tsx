@@ -112,7 +112,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
       return (
           <div
               className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
-              style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? gameConfig.rows * 1.5 : gameConfig.rows}` }}
+              style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}` }}
           >
               <div className="w-full h-full flex flex-col">
                   {forcedSymbols.map((s, i) => {
@@ -144,7 +144,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
     <div
         className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
         style={{
-            aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? gameConfig.rows * 1.5 : gameConfig.rows}`,
+            aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}`,
             ...(anticipation ? { boxShadow: '0 0 0 2px #fbbf24, 0 0 18px rgba(251,191,36,0.7)', transition: 'box-shadow 0.2s' } : {}),
         }}
     >
