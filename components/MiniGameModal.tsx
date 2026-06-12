@@ -110,7 +110,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const cells: WildGridCell[] = Array(totalCells).fill(null).map(() => ({ revealed: false, content: 'BLANK' as const }));
         // Rock distribution: 30% blank, 40% coins (50% reduced), 20% picks, 10% diamonds
         // No gem is placed at init — it appears dynamically after enough rocks are opened
-        const baseCoin = (maxBet || 10000) * wildStage * 0.25;
+        const baseCoin = (maxBet || 10000) * wildStage * 0.125;
         for (let i = 0; i < totalCells; i++) {
             const r = Math.random();
             if (r < 0.10) {
@@ -152,7 +152,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const initBoard = useCallback(() => {
         const newBoard: BoardStep[] = [];
-        const baseCoin = (maxBet || 10000) * diceStage * 0.2;
+        const baseCoin = (maxBet || 10000) * diceStage * 0.1;
         const preGoalIndex = boardLength - 1;
         for (let i = 0; i <= boardLength; i++) {
             let reward: MiniGameReward | undefined;

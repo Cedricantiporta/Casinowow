@@ -94,7 +94,7 @@ const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive
 );
 
 const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
-    const pct = Math.min((progress / 500) * 100, 100);
+    const pct = Math.min((progress / 250) * 100, 100);
     const full = progress >= 500;
     return (
         <div className="flex items-center justify-center py-1.5" style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
@@ -1689,7 +1689,7 @@ const App: React.FC = () => {
       }
       if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
       if (isFinish) {
-          const bonusCoins = Math.round(MAX_BET_BY_LEVEL(player.level) * quest.diceStage * 10);
+          const bonusCoins = Math.round(MAX_BET_BY_LEVEL(player.level) * quest.diceStage * 5);
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
           const currentStage = quest.diceStage;
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
@@ -2019,14 +2019,14 @@ const App: React.FC = () => {
         }
         if (selectedGame.theme === 'ARCTIC' && freeSpinsRemaining === 0) {
             arcticPickSpinsRef.current++;
-            // Fill progress bar +1 to +5 per spin, cap at 100, stay full
-            if (arcticProgressRef.current < 100) {
+            // Fill progress bar +1 to +5 per spin, cap at 250, stay full
+            if (arcticProgressRef.current < 250) {
                 const gain = Math.floor(Math.random() * 5) + 1;
-                arcticProgressRef.current = Math.min(arcticProgressRef.current + gain, 500);
+                arcticProgressRef.current = Math.min(arcticProgressRef.current + gain, 250);
                 setArcticSpinProgress(arcticProgressRef.current);
             }
-            // When full, each spin has a chance to trigger pick jackpot
-            if (arcticProgressRef.current >= 500) {
+            // When full (250), each spin has a chance to trigger pick jackpot
+            if (arcticProgressRef.current >= 250) {
                 const extraMult = Math.floor(arcticPickSpinsRef.current / 100);
                 const chance = Math.min(0.025 + extraMult * 0.0125, 0.2375);
                 if (Math.random() < chance) {
@@ -2087,7 +2087,7 @@ const App: React.FC = () => {
             let lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
             if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0; 
 
-            const neonMult = selectedGame.theme === 'NEON' ? 1.323 : 1.0;
+            const neonMult = selectedGame.theme === 'NEON' ? 1.588 : 1.0;
             const arcticMult = selectedGame.theme === 'ARCTIC' ? 0.7 : 1.0;
             const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * arcticMult);
             if (lineWin > 0) {
@@ -2149,7 +2149,7 @@ const App: React.FC = () => {
         }
         // Per-spin drops for Arctic (same logic as normal slots)
         const arcticMaxBetIdx = availableBets.length - 1;
-        const arcticQuestChance = Math.max(0.01, 0.20 - (arcticMaxBetIdx - betIndex) * 0.02);
+        const arcticQuestChance = Math.max(0.005, 0.10 - (arcticMaxBetIdx - betIndex) * 0.01);
         if (player.level >= 20 && Math.random() < arcticQuestChance) {
             if (Math.random() < 0.5) {
                 setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
@@ -2225,7 +2225,7 @@ const App: React.FC = () => {
 
     // Per-spin drops — scale with bet level (±2% per step from max bet)
     const maxBetIdx = availableBets.length - 1;
-    const questChance = Math.max(0.01, 0.20 - (maxBetIdx - betIndex) * 0.02);
+    const questChance = Math.max(0.005, 0.10 - (maxBetIdx - betIndex) * 0.01);
     if (player.level >= 20 && Math.random() < questChance) {
         if (Math.random() < 0.5) {
             setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
