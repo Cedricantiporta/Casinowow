@@ -2000,7 +2000,7 @@ const App: React.FC = () => {
             const spins = dragonPickSpinsRef.current;
             if (spins % 10 === 0) {
                 const extraMult = Math.floor(spins / 100);
-                const chance = Math.min(0.05 + extraMult * 0.025, 0.475);
+                const chance = Math.min(0.025 + extraMult * 0.0125, 0.2375);
                 if (Math.random() < chance) {
                     dragonPickSpinsRef.current = 0;
                     dragonPickBonusMultRef.current = 0;
@@ -2028,7 +2028,7 @@ const App: React.FC = () => {
             // When full, each spin has a chance to trigger pick jackpot
             if (arcticProgressRef.current >= 500) {
                 const extraMult = Math.floor(arcticPickSpinsRef.current / 100);
-                const chance = Math.min(0.05 + extraMult * 0.025, 0.475);
+                const chance = Math.min(0.025 + extraMult * 0.0125, 0.2375);
                 if (Math.random() < chance) {
                     arcticProgressRef.current = 0;
                     arcticPickSpinsRef.current = 0;
@@ -2087,7 +2087,7 @@ const App: React.FC = () => {
             let lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
             if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0; 
 
-            const neonMult = selectedGame.theme === 'NEON' ? 1.05 : 1.0;
+            const neonMult = selectedGame.theme === 'NEON' ? 1.89 : 1.0;
             const arcticMult = selectedGame.theme === 'ARCTIC' ? 0.7 : 1.0;
             const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * arcticMult);
             if (lineWin > 0) {
@@ -3283,9 +3283,9 @@ const App: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Dragon pot — right of reel grid */}
+                    {/* Dragon pot — absolute right so reel grid stays centered */}
                     {selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0 && (
-                        <div className="flex flex-col items-center justify-center gap-2 ml-3 shrink-0" style={{ alignSelf: 'stretch' }}>
+                        <div className="flex flex-col items-center justify-center gap-2 absolute" style={{ right: 0, top: '50%', transform: 'translateY(-50%)' }}>
                             <div className="flex flex-col items-center gap-1.5">
                                 <div className="relative flex items-center justify-center">
                                     {dragonCoinAbsorbing && (
