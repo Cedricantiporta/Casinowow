@@ -1531,8 +1531,8 @@ const App: React.FC = () => {
           }
       }
 
-      // NEON: no wilds — replace with weighted NEON_WEIGHTS random
-      const NEON_EXCLUDE_SYMS = [SymbolType.WILD];
+      // NEON: replace any non-NEON symbols (coin, jackpot types) with NEON_WEIGHTS random
+      const NEON_EXCLUDE_SYMS: SymbolType[] = [];
       if (selectedGame.theme === 'NEON') {
           const nwSum = NEON_WEIGHTS.reduce((a, w) => a + w.weight, 0);
           const pickNeonSym = () => {
