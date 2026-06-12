@@ -32,7 +32,7 @@ import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
 import { DragonPickGrid } from './components/DragonPickModal';
 import { NeonRouletteModal } from './components/NeonRouletteModal';
-import { ArcticPickModal } from './components/ArcticPickModal';
+import { ArcticPickGrid } from './components/ArcticPickGrid';
 
 // Interface for persisted game state
 interface SavedGameState {
@@ -94,21 +94,18 @@ const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive
 );
 
 const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
-    const pct = (progress / 10) * 100;
+    const pct = Math.min(progress, 100);
+    const full = pct >= 100;
     return (
-        <div className="px-3 py-1.5" style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="relative w-full overflow-hidden" style={{ height: 11, borderRadius: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(34,211,238,0.18)' }}>
+        <div className="flex items-center justify-center py-1.5" style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="relative overflow-hidden" style={{ width: '50%', height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.07)' }}>
                 <div className="absolute inset-y-0 left-0 transition-all duration-500" style={{
                     width: `${pct}%`,
                     background: 'linear-gradient(90deg,#0369a1,#0ea5e9,#7dd3fc)',
-                    boxShadow: '0 0 8px rgba(34,211,238,0.55)',
-                    borderRadius: 6,
+                    boxShadow: full ? '0 0 8px rgba(34,211,238,0.9)' : '0 0 4px rgba(34,211,238,0.4)',
+                    borderRadius: 3,
                 }} />
-                <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 55%)', borderRadius: 6 }} />
-            </div>
-            <div className="flex justify-between mt-0.5 px-0.5">
-                <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(6px,1vw,7px)', color: 'rgba(34,211,238,0.35)' }}>JACKPOT PICK</span>
-                <span className="font-black" style={{ fontSize: 'clamp(6px,1vw,7px)', color: 'rgba(34,211,238,0.35)' }}>{progress}/10</span>
+                <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.15) 0%,transparent 55%)', borderRadius: 3 }} />
             </div>
         </div>
     );
@@ -306,6 +303,7 @@ const App: React.FC = () => {
   const [showArcticTriggerPopup, setShowArcticTriggerPopup] = useState(false);
   const [arcticSpinProgress, setArcticSpinProgress] = useState(0);
   const arcticPickSpinsRef = useRef(0);
+  const arcticProgressRef = useRef(0);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
@@ -2020,13 +2018,18 @@ const App: React.FC = () => {
         }
         if (selectedGame.theme === 'ARCTIC' && freeSpinsRemaining === 0) {
             arcticPickSpinsRef.current++;
-            const spins = arcticPickSpinsRef.current;
-            const prog = spins % 10 === 0 ? 10 : spins % 10;
-            setArcticSpinProgress(prog);
-            if (spins % 10 === 0) {
-                const extraMult = Math.floor(spins / 100);
+            // Fill progress bar +1 to +5 per spin, cap at 100, stay full
+            if (arcticProgressRef.current < 100) {
+                const gain = Math.floor(Math.random() * 5) + 1;
+                arcticProgressRef.current = Math.min(arcticProgressRef.current + gain, 100);
+                setArcticSpinProgress(arcticProgressRef.current);
+            }
+            // When full, each spin has a chance to trigger pick jackpot
+            if (arcticProgressRef.current >= 100) {
+                const extraMult = Math.floor(arcticPickSpinsRef.current / 100);
                 const chance = Math.min(0.05 + extraMult * 0.025, 0.475);
                 if (Math.random() < chance) {
+                    arcticProgressRef.current = 0;
                     arcticPickSpinsRef.current = 0;
                     setArcticSpinProgress(0);
                     setTimeout(() => {
@@ -2493,6 +2496,20 @@ const App: React.FC = () => {
       } else {
           setTimeout(beginCounting, 320);
       }
+  };
+
+  const handleArcticPickWin = (tier: string, amount: number) => {
+      setShowArcticPickModal(false);
+      setPlayer(p => ({ ...p, balance: p.balance + amount }));
+      const TIER_META: Record<string, { color: string; icon: string }> = {
+          MINI:  { color: '#4ade80', icon: '🥉' },
+          MINOR: { color: '#67e8f9', icon: '🥈' },
+          MAJOR: { color: '#d8b4fe', icon: '🥇' },
+          MEGA:  { color: '#fda4af', icon: '👑' },
+          GRAND: { color: '#fde68a', icon: '🏆' },
+      };
+      const meta = TIER_META[tier] || { color: '#fde68a', icon: '🏆' };
+      setJackpotWinTier({ name: tier, color: meta.color, icon: meta.icon, amount });
   };
 
   const handleDragonPickWin = (tier: string, amount: number) => {
@@ -3095,7 +3112,7 @@ const App: React.FC = () => {
                     {selectedGame.theme === 'ARCTIC' ? (
                         freeSpinsRemaining > 0
                             ? <ArcticMultiplierBar
-                                mults={[2, 5, 10, 15, 20]}
+                                mults={[2, 3, 4, 5, 10]}
                                 stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
                                 isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
                               />
@@ -3239,6 +3256,17 @@ const App: React.FC = () => {
                                 jackpotAmounts={jackpotService.getAmounts()}
                                 currentBet={availableBets[betIndex]}
                                 onWin={handleDragonPickWin}
+                                rows={selectedGame.rows}
+                                cols={selectedGame.reels}
+                            />
+                        )}
+
+                        {/* Arctic Pick-and-Win grid — same layout as Dragon, ice cube theme */}
+                        {showArcticPickModal && selectedGame.theme === 'ARCTIC' && (
+                            <ArcticPickGrid
+                                jackpotAmounts={jackpotService.getAmounts()}
+                                currentBet={availableBets[betIndex]}
+                                onWin={handleArcticPickWin}
                                 rows={selectedGame.rows}
                                 cols={selectedGame.reels}
                             />
@@ -3567,19 +3595,6 @@ const App: React.FC = () => {
           </div>
       )}
 
-      <ArcticPickModal
-          isOpen={showArcticPickModal}
-          jackpotAmounts={jackpotService.getAmounts()}
-          currentBet={availableBets[betIndex]}
-          onWin={(tier: string, amount: number) => {
-              setShowArcticPickModal(false);
-              setPlayer(p => ({ ...p, balance: p.balance + amount }));
-              const winTier = getWinTier(amount, availableBets[betIndex]);
-              setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: winTier || 'BIG WIN' });
-              setShowWinPopup(true);
-              setJackpotWinTier(tier as any);
-          }}
-      />
 
       <NeonRouletteModal
           isOpen={showNeonRoulette}
