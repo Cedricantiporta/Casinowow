@@ -2052,7 +2052,7 @@ const App: React.FC = () => {
             let lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
             if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0; 
 
-            const neonMult = selectedGame.theme === 'NEON' ? 0.7 : 1.0;
+            const neonMult = selectedGame.theme === 'NEON' ? 1.05 : 1.0;
             const arcticMult = selectedGame.theme === 'ARCTIC' ? 0.7 : 1.0;
             const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * arcticMult);
             if (lineWin > 0) {
@@ -3087,7 +3087,7 @@ const App: React.FC = () => {
                             ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}
                             ${reelTransitioning === 'out' ? 'animate-reel-out' : reelTransitioning === 'in' ? 'animate-reel-in' : ''}
                         `}
-                        style={{ aspectRatio: selectedGame.theme === 'NEON' ? `${selectedGame.reels}/${selectedGame.rows * 1.3}` : `${selectedGame.reels}/${selectedGame.rows}` }}
+                        style={{ aspectRatio: selectedGame.theme === 'NEON' ? `${selectedGame.reels}/${selectedGame.rows * 1.5}` : `${selectedGame.reels}/${selectedGame.rows}` }}
                     >
                         {(() => {
                             // Pre-compute which reel starts the anticipation window so ALL remaining reels
