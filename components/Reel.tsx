@@ -112,7 +112,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
       return (
           <div
               className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
-              style={{ aspectRatio: `1 / ${gameConfig.rows}` }}
+              style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? gameConfig.rows * 1.3 : gameConfig.rows}` }}
           >
               <div className="w-full h-full flex flex-col">
                   {forcedSymbols.map((s, i) => {
@@ -144,7 +144,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
     <div
         className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
         style={{
-            aspectRatio: `1 / ${gameConfig.rows}`,
+            aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? gameConfig.rows * 1.3 : gameConfig.rows}`,
             ...(anticipation ? { boxShadow: '0 0 0 2px #fbbf24, 0 0 18px rgba(251,191,36,0.7)', transition: 'box-shadow 0.2s' } : {}),
         }}
     >
@@ -248,14 +248,6 @@ const ReelCell: React.FC<{
     const isWild = symbol === SymbolType.WILD;
     const isLetter = theme !== 'NEON' && [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
 
-    const NEON_FRUIT_BG: Partial<Record<SymbolType, string>> = {
-        [SymbolType.TEN]:   'bg-gradient-to-b from-red-400 to-rose-800',
-        [SymbolType.JACK]:  'bg-gradient-to-b from-yellow-300 to-amber-700',
-        [SymbolType.QUEEN]: 'bg-gradient-to-b from-purple-500 to-purple-900',
-        [SymbolType.KING]:  'bg-gradient-to-b from-emerald-500 to-emerald-900',
-        [SymbolType.ACE]:   'bg-gradient-to-b from-blue-400 to-indigo-900',
-    };
-    const isNeonFruit = theme === 'NEON' && symbol in NEON_FRUIT_BG;
 
     const JP_LABELS: Partial<Record<SymbolType, string>> = {
         [SymbolType.JACKPOT_MINI]:  'MINI',
@@ -286,9 +278,6 @@ const ReelCell: React.FC<{
     }
     if (isJackpot && !highlight) {
         bgClasses = '';
-    }
-    if (isNeonFruit && !highlight) {
-        bgClasses = NEON_FRUIT_BG[symbol]!;
     }
 
     const activeBounce = highlight || isScatterShowcase;
@@ -360,7 +349,7 @@ const ReelCell: React.FC<{
                                 className="block font-titan text-[0.729rem] md:text-[0.972rem] font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
                                 style={{ textShadow: '0 0 4px black, 0 0 8px black' }}
                             >
-                                SCATTER
+                                {theme === 'NEON' ? 'BONUS' : 'SCATTER'}
                             </span>
                         </div>
                     )}
