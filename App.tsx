@@ -94,8 +94,8 @@ const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive
 );
 
 const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
-    const pct = Math.min(progress, 100);
-    const full = pct >= 100;
+    const pct = Math.min((progress / 500) * 100, 100);
+    const full = progress >= 500;
     return (
         <div className="flex items-center justify-center py-1.5" style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="relative overflow-hidden" style={{ width: '50%', height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.07)' }}>
@@ -2021,11 +2021,11 @@ const App: React.FC = () => {
             // Fill progress bar +1 to +5 per spin, cap at 100, stay full
             if (arcticProgressRef.current < 100) {
                 const gain = Math.floor(Math.random() * 5) + 1;
-                arcticProgressRef.current = Math.min(arcticProgressRef.current + gain, 100);
+                arcticProgressRef.current = Math.min(arcticProgressRef.current + gain, 500);
                 setArcticSpinProgress(arcticProgressRef.current);
             }
             // When full, each spin has a chance to trigger pick jackpot
-            if (arcticProgressRef.current >= 100) {
+            if (arcticProgressRef.current >= 500) {
                 const extraMult = Math.floor(arcticPickSpinsRef.current / 100);
                 const chance = Math.min(0.05 + extraMult * 0.025, 0.475);
                 if (Math.random() < chance) {
@@ -3110,13 +3110,15 @@ const App: React.FC = () => {
                 })()}
                 <div className="w-full z-10 p-0 m-0">
                     {selectedGame.theme === 'ARCTIC' ? (
-                        freeSpinsRemaining > 0
-                            ? <ArcticMultiplierBar
-                                mults={[2, 3, 4, 5, 10]}
-                                stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
-                                isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
-                              />
-                            : <ArcticProgressBar progress={arcticSpinProgress} />
+                        showArcticPickModal
+                            ? <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={false} />
+                            : freeSpinsRemaining > 0
+                                ? <ArcticMultiplierBar
+                                    mults={[2, 3, 4, 5, 10]}
+                                    stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
+                                    isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
+                                  />
+                                : <ArcticProgressBar progress={arcticSpinProgress} />
                     ) : (
                         <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
                     )}
