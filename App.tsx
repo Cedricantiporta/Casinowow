@@ -70,21 +70,45 @@ const getWinTier = (amount: number, bet: number): string | null => {
 
 const formatBet = (num: number) => formatCommaNumber(num);
 
+const ARCTIC_MULT_COLORS = [
+    { solid: '#22c55e', border: '#16a34a', bg: '#052e16' },
+    { solid: '#3b82f6', border: '#2563eb', bg: '#0c1a3a' },
+    { solid: '#a855f7', border: '#7c3aed', bg: '#1a0535' },
+    { solid: '#ef4444', border: '#b91c1c', bg: '#2d0a0a' },
+    { solid: '#eab308', border: '#a16207', bg: '#2a1800' },
+];
+
+const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive: boolean }> = ({ mults, stepIdx, isActive }) => (
+    <div className="flex items-center justify-center gap-1.5 py-1.5 px-3" style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        {mults.map((m, idx) => {
+            const active = isActive && stepIdx === idx;
+            const c = ARCTIC_MULT_COLORS[idx];
+            return (
+                <div key={idx} className="flex items-center justify-center rounded transition-all duration-200"
+                    style={{ padding: '2px 8px', background: active ? c.solid : 'rgba(255,255,255,0.06)', border: 'none' }}>
+                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: 'clamp(9px,1.6vw,12px)', color: active ? '#000' : 'rgba(255,255,255,0.20)', fontWeight: 900 }}>×{m}</span>
+                </div>
+            );
+        })}
+    </div>
+);
+
 const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
-    const TOTAL = 10;
-    const TIER_COLORS = ['#4ade80','#67e8f9','#d8b4fe','#fda4af','#fde68a'];
-    const TIER_LABELS = ['MINI','MINOR','MAJOR','MEGA','GRAND'];
+    const pct = (progress / 10) * 100;
     return (
-        <div style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="flex justify-around px-3 pt-1">
-                {TIER_LABELS.map((t, i) => (
-                    <span key={t} className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(7px,1.3vw,9px)', color: TIER_COLORS[i] }}>{t}</span>
-                ))}
+        <div className="px-3 py-1.5" style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="relative w-full overflow-hidden" style={{ height: 11, borderRadius: 6, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(34,211,238,0.18)' }}>
+                <div className="absolute inset-y-0 left-0 transition-all duration-500" style={{
+                    width: `${pct}%`,
+                    background: 'linear-gradient(90deg,#0369a1,#0ea5e9,#7dd3fc)',
+                    boxShadow: '0 0 8px rgba(34,211,238,0.55)',
+                    borderRadius: 6,
+                }} />
+                <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 55%)', borderRadius: 6 }} />
             </div>
-            <div className="flex items-center justify-center gap-0.5 px-2 pb-1 pt-0.5">
-                {Array(TOTAL).fill(null).map((_, i) => (
-                    <span key={i} style={{ fontSize: 'clamp(9px,2vw,14px)', opacity: i < progress ? 1 : 0.18, filter: i < progress ? 'none' : 'grayscale(1)', transition: 'opacity 0.3s' }}>🧊</span>
-                ))}
+            <div className="flex justify-between mt-0.5 px-0.5">
+                <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(6px,1vw,7px)', color: 'rgba(34,211,238,0.35)' }}>JACKPOT PICK</span>
+                <span className="font-black" style={{ fontSize: 'clamp(6px,1vw,7px)', color: 'rgba(34,211,238,0.35)' }}>{progress}/10</span>
             </div>
         </div>
     );
@@ -3069,7 +3093,13 @@ const App: React.FC = () => {
                 })()}
                 <div className="w-full z-10 p-0 m-0">
                     {selectedGame.theme === 'ARCTIC' ? (
-                        <ArcticProgressBar progress={arcticSpinProgress} />
+                        freeSpinsRemaining > 0
+                            ? <ArcticMultiplierBar
+                                mults={[2, 5, 10, 15, 20]}
+                                stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
+                                isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
+                              />
+                            : <ArcticProgressBar progress={arcticSpinProgress} />
                     ) : (
                         <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
                     )}

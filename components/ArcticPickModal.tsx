@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { formatCommaNumber } from '../constants';
+import { formatK } from '../constants';
 
 interface ArcticPickModalProps {
     isOpen: boolean;
@@ -84,8 +84,23 @@ const PickGame: React.FC<{ currentBet: number; jackpotAmounts: number[]; onWin: 
 
     const dotsFor = (_t: Tier) => 3;
 
+    const TIER_CLASS: Record<Tier, string> = { MINI: 't-green', MINOR: 't-cyan', MAJOR: 't-purple', MEGA: 't-red', GRAND: 't-gold' };
+
     return (
         <div className="flex flex-col w-full h-full">
+            {/* Jackpot amounts — same design as JackpotTicker */}
+            <div className="jackpot font-nunito w-full select-none flex-shrink-0">
+                {TIERS.map((tier, idx) => {
+                    const amt = jackpotAmounts[HW_JP_IDX[tier]] > 0 ? jackpotAmounts[HW_JP_IDX[tier]] : currentBet * BET_MULTS[tier];
+                    return (
+                        <div key={tier} className={`jp ${TIER_CLASS[tier]}`}>
+                            <div className="jp-tier">{tier}</div>
+                            <div className="jp-amt">{formatK(amt)}</div>
+                        </div>
+                    );
+                })}
+            </div>
+
             {/* Tier progress dots */}
             <div className="flex justify-around px-3 pt-2 pb-1.5 flex-shrink-0">
                 {TIERS.map(tier => {
