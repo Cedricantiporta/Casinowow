@@ -627,6 +627,7 @@ const App: React.FC = () => {
           isVip: true,
           balance: p.balance + 500_000,
           diamonds: p.diamonds + 500,
+          vipExpiry: Date.now() + 30 * 24 * 3600000,
       }));
       setShowVipLounge(false);
       setIsHighLimit(true);
@@ -786,6 +787,25 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_player', JSON.stringify(player)); } catch {}
   }, [player]);
+
+  // Expire VIP when 30-day window elapses
+  useEffect(() => {
+      if (player.isVip && player.vipExpiry && Date.now() > player.vipExpiry) {
+          setPlayer(p => ({ ...p, isVip: false }));
+      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep only 4 daily missions, trim any extras
+  useEffect(() => {
+      setMissionState(prev => {
+          const daily = prev.activeMissions.filter(m => m.frequency === 'DAILY');
+          if (daily.length <= 4) return prev;
+          const keep = new Set(daily.slice(0, 4).map(m => m.id));
+          return { ...prev, activeMissions: prev.activeMissions.filter(m => m.frequency !== 'DAILY' || keep.has(m.id)) };
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     try { localStorage.setItem('cw_missions', JSON.stringify(missionState)); } catch {}
@@ -2952,7 +2972,7 @@ const App: React.FC = () => {
   };
   const getGrandAlbumReward = (level: number) => MAX_BET_BY_LEVEL(level) * 1000;
 
-  const showGoldHeader = player.isVip && currentView === 'LOBBY';
+  const showGoldHeader = !!player.isVip && (currentView === 'LOBBY' || currentView === 'HIGH_LIMIT');
   const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
   const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
@@ -3769,7 +3789,9 @@ const App: React.FC = () => {
               🪙 {giftDisplayAmount.toLocaleString('en-US')}
             </div>
             <button
+              disabled={!giftCountDone}
               onClick={() => {
+                if (!giftCountDone) return;
                 setShowWelcomeGift(false);
                 // Animate topbar balance from 0 to 10M
                 const target = 10000000;
@@ -3788,13 +3810,15 @@ const App: React.FC = () => {
                     setAnimBalance(Math.floor(target * p2));
                 }, 16);
               }}
-              className="btn-3d w-full py-2.5 rounded-2xl font-black text-sm uppercase tracking-widest text-black"
+              className="btn-3d w-full py-2.5 rounded-2xl font-black text-sm uppercase tracking-widest"
               style={{
-                background: giftCountDone ? 'linear-gradient(180deg,#ffd700,#ff9500)' : 'rgba(255,255,255,0.1)',
-                boxShadow: giftCountDone ? '0 4px 0 #b06000' : 'none',
-                color: giftCountDone ? '#1a0800' : 'rgba(255,255,255,0.3)',
+                background: 'linear-gradient(180deg,#ffd700,#ff9500)',
+                boxShadow: '0 4px 0 #b06000',
+                color: '#1a0800',
                 cursor: giftCountDone ? 'pointer' : 'default',
-                transition: 'all 0.3s',
+                opacity: giftCountDone ? 1 : 0.7,
+                transition: 'opacity 0.3s',
+                pointerEvents: giftCountDone ? 'auto' : 'none',
               }}>
               CLAIM
             </button>
@@ -3822,7 +3846,7 @@ const App: React.FC = () => {
                   setCelebrationMsg('💰 Coin Flood! +100T Coins');
               } else if (code === 'dev1') {
                   const now = Date.now();
-                  setPlayer(p => ({ ...p, diamonds: p.diamonds + 50_000, isVip: true, xpMultiplier: 3, xpBoostEndTime: now + 24 * 60 * 60 * 1000 }));
+                  setPlayer(p => ({ ...p, diamonds: p.diamonds + 50_000, isVip: true, vipExpiry: now + 30 * 24 * 3600000, xpMultiplier: 3, xpBoostEndTime: now + 24 * 60 * 60 * 1000 }));
                   setMissionState(ms => ({
                       ...ms,
                       isPremium: true,
@@ -3843,6 +3867,7 @@ const App: React.FC = () => {
                   setPlayer(p => ({
                       ...p,
                       isVip: true,
+                      vipExpiry: now + 30 * 24 * 3600000,
                       xpMultiplier: 5,
                       xpBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
                   }));
@@ -3865,6 +3890,8 @@ const App: React.FC = () => {
           isVip={!!player.isVip}
           playerLevel={player.level}
           vipLevel={player.vipLevel ?? 1}
+          vipXp={player.vipXp ?? 0}
+          vipXpToNext={player.vipXpToNext ?? 500}
           onJoinVip={handleJoinVip}
       />
 
@@ -3875,7 +3902,7 @@ const App: React.FC = () => {
           isPremium={missionState.isPremium}
           maxBet={MAX_BET_BY_LEVEL(player.level)}
           onBuyVip={() => {
-              setPlayer(p => ({ ...p, isVip: true }));
+              setPlayer(p => ({ ...p, isVip: true, vipExpiry: Date.now() + 30 * 24 * 3600000 }));
               setShowPremiumModal(false);
               setPurchaseConfirm('VIP');
           }}

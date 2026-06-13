@@ -6,6 +6,8 @@ interface VipLoungeModalProps {
     isVip: boolean;
     playerLevel: number;
     vipLevel?: number;
+    vipXp?: number;
+    vipXpToNext?: number;
     onJoinVip: () => void;
 }
 
@@ -57,7 +59,7 @@ const getCurrentTier = (vipLevel: number): VipTier | null => {
 };
 
 export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
-    isOpen, onClose, isVip, playerLevel, vipLevel = 1, onJoinVip
+    isOpen, onClose, isVip, playerLevel, vipLevel = 1, vipXp = 0, vipXpToNext = 500, onJoinVip
 }) => {
     if (!isOpen) return null;
 
@@ -89,6 +91,27 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
                     style={{ background: 'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow: '0 2px 0 #5a3800' }}>
                     <i className="ti ti-x"></i>
+                </div>
+            </div>
+
+            {/* VIP XP progress bar */}
+            <div className="shrink-0 mx-4 mb-2 flex flex-col gap-1.5">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: 'rgba(253,230,138,0.8)' }}>
+                        VIP Level {vipLevel}
+                    </span>
+                    <span className="text-[10px] font-bold" style={{ color: 'rgba(253,230,138,0.5)' }}>
+                        {vipXp.toLocaleString('en-US')} / {vipXpToNext.toLocaleString('en-US')} XP
+                    </span>
+                </div>
+                <div className="relative h-3 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.4)' }}>
+                    <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                        style={{
+                            width: `${Math.min(100, (vipXp / vipXpToNext) * 100)}%`,
+                            background: 'linear-gradient(90deg,#fbbf24,#f59e0b)',
+                            boxShadow: '0 0 8px rgba(251,191,36,0.6)',
+                        }} />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.15),transparent)' }} />
                 </div>
             </div>
 

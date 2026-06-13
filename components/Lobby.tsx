@@ -88,7 +88,8 @@ export const Lobby: React.FC<LobbyProps> = ({
     }, [currentBet, isHighLimit]);
 
     const isReadyToCollect = timeLeft === 0;
-    const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
+    const visibleDailyMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
+    const missionsReady = visibleDailyMissions.filter(m => m.completed && !m.claimed).length;
     const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
     const totalMissionNotifs = passRewardsReady;
     const questReady = (questState.diceCredits ?? 0) > 0 || (questState.wildCredits ?? 0) > 0;
@@ -379,7 +380,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             </button>
 
                             {/* FREE COINS — utmost right big coin button, protrudes high */}
-                            <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform relative">
+                            <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform" style={{ position: 'relative', bottom: '10px' }}>
                                 <div className="relative" style={{
                                     width: '52px', height: '52px', borderRadius: '50%',
                                     background: isReadyToCollect

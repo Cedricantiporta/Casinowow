@@ -75,6 +75,7 @@ export interface PlayerState {
   vipXp?: number;
   vipLevel?: number;
   vipXpToNext?: number;
+  vipExpiry?: number;
   stats?: {
     maxSingleWin: number;
     maxJackpotWin: number;
