@@ -180,9 +180,21 @@ const App: React.FC = () => {
   const [missionState, setMissionState] = useState<MissionState>(() => {
     try {
       const saved = localStorage.getItem('cw_missions');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+          const parsed = JSON.parse(saved);
+          // Daily reset: if lastDailyReset is a different calendar day, regenerate daily missions
+          const now = new Date();
+          const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+          if (parsed.lastDailyReset !== todayKey) {
+              const level = parsed.passLevel || 1;
+              const nonDaily = (parsed.activeMissions || []).filter((m: { frequency: string }) => m.frequency !== 'DAILY');
+              return { ...parsed, lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(level), ...nonDaily] };
+          }
+          return parsed;
+      }
     } catch {}
-    return { activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 500, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
+    const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; })();
+    return { lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 500, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
   });
   const [decks, setDecks] = useState<Deck[]>(GENERATE_DECKS());
 
@@ -290,6 +302,7 @@ const App: React.FC = () => {
   // Neon Vegas Scatter Roulette state
   const [showNeonRoulette, setShowNeonRoulette] = useState(false);
   const [neonRouletteBet, setNeonRouletteBet] = useState(0);
+  const neonRouletteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Dragon's Fortune Pick-and-Win state
   const [showDragonPickModal, setShowDragonPickModal] = useState(false);
@@ -1178,7 +1191,7 @@ const App: React.FC = () => {
           const newCount = col.length - remaining.length;
           const newSyms = Array(newCount).fill(null).map(() => {
               // Arctic: wild chance on falling cells (boosted in free spins)
-              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.40 : 0.17;
+              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.24 : 0.17;
               if (selectedGame.theme === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < arcticCascadeWildChance) {
                   return SymbolType.WILD;
               }
@@ -1928,7 +1941,9 @@ const App: React.FC = () => {
                  audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
                  const betAmt = currentBetRef.current;
-                 setTimeout(() => {
+                 if (neonRouletteTimerRef.current) clearTimeout(neonRouletteTimerRef.current);
+                 neonRouletteTimerRef.current = setTimeout(() => {
+                     neonRouletteTimerRef.current = null;
                      setShowNeonRoulette(true);
                      setNeonRouletteBet(betAmt);
                  }, 2000);
@@ -2726,6 +2741,10 @@ const App: React.FC = () => {
           setCurrentView('GAME');
           setActiveModal('NONE');
           setStatus(GameStatus.IDLE);
+          // Cancel any pending roulette timer and close roulette/win popups on game change
+          if (neonRouletteTimerRef.current) { clearTimeout(neonRouletteTimerRef.current); neonRouletteTimerRef.current = null; }
+          setShowNeonRoulette(false);
+          setShowWinPopup(false);
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -3005,6 +3024,26 @@ const App: React.FC = () => {
                         return `x${player.xpMultiplier}`;
                     })()}
                 </div>
+
+                {/* Daily missions counter */}
+                {(() => {
+                    const daily = missionState.activeMissions.filter((m: { frequency: string }) => m.frequency === 'DAILY');
+                    const done = daily.filter((m: { completed?: boolean }) => m.completed).length;
+                    const allDone = done >= 4;
+                    return (
+                        <div
+                            onClick={openMissionsModal}
+                            className="round-btn shrink-0 cursor-pointer flex items-center gap-0.5"
+                            style={showGoldHeader
+                                ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', paddingLeft: 6, paddingRight: 6 }
+                                : { paddingLeft: 6, paddingRight: 6 }}
+                            title="Daily Missions"
+                        >
+                            <span style={{ fontSize: 12, lineHeight: 1 }}>📋</span>
+                            <span style={{ fontSize: 9, fontWeight: 900, color: allDone ? '#fbbf24' : 'white', letterSpacing: '0.02em' }}>{done}/4</span>
+                        </div>
+                    );
+                })()}
 
                 {/* Settings button */}
                 <div

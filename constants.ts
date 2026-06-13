@@ -649,8 +649,8 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
         { type: MissionType.MAX_BET_SPIN, base: 30, desc: "Spin on max bet" },
     ];
 
-    // 10 per day
-    for (let i = 0; i < 10; i++) {
+    // 4 per day
+    for (let i = 0; i < 4; i++) {
         const t = templates[i % templates.length];
         const scale = 1 + (Math.floor(i / 4) * 0.5);
 

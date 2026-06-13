@@ -18,7 +18,7 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
         description: 'Jumpstart your game with coins and a level boost.',
         icon: '⚡',
         rewards: [
-            { icon: '🪙', label: '+1,000,000,000,000 Coins' },
+            { icon: '🪙', label: '+100,000,000,000 Coins' },
             { icon: '⭐', label: 'Level 50' },
         ],
     },
@@ -43,19 +43,18 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
     },
     dev111: {
         title: 'COIN NUKE',
-        description: '10 Quadrillion coins and 500k gems dropped straight to your wallet.',
+        description: '10 Billion coins and 2,000 gems dropped straight to your wallet.',
         icon: '💥',
         rewards: [
-            { icon: '🪙', label: '+10 Quadrillion Coins' },
-            { icon: '💎', label: '+500,000 Gems' },
+            { icon: '🪙', label: '+10,000,000,000 Coins' },
+            { icon: '💎', label: '+2,000 Gems' },
         ],
     },
     dev222: {
         title: 'GOD MODE',
-        description: '+100 levels, all premium features, VIP, and max boosts.',
+        description: 'All premium features, VIP, and max boosts unlocked.',
         icon: '👑',
         rewards: [
-            { icon: '⭐', label: '+100 Levels' },
             { icon: '👑', label: 'VIP + Monthly Pass' },
             { icon: '🚀', label: 'XP Boost ×5 — 7 Days' },
         ],

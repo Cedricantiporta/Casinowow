@@ -24,9 +24,9 @@ const SEGMENTS: Seg[] = [
     { label: 'GRAND', color: '#78350f', textColor: '#fde68a', jp: 'GRAND', baseWeight: 0.05},
 ];
 
-// As multCount increases, multiplier segments get progressively rarer
-// 0→normal, 1→60%, 2→30%, 3→10%, 4+→0% (forced jackpot)
-const MULT_SCALE = [1.0, 0.6, 0.3, 0.1, 0];
+// Jackpot chance per spin (0-indexed multCount). Spin 5+ is always jackpot.
+// Spin 1: 40%, Spin 2: 50%, Spin 3: 65%, Spin 4: 80%, Spin 5+: 100%
+const JP_CHANCE = [0.40, 0.50, 0.65, 0.80, 1.0];
 
 const N = SEGMENTS.length;
 const SEG_DEG = 360 / N;
@@ -34,13 +34,15 @@ const SPIN_MS = 12000;
 const R = 150; const CX = 165; const CY = 165; const SZ = 330;
 
 const pickSeg = (multCount: number): number => {
-    const scale = MULT_SCALE[Math.min(multCount, 4)];
-    const weights = SEGMENTS.map(s => s.mult !== undefined ? s.baseWeight * scale : s.baseWeight);
-    const total = weights.reduce((a, b) => a + b, 0);
+    const jpChance = JP_CHANCE[Math.min(multCount, 4)];
+    const useJp = Math.random() < jpChance;
+    const pool = useJp
+        ? SEGMENTS.filter(s => s.jp !== undefined)
+        : SEGMENTS.filter(s => s.mult !== undefined);
+    const total = pool.reduce((a, s) => a + s.baseWeight, 0);
     let r = Math.random() * total;
-    for (let i = 0; i < N; i++) { r -= weights[i]; if (r <= 0) return i; }
-    // Fallback: pick first jackpot segment
-    return SEGMENTS.findIndex(s => s.jp !== undefined);
+    for (const s of pool) { r -= s.baseWeight; if (r <= 0) return SEGMENTS.indexOf(s); }
+    return SEGMENTS.indexOf(pool[pool.length - 1]);
 };
 
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
@@ -191,11 +193,6 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                         <div className="text-white/25 text-[9px] uppercase tracking-wide mt-1">
                             {liveSeg.mult !== undefined ? 'Multiplier' : liveSeg.jp ? `${liveSeg.jp} Jackpot` : ''}
                         </div>
-                        {multCount > 0 && (
-                            <div className="text-yellow-300/60 text-[10px] font-black mt-2">
-                                Spin {multCount + 1} / max 5
-                            </div>
-                        )}
                     </div>
                 );
             case 'mult_popup':
