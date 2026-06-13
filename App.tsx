@@ -196,6 +196,7 @@ const App: React.FC = () => {
   const [stoppedReels, setStoppedReels] = useState(0);
   const [instantStop, setInstantStop] = useState(false);
   const [fastSpin, setFastSpin] = useState(false);
+  const [autoMaxBet, setAutoMaxBet] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -1704,7 +1705,13 @@ const App: React.FC = () => {
     if (showFreeSpinsPopup) return;
     if (dragonPotShaking || showDragonTriggerPopup) return;
 
-    const currentBet = availableBets[betIndex];
+    // Auto max bet: snap to highest available bet before spinning
+    if (autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active) {
+        setBetIndex(availableBets.length - 1);
+    }
+    const currentBet = autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active
+        ? availableBets[availableBets.length - 1]
+        : availableBets[betIndex];
     const isFreeSpin = freeSpinsRemaining > 0;
     const isHoldWinRespin = holdWinRef.current.active;
 
@@ -3610,6 +3617,7 @@ const App: React.FC = () => {
           isOpen={showNeonRoulette}
           bet={neonRouletteBet}
           jackpotAmounts={jackpotService.getAmounts()}
+          onMultPayout={(amount) => setPlayer(p => ({ ...p, balance: p.balance + amount }))}
           onComplete={handleNeonRouletteComplete}
       />
 
@@ -3745,6 +3753,8 @@ const App: React.FC = () => {
           onToggleMute={() => setIsMuted(audioService.toggleMute())}
           fastSpin={fastSpin}
           onToggleFastSpin={() => setFastSpin(f => !f)}
+          autoMaxBet={autoMaxBet}
+          onToggleAutoMaxBet={() => setAutoMaxBet(f => !f)}
           onRedeem={(code) => {
               if (code === 'dev777') {
                   setPlayer(p => ({ ...p, level: 50, balance: p.balance + 100_000_000_000 }));

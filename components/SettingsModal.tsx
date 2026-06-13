@@ -7,6 +7,8 @@ interface SettingsModalProps {
     onToggleMute: () => void;
     fastSpin: boolean;
     onToggleFastSpin: () => void;
+    autoMaxBet: boolean;
+    onToggleAutoMaxBet: () => void;
     onRedeem: (code: string) => void;
 }
 
@@ -92,7 +94,7 @@ const Toggle: React.FC<{ on: boolean; onToggle: () => void; label: string; sub?:
 );
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
-    isOpen, onClose, isMuted, onToggleMute, fastSpin, onToggleFastSpin, onRedeem
+    isOpen, onClose, isMuted, onToggleMute, fastSpin, onToggleFastSpin, autoMaxBet, onToggleAutoMaxBet, onRedeem
 }) => {
     const [redeemInput, setRedeemInput] = useState('');
     const [pendingCode, setPendingCode] = useState<string | null>(null);
@@ -149,6 +151,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 px-0.5">Gameplay</div>
                         <Toggle on={fastSpin} onToggle={onToggleFastSpin} icon="⚡" label="Fast Spin" sub="Instant reel stop" />
+                        <div className="mt-2">
+                            <Toggle on={autoMaxBet} onToggle={onToggleAutoMaxBet} icon="💰" label="Auto Max Bet" sub="Always spin at max bet" />
+                        </div>
                     </div>
                 </div>
 
