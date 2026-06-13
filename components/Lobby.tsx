@@ -194,13 +194,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed' : ''}`}
                                         style={{ boxShadow: 'inset 0 2px 0 rgba(210,150,255,0.85), 0 0 12px rgba(160,80,255,0.28), 0 6px 18px rgba(0,0,0,0.55)' }}
                                     >
-                                        {!isLocked && (
-                                            <div className="absolute -top-[22px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
-                                                <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'2px solid #7c3aed', borderRadius:'999px', padding:'3px 8px', boxShadow:'0 0 8px rgba(124,58,237,0.6)' }}>
-                                                    {formatK(jackpotTotals[idx] ?? 0)}
-                                                </span>
-                                            </div>
-                                        )}
+                                        <div className="absolute -top-[22px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
+                                            <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'2px solid #7c3aed', borderRadius:'999px', padding:'3px 8px', boxShadow:'0 0 8px rgba(124,58,237,0.6)' }}>
+                                                {formatK(jackpotTotals[idx] ?? 0)}
+                                            </span>
+                                        </div>
                                         <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity${isLocked ? ' blur-[1.5px]' : ''}`}></div>
                                         <div className={`absolute inset-0 rounded-xl overflow-hidden z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
                                             <div className="absolute inset-0 flex items-start justify-center pt-2">

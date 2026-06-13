@@ -123,9 +123,9 @@ const App: React.FC = () => {
   const [player, setPlayer] = useState<PlayerState>(() => {
     try {
       const saved = localStorage.getItem('cw_player');
-      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, premiumPackCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [] }, ...JSON.parse(saved) };
+      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, premiumPackCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [], vipXp: 0, vipLevel: 1, vipXpToNext: 500 }, ...JSON.parse(saved) };
     } catch {}
-    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, premiumPackCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [] };
+    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, premiumPackCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [], vipXp: 0, vipLevel: 1, vipXpToNext: 500 };
   });
   
   // Ref to track player state to avoid stale closures in callbacks (like feature unlocks)
@@ -609,7 +609,10 @@ const App: React.FC = () => {
   };
 
   const handleOpenHighRoller = () => {
-      if (player.level >= 35) {
+      if (currentView === 'HIGH_LIMIT') {
+          setCurrentView('LOBBY');
+          setIsHighLimit(false);
+      } else if (player.level >= 35) {
           setIsHighLimit(true);
           setCurrentView('HIGH_LIMIT');
       } else {
@@ -2295,6 +2298,7 @@ const App: React.FC = () => {
        const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult * 2);
 
        addXp(xpGained);
+       addVipXp(Math.max(1, Math.floor(xpGained * 0.1)));
        updateMissions(MissionType.WIN_COINS, totalPayout);
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
 
@@ -2318,6 +2322,7 @@ const App: React.FC = () => {
        const betFractionLoss = currentBet / MAX_BET_BY_LEVEL(player.level);
        const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss * 2);
        addXp(lossXp);
+       addVipXp(Math.max(1, Math.floor(lossXp * 0.1)));
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
     }
@@ -2474,6 +2479,20 @@ const App: React.FC = () => {
               return { ...prev, balance: prev.balance + reward, level: newLevel, xp: newXp, xpToNextLevel: newReq };
           }
           return { ...prev, xp: newXp, xpToNextLevel: newReq };
+      });
+  };
+
+  const addVipXp = (amount: number) => {
+      setPlayer(prev => {
+          let newVipXp = (prev.vipXp ?? 0) + amount;
+          let newVipLevel = prev.vipLevel ?? 1;
+          let newVipXpToNext = prev.vipXpToNext ?? 500;
+          while (newVipXp >= newVipXpToNext) {
+              newVipLevel++;
+              newVipXp -= newVipXpToNext;
+              newVipXpToNext = Math.floor(newVipXpToNext * 1.3);
+          }
+          return { ...prev, vipXp: newVipXp, vipLevel: newVipLevel, vipXpToNext: newVipXpToNext };
       });
   };
 
@@ -2952,7 +2971,7 @@ const App: React.FC = () => {
   };
   const getGrandAlbumReward = (level: number) => MAX_BET_BY_LEVEL(level) * 1000;
 
-  const showGoldHeader = isHighLimit || (player.isVip && currentView === 'LOBBY');
+  const showGoldHeader = player.isVip && currentView === 'LOBBY';
   const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
   const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
@@ -3864,6 +3883,7 @@ const App: React.FC = () => {
           onClose={() => setShowVipLounge(false)}
           isVip={!!player.isVip}
           playerLevel={player.level}
+          vipLevel={player.vipLevel ?? 1}
           onJoinVip={handleJoinVip}
       />
 

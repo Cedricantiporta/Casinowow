@@ -72,6 +72,9 @@ export interface PlayerState {
   isVip?: boolean;
   freeStashClaimedTime?: number;
   shopClaimedItems?: string[];
+  vipXp?: number;
+  vipLevel?: number;
+  vipXpToNext?: number;
   stats?: {
     maxSingleWin: number;
     maxJackpotWin: number;

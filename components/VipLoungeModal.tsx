@@ -5,6 +5,7 @@ interface VipLoungeModalProps {
     onClose: () => void;
     isVip: boolean;
     playerLevel: number;
+    vipLevel?: number;
     onJoinVip: () => void;
 }
 
@@ -21,46 +22,46 @@ const VIP_TIERS: VipTier[] = [
         name: 'Bronze',
         icon: '🥉',
         color: '#cd7f32',
-        unlockLevel: 20,
+        unlockLevel: 1,
         benefits: ['5% daily cashback', '+5% Piggy Bank savings', '+10% XP Boost'],
     },
     {
         name: 'Silver',
         icon: '🥈',
         color: '#c0c0c0',
-        unlockLevel: 40,
+        unlockLevel: 5,
         benefits: ['10% daily cashback', '+8% Piggy Bank', '+15% XP', 'Weekly gems'],
     },
     {
         name: 'Gold',
         icon: '🥇',
         color: '#ffd700',
-        unlockLevel: 60,
+        unlockLevel: 15,
         benefits: ['15% daily cashback', '+10% Piggy Bank', '+20% XP', 'Weekly gems', '10% store discount'],
     },
     {
         name: 'Platinum',
         icon: '💎',
         color: '#e5e4e2',
-        unlockLevel: 80,
+        unlockLevel: 30,
         benefits: ['20% daily cashback', '+15% Piggy Bank', '+30% XP', 'Daily gems', '15% store discount', 'Exclusive slots'],
     },
 ];
 
-const getCurrentTier = (playerLevel: number): VipTier | null => {
+const getCurrentTier = (vipLevel: number): VipTier | null => {
     let current: VipTier | null = null;
     for (const tier of VIP_TIERS) {
-        if (playerLevel >= tier.unlockLevel) current = tier;
+        if (vipLevel >= tier.unlockLevel) current = tier;
     }
     return current;
 };
 
 export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
-    isOpen, onClose, isVip, playerLevel, onJoinVip
+    isOpen, onClose, isVip, playerLevel, vipLevel = 1, onJoinVip
 }) => {
     if (!isOpen) return null;
 
-    const currentTier = getCurrentTier(playerLevel);
+    const currentTier = getCurrentTier(vipLevel);
 
     return (
         <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none overflow-hidden"
@@ -101,7 +102,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                             Current: {currentTier.name} VIP
                         </div>
                         <div className="text-[10px] mt-0.5" style={{ color: 'rgba(253,230,138,0.6)' }}>
-                            Level {playerLevel} — {currentTier.benefits[0]}
+                            VIP Level {vipLevel} — {currentTier.benefits[0]}
                         </div>
                     </div>
                 </div>
@@ -111,7 +112,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
             <div className="flex-1 overflow-y-auto px-4 pb-1">
                 <div className="grid grid-cols-2 gap-2.5">
                     {VIP_TIERS.map(tier => {
-                        const isUnlocked = playerLevel >= tier.unlockLevel;
+                        const isUnlocked = vipLevel >= tier.unlockLevel;
                         const isActive = currentTier?.name === tier.name;
                         return (
                             <div key={tier.name}
@@ -132,7 +133,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                                 {!isUnlocked && (
                                     <div className="absolute top-2 right-2 text-[9px] font-black px-1.5 py-0.5 rounded-full"
                                         style={{ background: 'rgba(0,0,0,0.6)', color: '#9ca3af', border: '1px solid rgba(255,255,255,0.15)' }}>
-                                        LVL {tier.unlockLevel}
+                                        VIP LVL {tier.unlockLevel}
                                     </div>
                                 )}
                                 <div className="flex items-center gap-2">
@@ -142,7 +143,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                                             {tier.name}
                                         </div>
                                         <div className="text-[9px]" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                                            Lv {tier.unlockLevel}+
+                                            VIP Lv {tier.unlockLevel}+
                                         </div>
                                     </div>
                                 </div>
