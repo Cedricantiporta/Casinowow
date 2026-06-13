@@ -302,6 +302,64 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div style={{ height:'14px' }}></div>
                             </button>
 
+                            {/* Piggy */}
+                            <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
+                                {isPiggyLocked && lockBadge(5)}
+                                <div className="relative leading-none">
+                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🐷</span>
+                                    {piggyFull && (
+                                        <div className="absolute -top-1 -right-2 text-white font-black text-[7px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>
+                                    )}
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
+                            </button>
+
+                            {/* Wild */}
+                            <button onClick={!isQuestLocked ? onOpenWildQuest : undefined} className={iconBtn(isQuestLocked)}>
+                                {isQuestLocked && lockBadge(20)}
+                                <div className="relative leading-none">
+                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🗿</span>
+                                    {!isQuestLocked && wildCredits > 0 && (
+                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
+                                            {wildFull ? 'MAX' : wildCredits}
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
+                            </button>
+
+                            {/* Dice */}
+                            <button onClick={!isQuestLocked ? onOpenDiceQuest : undefined} className={iconBtn(isQuestLocked)}>
+                                {isQuestLocked && lockBadge(20)}
+                                <div className="relative leading-none">
+                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎲</span>
+                                    {!isQuestLocked && diceCredits > 0 && (
+                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
+                                            {diceFull ? 'MAX' : diceCredits}
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
+                            </button>
+
+                            {/* Pass */}
+                            <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
+                                {isMissionsLocked && lockBadge(10)}
+                                <div className="relative leading-none">
+                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎫</span>
+                                    {totalMissionNotifs > 0 && !isMissionsLocked && (
+                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[9px] text-white font-black"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
+                                            {totalMissionNotifs}
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
+                            </button>
+
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
                                 {isMissionsLocked && lockBadge(10)}
                                 <div className="relative">

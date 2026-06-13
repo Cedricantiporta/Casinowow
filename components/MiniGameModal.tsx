@@ -157,12 +157,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         for (let i = 0; i <= boardLength; i++) {
             let reward: MiniGameReward | undefined;
             if (i > 0 && i < boardLength) {
-                // 30% chance of BACK on the tile just before the goal
-                if (i === preGoalIndex && Math.random() < 0.30) {
+                // 15% chance of BACK on the tile just before the goal (was 30%)
+                if (i === preGoalIndex && Math.random() < 0.15) {
                     reward = { type: 'BACK', value: 0, label: 'BACK!' };
                 } else {
                     const r = Math.random();
-                    if (r < 0.12) {
+                    if (r < 0.06) {
                         reward = { type: 'BACK', value: 0, label: 'BACK!' };
                     } else if (r < 0.48) {
                         const v = Math.floor(baseCoin * (0.5 + Math.random()));

@@ -25,8 +25,8 @@ const SEGMENTS: Seg[] = [
 ];
 
 // Jackpot chance per spin (0-indexed multCount). Spin 5+ is always jackpot.
-// Spin 1: 40%, Spin 2: 50%, Spin 3: 65%, Spin 4: 80%, Spin 5+: 100%
-const JP_CHANCE = [0.40, 0.50, 0.65, 0.80, 1.0];
+// Spin 1: 50%, Spin 2: 60%, Spin 3: 75%, Spin 4: 90%, Spin 5+: 100%
+const JP_CHANCE = [0.50, 0.60, 0.75, 0.90, 1.0];
 
 const N = SEGMENTS.length;
 const SEG_DEG = 360 / N;
@@ -71,6 +71,9 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
     const [prize, setPrize] = useState(0);
     const [multPayout, setMultPayout] = useState(0);   // amount shown in mult popup
     const [multCount, setMultCount] = useState(0);
+    const [totalMultWins, setTotalMultWins] = useState(0);  // running sum of multiplier wins
+    const [showSummary, setShowSummary] = useState(false);  // end-of-roulette summary popup
+    const [summaryTotal, setSummaryTotal] = useState(0);
 
     const totalRotRef = useRef(0);
     const spinFromRef = useRef(0);
@@ -128,6 +131,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                     // Multiplier: pay out and respin
                     const payout = betRef.current * seg.mult;
                     setMultPayout(payout);
+                    setTotalMultWins(prev => prev + payout);
                     onMultPayout?.(payout);
                     const newMc = mc + 1;
                     multCountRef.current = newMc;
@@ -138,11 +142,16 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                         doSpinRef.current(newMc);
                     }, 2500);
                 } else {
-                    // Jackpot: show claim popup
+                    // Jackpot: compute total and show summary popup
                     const amt = jpRef.current[JP_IDX[seg.jp!]] ?? betRef.current * 50;
                     setPrize(amt);
                     setPhase('done');
-                    timerRef.current = setTimeout(() => setShowClaim(true), 500);
+                    // Capture totalMultWins via functional update to get fresh value
+                    setTotalMultWins(prev => {
+                        setSummaryTotal(prev + amt);
+                        return prev;
+                    });
+                    timerRef.current = setTimeout(() => setShowSummary(true), 500);
                 }
             }
         }, 40);
@@ -159,9 +168,12 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
             setLiveSeg(SEGMENTS[0]);
             setWonSeg(null);
             setShowClaim(false);
+            setShowSummary(false);
             setPrize(0);
             setMultCount(0);
             setMultPayout(0);
+            setTotalMultWins(0);
+            setSummaryTotal(0);
         }
     }, [isOpen]);
 
@@ -193,6 +205,13 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                         <div className="text-white/25 text-[9px] uppercase tracking-wide mt-1">
                             {liveSeg.mult !== undefined ? 'Multiplier' : liveSeg.jp ? `${liveSeg.jp} Jackpot` : ''}
                         </div>
+                        {totalMultWins > 0 && (
+                            <div className="mt-2 flex flex-col items-center gap-0.5 rounded-xl px-3 py-2 w-full"
+                                style={{ background: 'rgba(0,0,0,0.35)' }}>
+                                <div className="text-white/40 text-[8px] uppercase tracking-widest">Total Won</div>
+                                <div className="font-black text-yellow-300 text-sm font-mono">+{formatCommaNumber(totalMultWins)}</div>
+                            </div>
+                        )}
                     </div>
                 );
             case 'mult_popup':
@@ -206,6 +225,13 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                             +{formatCommaNumber(multPayout)}
                         </div>
                         <div className="text-white/40 text-[9px] uppercase mt-1 animate-pulse">Respinning…</div>
+                        {totalMultWins > 0 && (
+                            <div className="mt-1 flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 w-full"
+                                style={{ background: 'rgba(0,0,0,0.35)' }}>
+                                <div className="text-white/40 text-[8px] uppercase tracking-widest">Total Won</div>
+                                <div className="font-black text-yellow-300 text-sm font-mono">+{formatCommaNumber(totalMultWins)}</div>
+                            </div>
+                        )}
                     </div>
                 );
             case 'done':
@@ -318,26 +344,47 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                 </div>
             )}
 
-            {/* Jackpot claim popup */}
-            {showClaim && wonSeg && (
+            {/* End-of-roulette summary popup */}
+            {showSummary && wonSeg && (
                 <div className="fixed inset-0 z-[210] flex items-center justify-center animate-pop-in">
-                    <div className="flex flex-col items-center gap-4 rounded-3xl px-10 py-8"
+                    <div className="flex flex-col items-center gap-3 rounded-3xl px-10 py-7 select-none"
                         style={{
                             background: '#3b0764',
                             boxShadow: `0 0 60px ${wonSeg.textColor}44, 0 0 120px rgba(0,0,0,0.8)`,
+                            minWidth: 240,
                         }}>
-                        <div className="text-white/60 text-[10px] font-black uppercase tracking-widest">🎉 Jackpot!</div>
+                        <div className="text-white/60 text-[10px] font-black uppercase tracking-widest">🎉 Roulette Complete!</div>
                         <div className="font-black uppercase tracking-wider text-center"
-                            style={{ fontSize: '2.2rem', color: wonSeg.textColor, textShadow: `0 0 24px ${wonSeg.textColor}` }}>
-                            {wonSeg.jp}
+                            style={{ fontSize: '2rem', color: wonSeg.textColor, textShadow: `0 0 24px ${wonSeg.textColor}` }}>
+                            {wonSeg.jp} Jackpot
                         </div>
-                        <div className="font-black font-mono text-white text-3xl">{formatCommaNumber(prize)}</div>
-                        <div className="text-white/40 text-[9px] uppercase tracking-wide -mt-2">Coins Won</div>
+
+                        {/* Breakdown */}
+                        <div className="w-full flex flex-col gap-1.5 mt-1">
+                            {totalMultWins > 0 && (
+                                <div className="flex items-center justify-between px-3 py-1.5 rounded-xl"
+                                    style={{ background: 'rgba(255,255,255,0.06)' }}>
+                                    <span className="text-white/60 text-[10px] uppercase tracking-wide">Multiplier Wins</span>
+                                    <span className="font-black text-yellow-300 text-sm font-mono">+{formatCommaNumber(totalMultWins)}</span>
+                                </div>
+                            )}
+                            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl"
+                                style={{ background: 'rgba(255,255,255,0.06)' }}>
+                                <span className="text-white/60 text-[10px] uppercase tracking-wide">Jackpot Prize</span>
+                                <span className="font-black text-white text-sm font-mono">+{formatCommaNumber(prize)}</span>
+                            </div>
+                            <div className="flex items-center justify-between px-3 py-2 rounded-xl"
+                                style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)' }}>
+                                <span className="text-yellow-300 font-black text-[11px] uppercase tracking-wide">Total Won</span>
+                                <span className="font-black text-yellow-300 text-base font-mono">+{formatCommaNumber(summaryTotal)}</span>
+                            </div>
+                        </div>
+
                         <button
                             onClick={() => onComplete(prize)}
-                            className="btn-3d px-10 py-3 rounded-xl font-black uppercase tracking-widest text-black text-base mt-2"
+                            className="btn-3d w-full py-3 rounded-xl font-black uppercase tracking-widest text-black text-sm mt-1"
                             style={{ background: 'linear-gradient(180deg,#fbbf24,#f59e0b)', boxShadow: '0 5px 0 #92400e' }}>
-                            Claim
+                            ✨ Claim All
                         </button>
                     </div>
                 </div>
