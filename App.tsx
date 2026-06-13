@@ -222,6 +222,7 @@ const App: React.FC = () => {
   useEffect(() => { fastSpinRef.current = fastSpin; }, [fastSpin]);
   useEffect(() => { targetGridRef.current = targetGrid; }, [targetGrid]);
   const [showWinPopup, setShowWinPopup] = useState(false);
+  const [gemsClaimedPopup, setGemsClaimedPopup] = useState<number | null>(null);
   const [piggyGlow, setPiggyGlow] = useState(false);
   const [showXpTimer, setShowXpTimer] = useState(false);
   const [showXpPct, setShowXpPct] = useState(false);
@@ -827,6 +828,26 @@ const App: React.FC = () => {
       });
   };
 
+  // Auto-claim completed daily missions so cards stay visible as "MISSION DONE"
+  useEffect(() => {
+      const newlyCompleted = missionState.activeMissions.filter(
+          m => m.frequency === 'DAILY' && m.completed && !m.claimed
+      );
+      if (newlyCompleted.length === 0) return;
+      const boost = missionState.passBoostMultiplier > 1 ? missionState.passBoostMultiplier : 1;
+      let totalCoins = 0, totalXp = 0;
+      newlyCompleted.forEach(m => { totalCoins += m.coinReward; totalXp += m.xpReward * boost; });
+      setMissionState(prev => ({
+          ...prev,
+          activeMissions: prev.activeMissions.map(m =>
+              m.frequency === 'DAILY' && m.completed && !m.claimed ? { ...m, claimed: true } : m
+          ),
+      }));
+      if (totalCoins > 0) setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
+      if (totalXp > 0) addPassXp(totalXp);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [missionState.activeMissions]);
+
   const handleClaimMissionReward = (mission: Mission) => {
       if (mission.completed && !mission.claimed) {
           const isBoosted = missionState.passBoostMultiplier > 1;
@@ -849,7 +870,7 @@ const App: React.FC = () => {
   };
 
   const handleFinishMission = (mission: Mission) => {
-      const cost = Math.ceil(mission.xpReward / 50) * 10;
+      const cost = Math.max(1, Math.ceil(mission.xpReward / 5));
       if (player.diamonds >= cost && !mission.completed) {
           setPlayer(p => ({ ...p, diamonds: p.diamonds - cost }));
           setMissionState(prev => {
@@ -873,6 +894,7 @@ const App: React.FC = () => {
           setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true } : r) }));
           if (reward.type === 'DIAMONDS') {
               setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value }));
+              setGemsClaimedPopup(reward.value);
               msg = `+${reward.value} Gems`;
           } else if (reward.type === 'XP_BOOST') {
               setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 }));
@@ -2556,10 +2578,15 @@ const App: React.FC = () => {
       setJackpotWinTier({ name: tier, color: meta.color, icon: meta.icon, amount });
   };
 
+  const handleNeonRouletteClose = () => {
+      setShowNeonRoulette(false);
+      setStatus(GameStatus.IDLE);
+  };
+
   const handleNeonRouletteComplete = (prize: number) => {
       setShowNeonRoulette(false);
       setStatus(GameStatus.IDLE);
-      setPlayer(p => ({ ...p, balance: p.balance + prize }));
+      setPlayer(p => ({ ...p, balance: p.balance + prize, autoSpin: false }));
       const currentBet = availableBets[betIndex];
       const winTier = getWinTier(prize, currentBet);
       setWinData({ payout: prize, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
@@ -2823,6 +2850,10 @@ const App: React.FC = () => {
   }, [status, holdWinActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup]);
 
   const handleHeaderBack = () => {
+    if (showNeonRoulette) {
+        handleNeonRouletteClose();
+        return;
+    }
     if (activeModal !== 'NONE') {
         setActiveModal('NONE');
     } else if (currentView === 'HIGH_LIMIT') {
@@ -3025,29 +3056,9 @@ const App: React.FC = () => {
                     })()}
                 </div>
 
-                {/* Daily missions counter */}
-                {(() => {
-                    const daily = missionState.activeMissions.filter((m: { frequency: string }) => m.frequency === 'DAILY');
-                    const done = daily.filter((m: { completed?: boolean }) => m.completed).length;
-                    const allDone = done >= 4;
-                    return (
-                        <div
-                            onClick={openMissionsModal}
-                            className="round-btn shrink-0 cursor-pointer flex items-center gap-0.5"
-                            style={showGoldHeader
-                                ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', paddingLeft: 6, paddingRight: 6 }
-                                : { paddingLeft: 6, paddingRight: 6 }}
-                            title="Daily Missions"
-                        >
-                            <span style={{ fontSize: 12, lineHeight: 1 }}>📋</span>
-                            <span style={{ fontSize: 9, fontWeight: 900, color: allDone ? '#fbbf24' : 'white', letterSpacing: '0.02em' }}>{done}/4</span>
-                        </div>
-                    );
-                })()}
-
                 {/* Settings button */}
                 <div
-                    onClick={() => setShowSettings(true)}
+                    onClick={() => showNeonRoulette ? handleNeonRouletteClose() : setShowSettings(true)}
                     className="round-btn shrink-0"
                     style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                 >
@@ -3658,9 +3669,24 @@ const App: React.FC = () => {
           jackpotAmounts={jackpotService.getAmounts()}
           onMultPayout={(amount) => setPlayer(p => ({ ...p, balance: p.balance + amount }))}
           onComplete={handleNeonRouletteComplete}
+          onClose={handleNeonRouletteClose}
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
+
+      {/* Gems claimed popup */}
+      {gemsClaimedPopup !== null && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center animate-pop-in" onClick={() => setGemsClaimedPopup(null)}>
+              <div className="flex flex-col items-center gap-3 rounded-2xl px-10 py-7 select-none"
+                  style={{ background: 'linear-gradient(160deg,#1e3a5f,#0d1f3c)', boxShadow: '0 0 60px rgba(96,165,250,0.4)' }}>
+                  <div className="text-5xl">💎</div>
+                  <div className="font-black text-white text-base uppercase tracking-widest">Gems Claimed!</div>
+                  <div className="font-black font-mono text-blue-300 text-3xl">+{gemsClaimedPopup.toLocaleString('en-US')}</div>
+                  <div className="text-white/40 text-[9px] uppercase tracking-wide">Tap to close</div>
+              </div>
+          </div>
+      )}
+
       {showWinPopup && winData && winData.payout > 0 && winData.winType && (
           <WinPopup amount={winData.payout} type={winData.winType} onComplete={handleWinPopupComplete} />
       )}

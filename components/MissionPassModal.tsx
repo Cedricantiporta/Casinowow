@@ -60,7 +60,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     if (!isOpen) return null;
 
     const currentMissions = missionState.activeMissions
-        .filter(m => m.frequency === 'DAILY' && !m.claimed)
+        .filter(m => m.frequency === 'DAILY')
         .slice(0, 4);
 
     const levels = Array.from(new Set(missionState.passRewards.map(r => r.level))).sort((a: number, b: number) => a - b);
@@ -111,7 +111,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3">
         <div className="w-full max-w-[720px] flex flex-col bg-[#0d0814] rounded-2xl overflow-hidden relative"
-            style={{ height: 'min(96vh, 940px)' }}>
+            style={{ height: 'min(96vh, 1040px)' }}>
             {showPremiumInfo && (
                 <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
@@ -170,11 +170,26 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                 {/* ===== TOPBAR ===== */}
                 {view === 'MISSIONS' ? (
-                    /* MISSIONS topbar: title | X */
+                    /* MISSIONS topbar: title | counter | X */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-2 px-3 h-[40px]">
                             <span className="font-black text-white text-xs uppercase tracking-widest shrink-0">Daily Missions</span>
+                            {(() => {
+                                const daily = missionState.activeMissions.filter(m => m.frequency === 'DAILY');
+                                const done = daily.filter(m => m.completed || m.claimed).length;
+                                return (
+                                    <span className="font-black text-[10px] px-2 py-0.5 rounded-full"
+                                        style={{ background: done >= 4 ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.08)', color: done >= 4 ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>
+                                        {done}/4
+                                    </span>
+                                );
+                            })()}
                             <div className="flex-1" />
+                            <div className="flex items-center gap-1 mr-2 px-2 py-0.5 rounded-full shrink-0"
+                                style={{ background: 'rgba(96,165,250,0.12)' }}>
+                                <span style={{ fontSize: 11 }}>💎</span>
+                                <span className="font-black text-[10px] text-blue-300">{diamonds.toLocaleString('en-US')}</span>
+                            </div>
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
                             </div>
@@ -261,15 +276,16 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                                 {/* Action */}
                                 <div className="relative z-10">
-                                    {mission.completed ? (
-                                        <button onClick={() => onClaimMissionReward(mission)}
-                                            className="btn-3d w-full py-1.5 bg-gradient-to-b from-green-500 to-green-700 text-white text-[10px] font-black uppercase rounded-lg">
-                                            CLAIM
+                                    {(mission.completed || mission.claimed) ? (
+                                        <button disabled
+                                            className="w-full py-1.5 text-[10px] font-black uppercase rounded-lg cursor-not-allowed"
+                                            style={{ background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}>
+                                            ✓ MISSION DONE
                                         </button>
                                     ) : (
                                         <button onClick={() => onFinishMission(mission)}
                                             className="btn-3d w-full py-1.5 bg-gradient-to-b from-[#4a2e61] to-[#2e1845] text-cyan-200 text-[9px] font-bold uppercase rounded-lg flex items-center justify-center gap-1">
-                                            SKIP {diamondCostToSkip(mission.xpReward)}
+                                            💎 SKIP {diamondCostToSkip(mission.xpReward)}
                                         </button>
                                     )}
                                 </div>

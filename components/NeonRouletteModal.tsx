@@ -31,7 +31,7 @@ const JP_CHANCE = [0.40, 0.50, 0.65, 0.80, 1.0];
 const N = SEGMENTS.length;
 const SEG_DEG = 360 / N;
 const SPIN_MS = 12000;
-const R = 150; const CX = 165; const CY = 165; const SZ = 330;
+const R = 110; const CX = 120; const CY = 120; const SZ = 240;
 
 const pickSeg = (multCount: number): number => {
     const jpChance = JP_CHANCE[Math.min(multCount, 4)];
@@ -59,10 +59,10 @@ const slicePath = (i: number) => {
 
 const JP_IDX: Record<string, number> = { MINI: 0, MINOR: 1, MAJOR: 2, MEGA: 3, GRAND: 4 };
 
-interface Props { isOpen: boolean; bet: number; jackpotAmounts: number[]; onMultPayout?: (amount: number) => void; onComplete: (prize: number) => void; }
+interface Props { isOpen: boolean; bet: number; jackpotAmounts: number[]; onMultPayout?: (amount: number) => void; onComplete: (prize: number) => void; onClose?: () => void; }
 type Phase = 'prompt' | 'ready' | 'spinning' | 'mult_popup' | 'done';
 
-export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts, onMultPayout, onComplete }) => {
+export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts, onMultPayout, onComplete, onClose }) => {
     const [phase, setPhase] = useState<Phase>('prompt');
     const [rotation, setRotation] = useState(0);
     const [liveSeg, setLiveSeg] = useState<Seg>(SEGMENTS[0]);
@@ -248,7 +248,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
 
                         {/* Arrow at 12 o'clock */}
                         <div className="absolute z-20 pointer-events-none"
-                            style={{ top: CY - R - 18, left: '50%', transform: 'translateX(-50%)' }}>
+                            style={{ top: CY - R - 14, left: '50%', transform: 'translateX(-50%)' }}>
                             <svg width={26} height={22}>
                                 <polygon points="13,20 2,2 24,2" fill="#fbbf24" stroke="#78350f" strokeWidth={1.5} />
                             </svg>
@@ -293,7 +293,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                                 style={{
                                     top: '50%', left: '50%',
                                     transform: 'translate(-50%, -50%)',
-                                    width: 90, height: 90,
+                                    width: 66, height: 66,
                                     borderRadius: '50%',
                                     background: 'radial-gradient(circle, rgba(13,2,32,0.97) 60%, rgba(13,2,32,0.6) 100%)',
                                     border: '2px solid rgba(147,51,234,0.7)',
@@ -310,9 +310,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                     {/* Right info panel */}
                     <div className="flex flex-col items-center justify-center rounded-2xl px-5 py-5"
                         style={{
-                            background: 'rgba(13,2,32,0.93)',
-                            border: '1.5px solid rgba(147,51,234,0.45)',
-                            boxShadow: '0 0 40px rgba(147,51,234,0.35)',
+                            background: '#3b0764',
                             minWidth: 172, minHeight: 220,
                         }}>
                         {rightContent()}
@@ -325,8 +323,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                 <div className="fixed inset-0 z-[210] flex items-center justify-center animate-pop-in">
                     <div className="flex flex-col items-center gap-4 rounded-3xl px-10 py-8"
                         style={{
-                            background: 'linear-gradient(160deg,#1e003c,#0d0220,#1a0040)',
-                            border: `2px solid ${wonSeg.textColor}66`,
+                            background: '#3b0764',
                             boxShadow: `0 0 60px ${wonSeg.textColor}44, 0 0 120px rgba(0,0,0,0.8)`,
                         }}>
                         <div className="text-white/60 text-[10px] font-black uppercase tracking-widest">🎉 Jackpot!</div>
