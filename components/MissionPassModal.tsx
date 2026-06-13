@@ -111,7 +111,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     return (
         <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3">
         <div className="w-full max-w-[720px] flex flex-col bg-[#0d0814] rounded-2xl overflow-hidden relative"
-            style={{ height: 'min(96vh, 1040px)' }}>
+            style={{ height: 'min(96vh, 1160px)' }}>
             {showPremiumInfo && (
                 <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
@@ -276,11 +276,17 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                                 {/* Action */}
                                 <div className="relative z-10">
-                                    {(mission.completed || mission.claimed) ? (
+                                    {mission.claimed ? (
                                         <button disabled
                                             className="w-full py-1.5 text-[10px] font-black uppercase rounded-lg cursor-not-allowed"
                                             style={{ background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}>
                                             ✓ MISSION DONE
+                                        </button>
+                                    ) : mission.completed ? (
+                                        <button onClick={() => onClaimMissionReward(mission)}
+                                            className="btn-3d w-full py-1.5 text-[10px] font-black uppercase rounded-lg flex items-center justify-center gap-1"
+                                            style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00', boxShadow: '0 3px 0 #7a4a00' }}>
+                                            🎁 CLAIM REWARD
                                         </button>
                                     ) : (
                                         <button onClick={() => onFinishMission(mission)}

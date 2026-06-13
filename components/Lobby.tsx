@@ -268,36 +268,18 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'35%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
                             </div>
 
-                            {/* FREE COINS — leftmost big coin button, protrudes high */}
-                            <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform relative">
-                                <div className="relative" style={{
-                                    width: '52px', height: '52px', borderRadius: '50%',
-                                    background: isReadyToCollect
-                                        ? 'radial-gradient(circle at 36% 28%,#fff7c0,#ffd027 40%,#f29400 70%,#b85f00)'
-                                        : 'radial-gradient(circle at 36% 28%,#c0c0c0,#888 40%,#555 70%,#333)',
-                                    border: isReadyToCollect ? '3px solid #f0a000' : '3px solid #666',
-                                    boxShadow: isReadyToCollect
-                                        ? 'inset 0 2px 5px rgba(255,255,255,0.65),inset 0 -2px 5px rgba(140,70,0,0.5),0 4px 0 rgba(120,60,0,0.7),0 6px 12px rgba(0,0,0,0.5)'
-                                        : 'inset 0 2px 4px rgba(255,255,255,0.3),0 4px 0 rgba(0,0,0,0.5)',
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                    flexShrink: 0,
-                                }}>
-                                    <span style={{ fontSize:'11px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>FREE</span>
-                                    <span style={{ fontSize:'13px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>COINS</span>
-                                    <div style={{
-                                        position:'absolute', bottom:'-9px', left:'50%', transform:'translateX(-50%)',
-                                        background: isReadyToCollect ? 'linear-gradient(180deg,#3a9900,#1e6600)' : '#444',
-                                        color:'white', fontSize:'7px', fontWeight:900,
-                                        padding:'2px 8px', borderRadius:'8px', whiteSpace:'nowrap', textTransform:'uppercase',
-                                        border:'1px solid rgba(255,255,255,0.25)',
-                                        boxShadow: isReadyToCollect ? '0 2px 0 rgba(0,0,0,0.4)' : 'none',
-                                        letterSpacing:'0.5px',
-                                    }}>
-                                        {isReadyToCollect ? 'COLLECT' : formatTime(timeLeft)}
-                                    </div>
-                                    {isReadyToCollect && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] font-black text-white z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>!</div>}
+                            {/* Cards — utmost left */}
+                            <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
+                                {isCardsLocked && lockBadge(30)}
+                                <div className="relative">
+                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
+                                    {((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 0 && (
+                                        <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 99 ? '99+' : (packCredits ?? 0) + (premiumPackCredits ?? 0)}</span>
+                                        </div>
+                                    )}
                                 </div>
-                                <div style={{ height:'14px' }}></div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
                             </button>
 
                             {/* Piggy */}
@@ -371,19 +353,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
                             </button>
 
-                            <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
-                                {isCardsLocked && lockBadge(30)}
-                                <div className="relative">
-                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🃏</span>
-                                    {((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 0 && (
-                                        <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 99 ? '99+' : (packCredits ?? 0) + (premiumPackCredits ?? 0)}</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
-                            </button>
-
                             <button onClick={onOpenInbox} className={iconBtn(false)}>
                                 <div className="relative">
                                     <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">📬</span>
@@ -407,6 +376,38 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={onOpenVipLounge} className={iconBtn(false)}>
                                 <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">👑</span>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">VIP</span>
+                            </button>
+
+                            {/* FREE COINS — utmost right big coin button, protrudes high */}
+                            <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform relative">
+                                <div className="relative" style={{
+                                    width: '52px', height: '52px', borderRadius: '50%',
+                                    background: isReadyToCollect
+                                        ? 'radial-gradient(circle at 36% 28%,#fff7c0,#ffd027 40%,#f29400 70%,#b85f00)'
+                                        : 'radial-gradient(circle at 36% 28%,#c0c0c0,#888 40%,#555 70%,#333)',
+                                    border: isReadyToCollect ? '3px solid #f0a000' : '3px solid #666',
+                                    boxShadow: isReadyToCollect
+                                        ? 'inset 0 2px 5px rgba(255,255,255,0.65),inset 0 -2px 5px rgba(140,70,0,0.5),0 4px 0 rgba(120,60,0,0.7),0 6px 12px rgba(0,0,0,0.5)'
+                                        : 'inset 0 2px 4px rgba(255,255,255,0.3),0 4px 0 rgba(0,0,0,0.5)',
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                    flexShrink: 0,
+                                }}>
+                                    <span style={{ fontSize:'11px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>FREE</span>
+                                    <span style={{ fontSize:'13px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>COINS</span>
+                                    <div style={{
+                                        position:'absolute', bottom:'-9px', left:'50%', transform:'translateX(-50%)',
+                                        background: isReadyToCollect ? 'linear-gradient(180deg,#3a9900,#1e6600)' : '#444',
+                                        color:'white', fontSize:'7px', fontWeight:900,
+                                        padding:'2px 8px', borderRadius:'8px', whiteSpace:'nowrap', textTransform:'uppercase',
+                                        border:'1px solid rgba(255,255,255,0.25)',
+                                        boxShadow: isReadyToCollect ? '0 2px 0 rgba(0,0,0,0.4)' : 'none',
+                                        letterSpacing:'0.5px',
+                                    }}>
+                                        {isReadyToCollect ? 'COLLECT' : formatTime(timeLeft)}
+                                    </div>
+                                    {isReadyToCollect && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] font-black text-white z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>!</div>}
+                                </div>
+                                <div style={{ height:'14px' }}></div>
                             </button>
 
                         </div>

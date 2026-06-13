@@ -830,40 +830,18 @@ const App: React.FC = () => {
       });
   };
 
-  // Auto-claim completed daily missions so cards stay visible as "MISSION DONE"
-  useEffect(() => {
-      const newlyCompleted = missionState.activeMissions.filter(
-          m => m.frequency === 'DAILY' && m.completed && !m.claimed
-      );
-      if (newlyCompleted.length === 0) return;
-      const boost = missionState.passBoostMultiplier > 1 ? missionState.passBoostMultiplier : 1;
-      let totalCoins = 0, totalXp = 0;
-      newlyCompleted.forEach(m => { totalCoins += m.coinReward; totalXp += m.xpReward * boost; });
-      setMissionState(prev => ({
-          ...prev,
-          activeMissions: prev.activeMissions.map(m =>
-              m.frequency === 'DAILY' && m.completed && !m.claimed ? { ...m, claimed: true } : m
-          ),
-      }));
-      if (totalCoins > 0) setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
-      if (totalXp > 0) addPassXp(totalXp);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [missionState.activeMissions]);
 
   const handleClaimMissionReward = (mission: Mission) => {
       if (mission.completed && !mission.claimed) {
           const isBoosted = missionState.passBoostMultiplier > 1;
           const xpGain = mission.xpReward * (isBoosted ? missionState.passBoostMultiplier : 1);
           const coinGain = mission.coinReward;
-          
           addPassXp(xpGain);
           setPlayer(p => ({ ...p, balance: p.balance + coinGain }));
-          const newMission = GENERATE_REPLACEMENT_MISSION(player.level, mission.frequency, availableBets[availableBets.length - 1]);
-          setMissionState(prev => {
-              const others = prev.activeMissions.filter(m => m.id !== mission.id);
-              return { ...prev, activeMissions: [...others, newMission] };
-          });
-          
+          setMissionState(prev => ({
+              ...prev,
+              activeMissions: prev.activeMissions.map(m => m.id === mission.id ? { ...m, claimed: true } : m),
+          }));
           let msg = `+${formatCommaNumber(coinGain)} Coins & +${xpGain} XP`;
           if (isBoosted) msg += " (Boosted!)";
           setCelebrationMsg(msg);
@@ -873,14 +851,17 @@ const App: React.FC = () => {
 
   const handleFinishMission = (mission: Mission) => {
       const cost = Math.max(1, Math.ceil(mission.xpReward / 5));
-      if (player.diamonds >= cost && !mission.completed) {
-          setPlayer(p => ({ ...p, diamonds: p.diamonds - cost }));
-          setMissionState(prev => {
-              const updated = prev.activeMissions.map(m => m.id === mission.id ? { ...m, current: m.target, completed: true } : m);
-              return { ...prev, activeMissions: updated };
-          });
-          audioService.playWinSmall();
+      if (mission.completed) return;
+      if (player.diamonds < cost) {
+          setCelebrationMsg("Not enough gems to skip this mission!");
+          return;
       }
+      setPlayer(p => ({ ...p, diamonds: p.diamonds - cost }));
+      setMissionState(prev => {
+          const updated = prev.activeMissions.map(m => m.id === mission.id ? { ...m, current: m.target, completed: true } : m);
+          return { ...prev, activeMissions: updated };
+      });
+      audioService.playWinSmall();
   };
 
   const handleClaimPassReward = (reward: PassReward) => {
@@ -3566,7 +3547,7 @@ const App: React.FC = () => {
                   })};
               }));
           }}
-          onGainGems={(amount) => setPlayer(p => ({ ...p, diamonds: p.diamonds + amount }))}
+          onGainGems={(amount) => { setPlayer(p => ({ ...p, diamonds: p.diamonds + amount })); setGemsClaimedPopup(amount); }}
           grandPrize={getGrandAlbumReward(player.level)}
           getDeckReward={(id) => getDeckReward(id, player.level)}
           balance={player.balance}
