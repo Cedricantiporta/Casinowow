@@ -609,12 +609,12 @@ const App: React.FC = () => {
       }
   };
 
-  const handleToggleVIP = () => {
-      if (player.isVip) {
+  const handleOpenHighRoller = () => {
+      if (player.level >= 35) {
           setIsHighLimit(true);
           setCurrentView('HIGH_LIMIT');
       } else {
-          setShowVipLounge(true);
+          setCelebrationMsg('High Roller unlocks at Level 35!');
       }
       audioService.playClick();
   };
@@ -3068,14 +3068,7 @@ const App: React.FC = () => {
       </header>
 
       <main className="relative pt-0 w-full flex-1 flex flex-col overflow-hidden min-h-0">
-        {currentView === 'HIGH_LIMIT' && (
-            <HighLimitLobby
-                onBack={() => setCurrentView('LOBBY')}
-                onSelectGame={handleGameSelect}
-                playerLevel={player.level}
-            />
-        )}
-        {currentView === 'LOBBY' ? (
+        {(currentView === 'LOBBY' || currentView === 'HIGH_LIMIT') ? (
             <Lobby
                 onSelectGame={handleGameSelect}
                 onOpenWildQuest={handleWildQuestClaim}
@@ -3087,12 +3080,13 @@ const App: React.FC = () => {
                 onOpenPiggyBank={handleOpenPiggyBank}
                 onOpenInbox={() => setShowInbox(true)}
                 inboxCount={inbox.filter((m: any) => !m.claimed).length}
-                onToggleVIP={handleToggleVIP}
+                onOpenHighRoller={handleOpenHighRoller}
+                onOpenVipLounge={() => setShowVipLounge(true)}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
                 bonusAmount={CALCULATE_TIME_BONUS(player.level)}
-                isHighLimit={isHighLimit}
+                isHighLimit={currentView === 'HIGH_LIMIT'}
                 isVip={!!player.isVip}
                 playerLevel={player.level}
                 currentBet={MAX_BET_BY_LEVEL(player.level)}
@@ -3870,6 +3864,7 @@ const App: React.FC = () => {
           isOpen={showVipLounge}
           onClose={() => setShowVipLounge(false)}
           isVip={!!player.isVip}
+          playerLevel={player.level}
           onJoinVip={handleJoinVip}
       />
 

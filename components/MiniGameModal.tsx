@@ -230,6 +230,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     useEffect(() => {
         if (activeGame === 'DICE' && boardContainerRef.current) {
             const container = boardContainerRef.current;
+            if (dicePosition === 0) {
+                // START is at bottom of reversed list — scroll to bottom
+                const t = setTimeout(() => {
+                    if (boardContainerRef.current) boardContainerRef.current.scrollTop = boardContainerRef.current.scrollHeight;
+                }, 80);
+                return () => clearTimeout(t);
+            }
             const active = container.querySelector('[data-active="true"]') as HTMLElement;
             if (active && container.offsetHeight > 0) {
                 const containerRect = container.getBoundingClientRect();
@@ -239,7 +246,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
             }
         }
-    }, [visualPosition, activeGame]);
+    }, [visualPosition, activeGame, dicePosition]);
 
     useEffect(() => {
         if (autoRoll && !isRolling && !isMoving && diceCredits > 0) {

@@ -17,7 +17,8 @@ interface LobbyProps {
     onOpenPiggyBank: () => void;
     onOpenInbox?: () => void;
     inboxCount?: number;
-    onToggleVIP: () => void;
+    onOpenHighRoller: () => void;
+    onOpenVipLounge: () => void;
     questState: QuestState;
     missionState: MissionState;
     nextTimeBonus: number;
@@ -43,7 +44,8 @@ export const Lobby: React.FC<LobbyProps> = ({
     onOpenPiggyBank,
     onOpenInbox,
     inboxCount,
-    onToggleVIP,
+    onOpenHighRoller,
+    onOpenVipLounge,
     questState,
     missionState,
     nextTimeBonus,
@@ -60,7 +62,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     
     const [timeLeft, setTimeLeft] = useState(0);
     const [jackpotTotals, setJackpotTotals] = useState<number[]>(() =>
-        GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
+        GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1) * (isHighLimit ? 10 : 1)))
     );
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -75,15 +77,15 @@ export const Lobby: React.FC<LobbyProps> = ({
 
     useEffect(() => {
         setJackpotTotals(
-            GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1)))
+            GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1) * (isHighLimit ? 10 : 1)))
         );
-    }, [currentBet]);
+    }, [currentBet, isHighLimit]);
 
     useEffect(() => {
         return jackpotService.subscribe(() => {
-            setJackpotTotals(GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1))));
+            setJackpotTotals(GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1) * (isHighLimit ? 10 : 1))));
         });
-    }, [currentBet]);
+    }, [currentBet, isHighLimit]);
 
     const isReadyToCollect = timeLeft === 0;
     const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
@@ -124,6 +126,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const isQuestLocked = playerLevel < 20;
     const isMissionsLocked = playerLevel < 10;
     const isCardsLocked = playerLevel < 30;
+    const isHighRollerLocked = playerLevel < 35;
 
     // Quest credit states
     const QUEST_MAX = 60;
@@ -139,7 +142,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     return (
         <div className={`w-full h-full flex flex-col transition-colors duration-500 relative overflow-hidden`}
             style={{
-                backgroundImage: 'url(/lobby-bg.jpg)',
+                backgroundImage: isHighLimit ? 'url(/lobby-bg-vip.jpg)' : 'url(/lobby-bg.jpg)',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
             }}>
@@ -267,65 +270,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'35%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
                             </div>
 
-                            {/* Piggy */}
-                            <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
-                                {isPiggyLocked && lockBadge(5)}
-                                <div className="relative leading-none">
-                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🐷</span>
-                                    {piggyFull && (
-                                        <div className="absolute -top-1 -right-2 text-white font-black text-[7px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap"
-                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>
-                                    )}
-                                </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
-                            </button>
-
-                            {/* Wild */}
-                            <button onClick={!isQuestLocked ? onOpenWildQuest : undefined} className={iconBtn(isQuestLocked)}>
-                                {isQuestLocked && lockBadge(20)}
-                                <div className="relative leading-none">
-                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🗿</span>
-                                    {!isQuestLocked && wildCredits > 0 && (
-                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
-                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
-                                            {wildFull ? 'MAX' : wildCredits}
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
-                            </button>
-
-                            {/* Dice */}
-                            <button onClick={!isQuestLocked ? onOpenDiceQuest : undefined} className={iconBtn(isQuestLocked)}>
-                                {isQuestLocked && lockBadge(20)}
-                                <div className="relative leading-none">
-                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎲</span>
-                                    {!isQuestLocked && diceCredits > 0 && (
-                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
-                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
-                                            {diceFull ? 'MAX' : diceCredits}
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
-                            </button>
-
-                            {/* Pass */}
-                            <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
-                                {isMissionsLocked && lockBadge(10)}
-                                <div className="relative leading-none">
-                                    <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎫</span>
-                                    {totalMissionNotifs > 0 && !isMissionsLocked && (
-                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[9px] text-white font-black"
-                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
-                                            {totalMissionNotifs}
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
-                            </button>
-
-                            {/* Center — big coin "COLLECT" button, protrudes high */}
+                            {/* FREE COINS — leftmost big coin button, protrudes high */}
                             <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform relative">
                                 <div className="relative" style={{
                                     width: '52px', height: '52px', borderRadius: '50%',
@@ -395,9 +340,17 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Inbox</span>
                             </button>
 
-                            <button onClick={onToggleVIP} className={iconBtn(false)}>
-                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">{isVip ? '👑' : '🎩'}</span>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">{isVip ? 'VIP HL' : 'VIP Lounge'}</span>
+                            {/* HIGH ROLLER */}
+                            <button onClick={!isHighRollerLocked ? onOpenHighRoller : undefined} className={iconBtn(isHighRollerLocked)}>
+                                {isHighRollerLocked && lockBadge(35)}
+                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎰</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">High Roller</span>
+                            </button>
+
+                            {/* VIP LOUNGE */}
+                            <button onClick={onOpenVipLounge} className={iconBtn(false)}>
+                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">👑</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">VIP</span>
                             </button>
 
                         </div>
