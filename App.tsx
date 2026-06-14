@@ -209,6 +209,9 @@ const App: React.FC = () => {
   const [stoppedReels, setStoppedReels] = useState(0);
   const [instantStop, setInstantStop] = useState(false);
   const [fastSpin, setFastSpin] = useState(false);
+  const [showAutoSpinPopup, setShowAutoSpinPopup] = useState(false);
+  const [autoSpinRemaining, setAutoSpinRemaining] = useState(-1);
+  const autoSpinRemainingRef = useRef(-1);
   const [autoMaxBet, setAutoMaxBet] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -222,6 +225,7 @@ const App: React.FC = () => {
   const targetGridRef = useRef<SymbolType[][]>([]);
   const fastSpinRef = useRef(fastSpin);
   useEffect(() => { fastSpinRef.current = fastSpin; }, [fastSpin]);
+  useEffect(() => { autoSpinRemainingRef.current = autoSpinRemaining; }, [autoSpinRemaining]);
   useEffect(() => { targetGridRef.current = targetGrid; }, [targetGrid]);
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [gemsClaimedPopup, setGemsClaimedPopup] = useState<number | null>(null);
@@ -343,7 +347,9 @@ const App: React.FC = () => {
   const [showCandyRoulette, setShowCandyRoulette] = useState(false);
   const candyWildConfigRef = useRef<CandyWildConfig | null>(null);
   const candyPendingColsRef = useRef<{ col: number; seedRow: number }[]>([]);
+  const candySingleWildsRef = useRef<{ col: number; row: number }[]>([]);
   const [candyCols, setCandyCols] = useState<{ col: number; seedRow: number }[]>([]);
+  const [candySingleWilds, setCandySingleWilds] = useState<{ col: number; row: number }[]>([]);
   const [candyFsSpinKey, setCandyFsSpinKey] = useState(0);
   const [candyConfig, setCandyConfig] = useState<CandyWildConfig | null>(null);
 
@@ -1737,15 +1743,15 @@ const App: React.FC = () => {
                   let guard = 0;
                   while (chosen.size < Math.min(cfg.count, cols) && guard < 80) { chosen.add(Math.floor(Math.random() * cols)); guard++; }
                   const placements: { col: number; seedRow: number }[] = [];
+                  candySingleWildsRef.current = [];
                   chosen.forEach(c => {
-                      // 50% chance each assigned column actually expands to a full wild reel this spin
-                      if (Math.random() < 0.5) return;
                       const seedRow = Math.floor(Math.random() * rows);
                       placements.push({ col: c, seedRow });
                       for (let r = 0; r < rows; r++) newGrid[c][r] = SymbolType.WILD;
                   });
                   candyPendingColsRef.current = placements;
               } else {
+                  candyPendingColsRef.current = [];
                   const placed: { c: number; r: number }[] = [];
                   let guard = 0;
                   while (placed.length < cfg.count && guard < 200) {
@@ -1756,6 +1762,7 @@ const App: React.FC = () => {
                       }
                       guard++;
                   }
+                  candySingleWildsRef.current = placed.map(p => ({ col: p.c, row: p.r }));
               }
           }
       }
@@ -1962,8 +1969,14 @@ const App: React.FC = () => {
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
       setTargetGrid(generateSmartGrid());
+      // CANDY: show wild containers immediately at spin start so borders appear before wilds land
+      if (selectedGame.theme === 'CANDY' && freeSpinsRemaining > 0) {
+          setCandyCols(candyPendingColsRef.current);
+          setCandySingleWilds(candySingleWildsRef.current);
+          setCandyFsSpinKey(k => k + 1);
+      }
     }
-  }, [status, targetGrid.length, generateSmartGrid]);
+  }, [status, targetGrid.length, generateSmartGrid, selectedGame.theme, freeSpinsRemaining]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length > 0) {
@@ -1978,7 +1991,7 @@ const App: React.FC = () => {
       const next = prev + 1;
       audioService.playReelStop();
       // Arctic scatter anticipation: highlight remaining reels when 2 scatters found; clear when 3rd lands
-      if (selectedGame.theme === 'ARCTIC' && !fastSpinRef.current && next < selectedGame.reels) {
+      if (!fastSpinRef.current && next < selectedGame.reels) {
           const tGrid = targetGridRef.current;
           let scattersSoFar = 0;
           for (let c = 0; c < next; c++) {
@@ -1999,6 +2012,7 @@ const App: React.FC = () => {
         // CANDY: sync the Wild Wheel overlay to the reels that just stopped (replays the expand animation)
         if (selectedGame.theme === 'CANDY') {
             setCandyCols(candyPendingColsRef.current);
+            setCandySingleWilds(candySingleWildsRef.current);
             setCandyFsSpinKey(k => k + 1);
         }
 
@@ -3012,7 +3026,9 @@ const App: React.FC = () => {
           setShowCandyRoulette(false);
           candyWildConfigRef.current = null;
           candyPendingColsRef.current = [];
+          candySingleWildsRef.current = [];
           setCandyCols([]);
+          setCandySingleWilds([]);
           setCandyConfig(null);
           const savedState = savedGameStates[game.id];
           if (savedState) {
@@ -3094,7 +3110,9 @@ const App: React.FC = () => {
       setSpaceMultiplier(1);
       candyWildConfigRef.current = null;
       candyPendingColsRef.current = [];
+      candySingleWildsRef.current = [];
       setCandyCols([]);
+      setCandySingleWilds([]);
       setCandyConfig(null);
       // Hard-reset pirate walk so Ghost Ship state never bleeds into normal spins
       pirateWalkRef.current = { active: false, shipCol: -1, ship2Col: -1 };
@@ -3163,7 +3181,18 @@ const App: React.FC = () => {
           } else if (freeSpinsWon > 0 && !showFreeSpinsPopup && !showFreeSpinSummary) {
               setShowFreeSpinSummary(true);
           } else if (player.autoSpin && !showFreeSpinSummary) {
-              if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 50 : AUTO_SPIN_DELAY);
+              if (activeModal === 'NONE') {
+                  if (autoSpinRemainingRef.current === 0) {
+                      setPlayer(p => ({ ...p, autoSpin: false }));
+                      setAutoSpinRemaining(-1);
+                  } else {
+                      if (autoSpinRemainingRef.current > 0) {
+                          autoSpinRemainingRef.current--;
+                          setAutoSpinRemaining(autoSpinRemainingRef.current);
+                      }
+                      setTimeout(() => spin(), fastSpin ? 50 : AUTO_SPIN_DELAY);
+                  }
+              }
           }
       }
   }, [status, reelTransitioning, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary]);
@@ -3241,11 +3270,9 @@ const App: React.FC = () => {
       isLongPressRef.current = false;
       spinButtonTimeoutRef.current = setTimeout(() => {
           isLongPressRef.current = true;
-          if (!player.autoSpin) {
-              setPlayer(p => ({ ...p, autoSpin: true }));
-              audioService.playClick();
-          }
-      }, 800); 
+          audioService.playClick();
+          setShowAutoSpinPopup(true);
+      }, 800);
   };
 
   const handleSpinMouseUp = () => {
@@ -3253,18 +3280,18 @@ const App: React.FC = () => {
           clearTimeout(spinButtonTimeoutRef.current);
           spinButtonTimeoutRef.current = null;
       }
+      if (isLongPressRef.current) return;
       if (freeSpinsRemaining > 0 || pirateWalkRef.current.active) return;
-      if (!isLongPressRef.current) {
-          if (player.autoSpin) {
-              setPlayer(p => ({ ...p, autoSpin: false }));
-              audioService.playClick();
-          } else {
-              if (status === GameStatus.IDLE || (status === GameStatus.FREE_SPIN_INTRO && freeSpinsRemaining > 0)) {
-                  spin();
-              } else if (status === GameStatus.SPINNING || status === GameStatus.STOPPING) {
-                  setInstantStop(true);
-                  if (status === GameStatus.SPINNING) setStatus(GameStatus.STOPPING);
-              }
+      if (player.autoSpin) {
+          setPlayer(p => ({ ...p, autoSpin: false }));
+          setAutoSpinRemaining(-1);
+          audioService.playClick();
+      } else {
+          if (status === GameStatus.IDLE || (status === GameStatus.FREE_SPIN_INTRO && freeSpinsRemaining > 0)) {
+              spin();
+          } else if (status === GameStatus.SPINNING || status === GameStatus.STOPPING) {
+              setInstantStop(true);
+              if (status === GameStatus.SPINNING) setStatus(GameStatus.STOPPING);
           }
       }
   };
@@ -3529,7 +3556,7 @@ const App: React.FC = () => {
                             // Pre-compute which reel starts the anticipation window so ALL remaining reels
                             // get the same +900 ms extension (not just the last one).
                             let anticipationStartReel = -1;
-                            if (selectedGame.theme === 'ARCTIC' && !fastSpin && targetGrid.length > 0) {
+                            if (!fastSpin && targetGrid.length > 0) {
                                 let sc = 0;
                                 for (let c = 0; c < targetGrid.length - 1; c++) {
                                     if (targetGrid[c]?.some(s => s === SymbolType.SCATTER)) {
@@ -3734,7 +3761,7 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* CANDY Wild Wheel — expanding wild-reel highlights (single wilds show via the WILD symbol itself) */}
+                        {/* CANDY Wild Wheel — expanding wild-reel highlights */}
                         {selectedGame.theme === 'CANDY' && totalFreeSpins > 0 && candyCols.length > 0 && (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => {
@@ -3742,15 +3769,42 @@ const App: React.FC = () => {
                                     return (
                                         <div key={c} className="flex-1 relative">
                                             {colInfo && (
-                                                <div key={candyFsSpinKey} className="absolute inset-0 animate-candy-expand"
+                                                <div key={candyFsSpinKey} className="absolute inset-0"
                                                     style={{
                                                         transformOrigin: `center ${((colInfo.seedRow + 0.5) / Math.max(1, selectedGame.rows)) * 100}%`,
                                                         border: '2.5px solid #f9a8d4',
                                                         borderRadius: 5,
                                                         boxShadow: '0 0 22px rgba(236,72,153,0.8), inset 0 0 26px rgba(236,72,153,0.3)',
                                                         background: 'linear-gradient(180deg,rgba(236,72,153,0.20),rgba(168,85,247,0.08))',
+                                                        animation: 'candyExpand 0.55s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.55s infinite',
                                                     }} />
                                             )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* CANDY — individual wild cell containers (single-mode wilds) */}
+                        {selectedGame.theme === 'CANDY' && totalFreeSpins > 0 && candySingleWilds.length > 0 && (
+                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
+                                {Array(selectedGame.reels).fill(null).map((_, c) => {
+                                    const cellWilds = candySingleWilds.filter(w => w.col === c);
+                                    return (
+                                        <div key={c} className="flex-1 relative">
+                                            {cellWilds.map((w, idx) => (
+                                                <div key={`sw-${candyFsSpinKey}-${idx}`}
+                                                    className="absolute"
+                                                    style={{
+                                                        top: `${(w.row / selectedGame.rows) * 100}%`,
+                                                        height: `${(1 / selectedGame.rows) * 100}%`,
+                                                        left: 0, right: 0,
+                                                        border: '2px solid #f9a8d4',
+                                                        borderRadius: 4,
+                                                        background: 'rgba(236,72,153,0.12)',
+                                                        animation: 'candyExpand 0.4s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.4s infinite',
+                                                    }} />
+                                            ))}
                                         </div>
                                     );
                                 })}
@@ -3953,6 +4007,47 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Spin Button */}
+                  <div className="relative">
+                  {showAutoSpinPopup && (
+                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 animate-pop-in select-none"
+                          style={{ width: 230 }}>
+                          <div className="rounded-2xl px-3 py-3 flex flex-col gap-2.5"
+                              style={{ background: 'linear-gradient(160deg,#1e0438,#0d0220)', border: '2px solid #7c3aed', boxShadow: '0 0 24px rgba(124,58,237,0.7)' }}>
+                              <div className="text-purple-300 text-[10px] font-black uppercase tracking-widest text-center">Auto Spin</div>
+                              <div className="grid grid-cols-4 gap-1.5">
+                                  {[50, 100, 500, -1].map(count => (
+                                      <button key={count}
+                                          onClick={() => {
+                                              setAutoSpinRemaining(count);
+                                              setPlayer(p => ({ ...p, autoSpin: true }));
+                                              setShowAutoSpinPopup(false);
+                                              audioService.playClick();
+                                          }}
+                                          className="rounded-xl py-2 font-black text-xs text-white active:scale-95 transition-transform"
+                                          style={{ background: player.autoSpin && autoSpinRemaining === count ? 'linear-gradient(180deg,#a855f7,#7c3aed)' : 'linear-gradient(180deg,#6d28d9,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
+                                          {count === -1 ? '∞' : count}
+                                      </button>
+                                  ))}
+                              </div>
+                              <div className="h-px bg-white/10" />
+                              <div className="flex items-center justify-between px-0.5">
+                                  <div className="flex items-center gap-2">
+                                      <span className="text-lg">⚡</span>
+                                      <div>
+                                          <div className="text-white font-black text-xs">Fast Spin</div>
+                                          <div className="text-purple-300/50 text-[9px]">Instant reel stop</div>
+                                      </div>
+                                  </div>
+                                  <button
+                                      onClick={() => { setFastSpin(f => !f); audioService.playClick(); }}
+                                      className="relative shrink-0"
+                                      style={{ width: 38, height: 21, borderRadius: 11, background: fastSpin ? 'linear-gradient(180deg,#a855f7,#7c3aed)' : '#374151', boxShadow: fastSpin ? '0 2px 8px rgba(168,85,247,0.5)' : 'none', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
+                                      <div style={{ position: 'absolute', top: 2, left: fastSpin ? 19 : 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', transition: 'left 0.2s' }} />
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  )}
                   {(() => {
                       const isStop = player.autoSpin || status === GameStatus.SPINNING || status === GameStatus.STOPPING;
                       return (
@@ -3969,13 +4064,16 @@ const App: React.FC = () => {
                                   {player.autoSpin ? 'STOP' : (status === GameStatus.SPINNING || status === GameStatus.STOPPING) ? 'STOP' : (freeSpinsRemaining > 0 ? 'AUTO' : 'SPIN')}
                               </span>
                               <span className="sub">
-                                  {player.autoSpin ? 'AUTO ACTIVE' : 'HOLD FOR AUTOSPIN'}
+                                  {player.autoSpin
+                                      ? (autoSpinRemaining > 0 ? `AUTO · ${autoSpinRemaining}` : 'AUTO ACTIVE')
+                                      : 'HOLD FOR AUTOSPIN'}
                               </span>
                           </div>
                       </div>
                   </div>
                   );
                   })()}
+                  </div>
               </div>
           </div>
       )}
@@ -4311,10 +4409,6 @@ const App: React.FC = () => {
           onClose={() => setShowSettings(false)}
           isMuted={isMuted}
           onToggleMute={() => setIsMuted(audioService.toggleMute())}
-          fastSpin={fastSpin}
-          onToggleFastSpin={() => setFastSpin(f => !f)}
-          autoMaxBet={autoMaxBet}
-          onToggleAutoMaxBet={() => setAutoMaxBet(f => !f)}
           onRedeem={(code) => {
               if (code === 'dev777') {
                   setPlayer(p => ({ ...p, level: 50, balance: p.balance + 100_000_000_000 }));
