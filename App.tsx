@@ -331,6 +331,10 @@ const App: React.FC = () => {
   const pirateWalkTotalWinRef = useRef(0);
   const pirateTriggerArmedRef = useRef(false);
 
+  // Cosmic Cash (SPACE) — Supernova progressive free-spin multiplier
+  const [spaceMultiplier, setSpaceMultiplier] = useState(1);
+  const spaceFsMultRef = useRef(1);
+
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
@@ -1677,6 +1681,33 @@ const App: React.FC = () => {
           }
       }
 
+      // SPACE: Wild Planet reels. Base game ~6% drifts one middle reel fully WILD.
+      // During Supernova free spins, reels can align fully WILD (≈55% one reel, 15% two).
+      if (selectedGame.theme === 'SPACE') {
+          if (isFreeSpin) {
+              const roll = Math.random();
+              let numWildReels = 0;
+              if (roll < 0.15) numWildReels = 2;
+              else if (roll < 0.55) numWildReels = 1;
+              const chosen = new Set<number>();
+              let guard = 0;
+              while (chosen.size < numWildReels && guard < 30) {
+                  chosen.add(Math.floor(Math.random() * cols));
+                  guard++;
+              }
+              chosen.forEach(wc => {
+                  for (let r = 0; r < rows; r++) {
+                      if (newGrid[wc][r] !== SymbolType.SCATTER) newGrid[wc][r] = SymbolType.WILD;
+                  }
+              });
+          } else if (Math.random() < 0.06) {
+              const wc = 1 + Math.floor(Math.random() * Math.min(3, cols - 1));
+              for (let r = 0; r < rows; r++) {
+                  if (newGrid[wc][r] !== SymbolType.SCATTER) newGrid[wc][r] = SymbolType.WILD;
+              }
+          }
+      }
+
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON
       if (freeSpinsRemaining > 0 && selectedGame.theme !== 'ARCTIC' && selectedGame.theme !== 'NEON') {
           const neonBoost = 1.0;
@@ -1842,6 +1873,11 @@ const App: React.FC = () => {
         // Hold and Win / Ghost Ship respin: free, no missions, no stats
     } else {
         setFreeSpinsRemaining(prev => prev - 1);
+        // SPACE: ramp the Supernova multiplier (+1 each free spin, capped ×15)
+        if (selectedGame.theme === 'SPACE') {
+            spaceFsMultRef.current = Math.min(15, spaceFsMultRef.current + 1);
+            setSpaceMultiplier(spaceFsMultRef.current);
+        }
         updateMissions(MissionType.SPIN_COUNT, 1);
         setPlayer(prev => ({
             ...prev,
@@ -1862,7 +1898,7 @@ const App: React.FC = () => {
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
-  }, [status, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, player.level]);
+  }, [status, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, player.level, selectedGame.theme]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -2216,6 +2252,11 @@ const App: React.FC = () => {
         }
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
+
+    // SPACE: Supernova progressive multiplier applies to line wins during free spins
+    if (selectedGame.theme === 'SPACE' && totalFreeSpins > 0 && totalPayout > 0) {
+        totalPayout = Math.floor(totalPayout * spaceFsMultRef.current);
+    }
 
     // ARCTIC: no jackpot logic — start cascade sequence
     if (selectedGame.theme === 'ARCTIC') {
@@ -2865,6 +2906,9 @@ const App: React.FC = () => {
           setPirateWalkActive(false);
           setPirateShipCol(-1);
           setPirateWalkTotalWin(0);
+          // Reset Supernova multiplier on game change
+          spaceFsMultRef.current = 1;
+          setSpaceMultiplier(1);
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -2897,6 +2941,9 @@ const App: React.FC = () => {
           return;
       }
       // Normal → Free Spins: 2-second transition animation
+      // SPACE: reset the Supernova multiplier for a fresh feature
+      spaceFsMultRef.current = 1;
+      setSpaceMultiplier(1);
       setReelTransitioning('out');
       setTimeout(() => {
           setFreeSpinsRemaining(prev => prev + freeSpinsWon);
@@ -2924,6 +2971,8 @@ const App: React.FC = () => {
       setFreeSpinTotalWin(0);
       setFastSpin(savedFastSpinRef.current);
       setTargetGrid([]);
+      spaceFsMultRef.current = 1;
+      setSpaceMultiplier(1);
   };
 
   useEffect(() => {
@@ -3447,6 +3496,26 @@ const App: React.FC = () => {
                                         +{formatK(pirateWalkTotalWin)}
                                     </span>
                                 )}
+                            </div>
+                        )}
+
+                        {/* SPACE Supernova — progressive multiplier banner during free spins */}
+                        {selectedGame.theme === 'SPACE' && totalFreeSpins > 0 && (
+                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-pop-in"
+                                style={{
+                                    background: 'linear-gradient(180deg,#3b1a6e,#1a0a3a)',
+                                    border: '2px solid #c084fc',
+                                    borderRadius: 999,
+                                    padding: '4px 14px',
+                                    boxShadow: '0 0 18px rgba(192,132,252,0.6), 0 4px 10px rgba(0,0,0,0.6)',
+                                    whiteSpace: 'nowrap',
+                                }}>
+                                <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#e9d5ff', textShadow: '0 0 8px rgba(192,132,252,0.9)' }}>
+                                    ⭐ Supernova
+                                </span>
+                                <span className="font-black ml-2" style={{ fontSize: 'clamp(11px,3vw,16px)', color: '#fde68a', textShadow: '0 0 8px rgba(251,191,36,0.8)' }}>
+                                    ×{spaceMultiplier}
+                                </span>
                             </div>
                         )}
 
