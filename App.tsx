@@ -303,6 +303,7 @@ const App: React.FC = () => {
   const [showNeonRoulette, setShowNeonRoulette] = useState(false);
   const [neonRouletteBet, setNeonRouletteBet] = useState(0);
   const neonRouletteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showRouletteTriggerNotif, setShowRouletteTriggerNotif] = useState(false);
 
   // Dragon's Fortune Pick-and-Win state
   const [showDragonPickModal, setShowDragonPickModal] = useState(false);
@@ -1420,21 +1421,21 @@ const App: React.FC = () => {
                let wildStackChance = 0.0;
                const wildMult = isFreeSpin ? 1.20 : (isNeon ? 0.80 : 1.0);
                if (cols >= 5) {
-                    if (c === 2) wildStackChance = 0.12 * wildMult;
-                    if (c === 3) wildStackChance = 0.16 * wildMult;
-                    if (c === 4) wildStackChance = 0.24 * wildMult;
+                    if (c === 2) wildStackChance = 0.084 * wildMult;
+                    if (c === 3) wildStackChance = 0.112 * wildMult;
+                    if (c === 4) wildStackChance = 0.168 * wildMult;
                } else if (isSmallGrid) {
                    // 3×3: base chances × 0.8 (20% less wild column spawns)
-                   if (c === 1) wildStackChance = 0.06 * wildMult * 0.8;
-                   if (c === 2) wildStackChance = 0.08 * wildMult * 0.8;
+                   if (c === 1) wildStackChance = 0.042 * wildMult * 0.8;
+                   if (c === 2) wildStackChance = 0.056 * wildMult * 0.8;
                } else {
-                   if (c === 1) wildStackChance = 0.15 * wildMult;
-                   if (c === 2) wildStackChance = 0.20 * wildMult;
+                   if (c === 1) wildStackChance = 0.105 * wildMult;
+                   if (c === 2) wildStackChance = 0.14 * wildMult;
                }
                // PIGGY/LEPRECHAUN: 20% higher wild rate + extend to extra columns
                if (selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') {
-                   if (c === 5) wildStackChance = 0.30 * wildMult;
-                   if (c === 6) wildStackChance = 0.36 * wildMult;
+                   if (c === 5) wildStackChance = 0.21 * wildMult;
+                   if (c === 6) wildStackChance = 0.252 * wildMult;
                    wildStackChance *= 1.2;
                }
                // DRAGON: no full-column wild stacks, only single-cell wilds
@@ -1965,6 +1966,8 @@ const App: React.FC = () => {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
+                 setShowRouletteTriggerNotif(true);
+                 setTimeout(() => setShowRouletteTriggerNotif(false), 1800);
                  const betAmt = currentBetRef.current;
                  if (neonRouletteTimerRef.current) clearTimeout(neonRouletteTimerRef.current);
                  neonRouletteTimerRef.current = setTimeout(() => {
@@ -2135,8 +2138,7 @@ const App: React.FC = () => {
             if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0; 
 
             const neonMult = selectedGame.theme === 'NEON' ? 1.588 : 1.0;
-            const arcticMult = selectedGame.theme === 'ARCTIC' ? 0.7 : 1.0;
-            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * arcticMult);
+            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult);
             if (lineWin > 0) {
                 totalPayout += lineWin;
                 winningLines.push(line.id);
@@ -2196,7 +2198,7 @@ const App: React.FC = () => {
         }
         // Per-spin drops for Arctic (same logic as normal slots)
         const arcticMaxBetIdx = availableBets.length - 1;
-        const arcticQuestChance = Math.max(0.005, 0.10 - (arcticMaxBetIdx - betIndex) * 0.01);
+        const arcticQuestChance = Math.max(0.005, (0.10 - (arcticMaxBetIdx - betIndex) * 0.01) * 1.3);
         if (player.level >= 20 && Math.random() < arcticQuestChance) {
             if (Math.random() < 0.5) {
                 setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
@@ -2272,7 +2274,7 @@ const App: React.FC = () => {
 
     // Per-spin drops — scale with bet level (±2% per step from max bet)
     const maxBetIdx = availableBets.length - 1;
-    const questChance = Math.max(0.005, 0.10 - (maxBetIdx - betIndex) * 0.01);
+    const questChance = Math.max(0.005, (0.10 - (maxBetIdx - betIndex) * 0.01) * 1.3);
     if (player.level >= 20 && Math.random() < questChance) {
         if (Math.random() < 0.5) {
             setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
@@ -3120,7 +3122,8 @@ const App: React.FC = () => {
                 {/* Quest + Pass vertical panel — always visible in game view */}
                 {(() => {
                     const qReady = false;
-                    const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
+                    const visibleDailyMissions = missionState.activeMissions.filter((m: any) => m.frequency === 'DAILY').slice(0, 4);
+                    const missReady = visibleDailyMissions.filter((m: any) => m.completed && !m.claimed).length;
                     const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
                     const totalNotifs = missReady + passReady;
                     const isQuestLocked = player.level < 20;
@@ -3412,7 +3415,8 @@ const App: React.FC = () => {
                 style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
                   {/* Missions Button */}
                   {(() => {
-                      const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
+                      const visibleDaily = missionState.activeMissions.filter((m: any) => m.frequency === 'DAILY').slice(0, 4);
+                      const missReady = visibleDaily.filter((m: any) => m.completed && !m.claimed).length;
                       return (
                           <div onClick={openMissionsModal} className="icon-btn shrink-0 flex flex-col items-center justify-end relative"
                               style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', borderColor:'#8b6200' } : {}}>
@@ -3705,6 +3709,19 @@ const App: React.FC = () => {
       )}
       
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />
+
+      {showRouletteTriggerNotif && (
+          <div className="fixed inset-0 z-[350] flex items-center justify-center pointer-events-none">
+              <div className="animate-pop-in flex flex-col items-center gap-2 rounded-2xl px-7 py-4 text-center"
+                  style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '2px solid #a855f7', boxShadow: '0 0 32px rgba(168,85,247,0.7), 0 8px 24px rgba(0,0,0,0.7)', minWidth: 200 }}>
+                  <span style={{ fontSize: '2rem', lineHeight: 1 }}>🎰</span>
+                  <div className="font-black text-white text-base uppercase tracking-widest" style={{ textShadow: '0 0 12px rgba(168,85,247,0.8)' }}>
+                      BONUS TRIGGERED!
+                  </div>
+                  <div className="text-purple-300 text-[10px] font-bold uppercase tracking-widest">Neon Roulette</div>
+              </div>
+          </div>
+      )}
       
       {showFreeSpinsPopup && <FreeSpinsWonPopup isOpen={showFreeSpinsPopup} count={freeSpinsWon} onComplete={handleStartFreeSpins} />}
       

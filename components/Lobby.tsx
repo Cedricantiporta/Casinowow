@@ -379,8 +379,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">VIP</span>
                             </button>
 
-                            {/* FREE COINS — utmost right big coin button, protrudes high */}
-                            <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform" style={{ position: 'relative', bottom: '10px' }}>
+                            {/* FREE COINS — utmost right */}
+                            <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform">
                                 <div className="relative" style={{
                                     width: '52px', height: '52px', borderRadius: '50%',
                                     background: isReadyToCollect
