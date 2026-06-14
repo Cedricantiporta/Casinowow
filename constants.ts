@@ -115,9 +115,9 @@ export const GAMES_CONFIG: GameConfig[] = [
     name: 'Sugar Rush',
     theme: 'CANDY',
     rows: 4,
-    reels: 5,
+    reels: 6,
     scattersToTrigger: 3,
-    description: 'Sweet treats and tasty payouts!',
+    description: 'Wild Wheel free spins with switching wilds!',
     color: 'from-pink-400 via-pink-600 to-rose-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #ec4899 0%, #831843 100%)',
     reelBg: REEL_BGS.CANDY

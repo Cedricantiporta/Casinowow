@@ -32,6 +32,7 @@ import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
 import { DragonPickGrid } from './components/DragonPickModal';
 import { NeonRouletteModal } from './components/NeonRouletteModal';
+import { CandyRouletteModal, CandyWildConfig } from './components/CandyRouletteModal';
 import { ArcticPickGrid } from './components/ArcticPickGrid';
 
 // Interface for persisted game state
@@ -334,6 +335,14 @@ const App: React.FC = () => {
   // Cosmic Cash (SPACE) — Supernova progressive free-spin multiplier
   const [spaceMultiplier, setSpaceMultiplier] = useState(1);
   const spaceFsMultRef = useRef(1);
+
+  // Sugar Rush (CANDY) — Wild Wheel: roulette picks persistent switching wilds for the free-spin round
+  const [showCandyRoulette, setShowCandyRoulette] = useState(false);
+  const candyWildConfigRef = useRef<CandyWildConfig | null>(null);
+  const candyPendingColsRef = useRef<{ col: number; seedRow: number }[]>([]);
+  const [candyCols, setCandyCols] = useState<{ col: number; seedRow: number }[]>([]);
+  const [candyFsSpinKey, setCandyFsSpinKey] = useState(0);
+  const [candyConfig, setCandyConfig] = useState<CandyWildConfig | null>(null);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
@@ -1714,6 +1723,38 @@ const App: React.FC = () => {
           }
       }
 
+      // CANDY: Wild Wheel free spins. The wheel-picked config places persistent "switching" wilds
+      // that re-roll their positions each free spin. Single wilds = N wild cells; column wilds = N full WILD reels.
+      if (selectedGame.theme === 'CANDY') {
+          candyPendingColsRef.current = [];
+          if (isFreeSpin && candyWildConfigRef.current) {
+              const cfg = candyWildConfigRef.current;
+              if (cfg.mode === 'column') {
+                  const chosen = new Set<number>();
+                  let guard = 0;
+                  while (chosen.size < Math.min(cfg.count, cols) && guard < 80) { chosen.add(Math.floor(Math.random() * cols)); guard++; }
+                  const placements: { col: number; seedRow: number }[] = [];
+                  chosen.forEach(c => {
+                      const seedRow = Math.floor(Math.random() * rows);
+                      placements.push({ col: c, seedRow });
+                      for (let r = 0; r < rows; r++) newGrid[c][r] = SymbolType.WILD;
+                  });
+                  candyPendingColsRef.current = placements;
+              } else {
+                  const placed: { c: number; r: number }[] = [];
+                  let guard = 0;
+                  while (placed.length < cfg.count && guard < 200) {
+                      const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
+                      if (newGrid[c][r] !== SymbolType.SCATTER && !placed.some(p => p.c === c && p.r === r)) {
+                          newGrid[c][r] = SymbolType.WILD;
+                          placed.push({ c, r });
+                      }
+                      guard++;
+                  }
+              }
+          }
+      }
+
       // Jackpot cell injection: during free spins only, except ARCTIC, NEON, and PIRATE (Ghost Ship feature uses no jackpots)
       if (freeSpinsRemaining > 0 && selectedGame.theme !== 'ARCTIC' && selectedGame.theme !== 'NEON' && selectedGame.theme !== 'PIRATE') {
           const neonBoost = 1.0;
@@ -1817,6 +1858,7 @@ const App: React.FC = () => {
     if (status !== GameStatus.IDLE && status !== GameStatus.FREE_SPIN_INTRO) return;
     if (activeModal !== 'NONE') return;
     if (showFreeSpinsPopup) return;
+    if (showCandyRoulette) return;
     if (dragonPotShaking || showDragonTriggerPopup) return;
 
     // Auto max bet: snap to highest available bet before spinning
@@ -1904,7 +1946,7 @@ const App: React.FC = () => {
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
-  }, [status, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, player.level, selectedGame.theme]);
+  }, [status, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showCandyRoulette, player.level, selectedGame.theme]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -1942,6 +1984,12 @@ const App: React.FC = () => {
       if (next === selectedGame.reels) {
         setScatterAnticipation(false);
         scatterAnticipationRef.current = false;
+
+        // CANDY: sync the Wild Wheel overlay to the reels that just stopped (replays the expand animation)
+        if (selectedGame.theme === 'CANDY') {
+            setCandyCols(candyPendingColsRef.current);
+            setCandyFsSpinKey(k => k + 1);
+        }
 
         // EGYPT: Hold and Win respin handling
         if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
@@ -2076,6 +2124,24 @@ const App: React.FC = () => {
                      setShowNeonRoulette(true);
                      setNeonRouletteBet(betAmt);
                  }, 3000);
+                 return next;
+             }
+
+             // CANDY: scatters open the Wild Wheel bonus, which picks the persistent wild setup before free spins begin.
+             if (selectedGame.theme === 'CANDY') {
+                 const spinsWon = scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20;
+                 setFreeSpinsWon(spinsWon);
+                 setTotalFreeSpins(prev => prev + spinsWon);
+                 if (freeSpinsRemaining > 0) {
+                     // Retrigger mid-feature: just add spins, keep the current wild config.
+                     setShowFreeSpinsPopup(true);
+                     audioService.playWinBig();
+                 } else {
+                     setStatus(GameStatus.SCATTER_SHOWCASE);
+                     audioService.playScatterTrigger();
+                     setSpinsWithoutBonus(0);
+                     setTimeout(() => setShowCandyRoulette(true), 1500);
+                 }
                  return next;
              }
 
@@ -2915,6 +2981,12 @@ const App: React.FC = () => {
           // Reset Supernova multiplier on game change
           spaceFsMultRef.current = 1;
           setSpaceMultiplier(1);
+          // Reset Candy Wild Wheel state on game change
+          setShowCandyRoulette(false);
+          candyWildConfigRef.current = null;
+          candyPendingColsRef.current = [];
+          setCandyCols([]);
+          setCandyConfig(null);
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -2961,6 +3033,23 @@ const App: React.FC = () => {
           }));
       }, 900);
   };
+  const handleCandyRouletteComplete = (cfg: CandyWildConfig) => {
+      candyWildConfigRef.current = cfg;
+      setCandyConfig(cfg);
+      setShowCandyRoulette(false);
+      // Normal → Free Spins transition (mirrors handleStartFreeSpins)
+      setReelTransitioning('out');
+      setTimeout(() => {
+          setFreeSpinsRemaining(prev => prev + freeSpinsWon);
+          savedFastSpinRef.current = fastSpin;
+          setStatus(GameStatus.IDLE);
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+              setReelTransitioning('in');
+              setTimeout(() => setReelTransitioning(false), 1100);
+          }));
+      }, 900);
+  };
+
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
       const currentBet = availableBets[betIndex];
@@ -2979,6 +3068,10 @@ const App: React.FC = () => {
       setTargetGrid([]);
       spaceFsMultRef.current = 1;
       setSpaceMultiplier(1);
+      candyWildConfigRef.current = null;
+      candyPendingColsRef.current = [];
+      setCandyCols([]);
+      setCandyConfig(null);
   };
 
   useEffect(() => {
@@ -3016,6 +3109,10 @@ const App: React.FC = () => {
   }, [status, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup]);
 
   const handleHeaderBack = () => {
+    if (showCandyRoulette) {
+        // Wild Wheel bonus must resolve — ignore back to avoid losing the awarded free spins.
+        return;
+    }
     if (showNeonRoulette) {
         handleNeonRouletteClose();
         return;
@@ -3533,6 +3630,50 @@ const App: React.FC = () => {
                             </div>
                         )}
 
+                        {/* CANDY Wild Wheel — expanding wild-reel highlights (single wilds show via the WILD symbol itself) */}
+                        {selectedGame.theme === 'CANDY' && totalFreeSpins > 0 && candyCols.length > 0 && (
+                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
+                                {Array(selectedGame.reels).fill(null).map((_, c) => {
+                                    const colInfo = candyCols.find(cc => cc.col === c);
+                                    return (
+                                        <div key={c} className="flex-1 relative">
+                                            {colInfo && (
+                                                <div key={candyFsSpinKey} className="absolute inset-0 animate-candy-expand"
+                                                    style={{
+                                                        transformOrigin: `center ${((colInfo.seedRow + 0.5) / Math.max(1, selectedGame.rows)) * 100}%`,
+                                                        border: '2.5px solid #f9a8d4',
+                                                        borderRadius: 5,
+                                                        boxShadow: '0 0 22px rgba(236,72,153,0.8), inset 0 0 26px rgba(236,72,153,0.3)',
+                                                        background: 'linear-gradient(180deg,rgba(236,72,153,0.20),rgba(168,85,247,0.08))',
+                                                    }} />
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* CANDY Wild Wheel — feature banner above the reels */}
+                        {selectedGame.theme === 'CANDY' && totalFreeSpins > 0 && candyConfig && (
+                            <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
+                                <div style={{
+                                    background: 'linear-gradient(180deg,#9d174d,#500724)',
+                                    border: '2px solid #f472b6',
+                                    borderRadius: 999,
+                                    padding: '4px 14px',
+                                    boxShadow: '0 0 18px rgba(236,72,153,0.6), 0 4px 10px rgba(0,0,0,0.6)',
+                                    whiteSpace: 'nowrap',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                }}>
+                                    <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#fce7f3', textShadow: '0 0 8px rgba(236,72,153,0.9)' }}>
+                                        🍬 {candyConfig.count} {candyConfig.mode === 'column' ? 'Wild Reels' : 'Wilds'}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Dragon Pick-and-Win grid — renders inside reel container as absolute overlay */}
                         {showDragonPickModal && selectedGame.theme === 'DRAGON' && (
                             <DragonPickGrid
@@ -3716,7 +3857,7 @@ const App: React.FC = () => {
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showCandyRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -3889,6 +4030,12 @@ const App: React.FC = () => {
           onMultPayout={(amount) => setPlayer(p => ({ ...p, balance: p.balance + amount }))}
           onComplete={handleNeonRouletteComplete}
           onClose={handleNeonRouletteClose}
+      />
+
+      <CandyRouletteModal
+          isOpen={showCandyRoulette}
+          freeSpins={freeSpinsWon}
+          onComplete={handleCandyRouletteComplete}
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
