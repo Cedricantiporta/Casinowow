@@ -14,13 +14,15 @@ interface Seg {
     weight: number;
 }
 
-// 5 wedges. Each awards a persistent "switching wild" setup for the free-spin round.
+// 7 wedges. Each awards a persistent "switching wild" setup for the free-spin round.
 const SEGMENTS: Seg[] = [
-    { label: '3', sub: 'WILDS',     color: '#be185d', textColor: '#fbcfe8', cfg: { mode: 'single', count: 3 }, weight: 30 },
-    { label: '2', sub: 'WILD REELS',color: '#7c3aed', textColor: '#ddd6fe', cfg: { mode: 'column', count: 2 }, weight: 24 },
-    { label: '4', sub: 'WILDS',     color: '#db2777', textColor: '#fce7f3', cfg: { mode: 'single', count: 4 }, weight: 20 },
+    { label: '3', sub: 'WILDS',     color: '#be185d', textColor: '#fbcfe8', cfg: { mode: 'single', count: 3 }, weight: 26 },
+    { label: '2', sub: 'WILD REELS',color: '#7c3aed', textColor: '#ddd6fe', cfg: { mode: 'column', count: 2 }, weight: 20 },
+    { label: '4', sub: 'WILDS',     color: '#db2777', textColor: '#fce7f3', cfg: { mode: 'single', count: 4 }, weight: 18 },
     { label: '3', sub: 'WILD REELS',color: '#9333ea', textColor: '#f3e8ff', cfg: { mode: 'column', count: 3 }, weight: 14 },
     { label: '5', sub: 'WILDS',     color: '#e11d48', textColor: '#ffe4e6', cfg: { mode: 'single', count: 5 }, weight: 12 },
+    { label: '4', sub: 'WILD REELS',color: '#6d28d9', textColor: '#ede9fe', cfg: { mode: 'column', count: 4 }, weight: 6  },
+    { label: '6', sub: 'WILDS',     color: '#9f1239', textColor: '#ffe4e6', cfg: { mode: 'single', count: 6 }, weight: 4  },
 ];
 
 const N = SEGMENTS.length;

@@ -234,8 +234,26 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden bg-gradient-to-b from-[#1a1025] to-[#0d0814]">
                         {currentMissions.map((mission) => (
                             <div key={mission.id}
-                                className={`flex-1 flex flex-col gap-2 rounded-xl p-3 relative overflow-hidden shadow-lg border ${mission.completed ? 'bg-gradient-to-b from-[#0a2e0a] to-[#0e1c0e] border-green-900/40' : 'bg-gradient-to-b from-[#2a233e] to-[#1a1230] border-white/5'}`}>
+                                className={`flex-1 flex flex-col gap-2 rounded-xl p-3 relative overflow-hidden shadow-lg border ${mission.isGolden ? (mission.completed ? 'border-yellow-500/60' : 'border-yellow-700/40') : mission.completed ? 'border-green-900/40' : 'border-white/5'}`}
+                                style={{ background: mission.isGolden ? (mission.completed ? 'linear-gradient(180deg,#2a1f00,#1a1200)' : 'linear-gradient(180deg,#1a1400,#100d00)') : mission.completed ? 'linear-gradient(180deg,#0a2e0a,#0e1c0e)' : 'linear-gradient(180deg,#2a233e,#1a1230)' }}>
                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
+
+                                {/* Golden / stacks badges */}
+                                {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
+                                    <div className="flex items-center justify-between relative z-10 -mb-1">
+                                        {mission.isGolden
+                                            ? <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: 'linear-gradient(180deg,#f59e0b,#b45309)', color: '#1c0a00' }}>✦ GOLDEN</span>
+                                            : <span />
+                                        }
+                                        {mission.stacks && mission.stacks > 0 && (
+                                            <div className="flex gap-0.5 items-center">
+                                                {Array.from({ length: 3 }).map((_, idx) => (
+                                                    <div key={idx} className="w-2 h-2 rounded-full" style={{ background: idx < mission.stacks! ? '#a855f7' : 'rgba(255,255,255,0.15)' }} />
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
 
                                 {/* Icon */}
                                 <div className="flex-1 bg-black/30 rounded-xl flex items-center justify-center shrink-0 shadow-inner mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(3rem, 8vw, 5rem)' }}>
@@ -248,7 +266,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 {/* Progress */}
                                 <div className="relative z-10">
                                     <div className="relative h-5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.5)' }}>
-                                        <div className={`absolute inset-y-0 left-0 rounded-full transition-all ${mission.completed ? 'bg-green-500' : 'bg-fuchsia-500'}`}
+                                        <div className={`absolute inset-y-0 left-0 rounded-full transition-all ${mission.completed ? (mission.isGolden ? 'bg-yellow-400' : 'bg-green-500') : (mission.isGolden ? 'bg-amber-500' : 'bg-fuchsia-500')}`}
                                             style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%` }} />
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <span className="text-[10px] font-black leading-none text-white" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>

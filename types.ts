@@ -152,6 +152,8 @@ export interface Mission {
   completed: boolean;
   claimed: boolean;
   frequency: MissionFrequency;
+  stacks?: number;
+  isGolden?: boolean;
 }
 
 export interface PassReward {

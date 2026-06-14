@@ -895,10 +895,21 @@ const App: React.FC = () => {
           const coinGain = mission.coinReward;
           addPassXp(xpGain);
           setPlayer(p => ({ ...p, balance: p.balance + coinGain }));
-          setMissionState(prev => ({
-              ...prev,
-              activeMissions: prev.activeMissions.map(m => m.id === mission.id ? { ...m, claimed: true } : m),
-          }));
+          const remainingStacks = (mission.stacks ?? 1) - 1;
+          if (remainingStacks > 0) {
+              // Stacked mission: reset for next stack
+              setMissionState(prev => ({
+                  ...prev,
+                  activeMissions: prev.activeMissions.map(m => m.id === mission.id
+                      ? { ...m, current: 0, completed: false, claimed: false, stacks: remainingStacks }
+                      : m),
+              }));
+          } else {
+              setMissionState(prev => ({
+                  ...prev,
+                  activeMissions: prev.activeMissions.map(m => m.id === mission.id ? { ...m, claimed: true } : m),
+              }));
+          }
           let msg = `+${formatCommaNumber(coinGain)} Coins & +${xpGain} XP`;
           if (isBoosted) msg += " (Boosted!)";
           setCelebrationMsg(msg);
@@ -1978,7 +1989,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length > 0) {
-        const effectiveFastSpin = fastSpin;
+        const effectiveFastSpin = fastSpin && freeSpinsRemaining === 0;
         const timeout = setTimeout(() => setStatus(GameStatus.STOPPING), effectiveFastSpin ? 50 : 500);
         return () => clearTimeout(timeout);
     }
@@ -2530,7 +2541,7 @@ const App: React.FC = () => {
        } else {
            audioService.playWinSmall();
            setStatus(GameStatus.WIN_ANIMATION);
-           const effectiveFastSpin = fastSpin;
+           const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
            setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 150 : 500);
        }
     } else {
@@ -2540,7 +2551,7 @@ const App: React.FC = () => {
        const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss * 2);
        addXp(lossXp);
        if (player.isVip) addVipXp(Math.max(1, Math.floor(lossXp * 0.1)));
-       const effectiveFastSpin = fastSpin;
+       const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
     }
   };
@@ -3172,7 +3183,7 @@ const App: React.FC = () => {
               // Auto-continue Hold and Win respins
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 1080);
           } else if (freeSpinsRemaining > 0) {
-              const delay = fastSpin ? 50 : 1200;
+              const delay = 1200;
               if (activeModal === 'NONE' && !showFreeSpinsPopup) setTimeout(() => spin(), delay);
           } else if (freeSpinsWon > 0 && !showFreeSpinsPopup && !showFreeSpinSummary) {
               setShowFreeSpinSummary(true);

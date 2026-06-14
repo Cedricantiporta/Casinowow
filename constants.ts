@@ -649,14 +649,14 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
         { type: MissionType.MAX_BET_SPIN, base: 30, desc: "Spin on max bet" },
     ];
 
-    // 4 per day
+    // 4 per day (first 3 have 3 stacks; 4th is golden with 4× harder req and 5× rewards)
     for (let i = 0; i < 4; i++) {
         const t = templates[i % templates.length];
         const scale = 1 + (Math.floor(i / 4) * 0.5);
 
         let target = t.base;
+        const mb = maxBet && maxBet > 0 ? maxBet : 10000;
         if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
-            const mb = maxBet && maxBet > 0 ? maxBet : 10000;
             target = mb * 10;
             target = Math.floor(target * scale);
         } else if (t.type === MissionType.SPIN_COUNT) {
@@ -667,21 +667,25 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
              target = Math.ceil(t.base * scale);
         }
 
-        const xpReward = 30 + (i * 15);
-        const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-        const coinReward = Math.floor(mb * (5 + i * 1.5));
-        
+        const isGolden = i === 3;
+        const baseXp = 30 + (i * 15);
+        // All daily missions get 2× pass XP; golden 4th also gets 5× reward multiplier
+        const xpReward = isGolden ? baseXp * 2 * 5 : baseXp * 2;
+        const coinReward = isGolden ? Math.floor(mb * (5 + i * 1.5) * 5) : Math.floor(mb * (5 + i * 1.5));
+        const finalTarget = isGolden ? Math.floor(target * 4) : Math.floor(target);
+
         missions.push({
             id: `daily-${Date.now()}-${i}`,
             type: t.type,
-            description: `${t.desc} ${formatNumber(target)}${t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS ? '' : ' times'}`,
-            target: Math.floor(target),
+            description: `${t.desc} ${formatNumber(finalTarget)}${t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS ? '' : ' times'}`,
+            target: finalTarget,
             current: 0,
-            xpReward: xpReward, 
-            coinReward: coinReward, 
+            xpReward,
+            coinReward,
             completed: false,
             claimed: false,
-            frequency: 'DAILY'
+            frequency: 'DAILY',
+            ...(isGolden ? { isGolden: true } : { stacks: 3 }),
         });
     }
 
