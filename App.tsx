@@ -1437,8 +1437,8 @@ const App: React.FC = () => {
             }
             if (active) megaMatchActive = true;
       }
-      // NEON, PIGGY, LEPRECHAUN, EGYPT, ARCTIC, PIRATE, and SPACE never use full-column same-symbol matches
-      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE'].includes(selectedGame.theme)) megaMatchActive = false;
+      // NEON, PIGGY, LEPRECHAUN, EGYPT, ARCTIC, PIRATE, SPACE, and CANDY never use full-column same-symbol matches
+      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY'].includes(selectedGame.theme)) megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -1519,7 +1519,7 @@ const App: React.FC = () => {
           if (isFreeSpin || Math.random() < 0.04) {
               const lastCol = cols - 1;
               for (let r = 0; r < rows; r++) newGrid[lastCol][r] = SymbolType.WILD;
-              if (cols >= 4 && Math.random() < 0.20) {
+              if (cols >= 4 && Math.random() < 0.50) {
                   // Second ship appears adjacent or 1-2 cols left of the first
                   const offset = 1 + Math.floor(Math.random() * 3); // 1, 2, or 3
                   const secondCol = Math.max(0, lastCol - offset);
@@ -1736,6 +1736,8 @@ const App: React.FC = () => {
                   while (chosen.size < Math.min(cfg.count, cols) && guard < 80) { chosen.add(Math.floor(Math.random() * cols)); guard++; }
                   const placements: { col: number; seedRow: number }[] = [];
                   chosen.forEach(c => {
+                      // 50% chance each assigned column actually expands to a full wild reel this spin
+                      if (Math.random() < 0.5) return;
                       const seedRow = Math.floor(Math.random() * rows);
                       placements.push({ col: c, seedRow });
                       for (let r = 0; r < rows; r++) newGrid[c][r] = SymbolType.WILD;
@@ -1758,14 +1760,14 @@ const App: React.FC = () => {
 
       // Jackpot cell injection: during free spins only, except ARCTIC, NEON, and PIRATE (Ghost Ship feature uses no jackpots)
       if (freeSpinsRemaining > 0 && selectedGame.theme !== 'ARCTIC' && selectedGame.theme !== 'NEON' && selectedGame.theme !== 'PIRATE') {
-          const neonBoost = 1.0;
-          // 60/40 MINI:MINOR ratio; all tiers ~30% less than before to reduce 3-match frequency
+          // CANDY gets 50% reduced jackpot spawn rates
+          const jpScale = selectedGame.theme === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
-              { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * neonBoost },
-              { type: SymbolType.JACKPOT_MINOR, prob: 0.048 * neonBoost },
-              { type: SymbolType.JACKPOT_MAJOR, prob: 0.015 * neonBoost },
-              { type: SymbolType.JACKPOT_MEGA,  prob: 0.005 * neonBoost },
-              { type: SymbolType.JACKPOT_GRAND, prob: 0.0015 * neonBoost },
+              { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * jpScale },
+              { type: SymbolType.JACKPOT_MINOR, prob: 0.048 * jpScale },
+              { type: SymbolType.JACKPOT_MAJOR, prob: 0.015 * jpScale },
+              { type: SymbolType.JACKPOT_MEGA,  prob: 0.005 * jpScale },
+              { type: SymbolType.JACKPOT_GRAND, prob: 0.0015 * jpScale },
           ];
           const jpCellPositions: { c: number; r: number }[] = [];
           for (let c = 0; c < cols; c++) {
@@ -1857,6 +1859,7 @@ const App: React.FC = () => {
 
   const spin = useCallback(() => {
     if (status !== GameStatus.IDLE && status !== GameStatus.FREE_SPIN_INTRO) return;
+    if (reelTransitioning) return;
     if (activeModal !== 'NONE') return;
     if (showFreeSpinsPopup) return;
     if (showFreeSpinSummary) return;
@@ -1948,7 +1951,7 @@ const App: React.FC = () => {
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
-  }, [status, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, player.level, selectedGame.theme]);
+  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, player.level, selectedGame.theme]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -2149,7 +2152,9 @@ const App: React.FC = () => {
 
              const spinsWon = selectedGame.theme === 'ARCTIC'
                  ? (scatterCount === 3 ? 15 : scatterCount === 4 ? 20 : 25)
-                 : (selectedGame.theme === 'PIRATE' || selectedGame.theme === 'SPACE')
+                 : selectedGame.theme === 'PIRATE'
+                 ? (scatterCount >= 4 ? 3 : 2)
+                 : selectedGame.theme === 'SPACE'
                  ? 10
                  : (scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20);
              setFreeSpinsWon(spinsWon);
@@ -3108,7 +3113,7 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-      if (status === GameStatus.IDLE) {
+      if (status === GameStatus.IDLE && !reelTransitioning) {
           if (pirateWalkRef.current.active) {
               // Ghost Ship Walking Wilds: sail one reel left each respin until it sails off the left edge.
               if (pirateWalkRef.current.shipCol <= 0) {
@@ -3140,7 +3145,7 @@ const App: React.FC = () => {
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 50 : AUTO_SPIN_DELAY);
           }
       }
-  }, [status, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary]);
+  }, [status, reelTransitioning, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary]);
 
   const handleHeaderBack = () => {
     if (showCandyRoulette) {
@@ -3915,7 +3920,7 @@ const App: React.FC = () => {
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
