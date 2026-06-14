@@ -327,10 +327,13 @@ const App: React.FC = () => {
   // Pirate's Bounty — Ghost Ship Walking Wilds state
   const [pirateWalkActive, setPirateWalkActive] = useState(false);
   const [pirateShipCol, setPirateShipCol] = useState(-1);
+  const [pirateShip2Col, setPirateShip2Col] = useState(-1);
   const [pirateWalkTotalWin, setPirateWalkTotalWin] = useState(0);
-  const pirateWalkRef = useRef({ active: false, shipCol: -1 });
+  const pirateWalkRef = useRef({ active: false, shipCol: -1, ship2Col: -1 });
   const pirateWalkTotalWinRef = useRef(0);
   const pirateTriggerArmedRef = useRef(false);
+  const pirateDualShipRef = useRef(false);
+  const pirateShip2OffsetRef = useRef(0);
 
   // Cosmic Cash (SPACE) — Supernova progressive free-spin multiplier
   const [spaceMultiplier, setSpaceMultiplier] = useState(1);
@@ -1520,10 +1523,9 @@ const App: React.FC = () => {
               const lastCol = cols - 1;
               for (let r = 0; r < rows; r++) newGrid[lastCol][r] = SymbolType.WILD;
               if (isFreeSpin && cols >= 4 && Math.random() < 0.70) {
-                  // Second ship appears adjacent or 1-2 cols left of the first
-                  const offset = 1 + Math.floor(Math.random() * 3); // 1, 2, or 3
-                  const secondCol = Math.max(0, lastCol - offset);
-                  for (let r = 0; r < rows; r++) newGrid[secondCol][r] = SymbolType.WILD;
+                  // Ship 2 starts off-screen to the right; distance 1-2 cols behind ship 1
+                  pirateDualShipRef.current = true;
+                  pirateShip2OffsetRef.current = 1 + Math.floor(Math.random() * 2); // 1 or 2
               }
               pirateShipSeeded = true;
               pirateTriggerArmedRef.current = true;
@@ -1791,11 +1793,15 @@ const App: React.FC = () => {
           }
       }
 
-      // PIRATE: while the Ghost Ship is walking, force its current column to a full WILD stack.
+      // PIRATE: while the Ghost Ship is walking, force all active ship columns to full WILD stacks.
       if (selectedGame.theme === 'PIRATE' && pirateWalkRef.current.active) {
           const shipCol = pirateWalkRef.current.shipCol;
           if (shipCol >= 0 && shipCol < cols) {
               for (let r = 0; r < rows; r++) newGrid[shipCol][r] = SymbolType.WILD;
+          }
+          const ship2Col = pirateWalkRef.current.ship2Col;
+          if (ship2Col >= 0 && ship2Col < cols) {
+              for (let r = 0; r < rows; r++) newGrid[ship2Col][r] = SymbolType.WILD;
           }
       }
 
@@ -2094,9 +2100,14 @@ const App: React.FC = () => {
                 pirateTriggerArmedRef.current = false;
                 pirateWalkTotalWinRef.current = 0;
                 setPirateWalkTotalWin(0);
-                pirateWalkRef.current = { active: true, shipCol: selectedGame.reels - 1 };
+                const dualShip = pirateDualShipRef.current;
+                const ship2Start = dualShip ? selectedGame.reels - 1 + pirateShip2OffsetRef.current : -1;
+                pirateDualShipRef.current = false;
+                pirateShip2OffsetRef.current = 0;
+                pirateWalkRef.current = { active: true, shipCol: selectedGame.reels - 1, ship2Col: ship2Start };
                 setPirateWalkActive(true);
                 setPirateShipCol(selectedGame.reels - 1);
+                setPirateShip2Col(-1); // ship 2 starts off-screen
                 audioService.playScatterTrigger();
                 setSpinsWithoutBonus(0);
                 calculateWin(targetGrid);
@@ -2986,11 +2997,13 @@ const App: React.FC = () => {
           setShowNeonRoulette(false);
           setShowWinPopup(false);
           // Reset Ghost Ship walking-wilds state on game change
-          pirateWalkRef.current = { active: false, shipCol: -1 };
+          pirateWalkRef.current = { active: false, shipCol: -1, ship2Col: -1 };
           pirateTriggerArmedRef.current = false;
+          pirateDualShipRef.current = false;
           pirateWalkTotalWinRef.current = 0;
           setPirateWalkActive(false);
           setPirateShipCol(-1);
+          setPirateShip2Col(-1);
           setPirateWalkTotalWin(0);
           // Reset Supernova multiplier on game change
           spaceFsMultRef.current = 1;
@@ -3084,11 +3097,13 @@ const App: React.FC = () => {
       setCandyCols([]);
       setCandyConfig(null);
       // Hard-reset pirate walk so Ghost Ship state never bleeds into normal spins
-      pirateWalkRef.current = { active: false, shipCol: -1 };
+      pirateWalkRef.current = { active: false, shipCol: -1, ship2Col: -1 };
       pirateTriggerArmedRef.current = false;
+      pirateDualShipRef.current = false;
       pirateWalkTotalWinRef.current = 0;
       setPirateWalkActive(false);
       setPirateShipCol(-1);
+      setPirateShip2Col(-1);
       setPirateWalkTotalWin(0);
 
       // Transition animation: fade the reels out (free-spin theme) then back in (normal theme)
@@ -3118,8 +3133,10 @@ const App: React.FC = () => {
               if (pirateWalkRef.current.shipCol <= 0) {
                   // Ship has cleared the leftmost reel — end the feature.
                   pirateWalkRef.current.active = false;
+                  pirateWalkRef.current.ship2Col = -1;
                   setPirateWalkActive(false);
                   setPirateShipCol(-1);
+                  setPirateShip2Col(-1);
                   const won = pirateWalkTotalWinRef.current;
                   setTimeout(() => {
                       setCelebrationMsg(won > 0 ? `👻 Ghost Ship Bounty: +${formatCommaNumber(won)}!` : '👻 The Ghost Ship sailed away…');
@@ -3130,6 +3147,11 @@ const App: React.FC = () => {
               } else if (activeModal === 'NONE') {
                   pirateWalkRef.current.shipCol -= 1;
                   setPirateShipCol(pirateWalkRef.current.shipCol);
+                  if (pirateWalkRef.current.ship2Col >= 0) {
+                      pirateWalkRef.current.ship2Col -= 1;
+                      const s2 = pirateWalkRef.current.ship2Col;
+                      setPirateShip2Col(s2 >= 0 && s2 < selectedGame.reels ? s2 : -1);
+                  }
                   setTimeout(() => spin(), fastSpin ? 150 : 950);
               }
           } else if (holdWinActive) {
@@ -3617,12 +3639,12 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* PIRATE Ghost Ship — glowing wild column highlight + ship marker */}
+                        {/* PIRATE Ghost Ship — glowing wild column highlight + ship marker (dual ships supported) */}
                         {pirateWalkActive && selectedGame.theme === 'PIRATE' && pirateShipCol >= 0 && (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
                                     <div key={c} className="flex-1 relative">
-                                        {c === pirateShipCol && (
+                                        {(c === pirateShipCol || c === pirateShip2Col) && (
                                             <div className="absolute inset-0 flex items-start justify-center animate-pop-in"
                                                 style={{
                                                     border: '2.5px solid #38e8ff',
