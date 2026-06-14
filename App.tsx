@@ -4007,47 +4007,6 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Spin Button */}
-                  <div className="relative">
-                  {showAutoSpinPopup && (
-                      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 animate-pop-in select-none"
-                          style={{ width: 230 }}>
-                          <div className="rounded-2xl px-3 py-3 flex flex-col gap-2.5"
-                              style={{ background: 'linear-gradient(160deg,#1e0438,#0d0220)', border: '2px solid #7c3aed', boxShadow: '0 0 24px rgba(124,58,237,0.7)' }}>
-                              <div className="text-purple-300 text-[10px] font-black uppercase tracking-widest text-center">Auto Spin</div>
-                              <div className="grid grid-cols-4 gap-1.5">
-                                  {[50, 100, 500, -1].map(count => (
-                                      <button key={count}
-                                          onClick={() => {
-                                              setAutoSpinRemaining(count);
-                                              setPlayer(p => ({ ...p, autoSpin: true }));
-                                              setShowAutoSpinPopup(false);
-                                              audioService.playClick();
-                                          }}
-                                          className="rounded-xl py-2 font-black text-xs text-white active:scale-95 transition-transform"
-                                          style={{ background: player.autoSpin && autoSpinRemaining === count ? 'linear-gradient(180deg,#a855f7,#7c3aed)' : 'linear-gradient(180deg,#6d28d9,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
-                                          {count === -1 ? '∞' : count}
-                                      </button>
-                                  ))}
-                              </div>
-                              <div className="h-px bg-white/10" />
-                              <div className="flex items-center justify-between px-0.5">
-                                  <div className="flex items-center gap-2">
-                                      <span className="text-lg">⚡</span>
-                                      <div>
-                                          <div className="text-white font-black text-xs">Fast Spin</div>
-                                          <div className="text-purple-300/50 text-[9px]">Instant reel stop</div>
-                                      </div>
-                                  </div>
-                                  <button
-                                      onClick={() => { setFastSpin(f => !f); audioService.playClick(); }}
-                                      className="relative shrink-0"
-                                      style={{ width: 38, height: 21, borderRadius: 11, background: fastSpin ? 'linear-gradient(180deg,#a855f7,#7c3aed)' : '#374151', boxShadow: fastSpin ? '0 2px 8px rgba(168,85,247,0.5)' : 'none', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
-                                      <div style={{ position: 'absolute', top: 2, left: fastSpin ? 19 : 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', transition: 'left 0.2s' }} />
-                                  </button>
-                              </div>
-                          </div>
-                      </div>
-                  )}
                   {(() => {
                       const isStop = player.autoSpin || status === GameStatus.SPINNING || status === GameStatus.STOPPING;
                       return (
@@ -4073,10 +4032,54 @@ const App: React.FC = () => {
                   </div>
                   );
                   })()}
-                  </div>
               </div>
           </div>
       )}
+
+    {/* Auto-spin popup — fixed relative to scaled game container, appears above spin button on long press */}
+    {showAutoSpinPopup && (
+        <>
+            <div className="fixed inset-0 z-[180]" onClick={() => setShowAutoSpinPopup(false)} />
+            <div className="fixed z-[181] animate-pop-in select-none"
+                style={{ bottom: 68, left: '50%', transform: 'translateX(-50%)', width: 230 }}>
+                <div className="rounded-2xl px-3 py-3 flex flex-col gap-2.5"
+                    style={{ background: 'linear-gradient(160deg,#1e0438,#0d0220)', border: '2px solid #7c3aed', boxShadow: '0 0 24px rgba(124,58,237,0.7)' }}>
+                    <div className="text-purple-300 text-[10px] font-black uppercase tracking-widest text-center">Auto Spin</div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                        {[50, 100, 500, -1].map(count => (
+                            <button key={count}
+                                onClick={() => {
+                                    setAutoSpinRemaining(count);
+                                    setPlayer(p => ({ ...p, autoSpin: true }));
+                                    setShowAutoSpinPopup(false);
+                                    audioService.playClick();
+                                }}
+                                className="rounded-xl py-2 font-black text-xs text-white active:scale-95 transition-transform"
+                                style={{ background: player.autoSpin && autoSpinRemaining === count ? 'linear-gradient(180deg,#a855f7,#7c3aed)' : 'linear-gradient(180deg,#6d28d9,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
+                                {count === -1 ? '∞' : count}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="h-px bg-white/10" />
+                    <div className="flex items-center justify-between px-0.5">
+                        <div className="flex items-center gap-2">
+                            <span className="text-lg">⚡</span>
+                            <div>
+                                <div className="text-white font-black text-xs">Fast Spin</div>
+                                <div className="text-purple-300/50 text-[9px]">Instant reel stop</div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => { setFastSpin(f => !f); audioService.playClick(); }}
+                            className="relative shrink-0"
+                            style={{ width: 38, height: 21, borderRadius: 11, background: fastSpin ? 'linear-gradient(180deg,#a855f7,#7c3aed)' : '#374151', boxShadow: fastSpin ? '0 2px 8px rgba(168,85,247,0.5)' : 'none', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
+                            <div style={{ position: 'absolute', top: 2, left: fastSpin ? 19 : 2, width: 17, height: 17, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.3)', transition: 'left 0.2s' }} />
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </>
+    )}
 
     {activeModal === 'SHOP' && <ShopModal isOpen onClose={() => {
         setActiveModal('NONE');
