@@ -1428,8 +1428,8 @@ const App: React.FC = () => {
             }
             if (active) megaMatchActive = true;
       }
-      // NEON, PIGGY, LEPRECHAUN, EGYPT, and ARCTIC never use full-column same-symbol matches
-      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC'].includes(selectedGame.theme)) megaMatchActive = false;
+      // NEON, PIGGY, LEPRECHAUN, EGYPT, ARCTIC, PIRATE, and SPACE never use full-column same-symbol matches
+      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE'].includes(selectedGame.theme)) megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -1504,11 +1504,17 @@ const App: React.FC = () => {
       }
 
       // PIRATE: ~4% base-game chance for a Ghost Ship to board on the rightmost reel.
-      // A boarding ship is a full-column WILD that then "walks" left across the reels on free respins.
-      if (selectedGame.theme === 'PIRATE' && !isFreeSpin && !pirateWalkRef.current.active) {
-          if (Math.random() < 0.04) {
+      // During free spins, Ghost Ship is GUARANTEED — no jackpot symbols during walk.
+      // 1% chance of 2 simultaneous Ghost Ships (two full WILD columns).
+      if (selectedGame.theme === 'PIRATE' && !pirateWalkRef.current.active) {
+          if (isFreeSpin || Math.random() < 0.04) {
+              const dual = Math.random() < 0.01;
               const lastCol = cols - 1;
               for (let r = 0; r < rows; r++) newGrid[lastCol][r] = SymbolType.WILD;
+              if (dual && cols >= 2) {
+                  const secondCol = lastCol - 1;
+                  for (let r = 0; r < rows; r++) newGrid[secondCol][r] = SymbolType.WILD;
+              }
               pirateShipSeeded = true;
               pirateTriggerArmedRef.current = true;
           }
@@ -1708,8 +1714,8 @@ const App: React.FC = () => {
           }
       }
 
-      // Jackpot cell injection: during free spins only, except ARCTIC and NEON
-      if (freeSpinsRemaining > 0 && selectedGame.theme !== 'ARCTIC' && selectedGame.theme !== 'NEON') {
+      // Jackpot cell injection: during free spins only, except ARCTIC, NEON, and PIRATE (Ghost Ship feature uses no jackpots)
+      if (freeSpinsRemaining > 0 && selectedGame.theme !== 'ARCTIC' && selectedGame.theme !== 'NEON' && selectedGame.theme !== 'PIRATE') {
           const neonBoost = 1.0;
           // 60/40 MINI:MINOR ratio; all tiers ~30% less than before to reduce 3-match frequency
           const JP_SPAWN = [
@@ -3479,43 +3485,51 @@ const App: React.FC = () => {
 
                         {/* PIRATE Ghost Ship — feature banner above the reels */}
                         {pirateWalkActive && selectedGame.theme === 'PIRATE' && (
-                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-pop-in"
-                                style={{
+                            <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
+                                <div style={{
                                     background: 'linear-gradient(180deg,#0a3a4a,#06212b)',
                                     border: '2px solid #38e8ff',
                                     borderRadius: 999,
                                     padding: '4px 14px',
                                     boxShadow: '0 0 18px rgba(56,232,255,0.6), 0 4px 10px rgba(0,0,0,0.6)',
                                     whiteSpace: 'nowrap',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
                                 }}>
-                                <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#bdf4ff', textShadow: '0 0 8px rgba(56,232,255,0.9)' }}>
-                                    👻 Ghost Ship — Walking Wilds
-                                </span>
-                                {pirateWalkTotalWin > 0 && (
-                                    <span className="font-black ml-2" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#fde68a', textShadow: '0 0 6px rgba(0,0,0,0.9)' }}>
-                                        +{formatK(pirateWalkTotalWin)}
+                                    <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#bdf4ff', textShadow: '0 0 8px rgba(56,232,255,0.9)' }}>
+                                        👻 Ghost Ship — Walking Wilds
                                     </span>
-                                )}
+                                    {pirateWalkTotalWin > 0 && (
+                                        <span className="font-black" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#fde68a', textShadow: '0 0 6px rgba(0,0,0,0.9)' }}>
+                                            +{formatK(pirateWalkTotalWin)}
+                                        </span>
+                                    )}
+                                </div>
                             </div>
                         )}
 
                         {/* SPACE Supernova — progressive multiplier banner during free spins */}
                         {selectedGame.theme === 'SPACE' && totalFreeSpins > 0 && (
-                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-pop-in"
-                                style={{
+                            <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
+                                <div style={{
                                     background: 'linear-gradient(180deg,#3b1a6e,#1a0a3a)',
                                     border: '2px solid #c084fc',
                                     borderRadius: 999,
                                     padding: '4px 14px',
                                     boxShadow: '0 0 18px rgba(192,132,252,0.6), 0 4px 10px rgba(0,0,0,0.6)',
                                     whiteSpace: 'nowrap',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 6,
                                 }}>
-                                <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#e9d5ff', textShadow: '0 0 8px rgba(192,132,252,0.9)' }}>
-                                    ⭐ Supernova
-                                </span>
-                                <span className="font-black ml-2" style={{ fontSize: 'clamp(11px,3vw,16px)', color: '#fde68a', textShadow: '0 0 8px rgba(251,191,36,0.8)' }}>
-                                    ×{spaceMultiplier}
-                                </span>
+                                    <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#e9d5ff', textShadow: '0 0 8px rgba(192,132,252,0.9)' }}>
+                                        ⭐ Supernova
+                                    </span>
+                                    <span className="font-black" style={{ fontSize: 'clamp(11px,3vw,16px)', color: '#fde68a', textShadow: '0 0 8px rgba(251,191,36,0.8)' }}>
+                                        ×{spaceMultiplier}
+                                    </span>
+                                </div>
                             </div>
                         )}
 
