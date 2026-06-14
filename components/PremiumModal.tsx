@@ -107,6 +107,9 @@ const getBundles = (maxBet: number) => [
     },
 ];
 
+const parsePesosNum = (s: string) => parseInt(s.replace(/[^\d,]/g, '').replace(',', ''), 10);
+const vipDiscountedPrice = (price: string) => `₱ ${Math.floor(parsePesosNum(price) * 0.8).toLocaleString()}`;
+
 export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isVip, isPremium, onBuyVip, onBuyPremium, maxBet = 10000 }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const bundles = getBundles(maxBet);
@@ -175,7 +178,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
                     {/* Monthly Pass Card */}
                     {!isPremium && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0"
-                        style={{ width: CARD_W, background: 'linear-gradient(160deg,#0e0030,#2d0060,#0e0030)' }}>
+                        style={{ width: CARD_W, background: 'linear-gradient(160deg,#3b0764,#7c3aed,#3b0764)' }}>
                         <div className="shrink-0 px-4 pt-4 pb-2">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-2xl">📜</span>
@@ -208,11 +211,17 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <div className="shrink-0 px-4 pt-4 pb-2">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
-                                        style={{ background: bundle.tagColor, color: '#000' }}>{bundle.tag}</span>
+                                        style={{ background: bundle.tagColor, color: '#000' }}>{bundle.tag}{isVip ? ' +VIP' : ''}</span>
                                     <span className="text-[9px] font-black line-through" style={{ color: 'rgba(255,255,255,0.3)' }}>{bundle.origPrice}</span>
                                 </div>
                                 <div className="font-black text-white text-sm uppercase tracking-wider leading-none mt-1">{bundle.name}</div>
-                                <div className="font-black text-xs mt-0.5" style={{ color: bundle.tagColor }}>{bundle.price}</div>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                    {isVip && <span className="text-[9px] font-black line-through" style={{ color: 'rgba(255,255,255,0.35)' }}>{bundle.price}</span>}
+                                    <span className="font-black text-xs" style={{ color: isVip ? '#fde68a' : bundle.tagColor }}>
+                                        {isVip ? vipDiscountedPrice(bundle.price) : bundle.price}
+                                    </span>
+                                    {isVip && <span className="text-[8px] font-black px-1 py-0.5 rounded-full" style={{ background: '#d97706', color: '#000' }}>-20%</span>}
+                                </div>
                             </div>
                             <div className="flex-1 px-4 py-2 flex flex-col gap-2">
                                 {bundle.items.map((item, i) => (
@@ -224,9 +233,10 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             </div>
                             <div className="shrink-0 px-3 pb-3 pt-1">
                                 <button onClick={() => setPurchasedIds(prev => new Set(prev).add(bundle.id))}
-                                    className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest text-white"
+                                    className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest text-white flex items-center justify-center gap-1.5"
                                     style={{ background: `linear-gradient(180deg,${bundle.tagColor},${bundle.tagColor}88)`, boxShadow: `0 3px 0 rgba(0,0,0,0.5)` }}>
-                                    Buy — {bundle.price}
+                                    <span className="line-through opacity-50">{isVip ? bundle.price : bundle.origPrice}</span>
+                                    <span>{isVip ? vipDiscountedPrice(bundle.price) : bundle.price}</span>
                                 </button>
                             </div>
                         </div>
