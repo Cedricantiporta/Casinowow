@@ -323,6 +323,14 @@ const App: React.FC = () => {
   const arcticPickSpinsRef = useRef(0);
   const arcticProgressRef = useRef(0);
 
+  // Pirate's Bounty — Ghost Ship Walking Wilds state
+  const [pirateWalkActive, setPirateWalkActive] = useState(false);
+  const [pirateShipCol, setPirateShipCol] = useState(-1);
+  const [pirateWalkTotalWin, setPirateWalkTotalWin] = useState(0);
+  const pirateWalkRef = useRef({ active: false, shipCol: -1 });
+  const pirateWalkTotalWinRef = useRef(0);
+  const pirateTriggerArmedRef = useRef(false);
+
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
@@ -1322,6 +1330,7 @@ const App: React.FC = () => {
       const isFreeSpin = freeSpinsRemaining > 0;
       const newGrid: SymbolType[][] = [];
       const isSmallGrid = cols <= 3;
+      let pirateShipSeeded = false;
 
       // EGYPT Hold and Win: generate respin grid keeping locked cells as COIN
       if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
@@ -1490,8 +1499,21 @@ const App: React.FC = () => {
            }
       }
 
-      // NEON uses jackpot cells instead of scatters; PIGGY uses coin cells
-      if (selectedGame.theme !== 'NEON' && selectedGame.theme !== 'PIGGY') {
+      // PIRATE: ~4% base-game chance for a Ghost Ship to board on the rightmost reel.
+      // A boarding ship is a full-column WILD that then "walks" left across the reels on free respins.
+      if (selectedGame.theme === 'PIRATE' && !isFreeSpin && !pirateWalkRef.current.active) {
+          if (Math.random() < 0.04) {
+              const lastCol = cols - 1;
+              for (let r = 0; r < rows; r++) newGrid[lastCol][r] = SymbolType.WILD;
+              pirateShipSeeded = true;
+              pirateTriggerArmedRef.current = true;
+          }
+      }
+
+      // NEON uses jackpot cells instead of scatters; PIGGY uses coin cells.
+      // PIRATE skips scatter injection while a Ghost Ship is boarding or walking (avoids double features).
+      if (selectedGame.theme !== 'NEON' && selectedGame.theme !== 'PIGGY'
+          && !pirateShipSeeded && !(selectedGame.theme === 'PIRATE' && pirateWalkRef.current.active)) {
           const scatterRoll = Math.random() * 100;
           let targetScatters = 0;
           // 3×3 slots: 20% less free spin chance (raise thresholds so fewer scatters spawn)
@@ -1688,6 +1710,14 @@ const App: React.FC = () => {
           }
       }
 
+      // PIRATE: while the Ghost Ship is walking, force its current column to a full WILD stack.
+      if (selectedGame.theme === 'PIRATE' && pirateWalkRef.current.active) {
+          const shipCol = pirateWalkRef.current.shipCol;
+          if (shipCol >= 0 && shipCol < cols) {
+              for (let r = 0; r < rows; r++) newGrid[shipCol][r] = SymbolType.WILD;
+          }
+      }
+
       return newGrid;
   }, [selectedGame, freeSpinsRemaining, spinsWithoutBonus]);
 
@@ -1753,17 +1783,18 @@ const App: React.FC = () => {
     if (dragonPotShaking || showDragonTriggerPopup) return;
 
     // Auto max bet: snap to highest available bet before spinning
-    if (autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active) {
+    if (autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
         setBetIndex(availableBets.length - 1);
     }
-    const currentBet = autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active
+    const currentBet = autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active
         ? availableBets[availableBets.length - 1]
         : availableBets[betIndex];
     const isFreeSpin = freeSpinsRemaining > 0;
     const isHoldWinRespin = holdWinRef.current.active;
+    const isPirateWalk = pirateWalkRef.current.active;
 
     // Insufficient Funds Check
-    if (!isFreeSpin && !isHoldWinRespin && player.balance < currentBet) {
+    if (!isFreeSpin && !isHoldWinRespin && !isPirateWalk && player.balance < currentBet) {
       if (player.balance < 10000) {
           setShowBankruptcy(true);
       } else {
@@ -1774,7 +1805,7 @@ const App: React.FC = () => {
       return;
     }
 
-    if (!isFreeSpin && !isHoldWinRespin) {
+    if (!isFreeSpin && !isHoldWinRespin && !isPirateWalk) {
       // Piggy Bank Logic: 5% of Bet (10% if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
           const savings = currentBet * (player.isVip ? 0.10 : 0.05);
@@ -1807,8 +1838,8 @@ const App: React.FC = () => {
               totalSpins: (prev.stats?.totalSpins || 0) + 1
           }
       }));
-    } else if (isHoldWinRespin) {
-        // Hold and Win respin: free, no missions, no stats
+    } else if (isHoldWinRespin || isPirateWalk) {
+        // Hold and Win / Ghost Ship respin: free, no missions, no stats
     } else {
         setFreeSpinsRemaining(prev => prev - 1);
         updateMissions(MissionType.SPIN_COUNT, 1);
@@ -1952,6 +1983,28 @@ const App: React.FC = () => {
                 setStatus(GameStatus.SCATTER_SHOWCASE);
                 setSpinsWithoutBonus(0);
                 setTimeout(() => setStatus(GameStatus.IDLE), 1800);
+                return next;
+            }
+        }
+
+        // PIRATE: Ghost Ship Walking Wilds. The wild column "sails" one reel left per free respin
+        // (the leftward step is taken in the IDLE auto-continue effect, so the overlay matches the screen).
+        if (selectedGame.theme === 'PIRATE') {
+            if (pirateWalkRef.current.active) {
+                calculateWin(targetGrid);
+                return next;
+            }
+            if (pirateTriggerArmedRef.current) {
+                // A Ghost Ship boarded the rightmost reel — begin the walk.
+                pirateTriggerArmedRef.current = false;
+                pirateWalkTotalWinRef.current = 0;
+                setPirateWalkTotalWin(0);
+                pirateWalkRef.current = { active: true, shipCol: selectedGame.reels - 1 };
+                setPirateWalkActive(true);
+                setPirateShipCol(selectedGame.reels - 1);
+                audioService.playScatterTrigger();
+                setSpinsWithoutBonus(0);
+                calculateWin(targetGrid);
                 return next;
             }
         }
@@ -2277,6 +2330,12 @@ const App: React.FC = () => {
     setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: !!winTier, scattersFound: scatterCount, winType: winTier || undefined });
 
     if (totalFreeSpins > 0 && totalPayout > 0) setFreeSpinTotalWin(prev => prev + totalPayout);
+
+    // PIRATE: tally Ghost Ship walk winnings for the end-of-feature summary
+    if (pirateWalkRef.current.active && totalPayout > 0) {
+        pirateWalkTotalWinRef.current += totalPayout;
+        setPirateWalkTotalWin(pirateWalkTotalWinRef.current);
+    }
 
     // Per-spin drops — scale with bet level (±2% per step from max bet)
     const maxBetIdx = availableBets.length - 1;
@@ -2799,6 +2858,13 @@ const App: React.FC = () => {
           if (neonRouletteTimerRef.current) { clearTimeout(neonRouletteTimerRef.current); neonRouletteTimerRef.current = null; }
           setShowNeonRoulette(false);
           setShowWinPopup(false);
+          // Reset Ghost Ship walking-wilds state on game change
+          pirateWalkRef.current = { active: false, shipCol: -1 };
+          pirateTriggerArmedRef.current = false;
+          pirateWalkTotalWinRef.current = 0;
+          setPirateWalkActive(false);
+          setPirateShipCol(-1);
+          setPirateWalkTotalWin(0);
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -2862,7 +2928,25 @@ const App: React.FC = () => {
 
   useEffect(() => {
       if (status === GameStatus.IDLE) {
-          if (holdWinActive) {
+          if (pirateWalkRef.current.active) {
+              // Ghost Ship Walking Wilds: sail one reel left each respin until it sails off the left edge.
+              if (pirateWalkRef.current.shipCol <= 0) {
+                  // Ship has cleared the leftmost reel — end the feature.
+                  pirateWalkRef.current.active = false;
+                  setPirateWalkActive(false);
+                  setPirateShipCol(-1);
+                  const won = pirateWalkTotalWinRef.current;
+                  setTimeout(() => {
+                      setCelebrationMsg(won > 0 ? `👻 Ghost Ship Bounty: +${formatCommaNumber(won)}!` : '👻 The Ghost Ship sailed away…');
+                      if (won > 0) audioService.playWinBig();
+                  }, 250);
+                  if (player.autoSpin && activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 150 : AUTO_SPIN_DELAY);
+              } else if (activeModal === 'NONE') {
+                  pirateWalkRef.current.shipCol -= 1;
+                  setPirateShipCol(pirateWalkRef.current.shipCol);
+                  setTimeout(() => spin(), fastSpin ? 150 : 950);
+              }
+          } else if (holdWinActive) {
               // Auto-continue Hold and Win respins
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 1080);
           } else if (freeSpinsRemaining > 0) {
@@ -2874,7 +2958,7 @@ const App: React.FC = () => {
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 50 : AUTO_SPIN_DELAY);
           }
       }
-  }, [status, holdWinActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup]);
+  }, [status, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup]);
 
   const handleHeaderBack = () => {
     if (showNeonRoulette) {
@@ -2941,7 +3025,7 @@ const App: React.FC = () => {
   };
 
   const handleSpinMouseDown = () => {
-      if (freeSpinsRemaining > 0) return; 
+      if (freeSpinsRemaining > 0 || pirateWalkRef.current.active) return;
       isLongPressRef.current = false;
       spinButtonTimeoutRef.current = setTimeout(() => {
           isLongPressRef.current = true;
@@ -2957,7 +3041,7 @@ const App: React.FC = () => {
           clearTimeout(spinButtonTimeoutRef.current);
           spinButtonTimeoutRef.current = null;
       }
-      if (freeSpinsRemaining > 0) return;
+      if (freeSpinsRemaining > 0 || pirateWalkRef.current.active) return;
       if (!isLongPressRef.current) {
           if (player.autoSpin) {
               setPlayer(p => ({ ...p, autoSpin: false }));
@@ -3323,6 +3407,49 @@ const App: React.FC = () => {
                             </div>
                         )}
 
+                        {/* PIRATE Ghost Ship — glowing wild column highlight + ship marker */}
+                        {pirateWalkActive && selectedGame.theme === 'PIRATE' && pirateShipCol >= 0 && (
+                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
+                                {Array(selectedGame.reels).fill(null).map((_, c) => (
+                                    <div key={c} className="flex-1 relative">
+                                        {c === pirateShipCol && (
+                                            <div className="absolute inset-0 flex items-start justify-center animate-pop-in"
+                                                style={{
+                                                    border: '2.5px solid #38e8ff',
+                                                    borderRadius: 5,
+                                                    boxShadow: '0 0 22px rgba(56,232,255,0.85), inset 0 0 26px rgba(56,232,255,0.35)',
+                                                    background: 'linear-gradient(180deg,rgba(56,232,255,0.18),rgba(20,80,120,0.05))',
+                                                }}>
+                                                <span style={{ fontSize: 'clamp(20px,5vw,34px)', lineHeight: 1, marginTop: '-2px', filter: 'drop-shadow(0 0 8px rgba(56,232,255,0.9))' }}>🚢</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* PIRATE Ghost Ship — feature banner above the reels */}
+                        {pirateWalkActive && selectedGame.theme === 'PIRATE' && (
+                            <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-30 pointer-events-none animate-pop-in"
+                                style={{
+                                    background: 'linear-gradient(180deg,#0a3a4a,#06212b)',
+                                    border: '2px solid #38e8ff',
+                                    borderRadius: 999,
+                                    padding: '4px 14px',
+                                    boxShadow: '0 0 18px rgba(56,232,255,0.6), 0 4px 10px rgba(0,0,0,0.6)',
+                                    whiteSpace: 'nowrap',
+                                }}>
+                                <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#bdf4ff', textShadow: '0 0 8px rgba(56,232,255,0.9)' }}>
+                                    👻 Ghost Ship — Walking Wilds
+                                </span>
+                                {pirateWalkTotalWin > 0 && (
+                                    <span className="font-black ml-2" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#fde68a', textShadow: '0 0 6px rgba(0,0,0,0.9)' }}>
+                                        +{formatK(pirateWalkTotalWin)}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
                         {/* Dragon Pick-and-Win grid — renders inside reel container as absolute overlay */}
                         {showDragonPickModal && selectedGame.theme === 'DRAGON' && (
                             <DragonPickGrid
@@ -3427,7 +3554,7 @@ const App: React.FC = () => {
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                       style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       −
@@ -3447,7 +3574,7 @@ const App: React.FC = () => {
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                       style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       +
@@ -3462,6 +3589,8 @@ const App: React.FC = () => {
                               formatK(cascadeTotalWin)
                           ) : holdWinActive ? (
                               formatK(holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
+                          ) : pirateWalkActive ? (
+                              formatK(pirateWalkTotalWin)
                           ) : freeSpinsRemaining > 0 ? (
                               formatK(freeSpinTotalWin)
                           ) : status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
@@ -3473,7 +3602,7 @@ const App: React.FC = () => {
                           )}
                       </span>
                       <span className="total-win">
-                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
+                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : pirateWalkActive ? 'GHOST SHIP' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
                       </span>
                   </div>
 
@@ -3485,7 +3614,7 @@ const App: React.FC = () => {
                               audioService.playClick();
                           }
                       }}
-                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE || betIndex === availableBets.length - 1 || freeSpinsRemaining > 0 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE || betIndex === availableBets.length - 1 || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
