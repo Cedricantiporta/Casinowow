@@ -668,9 +668,9 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
         }
 
         const isGolden = i === 3;
-        const baseXp = 30 + (i * 15);
-        // All daily missions get 2× pass XP; golden 4th also gets 5× reward multiplier
-        const xpReward = isGolden ? baseXp * 2 * 5 : baseXp * 2;
+        // XP decreases by 30% each successive mission; golden 4th gets 5× on top
+        const baseXp = Math.floor(60 * Math.pow(0.7, i));
+        const xpReward = isGolden ? baseXp * 5 : baseXp;
         const coinReward = isGolden ? Math.floor(mb * (5 + i * 1.5) * 5) : Math.floor(mb * (5 + i * 1.5));
         const finalTarget = isGolden ? Math.floor(target * 4) : Math.floor(target);
 

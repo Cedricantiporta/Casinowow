@@ -352,6 +352,9 @@ const App: React.FC = () => {
   const [candySingleWilds, setCandySingleWilds] = useState<{ col: number; row: number }[]>([]);
   const [candyFsSpinKey, setCandyFsSpinKey] = useState(0);
   const [candyConfig, setCandyConfig] = useState<CandyWildConfig | null>(null);
+  const [candyShuffledCols, setCandyShuffledCols] = useState<{ col: number; seedRow: number }[] | null>(null);
+  const [candyShuffledSingles, setCandyShuffledSingles] = useState<{ col: number; row: number }[] | null>(null);
+  const candyShuffleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
@@ -400,6 +403,43 @@ const App: React.FC = () => {
   const [vipBetTracking, setVipBetTracking] = useState<{ date: string; total: number }>(() => {
       try { return JSON.parse(localStorage.getItem('cw_vip_bets') || '{"date":"","total":0}'); } catch { return { date: '', total: 0 }; }
   });
+
+  // CANDY: shuffle wild container positions while reels spin for a "switching" animation
+  useEffect(() => {
+      const isSpinning = status === GameStatus.SPINNING || status === GameStatus.STOPPING;
+      if (isSpinning && selectedGame.theme === 'CANDY' && totalFreeSpins > 0) {
+          const shuffleStep = () => {
+              const reels = selectedGame.reels;
+              const rows = selectedGame.rows;
+              const cols = candyPendingColsRef.current;
+              const singles = candySingleWildsRef.current;
+              if (cols.length > 0) {
+                  const indices = Array.from({ length: reels }, (_, i) => i);
+                  for (let j = indices.length - 1; j > 0; j--) {
+                      const k = Math.floor(Math.random() * (j + 1));
+                      [indices[j], indices[k]] = [indices[k], indices[j]];
+                  }
+                  setCandyShuffledCols(cols.map((c, i) => ({ col: indices[i % reels], seedRow: c.seedRow })));
+              }
+              if (singles.length > 0) {
+                  const allPos = Array.from({ length: reels * rows }, (_, i) => ({ col: Math.floor(i / rows), row: i % rows }));
+                  for (let j = allPos.length - 1; j > 0; j--) {
+                      const k = Math.floor(Math.random() * (j + 1));
+                      [allPos[j], allPos[k]] = [allPos[k], allPos[j]];
+                  }
+                  setCandyShuffledSingles(allPos.slice(0, singles.length));
+              }
+          };
+          shuffleStep();
+          candyShuffleIntervalRef.current = setInterval(shuffleStep, 350);
+      } else {
+          if (candyShuffleIntervalRef.current) { clearInterval(candyShuffleIntervalRef.current); candyShuffleIntervalRef.current = null; }
+          setCandyShuffledCols(null);
+          setCandyShuffledSingles(null);
+      }
+      return () => { if (candyShuffleIntervalRef.current) { clearInterval(candyShuffleIntervalRef.current); candyShuffleIntervalRef.current = null; } };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, selectedGame.theme, selectedGame.reels, selectedGame.rows, totalFreeSpins]);
 
   // Persist inbox / coin-gift count / vip bet tracking to localStorage
   useEffect(() => {
@@ -3745,51 +3785,40 @@ const App: React.FC = () => {
 
                         {/* CANDY Wild Wheel — expanding wild-reel highlights */}
                         {selectedGame.theme === 'CANDY' && totalFreeSpins > 0 && candyCols.length > 0 && (
-                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
-                                {Array(selectedGame.reels).fill(null).map((_, c) => {
-                                    const colInfo = candyCols.find(cc => cc.col === c);
-                                    return (
-                                        <div key={c} className="flex-1 relative">
-                                            {colInfo && (
-                                                <div key={candyFsSpinKey} className="absolute inset-0"
-                                                    style={{
-                                                        transformOrigin: `center ${((colInfo.seedRow + 0.5) / Math.max(1, selectedGame.rows)) * 100}%`,
-                                                        border: '2.5px solid #f9a8d4',
-                                                        borderRadius: 5,
-                                                        boxShadow: '0 0 22px rgba(236,72,153,0.8), inset 0 0 26px rgba(236,72,153,0.3)',
-                                                        background: 'linear-gradient(180deg,rgba(236,72,153,0.20),rgba(168,85,247,0.08))',
-                                                        animation: 'candyExpand 0.55s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.55s infinite',
-                                                    }} />
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                            <div className="absolute inset-0 z-20 pointer-events-none">
+                                {(candyShuffledCols ?? candyCols).map((colInfo, idx) => (
+                                    <div key={idx} className="absolute inset-y-1"
+                                        style={{
+                                            left: `calc(${(colInfo.col / selectedGame.reels) * 100}% + 2px)`,
+                                            width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
+                                            transition: 'left 0.25s cubic-bezier(0.4,0,0.2,1)',
+                                            border: '2.5px solid #f9a8d4',
+                                            borderRadius: 5,
+                                            boxShadow: '0 0 22px rgba(236,72,153,0.8), inset 0 0 26px rgba(236,72,153,0.3)',
+                                            background: 'linear-gradient(180deg,rgba(236,72,153,0.20),rgba(168,85,247,0.08))',
+                                            animation: candyShuffledCols ? 'candyGlow 1.5s ease-in-out infinite' : 'candyExpand 0.55s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.55s infinite',
+                                        }} />
+                                ))}
                             </div>
                         )}
 
                         {/* CANDY — individual wild cell containers (single-mode wilds) */}
                         {selectedGame.theme === 'CANDY' && totalFreeSpins > 0 && candySingleWilds.length > 0 && (
-                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
-                                {Array(selectedGame.reels).fill(null).map((_, c) => {
-                                    const cellWilds = candySingleWilds.filter(w => w.col === c);
-                                    return (
-                                        <div key={c} className="flex-1 relative">
-                                            {cellWilds.map((w, idx) => (
-                                                <div key={`sw-${candyFsSpinKey}-${idx}`}
-                                                    className="absolute"
-                                                    style={{
-                                                        top: `${(w.row / selectedGame.rows) * 100}%`,
-                                                        height: `${(1 / selectedGame.rows) * 100}%`,
-                                                        left: 0, right: 0,
-                                                        border: '2px solid #f9a8d4',
-                                                        borderRadius: 4,
-                                                        background: 'rgba(236,72,153,0.12)',
-                                                        animation: 'candyExpand 0.4s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.4s infinite',
-                                                    }} />
-                                            ))}
-                                        </div>
-                                    );
-                                })}
+                            <div className="absolute inset-0 z-20 pointer-events-none">
+                                {(candyShuffledSingles ?? candySingleWilds).map((w, idx) => (
+                                    <div key={idx} className="absolute"
+                                        style={{
+                                            left: `calc(${(w.col / selectedGame.reels) * 100}% + 2px)`,
+                                            width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
+                                            top: `calc(${(w.row / selectedGame.rows) * 100}% + 2px)`,
+                                            height: `calc(${(1 / selectedGame.rows) * 100}% - 4px)`,
+                                            transition: 'left 0.25s cubic-bezier(0.4,0,0.2,1), top 0.25s cubic-bezier(0.4,0,0.2,1)',
+                                            border: '2px solid #f9a8d4',
+                                            borderRadius: 4,
+                                            background: 'rgba(236,72,153,0.12)',
+                                            animation: candyShuffledSingles ? 'candyGlow 1.5s ease-in-out infinite' : 'candyExpand 0.4s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.4s infinite',
+                                        }} />
+                                ))}
                             </div>
                         )}
 
@@ -4023,7 +4052,7 @@ const App: React.FC = () => {
         <>
             <div className="fixed inset-0 z-[180]" onClick={() => setShowAutoSpinPopup(false)} />
             <div className="fixed z-[181] animate-pop-in select-none"
-                style={{ bottom: 68, left: '50%', transform: 'translateX(-50%)', width: 230 }}>
+                style={{ bottom: 68, right: 6, width: 200 }}>
                 <div className="rounded-2xl px-3 py-3 flex flex-col gap-2.5"
                     style={{ background: 'linear-gradient(160deg,#1e0438,#0d0220)', border: '2px solid #7c3aed', boxShadow: '0 0 24px rgba(124,58,237,0.7)' }}>
                     <div className="text-purple-300 text-[10px] font-black uppercase tracking-widest text-center">Auto Spin</div>
