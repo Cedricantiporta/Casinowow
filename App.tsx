@@ -1519,7 +1519,7 @@ const App: React.FC = () => {
           if (isFreeSpin || Math.random() < 0.04) {
               const lastCol = cols - 1;
               for (let r = 0; r < rows; r++) newGrid[lastCol][r] = SymbolType.WILD;
-              if (cols >= 4 && Math.random() < (isFreeSpin ? 0.70 : 0.50)) {
+              if (isFreeSpin && cols >= 4 && Math.random() < 0.70) {
                   // Second ship appears adjacent or 1-2 cols left of the first
                   const offset = 1 + Math.floor(Math.random() * 3); // 1, 2, or 3
                   const secondCol = Math.max(0, lastCol - offset);
