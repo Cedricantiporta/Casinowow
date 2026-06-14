@@ -1519,7 +1519,7 @@ const App: React.FC = () => {
           if (isFreeSpin || Math.random() < 0.04) {
               const lastCol = cols - 1;
               for (let r = 0; r < rows; r++) newGrid[lastCol][r] = SymbolType.WILD;
-              if (cols >= 4 && Math.random() < 0.50) {
+              if (cols >= 4 && Math.random() < (isFreeSpin ? 0.70 : 0.50)) {
                   // Second ship appears adjacent or 1-2 cols left of the first
                   const offset = 1 + Math.floor(Math.random() * 3); // 1, 2, or 3
                   const secondCol = Math.max(0, lastCol - offset);
@@ -2153,7 +2153,7 @@ const App: React.FC = () => {
              const spinsWon = selectedGame.theme === 'ARCTIC'
                  ? (scatterCount === 3 ? 15 : scatterCount === 4 ? 20 : 25)
                  : selectedGame.theme === 'PIRATE'
-                 ? (scatterCount >= 4 ? 3 : 2)
+                 ? 3
                  : selectedGame.theme === 'SPACE'
                  ? 10
                  : (scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20);
@@ -2385,7 +2385,7 @@ const App: React.FC = () => {
         }
         // Per-spin drops for Arctic (same logic as normal slots)
         const arcticMaxBetIdx = availableBets.length - 1;
-        const arcticQuestChance = Math.max(0.005, (0.10 - (arcticMaxBetIdx - betIndex) * 0.01) * 1.3);
+        const arcticQuestChance = Math.max(0.005, (0.10 - (arcticMaxBetIdx - betIndex) * 0.01) * 1.3 * 0.8);
         if (player.level >= 20 && Math.random() < arcticQuestChance) {
             if (Math.random() < 0.5) {
                 setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
@@ -2467,7 +2467,7 @@ const App: React.FC = () => {
 
     // Per-spin drops — scale with bet level (±2% per step from max bet)
     const maxBetIdx = availableBets.length - 1;
-    const questChance = Math.max(0.005, (0.10 - (maxBetIdx - betIndex) * 0.01) * 1.3);
+    const questChance = Math.max(0.005, (0.10 - (maxBetIdx - betIndex) * 0.01) * 1.3 * 0.8);
     if (player.level >= 20 && Math.random() < questChance) {
         if (Math.random() < 0.5) {
             setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
@@ -3412,24 +3412,44 @@ const App: React.FC = () => {
                     return (
                         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
                             style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', border: isHighLimit ? '1.5px solid #8b6200' : '1.5px solid #38106e', borderRadius:'21px', padding:'6px 6px', gap:'2px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
-                            {/* Mini Games single icon */}
+                            {/* Wild Quest / Mine icon */}
                             <button
-                                onClick={!isQuestLocked ? () => setShowMiniGamesHub(true) : undefined}
+                                onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                                 style={{ padding:'3px 3px' }}
                             >
                                 {isQuestLocked
                                     ? <span className="text-[28px] leading-none">🔒</span>
                                     : <>
-                                        {(quest.wildCredits + quest.diceCredits) > 0 && (
+                                        {quest.wildCredits > 0 && (
                                             <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.wildCredits + quest.diceCredits}
+                                                {quest.wildCredits}
                                             </div>
                                         )}
-                                        <span className="text-[36px] leading-none">🎮</span>
+                                        <span className="text-[36px] leading-none">🗿</span>
                                       </>
                                 }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Games</span>
+                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Mine</span>
+                            </button>
+                            <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
+                            {/* Dice Quest icon */}
+                            <button
+                                onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
+                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                style={{ padding:'3px 3px' }}
+                            >
+                                {isQuestLocked
+                                    ? <span className="text-[28px] leading-none">🔒</span>
+                                    : <>
+                                        {quest.diceCredits > 0 && (
+                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                {quest.diceCredits}
+                                            </div>
+                                        )}
+                                        <span className="text-[36px] leading-none">🎲</span>
+                                      </>
+                                }
+                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
                             </button>
                             <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
                             <button
