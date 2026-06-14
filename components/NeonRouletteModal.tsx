@@ -253,14 +253,22 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
 
             {/* Prompt screen */}
             {phase === 'prompt' && (
-                <div className="flex flex-col items-center justify-center gap-6 cursor-pointer w-full h-full select-none"
-                    onClick={() => setPhase('ready')}>
-                    <div style={{ fontSize: '4rem', lineHeight: 1 }}>💎</div>
-                    <div className="font-black text-white uppercase tracking-widest text-2xl text-center"
-                        style={{ textShadow: '0 0 30px rgba(147,51,234,0.9)' }}>
-                        You Won a<br />Roulette Spin!
+                <div className="flex flex-col items-center justify-center gap-6 w-full h-full select-none">
+                    <div className="animate-pop-in flex flex-col items-center gap-4 rounded-3xl px-8 py-7 text-center"
+                        style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '2px solid #a855f7', boxShadow: '0 0 40px rgba(168,85,247,0.6)', maxWidth: 280 }}>
+                        <div style={{ fontSize: '3.5rem', lineHeight: 1 }}>🎡</div>
+                        <div className="font-black text-white uppercase tracking-widest text-xl text-center"
+                            style={{ textShadow: '0 0 20px rgba(147,51,234,0.9)' }}>
+                            You Won a<br />Roulette Spin!
+                        </div>
+                        <div className="text-purple-300 text-[11px] font-bold uppercase tracking-widest">Bonus Round</div>
+                        <button
+                            onClick={() => setPhase('ready')}
+                            className="btn-3d w-full py-3 rounded-2xl font-black text-sm uppercase tracking-widest"
+                            style={{ background: 'linear-gradient(180deg,#d946ef,#a855f7)', color: '#fff', boxShadow: '0 4px 0 #6b21a8' }}>
+                            Spin Now!
+                        </button>
                     </div>
-                    <div className="text-purple-300/60 text-sm animate-pulse mt-2">Tap anywhere to continue</div>
                 </div>
             )}
 

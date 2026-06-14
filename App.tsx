@@ -241,7 +241,7 @@ const App: React.FC = () => {
   const [showFreeSpinsPopup, setShowFreeSpinsPopup] = useState(false);
   const [freeSpinsWon, setFreeSpinsWon] = useState(0);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
-  const [showWelcomeGift, setShowWelcomeGift] = useState(() => !localStorage.getItem('cw_player'));
+  const [showWelcomeGift, setShowWelcomeGift] = useState(() => !localStorage.getItem('cw_welcome_claimed') && !localStorage.getItem('cw_player'));
   const [giftCountDone, setGiftCountDone] = useState(false);
   const [giftDisplayAmount, setGiftDisplayAmount] = useState(0);
   const [animBalance, setAnimBalance] = useState<number | null>(null);
@@ -1974,15 +1974,13 @@ const App: React.FC = () => {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
-                 setShowRouletteTriggerNotif(true);
-                 setTimeout(() => setShowRouletteTriggerNotif(false), 1800);
                  const betAmt = currentBetRef.current;
                  if (neonRouletteTimerRef.current) clearTimeout(neonRouletteTimerRef.current);
                  neonRouletteTimerRef.current = setTimeout(() => {
                      neonRouletteTimerRef.current = null;
                      setShowNeonRoulette(true);
                      setNeonRouletteBet(betAmt);
-                 }, 2000);
+                 }, 3000);
                  return next;
              }
 
@@ -3722,20 +3720,7 @@ const App: React.FC = () => {
           </div>
       )}
 
-      {showRouletteTriggerNotif && (
-          <div className="fixed inset-0 z-[350] flex items-center justify-center pointer-events-none">
-              <div className="animate-pop-in flex flex-col items-center gap-2 rounded-2xl px-7 py-4 text-center"
-                  style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '2px solid #a855f7', boxShadow: '0 0 32px rgba(168,85,247,0.7), 0 8px 24px rgba(0,0,0,0.7)', minWidth: 200 }}>
-                  <span style={{ fontSize: '2rem', lineHeight: 1 }}>🎰</span>
-                  <div className="font-black text-white text-base uppercase tracking-widest" style={{ textShadow: '0 0 12px rgba(168,85,247,0.8)' }}>
-                      BONUS TRIGGERED!
-                  </div>
-                  <div className="text-purple-300 text-[10px] font-bold uppercase tracking-widest">Neon Roulette</div>
-              </div>
-          </div>
-      )}
-      
-      {showFreeSpinsPopup && <FreeSpinsWonPopup isOpen={showFreeSpinsPopup} count={freeSpinsWon} onComplete={handleStartFreeSpins} />}
+      {showFreeSpinsPopup &&<FreeSpinsWonPopup isOpen={showFreeSpinsPopup} count={freeSpinsWon} onComplete={handleStartFreeSpins} />}
       
       {showLevelUp && currentView === 'GAME' && <LevelUpToast level={player.level} reward={levelUpReward} maxBetIncreased={maxBetIncreased} newMaxBet={MAX_BET_BY_LEVEL(player.level)} onClose={() => setShowLevelUp(false)} />}
 
@@ -3821,6 +3806,7 @@ const App: React.FC = () => {
               disabled={!giftCountDone}
               onClick={() => {
                 if (!giftCountDone) return;
+                try { localStorage.setItem('cw_welcome_claimed', '1'); } catch {}
                 setShowWelcomeGift(false);
                 // Animate topbar balance from 0 to 10M
                 const target = 10000000;
@@ -3966,6 +3952,8 @@ const App: React.FC = () => {
           profileEmoji={profileEmoji}
           onSetProfileEmoji={(e) => { setProfileEmoji(e); try { localStorage.setItem('cw_profile_emoji', e); } catch {} }}
           onNavigateToGame={(game) => { setShowProfile(false); handleGameSelect(game as GameConfig); }}
+          albumsCompleted={decks.filter(d => d.isCompleted).length}
+          albumsTotal={decks.length}
       />
 
       <InboxModal
