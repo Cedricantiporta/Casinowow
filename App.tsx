@@ -3918,9 +3918,6 @@ const App: React.FC = () => {
           wildCredits={quest.wildCredits}
           diceCredits={quest.diceCredits}
           isQuestLocked={player.level < 20}
-          balance={player.balance}
-          currentBet={availableBets[betIndex] ?? ALL_BETS[0]}
-          onCoinFlipResult={(netChange) => setPlayer(p => ({ ...p, balance: Math.max(0, p.balance + netChange) }))}
       />
 
       <PremiumModal

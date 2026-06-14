@@ -153,8 +153,8 @@ export const Lobby: React.FC<LobbyProps> = ({
               <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9">
 
                     {isHighLimit ? (
-                        /* ── High Roller lobby — single row, 6 card-shaped slots 2× bigger ── */
-                        <div className="flex items-center justify-center gap-4 px-3 overflow-x-auto no-scrollbar w-full h-full">
+                        /* ── High Roller lobby — single horizontal scroll row ── */
+                        <div className="flex items-center gap-3 px-3 overflow-x-auto no-scrollbar w-full h-full">
                             {GAMES_CONFIG.slice(0, 6).map((game, idx) => {
                                 const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300' :
                                     game.theme === 'EGYPT' ? 'text-amber-400' :
@@ -174,37 +174,37 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 const isLocked = playerLevel < unlockLevel;
                                 const hrJackpot = jackpotTotals[idx] ?? 0;
                                 return (
-                                    <div key={game.id} className="flex flex-col items-center gap-2 shrink-0">
-                                        {/* Jackpot counter — full width rectangle */}
-                                        <div style={{ width: '200px', background: 'rgba(10,4,0,0.95)', border: '3px solid #f59e0b', borderRadius: '10px', padding: '6px 10px', textAlign: 'center', boxShadow: '0 0 18px rgba(245,158,11,0.7), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
-                                            <div style={{ fontSize: '9px', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1.5px', lineHeight: 1, marginBottom: '3px' }}>JACKPOT</div>
-                                            <div style={{ fontSize: 'clamp(14px,4vw,22px)', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 12px rgba(245,158,11,0.9)' }}>{formatK(hrJackpot)}</div>
+                                    <div key={game.id} className="flex flex-col items-center gap-1.5 shrink-0">
+                                        {/* Jackpot counter */}
+                                        <div style={{ width: '120px', background: 'rgba(10,4,0,0.95)', border: '2.5px solid #f59e0b', borderRadius: '8px', padding: '4px 6px', textAlign: 'center', boxShadow: '0 0 12px rgba(245,158,11,0.6)' }}>
+                                            <div style={{ fontSize: '7px', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>JACKPOT</div>
+                                            <div style={{ fontSize: '13px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 8px rgba(245,158,11,0.9)' }}>{formatK(hrJackpot)}</div>
                                         </div>
-                                        {/* Card-shaped slot — 2× bigger */}
+                                        {/* Card-shaped slot */}
                                         <button
                                             onClick={() => onSelectGame(game, false)}
                                             className={`relative overflow-hidden ${isLocked ? 'cursor-not-allowed' : 'active:scale-95 transition-transform'}`}
-                                            style={{ width: '200px', height: '296px', borderRadius: '20px', boxShadow: '0 0 24px rgba(245,158,11,0.4), inset 0 3px 0 rgba(255,220,80,0.7), 0 12px 32px rgba(0,0,0,0.7)', border: '3px solid rgba(245,158,11,0.6)' }}
+                                            style={{ width: '120px', height: '178px', borderRadius: '16px', boxShadow: '0 0 18px rgba(245,158,11,0.35), inset 0 2px 0 rgba(255,220,80,0.7), 0 8px 24px rgba(0,0,0,0.7)', border: '2.5px solid rgba(245,158,11,0.55)' }}
                                         >
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}${isLocked ? ' blur-[1.5px]' : ''}`}></div>
                                             <div className={`absolute inset-0 z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
                                                 <div className="absolute inset-0 flex items-center justify-center">
-                                                    <span style={{ fontSize: '6rem', lineHeight: 1, filter: 'drop-shadow(0 3px 12px rgba(0,0,0,0.8))' }}>{icon}</span>
+                                                    <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
                                                 </div>
-                                                <div className="absolute bottom-0 left-0 right-0 pb-4 px-2 text-center">
-                                                    <h3 className={`text-[15px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
-                                                        style={{ WebkitTextStroke: '1.5px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
+                                                <div className="absolute bottom-0 left-0 right-0 pb-2 px-1 text-center">
+                                                    <h3 className={`text-[11px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
+                                                        style={{ WebkitTextStroke: '1px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
                                                         {game.name}
                                                     </h3>
                                                 </div>
                                             </div>
                                             {isLocked && (
                                                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
-                                                    <span className="text-5xl leading-none grayscale drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">🔒</span>
-                                                    <span className="text-white font-black text-sm mt-2 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
+                                                    <span className="text-3xl leading-none grayscale drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">🔒</span>
+                                                    <span className="text-white font-black text-[10px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                                 </div>
                                             )}
-                                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: '20px' }}></div>
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: '16px' }}></div>
                                         </button>
                                     </div>
                                 );
@@ -388,33 +388,33 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {/* FREE COINS — center */}
                             <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform">
                                 <div className="relative" style={{
-                                    width: '52px', height: '52px', borderRadius: '50%',
+                                    width: '68px', height: '68px', borderRadius: '50%',
                                     background: isReadyToCollect
                                         ? 'radial-gradient(circle at 36% 28%,#fff7c0,#ffd027 40%,#f29400 70%,#b85f00)'
                                         : 'radial-gradient(circle at 36% 28%,#c0c0c0,#888 40%,#555 70%,#333)',
                                     border: isReadyToCollect ? '3px solid #f0a000' : '3px solid #666',
                                     boxShadow: isReadyToCollect
-                                        ? 'inset 0 2px 5px rgba(255,255,255,0.65),inset 0 -2px 5px rgba(140,70,0,0.5),0 4px 0 rgba(120,60,0,0.7),0 6px 12px rgba(0,0,0,0.5)'
+                                        ? 'inset 0 3px 6px rgba(255,255,255,0.65),inset 0 -3px 6px rgba(140,70,0,0.5),0 5px 0 rgba(120,60,0,0.7),0 8px 16px rgba(0,0,0,0.5)'
                                         : 'inset 0 2px 4px rgba(255,255,255,0.3),0 4px 0 rgba(0,0,0,0.5)',
                                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                     flexShrink: 0,
                                 }}>
-                                    <span style={{ fontSize:'11px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>FREE</span>
-                                    <span style={{ fontSize:'13px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>COINS</span>
+                                    <span style={{ fontSize:'12px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>FREE</span>
+                                    <span style={{ fontSize:'14px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>COINS</span>
                                     <div style={{
-                                        position:'absolute', bottom:'-9px', left:'50%', transform:'translateX(-50%)',
+                                        position:'absolute', bottom:'-10px', left:'50%', transform:'translateX(-50%)',
                                         background: isReadyToCollect ? 'linear-gradient(180deg,#3a9900,#1e6600)' : '#444',
                                         color:'white', fontSize:'7px', fontWeight:900,
-                                        padding:'2px 8px', borderRadius:'8px', whiteSpace:'nowrap', textTransform:'uppercase',
+                                        padding:'2px 9px', borderRadius:'8px', whiteSpace:'nowrap', textTransform:'uppercase',
                                         border:'1px solid rgba(255,255,255,0.25)',
                                         boxShadow: isReadyToCollect ? '0 2px 0 rgba(0,0,0,0.4)' : 'none',
                                         letterSpacing:'0.5px',
                                     }}>
                                         {isReadyToCollect ? 'COLLECT' : formatTime(timeLeft)}
                                     </div>
-                                    {isReadyToCollect && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] font-black text-white z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>!</div>}
+                                    {isReadyToCollect && <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] font-black text-white z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>!</div>}
                                 </div>
-                                <div style={{ height:'14px' }}></div>
+                                <div style={{ height:'16px' }}></div>
                             </button>
 
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
@@ -442,11 +442,15 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Inbox</span>
                             </button>
 
-                            {/* HIGH ROLLER */}
+                            {/* HIGH ROLLER — icon flips to "back to lobby" when in HR */}
                             <button onClick={!isHighRollerLocked ? onOpenHighRoller : undefined} className={iconBtn(isHighRollerLocked)}>
                                 {isHighRollerLocked && lockBadge(35)}
-                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🎰</span>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">High Roller</span>
+                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
+                                    {isHighLimit ? '🏠' : '🎰'}
+                                </span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">
+                                    {isHighLimit ? 'Lobby' : 'High Roller'}
+                                </span>
                             </button>
 
                             {/* VIP LOUNGE */}
