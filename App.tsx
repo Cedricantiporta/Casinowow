@@ -2157,7 +2157,7 @@ const App: React.FC = () => {
 
              // CANDY: scatters open the Wild Wheel bonus, which picks the persistent wild setup before free spins begin.
              if (selectedGame.theme === 'CANDY') {
-                 const spinsWon = scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20;
+                 const spinsWon = 10;
                  setFreeSpinsWon(spinsWon);
                  setTotalFreeSpins(prev => prev + spinsWon);
                  if (freeSpinsRemaining > 0) {
@@ -2174,12 +2174,10 @@ const App: React.FC = () => {
              }
 
              const spinsWon = selectedGame.theme === 'ARCTIC'
-                 ? (scatterCount === 3 ? 15 : scatterCount === 4 ? 20 : 25)
+                 ? 15
                  : selectedGame.theme === 'PIRATE'
-                 ? 3
-                 : selectedGame.theme === 'SPACE'
-                 ? 10
-                 : (scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20);
+                 ? scatterCount
+                 : 10;
              setFreeSpinsWon(spinsWon);
              setTotalFreeSpins(prev => prev + spinsWon);
 
@@ -2202,7 +2200,7 @@ const App: React.FC = () => {
             let coinCount = 0;
             targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
             if (coinCount >= 6) {
-                const spinsWon = 15;
+                const spinsWon = 10;
                 setFreeSpinsWon(spinsWon);
                 setTotalFreeSpins(prev => prev + spinsWon);
                 if (freeSpinsRemaining > 0) {
@@ -2223,7 +2221,7 @@ const App: React.FC = () => {
             let coinCount = 0;
             targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
             if (coinCount >= 6) {
-                const spinsWon = 15;
+                const spinsWon = 10;
                 setFreeSpinsWon(spinsWon);
                 setTotalFreeSpins(prev => prev + spinsWon);
                 if (freeSpinsRemaining > 0) {
@@ -3685,31 +3683,6 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* PIRATE Ghost Ship — feature banner above the reels */}
-                        {pirateWalkActive && selectedGame.theme === 'PIRATE' && (
-                            <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
-                                <div style={{
-                                    background: 'linear-gradient(180deg,#0a3a4a,#06212b)',
-                                    border: '2px solid #38e8ff',
-                                    borderRadius: 999,
-                                    padding: '4px 14px',
-                                    boxShadow: '0 0 18px rgba(56,232,255,0.6), 0 4px 10px rgba(0,0,0,0.6)',
-                                    whiteSpace: 'nowrap',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 6,
-                                }}>
-                                    <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#bdf4ff', textShadow: '0 0 8px rgba(56,232,255,0.9)' }}>
-                                        👻 Ghost Ship — Walking Wilds
-                                    </span>
-                                    {pirateWalkTotalWin > 0 && (
-                                        <span className="font-black" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#fde68a', textShadow: '0 0 6px rgba(0,0,0,0.9)' }}>
-                                            +{formatK(pirateWalkTotalWin)}
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
 
                         {/* PIRATE free-spin counter — shows remaining / total beneath the Ghost Ship banner */}
                         {selectedGame.theme === 'PIRATE' && totalFreeSpins > 0 && (
