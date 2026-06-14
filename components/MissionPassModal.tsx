@@ -242,14 +242,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? '💰' : mission.type === 'BET_COINS' ? '🪙' : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : mission.type === 'MAX_BET_SPIN' ? '💎' : '⭐'}
                                 </div>
 
-                                {/* Title */}
-                                <div className="text-white font-black text-[11px] uppercase text-center leading-none relative z-10">
-                                    {mission.type === 'SPIN_COUNT' ? 'Spin Challenge' : mission.type === 'WIN_COINS' ? 'Win Challenge' : mission.type === 'BET_COINS' ? 'Bet Challenge' : mission.type === 'BIG_WIN_COUNT' ? 'Big Win Challenge' : mission.type === 'LEVEL_UP' ? 'Level Up Challenge' : mission.type === 'MAX_BET_SPIN' ? 'Max Bet Challenge' : 'Challenge'}
-                                </div>
-
-                                {/* Label */}
-                                <div className="text-fuchsia-400 text-[9px] font-bold uppercase text-center leading-none relative z-10">Daily Mission</div>
-
                                 {/* Description */}
                                 <div className="text-white font-black text-[12px] leading-snug text-center flex-1 relative z-10">{mission.description}</div>
 
@@ -260,18 +252,22 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%` }} />
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <span className="text-[10px] font-black leading-none text-white" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
-                                                {mission.completed ? '✓ DONE' : `${formatK(mission.current)} / ${formatK(mission.target)}`}
+                                                {`${formatK(mission.current)} / ${formatK(mission.target)}`}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Rewards */}
-                                <div className="flex items-center justify-between relative z-10">
-                                    <span className={`font-mono text-[11px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
-                                        +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} Pass XP
-                                    </span>
-                                    <span className="text-yellow-300 font-mono text-[11px] font-black">+{formatK(mission.coinReward)}</span>
+                                <div className="flex flex-col gap-0.5 relative z-10">
+                                    <div className="text-center">
+                                        <span className={`font-mono text-[11px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
+                                            +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} Pass XP
+                                        </span>
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="text-yellow-300 font-mono text-[11px] font-black">+{formatK(mission.coinReward)} Coins</span>
+                                    </div>
                                 </div>
 
                                 {/* Action */}

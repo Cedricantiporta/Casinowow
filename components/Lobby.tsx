@@ -150,8 +150,66 @@ export const Lobby: React.FC<LobbyProps> = ({
 
               <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9">
 
-                    {/* ── Normal lobby — horizontal scroll grid ── */}
-                    <>
+                    {isHighLimit ? (
+                        /* ── High Roller lobby — single row, 6 card-shaped slots ── */
+                        <div className="flex items-center justify-center gap-3 px-4 overflow-x-auto no-scrollbar w-full h-full">
+                            {GAMES_CONFIG.slice(0, 6).map((game, idx) => {
+                                const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300' :
+                                    game.theme === 'EGYPT' ? 'text-amber-400' :
+                                    game.theme === 'DRAGON' ? 'text-red-400' :
+                                    game.theme === 'PIRATE' ? 'text-sky-300' :
+                                    game.theme === 'SPACE' ? 'text-indigo-300' :
+                                    game.theme === 'PIGGY' ? 'text-pink-300' :
+                                    'text-yellow-200';
+                                let icon = '🍭';
+                                if (game.theme === 'NEON') icon = '🎰';
+                                else if (game.theme === 'EGYPT') icon = '🦂';
+                                else if (game.theme === 'DRAGON') icon = '🐉';
+                                else if (game.theme === 'PIRATE') icon = '🏴‍☠️';
+                                else if (game.theme === 'SPACE') icon = '👽';
+                                else if (game.theme === 'PIGGY') icon = '🐷';
+                                const unlockLevel = getUnlockLevel(idx);
+                                const isLocked = playerLevel < unlockLevel;
+                                const hrJackpot = jackpotTotals[idx] ?? 0;
+                                return (
+                                    <div key={game.id} className="flex flex-col items-center gap-2 shrink-0">
+                                        {/* Jackpot counter — big rectangle */}
+                                        <div style={{ width: '100px', background: 'rgba(10,4,0,0.95)', border: '3px solid #f59e0b', borderRadius: '8px', padding: '5px 8px', textAlign: 'center', boxShadow: '0 0 14px rgba(245,158,11,0.7), inset 0 1px 0 rgba(255,255,255,0.1)' }}>
+                                            <div style={{ fontSize: '7px', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>JACKPOT</div>
+                                            <div style={{ fontSize: '15px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, whiteSpace: 'nowrap', textShadow: '0 0 10px rgba(245,158,11,0.9)' }}>{formatK(hrJackpot)}</div>
+                                        </div>
+                                        {/* Card-shaped slot */}
+                                        <button
+                                            onClick={() => onSelectGame(game, false)}
+                                            className={`relative overflow-hidden ${isLocked ? 'cursor-not-allowed' : 'active:scale-95 transition-transform'}`}
+                                            style={{ width: '100px', height: '148px', borderRadius: '14px', boxShadow: '0 0 18px rgba(245,158,11,0.35), inset 0 2px 0 rgba(255,220,80,0.7), 0 8px 24px rgba(0,0,0,0.7)', border: '2px solid rgba(245,158,11,0.5)' }}
+                                        >
+                                            <div className={`absolute inset-0 bg-gradient-to-br ${game.color}${isLocked ? ' blur-[1.5px]' : ''}`}></div>
+                                            <div className={`absolute inset-0 z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
+                                                </div>
+                                                <div className="absolute bottom-0 left-0 right-0 pb-2 px-1 text-center">
+                                                    <h3 className={`text-[11px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
+                                                        style={{ WebkitTextStroke: '1px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
+                                                        {game.name}
+                                                    </h3>
+                                                </div>
+                                            </div>
+                                            {isLocked && (
+                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
+                                                    <span className="text-3xl leading-none grayscale drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">🔒</span>
+                                                    <span className="text-white font-black text-[10px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: '14px' }}></div>
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
                             className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 px-3 overflow-x-auto no-scrollbar snap-x"
@@ -224,8 +282,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             })}
                             <div className="w-8"></div>
                         </div>
-
-                    </>
+                    )}
             </div>
  
             {/* Bottom bar — centered floating platform, icons protrude above */}

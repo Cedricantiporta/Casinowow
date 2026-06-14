@@ -304,6 +304,7 @@ const App: React.FC = () => {
   const [neonRouletteBet, setNeonRouletteBet] = useState(0);
   const neonRouletteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showRouletteTriggerNotif, setShowRouletteTriggerNotif] = useState(false);
+  const [showHRLoading, setShowHRLoading] = useState(false);
 
   // Dragon's Fortune Pick-and-Win state
   const [showDragonPickModal, setShowDragonPickModal] = useState(false);
@@ -614,8 +615,12 @@ const App: React.FC = () => {
           setCurrentView('LOBBY');
           setIsHighLimit(false);
       } else if (player.level >= 35) {
-          setIsHighLimit(true);
-          setCurrentView('HIGH_LIMIT');
+          setShowHRLoading(true);
+          setTimeout(() => {
+              setShowHRLoading(false);
+              setIsHighLimit(true);
+              setCurrentView('HIGH_LIMIT');
+          }, 1800);
       } else {
           setCelebrationMsg('High Roller unlocks at Level 35!');
       }
@@ -3709,6 +3714,26 @@ const App: React.FC = () => {
       )}
       
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />
+
+      {showHRLoading && (
+          <div className="fixed inset-0 z-[400] flex flex-col items-center justify-center"
+              style={{ background: 'linear-gradient(160deg,#1c0a00,#3a1800,#0f0600)' }}>
+              <div className="animate-pop-in flex flex-col items-center gap-4">
+                  <span style={{ fontSize: '4rem', lineHeight: 1 }}>🎰</span>
+                  <div className="font-black text-2xl uppercase tracking-widest"
+                      style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                      High Roller
+                  </div>
+                  <div className="text-yellow-200/60 text-[11px] font-bold uppercase tracking-widest">Entering VIP Floor...</div>
+                  <div className="flex gap-1 mt-2">
+                      {[0,1,2].map(i => (
+                          <div key={i} className="w-2 h-2 rounded-full animate-bounce"
+                              style={{ background: '#ffd700', animationDelay: `${i * 0.15}s` }} />
+                      ))}
+                  </div>
+              </div>
+          </div>
+      )}
 
       {showRouletteTriggerNotif && (
           <div className="fixed inset-0 z-[350] flex items-center justify-center pointer-events-none">
