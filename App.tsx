@@ -21,6 +21,7 @@ import { PiggyBankModal } from './components/PiggyBankModal';
 import { FeatureUnlockModal } from './components/FeatureUnlockModal';
 import { SettingsModal } from './components/SettingsModal';
 import { VipLoungeModal } from './components/VipLoungeModal';
+import { MiniGamesHub } from './components/MiniGamesHub';
 import { audioService } from './services/audioService';
 import { jackpotService } from './services/jackpotService';
 import { JackpotCelebration } from './components/JackpotCelebration';
@@ -212,6 +213,7 @@ const App: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showVipLounge, setShowVipLounge] = useState(false);
+  const [showMiniGamesHub, setShowMiniGamesHub] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const savedFastSpinRef = useRef<boolean>(false);
   const [scatterAnticipation, setScatterAnticipation] = useState(false);
@@ -636,6 +638,7 @@ const App: React.FC = () => {
           vipExpiry: Date.now() + 30 * 24 * 3600000,
       }));
       setShowVipLounge(false);
+      setShowMiniGamesHub(false);
       setIsHighLimit(true);
       setCurrentView('HIGH_LIMIT');
       audioService.playClick();
@@ -3099,6 +3102,7 @@ const App: React.FC = () => {
                 onSelectGame={handleGameSelect}
                 onOpenWildQuest={handleWildQuestClaim}
                 onOpenDiceQuest={handleDiceQuestClaim}
+                onOpenMiniGames={() => setShowMiniGamesHub(true)}
                 onOpenMissions={openMissionsModal}
                 onOpenBattlePass={openBattlePassModal}
                 onClaimBonus={handleOpenTimeBonus}
@@ -3136,41 +3140,24 @@ const App: React.FC = () => {
                     return (
                         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
                             style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', border: isHighLimit ? '1.5px solid #8b6200' : '1.5px solid #38106e', borderRadius:'21px', padding:'6px 6px', gap:'2px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
+                            {/* Mini Games single icon */}
                             <button
-                                onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
+                                onClick={!isQuestLocked ? () => setShowMiniGamesHub(true) : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                                 style={{ padding:'3px 3px' }}
                             >
                                 {isQuestLocked
                                     ? <span className="text-[28px] leading-none">🔒</span>
                                     : <>
-                                        {quest.wildCredits > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.wildCredits}
+                                        {(quest.wildCredits + quest.diceCredits) > 0 && (
+                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                {quest.wildCredits + quest.diceCredits}
                                             </div>
                                         )}
-                                        <span className="text-[36px] leading-none">🗿</span>
+                                        <span className="text-[36px] leading-none">🎮</span>
                                       </>
                                 }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
-                            </button>
-                            <button
-                                onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
-                            >
-                                {isQuestLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {quest.diceCredits > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.diceCredits}
-                                            </div>
-                                        )}
-                                        <span className="text-[36px] leading-none">🎲</span>
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
+                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Games</span>
                             </button>
                             <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
                             <button
@@ -3935,6 +3922,19 @@ const App: React.FC = () => {
           vipXp={player.vipXp ?? 0}
           vipXpToNext={player.vipXpToNext ?? 500}
           onJoinVip={handleJoinVip}
+      />
+
+      <MiniGamesHub
+          isOpen={showMiniGamesHub}
+          onClose={() => setShowMiniGamesHub(false)}
+          onOpenWildQuest={() => { setShowMiniGamesHub(false); setTimeout(handleWildQuestClaim, 50); }}
+          onOpenDiceQuest={() => { setShowMiniGamesHub(false); setTimeout(handleDiceQuestClaim, 50); }}
+          wildCredits={quest.wildCredits}
+          diceCredits={quest.diceCredits}
+          isQuestLocked={player.level < 20}
+          balance={player.balance}
+          currentBet={availableBets[betIndex] ?? ALL_BETS[0]}
+          onCoinFlipResult={(netChange) => setPlayer(p => ({ ...p, balance: Math.max(0, p.balance + netChange) }))}
       />
 
       <PremiumModal
