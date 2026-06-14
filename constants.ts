@@ -103,9 +103,9 @@ export const GAMES_CONFIG: GameConfig[] = [
     name: 'Cosmic Cash',
     theme: 'SPACE',
     rows: 5,
-    reels: 8,
+    reels: 6,
     scattersToTrigger: 3,
-    description: 'Interstellar wins on a 5×8 Grid!',
+    description: 'Interstellar wins on a 5×6 Grid!',
     color: 'from-indigo-500 via-violet-700 to-purple-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #6366f1 0%, #1e1b4b 100%)',
     reelBg: REEL_BGS.SPACE

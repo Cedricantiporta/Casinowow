@@ -1514,14 +1514,15 @@ const App: React.FC = () => {
 
       // PIRATE: ~4% base-game chance for a Ghost Ship to board on the rightmost reel.
       // During free spins, Ghost Ship is GUARANTEED — no jackpot symbols during walk.
-      // 1% chance of 2 simultaneous Ghost Ships (two full WILD columns).
+      // 20% chance of a second Ghost Ship boarding 1-3 cols to the left of the first.
       if (selectedGame.theme === 'PIRATE' && !pirateWalkRef.current.active) {
           if (isFreeSpin || Math.random() < 0.04) {
-              const dual = Math.random() < 0.01;
               const lastCol = cols - 1;
               for (let r = 0; r < rows; r++) newGrid[lastCol][r] = SymbolType.WILD;
-              if (dual && cols >= 2) {
-                  const secondCol = lastCol - 1;
+              if (cols >= 4 && Math.random() < 0.20) {
+                  // Second ship appears adjacent or 1-2 cols left of the first
+                  const offset = 1 + Math.floor(Math.random() * 3); // 1, 2, or 3
+                  const secondCol = Math.max(0, lastCol - offset);
                   for (let r = 0; r < rows; r++) newGrid[secondCol][r] = SymbolType.WILD;
               }
               pirateShipSeeded = true;
@@ -1858,6 +1859,7 @@ const App: React.FC = () => {
     if (status !== GameStatus.IDLE && status !== GameStatus.FREE_SPIN_INTRO) return;
     if (activeModal !== 'NONE') return;
     if (showFreeSpinsPopup) return;
+    if (showFreeSpinSummary) return;
     if (showCandyRoulette) return;
     if (dragonPotShaking || showDragonTriggerPopup) return;
 
@@ -1946,7 +1948,7 @@ const App: React.FC = () => {
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
-  }, [status, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showCandyRoulette, player.level, selectedGame.theme]);
+  }, [status, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, player.level, selectedGame.theme]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -2147,6 +2149,8 @@ const App: React.FC = () => {
 
              const spinsWon = selectedGame.theme === 'ARCTIC'
                  ? (scatterCount === 3 ? 15 : scatterCount === 4 ? 20 : 25)
+                 : (selectedGame.theme === 'PIRATE' || selectedGame.theme === 'SPACE')
+                 ? 10
                  : (scatterCount === 3 ? 10 : scatterCount === 4 ? 15 : 20);
              setFreeSpinsWon(spinsWon);
              setTotalFreeSpins(prev => prev + spinsWon);
@@ -2325,9 +2329,15 @@ const App: React.FC = () => {
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
 
-    // SPACE: Supernova progressive multiplier applies to line wins during free spins
-    if (selectedGame.theme === 'SPACE' && totalFreeSpins > 0 && totalPayout > 0) {
-        totalPayout = Math.floor(totalPayout * spaceFsMultRef.current);
+    // SPACE: Supernova progressive multiplier applies to line wins during free spins.
+    // No-win spin resets the multiplier back to ×1.
+    if (selectedGame.theme === 'SPACE' && totalFreeSpins > 0) {
+        if (totalPayout > 0) {
+            totalPayout = Math.floor(totalPayout * spaceFsMultRef.current);
+        } else {
+            spaceFsMultRef.current = 1;
+            setSpaceMultiplier(1);
+        }
     }
 
     // ARCTIC: no jackpot logic — start cascade sequence
@@ -3055,15 +3065,12 @@ const App: React.FC = () => {
       const currentBet = availableBets[betIndex];
       const latestTotalWin = freeSpinTotalWinRef.current;
       const tier = latestTotalWin > 0 ? getWinTier(latestTotalWin, currentBet) : null;
-      if (tier) {
-          setWinData({ payout: latestTotalWin, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: tier });
-          audioService.playWinBig();
-          setShowWinPopup(true);
-          setStatus(GameStatus.WIN_ANIMATION);
-      } else setStatus(GameStatus.IDLE);
+
+      // Reset all feature state immediately so the slot is clean on the way back
       setFreeSpinsWon(0);
       setTotalFreeSpins(0);
       setFreeSpinTotalWin(0);
+      freeSpinTotalWinRef.current = 0;
       setFastSpin(savedFastSpinRef.current);
       setTargetGrid([]);
       spaceFsMultRef.current = 1;
@@ -3072,6 +3079,32 @@ const App: React.FC = () => {
       candyPendingColsRef.current = [];
       setCandyCols([]);
       setCandyConfig(null);
+      // Hard-reset pirate walk so Ghost Ship state never bleeds into normal spins
+      pirateWalkRef.current = { active: false, shipCol: -1 };
+      pirateTriggerArmedRef.current = false;
+      pirateWalkTotalWinRef.current = 0;
+      setPirateWalkActive(false);
+      setPirateShipCol(-1);
+      setPirateWalkTotalWin(0);
+
+      // Transition animation: fade the reels out (free-spin theme) then back in (normal theme)
+      setReelTransitioning('out');
+      setTimeout(() => {
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+              setReelTransitioning('in');
+              setTimeout(() => {
+                  setReelTransitioning(false);
+                  if (tier) {
+                      setWinData({ payout: latestTotalWin, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: tier });
+                      audioService.playWinBig();
+                      setShowWinPopup(true);
+                      setStatus(GameStatus.WIN_ANIMATION);
+                  } else {
+                      setStatus(GameStatus.IDLE);
+                  }
+              }, 1100);
+          }));
+      }, 900);
   };
 
   useEffect(() => {
@@ -3088,7 +3121,8 @@ const App: React.FC = () => {
                       setCelebrationMsg(won > 0 ? `👻 Ghost Ship Bounty: +${formatCommaNumber(won)}!` : '👻 The Ghost Ship sailed away…');
                       if (won > 0) audioService.playWinBig();
                   }, 250);
-                  if (player.autoSpin && activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 150 : AUTO_SPIN_DELAY);
+                  // DO NOT call spin() here — the IDLE effect re-runs after pirateWalkActive flips false
+                  // and will correctly show the free-spin summary (freeSpinsWon > 0) or auto-spin.
               } else if (activeModal === 'NONE') {
                   pirateWalkRef.current.shipCol -= 1;
                   setPirateShipCol(pirateWalkRef.current.shipCol);
@@ -3100,13 +3134,13 @@ const App: React.FC = () => {
           } else if (freeSpinsRemaining > 0) {
               const delay = fastSpin ? 50 : 1200;
               if (activeModal === 'NONE' && !showFreeSpinsPopup) setTimeout(() => spin(), delay);
-          } else if (freeSpinsWon > 0 && !showFreeSpinsPopup) {
+          } else if (freeSpinsWon > 0 && !showFreeSpinsPopup && !showFreeSpinSummary) {
               setShowFreeSpinSummary(true);
-          } else if (player.autoSpin) {
+          } else if (player.autoSpin && !showFreeSpinSummary) {
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 50 : AUTO_SPIN_DELAY);
           }
       }
-  }, [status, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup]);
+  }, [status, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary]);
 
   const handleHeaderBack = () => {
     if (showCandyRoulette) {
@@ -3606,6 +3640,30 @@ const App: React.FC = () => {
                             </div>
                         )}
 
+                        {/* PIRATE free-spin counter — shows remaining / total beneath the Ghost Ship banner */}
+                        {selectedGame.theme === 'PIRATE' && totalFreeSpins > 0 && (
+                            <div className="absolute -bottom-1 inset-x-0 flex justify-center z-30 pointer-events-none">
+                                <div style={{
+                                    background: 'linear-gradient(180deg,#06212b,#030e14)',
+                                    border: '1.5px solid rgba(56,232,255,0.5)',
+                                    borderRadius: 999,
+                                    padding: '2px 10px',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.7)',
+                                    whiteSpace: 'nowrap',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 4,
+                                }}>
+                                    <span className="font-black text-cyan-200" style={{ fontSize: 'clamp(9px,2.2vw,12px)' }}>
+                                        FREE SPINS
+                                    </span>
+                                    <span className="font-black text-yellow-300" style={{ fontSize: 'clamp(10px,2.4vw,13px)' }}>
+                                        {freeSpinsRemaining}/{totalFreeSpins}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* SPACE Supernova — progressive multiplier banner during free spins */}
                         {selectedGame.theme === 'SPACE' && totalFreeSpins > 0 && (
                             <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
@@ -3857,7 +3915,7 @@ const App: React.FC = () => {
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={handleSpinMouseDown}
                       onTouchEnd={handleSpinMouseUp}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showCandyRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
