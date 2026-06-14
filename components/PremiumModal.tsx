@@ -168,7 +168,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <button onClick={onBuyVip} disabled={isVip}
                                 className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest"
                                 style={{ background: isVip ? 'linear-gradient(180deg,#6b7280,#374151)' : 'linear-gradient(180deg,#fbbf24,#b45309)', boxShadow: isVip ? '0 3px 0 #1f2937' : '0 3px 0 #78350f', color: '#fff', cursor: isVip ? 'not-allowed' : 'pointer' }}>
-                                {isVip ? '✓ Active' : 'Get VIP'}
+                                {isVip ? '✓ Active' : '₱ 299'}
                             </button>
                         </div>
                     </div>}
@@ -196,7 +196,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <button onClick={onBuyPremium}
                                 className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest"
                                 style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 #4c1d95', color: '#fff' }}>
-                                Get Pass
+                                ₱ 199
                             </button>
                         </div>
                     </div>}

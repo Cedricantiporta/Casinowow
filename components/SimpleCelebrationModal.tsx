@@ -21,7 +21,7 @@ export const SimpleCelebrationModal: React.FC<SimpleCelebrationModalProps> = ({ 
             <div className="animate-pop-in flex flex-col items-center">
                 <div
                     className="flex items-center justify-center px-6 py-2"
-                    style={{ background: '#d97706', borderRadius: 0 }}
+                    style={{ background: 'transparent', borderRadius: 0 }}
                 >
                     <span
                         className="text-2xl md:text-3xl font-black"

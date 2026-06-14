@@ -669,8 +669,6 @@ const App: React.FC = () => {
       }));
       setShowVipLounge(false);
       setShowMiniGamesHub(false);
-      setIsHighLimit(true);
-      setCurrentView('HIGH_LIMIT');
       audioService.playClick();
   };
 
@@ -1861,7 +1859,7 @@ const App: React.FC = () => {
       }
       if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
       if (isFinish) {
-          const bonusCoins = Math.round(MAX_BET_BY_LEVEL(player.level) * quest.diceStage * 5);
+          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * 5 * Math.pow(1.10, quest.diceStage - 1));
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
           const currentStage = quest.diceStage;
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
@@ -1941,7 +1939,7 @@ const App: React.FC = () => {
         setFreeSpinsRemaining(prev => prev - 1);
         // SPACE: ramp the Supernova multiplier (+1 each free spin, capped ×15)
         if (selectedGame.theme === 'SPACE') {
-            spaceFsMultRef.current = Math.min(15, spaceFsMultRef.current + 1);
+            spaceFsMultRef.current = Math.min(8, spaceFsMultRef.current + 1);
             setSpaceMultiplier(spaceFsMultRef.current);
         }
         updateMissions(MissionType.SPIN_COUNT, 1);
@@ -2519,7 +2517,7 @@ const App: React.FC = () => {
        const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult * 2);
 
        addXp(xpGained);
-       addVipXp(Math.max(1, Math.floor(xpGained * 0.1)));
+       if (player.isVip) addVipXp(Math.max(1, Math.floor(xpGained * 0.1)));
        updateMissions(MissionType.WIN_COINS, totalPayout);
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
 
@@ -2543,7 +2541,7 @@ const App: React.FC = () => {
        const betFractionLoss = currentBet / MAX_BET_BY_LEVEL(player.level);
        const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss * 2);
        addXp(lossXp);
-       addVipXp(Math.max(1, Math.floor(lossXp * 0.1)));
+       if (player.isVip) addVipXp(Math.max(1, Math.floor(lossXp * 0.1)));
        const effectiveFastSpin = fastSpin;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
     }
@@ -4013,8 +4011,8 @@ const App: React.FC = () => {
                   <div
                       onMouseDown={handleSpinMouseDown}
                       onMouseUp={handleSpinMouseUp}
-                      onTouchStart={handleSpinMouseDown}
-                      onTouchEnd={handleSpinMouseUp}
+                      onTouchStart={(e) => { e.preventDefault(); handleSpinMouseDown(); }}
+                      onTouchEnd={(e) => { e.preventDefault(); handleSpinMouseUp(); }}
                       className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">

@@ -307,7 +307,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 if (onGridUpdate) onGridUpdate(finalGridWithGem);
                 onBatchPick(1, surroundingRewards);
                 if (gemFoundFromBomb) {
-                    setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
+                    setStageClearData({ coins: Math.floor((maxBet || 10000) * 10 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(10 * Math.pow(1.10, wildStage - 1)) });
                     setStageWinning(true);
                 }
             }, 600);
@@ -319,7 +319,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (onGridUpdate) onGridUpdate(gridAfterGem);
         if (cell.content === 'GEM') {
             audioService.playGemFound();
-            setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
+            setStageClearData({ coins: Math.floor((maxBet || 10000) * 10 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(10 * Math.pow(1.10, wildStage - 1)) });
             setStageWinning(true);
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
@@ -354,7 +354,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
-            setStageClearData({ coins: Math.round((maxBet || 10000) * wildStage * 10), gems: 10 * wildStage });
+            setStageClearData({ coins: Math.floor((maxBet || 10000) * 10 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(10 * Math.pow(1.10, wildStage - 1)) });
             setStageWinning(true);
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
