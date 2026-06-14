@@ -131,6 +131,8 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                               isLastCell={i === forcedSymbols.length - 1}
                               isNewCell={isNew}
                               dissolving={dissolving}
+                              gameRows={gameConfig.rows}
+                              gameReels={gameConfig.reels}
                           />
                       );
                   })}
@@ -185,6 +187,8 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                             theme={gameConfig.theme}
                             isLastCell={i === renderStrip.length - 1}
                             dissolving={dissolving}
+                            gameRows={gameConfig.rows}
+                            gameReels={gameConfig.reels}
                         />
                     );
                 })}
@@ -242,7 +246,9 @@ const ReelCell: React.FC<{
     isLastCell: boolean,
     isNewCell?: boolean,
     dissolving?: boolean,
-}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving }) => {
+    gameRows?: number,
+    gameReels?: number,
+}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6 }) => {
 
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
@@ -282,11 +288,13 @@ const ReelCell: React.FC<{
 
     const activeBounce = highlight || isScatterShowcase;
 
-    const fontSize = isWild
-        ? 'text-[1.296rem] md:text-[1.746rem] lg:text-[2.187rem]'
-        : isLetter
-            ? 'text-[2.73rem] md:text-[3.28rem] lg:text-[4.37rem]'
-            : 'text-[3.0375rem] md:text-[3.645rem] lg:text-[4.86rem]';
+    // Scale icons proportionally — cells shrink when more rows or more reels fill the same container
+    const cellScale = Math.min(1.0, 3.0 / gameRows, 6.0 / gameReels);
+    const emojiFontSize  = `${(3.0375  * cellScale).toFixed(3)}rem`;
+    const letterFontSize = `${(2.73    * cellScale).toFixed(3)}rem`;
+    const wildFontSize   = `${(1.296   * cellScale).toFixed(3)}rem`;
+    const scatterLabelFs = `${(0.729   * cellScale).toFixed(3)}rem`;
+    const iconFontSize   = isWild ? wildFontSize : isLetter ? letterFontSize : emojiFontSize;
 
     const separatorStyle = getCellSeparatorStyle(theme, isLastCell);
 
@@ -325,7 +333,7 @@ const ReelCell: React.FC<{
                         <span
                             className="font-titan font-black tracking-widest select-none text-white leading-none text-center px-1"
                             style={{
-                                fontSize: 'clamp(0.5rem, 1.8vw, 1rem)',
+                                fontSize: `clamp(0.4rem, ${(1.8 * cellScale).toFixed(2)}vw, ${(1.0 * cellScale).toFixed(3)}rem)`,
                                 textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.7)',
                             }}
                         >
@@ -333,11 +341,11 @@ const ReelCell: React.FC<{
                         </span>
                     ) : (
                         <div
-                            className={`
-                                ${fontSize} select-none transform
-                                ${config?.style || ''}
-                                `}
-                            style={isLetter ? { textShadow: getLetter3DShadow(symbol, theme), color: '#ffffff' } : undefined}
+                            className={`select-none transform ${config?.style || ''}`}
+                            style={{
+                                fontSize: iconFontSize,
+                                ...(isLetter ? { textShadow: getLetter3DShadow(symbol, theme), color: '#ffffff' } : undefined),
+                            }}
                         >
                             {config?.icon}
                         </div>
@@ -346,8 +354,8 @@ const ReelCell: React.FC<{
                     {isScatter && !blur && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
                             <span
-                                className="block font-titan text-[0.729rem] md:text-[0.972rem] font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
-                                style={{ textShadow: '0 0 4px black, 0 0 8px black' }}
+                                className="block font-titan font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
+                                style={{ fontSize: scatterLabelFs, textShadow: '0 0 4px black, 0 0 8px black' }}
                             >
                                 {theme === 'NEON' ? 'BONUS' : 'SCATTER'}
                             </span>

@@ -114,7 +114,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     id: 'sugar-rush',
     name: 'Sugar Rush',
     theme: 'CANDY',
-    rows: 4,
+    rows: 5,
     reels: 6,
     scattersToTrigger: 3,
     description: 'Wild Wheel free spins with switching wilds!',

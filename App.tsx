@@ -203,7 +203,7 @@ const App: React.FC = () => {
   const [betIndex, setBetIndex] = useState(0);
   const currentBetRef = useRef(ALL_BETS[0]);
   const [status, setStatus] = useState<GameStatus>(GameStatus.IDLE);
-    const [grid, setGrid] = useState<SymbolType[][]>(Array(GAMES_CONFIG[0].reels).fill(null).map(() => Array(3).fill(SymbolType.SEVEN)));
+    const [grid, setGrid] = useState<SymbolType[][]>(Array(GAMES_CONFIG[0].reels).fill(null).map(() => Array(GAMES_CONFIG[0].rows).fill(SymbolType.SEVEN)));
   const [targetGrid, setTargetGrid] = useState<SymbolType[][]>([]);
   const [winData, setWinData] = useState<WinData | null>(null);
   const [stoppedReels, setStoppedReels] = useState(0);
@@ -2964,8 +2964,7 @@ const App: React.FC = () => {
       // Show loading screen immediately, then set up the game
       setGameLoadingConfig(game);
       setTimeout(() => {
-          const modifiedGame = { ...game, rows: 3 };
-          setSelectedGame(modifiedGame);
+          setSelectedGame(game);
           setPlayer(prev => {
               const newRecent = [game.id, ...((prev.stats?.recentSlots as string[]) || []).filter((id: string) => id !== game.id)].slice(0, 5);
               return { ...prev, stats: { ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }), recentSlots: newRecent } };
@@ -3017,7 +3016,7 @@ const App: React.FC = () => {
               setFreeSpinsWon(0);
               setFreeSpinTotalWin(0);
               setSpinsWithoutBonus(0);
-              setGrid(Array(game.reels).fill(null).map(() => Array(3).fill(SymbolType.SEVEN)));
+              setGrid(Array(game.reels).fill(null).map(() => Array(game.rows).fill(SymbolType.SEVEN)));
               setWinData(null);
           }
           setTargetGrid([]);
