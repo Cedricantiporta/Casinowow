@@ -106,7 +106,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     ];
 
     const freeItem = {
-        icon: '🎁',
+        icon: '/ui/gift_store.png',
         label: 'FREE COINS',
         sub: fmt(freeCoinsAmount),
         price: isFreeStashClaimed ? 'CLAIMED' : 'CLAIM',
@@ -160,7 +160,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 <button key="Free" onClick={() => scrollToSection('FREE')}
                     className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5 relative"
                     style={{ background: '#166534', minWidth: '34px' }}>
-                    <span>🎁</span>
+                    <img src="/ui/gift_store.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                     <span>Free</span>
                     {freeCoinsAvailable && (
                         <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full" style={{ background: '#dc2626', border: '1.5px solid #f0c000' }} />

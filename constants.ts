@@ -271,8 +271,8 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   },
   ARCTIC: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '/arctic/snow.png', [SymbolType.BELL]: '/arctic/fish.png', [SymbolType.BAR]: '/arctic/wave.png', [SymbolType.CHERRY]: '/arctic/seal.png', [SymbolType.SEVEN]: '/arctic/penguin.png',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '/arctic/ice.png', ...JP_ICONS
+    [SymbolType.GRAPE]: '/arctic/ice.png', [SymbolType.BELL]: '/arctic/fish.png', [SymbolType.BAR]: '/arctic/wave.png', [SymbolType.CHERRY]: '/arctic/seal.png', [SymbolType.SEVEN]: '/arctic/penguin.png',
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '/arctic/snow.png', ...JP_ICONS
   },
 };
 

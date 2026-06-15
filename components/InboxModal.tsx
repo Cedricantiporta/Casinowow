@@ -19,12 +19,11 @@ interface InboxModalProps {
     onClaim: (id: string) => void;
 }
 
-const getMessageIcon = (type: string) => {
-    if (type === 'WELCOME') return '🎁';
-    if (type === 'DAILY_COINS') return '🪙';
-    if (type === 'DAILY_PACK') return '🃏';
-    if (type === 'VIP_CASHBACK') return '👑';
-    return '📩';
+const MSG_ICONS: Record<string, string> = {
+    WELCOME:      '/ui/gift_mail.png',
+    DAILY_COINS:  '/ui/gift_mail.png',
+    DAILY_PACK:   '/ui/gift_mail.png',
+    VIP_CASHBACK: '/symbols/coin.png',
 };
 
 export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, messages, onClaim }) => {
@@ -46,7 +45,7 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
                 {messages.map(msg => (
                     <div key={msg.id} className="rounded-2xl p-3 flex items-center gap-3"
                         style={{ background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}>
-                        <span style={{ fontSize: '2rem', lineHeight: 1, flexShrink: 0 }}>{getMessageIcon(msg.type)}</span>
+                        <img src={MSG_ICONS[msg.type] ?? '/ui/gift_mail.png'} alt="" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.5))' }} />
                         <div className="flex-1 min-w-0">
                             <div className="font-black text-white text-xs uppercase tracking-wide leading-none">{msg.title}</div>
                             <div className="text-purple-300/80 text-xs mt-0.5 leading-tight">{msg.body}</div>

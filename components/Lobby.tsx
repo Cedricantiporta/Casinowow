@@ -458,7 +458,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {/* HIGH ROLLER — icon flips to "back to lobby" when in HR */}
                             <button onClick={!isHighRollerLocked ? onOpenHighRoller : undefined} className={iconBtn(isHighRollerLocked)}>
                                 {isHighRollerLocked && lockBadge(35)}
-                                <img src={isHighLimit ? undefined : '/ui/highroller.png'} alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" style={{ display: isHighLimit ? 'none' : undefined }} />
+                                <img src={isHighLimit ? undefined : '/ui/high_roller.png'} alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" style={{ display: isHighLimit ? 'none' : undefined }} />
                                 {isHighLimit && <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🏠</span>}
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">
                                     {isHighLimit ? 'Lobby' : 'High Roller'}

@@ -367,13 +367,13 @@ const ReelCell: React.FC<{
                         </div>
                     )}
 
-                    {isScatter && !blur && (theme === 'NEON' || theme === 'PIRATE' || theme === 'CANDY') && (
+                    {isScatter && !blur && (theme === 'NEON' || theme === 'PIRATE' || theme === 'CANDY' || theme === 'ARCTIC') && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
                             <span
                                 className="block font-titan font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
                                 style={{ fontSize: scatterLabelFs, textShadow: '0 0 4px black, 0 0 8px black' }}
                             >
-                                {theme === 'PIRATE' ? 'SCATTER' : 'BONUS'}
+                                {(theme === 'PIRATE' || theme === 'ARCTIC') ? 'SCATTER' : 'BONUS'}
                             </span>
                         </div>
                     )}
