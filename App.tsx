@@ -3523,7 +3523,7 @@ const App: React.FC = () => {
                                                 {quest.wildCredits}
                                             </div>
                                         )}
-                                        <span className="text-[36px] leading-none">🗿</span>
+                                        <img src="/ui/coinmine.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                       </>
                                 }
                                 <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Mine</span>
@@ -3543,7 +3543,7 @@ const App: React.FC = () => {
                                                 {quest.diceCredits}
                                             </div>
                                         )}
-                                        <span className="text-[36px] leading-none">🎲</span>
+                                        <img src="/ui/dice.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                       </>
                                 }
                                 <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
@@ -3562,7 +3562,7 @@ const App: React.FC = () => {
                                                 {totalNotifs}
                                             </div>
                                         )}
-                                        <span className="text-[36px] leading-none">🎫</span>
+                                        <img src="/ui/pass.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                       </>
                                 }
                                 <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
