@@ -148,7 +148,7 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
                             }}>
                             {revealed ? (
                                 <>
-                                    <span style={{ fontSize: 'clamp(16px,3.2vw,26px)', lineHeight: 1 }}>🪙</span>
+                                    <img src="/symbols/coin.png" alt="" style={{ width: 'clamp(16px,3.2vw,26px)', height: 'clamp(16px,3.2vw,26px)', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                     <span style={{
                                         fontSize: 'clamp(7px,1.4vw,11px)',
                                         color,
@@ -159,7 +159,7 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
                                     }}>{cell.tier}</span>
                                 </>
                             ) : (
-                                <span style={{ fontSize: 'clamp(18px,3.5vw,30px)', lineHeight: 1 }}>🪙</span>
+                                <img src="/symbols/coin.png" alt="" style={{ width: 'clamp(18px,3.5vw,30px)', height: 'clamp(18px,3.5vw,30px)', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                             )}
                         </button>
                     );

@@ -506,13 +506,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     )}
                     {stageWinning && (
                         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.88)' }}>
-                            <div style={{ fontSize: '72px', lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce">💎</div>
+                            <div style={{ lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce"><img src="/symbols/diamond.png" alt="" style={{ width: '72px', height: '72px', objectFit: 'contain', display: 'block' }} /></div>
                             <div className="mt-3 text-2xl font-black text-white uppercase tracking-widest">Stage Clear!</div>
                             {stageClearData && (
                                 <>
                                     <div className="mt-3 flex flex-col items-center gap-1">
-                                        <div className="font-black text-yellow-300 text-xl drop-shadow">🪙 +{formatCommaNumber(stageClearData.coins)}</div>
-                                        <div className="font-black text-blue-300 text-sm">💎 +{stageClearData.gems} Gems</div>
+                                        <div className="font-black text-yellow-300 text-xl drop-shadow flex items-center gap-1"><img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> +{formatCommaNumber(stageClearData.coins)}</div>
+                                        <div className="font-black text-blue-300 text-sm flex items-center gap-1"><img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> +{stageClearData.gems} Gems</div>
                                     </div>
                                     <button onClick={handleNextStage}
                                         className="mt-5 btn-3d px-8 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-widest"

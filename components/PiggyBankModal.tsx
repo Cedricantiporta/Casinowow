@@ -68,7 +68,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
                 {/* Saved amount */}
                 <div className="flex items-center gap-2">
-                    <span className="text-2xl">🪙</span>
+                    <img src="/symbols/coin.png" alt="" style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                     <span className="text-2xl font-mono font-black text-white drop-shadow-md">{formatK(Math.floor(amount))}</span>
                 </div>
 
@@ -84,8 +84,8 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                     }}
                 >
                     Break Piggy Bank
-                    <span className="block text-xs font-bold opacity-80 mt-0.5 normal-case tracking-normal">
-                        💎 {GEM_BREAK_COST} Gems
+                    <span className="block text-xs font-bold opacity-80 mt-0.5 normal-case tracking-normal flex items-center justify-center gap-1">
+                        <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {GEM_BREAK_COST} Gems
                     </span>
                 </button>
 

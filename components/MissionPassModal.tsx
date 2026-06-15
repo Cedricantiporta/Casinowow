@@ -187,7 +187,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             <div className="flex-1" />
                             <div className="flex items-center gap-1 mr-2 px-2 py-0.5 rounded-full shrink-0"
                                 style={{ background: 'rgba(96,165,250,0.12)' }}>
-                                <span style={{ fontSize: 11 }}>💎</span>
+                                <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                 <span className="font-black text-[10px] text-blue-300">{diamonds.toLocaleString('en-US')}</span>
                             </div>
                             <div className="round-btn shrink-0" onClick={onClose}>
@@ -257,7 +257,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                                 {/* Icon */}
                                 <div className="flex-1 bg-black/30 rounded-xl flex items-center justify-center shrink-0 shadow-inner mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(3rem, 8vw, 5rem)' }}>
-                                    {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? '💰' : mission.type === 'BET_COINS' ? '🪙' : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : mission.type === 'MAX_BET_SPIN' ? '💎' : '⭐'}
+                                    {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : mission.type === 'BET_COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : mission.type === 'MAX_BET_SPIN' ? <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : '⭐'}
                                 </div>
 
                                 {/* Description */}
@@ -305,7 +305,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     ) : (
                                         <button onClick={() => onFinishMission(mission)}
                                             className="btn-3d w-full py-1.5 bg-gradient-to-b from-[#4a2e61] to-[#2e1845] text-cyan-200 text-[9px] font-bold uppercase rounded-lg flex items-center justify-center gap-1">
-                                            💎 SKIP {diamondCostToSkip(mission.xpReward)}
+                                            <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> SKIP {diamondCostToSkip(mission.xpReward)}
                                         </button>
                                     )}
                                 </div>
@@ -337,7 +337,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         <div className={`flex-1 bg-gradient-to-b from-[#382952] to-[#231833] rounded-xl p-1 flex flex-col items-center justify-between relative shadow ${freeReward?.claimed ? 'opacity-50 grayscale' : ''}`}>
                                             <span className="text-[7px] text-gray-300 uppercase font-bold bg-black/50 px-1.5 py-0.5 rounded-full mt-0.5">Free</span>
                                             <div className="flex-1 flex flex-col items-center justify-center w-full gap-0.5">
-                                                <div className="text-4xl">{freeReward?.type === 'COINS' ? '🪙' : freeReward?.type === 'DIAMONDS' ? '💎' : freeReward?.type === 'PICKS' ? '⛏️' : freeReward?.type === 'DICE_CREDITS' ? '🎲' : freeReward?.type === 'CREDIT_BACK' ? '🃏' : '⭐'}</div>
+                                                <div className="text-4xl flex items-center justify-center">{freeReward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '2.25rem', height: '2.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : freeReward?.type === 'DIAMONDS' ? <img src="/symbols/diamond.png" alt="" style={{ width: '2.25rem', height: '2.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : freeReward?.type === 'PICKS' ? '⛏️' : freeReward?.type === 'DICE_CREDITS' ? '🎲' : freeReward?.type === 'CREDIT_BACK' ? '🃏' : '⭐'}</div>
                                                 <span className="font-black text-white text-[10px] text-center leading-tight drop-shadow-md">{freeReward ? getDisplayValue(freeReward) : ''}</span>
                                             </div>
                                             <button onClick={() => freeReward && onClaimReward(freeReward)} disabled={!isUnlocked || freeReward?.claimed}
@@ -355,9 +355,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             {/* Circle node — or Buy Level button for next available level */}
                                             {lvl === missionState.passLevel + 1 ? (
                                                 <button onClick={onBuyLevel}
-                                                    className="relative z-10 btn-3d font-black text-[8px] rounded-lg text-white flex items-center justify-center"
+                                                    className="relative z-10 btn-3d font-black text-[8px] rounded-lg text-white flex items-center justify-center gap-0.5"
                                                     style={{ width: 64, height: 22, background: 'linear-gradient(180deg,#6366f1,#3730a3)', boxShadow: '0 2px 0 #1e1b4b', flexShrink: 0 }}>
-                                                    💎 100
+                                                    <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> 100
                                                 </button>
                                             ) : (
                                                 <div className="relative z-10 flex items-center justify-center font-black text-[9px] rounded-full"
@@ -379,7 +379,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             <span className={`text-[7px] uppercase font-bold px-1.5 py-0.5 rounded-full mt-0.5 ${missionState.isPremium ? 'text-yellow-400 bg-black/50' : 'text-gray-500 bg-black/20'}`}>Premium</span>
                                             <div className="flex-1 flex flex-col items-center justify-center w-full relative gap-0.5">
                                                 {!missionState.isPremium && <div className="absolute inset-0 flex items-center justify-center z-10"><span className="text-3xl text-gray-400">🔒</span></div>}
-                                                <div className="text-4xl">{premReward?.type === 'COINS' ? '💰' : premReward?.type === 'DIAMONDS' ? '💎' : premReward?.type === 'PICKS' ? '⛏️' : premReward?.type === 'DICE_CREDITS' ? '🎲' : premReward?.type === 'CREDIT_BACK' ? '🎴' : '👑'}</div>
+                                                <div className="text-4xl flex items-center justify-center">{premReward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '2.25rem', height: '2.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : premReward?.type === 'DIAMONDS' ? <img src="/symbols/diamond.png" alt="" style={{ width: '2.25rem', height: '2.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : premReward?.type === 'PICKS' ? '⛏️' : premReward?.type === 'DICE_CREDITS' ? '🎲' : premReward?.type === 'CREDIT_BACK' ? '🎴' : '👑'}</div>
                                                 <span className={`font-black text-[10px] text-center leading-tight drop-shadow-md ${missionState.isPremium ? 'text-yellow-100' : 'text-gray-500'}`}>{premReward ? getDisplayValue(premReward) : ''}</span>
                                             </div>
                                             <button onClick={() => premReward && onClaimReward(premReward)} disabled={!isUnlocked || premReward?.claimed || !missionState.isPremium}

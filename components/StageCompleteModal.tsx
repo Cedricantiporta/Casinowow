@@ -24,13 +24,13 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
                     Stage {stage} Complete!
                 </div>
                 {coins > 0 && (
-                    <div className="font-mono font-black text-yellow-300 text-2xl" style={{ textShadow: '0 0 10px rgba(255,200,0,0.6)' }}>
-                        +{formatCommaNumber(coins)} 🪙
+                    <div className="font-mono font-black text-yellow-300 text-2xl flex items-center gap-2" style={{ textShadow: '0 0 10px rgba(255,200,0,0.6)' }}>
+                        +{formatCommaNumber(coins)} <img src="/symbols/coin.png" alt="" style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                     </div>
                 )}
                 {diamonds > 0 && (
-                    <div className="font-mono font-black text-cyan-300 text-lg">
-                        +{diamonds} 💎
+                    <div className="font-mono font-black text-cyan-300 text-lg flex items-center gap-2">
+                        +{diamonds} <img src="/symbols/diamond.png" alt="" style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                     </div>
                 )}
                 <button
