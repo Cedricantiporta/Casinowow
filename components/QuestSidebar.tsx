@@ -41,7 +41,7 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim }) =>
                 onClick={onClaim}
                 className="relative w-12 h-12 rounded-full flex flex-col items-center justify-center shadow-2xl transition-all cursor-pointer overflow-visible hover:scale-105 active:scale-95 bg-gradient-to-b from-[#2a1b3d] to-[#1a1025]"
             >
-                <span className="text-xl drop-shadow-md leading-none">🎲</span>
+                <img src="/ui/dice.png" alt="" className="w-6 h-6 object-contain drop-shadow-md" />
                 <span className="text-[7px] font-black text-white uppercase tracking-wider mt-0.5">DICE</span>
                 {diceCredits > 0 && (
                     <div className={DOT} style={DOT_STYLE}>
