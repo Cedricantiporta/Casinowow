@@ -24,11 +24,12 @@ export type GameTheme = 'NEON' | 'EGYPT' | 'DRAGON' | 'PIRATE' | 'SPACE' | 'CAND
 
 export interface SymbolConfig {
   type: SymbolType;
-  icon: string; 
-  value: number; 
-  style: string; 
-  bg?: string; 
+  icon: string;
+  value: number;
+  style: string;
+  bg?: string;
   highlightClass?: string;
+  imageScale?: number;
 }
 
 export interface GameConfig {
