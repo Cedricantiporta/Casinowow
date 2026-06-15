@@ -500,13 +500,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
                             <div className="animate-pop-in px-5 py-3 rounded-2xl font-black text-white text-base uppercase tracking-widest"
                                 style={{ background: 'rgba(0,0,0,0.9)', border: '2px solid #dc2626', boxShadow: '0 0 20px rgba(220,38,38,0.5)' }}>
-                                <img src="/ui/coinmine.png" alt="" style={{ width: '1.2em', height: '1.2em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 4 }} />No picks left!
+                                <img src="/ui/pick.png" alt="" style={{ width: '1.2em', height: '1.2em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 4 }} />No picks left!
                             </div>
                         </div>
                     )}
                     {stageWinning && (
                         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.88)' }}>
-                            <div style={{ lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce"><img src="/symbols/diamond.png" alt="" style={{ width: '72px', height: '72px', objectFit: 'contain', display: 'block' }} /></div>
+                            <div style={{ lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce"><img src="/ui/stage_gem.png" alt="" style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block' }} /></div>
                             <div className="mt-3 text-2xl font-black text-white uppercase tracking-widest">Stage Clear!</div>
                             {stageClearData && (
                                 <>
@@ -537,7 +537,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
                                     const gemPrize = Math.round((maxBet || 10000) * wildStage * 10);
                                     const icon: React.ReactNode = isGem ? <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : isReward
-                                        ? (cell.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : cell.reward?.type === 'PICKS' ? <img src="/ui/coinmine.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} />)
+                                        ? (cell.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : cell.reward?.type === 'PICKS' ? <img src="/ui/pick.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} />)
                                         : revealed && isBomb ? '💥' : null;
                                     const tileBg = revealed
                                         ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isBomb ? 'linear-gradient(180deg,#b45309,#78350f)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
@@ -564,7 +564,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                     </>
                                                 ) : null
                                             ) : (
-                                                <img src="/ui/coinmine.png" alt="" style={{ width: tileSize * 0.7, height: tileSize * 0.7, objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6)) brightness(0.7) saturate(0)' }} />
+                                                <img src="/ui/rock.png" alt="" style={{ width: tileSize * 0.75, height: tileSize * 0.75, objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }} />
                                             )}
                                         </button>
                                     );
@@ -582,7 +582,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                         <div className="w-full h-px bg-white/10" />
                         <div className="flex flex-col items-center leading-none">
-                            <img src="/ui/coinmine.png" alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain' }} />
+                            <img src="/ui/pick.png" alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain' }} />
                             <span className="font-black text-white text-xl leading-none mt-0.5">{wildCredits}</span>
                             <span className="text-white/50 text-[8px] font-black uppercase">Picks</span>
                         </div>
@@ -776,7 +776,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         <div className="text-white font-black text-sm uppercase tracking-wider">{opt.label}</div>
                                         <div className="w-full flex flex-col gap-1 my-1">
                                             <div className="flex items-center gap-1.5 text-white text-xs font-bold">
-                                                {showBuyPopup === 'PICKS' ? <img src="/ui/coinmine.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle' }} /> : <span>🎲</span>}
+                                                {showBuyPopup === 'PICKS' ? <img src="/ui/pick.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle' }} /> : <span>🎲</span>}
                                                 <span>+{showBuyPopup === 'PICKS' ? opt.picks : opt.dice} {showBuyPopup === 'PICKS' ? 'Picks' : 'Dice'}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 text-yellow-200 text-xs font-bold">

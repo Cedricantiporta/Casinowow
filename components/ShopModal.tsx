@@ -70,6 +70,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         if (!isOpen) return;
         const prices = [49, 99, 199, 499, 2490];
         const labels = ['Pile', 'Double', 'Big Bag', 'Roller', 'Jackpot'];
+        const icons = ['/symbols/coin.png', '/ui/double.png', '/ui/bigbag.png', '/ui/roller.png', '/ui/jackpot.png'];
         const colors = [
             'from-cyan-500 to-cyan-800',
             'from-green-500 to-green-800',
@@ -80,7 +81,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         setDynamicPacks(prices.map((price, i) => {
             const amount = Math.round((price / 50) * maxBet);
             return {
-                icon: '/symbols/coin.png',
+                icon: icons[i],
                 label: labels[i],
                 sub: fmt(amount),
                 pesosLabel: String(price),
@@ -94,8 +95,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
 
     const gemPacks = [
         { icon: '/symbols/diamond.png', label: '100 Gems',   sub: '100',   pesosLabel: '99',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
-        { icon: '/symbols/diamond.png', label: '500 Gems',   sub: '500',   pesosLabel: '399', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
-        { icon: '/symbols/diamond.png', label: '5,000 Gems', sub: '5,000', pesosLabel: '999', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
+        { icon: '/ui/gems500.png',      label: '500 Gems',   sub: '500',   pesosLabel: '399', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
+        { icon: '/ui/gems5000.png',     label: '5,000 Gems', sub: '5,000', pesosLabel: '999', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
     ];
 
     const boostPacks = [
