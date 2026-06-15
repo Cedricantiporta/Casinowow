@@ -21,18 +21,15 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim }) =>
     const diceFull = diceCredits >= MAX_CREDITS;
 
     return (
-        <div className="flex flex-col gap-2 pointer-events-auto relative">
-            {/* Wild Card */}
+        <div className="flex flex-col items-center gap-2 pointer-events-auto relative">
+            {/* Mine Button */}
             <button
                 onClick={onClaim}
-                className="relative flex items-center gap-2 px-2 py-2 rounded-xl shadow-2xl transition-all cursor-pointer hover:scale-105 active:scale-95"
-                style={{ background: 'linear-gradient(135deg,#2a1b3d,#1a1025)', minWidth: 80 }}
+                className="group relative w-14 h-14 md:w-20 md:h-20 rounded-full shadow-xl flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible"
+                style={{ background: 'linear-gradient(180deg,#2a1b3d,#1a1025)' }}
             >
-                <img src="/ui/coinmine.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} />
-                <div className="flex flex-col items-start leading-tight">
-                    <span className="text-[9px] font-black text-white uppercase tracking-wide">Mine</span>
-                    <span className="text-[8px] text-purple-300 font-bold">{Math.floor(wildCredits)}/{MAX_CREDITS}</span>
-                </div>
+                <img src="/ui/coinmine.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} className="group-hover:-translate-y-0.5 transition-transform" />
+                <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">Mine</span>
                 {wildCredits > 0 && (
                     <div className={DOT} style={DOT_STYLE}>
                         {wildFull ? 'MAX' : Math.floor(wildCredits)}
@@ -40,17 +37,14 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim }) =>
                 )}
             </button>
 
-            {/* Dice Card */}
+            {/* Dice Button */}
             <button
                 onClick={onClaim}
-                className="relative flex items-center gap-2 px-2 py-2 rounded-xl shadow-2xl transition-all cursor-pointer hover:scale-105 active:scale-95"
-                style={{ background: 'linear-gradient(135deg,#1a2b3d,#101a25)', minWidth: 80 }}
+                className="group relative w-14 h-14 md:w-20 md:h-20 rounded-full shadow-xl flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible"
+                style={{ background: 'linear-gradient(180deg,#1a2b3d,#101a25)' }}
             >
-                <img src="/ui/dice.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} />
-                <div className="flex flex-col items-start leading-tight">
-                    <span className="text-[9px] font-black text-white uppercase tracking-wide">Dice</span>
-                    <span className="text-[8px] text-blue-300 font-bold">{Math.floor(diceCredits)}/{MAX_CREDITS}</span>
-                </div>
+                <img src="/ui/dice.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} className="group-hover:-translate-y-0.5 transition-transform" />
+                <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">Dice</span>
                 {diceCredits > 0 && (
                     <div className={DOT} style={DOT_STYLE}>
                         {diceFull ? 'MAX' : Math.floor(diceCredits)}
