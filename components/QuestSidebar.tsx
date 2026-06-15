@@ -30,7 +30,7 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim }) =>
             >
                 <img src="/ui/coinmine.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} />
                 <div className="flex flex-col items-start leading-tight">
-                    <span className="text-[9px] font-black text-white uppercase tracking-wide">Wild</span>
+                    <span className="text-[9px] font-black text-white uppercase tracking-wide">Mine</span>
                     <span className="text-[8px] text-purple-300 font-bold">{Math.floor(wildCredits)}/{MAX_CREDITS}</span>
                 </div>
                 {wildCredits > 0 && (

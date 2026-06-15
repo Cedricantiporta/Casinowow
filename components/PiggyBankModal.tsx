@@ -45,11 +45,11 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
             <div className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
                 <div className="flex items-center gap-2">
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
-                        <div className="coin">$</div>
+                        <img src="/symbols/coin.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{formatK(Math.floor(balance || 0))}</span>
                     </div>
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
-                        <div className="gem"></div>
+                        <img src="/symbols/diamond.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{diamonds}</span>
                     </div>
                 </div>
@@ -62,7 +62,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
                 {/* Piggy icon */}
                 <div className={`relative flex items-center justify-center transition-transform duration-300 ${breaking ? 'scale-110' : ''}`}>
-                    <div className="text-[7rem] filter drop-shadow-2xl leading-none">🐷</div>
+                    <img src="/ui/piggy.png" alt="" style={{ width: '7rem', height: '7rem', objectFit: 'contain', filter: 'drop-shadow(0 4px 24px rgba(255,150,200,0.5))' }} />
                     {breaking && <div className="absolute text-5xl animate-ping">💥</div>}
                 </div>
 
