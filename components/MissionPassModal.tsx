@@ -110,8 +110,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3">
-        <div className="w-full max-w-[720px] flex flex-col rounded-2xl overflow-hidden relative" style={{ background: 'linear-gradient(160deg,#1a0535,#2d0764)' }}
-            style={{ height: 'min(96%, 1160px)' }}>
+        <div className="w-full max-w-[720px] flex flex-col rounded-2xl overflow-hidden relative"
+            style={{ background: 'linear-gradient(160deg,#1a0535,#2d0764)', height: 'min(96%, 1160px)' }}>
             {showPremiumInfo && (
                 <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
