@@ -69,7 +69,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
     };
 
     return (
-        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/90 backdrop-blur-md animate-pop-in">
+        <div className="absolute inset-0 z-[250] flex items-center justify-center bg-black/90 backdrop-blur-md animate-pop-in">
             <div className="relative w-full max-w-sm p-3">
                 <div className="bg-gradient-to-b from-indigo-900 to-[#1e1b4b] rounded-2xl p-4 shadow-[0_0_30px_rgba(79,70,229,0.4)] flex flex-col items-center text-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20"></div>

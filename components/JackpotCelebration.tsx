@@ -51,7 +51,7 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
     const style = TIER_STYLES[tier.name] || TIER_STYLES.GRAND;
 
     return (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center select-none"
+        <div className="absolute inset-0 z-[400] flex items-center justify-center select-none"
             style={{ background: 'rgba(0,0,0,0.75)' }}
             onClick={guardedClose}>
             <div className="animate-pop-in flex flex-col items-center gap-3 p-6 rounded-3xl"

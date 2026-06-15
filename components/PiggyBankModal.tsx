@@ -38,7 +38,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
     return (
         <div
-            className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none"
+            className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
             style={{ background: 'linear-gradient(160deg,#8040c0 0%,#5a1ea0 35%,#38086e 70%,#240550 100%)' }}
         >
             {/* Header */}

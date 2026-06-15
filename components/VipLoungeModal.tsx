@@ -42,7 +42,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
     const currentTier = getCurrentTier(vipLevel);
 
     return (
-        <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none overflow-hidden"
+        <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none overflow-hidden"
             style={{ background: 'linear-gradient(160deg,#1c0900 0%,#2a1200 50%,#0f0600 100%)' }}>
 
             {/* Header */}

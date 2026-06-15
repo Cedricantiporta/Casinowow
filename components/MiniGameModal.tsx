@@ -467,7 +467,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const questTitle = isWild ? 'CoinMine' : 'Fortune Trail';
 
     return (
-        <div className="fixed inset-0 z-[150] flex flex-col animate-pop-in select-none"
+        <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
             style={{ background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
 
             {/* Topbar */}

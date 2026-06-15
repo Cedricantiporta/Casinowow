@@ -27,7 +27,7 @@ export const OracleModal: React.FC<OracleModalProps> = ({ isOpen, onClose, bonus
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md animate-pop-in">
+    <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md animate-pop-in">
       {/* Background Rays */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] bg-[conic-gradient(from_0deg,transparent_0deg,#4f46e5_20deg,transparent_40deg)] animate-[spin_10s_linear_infinite] opacity-20"></div>

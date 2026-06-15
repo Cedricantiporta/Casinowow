@@ -133,7 +133,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
     const passBenefits = ['Premium reward track', 'Exclusive gem rewards', 'XP mission booster', 'Monthly bonus coins', 'Prestige profile badge', 'Unlimited daily bonus'];
 
     return (
-        <div className="fixed inset-0 z-[200] flex flex-col animate-pop-in select-none"
+        <div className="absolute inset-0 z-[200] flex flex-col animate-pop-in select-none"
             style={{ background: 'linear-gradient(180deg,#0d0814 0%,#1a0535 100%)' }}>
 
             {/* Header */}

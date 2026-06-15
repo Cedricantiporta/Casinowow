@@ -32,7 +32,7 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
 
     return (
         <div
-            className="fixed inset-0 z-[500] flex flex-col items-center justify-center select-none"
+            className="absolute inset-0 z-[500] flex flex-col items-center justify-center select-none"
             style={{ background: game.bgImage ?? 'linear-gradient(180deg,#0a0015,#1a0035)' }}
         >
             {/* Subtle vignette */}

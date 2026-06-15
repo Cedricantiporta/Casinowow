@@ -172,7 +172,7 @@ const PickGame: React.FC<{ currentBet: number; jackpotAmounts: number[]; onWin: 
 export const ArcticPickModal: React.FC<ArcticPickModalProps> = ({ isOpen, jackpotAmounts, currentBet, onWin }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-[250] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }}>
+        <div className="absolute inset-0 z-[250] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }}>
             <div className="animate-pop-in rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(34,211,238,0.4)]"
                 style={{
                     background: 'linear-gradient(160deg,#001428,#00080f)',

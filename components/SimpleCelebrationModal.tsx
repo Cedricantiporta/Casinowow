@@ -17,7 +17,7 @@ export const SimpleCelebrationModal: React.FC<SimpleCelebrationModalProps> = ({ 
     if (!isOpen || !message) return null;
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center pointer-events-none">
+        <div className="absolute inset-0 z-[300] flex items-center justify-center pointer-events-none">
             <div className="animate-pop-in flex flex-col items-center">
                 <div
                     className="flex items-center justify-center px-6 py-2"

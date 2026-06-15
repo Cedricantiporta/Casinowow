@@ -24,7 +24,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
     ) : null;
 
     return (
-        <div className="fixed inset-0 z-[160] flex flex-col animate-pop-in select-none"
+        <div className="absolute inset-0 z-[160] flex flex-col animate-pop-in select-none"
             style={{ background: 'linear-gradient(160deg,#0f0025 0%,#1a0040 50%,#090015 100%)' }}>
 
             {/* Header */}

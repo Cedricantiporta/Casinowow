@@ -153,7 +153,7 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center animate-pop-in">
+        <div className="absolute inset-0 z-[200] flex items-center justify-center animate-pop-in">
 
             {/* Prompt screen */}
             {phase === 'prompt' && (

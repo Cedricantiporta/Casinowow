@@ -10,7 +10,7 @@ export const BankruptcyModal: React.FC<BankruptcyModalProps> = ({ isOpen, onColl
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md animate-pop-in">
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md animate-pop-in">
             <div className="relative w-full max-w-xs p-3">
                 {/* Card Container */}
                 <div className="relative bg-gradient-to-b from-red-800 to-red-950 rounded-2xl p-5 flex flex-col items-center text-center shadow-[0_0_30px_rgba(220,38,38,0.4)] overflow-hidden">

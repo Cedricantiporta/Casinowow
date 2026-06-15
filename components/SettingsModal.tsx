@@ -118,7 +118,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const codeInfo = pendingCode ? REDEEM_CODES[pendingCode] : null;
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
+        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
         <div className="w-full max-w-[600px] flex flex-col rounded-2xl overflow-hidden"
             style={{ height: 'min(88vh, 680px)', background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
 

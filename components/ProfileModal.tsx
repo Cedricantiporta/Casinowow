@@ -76,7 +76,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     const labelColor = vip ? 'text-yellow-300/50' : 'text-white/30';
 
     return (
-        <div className="fixed inset-0 z-[200] flex flex-col animate-pop-in select-none"
+        <div className="absolute inset-0 z-[200] flex flex-col animate-pop-in select-none"
             style={{ background: bgStyle }}>
 
             {/* Header */}

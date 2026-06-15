@@ -17,7 +17,7 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
     const color = gameType === 'WILD' ? 'from-indigo-600 to-purple-900' : 'from-amber-500 to-orange-800';
 
     return (
-        <div className="fixed inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-sm">
+        <div className="absolute inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-sm">
             <div className={`animate-pop-in flex flex-col items-center gap-3 rounded-3xl p-8 bg-gradient-to-b ${color} shadow-2xl border border-white/20 min-w-[260px]`}>
                 <div className="text-5xl leading-none animate-bounce">{icon}</div>
                 <div className="font-black text-white text-center uppercase tracking-widest text-xl" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>

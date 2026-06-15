@@ -26,7 +26,7 @@ export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalW
     const popupWidth = formatted.length <= 10 ? '260px' : formatted.length <= 14 ? '320px' : '380px';
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-transparent pointer-events-auto animate-pop-in">
+        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-transparent pointer-events-auto animate-pop-in">
             {/* 3D container */}
             <div className="relative w-full mx-4" style={{ maxWidth: popupWidth }}>
                 <div className="absolute inset-0 rounded-2xl" style={{ background: '#2e0660', transform: 'translateY(8px)', borderRadius: '16px' }}></div>

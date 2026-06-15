@@ -18,7 +18,7 @@ export const FeatureUnlockModal: React.FC<FeatureUnlockModalProps> = ({ isOpen, 
     };
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/95 backdrop-blur-lg animate-pop-in">
+        <div className="absolute inset-0 z-[300] flex items-center justify-center bg-black/95 backdrop-blur-lg animate-pop-in">
             <div className="relative w-full max-w-xs p-3">
                 {/* Glow */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-purple-500 to-pink-500 rounded-full blur-[60px] opacity-30 animate-pulse"></div>

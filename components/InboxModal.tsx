@@ -30,7 +30,7 @@ const getMessageIcon = (type: string) => {
 export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, messages, onClaim }) => {
     if (!isOpen) return null;
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in">
+        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in">
         <div className="w-full max-w-[420px] flex flex-col rounded-2xl overflow-hidden"
             style={{ height: 'min(80vh, 520px)', background: 'linear-gradient(180deg,#0d0814,#1a0535)' }}>
             {/* Header */}

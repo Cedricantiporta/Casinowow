@@ -100,7 +100,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
     const getUnlockLevel = (index: number) => index * 5;
 
     return (
-        <div className="fixed inset-0 z-[60] flex flex-col select-none"
+        <div className="absolute inset-0 z-[60] flex flex-col select-none"
             style={{ backgroundImage: 'url(/lobby-bg-vip.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
 
             {/* Dark overlay */}

@@ -249,7 +249,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center animate-pop-in">
+        <div className="absolute inset-0 z-[200] flex items-center justify-center animate-pop-in">
 
             {/* Prompt screen */}
             {phase === 'prompt' && (
@@ -354,7 +354,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
 
             {/* End-of-roulette summary popup */}
             {showSummary && wonSeg && (
-                <div className="fixed inset-0 z-[210] flex items-center justify-center animate-pop-in">
+                <div className="absolute inset-0 z-[210] flex items-center justify-center animate-pop-in">
                     <div className="flex flex-col items-center gap-3 rounded-3xl px-10 py-7 select-none"
                         style={{
                             background: '#3b0764',

@@ -29,7 +29,7 @@ export const FreeSpinsWonPopup: React.FC<FreeSpinsWonPopupProps> = ({ isOpen, co
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 animate-pop-in">
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 animate-pop-in">
             {/* 3D container — offset bottom layer for thickness */}
             <div className="relative">
                 <div className="absolute inset-0 rounded-2xl" style={{ background: '#2e0660', transform: 'translateY(7px)', borderRadius: '16px' }}></div>
