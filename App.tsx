@@ -1521,6 +1521,15 @@ const App: React.FC = () => {
                // DRAGON: no full-column wild stacks, only single-cell wilds
                if (selectedGame.theme === 'DRAGON') wildStackChance = 0;
 
+               // DRAGON: scatter individual single-cell wilds across all columns
+               if (selectedGame.theme === 'DRAGON' && !eventTriggered) {
+                   for (let r = 0; r < rows; r++) {
+                       if (newGrid[c][r] !== SymbolType.WILD && Math.random() < 0.04) {
+                           newGrid[c][r] = SymbolType.WILD;
+                       }
+                   }
+               }
+
                if (c === 0) {
                     for(let r=0; r<rows; r++) {
                         if (newGrid[c][r] === SymbolType.WILD) {
