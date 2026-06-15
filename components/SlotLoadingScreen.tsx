@@ -2,9 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GameConfig } from '../types';
 
 const THEME_ICONS: Partial<Record<string, string>> = {
-    EGYPT: '🗿', NEON: '🎰', PIRATE: '🏴‍☠️', SPACE: '👽',
-    CANDY: '🧁', JUNGLE: '🦍', UNDERWATER: '🦈', WESTERN: '🤠', SAMURAI: '⚔️',
+    PIRATE: '🏴‍☠️', SPACE: '👽',
+    JUNGLE: '🦍', UNDERWATER: '🦈', WESTERN: '🤠', SAMURAI: '⚔️',
     PIGGY: '🐷', LEPRECHAUN: '🍀', GOLDEN_POT: '🏮', ARCTIC: '🐧',
+};
+const THEME_IMG_ICON: Partial<Record<string, string>> = {
+    DRAGON: '/dragon/dragon-1.png',
+    EGYPT:  '/egypt/scatter.png',
+    NEON:   '/symbols/diamond.png',
+    CANDY:  '/symbols/diamond.png',
 };
 
 const DRAGON_IMAGES = Array.from({ length: 11 }, (_, i) => `/dragon/dragon-${i + 1}.png`);
@@ -17,6 +23,7 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
     const [progress, setProgress] = useState(0);
     const rafRef = useRef<number>(0);
     const isDragon = game.theme === 'DRAGON';
+    const imgIcon = THEME_IMG_ICON[game.theme];
 
     useEffect(() => {
         if (!isDragon) {
@@ -59,8 +66,8 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
             <div className="relative flex flex-col items-center gap-5">
                 {/* Icon */}
                 <div className="animate-bounce-sm" style={{ lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(255,255,255,0.35))' }}>
-                    {isDragon ? (
-                        <img src="/dragon/dragon-1.png" alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} />
+                    {imgIcon ? (
+                        <img src={imgIcon} alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} />
                     ) : (
                         <span style={{ fontSize: '5rem' }}>{icon ?? '🎰'}</span>
                     )}

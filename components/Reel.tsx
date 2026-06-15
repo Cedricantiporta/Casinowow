@@ -226,6 +226,10 @@ const LETTER_DARK_BG: Partial<Record<GameTheme, string>> = {
 
 // 3D text-shadow per letter tier
 const getLetter3DShadow = (symbol: SymbolType, theme?: GameTheme): string => {
+    if (theme === 'EGYPT') {
+        // Deep layered gold 3D to match the pharaoh artwork style
+        return '1px 1px 0 #8b5000, 2px 2px 0 #6b3a00, 3px 3px 0 #4a2700, 4px 4px 10px rgba(0,0,0,0.95), 0 0 18px rgba(220,150,0,0.45)';
+    }
     if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
         return '1px 1px 0 rgba(0,0,0,0.8), 2px 2px 0 rgba(0,0,0,0.6), 3px 3px 0 rgba(0,0,0,0.4), 4px 4px 8px rgba(0,0,0,0.5)';
     }
@@ -356,7 +360,7 @@ const ReelCell: React.FC<{
                             className={`select-none transform ${config?.style || ''}`}
                             style={{
                                 fontSize: iconFontSize,
-                                ...(isLetter ? { textShadow: getLetter3DShadow(symbol, theme), color: '#ffffff' } : undefined),
+                                ...(isLetter ? { textShadow: getLetter3DShadow(symbol, theme), color: theme === 'EGYPT' ? '#fbbf24' : '#ffffff' } : undefined),
                             }}
                         >
                             {config?.icon}

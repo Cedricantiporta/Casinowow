@@ -205,14 +205,15 @@ const JP_ICONS = {
 };
 const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   NEON: {
-    [SymbolType.TEN]: '🍒', [SymbolType.JACK]: '🍋', [SymbolType.QUEEN]: '🍇', [SymbolType.KING]: '🍉', [SymbolType.ACE]: '🫐',
-    [SymbolType.GRAPE]: '☘️', [SymbolType.BELL]: '⭐', [SymbolType.BAR]: 'BAR', [SymbolType.CHERRY]: '🔔', [SymbolType.SEVEN]: '🎰',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '💎', ...JP_ICONS
+    [SymbolType.TEN]: '/symbols/lemon.png', [SymbolType.JACK]: '/symbols/orange.png', [SymbolType.QUEEN]: '/symbols/grapefruit.png', [SymbolType.KING]: '/symbols/plum.png', [SymbolType.ACE]: '/symbols/watermelon.png',
+    [SymbolType.GRAPE]: '/symbols/apple.png', [SymbolType.BELL]: '/symbols/bell.png', [SymbolType.BAR]: '/symbols/bar.png', [SymbolType.CHERRY]: '/symbols/cherry.png', [SymbolType.SEVEN]: '/symbols/seven.png',
+    [SymbolType.WILD]: '/symbols/horseshoe.png', [SymbolType.SCATTER]: '/symbols/diamond.png', ...JP_ICONS,
+    [SymbolType.JACKPOT_MINI]: '/symbols/heart.png', [SymbolType.COIN]: '/symbols/coin.png',
   },
   EGYPT: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🪲', [SymbolType.BELL]: '🪬', [SymbolType.BAR]: '⚖️', [SymbolType.CHERRY]: '🐦‍🔥', [SymbolType.SEVEN]: '🐆',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🗿', ...JP_ICONS
+    [SymbolType.GRAPE]: '/egypt/grape.png', [SymbolType.BELL]: '/egypt/bell.png', [SymbolType.BAR]: '/egypt/bar.png', [SymbolType.CHERRY]: '/egypt/cherry.png', [SymbolType.SEVEN]: '/egypt/seven.png',
+    [SymbolType.WILD]: '/egypt/wild.png', [SymbolType.SCATTER]: '/egypt/scatter.png', ...JP_ICONS
   },
   DRAGON: {
     [SymbolType.TEN]: '/dragon/dragon-2.png', [SymbolType.JACK]: '/dragon/dragon-3.png', [SymbolType.QUEEN]: '/dragon/dragon-6.png', [SymbolType.KING]: '/dragon/dragon-5.png', [SymbolType.ACE]: '/dragon/dragon-4.png',
@@ -230,9 +231,9 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
     [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🚀', ...JP_ICONS
   },
   CANDY: {
-    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🥝', [SymbolType.BELL]: '🫐', [SymbolType.BAR]: '🍇', [SymbolType.CHERRY]: '🍓', [SymbolType.SEVEN]: '🍭',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🧁', ...JP_ICONS
+    [SymbolType.TEN]: '/symbols/lemon.png', [SymbolType.JACK]: '/symbols/grapefruit.png', [SymbolType.QUEEN]: '/symbols/watermelon.png', [SymbolType.KING]: '/symbols/plum.png', [SymbolType.ACE]: '/symbols/horseshoe.png',
+    [SymbolType.GRAPE]: '/symbols/cherry.png', [SymbolType.BELL]: '/symbols/bell.png', [SymbolType.BAR]: '/symbols/bar.png', [SymbolType.CHERRY]: '/symbols/clover.png', [SymbolType.SEVEN]: '/symbols/seven.png',
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '/symbols/diamond.png', ...JP_ICONS
   },
   JUNGLE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -322,20 +323,31 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
   };
 
   const isDragon = theme === 'DRAGON';
+  const isNeon   = theme === 'NEON';
+  const isCandy  = theme === 'CANDY';
+  const isEgypt  = theme === 'EGYPT';
   const T = TILE_BGS.TRANSPARENT;
+  // Egypt: override letter symbols with golden 3D style
+  const egyptLtr = isEgypt ? {
+    style: `text-amber-300 font-black ${themeFont}`,
+    bg: T,
+    highlightClass: 'bg-amber-500/40 shadow-[0_0_50px_rgba(245,158,11,0.9)] border-amber-300/60',
+  } : {};
+  // Themes that use images for mid/high symbols → need transparent bg
+  const imgTheme = isDragon || isNeon || isCandy || isEgypt;
   return {
-    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: icons.TEN,   value: 0.5,  ...LTR.TEN,  ...(isDragon && { imageScale: 0.85 }) },
-    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: icons.JACK,  value: 0.75, ...LTR.JACK },
-    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: icons.QUEEN, value: 1,    ...LTR.QUEEN, ...(isDragon && { imageScale: 0.85 }) },
-    [SymbolType.KING]:  { type: SymbolType.KING,  icon: icons.KING,  value: 1.5,  ...LTR.KING },
-    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: icons.ACE,   value: 2,    ...LTR.ACE },
-    [SymbolType.GRAPE]:   { type: SymbolType.GRAPE,   icon: icons.GRAPE, value: 2.5,  style: 'text-emerald-100 drop-shadow-md', bg: isDragon ? T : TILE_BGS.GREEN, highlightClass: isDragon ? 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50' : 'bg-emerald-600/40 shadow-[0_0_50px_rgba(5,150,105,0.8)] border-emerald-400/50' },
-    [SymbolType.BELL]:    { type: SymbolType.BELL,    icon: icons.BELL, value: 4.5,  style: 'text-blue-100 drop-shadow-[0_0_5px_#3b82f6]', bg: isDragon ? T : TILE_BGS.BLUE, highlightClass: isDragon ? 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50' : 'bg-blue-600/40 shadow-[0_0_50px_rgba(37,99,235,0.8)] border-blue-400/50' },
-    [SymbolType.BAR]:     { type: SymbolType.BAR,     icon: icons.BAR, value: 7.5,  style: 'text-purple-100 drop-shadow-[0_0_5px_#a855f7]', bg: isDragon ? T : TILE_BGS.PURPLE, highlightClass: isDragon ? 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50' : 'bg-purple-600/40 shadow-[0_0_50px_rgba(147,51,234,0.8)] border-purple-400/50' },
-    [SymbolType.CHERRY]:  { type: SymbolType.CHERRY,  icon: icons.CHERRY, value: 11, style: 'text-red-100 drop-shadow-[0_0_5px_#ef4444]', bg: isDragon ? T : TILE_BGS.RED, highlightClass: isDragon ? 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50' : 'bg-red-600/40 shadow-[0_0_50px_rgba(220,38,38,0.8)] border-red-400/50' },
-    [SymbolType.SEVEN]:   { type: SymbolType.SEVEN,   icon: icons.SEVEN, value: 15.625, style: 'text-yellow-100 drop-shadow-[0_0_10px_#eab308]', bg: TILE_BGS.YELLOW, highlightClass: 'bg-yellow-600/40 shadow-[0_0_50px_rgba(234,179,8,0.8)] border-yellow-400/50' },
-    [SymbolType.WILD]:    { type: SymbolType.WILD,    icon: isDragon ? icons.WILD : 'WILD', value: 15.625, style: `text-yellow-900 font-black tracking-tighter drop-shadow-[0_1px_0_rgba(255,255,255,0.5)] ${themeFont}`, bg: isDragon ? T : TILE_BGS.WILD, highlightClass: isDragon ? 'shadow-[0_0_50px_rgba(255,215,0,0.9)] border-yellow-300/60' : 'bg-yellow-500/40 shadow-[0_0_50px_rgba(234,179,8,0.9)] border-yellow-400/50', ...(isDragon && { imageScale: 1.2 }) },
-    [SymbolType.SCATTER]: { type: SymbolType.SCATTER, icon: icons.SCATTER, value: 0, style: 'text-white drop-shadow-[0_0_15px_#3F51B5]', bg: isDragon ? T : TILE_BGS.SCATTER, ...(isDragon && { imageScale: 1.2 }) },
+    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: icons.TEN,   value: 0.5,  ...LTR.TEN,  ...egyptLtr, ...(isDragon && { imageScale: 0.85 }) },
+    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: icons.JACK,  value: 0.75, ...LTR.JACK, ...egyptLtr },
+    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: icons.QUEEN, value: 1,    ...LTR.QUEEN, ...egyptLtr, ...(isDragon && { imageScale: 0.85 }) },
+    [SymbolType.KING]:  { type: SymbolType.KING,  icon: icons.KING,  value: 1.5,  ...LTR.KING, ...egyptLtr },
+    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: icons.ACE,   value: 2,    ...LTR.ACE,  ...egyptLtr },
+    [SymbolType.GRAPE]:   { type: SymbolType.GRAPE,   icon: icons.GRAPE, value: 2.5,  style: 'text-emerald-100 drop-shadow-md', bg: imgTheme ? T : TILE_BGS.GREEN, highlightClass: imgTheme ? 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50' : 'bg-emerald-600/40 shadow-[0_0_50px_rgba(5,150,105,0.8)] border-emerald-400/50' },
+    [SymbolType.BELL]:    { type: SymbolType.BELL,    icon: icons.BELL, value: 4.5,  style: 'text-blue-100 drop-shadow-[0_0_5px_#3b82f6]', bg: imgTheme ? T : TILE_BGS.BLUE, highlightClass: imgTheme ? 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50' : 'bg-blue-600/40 shadow-[0_0_50px_rgba(37,99,235,0.8)] border-blue-400/50' },
+    [SymbolType.BAR]:     { type: SymbolType.BAR,     icon: icons.BAR, value: 7.5,  style: 'text-purple-100 drop-shadow-[0_0_5px_#a855f7]', bg: imgTheme ? T : TILE_BGS.PURPLE, highlightClass: imgTheme ? 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50' : 'bg-purple-600/40 shadow-[0_0_50px_rgba(147,51,234,0.8)] border-purple-400/50' },
+    [SymbolType.CHERRY]:  { type: SymbolType.CHERRY,  icon: icons.CHERRY, value: 11, style: 'text-red-100 drop-shadow-[0_0_5px_#ef4444]', bg: imgTheme ? T : TILE_BGS.RED, highlightClass: imgTheme ? 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50' : 'bg-red-600/40 shadow-[0_0_50px_rgba(220,38,38,0.8)] border-red-400/50' },
+    [SymbolType.SEVEN]:   { type: SymbolType.SEVEN,   icon: icons.SEVEN, value: 15.625, style: 'text-yellow-100 drop-shadow-[0_0_10px_#eab308]', bg: imgTheme ? T : TILE_BGS.YELLOW, highlightClass: imgTheme ? 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50' : 'bg-yellow-600/40 shadow-[0_0_50px_rgba(234,179,8,0.8)] border-yellow-400/50' },
+    [SymbolType.WILD]:    { type: SymbolType.WILD,    icon: isDragon ? icons.WILD : isNeon || isEgypt ? icons.WILD : 'WILD', value: 15.625, style: `text-yellow-900 font-black tracking-tighter drop-shadow-[0_1px_0_rgba(255,255,255,0.5)] ${themeFont}`, bg: (isDragon || isNeon || isEgypt) ? T : TILE_BGS.WILD, highlightClass: (isDragon || isNeon || isEgypt) ? 'shadow-[0_0_50px_rgba(255,215,0,0.9)] border-yellow-300/60' : 'bg-yellow-500/40 shadow-[0_0_50px_rgba(234,179,8,0.9)] border-yellow-400/50', ...((isDragon || isEgypt) && { imageScale: 1.2 }) },
+    [SymbolType.SCATTER]: { type: SymbolType.SCATTER, icon: icons.SCATTER, value: 0, style: 'text-white drop-shadow-[0_0_15px_#3F51B5]', bg: imgTheme ? T : TILE_BGS.SCATTER, ...((isDragon || isEgypt) && { imageScale: 1.2 }) },
     [SymbolType.JACKPOT_MINI]:  { type: SymbolType.JACKPOT_MINI,  icon: '🥉', value: 0, style: 'drop-shadow-[0_0_12px_rgba(205,127,50,1)]',   bg: 'bg-amber-900/40',  highlightClass: 'bg-amber-600/40  shadow-[0_0_50px_rgba(205,127,50,0.9)]  border-amber-400/50' },
     [SymbolType.JACKPOT_MINOR]: { type: SymbolType.JACKPOT_MINOR, icon: '🥈', value: 0, style: 'drop-shadow-[0_0_12px_rgba(192,192,192,1)]',  bg: 'bg-gray-600/40',   highlightClass: 'bg-gray-400/40   shadow-[0_0_50px_rgba(192,192,192,0.9)] border-gray-300/50' },
     [SymbolType.JACKPOT_MAJOR]: { type: SymbolType.JACKPOT_MAJOR, icon: '🥇', value: 0, style: 'drop-shadow-[0_0_12px_rgba(255,215,0,1)]',    bg: 'bg-yellow-700/40', highlightClass: 'bg-yellow-500/40 shadow-[0_0_50px_rgba(255,215,0,0.9)]   border-yellow-300/50' },

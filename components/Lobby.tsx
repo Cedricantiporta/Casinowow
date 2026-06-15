@@ -188,7 +188,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         >
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}${isLocked ? ' blur-[1.5px]' : ''}`}></div>
                                             {game.coverImage && (
-                                                <img src={game.coverImage} alt="" className={`absolute inset-0 w-full h-full object-cover${isLocked ? ' blur-[1.5px]' : ''}`} style={{ zIndex: 1 }} />
+                                                <img src={game.coverImage} alt="" className={`absolute inset-0 w-full h-full object-contain${isLocked ? ' blur-[1.5px]' : ''}`} style={{ zIndex: 1 }} />
                                             )}
                                             <div className={`absolute inset-0 z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
                                                 {!game.coverImage && (
@@ -196,12 +196,14 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                         <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
                                                     </div>
                                                 )}
-                                                <div className="absolute bottom-0 left-0 right-0 pb-2 px-1 text-center">
-                                                    <h3 className={`text-[11px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
-                                                        style={{ WebkitTextStroke: '1px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
-                                                        {game.name}
-                                                    </h3>
-                                                </div>
+                                                {!game.coverImage && (
+                                                    <div className="absolute bottom-0 left-0 right-0 pb-2 px-1 text-center">
+                                                        <h3 className={`text-[11px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
+                                                            style={{ WebkitTextStroke: '1px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
+                                                            {game.name}
+                                                        </h3>
+                                                    </div>
+                                                )}
                                             </div>
                                             {isLocked && (
                                                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
@@ -267,7 +269,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                         <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity${isLocked ? ' blur-[1.5px]' : ''}`}></div>
                                         {game.coverImage && (
-                                            <img src={game.coverImage} alt="" className={`absolute inset-0 w-full h-full object-cover rounded-xl${isLocked ? ' blur-[1.5px]' : ''}`} style={{ zIndex: 1 }} />
+                                            <img src={game.coverImage} alt="" className={`absolute inset-0 w-full h-full object-contain rounded-xl${isLocked ? ' blur-[1.5px]' : ''}`} style={{ zIndex: 1 }} />
                                         )}
                                         <div className={`absolute inset-0 rounded-xl overflow-hidden z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
                                             {!game.coverImage && (
@@ -275,12 +277,14 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                     <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
                                                 </div>
                                             )}
-                                            <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
-                                                <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
-                                                    style={{ WebkitTextStroke:'1.5px rgba(0,0,0,0.95)', paintOrder:'stroke fill' }}>
-                                                    {game.name}
-                                                </h3>
-                                            </div>
+                                            {!game.coverImage && (
+                                                <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
+                                                    <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
+                                                        style={{ WebkitTextStroke:'1.5px rgba(0,0,0,0.95)', paintOrder:'stroke fill' }}>
+                                                        {game.name}
+                                                    </h3>
+                                                </div>
+                                            )}
                                         </div>
                                         {isLocked && (
                                             <div className="absolute inset-0 rounded-xl z-20 flex flex-col items-center justify-center pointer-events-none">
