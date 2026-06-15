@@ -349,7 +349,7 @@ const ReelCell: React.FC<{
                             src={config.icon}
                             alt=""
                             className="select-none object-contain pointer-events-none"
-                            style={{ width: `${(85 * cellScale).toFixed(1)}%`, height: `${(85 * cellScale).toFixed(1)}%` }}
+                            style={{ width: `${((isScatter || isWild) ? 96 : 85) * cellScale}%`, height: `${((isScatter || isWild) ? 96 : 85) * cellScale}%` }}
                         />
                     ) : (
                         <div
