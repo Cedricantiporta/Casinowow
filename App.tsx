@@ -3621,7 +3621,13 @@ const App: React.FC = () => {
                                 symbols={targetGrid.length > 0 ? targetGrid[i] : col}
                                 spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING}
                                 stopping={status === GameStatus.STOPPING}
-                                stopDelay={instantStop ? 0 : i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY) + (anticipationStartReel !== -1 && i >= anticipationStartReel ? 900 : 0)}
+                                stopDelay={instantStop ? 0 : (() => {
+                                    if (!fastSpin && anticipationStartReel !== -1 && i >= anticipationStartReel) {
+                                        // Each anticipated reel gets its own sequential 900ms window
+                                        return anticipationStartReel * REEL_DELAY + (i - anticipationStartReel + 1) * 900;
+                                    }
+                                    return i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY);
+                                })()}
                                 duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION}
                                 onStop={handleReelStop}
                                 winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []}
