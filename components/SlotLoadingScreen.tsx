@@ -12,6 +12,8 @@ const THEME_IMG_ICON: Partial<Record<string, string>> = {
     NEON:   '/symbols/diamond.png',
     CANDY:  '/symbols/diamond.png',
     PIRATE: '/pirate/skull.png',
+    PIGGY:  '/piggy/pig.png',
+    ARCTIC: '/arctic/penguin.png',
 };
 
 const DRAGON_IMAGES = Array.from({ length: 11 }, (_, i) => `/dragon/dragon-${i + 1}.png`);
