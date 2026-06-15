@@ -42,7 +42,8 @@ export interface GameConfig {
   description: string;
   color: string;
   bgImage: string;
-  reelBg: string; 
+  reelBg: string;
+  coverImage?: string;
 }
 
 export enum GameStatus {

@@ -187,10 +187,15 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             style={{ width: '120px', height: '178px', borderRadius: '16px', boxShadow: '0 0 18px rgba(245,158,11,0.35), inset 0 2px 0 rgba(255,220,80,0.7), 0 8px 24px rgba(0,0,0,0.7)', border: '2.5px solid rgba(245,158,11,0.55)' }}
                                         >
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}${isLocked ? ' blur-[1.5px]' : ''}`}></div>
+                                            {game.coverImage && (
+                                                <img src={game.coverImage} alt="" className={`absolute inset-0 w-full h-full object-cover${isLocked ? ' blur-[1.5px]' : ''}`} style={{ zIndex: 1 }} />
+                                            )}
                                             <div className={`absolute inset-0 z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
-                                                </div>
+                                                {!game.coverImage && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
+                                                    </div>
+                                                )}
                                                 <div className="absolute bottom-0 left-0 right-0 pb-2 px-1 text-center">
                                                     <h3 className={`text-[11px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
                                                         style={{ WebkitTextStroke: '1px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
@@ -261,10 +266,15 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             </span>
                                         </div>
                                         <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity${isLocked ? ' blur-[1.5px]' : ''}`}></div>
+                                        {game.coverImage && (
+                                            <img src={game.coverImage} alt="" className={`absolute inset-0 w-full h-full object-cover rounded-xl${isLocked ? ' blur-[1.5px]' : ''}`} style={{ zIndex: 1 }} />
+                                        )}
                                         <div className={`absolute inset-0 rounded-xl overflow-hidden z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
-                                            <div className="absolute inset-0 flex items-start justify-center pt-2">
-                                                <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
-                                            </div>
+                                            {!game.coverImage && (
+                                                <div className="absolute inset-0 flex items-start justify-center pt-2">
+                                                    <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
+                                                </div>
+                                            )}
                                             <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
                                                 <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
                                                     style={{ WebkitTextStroke:'1.5px rgba(0,0,0,0.95)', paintOrder:'stroke fill' }}>
