@@ -32,7 +32,7 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in">
         <div className="w-full max-w-[420px] flex flex-col rounded-2xl overflow-hidden"
-            style={{ height: 'min(80vh, 520px)', background: 'linear-gradient(180deg,#0d0814,#1a0535)' }}>
+            style={{ height: 'min(80%, 520px)', background: 'linear-gradient(180deg,#0d0814,#1a0535)' }}>
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2" style={{ background: 'linear-gradient(180deg,#4c1d95,#2e1065)' }}>
                 <h2 className="font-black text-white text-sm uppercase tracking-widest flex-1">Inbox</h2>

@@ -177,8 +177,8 @@ export const ArcticPickModal: React.FC<ArcticPickModalProps> = ({ isOpen, jackpo
                 style={{
                     background: 'linear-gradient(160deg,#001428,#00080f)',
                     border: '2px solid rgba(34,211,238,0.4)',
-                    width: 'min(92vw,480px)',
-                    height: 'min(75vh,560px)',
+                    width: 'min(92%,480px)',
+                    height: 'min(75%,560px)',
                     display: 'flex', flexDirection: 'column',
                 }}>
                 {/* Header */}
