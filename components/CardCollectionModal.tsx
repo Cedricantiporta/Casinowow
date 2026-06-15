@@ -251,7 +251,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             </div>
                                             {/* Icon */}
                                             <div className="flex-1 flex items-center justify-center">
-                                                <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{dup.card.icon}</span>
+                                                {dup.card.icon.startsWith('/') ? (
+                                                    <img src={dup.card.icon} alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
+                                                ) : (
+                                                    <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{dup.card.icon}</span>
+                                                )}
                                             </div>
                                             {/* Name */}
                                             <div className="w-full px-0.5 pb-0.5 text-center">
@@ -313,7 +317,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                         </div>
                                         {card.isNew && <div className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[7px] font-black px-1 rounded z-20">NEW</div>}
                                         <div className="flex-1 flex items-center justify-center">
-                                            <div className="text-3xl drop-shadow-md">{card.icon}</div>
+                                            {card.icon.startsWith('/') ? (
+                                                <img src={card.icon} alt="" style={{ width: '2.5rem', height: '2.5rem', objectFit: 'contain', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.6))' }} />
+                                            ) : (
+                                                <div className="text-3xl drop-shadow-md">{card.icon}</div>
+                                            )}
                                         </div>
                                         <div className="w-full px-1 pb-1.5 text-center">
                                             <div className="text-[8px] font-bold text-white/90 bg-black/30 rounded px-1 truncate">{card.name}</div>
@@ -545,7 +553,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 </div>
                                                 {/* Icon — centered */}
                                                 <div className="flex-1 flex items-center justify-center w-full">
-                                                    <span className="text-6xl leading-none drop-shadow-md">{isLocked ? '🔒' : card.icon}</span>
+                                                    {isLocked ? (
+                                                        <span className="text-6xl leading-none drop-shadow-md">🔒</span>
+                                                    ) : card.icon.startsWith('/') ? (
+                                                        <img src={card.icon} alt="" style={{ width: '4rem', height: '4rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.7))' }} />
+                                                    ) : (
+                                                        <span className="text-6xl leading-none drop-shadow-md">{card.icon}</span>
+                                                    )}
                                                 </div>
                                                 {/* Name bar at bottom */}
                                                 <div className="w-full px-2 pb-2.5">

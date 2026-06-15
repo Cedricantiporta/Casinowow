@@ -99,9 +99,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     ];
 
     const boostPacks = [
-        { icon: '🚀', label: 'XP Boost 30m',   sub: '2× XP',      gemCost:  50, color: 'from-fuchsia-600 to-fuchsia-900', action: () => onBuy('BOOST',   2, 1_800_000,   50) },
-        { icon: '🚀', label: 'XP Boost 12H',   sub: '2× XP',      gemCost: 500, color: 'from-fuchsia-700 to-purple-900',  action: () => onBuy('BOOST',   2, 43_200_000, 500) },
-        { icon: '📜', label: 'Mission XP 30m', sub: '2× Mission', gemCost:  50, color: 'from-indigo-500 to-indigo-800',   action: () => onBuy('PASS_XP', 2, 1_800_000,   50) },
+        { icon: '/ui/boost.png', label: 'XP Boost 30m',   sub: '2× XP',      gemCost:  50, color: 'from-fuchsia-600 to-fuchsia-900', action: () => onBuy('BOOST',   2, 1_800_000,   50) },
+        { icon: '/ui/boost.png', label: 'XP Boost 12H',   sub: '2× XP',      gemCost: 500, color: 'from-fuchsia-700 to-purple-900',  action: () => onBuy('BOOST',   2, 43_200_000, 500) },
+        { icon: '/ui/boost.png', label: 'Mission XP 30m', sub: '2× Mission', gemCost:  50, color: 'from-indigo-500 to-indigo-800',   action: () => onBuy('PASS_XP', 2, 1_800_000,   50) },
     ];
 
     const freeItem = {
@@ -143,7 +143,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 {[
                     { label: <img src="/symbols/coin.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Coins',  sec: 'COINS'    as const, bg: '#b8860b' },
                     { label: <img src="/symbols/diamond.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Gems',   sec: 'DIAMONDS' as const, bg: '#0e7490' },
-                    { label: '🚀', name: 'Boosts', sec: 'BOOSTS'   as const, bg: '#7c3aed' },
+                    { label: <img src="/ui/boost.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Boosts', sec: 'BOOSTS'   as const, bg: '#7c3aed' },
                 ].map((tab, i) => (
                     <React.Fragment key={tab.name}>
                         {i > 0 && <div className="w-px self-stretch bg-white/20 mx-0.5" />}
@@ -224,7 +224,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                             <div className="text-xs font-black uppercase text-white tracking-widest leading-none text-center">{item.label}</div>
                                             <div className="flex-1 flex items-center justify-center py-1">
                                                 {typeof item.icon === 'string' && item.icon.startsWith('/') ? (
-                                                    <img src={item.icon} alt="" style={{ width: '3rem', height: '3rem', objectFit: 'contain', display: 'block' }} />
+                                                    <img src={item.icon} alt="" style={{ width: '6rem', height: '6rem', objectFit: 'contain', display: 'block' }} />
                                                 ) : (
                                                     <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
                                                 )}
