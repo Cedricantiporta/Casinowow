@@ -184,7 +184,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
             case 'ready':
                 return (
                     <div className="flex flex-col gap-2 text-center select-none">
-                        <div className="text-white font-black text-sm uppercase tracking-widest">💎 Scatter Roulette</div>
+                        <div className="text-white font-black text-sm uppercase tracking-widest flex items-center gap-1.5"><img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> Scatter Roulette</div>
                         <div className="text-purple-200/60 text-xs leading-relaxed mt-2">
                             Tap the wheel to spin!
                         </div>
@@ -318,7 +318,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
 
                             {/* Center hub — always rendered so overlay can cover it */}
                             <circle cx={CX} cy={CY} r={22} fill="#0d0220" stroke="#7c3aed" strokeWidth={3} />
-                            <text x={CX} y={CY + 1} textAnchor="middle" dominantBaseline="middle" fontSize={16}>💎</text>
+                            <image href="/symbols/diamond.png" x={CX - 10} y={CY - 10} width={20} height={20} />
                         </svg>
 
                         {/* "TAP TO SPIN" overlay — covers center hub, above SVG */}

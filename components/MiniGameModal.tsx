@@ -536,8 +536,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isBomb = cell.content === 'BOMB';
                                     const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
                                     const gemPrize = Math.round((maxBet || 10000) * wildStage * 10);
-                                    const icon = isGem ? '💎' : isReward
-                                        ? (cell.reward?.type === 'COINS' ? '🪙' : cell.reward?.type === 'PICKS' ? '⛏️' : '💎')
+                                    const icon: React.ReactNode = isGem ? <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : isReward
+                                        ? (cell.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : cell.reward?.type === 'PICKS' ? '⛏️' : <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} />)
                                         : revealed && isBomb ? '💥' : null;
                                     const tileBg = revealed
                                         ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isBomb ? 'linear-gradient(180deg,#b45309,#78350f)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
@@ -558,7 +558,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             ) : revealed ? (
                                                 icon ? (
                                                     <>
-                                                        <span style={{ fontSize: tileSize * 0.62, lineHeight: 1 }}>{icon}</span>
+                                                        <span style={{ lineHeight: 1 }}>{icon}</span>
                                                         {isGem && <span style={{ fontSize: Math.max(8, tileSize * 0.16) }} className="font-black text-yellow-300 mt-0.5 leading-none text-center px-0.5">+{formatCommaNumber(gemPrize)}</span>}
                                                         {isReward && <span style={{ fontSize: Math.max(9, tileSize * 0.19) }} className="font-bold text-white/90 mt-0.5 leading-none">{cell.reward?.label}</span>}
                                                     </>
@@ -626,12 +626,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         : step.reward?.type === 'DIAMONDS' ? 'linear-gradient(180deg,#0891b2,#0c4a6e)'
                                         : step.reward?.type === 'PACKS' ? 'linear-gradient(180deg,#d97706,#451a03)'
                                         : 'linear-gradient(180deg,#312e81,#1e1b4b)';
-                                    const cellIcon = step.isFinish ? '🏆'
+                                    const cellIcon: React.ReactNode = step.isFinish ? '🏆'
                                         : step.reward?.type === 'BACK' ? '⬅️'
                                         : isFiveX ? '⭐'
-                                        : step.reward?.type === 'COINS' ? '🪙'
+                                        : step.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: 'clamp(12px,2.5vw,18px)', height: 'clamp(12px,2.5vw,18px)', objectFit: 'contain', display: 'inline-block' }} />
                                         : step.reward?.type === 'PICKS' ? '🎲'
-                                        : step.reward?.type === 'DIAMONDS' ? '💎'
+                                        : step.reward?.type === 'DIAMONDS' ? <img src="/symbols/diamond.png" alt="" style={{ width: 'clamp(12px,2.5vw,18px)', height: 'clamp(12px,2.5vw,18px)', objectFit: 'contain', display: 'inline-block' }} />
                                         : step.reward?.type === 'PACKS' ? '📦'
                                         : null;
                                     return (
@@ -662,7 +662,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 <span style={{ fontSize: 'clamp(6px,1.5vw,9px)', fontWeight: 900, color: 'white', lineHeight: 1 }}>START</span>
                                             ) : cellIcon ? (
                                                 <div className="flex flex-col items-center" style={{ gap: 1 }}>
-                                                    <span style={{ fontSize: 'clamp(12px,2.5vw,18px)', lineHeight: 1 }}>{cellIcon}</span>
+                                                    <span style={{ lineHeight: 1 }}>{cellIcon}</span>
                                                     {step.reward?.label && step.reward.type !== 'BACK' && (
                                                         <span style={{ fontSize: 'clamp(5px,1.2vw,8px)', fontWeight: 900, color: 'white', lineHeight: 1, textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.reward.label}</span>
                                                     )}
@@ -750,7 +750,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 <div className="text-purple-300/60 text-[10px] mt-0.5">Bundles include coins & gems bonus</div>
                             </div>
                             <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full">
-                                <span className="text-sm">💎</span>
+                                <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                 <span className="text-white font-black text-sm">{diamonds}</span>
                             </div>
                         </div>
@@ -780,13 +780,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 <span>+{showBuyPopup === 'PICKS' ? opt.picks : opt.dice} {showBuyPopup === 'PICKS' ? 'Picks' : 'Dice'}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 text-yellow-200 text-xs font-bold">
-                                                <span>🪙</span>
+                                                <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                                 <span>+{formatCommaNumber(opt.coins)}</span>
                                             </div>
                                         </div>
-                                        <div className="w-full py-2 rounded-xl text-center font-black text-white text-sm"
+                                        <div className="w-full py-2 rounded-xl text-center font-black text-white text-sm flex items-center justify-center gap-1"
                                             style={{ background: canAfford ? 'linear-gradient(180deg,#7c3aed,#4c1d95)' : 'rgba(0,0,0,0.4)', boxShadow: canAfford ? '0 3px 0 #2e1065' : 'none' }}>
-                                            💎 {opt.gemCost}
+                                            <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {opt.gemCost}
                                         </div>
                                     </button>
                                 );

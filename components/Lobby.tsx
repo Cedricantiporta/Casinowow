@@ -413,7 +413,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                     flexShrink: 0,
                                 }}>
-                                    <img src="/ui/coinmine.png" alt="" style={{ width: '44px', height: '44px', objectFit: 'contain', filter: isReadyToCollect ? 'none' : 'grayscale(1) brightness(0.6)' }} />
+                                    <span style={{ fontSize:'12px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>FREE</span>
+                                    <span style={{ fontSize:'14px', fontWeight:900, lineHeight:1, color: isReadyToCollect ? '#7c3500' : '#aaa', textTransform:'uppercase' }}>COINS</span>
                                     <div style={{
                                         position:'absolute', bottom:'-10px', left:'50%', transform:'translateX(-50%)',
                                         background: isReadyToCollect ? 'linear-gradient(180deg,#3a9900,#1e6600)' : '#444',
@@ -458,9 +459,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {/* HIGH ROLLER — icon flips to "back to lobby" when in HR */}
                             <button onClick={!isHighRollerLocked ? onOpenHighRoller : undefined} className={iconBtn(isHighRollerLocked)}>
                                 {isHighRollerLocked && lockBadge(35)}
-                                <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">
-                                    {isHighLimit ? '🏠' : '🎰'}
-                                </span>
+                                <img src={isHighLimit ? undefined : '/ui/highroller.png'} alt="" className="w-9 h-9 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" style={{ display: isHighLimit ? 'none' : undefined }} />
+                                {isHighLimit && <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🏠</span>}
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">
                                     {isHighLimit ? 'Lobby' : 'High Roller'}
                                 </span>

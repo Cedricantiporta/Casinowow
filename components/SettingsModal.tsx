@@ -14,16 +14,16 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
         description: 'Jumpstart your game with coins and a level boost.',
         icon: '⚡',
         rewards: [
-            { icon: '🪙', label: '+100,000,000,000 Coins' },
-            { icon: '⭐', label: 'Level 50' },
+            { icon: '/symbols/coin.png', label: '+100,000,000,000 Coins' },
+            { icon: '/ui/star.png', label: 'Level 50' },
         ],
     },
     dev999: {
         title: 'COIN FLOOD',
         description: 'A massive coin injection added to your current balance.',
-        icon: '💰',
+        icon: '/symbols/coin.png',
         rewards: [
-            { icon: '🪙', label: '+100,000,000,000,000 Coins' },
+            { icon: '/symbols/coin.png', label: '+100,000,000,000,000 Coins' },
         ],
     },
     dev1: {
@@ -31,7 +31,7 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
         description: 'All premium features, boosts, and gems unlocked.',
         icon: '👑',
         rewards: [
-            { icon: '💎', label: '+50,000 Gems' },
+            { icon: '/symbols/diamond.png', label: '+50,000 Gems' },
             { icon: '👑', label: 'VIP Status' },
             { icon: '🎫', label: 'Monthly Pass (Premium)' },
             { icon: '🚀', label: 'XP Boost ×3 — 24 Hours' },
@@ -42,8 +42,8 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
         description: '10 Billion coins and 2,000 gems dropped straight to your wallet.',
         icon: '💥',
         rewards: [
-            { icon: '🪙', label: '+10,000,000,000 Coins' },
-            { icon: '💎', label: '+2,000 Gems' },
+            { icon: '/symbols/coin.png', label: '+10,000,000,000 Coins' },
+            { icon: '/symbols/diamond.png', label: '+2,000 Gems' },
         ],
     },
     dev222: {
@@ -211,7 +211,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 {codeInfo.rewards.slice(0, 3).map((r, i) => (
                                     <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl"
                                         style={{ background: 'rgba(255,255,255,0.07)' }}>
-                                        <span className="text-base">{r.icon}</span>
+                                        {r.icon.startsWith('/') ? (
+                                            <img src={r.icon} alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', fontSize: '1rem' }} />
+                                        ) : (
+                                            <span className="text-base">{r.icon}</span>
+                                        )}
                                         <span className="text-white font-black text-xs">{r.label}</span>
                                     </div>
                                 ))}

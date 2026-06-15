@@ -50,7 +50,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
                         opacity: isQuestLocked ? 0.5 : 1,
                     }}>
                     {questBadge(wildCredits)}
-                    <img src="/ui/games.png" alt="" style={{ width: '3.5rem', height: '3.5rem', objectFit: 'contain', filter: isQuestLocked ? 'grayscale(1)' : 'none' }} />
+                    <img src="/ui/coinmine.png" alt="" style={{ width: '3.5rem', height: '3.5rem', objectFit: 'contain', filter: isQuestLocked ? 'grayscale(1)' : 'none' }} />
                     <span className="font-black text-[12px] uppercase tracking-widest text-purple-200">Wild Quest</span>
                     {!isQuestLocked && wildCredits > 0 && (
                         <span className="text-[10px] text-purple-300 font-bold">{wildCredits} / 60 credits</span>

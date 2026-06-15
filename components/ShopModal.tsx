@@ -80,7 +80,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         setDynamicPacks(prices.map((price, i) => {
             const amount = Math.round((price / 50) * maxBet);
             return {
-                icon: '🪙',
+                icon: '/symbols/coin.png',
                 label: labels[i],
                 sub: fmt(amount),
                 pesosLabel: String(price),
@@ -93,9 +93,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     if (!isOpen) return null;
 
     const gemPacks = [
-        { icon: '💎', label: '100 Gems',   sub: '100',   pesosLabel: '99',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
-        { icon: '💎', label: '500 Gems',   sub: '500',   pesosLabel: '399', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
-        { icon: '💎', label: '5,000 Gems', sub: '5,000', pesosLabel: '999', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
+        { icon: '/symbols/diamond.png', label: '100 Gems',   sub: '100',   pesosLabel: '99',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
+        { icon: '/symbols/diamond.png', label: '500 Gems',   sub: '500',   pesosLabel: '399', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
+        { icon: '/symbols/diamond.png', label: '5,000 Gems', sub: '5,000', pesosLabel: '999', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
     ];
 
     const boostPacks = [
@@ -118,7 +118,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
 
     const coinItems = dynamicPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined }));
     const gemItems = gemPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined }));
-    const boostItems = boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false, price: `💎 ${item.gemCost}` }));
+    const boostItems = boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false, price: `GEM:${item.gemCost}` }));
     const freeItems = [freeItem];
 
     return (
@@ -141,8 +141,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 <div className="flex-1"></div>
                 {/* Section tabs */}
                 {[
-                    { label: '🪙', name: 'Coins',  sec: 'COINS'    as const, bg: '#b8860b' },
-                    { label: '💎', name: 'Gems',   sec: 'DIAMONDS' as const, bg: '#0e7490' },
+                    { label: <img src="/symbols/coin.png" alt="" style={{ width: '1.1em', height: '1.1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Coins',  sec: 'COINS'    as const, bg: '#b8860b' },
+                    { label: <img src="/symbols/diamond.png" alt="" style={{ width: '1.1em', height: '1.1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Gems',   sec: 'DIAMONDS' as const, bg: '#0e7490' },
                     { label: '🚀', name: 'Boosts', sec: 'BOOSTS'   as const, bg: '#7c3aed' },
                 ].map((tab, i) => (
                     <React.Fragment key={tab.name}>
@@ -172,7 +172,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             {popup && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setPopup(null)}>
                     <div className="bg-[#1e0d30] rounded-2xl px-6 py-5 max-w-[260px] text-center shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
-                        <div className="text-3xl mb-2">{popup === 'nogems' ? '💎' : '🎮'}</div>
+                        <div className="text-3xl mb-2">{popup === 'nogems' ? <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : '🎮'}</div>
                         <div className="text-white font-black text-sm uppercase tracking-wide mb-1">
                             {popup === 'nogems' ? 'Not Enough Gems' : 'Purchase Unavailable'}
                         </div>
@@ -223,7 +223,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                         <div key={i} className={`flex-shrink-0 w-[140px] flex flex-col items-center justify-between rounded-2xl overflow-hidden px-3 pt-3 pb-2 bg-gradient-to-b ${item.color} shadow-xl transition-all`}>
                                             <div className="text-xs font-black uppercase text-white tracking-widest leading-none text-center">{item.label}</div>
                                             <div className="flex-1 flex items-center justify-center py-1">
-                                                <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
+                                                {typeof item.icon === 'string' && item.icon.startsWith('/') ? (
+                                                    <img src={item.icon} alt="" style={{ width: '3rem', height: '3rem', objectFit: 'contain', display: 'block' }} />
+                                                ) : (
+                                                    <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
+                                                )}
                                             </div>
                                             <div className="w-full flex flex-col gap-1.5">
                                                 {item.sub && (
@@ -243,7 +247,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                                                     : 'linear-gradient(180deg,#f59e0b,#b45309)',
                                                         boxShadow: '0 3px 0 rgba(0,0,0,0.6)',
                                                     }}
-                                                >{item.price}</button>
+                                                >{item.price.startsWith('GEM:') ? <><img src="/symbols/diamond.png" alt="" style={{ width: '0.85em', height: '0.85em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 2 }} />{item.price.slice(4)}</> : item.price}</button>
                                             </div>
                                         </div>
                                     );

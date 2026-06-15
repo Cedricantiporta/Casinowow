@@ -22,8 +22,8 @@ const getBundles = (maxBet: number) => [
         tagColor: '#22c55e',
         bg: 'linear-gradient(160deg,#052e16,#166534,#052e16)',
         items: [
-            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
-            { icon: '💎', label: '200 Gems' },
+            { icon: '/symbols/coin.png', label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
+            { icon: '/symbols/diamond.png', label: '200 Gems' },
             { icon: '🃏', label: '5 Standard Packs' },
         ],
         origPrice: '₱ 200',
@@ -36,8 +36,8 @@ const getBundles = (maxBet: number) => [
         tagColor: '#a855f7',
         bg: 'linear-gradient(160deg,#2e1065,#5b21b6,#2e1065)',
         items: [
-            { icon: '💎', label: '2,000 Gems' },
-            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 100))} Coins` },
+            { icon: '/symbols/diamond.png', label: '2,000 Gems' },
+            { icon: '/symbols/coin.png', label: `${formatCommaNumber(Math.round(maxBet * 100))} Coins` },
             { icon: '🚀', label: '2× XP Boost (1h)' },
         ],
         origPrice: '₱ 500',
@@ -52,8 +52,8 @@ const getBundles = (maxBet: number) => [
         items: [
             { icon: '⛏️', label: '+20 Picks' },
             { icon: '🎲', label: '+20 Dice' },
-            { icon: '💎', label: '500 Gems' },
-            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 25))} Coins` },
+            { icon: '/symbols/diamond.png', label: '500 Gems' },
+            { icon: '/symbols/coin.png', label: `${formatCommaNumber(Math.round(maxBet * 25))} Coins` },
         ],
         origPrice: '₱ 350',
         price: '₱ 159',
@@ -65,8 +65,8 @@ const getBundles = (maxBet: number) => [
         tagColor: '#f59e0b',
         bg: 'linear-gradient(160deg,#451a03,#92400e,#451a03)',
         items: [
-            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
-            { icon: '💎', label: '5,000 Gems' },
+            { icon: '/symbols/coin.png', label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
+            { icon: '/symbols/diamond.png', label: '5,000 Gems' },
             { icon: '🎴', label: '10 Premium Packs' },
             { icon: '🚀', label: '2× XP Boost (24h)' },
             { icon: '⛏️', label: '+50 Picks' },
@@ -82,8 +82,8 @@ const getBundles = (maxBet: number) => [
         bg: 'linear-gradient(160deg,#4c0519,#9f1239,#4c0519)',
         items: [
             { icon: '👑', label: 'VIP Access (7 Days)' },
-            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 200))} Coins` },
-            { icon: '💎', label: '1,000 Gems' },
+            { icon: '/symbols/coin.png', label: `${formatCommaNumber(Math.round(maxBet * 200))} Coins` },
+            { icon: '/symbols/diamond.png', label: '1,000 Gems' },
             { icon: '🎲', label: '+10 Dice' },
             { icon: '⛏️', label: '+10 Picks' },
         ],
@@ -97,8 +97,8 @@ const getBundles = (maxBet: number) => [
         tagColor: '#22d3ee',
         bg: 'linear-gradient(160deg,#083344,#0e7490,#083344)',
         items: [
-            { icon: '💎', label: '10,000 Gems' },
-            { icon: '🪙', label: `${formatCommaNumber(Math.round(maxBet * 300))} Coins` },
+            { icon: '/symbols/diamond.png', label: '10,000 Gems' },
+            { icon: '/symbols/coin.png', label: `${formatCommaNumber(Math.round(maxBet * 300))} Coins` },
             { icon: '🎴', label: '20 Premium Packs' },
             { icon: '📜', label: 'Monthly Pass (30d)' },
         ],
@@ -226,7 +226,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <div className="flex-1 px-4 py-2 flex flex-col gap-2">
                                 {bundle.items.map((item, i) => (
                                     <div key={i} className="flex items-center gap-2">
-                                        <span className="text-base leading-none shrink-0">{item.icon}</span>
+                                        {item.icon.startsWith('/') ? (
+                                            <img src={item.icon} alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', fontSize: '1rem' }} className="shrink-0" />
+                                        ) : (
+                                            <span className="text-base leading-none shrink-0">{item.icon}</span>
+                                        )}
                                         <span className="text-white/90 text-[11px] leading-tight font-bold">{item.label}</span>
                                     </div>
                                 ))}

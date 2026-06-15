@@ -23,7 +23,7 @@ const VIP_TIERS: VipTier[] = [
     { name: 'Bronze', icon: '🥉', color: '#cd7f32', unlockLevel: 1, benefits: ['5% cashback', '+5% Piggy Bank', '+10% XP'] },
     { name: 'Silver', icon: '🥈', color: '#c0c0c0', unlockLevel: 5, benefits: ['10% cashback', '+8% Piggy Bank', '+15% XP', 'Weekly gems'] },
     { name: 'Gold', icon: '🥇', color: '#ffd700', unlockLevel: 15, benefits: ['15% cashback', '+10% Piggy', '+20% XP', '10% store off'] },
-    { name: 'Platinum', icon: '💎', color: '#b8d4ff', unlockLevel: 30, benefits: ['20% cashback', '+15% Piggy', '+30% XP', 'Daily gems'] },
+    { name: 'Platinum', icon: '/symbols/diamond.png', color: '#b8d4ff', unlockLevel: 30, benefits: ['20% cashback', '+15% Piggy', '+30% XP', 'Daily gems'] },
 ];
 
 const getCurrentTier = (vipLevel: number): VipTier | null => {
@@ -88,7 +88,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
             {isVip && currentTier && (
                 <div className="shrink-0 mx-4 mb-2 rounded-xl px-3 py-2 flex items-center gap-2.5"
                     style={{ background: `rgba(251,191,36,0.12)` }}>
-                    <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{currentTier.icon}</span>
+                    {currentTier.icon.startsWith('/') ? <img src={currentTier.icon} alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{currentTier.icon}</span>}
                     <div>
                         <div className="font-black text-[11px] uppercase tracking-widest" style={{ color: currentTier.color }}>
                             {currentTier.name} VIP Active
@@ -118,7 +118,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                                 </div>
                             )}
                             <div className="flex items-center gap-1.5">
-                                <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{tier.icon}</span>
+                                {tier.icon.startsWith('/') ? <img src={tier.icon} alt="" style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{tier.icon}</span>}
                                 <div>
                                     <div className="font-black text-[11px] uppercase tracking-wide" style={{ color: isUnlocked ? tier.color : '#6b7280' }}>
                                         {tier.name}

@@ -3434,7 +3434,7 @@ const App: React.FC = () => {
                             return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
                         })()}
                     </div>
-                    <div className="rstar" style={{ flexShrink: 0, width: 22, height: 22 }}></div>
+                    <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 22, height: 22, objectFit: 'contain' }} />
                     <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
                         {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LVL.${player.level}`}
                     </span>
@@ -3782,7 +3782,7 @@ const App: React.FC = () => {
                                     gap: 6,
                                 }}>
                                     <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#e9d5ff', textShadow: '0 0 8px rgba(192,132,252,0.9)' }}>
-                                        ⭐ Supernova
+                                        <img src="/ui/star.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 3 }} />Supernova
                                     </span>
                                     <span className="font-black" style={{ fontSize: 'clamp(11px,3vw,16px)', color: '#fde68a', textShadow: '0 0 8px rgba(251,191,36,0.8)' }}>
                                         ×{spaceMultiplier}
@@ -4324,7 +4324,7 @@ const App: React.FC = () => {
           <div className="fixed top-[40px] right-2 z-[201] animate-pop-in pointer-events-none"
               style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
               <div className="flex items-center gap-2">
-                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{activeToast.type === 'LEVEL_UP' ? '⭐' : '🃏'}</span>
+                  {activeToast.type === 'LEVEL_UP' ? <img src="/ui/star.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🃏</span>}
                   <div>
                       {activeToast.type === 'LEVEL_UP' ? (
                           <>
@@ -4563,7 +4563,7 @@ const App: React.FC = () => {
                           { icon: '🎰', text: 'High Limit Room access' },
                           { icon: '💰', text: '5% Daily Cashback via Inbox' },
                           { icon: '💎', text: '+Weekly Gems' },
-                          { icon: '⭐', text: '+20% XP on all spins' },
+                          { icon: '/ui/star.png', text: '+20% XP on all spins' },
                       ] : [
                           { icon: '🎁', text: 'Double Rewards on every level' },
                           { icon: '⚡', text: '+20 Levels instant boost' },
@@ -4571,7 +4571,7 @@ const App: React.FC = () => {
                           { icon: '⛏️', text: 'Bonus Quest Picks' },
                       ]).map(b => (
                           <div key={b.text} className="flex items-center gap-2">
-                              <span style={{ fontSize: '1rem', lineHeight: 1, flexShrink: 0 }}>{b.icon}</span>
+                              {b.icon.startsWith('/') ? <img src={b.icon} alt="" style={{ width: '1rem', height: '1rem', objectFit: 'contain', flexShrink: 0 }} /> : <span style={{ fontSize: '1rem', lineHeight: 1, flexShrink: 0 }}>{b.icon}</span>}
                               <span className="text-white/80 text-[10px] font-bold leading-tight">{b.text}</span>
                           </div>
                       ))}

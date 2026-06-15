@@ -44,7 +44,11 @@ const THEME_ICONS: Record<string, string> = {
 
 const StatRow: React.FC<{ icon: string; label: string; value: string; vip?: boolean }> = ({ icon, label, value, vip }) => (
     <div className="flex items-center gap-2.5 py-1.5">
-        <span className="text-xl leading-none w-7 text-center">{icon}</span>
+        <span className="text-xl leading-none w-7 text-center flex items-center justify-center">
+            {icon.startsWith('/') ? (
+                <img src={icon} alt="" style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+            ) : icon}
+        </span>
         <span className={`text-xs uppercase tracking-wide flex-1 font-bold ${vip ? 'text-yellow-300/60' : 'text-white/50'}`}>{label}</span>
         <span className={`font-black text-sm font-mono ${vip ? 'text-yellow-200' : 'text-white'}`}>{value}</span>
     </div>
@@ -150,11 +154,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 {/* LEFT — Stats */}
                 <div className="flex-1 px-3 py-2 flex flex-col overflow-y-auto no-scrollbar">
                     <div className={`text-[9px] font-black uppercase tracking-widest mb-1 ${labelColor}`}>Stats</div>
-                    <StatRow vip={vip} icon="🪙" label="Balance" value={formatK(player.balance)} />
-                    <StatRow vip={vip} icon="💎" label="Gems" value={formatK(player.diamonds)} />
+                    <StatRow vip={vip} icon="/symbols/coin.png" label="Balance" value={formatK(player.balance)} />
+                    <StatRow vip={vip} icon="/symbols/diamond.png" label="Gems" value={formatK(player.diamonds)} />
                     <StatRow vip={vip} icon="🎰" label="Total Spins" value={formatK(stats.totalSpins)} />
                     <StatRow vip={vip} icon="🏆" label="Max Win" value={formatK(stats.maxSingleWin)} />
-                    <StatRow vip={vip} icon="💰" label="Total Won" value={formatK(stats.totalCoinsWon)} />
+                    <StatRow vip={vip} icon="/symbols/coin.png" label="Total Won" value={formatK(stats.totalCoinsWon)} />
                     <StatRow vip={vip} icon="🎯" label="Max Jackpot" value={formatK(stats.maxJackpotWin)} />
                     <StatRow vip={vip} icon="📚" label="Albums" value={`${albumsCompleted}/${albumsTotal}`} />
                 </div>

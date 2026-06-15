@@ -267,7 +267,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     return (
                                         <div className="flex-1 flex items-center gap-2 flex-wrap">
                                             <span className="text-white/60 text-xs font-black uppercase tracking-wide shrink-0">{selectedDuplicateIds.size} Selected:</span>
-                                            {gems > 0 ? <span className="text-blue-300 text-sm font-black shrink-0">💎 {gems} Gems</span> : <span className="text-white/20 text-xs font-bold">—</span>}
+                                            {gems > 0 ? <span className="text-blue-300 text-sm font-black shrink-0 flex items-center gap-1"><img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {gems} Gems</span> : <span className="text-white/20 text-xs font-bold">—</span>}
                                         </div>
                                     );
                                 })()}
@@ -574,7 +574,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <div className="shrink-0 px-4 pt-3 pb-2 flex items-center gap-3">
                             <div className="font-black text-white text-sm uppercase tracking-widest flex-1">Pack Store</div>
                             <div className="flex items-center gap-1.5 ml-1">
-                                <span className="text-sm">💎</span>
+                                <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                 <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
                             </div>
                             <button onClick={() => setShowPackBuyPopup(null)} className="round-btn ml-1"><i className="ti ti-x" /></button>
@@ -615,9 +615,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             <div className="px-3 pb-3 pt-1 shrink-0">
                                                 <button onClick={() => { if (!canAfford) return; onBuyCredits(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
                                                     disabled={!canAfford}
-                                                    className="btn-3d w-full py-1.5 rounded-xl font-black text-white uppercase text-[10px] tracking-widest"
+                                                    className="btn-3d w-full py-1.5 rounded-xl font-black text-white uppercase text-[10px] tracking-widest flex items-center justify-center gap-1"
                                                     style={{ background: canAfford ? `linear-gradient(180deg,${opt.accent},${opt.shadowClr})` : '#374151', boxShadow: canAfford ? `0 3px 0 ${opt.shadowClr}` : 'none' }}>
-                                                    💎 {opt.gemCost}
+                                                    <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {opt.gemCost}
                                                 </button>
                                             </div>
                                         </div>
@@ -659,9 +659,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             <div className="px-3 pb-3 pt-1 shrink-0">
                                                 <button onClick={() => { if (!canAfford || !buyFn) return; buyFn(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
                                                     disabled={!canAfford}
-                                                    className="btn-3d w-full py-1.5 rounded-xl font-black text-white uppercase text-[10px] tracking-widest"
+                                                    className="btn-3d w-full py-1.5 rounded-xl font-black text-white uppercase text-[10px] tracking-widest flex items-center justify-center gap-1"
                                                     style={{ background: canAfford ? `linear-gradient(180deg,${opt.accent},${opt.shadowClr})` : '#374151', boxShadow: canAfford ? `0 3px 0 ${opt.shadowClr}` : 'none' }}>
-                                                    💎 {opt.gemCost}
+                                                    <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {opt.gemCost}
                                                 </button>
                                             </div>
                                         </div>
