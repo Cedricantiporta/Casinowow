@@ -3381,13 +3381,13 @@ const App: React.FC = () => {
                 <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[290px] md:max-w-[430px] shrink-0">
                     {/* Separate Coins Pill — 30% longer than before */}
                     <div className="currency-pill flex-[4] max-w-[195px] md:max-w-[289px] flex items-center gap-1 shrink-0">
-                        <div className="coin">$</div>
+                        <img src="/symbols/coin.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num flex-1">{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                     </div>
 
                     {/* Separate Gem Pill */}
                     <div className="currency-pill flex-[2] max-w-[100px] md:max-w-[148px] flex items-center gap-1 shrink-0">
-                        <div className="gem"></div>
+                        <img src="/symbols/diamond.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num flex-1">{formatK(player.diamonds)}</span>
                     </div>
                 </div>
