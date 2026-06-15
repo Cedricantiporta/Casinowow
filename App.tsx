@@ -354,7 +354,6 @@ const App: React.FC = () => {
   const [candyConfig, setCandyConfig] = useState<CandyWildConfig | null>(null);
   const [candyShuffledCols, setCandyShuffledCols] = useState<{ col: number; seedRow: number }[] | null>(null);
   const [candyShuffledSingles, setCandyShuffledSingles] = useState<{ col: number; row: number }[] | null>(null);
-  const candyShuffleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
@@ -404,40 +403,34 @@ const App: React.FC = () => {
       try { return JSON.parse(localStorage.getItem('cw_vip_bets') || '{"date":"","total":0}'); } catch { return { date: '', total: 0 }; }
   });
 
-  // CANDY: shuffle wild container positions while reels spin for a "switching" animation
+  // CANDY: shuffle wild container positions once when spin starts for a "switching" animation
   useEffect(() => {
       const isSpinning = status === GameStatus.SPINNING || status === GameStatus.STOPPING;
       if (isSpinning && selectedGame.theme === 'CANDY' && totalFreeSpins > 0) {
-          const shuffleStep = () => {
-              const reels = selectedGame.reels;
-              const rows = selectedGame.rows;
-              const cols = candyPendingColsRef.current;
-              const singles = candySingleWildsRef.current;
-              if (cols.length > 0) {
-                  const indices = Array.from({ length: reels }, (_, i) => i);
-                  for (let j = indices.length - 1; j > 0; j--) {
-                      const k = Math.floor(Math.random() * (j + 1));
-                      [indices[j], indices[k]] = [indices[k], indices[j]];
-                  }
-                  setCandyShuffledCols(cols.map((c, i) => ({ col: indices[i % reels], seedRow: c.seedRow })));
+          const reels = selectedGame.reels;
+          const rows = selectedGame.rows;
+          const cols = candyPendingColsRef.current;
+          const singles = candySingleWildsRef.current;
+          if (cols.length > 0) {
+              const indices = Array.from({ length: reels }, (_, i) => i);
+              for (let j = indices.length - 1; j > 0; j--) {
+                  const k = Math.floor(Math.random() * (j + 1));
+                  [indices[j], indices[k]] = [indices[k], indices[j]];
               }
-              if (singles.length > 0) {
-                  const allPos = Array.from({ length: reels * rows }, (_, i) => ({ col: Math.floor(i / rows), row: i % rows }));
-                  for (let j = allPos.length - 1; j > 0; j--) {
-                      const k = Math.floor(Math.random() * (j + 1));
-                      [allPos[j], allPos[k]] = [allPos[k], allPos[j]];
-                  }
-                  setCandyShuffledSingles(allPos.slice(0, singles.length));
+              setCandyShuffledCols(cols.map((c, i) => ({ col: indices[i % reels], seedRow: c.seedRow })));
+          }
+          if (singles.length > 0) {
+              const allPos = Array.from({ length: reels * rows }, (_, i) => ({ col: Math.floor(i / rows), row: i % rows }));
+              for (let j = allPos.length - 1; j > 0; j--) {
+                  const k = Math.floor(Math.random() * (j + 1));
+                  [allPos[j], allPos[k]] = [allPos[k], allPos[j]];
               }
-          };
-          shuffleStep();
-          candyShuffleIntervalRef.current = setInterval(shuffleStep, 350);
+              setCandyShuffledSingles(allPos.slice(0, singles.length));
+          }
       } else {
-          if (candyShuffleIntervalRef.current) { clearInterval(candyShuffleIntervalRef.current); candyShuffleIntervalRef.current = null; }
           setCandyShuffledCols(null);
           setCandyShuffledSingles(null);
       }
-      return () => { if (candyShuffleIntervalRef.current) { clearInterval(candyShuffleIntervalRef.current); candyShuffleIntervalRef.current = null; } };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, selectedGame.theme, selectedGame.reels, selectedGame.rows, totalFreeSpins]);
 
