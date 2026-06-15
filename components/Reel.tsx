@@ -22,9 +22,12 @@ interface ReelProps {
 }
 
 const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
+const NO_SEVEN_THEMES = new Set(['DRAGON']);
 
-const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean) => {
-  let weights = neon ? NEON_WEIGHTS : (excludeScatter ? WEIGHTS.filter(w => w.type !== SymbolType.SCATTER) : WEIGHTS);
+const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean, excludeSeven?: boolean) => {
+  let weights = neon ? NEON_WEIGHTS : WEIGHTS;
+  if (excludeScatter) weights = weights.filter(w => w.type !== SymbolType.SCATTER);
+  if (excludeSeven) weights = weights.filter(w => w.type !== SymbolType.SEVEN);
   let sum = weights.reduce((acc, el) => acc + el.weight, 0);
   let rand = Math.random() * sum;
   for (let w of weights) {
@@ -40,8 +43,9 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
   const VISIBLE_ROWS = gameConfig.rows;
   const noScatter = NO_SCATTER_THEMES.has(gameConfig.theme);
+  const noSeven = NO_SEVEN_THEMES.has(gameConfig.theme);
   const isNeon = gameConfig.theme === 'NEON';
-  const getRandSym = () => makeRandomSymbol(noScatter, isNeon);
+  const getRandSym = () => makeRandomSymbol(noScatter, isNeon, noSeven);
 
   // Initialize strip on mount or config change
   useEffect(() => {
@@ -252,7 +256,8 @@ const ReelCell: React.FC<{
 
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
-    const isLetter = theme !== 'NEON' && [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
+    const isImageIcon = typeof config?.icon === 'string' && config.icon.startsWith('/');
+    const isLetter = !isImageIcon && theme !== 'NEON' && [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
 
 
     const JP_LABELS: Partial<Record<SymbolType, string>> = {
@@ -339,6 +344,13 @@ const ReelCell: React.FC<{
                         >
                             {jpLabel}
                         </span>
+                    ) : isImageIcon ? (
+                        <img
+                            src={config.icon}
+                            alt=""
+                            className="select-none object-contain pointer-events-none"
+                            style={{ width: `${(85 * cellScale).toFixed(1)}%`, height: `${(85 * cellScale).toFixed(1)}%` }}
+                        />
                     ) : (
                         <div
                             className={`select-none transform ${config?.style || ''}`}

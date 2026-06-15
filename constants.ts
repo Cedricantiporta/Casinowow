@@ -214,9 +214,9 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
     [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🗿', ...JP_ICONS
   },
   DRAGON: {
-    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🎋', [SymbolType.BELL]: '👘', [SymbolType.BAR]: '🔮', [SymbolType.CHERRY]: '👺', [SymbolType.SEVEN]: '🐲',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🌋', ...JP_ICONS
+    [SymbolType.TEN]: '/dragon/dragon-2.png', [SymbolType.JACK]: '/dragon/dragon-3.png', [SymbolType.QUEEN]: '/dragon/dragon-6.png', [SymbolType.KING]: '/dragon/dragon-5.png', [SymbolType.ACE]: '/dragon/dragon-4.png',
+    [SymbolType.GRAPE]: '/dragon/dragon-7.png', [SymbolType.BELL]: '/dragon/dragon-8.png', [SymbolType.BAR]: '/dragon/dragon-9.png', [SymbolType.CHERRY]: '/dragon/dragon-10.png', [SymbolType.SEVEN]: '/dragon/dragon-10.png',
+    [SymbolType.WILD]: '/dragon/dragon-11.png', [SymbolType.SCATTER]: '/dragon/dragon-1.png', ...JP_ICONS
   },
   PIRATE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',

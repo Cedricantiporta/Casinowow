@@ -405,8 +405,7 @@ const App: React.FC = () => {
 
   // CANDY: shuffle wild container positions once when spin starts for a "switching" animation
   useEffect(() => {
-      const isSpinning = status === GameStatus.SPINNING || status === GameStatus.STOPPING;
-      if (isSpinning && selectedGame.theme === 'CANDY' && totalFreeSpins > 0) {
+      if (status === GameStatus.SPINNING && selectedGame.theme === 'CANDY' && totalFreeSpins > 0) {
           const reels = selectedGame.reels;
           const rows = selectedGame.rows;
           const cols = candyPendingColsRef.current;
