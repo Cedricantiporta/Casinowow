@@ -85,7 +85,6 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-red-500 via-red-700 to-rose-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #ef4444 0%, #450a0a 100%)',
     reelBg: REEL_BGS.DRAGON,
-    coverImage: '/dragon/cover.png'
   },
   {
     id: 'pirate-bounty',
