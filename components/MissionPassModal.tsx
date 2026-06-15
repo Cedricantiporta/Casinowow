@@ -110,7 +110,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3">
-        <div className="w-full max-w-[720px] flex flex-col bg-[#0d0814] rounded-2xl overflow-hidden relative"
+        <div className="w-full max-w-[720px] flex flex-col rounded-2xl overflow-hidden relative" style={{ background: 'linear-gradient(160deg,#1a0535,#2d0764)' }}
             style={{ height: 'min(96%, 1160px)' }}>
             {showPremiumInfo && (
                 <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
@@ -231,20 +231,17 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                 {/* ===== CONTENT ===== */}
 
                 {view === 'MISSIONS' && (
-                    <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden bg-gradient-to-b from-[#1a1025] to-[#0d0814]">
+                    <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden" style={{ background: 'linear-gradient(180deg,#1e0a40,#120526)' }}>
                         {currentMissions.map((mission) => (
                             <div key={mission.id}
                                 className={`flex-1 flex flex-col gap-2 rounded-xl p-3 relative overflow-hidden shadow-lg border ${mission.isGolden ? (mission.completed ? 'border-yellow-500/60' : 'border-yellow-700/40') : mission.completed ? 'border-green-900/40' : 'border-white/5'}`}
-                                style={{ background: mission.isGolden ? (mission.completed ? 'linear-gradient(180deg,#2a1f00,#1a1200)' : 'linear-gradient(180deg,#1a1400,#100d00)') : mission.completed ? 'linear-gradient(180deg,#0a2e0a,#0e1c0e)' : 'linear-gradient(180deg,#2a233e,#1a1230)' }}>
+                                style={{ background: mission.isGolden ? (mission.completed ? 'linear-gradient(180deg,#5a3f00,#3d2900)' : 'linear-gradient(180deg,#4a3300,#2e1e00)') : mission.completed ? 'linear-gradient(180deg,#0a2e0a,#0e1c0e)' : 'linear-gradient(180deg,#2a233e,#1a1230)' }}>
                                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
 
                                 {/* Golden / stacks badges */}
                                 {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
                                     <div className="flex items-center justify-between relative z-10 -mb-1">
-                                        {mission.isGolden
-                                            ? <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide" style={{ background: 'linear-gradient(180deg,#f59e0b,#b45309)', color: '#1c0a00' }}>✦ GOLDEN</span>
-                                            : <span />
-                                        }
+                                        {!mission.isGolden && <span />}
                                         {mission.stacks && mission.stacks > 0 && (
                                             <div className="flex gap-0.5 items-center">
                                                 {Array.from({ length: 3 }).map((_, idx) => (
@@ -322,9 +319,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                 )}
 
                 {view === 'PASS' && (
-                    <div className="flex-1 flex flex-col bg-black relative">
+                    <div className="flex-1 flex flex-col relative" style={{ background: '#12052a' }}>
                         {/* Rewards horizontal scroll — swipe/wheel only, no nav arrows */}
-                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-stretch p-3 gap-3 no-scrollbar bg-gradient-to-b from-[#1a1025] to-black snap-x">
+                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-stretch p-3 gap-3 no-scrollbar snap-x" style={{ background: 'linear-gradient(180deg,#1e0a40,#120526)' }}>
                             {levels.map((lvl) => {
                                 const rewards = missionState.passRewards.filter(r => r.level === lvl);
                                 const freeReward = rewards.find(r => r.tier === 'FREE');

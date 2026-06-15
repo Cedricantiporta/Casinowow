@@ -124,7 +124,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     return (
         <div
             className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
-            style={{ background: 'linear-gradient(180deg,#0d0814 0%,#180830 100%)' }}
+            style={{ background: 'linear-gradient(160deg,#1a0535 0%,#2d0764 50%,#180430 100%)' }}
         >
             {/* Header */}
             <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0">

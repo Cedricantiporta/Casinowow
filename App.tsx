@@ -2103,10 +2103,10 @@ const App: React.FC = () => {
             setHoldWinLockedGrid(newLockedGrid);
             setHoldWinCoinValues(newCoinValues);
             setHoldWinJpGrid(newJpGrid);
+            setHoldWinRespins(newRespins);
             if (isFull || newRespins <= 0) {
                 startHwCounting(newLockedGrid, newCoinValues, newJpGrid, isFull, currentBet);
             } else {
-                setHoldWinRespins(newRespins);
                 setTimeout(() => setStatus(GameStatus.IDLE), 960);
             }
             return next;
