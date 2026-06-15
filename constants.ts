@@ -283,7 +283,7 @@ const TILE_BGS = {
     RED:     'bg-gradient-to-b from-red-500 to-red-900',
     YELLOW:  'bg-gradient-to-b from-yellow-400 to-amber-800',
     WILD:    'bg-gradient-to-b from-yellow-300 via-yellow-500 to-yellow-600 shadow-[0_4px_0_rgb(180,83,9)]',
-    SCATTER: 'bg-gradient-to-b from-indigo-500 to-indigo-900',
+    SCATTER: 'bg-gradient-to-b from-yellow-300 via-amber-400 to-yellow-600',
 };
 
 const getThemeFont = (theme: GameTheme) => {

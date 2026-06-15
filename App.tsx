@@ -3604,6 +3604,7 @@ const App: React.FC = () => {
                                     }
                                 }
                             }
+                            const isAnticipating = scatterAnticipation || (anticipationStartReel !== -1 && stoppedReels >= anticipationStartReel);
                             return grid.map((col, i) => (
                             <Reel
                                 key={i}
@@ -3620,7 +3621,7 @@ const App: React.FC = () => {
                                 forcedSymbols={cascadeGrid ? cascadeGrid[i] : undefined}
                                 newCells={cascadeNewCells ? cascadeNewCells[i] : undefined}
                                 dissolving={cascadeDissolving}
-                                anticipation={scatterAnticipation && i >= stoppedReels}
+                                anticipation={isAnticipating && i === stoppedReels}
                             />
                             ));
                         })()}
