@@ -3381,13 +3381,13 @@ const App: React.FC = () => {
                 <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[290px] md:max-w-[430px] shrink-0">
                     {/* Separate Coins Pill — 30% longer than before */}
                     <div className="currency-pill flex-[4] max-w-[195px] md:max-w-[289px] flex items-center gap-1 shrink-0">
-                        <img src="/symbols/coin.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
+                        <img src="/symbols/coin.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num flex-1">{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                     </div>
 
                     {/* Separate Gem Pill */}
                     <div className="currency-pill flex-[2] max-w-[100px] md:max-w-[148px] flex items-center gap-1 shrink-0">
-                        <img src="/symbols/diamond.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain', flexShrink: 0 }} />
+                        <img src="/symbols/diamond.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num flex-1">{formatK(player.diamonds)}</span>
                     </div>
                 </div>
@@ -3422,7 +3422,7 @@ const App: React.FC = () => {
                         title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
                         style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', overflow:'visible' } : { overflow:'visible' }}
                     >
-                        <span style={{fontSize:22}}>🐷</span>
+                        <img src="/ui/piggy.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
                     </div>
 
                 {/* Level Pill — star on left, LVL.XX text centered */}
@@ -3434,7 +3434,7 @@ const App: React.FC = () => {
                             return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
                         })()}
                     </div>
-                    <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 22, height: 22, objectFit: 'contain' }} />
+                    <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 28, height: 28, objectFit: 'contain' }} />
                     <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
                         {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LVL.${player.level}`}
                     </span>

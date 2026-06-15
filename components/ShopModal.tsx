@@ -130,19 +130,19 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0">
                 <div className="flex items-center gap-2 shrink-0">
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
-                        <div className="coin">$</div>
+                        <img src="/symbols/coin.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{fmt(balance)}</span>
                     </div>
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
-                        <div className="gem"></div>
+                        <img src="/symbols/diamond.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{fmt(diamonds)}</span>
                     </div>
                 </div>
                 <div className="flex-1"></div>
                 {/* Section tabs */}
                 {[
-                    { label: <img src="/symbols/coin.png" alt="" style={{ width: '1.1em', height: '1.1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Coins',  sec: 'COINS'    as const, bg: '#b8860b' },
-                    { label: <img src="/symbols/diamond.png" alt="" style={{ width: '1.1em', height: '1.1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Gems',   sec: 'DIAMONDS' as const, bg: '#0e7490' },
+                    { label: <img src="/symbols/coin.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Coins',  sec: 'COINS'    as const, bg: '#b8860b' },
+                    { label: <img src="/symbols/diamond.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Gems',   sec: 'DIAMONDS' as const, bg: '#0e7490' },
                     { label: '🚀', name: 'Boosts', sec: 'BOOSTS'   as const, bg: '#7c3aed' },
                 ].map((tab, i) => (
                     <React.Fragment key={tab.name}>

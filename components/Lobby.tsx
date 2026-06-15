@@ -346,7 +346,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
                                 {isCardsLocked && lockBadge(30)}
                                 <div className="relative">
-                                    <img src="/ui/cards.png" alt="" className="w-12 h-12 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/cards.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 0 && (
                                         <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 99 ? '99+' : (packCredits ?? 0) + (premiumPackCredits ?? 0)}</span>
@@ -360,7 +360,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
                                 {isPiggyLocked && lockBadge(5)}
                                 <div className="relative leading-none">
-                                    <img src="/ui/piggy.png" alt="" className="w-12 h-12 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/piggy.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {piggyFull && (
                                         <div className="absolute -top-1 -right-2 text-white font-black text-[7px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap"
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>
@@ -373,7 +373,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isQuestLocked ? onOpenMiniGames : undefined} className={iconBtn(isQuestLocked)}>
                                 {isQuestLocked && lockBadge(20)}
                                 <div className="relative leading-none">
-                                    <img src="/ui/games.png" alt="" className="w-12 h-12 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/games.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {!isQuestLocked && (wildCredits + diceCredits) > 0 && (
                                         <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
@@ -388,7 +388,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
                                 {isMissionsLocked && lockBadge(10)}
                                 <div className="relative leading-none">
-                                    <img src="/ui/pass.png" alt="" className="w-12 h-12 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/pass.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {totalMissionNotifs > 0 && !isMissionsLocked && (
                                         <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[9px] text-white font-black"
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
@@ -433,7 +433,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
                                 {isMissionsLocked && lockBadge(10)}
                                 <div className="relative">
-                                    <img src="/ui/missions.png" alt="" className="w-12 h-12 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/missions.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {missionsReady > 0 && !isMissionsLocked && (
                                         <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{missionsReady > 99 ? '99+' : missionsReady}</span>
@@ -445,7 +445,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             <button onClick={onOpenInbox} className={iconBtn(false)}>
                                 <div className="relative">
-                                    <img src="/ui/inbox.png" alt="" className="w-12 h-12 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/inbox.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {(inboxCount ?? 0) > 0 && (
                                         <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{(inboxCount ?? 0) > 99 ? '99+' : inboxCount}</span>
@@ -458,7 +458,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {/* HIGH ROLLER — icon flips to "back to lobby" when in HR */}
                             <button onClick={!isHighRollerLocked ? onOpenHighRoller : undefined} className={iconBtn(isHighRollerLocked)}>
                                 {isHighRollerLocked && lockBadge(35)}
-                                <img src={isHighLimit ? undefined : '/ui/highroller.png'} alt="" className="w-12 h-12 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" style={{ display: isHighLimit ? 'none' : undefined }} />
+                                <img src={isHighLimit ? undefined : '/ui/highroller.png'} alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" style={{ display: isHighLimit ? 'none' : undefined }} />
                                 {isHighLimit && <span className="text-[2.4rem] md:text-[2.7rem] leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]">🏠</span>}
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">
                                     {isHighLimit ? 'Lobby' : 'High Roller'}
@@ -467,7 +467,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* VIP LOUNGE */}
                             <button onClick={onOpenVipLounge} className={iconBtn(false)}>
-                                <img src="/ui/VIP.png" alt="" className="w-12 h-12 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                <img src="/ui/VIP.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">VIP</span>
                             </button>
 

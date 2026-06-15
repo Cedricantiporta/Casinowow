@@ -73,9 +73,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     >
                         <div className="absolute inset-0 rounded-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none overflow-hidden"></div>
                         <div className="flex flex-col items-center justify-center">
-                             <div className="text-2xl md:text-4xl drop-shadow-md group-hover:-translate-y-1 transition-transform mb-1">🎫</div>
+                             <img src="/ui/pass.png" alt="" className="drop-shadow-md group-hover:-translate-y-1 transition-transform mb-1" style={{ width: 40, height: 40, objectFit: 'contain' }} />
                              <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)] z-10">
-                                PASS
+                                Pass
                              </span>
                         </div>
                         
