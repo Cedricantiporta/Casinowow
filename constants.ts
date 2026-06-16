@@ -74,7 +74,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Cascading Reels! Wins explode and new symbols fall. 3 snowflakes for free spins!',
     color: 'from-cyan-400 via-sky-600 to-indigo-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #22d3ee 0%, #1e3a8a 100%)',
-    reelBg: REEL_BGS.ARCTIC
+    reelBg: REEL_BGS.ARCTIC,
+    slotBg: '/slots/arctic_bg.jpg',
   },
   {
     id: 'dragon-fortune',
@@ -99,7 +100,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Sail the seas for lost gold!',
     color: 'from-blue-600 via-blue-800 to-slate-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #0f172a 100%)',
-    reelBg: REEL_BGS.PIRATE
+    reelBg: REEL_BGS.PIRATE,
+    slotBg: '/slots/pirate_bg.jpg',
   },
   {
     id: 'cosmic-cash',
