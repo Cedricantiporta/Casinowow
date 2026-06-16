@@ -112,8 +112,17 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     );
 };
 
+const PRELOAD_ASSETS = [
+    '/slots/piggy_bg.jpg', '/slots/egypt_bg.jpg', '/slots/arctic_bg.jpg',
+    '/slots/dragon_bg.jpg', '/slots/pirate_bg.jpg', '/slots/candy_bg.png',
+    '/symbols/coin.png', '/ui/pass.png',
+    '/egypt/wild.png', '/symbols/seven.png', '/candy/sugar1.png',
+    '/pirate/skull.png', '/piggy/pig.png', '/arctic/penguin.png', '/dragon/dragon-1.png',
+];
+
 const App: React.FC = () => {
   const toastCountRef = useRef(0);
+  const [appReady, setAppReady] = useState(false);
   const spinButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
@@ -153,6 +162,19 @@ const App: React.FC = () => {
   useEffect(() => {
       jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
   }, [player.level]);
+
+  // Preload game assets on first mount, then mark app as ready
+  useEffect(() => {
+      let loaded = 0;
+      const total = PRELOAD_ASSETS.length;
+      const done = () => { loaded++; if (loaded >= total) setAppReady(true); };
+      PRELOAD_ASSETS.forEach(src => {
+          const img = new Image();
+          img.onload = done;
+          img.onerror = done;
+          img.src = src;
+      });
+  }, []);
 
   // Toggle XP mult display between multiplier and countdown every 15s when boost active
   useEffect(() => {
@@ -327,6 +349,9 @@ const App: React.FC = () => {
   const [dragonCoinAbsorbing, setDragonCoinAbsorbing] = useState(false);
   const dragonPickSpinsRef = useRef(0);
   const dragonPickBonusMultRef = useRef(0); // accumulated +5% per 100 spins
+
+  // Egypt Hold & Win popup
+  const [showEgyptHoldWinPopup, setShowEgyptHoldWinPopup] = useState(false);
 
   // Arctic Pick-and-Win state
   const [showArcticPickModal, setShowArcticPickModal] = useState(false);
@@ -1932,6 +1957,7 @@ const App: React.FC = () => {
     if (showFreeSpinSummary) return;
     if (showCandyRoulette) return;
     if (dragonPotShaking || showDragonTriggerPopup) return;
+    if (showEgyptHoldWinPopup) return;
 
     // Auto max bet: snap to highest available bet before spinning
     if (autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
@@ -2170,12 +2196,20 @@ const App: React.FC = () => {
                         }
                     });
                 });
-                holdWinRef.current = { active: true, lockedGrid, coinValues, jpGrid, respins: 3 };
-                setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
+                holdWinRef.current = { active: false, lockedGrid, coinValues, jpGrid, respins: 3 };
                 audioService.playScatterTrigger();
-                setStatus(GameStatus.SCATTER_SHOWCASE);
                 setSpinsWithoutBonus(0);
-                setTimeout(() => setStatus(GameStatus.IDLE), 1800);
+                setShowEgyptHoldWinPopup(true);
+                setTimeout(() => {
+                    setShowEgyptHoldWinPopup(false);
+                    setReelTransitioning('out');
+                    setTimeout(() => {
+                        holdWinRef.current.active = true;
+                        setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
+                        setReelTransitioning('in');
+                        setTimeout(() => setReelTransitioning(false), 1100);
+                    }, 900);
+                }, 2500);
                 return next;
             }
         }
@@ -3415,6 +3449,23 @@ const App: React.FC = () => {
   const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
   const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
+  if (!appReady) {
+      return (
+          <div style={{ position: 'fixed', inset: 0, background: '#0a0015', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
+              <div style={{ fontSize: '4.5rem', lineHeight: 1 }}>🎰</div>
+              <div style={{ fontFamily: "'Titan One', cursive", fontWeight: 900, fontSize: 28, background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: 2 }}>
+                  Scatter Pa More
+              </div>
+              <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Loading…</div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                  {[0,1,2].map(i => (
+                      <div key={i} className="animate-bounce" style={{ width: 8, height: 8, borderRadius: '50%', background: '#ffd700', animationDelay: `${i * 0.18}s` }} />
+                  ))}
+              </div>
+          </div>
+      );
+  }
+
   return (
     <div
       className="bg-[#0a0015] flex items-center justify-center overflow-hidden"
@@ -4138,7 +4189,7 @@ const App: React.FC = () => {
                       onMouseUp={handleSpinMouseUp}
                       onTouchStart={(e) => { e.preventDefault(); handleSpinMouseDown(); }}
                       onTouchEnd={(e) => { e.preventDefault(); handleSpinMouseUp(); }}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup || showEgyptHoldWinPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -4334,6 +4385,19 @@ const App: React.FC = () => {
                       className="font-black uppercase tracking-widest rounded-xl px-6 py-2.5"
                       style={{ background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#1a0000', fontSize: 'clamp(12px,2.2vw,16px)', boxShadow: '0 4px 18px rgba(251,191,36,0.6)' }}
                   >LET'S GO!</button>
+              </div>
+          </div>
+      )}
+
+      {showEgyptHoldWinPopup && (
+          <div className="absolute inset-0 z-[250] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.82)' }}>
+              <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
+                  style={{ background: 'linear-gradient(160deg,#2a1400,#4a2600)', border: '2px solid #f59e0b', boxShadow: '0 0 40px rgba(245,158,11,0.6)', maxWidth: 300, textAlign: 'center' }}>
+                  <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>🏺</span>
+                  <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: '0 0 12px rgba(245,158,11,0.9)' }}>
+                      Hold &amp; Win<br />Triggered!
+                  </div>
+                  <div className="text-amber-300 font-bold text-xs uppercase tracking-widest">6 Coins Landed!</div>
               </div>
           </div>
       )}
