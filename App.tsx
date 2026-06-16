@@ -334,6 +334,8 @@ const App: React.FC = () => {
   const [arcticSpinProgress, setArcticSpinProgress] = useState(0);
   const arcticPickSpinsRef = useRef(0);
   const arcticProgressRef = useRef(0);
+  const arcticFreeSpinCountRef = useRef(0);
+  const [pendingArcticFreePick, setPendingArcticFreePick] = useState(false);
 
   // Pirate's Bounty — Ghost Ship Walking Wilds state
   const [pirateWalkActive, setPirateWalkActive] = useState(false);
@@ -2030,6 +2032,30 @@ const App: React.FC = () => {
     }
   }, [status, targetGrid.length, generateSmartGrid, selectedGame.theme, freeSpinsRemaining]);
 
+  // Arctic free-spin jackpot: show popup only once spin is fully idle
+  useEffect(() => {
+    if (status === GameStatus.IDLE && pendingArcticFreePick && !showArcticPickModal) {
+        setPendingArcticFreePick(false);
+        setPlayer(p => ({ ...p, autoSpin: false }));
+        setTimeout(() => {
+            setShowArcticTriggerPopup(true);
+            setInstantStop(true);
+            audioService.playScatterTrigger();
+            setTimeout(() => {
+                setShowArcticTriggerPopup(false);
+                setReelTransitioning('out');
+                setTimeout(() => {
+                    setShowArcticPickModal(true);
+                    requestAnimationFrame(() => requestAnimationFrame(() => {
+                        setReelTransitioning('in');
+                        setTimeout(() => setReelTransitioning(false), 1100);
+                    }));
+                }, 900);
+            }, 3000);
+        }, 300);
+    }
+  }, [status, pendingArcticFreePick, showArcticPickModal]);
+
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length > 0) {
         const effectiveFastSpin = fastSpin && freeSpinsRemaining === 0;
@@ -2355,26 +2381,14 @@ const App: React.FC = () => {
             }
         }
 
-        // Arctic: 2% chance to trigger jackpot pick during free spins
-        if (selectedGame.theme === 'ARCTIC' && freeSpinsRemaining > 0 && !showArcticPickModal) {
-            if (Math.random() < 0.02) {
-                setPlayer(p => ({ ...p, autoSpin: false }));
-                setTimeout(() => {
-                    setShowArcticTriggerPopup(true);
-                    setInstantStop(true);
-                    audioService.playScatterTrigger();
-                    setTimeout(() => {
-                        setShowArcticTriggerPopup(false);
-                        setReelTransitioning('out');
-                        setTimeout(() => {
-                            setShowArcticPickModal(true);
-                            requestAnimationFrame(() => requestAnimationFrame(() => {
-                                setReelTransitioning('in');
-                                setTimeout(() => setReelTransitioning(false), 1100);
-                            }));
-                        }, 900);
-                    }, 3000);
-                }, 400);
+        // Arctic: 5% chance every 5 free spins — set pending flag, show after IDLE
+        if (selectedGame.theme === 'ARCTIC' && freeSpinsRemaining > 0 && !showArcticPickModal && !pendingArcticFreePick) {
+            arcticFreeSpinCountRef.current++;
+            if (arcticFreeSpinCountRef.current >= 5) {
+                arcticFreeSpinCountRef.current = 0;
+                if (Math.random() < 0.05) {
+                    setPendingArcticFreePick(true);
+                }
             }
         }
 
