@@ -3429,7 +3429,7 @@ const App: React.FC = () => {
                 {/* Level Pill — star on left, LVL.XX text centered */}
                 <div className="rtrack !flex-none w-[120px] md:w-[155px] ml-2" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6 }}>
                     {/* Fill bar — wrapped in overflow:hidden div so it clips to pill border-radius */}
-                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 10, pointerEvents: 'none', zIndex: 0 }}>
+                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 10, pointerEvents: 'none' }}>
                         {(() => {
                             const xpBoostOn = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
                             return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
