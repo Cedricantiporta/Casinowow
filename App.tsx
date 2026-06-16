@@ -1110,7 +1110,15 @@ const App: React.FC = () => {
   const handleBuyPassLevel = () => {
       if (player.diamonds >= 100 && missionState.passLevel < 50) {
           setPlayer(p => ({ ...p, diamonds: p.diamonds - 100 }));
-          setMissionState(prev => ({ ...prev, passLevel: prev.passLevel + 1 }));
+          setMissionState(prev => {
+              const newLevel = prev.passLevel + 1;
+              const milestone = prev.isPremium && newLevel % 10 === 0;
+              return {
+                  ...prev,
+                  passLevel: newLevel,
+                  ...(milestone ? { passBoostMultiplier: 2, passBoostEndTime: Date.now() + 60 * 60 * 1000 } : {}),
+              };
+          });
           audioService.playLevelUp();
       }
   };
@@ -4349,6 +4357,7 @@ const App: React.FC = () => {
         onClose={() => setActiveModal('NONE')}
         playerLevel={player.level}
         maxBet={MAX_BET_BY_LEVEL(player.level)}
+        onOpenGemShop={() => { setActiveModal('NONE'); setTimeout(() => openShop('DIAMONDS'), 50); }}
       />}
 
       {activeModal === 'MISSIONS' && <MissionPassModal
@@ -4366,13 +4375,14 @@ const App: React.FC = () => {
           onClaimAll={handleClaimAllMissions}
           playerLevel={player.level}
           maxBet={MAX_BET_BY_LEVEL(player.level)}
+          onOpenGemShop={() => { setActiveModal('NONE'); setTimeout(() => openShop('DIAMONDS'), 50); }}
       />}
-      
+
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus} />
       
       <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} />
       
-    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} />
+    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} onOpenGemShop={() => openShop('DIAMONDS')} />
 
       <FeatureUnlockModal 
         isOpen={activeModal === 'FEATURE_UNLOCK'} 

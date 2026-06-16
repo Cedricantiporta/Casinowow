@@ -27,6 +27,7 @@ interface MiniGameModalProps {
     onClose: () => void;
     playerLevel: number;
     maxBet?: number;
+    onOpenGemShop?: () => void;
 }
 
 // Grid grows every 5 stages: 3 (1-5), 4 (6-10), 5 (11-15), 6 (16+)
@@ -78,7 +79,7 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     isOpen, diceCredits: diceCreditsRaw, wildCredits: wildCreditsRaw, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
     balance = 0, diamonds = 0,
-    onSelectMode, onBuyPicks, onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet
+    onSelectMode, onBuyPicks, onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet, onOpenGemShop
 }) => {
     const diceCredits = diceCreditsRaw ?? 0;
     const wildCredits = wildCreditsRaw ?? 0;
@@ -492,6 +493,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     <div className="currency-pill flex items-center gap-1">
                         <div className="gem shrink-0"></div>
                         <span className="num" style={{ fontSize: '10px' }}>{diamonds}</span>
+                        {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop, 50); }} style={{ fontSize: '10px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', lineHeight: 1, color: '#c084fc', fontWeight: 900 }}>+</button>}
                     </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -768,9 +770,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 </div>
                                 <div className="text-purple-300/60 text-[10px] mt-0.5">Bundles include coins & gems bonus</div>
                             </div>
-                            <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full">
-                                <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                                <span className="text-white font-black text-sm">{diamonds}</span>
+                            <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full">
+                                    <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+                                    <span className="text-white font-black text-sm">{diamonds}</span>
+                                </div>
+                                {onOpenGemShop && <button onClick={() => { setShowBuyPopup(null); onClose(); setTimeout(onOpenGemShop, 50); }} style={{ fontSize: '11px', background: 'rgba(255,255,255,0.1)', border: 'none', width: 22, height: 22, borderRadius: '50%', cursor: 'pointer', color: '#c084fc', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>}
                             </div>
                         </div>
                         {/* Bundle options */}

@@ -11,9 +11,10 @@ interface PiggyBankModalProps {
     level: number;
     maxBet?: number;
     balance?: number;
+    onOpenGemShop?: () => void;
 }
 
-export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet = 0, balance = 0 }) => {
+export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet = 0, balance = 0, onOpenGemShop }) => {
     const [breaking, setBreaking] = useState(false);
 
     if (!isOpen) return null;
@@ -51,6 +52,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                     <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
                         <img src="/symbols/diamond.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{diamonds}</span>
+                        {onOpenGemShop && <button onClick={onOpenGemShop} style={{ fontSize: '11px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', color: '#c084fc', fontWeight: 900, lineHeight: 1 }}>+</button>}
                     </div>
                 </div>
                 <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>

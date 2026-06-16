@@ -393,6 +393,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <div className="currency-pill flex items-center gap-1 shrink-0">
                             <div className="gem"></div>
                             <span className="num">{formatNumber(diamonds)}</span>
+                            <button onClick={() => onOpenShop('DIAMONDS')} style={{ fontSize: '10px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', color: '#c084fc', fontWeight: 900, lineHeight: 1 }}>+</button>
                         </div>
                         <div className="currency-pill flex items-center gap-1 shrink-0">
                             <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>🃏</span>
@@ -590,6 +591,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <div className="flex items-center gap-1.5 ml-1">
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                 <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
+                                <button onClick={() => { setShowPackBuyPopup(null); onOpenShop('DIAMONDS'); }} style={{ fontSize: '11px', background: 'rgba(255,255,255,0.1)', border: 'none', width: 20, height: 20, borderRadius: '50%', cursor: 'pointer', color: '#c084fc', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
                             </div>
                             <button onClick={() => setShowPackBuyPopup(null)} className="round-btn ml-1"><i className="ti ti-x" /></button>
                         </div>

@@ -17,6 +17,7 @@ interface MissionPassModalProps {
     onClaimAll: () => void;
     playerLevel: number;
     maxBet?: number;
+    onOpenGemShop?: () => void;
 }
 
 export const MissionPassModal: React.FC<MissionPassModalProps> = ({
@@ -34,6 +35,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     onClaimAll,
     playerLevel,
     maxBet = 10000,
+    onOpenGemShop,
 }) => {
     const [view, setView] = useState<'MISSIONS' | 'PASS'>('MISSIONS');
     const [activeTab, setActiveTab] = useState<MissionFrequency>('DAILY');
@@ -185,10 +187,18 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 );
                             })()}
                             <div className="flex-1" />
-                            <div className="flex items-center gap-1 mr-2 px-2 py-0.5 rounded-full shrink-0"
+                            {/* Pass level + XP shortcut */}
+                            <button onClick={() => setView('PASS')} className="flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0"
+                                style={{ background: 'rgba(251,191,36,0.12)', border: 'none', cursor: 'pointer' }}>
+                                <span className="font-black text-[9px] text-yellow-300 uppercase">Lv.{missionState.passLevel}</span>
+                                <span className="font-black text-[9px] text-yellow-200/60">{missionState.passXP}/{missionState.passXpToNext}</span>
+                            </button>
+                            {/* Gems pill with + shortcut */}
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0"
                                 style={{ background: 'rgba(96,165,250,0.12)' }}>
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                 <span className="font-black text-[10px] text-blue-300">{diamonds.toLocaleString('en-US')}</span>
+                                {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} style={{ fontSize: '10px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', color: '#c084fc', fontWeight: 900, lineHeight: 1 }}>+</button>}
                             </div>
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
@@ -202,6 +212,17 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             {/* Title */}
                             <span className="font-black text-white text-xs uppercase tracking-widest shrink-0">Monthly Pass</span>
                             <div className="flex-1"></div>
+                            {/* Currency pills */}
+                            <div className="currency-pill flex items-center gap-1 shrink-0" style={{ fontSize: '10px' }}>
+                                <img src="/symbols/coin.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain' }} />
+                                <span className="num" style={{ fontSize: '10px' }}>{balance.toLocaleString('en-US')}</span>
+                            </div>
+                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0"
+                                style={{ background: 'rgba(96,165,250,0.12)' }}>
+                                <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+                                <span className="font-black text-[10px] text-blue-300">{diamonds.toLocaleString('en-US')}</span>
+                                {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} style={{ fontSize: '10px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', color: '#c084fc', fontWeight: 900, lineHeight: 1 }}>+</button>}
+                            </div>
                             {/* Action buttons */}
                             <div className="flex items-center gap-1 shrink-0">
                                 <button onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
