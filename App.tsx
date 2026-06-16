@@ -393,6 +393,7 @@ const App: React.FC = () => {
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
+  const [showNopay, setShowNopay] = useState(false);
   const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '');
   const [showInbox, setShowInbox] = useState(false);
   const [gameLoadingConfig, setGameLoadingConfig] = useState<GameConfig | null>(null);
@@ -1068,17 +1069,7 @@ const App: React.FC = () => {
   };
 
   const handleBuyPass = () => {
-      setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 }));
-      setPlayer(p => ({ ...p, diamonds: p.diamonds + 100, balance: p.balance + 1000000, premiumPackCredits: (p.premiumPackCredits ?? 0) + 20 }));
-      addPassXp(2000); 
-      for(let i=0; i<20; i++) {
-          setMissionState(prev => {
-              const nextLevel = Math.min(50, prev.passLevel + 1);
-              return { ...prev, passLevel: nextLevel };
-          });
-      }
-      setShowPurchaseModal('PASS');
-      audioService.playWinBig();
+      setShowNopay(true);
   };
 
   const handleBuyPassLevel = () => {
@@ -4519,16 +4510,8 @@ const App: React.FC = () => {
           isVip={!!player.isVip}
           isPremium={missionState.isPremium}
           maxBet={MAX_BET_BY_LEVEL(player.level)}
-          onBuyVip={() => {
-              setPlayer(p => ({ ...p, isVip: true, vipExpiry: Date.now() + 30 * 24 * 3600000 }));
-              setShowPremiumModal(false);
-              setPurchaseConfirm('VIP');
-          }}
-          onBuyPremium={() => {
-              setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Date.now() + 2592000000 }));
-              setShowPremiumModal(false);
-              setPurchaseConfirm('PASS');
-          }}
+          onBuyVip={() => { setShowPremiumModal(false); setShowNopay(true); }}
+          onBuyPremium={() => { setShowPremiumModal(false); setShowNopay(true); }}
       />
 
       <ProfileModal
@@ -4552,6 +4535,22 @@ const App: React.FC = () => {
           messages={inbox.filter((m: any) => !m.claimed)}
           onClaim={handleClaimInbox}
       />
+
+      {/* Purchase Unavailable Popup */}
+      {showNopay && (
+          <div className="absolute inset-0 z-[400] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-pop-in" onClick={() => setShowNopay(false)}>
+              <div className="rounded-2xl overflow-hidden shadow-2xl max-w-[280px] w-full mx-4 flex flex-col items-center text-center px-6 py-6 gap-3" onClick={e => e.stopPropagation()}
+                  style={{ background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}>
+                  <i className="ti ti-shopping-cart-off" style={{ fontSize: '2.5rem', color: '#a855f7' }} />
+                  <div className="font-black text-white text-base uppercase tracking-widest">Purchase Unavailable</div>
+                  <div className="text-purple-300/80 text-xs leading-relaxed">Real money purchases are not available at this time.</div>
+                  <button onClick={() => setShowNopay(false)} className="btn-3d mt-1 px-6 py-2 rounded-xl font-black text-xs uppercase text-white"
+                      style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
+                      Ok
+                  </button>
+              </div>
+          </div>
+      )}
 
       {/* Purchase Confirmation Popup */}
       {purchaseConfirm && (

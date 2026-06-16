@@ -216,6 +216,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                     const gemCost = (item as any).gemCost as number | undefined;
                                     const onItemClick = () => {
                                         if (cooldown) return;
+                                        if (item.isRealMoney) { setPopup('nopay'); return; }
                                         if (item.isClaimed) { setPopup('nopay'); return; }
                                         if (gemCost !== undefined && diamonds < gemCost) { setPopup('nogems'); return; }
                                         handleBuy(item.action);
