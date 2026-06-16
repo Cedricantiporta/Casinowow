@@ -21,8 +21,8 @@ const SEGMENTS: Seg[] = [
     { label: '4', sub: 'WILDS',     color: '#db2777', textColor: '#fce7f3', cfg: { mode: 'single', count: 4 }, weight: 18 },
     { label: '3', sub: 'WILD REELS',color: '#9333ea', textColor: '#f3e8ff', cfg: { mode: 'column', count: 3 }, weight: 14 },
     { label: '5', sub: 'WILDS',     color: '#e11d48', textColor: '#ffe4e6', cfg: { mode: 'single', count: 5 }, weight: 12 },
-    { label: '4', sub: 'WILD REELS',color: '#6d28d9', textColor: '#ede9fe', cfg: { mode: 'column', count: 4 }, weight: 6  },
-    { label: '6', sub: 'WILDS',     color: '#9f1239', textColor: '#ffe4e6', cfg: { mode: 'single', count: 6 }, weight: 4  },
+    { label: '4', sub: 'WILD REELS',color: '#6d28d9', textColor: '#ede9fe', cfg: { mode: 'column', count: 4 }, weight: 3  },
+    { label: '6', sub: 'WILDS',     color: '#9f1239', textColor: '#ffe4e6', cfg: { mode: 'single', count: 6 }, weight: 2  },
 ];
 
 const N = SEGMENTS.length;

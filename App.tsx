@@ -1402,7 +1402,7 @@ const App: React.FC = () => {
           const lockedGrid = holdWinRef.current.lockedGrid;
           // Base 50% chance any coins appear; decreases 15% for each non-productive respin (last slot ~1%)
           const respinsUsed = 3 - holdWinRef.current.respins; // 0 on first respin, 1 on second, etc.
-          const baseCoinChance = respinsUsed >= 2 ? 0.01 : Math.max(0, 0.50 - respinsUsed * 0.15);
+          const baseCoinChance = respinsUsed >= 2 ? 0.005 : Math.max(0, 0.50 - respinsUsed * 0.15);
 
           // Collect empty cell positions
           const emptyCells: {c: number, r: number}[] = [];
@@ -3576,35 +3576,70 @@ const App: React.FC = () => {
                         </div>
                     );
                 })()}
-                <div className="w-full z-10 p-0 m-0">
-                    {selectedGame.theme === 'ARCTIC' ? (
-                        showArcticPickModal
-                            ? <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={false} />
-                            : freeSpinsRemaining > 0
-                                ? <ArcticMultiplierBar
-                                    mults={[2, 3, 4, 5, 10]}
-                                    stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
-                                    isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
-                                  />
-                                : <ArcticProgressBar progress={arcticSpinProgress} />
-                    ) : (
-                        <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
-                    )}
-                </div>
+                {(() => {
+                    const JP_BG: Record<string, string> = {
+                        DRAGON:     'linear-gradient(180deg,rgba(120,20,0,0.6),rgba(50,0,0,0.6))',
+                        EGYPT:      'linear-gradient(180deg,rgba(100,70,0,0.6),rgba(50,30,0,0.6))',
+                        NEON:       'linear-gradient(180deg,rgba(80,0,130,0.6),rgba(30,0,70,0.6))',
+                        CANDY:      'linear-gradient(180deg,rgba(140,0,80,0.6),rgba(70,0,40,0.6))',
+                        PIRATE:     'linear-gradient(180deg,rgba(50,25,0,0.6),rgba(25,10,0,0.6))',
+                        PIGGY:      'linear-gradient(180deg,rgba(120,0,70,0.6),rgba(60,0,40,0.6))',
+                        ARCTIC:     'linear-gradient(180deg,rgba(0,50,100,0.6),rgba(0,20,55,0.6))',
+                        WESTERN:    'linear-gradient(180deg,rgba(80,40,0,0.6),rgba(40,15,0,0.6))',
+                        SPACE:      'linear-gradient(180deg,rgba(0,20,80,0.6),rgba(0,5,40,0.6))',
+                        JUNGLE:     'linear-gradient(180deg,rgba(0,60,20,0.6),rgba(0,25,8,0.6))',
+                        UNDERWATER: 'linear-gradient(180deg,rgba(0,30,90,0.6),rgba(0,10,50,0.6))',
+                        SAMURAI:    'linear-gradient(180deg,rgba(80,0,0,0.6),rgba(30,0,0,0.6))',
+                        LEPRECHAUN: 'linear-gradient(180deg,rgba(0,70,20,0.6),rgba(0,30,8,0.6))',
+                        GOLDEN_POT: 'linear-gradient(180deg,rgba(100,65,0,0.6),rgba(50,28,0,0.6))',
+                    };
+                    return (
+                        <div className="w-full z-10 p-0 m-0 rounded-t-lg overflow-hidden" style={{ background: JP_BG[selectedGame.theme] ?? 'linear-gradient(180deg,rgba(20,8,52,0.6),rgba(10,0,30,0.6))' }}>
+                            {selectedGame.theme === 'ARCTIC' ? (
+                                showArcticPickModal
+                                    ? <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={false} />
+                                    : freeSpinsRemaining > 0
+                                        ? <ArcticMultiplierBar
+                                            mults={[2, 3, 4, 5, 10]}
+                                            stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
+                                            isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
+                                          />
+                                        : <ArcticProgressBar progress={arcticSpinProgress} />
+                            ) : (
+                                <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
+                            )}
+                        </div>
+                    );
+                })()}
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
+                    {(() => {
+                        const REEL_BORDER: Record<string, { cls: string; shadow: string }> = {
+                            DRAGON:     { cls: 'rounded-xl border-[3px] border-orange-600',   shadow: '0 0 22px rgba(234,88,12,0.55),inset 0 0 10px rgba(180,40,0,0.2)' },
+                            EGYPT:      { cls: 'rounded-none border-[3px] border-yellow-500', shadow: '0 0 20px rgba(234,179,8,0.5),inset 0 0 8px rgba(160,110,0,0.15)' },
+                            NEON:       { cls: 'rounded-xl border-[2px] border-fuchsia-500',  shadow: '0 0 24px rgba(217,70,239,0.65),inset 0 0 12px rgba(160,0,220,0.2)' },
+                            CANDY:      { cls: 'rounded-2xl border-[3px] border-pink-300',    shadow: '0 0 20px rgba(249,168,212,0.6),inset 0 0 8px rgba(219,39,119,0.15)' },
+                            PIRATE:     { cls: 'rounded-lg border-[4px] border-amber-700',    shadow: '0 0 14px rgba(180,83,9,0.45)' },
+                            PIGGY:      { cls: 'rounded-2xl border-[3px] border-pink-400',    shadow: '0 0 18px rgba(244,114,182,0.5)' },
+                            ARCTIC:     { cls: 'rounded-xl border-[2px] border-cyan-300',     shadow: '0 0 22px rgba(103,232,249,0.5),inset 0 0 10px rgba(0,200,240,0.1)' },
+                            WESTERN:    { cls: 'rounded-lg border-[4px] border-amber-800',    shadow: '0 0 12px rgba(120,50,0,0.45)' },
+                            SPACE:      { cls: 'rounded-xl border-[2px] border-cyan-400',     shadow: '0 0 26px rgba(34,211,238,0.65),inset 0 0 12px rgba(0,200,255,0.15)' },
+                            JUNGLE:     { cls: 'rounded-xl border-[3px] border-green-500',    shadow: '0 0 16px rgba(34,197,94,0.5)' },
+                            UNDERWATER: { cls: 'rounded-xl border-[2px] border-blue-400',     shadow: '0 0 22px rgba(96,165,250,0.5),inset 0 0 10px rgba(0,80,200,0.1)' },
+                            SAMURAI:    { cls: 'rounded border-[3px] border-red-800',          shadow: '0 0 16px rgba(185,28,28,0.55)' },
+                            LEPRECHAUN: { cls: 'rounded-xl border-[3px] border-emerald-400',  shadow: '0 0 18px rgba(52,211,153,0.5)' },
+                            GOLDEN_POT: { cls: 'rounded-xl border-[3px] border-yellow-400',   shadow: '0 0 22px rgba(250,204,21,0.55),inset 0 0 10px rgba(180,130,0,0.1)' },
+                        };
+                        const rb = REEL_BORDER[selectedGame.theme] ?? { cls: 'rounded-xl border-[2px] border-white/15', shadow: '' };
+                        return (
                     <div
-                        className={`relative z-10 ${selectedGame.theme === 'ARCTIC' ? 'bg-black/20' : 'bg-black/60'} p-1 md:p-1.5 shadow-2xl h-full max-h-full overflow-hidden
+                        className={`relative z-10 ${selectedGame.theme === 'ARCTIC' ? 'bg-black/20' : 'bg-black/60'} p-1 md:p-1.5 h-full max-h-full overflow-hidden
                             ${selectedGame.theme === 'PIGGY' ? 'flex gap-2' : 'flex gap-0.5'}
-                            ${selectedGame.theme === 'EGYPT'   ? 'rounded-none border-[3px] border-yellow-600' : ''}
-                            ${selectedGame.theme === 'WESTERN' ? 'rounded-lg border-[4px] border-amber-800' : ''}
-                            ${selectedGame.theme === 'SPACE'   ? 'rounded-lg border-[2px] border-cyan-400' : ''}
-                            ${selectedGame.theme === 'CANDY'   ? 'rounded-lg border-[3px] border-pink-300' : ''}
-                            ${!['EGYPT','WESTERN','SPACE','CANDY'].includes(selectedGame.theme) ? 'rounded-xl' : ''}
-                            ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,180,0,0.4)]' : ''}
+                            ${rb.cls}
+                            ${isHighLimit ? '' : ''}
                             ${reelTransitioning === 'out' ? 'animate-reel-out' : reelTransitioning === 'in' ? 'animate-reel-in' : ''}
                         `}
-                        style={{ aspectRatio: selectedGame.theme === 'NEON' ? `${selectedGame.reels}/2` : `${selectedGame.reels}/${selectedGame.rows}` }}
+                        style={{ aspectRatio: selectedGame.theme === 'NEON' ? `${selectedGame.reels}/2` : `${selectedGame.reels}/${selectedGame.rows}`, boxShadow: isHighLimit ? `${rb.shadow}, 0 0 30px rgba(220,180,0,0.4)` : rb.shadow }}
                     >
                         {(() => {
                             // Pre-compute which reel starts the anticipation window so ALL remaining reels
@@ -3879,6 +3914,8 @@ const App: React.FC = () => {
                             />
                         )}
                     </div>
+                        );
+                    })()}
 
                     {/* Dragon pot — absolute right so reel grid stays centered */}
                     {selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0 && (
