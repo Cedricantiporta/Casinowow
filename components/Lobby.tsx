@@ -186,9 +186,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 return (
                                     <div key={game.id} className="flex flex-col items-center gap-1.5 shrink-0">
                                         {/* Jackpot counter */}
-                                        <div style={{ width: '120px', background: 'rgba(10,4,0,0.95)', border: '2.5px solid #f59e0b', borderRadius: '8px', padding: '4px 6px', textAlign: 'center', boxShadow: '0 0 12px rgba(245,158,11,0.6)' }}>
-                                            <div style={{ fontSize: '7px', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>JACKPOT</div>
-                                            <div style={{ fontSize: '13px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 8px rgba(245,158,11,0.9)' }}>{formatK(hrJackpot)}</div>
+                                        <div style={{ width: '110px', background: 'rgba(10,4,0,0.95)', border: '2px solid #f59e0b', borderRadius: '7px', padding: '3px 5px', textAlign: 'center', boxShadow: '0 0 10px rgba(245,158,11,0.5)' }}>
+                                            <div style={{ fontSize: '6px', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>JACKPOT</div>
+                                            <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 8px rgba(245,158,11,0.9)' }}>{formatK(hrJackpot)}</div>
                                         </div>
                                         {/* Card-shaped slot */}
                                         <button
@@ -279,7 +279,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         style={{ boxShadow: 'inset 0 2px 0 rgba(210,150,255,0.85), 0 0 12px rgba(160,80,255,0.28), 0 6px 18px rgba(0,0,0,0.55)' }}
                                     >
                                         <div className="absolute -top-[22px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
-                                            <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'2px solid #7c3aed', borderRadius:'999px', padding:'3px 8px', boxShadow:'0 0 8px rgba(124,58,237,0.6)' }}>
+                                            <span style={{ fontSize:'9px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'999px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
                                                 {formatK(jackpotTotals[idx] ?? 0)}
                                             </span>
                                         </div>

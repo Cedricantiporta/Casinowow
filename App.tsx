@@ -2199,6 +2199,7 @@ const App: React.FC = () => {
                 holdWinRef.current = { active: false, lockedGrid, coinValues, jpGrid, respins: 3 };
                 audioService.playScatterTrigger();
                 setSpinsWithoutBonus(0);
+                setStatus(GameStatus.SCATTER_SHOWCASE);
                 setShowEgyptHoldWinPopup(true);
                 setTimeout(() => {
                     setShowEgyptHoldWinPopup(false);
@@ -2207,7 +2208,7 @@ const App: React.FC = () => {
                         holdWinRef.current.active = true;
                         setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
                         setReelTransitioning('in');
-                        setTimeout(() => setReelTransitioning(false), 1100);
+                        setTimeout(() => { setReelTransitioning(false); setStatus(GameStatus.IDLE); }, 1100);
                     }, 900);
                 }, 2500);
                 return next;
@@ -2545,8 +2546,8 @@ const App: React.FC = () => {
             showToast({ type: 'PACK' });
         } else if (player.level >= 30) {
             const cardRoll = Math.random();
-            if (cardRoll < 0.07) handleCardDrop('RARE');
-            else if (cardRoll < 0.21) handleCardDrop('COMMON');
+            if (cardRoll < 0.035) handleCardDrop('RARE');
+            else if (cardRoll < 0.105) handleCardDrop('COMMON');
         }
         return;
     }
@@ -3538,6 +3539,12 @@ const App: React.FC = () => {
                         style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', overflow:'visible' } : { overflow:'visible' }}
                     >
                         <img src="/ui/piggy.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                        {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 5 && (
+                            <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 px-1 py-px rounded pointer-events-none"
+                                style={{ background: '#dc2626', fontSize: '7px', fontWeight: 900, color: 'white', letterSpacing: '0.05em', whiteSpace: 'nowrap', border: '1px solid #f87171' }}>
+                                FULL
+                            </div>
+                        )}
                     </div>
 
                 {/* Level Pill — star on left, LVL.XX text centered */}
@@ -4061,10 +4068,10 @@ const App: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Egypt HW respin counter — right of reel grid */}
+                    {/* Egypt HW respin counter — absolute right so reel grid stays centered */}
                     {holdWinActive && selectedGame.theme === 'EGYPT' && (
-                        <div className="flex flex-col items-center gap-1 px-2 py-2 ml-2 rounded-lg self-center shrink-0"
-                            style={{ background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(251,191,36,0.5)', boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}>
+                        <div className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg absolute"
+                            style={{ right: 0, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(251,191,36,0.5)', boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}>
                             <span style={{ fontSize: 'clamp(7px,1.3vw,10px)', color: '#fbbf24', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>RESPINS</span>
                             <span style={{ fontSize: 'clamp(14px,2.8vw,20px)', color: '#fde68a', fontWeight: 900, textShadow: '0 0 10px rgba(251,191,36,0.8)', lineHeight: 1 }}>
                                 {holdWinRespins}/3
