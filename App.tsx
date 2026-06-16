@@ -80,7 +80,7 @@ const ARCTIC_MULT_COLORS = [
 ];
 
 const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive: boolean }> = ({ mults, stepIdx, isActive }) => (
-    <div className="flex items-center justify-center gap-1.5 py-1.5 px-3" style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+    <div className="flex items-center justify-center gap-1.5 py-1.5 px-3">
         {mults.map((m, idx) => {
             const active = isActive && stepIdx === idx;
             const c = ARCTIC_MULT_COLORS[idx];
@@ -98,7 +98,7 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     const pct = Math.min((progress / 250) * 100, 100);
     const full = progress >= 500;
     return (
-        <div className="flex items-center justify-center py-1.5" style={{ background: 'rgba(0,10,20,0.85)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="flex items-center justify-center py-1.5">
             <div className="relative overflow-hidden" style={{ width: '50%', height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.07)' }}>
                 <div className="absolute inset-y-0 left-0 transition-all duration-500" style={{
                     width: `${pct}%`,
@@ -3589,7 +3589,7 @@ const App: React.FC = () => {
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
                     <div
-                        className={`relative z-10 bg-black/60 p-1 md:p-1.5 shadow-2xl h-full max-h-full overflow-hidden
+                        className={`relative z-10 ${selectedGame.theme === 'ARCTIC' ? 'bg-black/20' : 'bg-black/60'} p-1 md:p-1.5 shadow-2xl h-full max-h-full overflow-hidden
                             ${selectedGame.theme === 'PIGGY' ? 'flex gap-2' : 'flex gap-0.5'}
                             ${selectedGame.theme === 'EGYPT'   ? 'rounded-none border-[3px] border-yellow-600' : ''}
                             ${selectedGame.theme === 'WESTERN' ? 'rounded-lg border-[4px] border-amber-800' : ''}

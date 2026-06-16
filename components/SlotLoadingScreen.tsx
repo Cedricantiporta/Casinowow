@@ -1,22 +1,44 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameConfig } from '../types';
+import { GET_SYMBOLS } from '../constants';
 
-const THEME_ICONS: Partial<Record<string, string>> = {
-    PIRATE: '🏴‍☠️', SPACE: '👽',
-    JUNGLE: '🦍', UNDERWATER: '🦈', WESTERN: '🤠', SAMURAI: '⚔️',
-    PIGGY: '🐷', LEPRECHAUN: '🍀', GOLDEN_POT: '🏮', ARCTIC: '🐧',
-};
 const THEME_IMG_ICON: Partial<Record<string, string>> = {
     DRAGON: '/dragon/dragon-1.png',
     EGYPT:  '/egypt/scatter.png',
-    NEON:   '/symbols/diamond.png',
+    NEON:   '/ui/games.png',
     CANDY:  '/candy/sugar1.png',
     PIRATE: '/pirate/skull.png',
     PIGGY:  '/piggy/pig.png',
     ARCTIC: '/arctic/penguin.png',
 };
 
-const DRAGON_IMAGES = Array.from({ length: 11 }, (_, i) => `/dragon/dragon-${i + 1}.png`);
+const THEME_EMOJI_ICON: Partial<Record<string, string>> = {
+    SPACE: '👽', JUNGLE: '🦍', UNDERWATER: '🦈', WESTERN: '🤠',
+    SAMURAI: '⚔️', LEPRECHAUN: '🍀', GOLDEN_POT: '🏮',
+};
+
+function getImagesToPreload(game: GameConfig): string[] {
+    const imgs: string[] = [];
+
+    // Slot background
+    if (game.slotBg) imgs.push(game.slotBg);
+
+    // Theme icon
+    const icon = THEME_IMG_ICON[game.theme];
+    if (icon) imgs.push(icon);
+
+    // All PNG/image symbols for this theme
+    try {
+        const symbols = GET_SYMBOLS(game.theme);
+        Object.values(symbols).forEach(cfg => {
+            if (cfg.icon && typeof cfg.icon === 'string' && cfg.icon.startsWith('/')) {
+                if (!imgs.includes(cfg.icon)) imgs.push(cfg.icon);
+            }
+        });
+    } catch {}
+
+    return imgs;
+}
 
 interface Props {
     game: GameConfig;
@@ -25,14 +47,15 @@ interface Props {
 export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
     const [progress, setProgress] = useState(0);
     const rafRef = useRef<number>(0);
-    const isDragon = game.theme === 'DRAGON';
     const imgIcon = THEME_IMG_ICON[game.theme];
 
     useEffect(() => {
-        if (!isDragon) {
-            // Non-dragon: simple timed progress bar
+        const images = getImagesToPreload(game);
+
+        if (images.length === 0) {
+            // Nothing to preload — run a short timed animation
             const start = performance.now();
-            const duration = 650;
+            const duration = 500;
             const tick = (now: number) => {
                 const p = Math.min(1, (now - start) / duration);
                 setProgress(1 - Math.pow(1 - p, 2));
@@ -42,10 +65,10 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
             return () => cancelAnimationFrame(rafRef.current);
         }
 
-        // Dragon: preload all symbol images, progress tracks actual loading
+        // Preload all images, tracking progress
         let loaded = 0;
-        const total = DRAGON_IMAGES.length;
-        const imgs = DRAGON_IMAGES.map(src => {
+        const total = images.length;
+        const refs = images.map(src => {
             const img = new window.Image();
             img.onload = img.onerror = () => {
                 loaded++;
@@ -54,17 +77,18 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
             img.src = src;
             return img;
         });
-        return () => { imgs.forEach(img => { img.onload = img.onerror = null; }); };
-    }, [isDragon]);
-
-    const icon = THEME_ICONS[game.theme];
+        return () => { refs.forEach(img => { img.onload = img.onerror = null; }); };
+    }, [game.theme, game.slotBg]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <div
             className="absolute inset-0 z-[500] flex flex-col items-center justify-center select-none"
-            style={{ background: game.bgImage ?? 'linear-gradient(180deg,#0a0015,#1a0035)' }}
+            style={game.slotBg
+                ? { backgroundImage: `url(${game.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                : { background: game.bgImage ?? 'linear-gradient(180deg,#0a0015,#1a0035)' }
+            }
         >
-            <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+            <div className="absolute inset-0 bg-black/50 pointer-events-none" />
 
             <div className="relative flex flex-col items-center gap-5">
                 {/* Icon */}
@@ -72,7 +96,7 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
                     {imgIcon ? (
                         <img src={imgIcon} alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} />
                     ) : (
-                        <span style={{ fontSize: '5rem' }}>{icon ?? '🎰'}</span>
+                        <span style={{ fontSize: '5rem' }}>{THEME_EMOJI_ICON[game.theme] ?? '🎰'}</span>
                     )}
                 </div>
 
