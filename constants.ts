@@ -36,7 +36,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Break the bank!',
     color: 'from-pink-500 via-rose-500 to-pink-800',
     bgImage: 'radial-gradient(circle at 50% 0%, #f472b6 0%, #831843 100%)',
-    reelBg: REEL_BGS.PIGGY
+    reelBg: REEL_BGS.PIGGY,
+    slotBg: '/slots/piggy_bg.jpg',
   },
   {
     id: 'neon-vegas',
@@ -60,7 +61,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Hold & Win! 6x4 grid. 6+ coins trigger Respins with jackpot tiles!',
     color: 'from-yellow-500 via-amber-600 to-orange-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #451a03 100%)',
-    reelBg: REEL_BGS.EGYPT
+    reelBg: REEL_BGS.EGYPT,
+    slotBg: '/slots/egypt_bg.jpg',
   },
   {
     id: 'arctic-freeze',
@@ -85,6 +87,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-red-500 via-red-700 to-rose-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #ef4444 0%, #450a0a 100%)',
     reelBg: REEL_BGS.DRAGON,
+    slotBg: '/slots/dragon_bg.jpg',
   },
   {
     id: 'pirate-bounty',
@@ -120,7 +123,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Wild Wheel free spins with switching wilds on a 3×6 Grid!',
     color: 'from-pink-400 via-pink-600 to-rose-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #ec4899 0%, #831843 100%)',
-    reelBg: REEL_BGS.CANDY
+    reelBg: REEL_BGS.CANDY,
+    slotBg: '/slots/candy_bg.png',
   },
   {
     id: 'deep-blue',

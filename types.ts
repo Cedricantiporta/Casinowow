@@ -44,6 +44,7 @@ export interface GameConfig {
   bgImage: string;
   reelBg: string;
   coverImage?: string;
+  slotBg?: string;
 }
 
 export enum GameStatus {
