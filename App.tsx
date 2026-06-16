@@ -3435,7 +3435,7 @@ const App: React.FC = () => {
                             return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
                         })()}
                     </div>
-                    <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 28, height: 28, objectFit: 'contain' }} />
+                    <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 28, height: 28, objectFit: 'contain', position: 'relative', zIndex: 1 }} />
                     <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
                         {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LVL.${player.level}`}
                     </span>
