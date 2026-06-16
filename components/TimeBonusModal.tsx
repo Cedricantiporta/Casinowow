@@ -39,7 +39,6 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                     <div className="flex items-center justify-between mb-1">
                         <div>
                             <h2 className="text-base font-black text-white uppercase tracking-widest drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">Golden Treasury</h2>
-                            <p className="text-purple-200 font-bold text-[10px] uppercase tracking-wide">Quick: 5min · Super: 15min · Mega: 1hr</p>
                         </div>
                         <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
                     </div>
@@ -54,7 +53,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                                 <div key={timer.id} className={`rounded-xl p-3 ${colors.bg} shadow-md flex flex-col items-center justify-between flex-1 relative overflow-hidden transition-all`}>
                                     {isReady && <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-shine pointer-events-none"></div>}
                                     <div className={`text-[10px] font-black uppercase ${colors.text} tracking-widest bg-black/40 px-2 py-0.5 rounded-full mb-1`}>{timer.label}</div>
-                                    <div className={`leading-none transition-transform duration-300 ${isReady ? 'scale-110 animate-bounce' : 'opacity-50 grayscale scale-90'}`}>
+                                    <div className={`leading-none transition-transform duration-300 ${isReady ? 'scale-110' : 'opacity-50 grayscale scale-90'}`}>
                                         <img
                                             src={timer.id === 0 ? '/ui/double.png' : timer.id === 1 ? '/ui/roller.png' : '/ui/jackpot.png'}
                                             alt=""

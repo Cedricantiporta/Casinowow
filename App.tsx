@@ -136,11 +136,18 @@ const App: React.FC = () => {
       playerRef.current = player;
   }, [player]);
   
-  const [bonusTimers, setBonusTimers] = useState([
-      { id: 0, endTime: 0, reward: 500000, label: 'Quick' },
-      { id: 1, endTime: Date.now() + 900000, reward: 2500000, label: 'Super' },
-      { id: 2, endTime: Date.now() + 3600000, reward: 10000000, label: 'Mega' }
-  ]);
+  const [bonusTimers, setBonusTimers] = useState(() => {
+      try {
+          const saved = localStorage.getItem('cw_bonus_timers');
+          if (saved) return JSON.parse(saved);
+      } catch {}
+      const now = Date.now();
+      return [
+          { id: 0, endTime: now, reward: 500000, label: 'Quick' },
+          { id: 1, endTime: now + 900000, reward: 2500000, label: 'Super' },
+          { id: 2, endTime: now + 3600000, reward: 10000000, label: 'Mega' },
+      ];
+  });
 
   // Sync jackpot max bet with current level's max bet
   useEffect(() => {
@@ -195,7 +202,7 @@ const App: React.FC = () => {
       }
     } catch {}
     const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; })();
-    return { lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 500, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
+    return { lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 100, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
   });
   const [decks, setDecks] = useState<Deck[]>(GENERATE_DECKS());
 
@@ -443,6 +450,9 @@ const App: React.FC = () => {
   useEffect(() => {
       try { localStorage.setItem('cw_inbox', JSON.stringify(inbox)); } catch {}
   }, [inbox]);
+  useEffect(() => {
+      try { localStorage.setItem('cw_bonus_timers', JSON.stringify(bonusTimers)); } catch {}
+  }, [bonusTimers]);
 
   // Generate daily inbox messages on mount
   useEffect(() => {
@@ -565,7 +575,7 @@ const App: React.FC = () => {
               }
           }
           audioService.playWinBig();
-          return prev.filter(m => m.id !== id);
+          return prev.map(m => m.id === id ? { ...m, claimed: true } : m);
       });
   };
 
@@ -913,7 +923,7 @@ const App: React.FC = () => {
           while (newPassXP >= newReq && newLevel < 50) {
               newPassXP -= newReq;
               newLevel++;
-              newReq = Math.floor(newReq * 1.2); 
+              newReq = 100;
           }
           return { ...prev, passLevel: newLevel, passXP: newPassXP, passXpToNext: newReq };
       });
@@ -3879,7 +3889,8 @@ const App: React.FC = () => {
                     {selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0 && (
                         <div className="flex flex-col items-center justify-center gap-2 absolute" style={{ right: 0, top: '50%', transform: 'translateY(-50%)' }}>
                             <div className="flex flex-col items-center gap-1.5">
-                                <div className="relative flex items-center justify-center">
+                                <div className="relative flex items-center justify-center rounded-xl p-2"
+                                    style={{ background: 'linear-gradient(160deg,#1a0800,#3a1200)', border: '1.5px solid rgba(251,191,36,0.4)', boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,180,0,0.15)' }}>
                                     {dragonCoinAbsorbing && (
                                         <span
                                             className="animate-coin-absorb"
@@ -4538,7 +4549,7 @@ const App: React.FC = () => {
       <InboxModal
           isOpen={showInbox}
           onClose={() => setShowInbox(false)}
-          messages={inbox}
+          messages={inbox.filter((m: any) => !m.claimed)}
           onClaim={handleClaimInbox}
       />
 
