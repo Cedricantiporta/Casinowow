@@ -2355,6 +2355,29 @@ const App: React.FC = () => {
             }
         }
 
+        // Arctic: 2% chance to trigger jackpot pick during free spins
+        if (selectedGame.theme === 'ARCTIC' && freeSpinsRemaining > 0 && !showArcticPickModal) {
+            if (Math.random() < 0.02) {
+                setPlayer(p => ({ ...p, autoSpin: false }));
+                setTimeout(() => {
+                    setShowArcticTriggerPopup(true);
+                    setInstantStop(true);
+                    audioService.playScatterTrigger();
+                    setTimeout(() => {
+                        setShowArcticTriggerPopup(false);
+                        setReelTransitioning('out');
+                        setTimeout(() => {
+                            setShowArcticPickModal(true);
+                            requestAnimationFrame(() => requestAnimationFrame(() => {
+                                setReelTransitioning('in');
+                                setTimeout(() => setReelTransitioning(false), 1100);
+                            }));
+                        }, 900);
+                    }, 3000);
+                }, 400);
+            }
+        }
+
         calculateWin(targetGrid);
       }
       return next;
@@ -3215,6 +3238,27 @@ const App: React.FC = () => {
               } else if (activeModal === 'NONE') {
                   pirateWalkRef.current.shipCol -= 1;
                   setPirateShipCol(pirateWalkRef.current.shipCol);
+
+                  // Jackpot chance per column during free spins (rarest checked first so only one wins)
+                  if (freeSpinsWon > 0) {
+                      const jpAmts = jackpotService.getAmounts();
+                      const JP_WALK = [
+                          { name: 'GRAND', chance: 0.0005, idx: 4, color: '#fde68a', icon: '🏆' },
+                          { name: 'MEGA',  chance: 0.0015, idx: 3, color: '#fda4af', icon: '👑' },
+                          { name: 'MAJOR', chance: 0.005,  idx: 2, color: '#d8b4fe', icon: '🥇' },
+                          { name: 'MINOR', chance: 0.015,  idx: 1, color: '#67e8f9', icon: '🥈' },
+                          { name: 'MINI',  chance: 0.03,   idx: 0, color: '#4ade80', icon: '🥉' },
+                      ] as const;
+                      for (const tier of JP_WALK) {
+                          if (Math.random() < tier.chance) {
+                              const amount = jpAmts[tier.idx];
+                              setPlayer(p => ({ ...p, balance: p.balance + amount }));
+                              setTimeout(() => setJackpotWinTier({ name: tier.name, color: tier.color, icon: tier.icon, amount }), 400);
+                              break;
+                          }
+                      }
+                  }
+
                   if (pirateWalkRef.current.ship2Col >= 0) {
                       pirateWalkRef.current.ship2Col -= 1;
                       const s2 = pirateWalkRef.current.ship2Col;
@@ -3227,7 +3271,7 @@ const App: React.FC = () => {
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 1080);
           } else if (freeSpinsRemaining > 0) {
               const delay = 1200;
-              if (activeModal === 'NONE' && !showFreeSpinsPopup) setTimeout(() => spin(), delay);
+              if (activeModal === 'NONE' && !showFreeSpinsPopup && !showArcticPickModal) setTimeout(() => spin(), delay);
           } else if (freeSpinsWon > 0 && !showFreeSpinsPopup && !showFreeSpinSummary) {
               setShowFreeSpinSummary(true);
           } else if (player.autoSpin && !showFreeSpinSummary) {
