@@ -195,7 +195,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             <div className="flex-1 min-h-0 pb-4">
                 <div
                     ref={scrollRef}
-                    className="w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar py-3 px-4"
+                    className="w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar py-3"
+                    style={{ paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 1rem)', paddingRight: '1rem' }}
                 >
                     <div className="flex gap-3 h-full items-stretch min-w-max">
                         {[

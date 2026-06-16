@@ -164,7 +164,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
-                        <div className="flex items-center gap-3 px-3 overflow-x-auto no-scrollbar w-full h-full">
+                        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar w-full h-full" style={{ paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 0.75rem)', paddingRight: '0.75rem' }}>
                             {GAMES_CONFIG.slice(0, 6).map((game, idx) => {
                                 const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300' :
                                     game.theme === 'EGYPT' ? 'text-amber-400' :
@@ -235,10 +235,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                         /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
-                            className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 px-3 overflow-x-auto no-scrollbar snap-x"
+                            className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 overflow-x-auto no-scrollbar snap-x"
                             style={{
                                 gridTemplateRows: 'repeat(2, 1fr)',
-                                gridAutoFlow: 'column'
+                                gridAutoFlow: 'column',
+                                paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 0.75rem)',
+                                paddingRight: '0.75rem',
                             }}
                         >
                             {GAMES_CONFIG.map((game, idx) => {
