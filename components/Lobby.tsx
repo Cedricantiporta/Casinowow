@@ -7,8 +7,8 @@ import { jackpotService, SLOT_VARS } from '../services/jackpotService';
 
 const THEME_PNG: Partial<Record<string, string>> = {
     DRAGON: '/dragon/dragon-1.png',
-    EGYPT:  '/egypt/scatter.png',
-    NEON:   '/ui/games.png',
+    EGYPT:  '/egypt/wild.png',
+    NEON:   '/symbols/seven.png',
     CANDY:  '/candy/sugar1.png',
     PIRATE: '/pirate/skull.png',
     PIGGY:  '/piggy/pig.png',
@@ -202,11 +202,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             )}
                                             <div className={`absolute inset-0 z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
                                                 {!game.coverImage && (
-                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '1.5rem' }}>
                                                         {THEME_PNG[game.theme] ? (
-                                                            <img src={THEME_PNG[game.theme]} alt="" style={{ width: '4rem', height: '4rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }} />
+                                                            <img src={THEME_PNG[game.theme]} alt="" style={{ width: '6.5rem', height: '6.5rem', objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.9))' }} />
                                                         ) : (
-                                                            <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
+                                                            <span style={{ fontSize: '6rem', lineHeight: 1, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.9))' }}>{icon}</span>
                                                         )}
                                                     </div>
                                                 )}
@@ -287,9 +287,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         )}
                                         <div className={`absolute inset-0 rounded-xl overflow-hidden z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
                                             {!game.coverImage && (
-                                                <div className="absolute inset-0 flex items-start justify-center pt-2">
+                                                <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '1.2rem' }}>
                                                     {THEME_PNG[game.theme] ? (
-                                                        <img src={THEME_PNG[game.theme]} alt="" style={{ width: '4rem', height: '4rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }} />
+                                                        <img src={THEME_PNG[game.theme]} alt="" style={{ width: '4.5rem', height: '4.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }} />
                                                     ) : (
                                                         <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
                                                     )}
