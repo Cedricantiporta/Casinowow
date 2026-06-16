@@ -415,7 +415,7 @@ const App: React.FC = () => {
   const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE'; stage: number; coins: number; diamonds: number } | null>(null);
   const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
   const [pendingBigWin, setPendingBigWin] = useState(false);
-  type ActiveToast = { type: 'LEVEL_UP'; level: number; reward: number; maxBetIncreased: boolean; newMaxBet: number } | { type: 'PACK' } | null;
+  type ActiveToast = { type: 'LEVEL_UP'; level: number; reward: number; maxBetIncreased: boolean; newMaxBet: number } | { type: 'PACK' } | { type: 'CARD'; rarity: 'COMMON' | 'RARE'; cardName: string } | null;
   const [activeToast, setActiveToast] = useState<ActiveToast>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
@@ -436,6 +436,9 @@ const App: React.FC = () => {
   });
   const [vipBetTracking, setVipBetTracking] = useState<{ date: string; total: number }>(() => {
       try { return JSON.parse(localStorage.getItem('cw_vip_bets') || '{"date":"","total":0}'); } catch { return { date: '', total: 0 }; }
+  });
+  const [redeemedCodes, setRedeemedCodes] = useState<string[]>(() => {
+      try { return JSON.parse(localStorage.getItem('cw_redeemed_codes') || '[]'); } catch { return []; }
   });
 
   // CANDY: shuffle wild container positions once when spin starts for a "switching" animation
@@ -1278,14 +1281,19 @@ const App: React.FC = () => {
 
   const handleCardDrop = useCallback((rarity: 'COMMON' | 'RARE') => {
       setDecks(prev => {
-          const allCards: { deckIdx: number; cardIdx: number }[] = [];
+          const allCards: { deckIdx: number; cardIdx: number; name: string }[] = [];
           prev.forEach((deck, di) => {
               deck.cards.forEach((card, ci) => {
-                  if (card.rarity === rarity) allCards.push({ deckIdx: di, cardIdx: ci });
+                  if (card.rarity === rarity) allCards.push({ deckIdx: di, cardIdx: ci, name: card.name });
               });
           });
           if (allCards.length === 0) return prev;
           const pick = allCards[Math.floor(Math.random() * allCards.length)];
+          setTimeout(() => {
+              if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+              setActiveToast({ type: 'CARD', rarity, cardName: pick.name });
+              toastTimerRef.current = setTimeout(() => setActiveToast(null), 2000);
+          }, 0);
           return prev.map((deck, di) => {
               if (di !== pick.deckIdx) return deck;
               const newCards = deck.cards.map((card, ci) =>
@@ -2727,17 +2735,17 @@ const App: React.FC = () => {
               const justUnlockedSlot = (level: number) => {
                   if (level === 6  && !shownUnlocks.has(6))  return { id: 'neon-vegas',       name: 'Neon Vegas',         icon: '🎰', lvl: 6  };
                   if (level === 11 && !shownUnlocks.has(11)) return { id: 'pharaoh-tomb',     name: "Pharaoh's Tomb",     icon: '🦂', lvl: 11 };
-                  if (level === 16 && !shownUnlocks.has(16)) return { id: 'dragon-fortune',   name: "Dragon's Fortune",   icon: '🐉', lvl: 16 };
-                  if (level === 21 && !shownUnlocks.has(21)) return { id: 'pirate-bounty',    name: "Pirate's Bounty",    icon: '🏴‍☠️', lvl: 21 };
-                  if (level === 26 && !shownUnlocks.has(26)) return { id: 'cosmic-cash',      name: 'Cosmic Cash',        icon: '👽', lvl: 26 };
-                  if (level === 31 && !shownUnlocks.has(31)) return { id: 'sugar-rush',       name: 'Sugar Rush',         icon: '🧁', lvl: 31 };
-                  if (level === 36 && !shownUnlocks.has(36)) return { id: 'jungle-rumble',    name: 'Jungle Rumble',      icon: '🦍', lvl: 36 };
+                  if (level === 16 && !shownUnlocks.has(16)) return { id: 'arctic-freeze',    name: 'Arctic Freeze',      icon: '🐧', lvl: 16 };
+                  if (level === 21 && !shownUnlocks.has(21)) return { id: 'dragon-fortune',   name: "Dragon's Fortune",   icon: '🐉', lvl: 21 };
+                  if (level === 26 && !shownUnlocks.has(26)) return { id: 'pirate-bounty',    name: "Pirate's Bounty",    icon: '🏴‍☠️', lvl: 26 };
+                  if (level === 31 && !shownUnlocks.has(31)) return { id: 'cosmic-cash',      name: 'Cosmic Cash',        icon: '👽', lvl: 31 };
+                  if (level === 36 && !shownUnlocks.has(36)) return { id: 'sugar-rush',       name: 'Sugar Rush',         icon: '🧁', lvl: 36 };
                   if (level === 41 && !shownUnlocks.has(41)) return { id: 'deep-blue',        name: 'Deep Blue',          icon: '🦈', lvl: 41 };
                   if (level === 46 && !shownUnlocks.has(46)) return { id: 'wild-west',        name: 'Gold Rush',          icon: '🤠', lvl: 46 };
                   if (level === 51 && !shownUnlocks.has(51)) return { id: 'samurai-honor',    name: 'Samurai Honor',      icon: '⚔️', lvl: 51 };
                   if (level === 56 && !shownUnlocks.has(56)) return { id: 'golden-lucky-pot', name: 'Golden Lucky Pot',   icon: '🏮', lvl: 56 };
                   if (level === 61 && !shownUnlocks.has(61)) return { id: 'lucky-leprechaun', name: 'Lucky Leprechaun',   icon: '🍀', lvl: 61 };
-                  if (level === 66 && !shownUnlocks.has(66)) return { id: 'arctic-freeze',    name: 'Arctic Freeze',      icon: '🐧', lvl: 66 };
+                  if (level === 66 && !shownUnlocks.has(66)) return { id: 'jungle-rumble',    name: 'Jungle Rumble',      icon: '🦍', lvl: 66 };
                   return null;
               };
 
@@ -3542,16 +3550,18 @@ const App: React.FC = () => {
                 </div>
 
                     {/* Piggy Bank quick button (left icons) */}
-                    <div
-                        onClick={handleOpenPiggyBank}
-                        className={`round-btn shrink-0 ml-1 relative ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
-                        title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
-                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800', overflow:'visible' } : { overflow:'visible' }}
-                    >
-                        <img src="/ui/piggy.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                    <div className="relative shrink-0 ml-1" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div
+                            onClick={handleOpenPiggyBank}
+                            className={`round-btn relative ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+                            title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
+                            style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                        >
+                            <img src="/ui/piggy.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                        </div>
                         {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 5 && (
-                            <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 px-1 py-px rounded pointer-events-none"
-                                style={{ background: '#dc2626', fontSize: '7px', fontWeight: 900, color: 'white', letterSpacing: '0.05em', whiteSpace: 'nowrap', border: '1px solid #f87171' }}>
+                            <div className="px-1 py-px rounded pointer-events-none"
+                                style={{ background: '#dc2626', fontSize: '7px', fontWeight: 900, color: 'white', letterSpacing: '0.05em', whiteSpace: 'nowrap', border: '1px solid #f87171', marginTop: 2 }}>
                                 FULL
                             </div>
                         )}
@@ -4509,13 +4519,20 @@ const App: React.FC = () => {
           <div className="fixed top-[40px] right-2 z-[201] animate-pop-in pointer-events-none"
               style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
               <div className="flex items-center gap-2">
-                  {activeToast.type === 'LEVEL_UP' ? <img src="/ui/star.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🃏</span>}
+                  {activeToast.type === 'LEVEL_UP'
+                      ? <img src="/ui/star.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
+                      : <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🃏</span>}
                   <div>
                       {activeToast.type === 'LEVEL_UP' ? (
                           <>
                               <div className="font-black text-white text-xs uppercase tracking-widest">Level {activeToast.level}!</div>
                               {activeToast.reward > 0 && <div className="text-purple-300 text-[9px] font-bold">+{formatCommaNumber(activeToast.reward)} coins</div>}
                               {activeToast.maxBetIncreased && <div className="text-yellow-300 text-[9px] font-bold">Max Bet ↑ {formatCommaNumber(activeToast.newMaxBet)}</div>}
+                          </>
+                      ) : activeToast.type === 'CARD' ? (
+                          <>
+                              <div className="font-black text-xs uppercase tracking-widest" style={{ color: activeToast.rarity === 'RARE' ? '#fbbf24' : '#e2e8f0' }}>{activeToast.rarity === 'RARE' ? 'Rare' : 'Common'} Card!</div>
+                              <div className="text-purple-300 text-[9px] font-bold">{activeToast.cardName}</div>
                           </>
                       ) : (
                           <>
@@ -4616,7 +4633,14 @@ const App: React.FC = () => {
           onClose={() => setShowSettings(false)}
           isMuted={isMuted}
           onToggleMute={() => setIsMuted(audioService.toggleMute())}
+          redeemedCodes={redeemedCodes}
           onRedeem={(code) => {
+              if (redeemedCodes.includes(code)) return;
+              setRedeemedCodes(prev => {
+                  const next = [...prev, code];
+                  try { localStorage.setItem('cw_redeemed_codes', JSON.stringify(next)); } catch {}
+                  return next;
+              });
               if (code === 'dev777') {
                   setPlayer(p => ({ ...p, level: 50, balance: p.balance + 100_000_000_000 }));
                   setCelebrationMsg('⚡ Level Rush! +100B Coins · Level 50');

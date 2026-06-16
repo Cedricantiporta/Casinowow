@@ -6,6 +6,7 @@ interface SettingsModalProps {
     isMuted: boolean;
     onToggleMute: () => void;
     onRedeem: (code: string) => void;
+    redeemedCodes: string[];
 }
 
 const REDEEM_CODES: Record<string, { title: string; description: string; icon: string; rewards: { icon: string; label: string }[] }> = {
@@ -89,7 +90,7 @@ const Toggle: React.FC<{ on: boolean; onToggle: () => void; label: string; sub?:
 );
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
-    isOpen, onClose, isMuted, onToggleMute, onRedeem
+    isOpen, onClose, isMuted, onToggleMute, onRedeem, redeemedCodes
 }) => {
     const [redeemInput, setRedeemInput] = useState('');
     const [pendingCode, setPendingCode] = useState<string | null>(null);
@@ -100,6 +101,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const handleRedeem = () => {
         const code = redeemInput.trim().toLowerCase();
         if (REDEEM_CODES[code]) {
+            if (redeemedCodes.includes(code)) {
+                setErrorShake(true);
+                setTimeout(() => setErrorShake(false), 500);
+                return;
+            }
             setPendingCode(code);
             setRedeemInput('');
         } else {
