@@ -206,7 +206,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   NEON: {
     [SymbolType.TEN]: '/symbols/lemon.png', [SymbolType.JACK]: '/symbols/orange.png', [SymbolType.QUEEN]: '/symbols/grapefruit.png', [SymbolType.KING]: '/symbols/plum.png', [SymbolType.ACE]: '/symbols/watermelon.png',
     [SymbolType.GRAPE]: '/symbols/apple.png', [SymbolType.BELL]: '/symbols/bell.png', [SymbolType.BAR]: '/symbols/bar.png', [SymbolType.CHERRY]: '/symbols/cherry.png', [SymbolType.SEVEN]: '/symbols/seven.png',
-    [SymbolType.WILD]: '/symbols/horseshoe.png', [SymbolType.SCATTER]: '/symbols/diamond.png', ...JP_ICONS,
+    [SymbolType.WILD]: '/symbols/horseshoe.png', [SymbolType.SCATTER]: '/ui/games.png', ...JP_ICONS,
     [SymbolType.JACKPOT_MINI]: '/symbols/heart.png', [SymbolType.COIN]: '/symbols/coin.png',
   },
   EGYPT: {

@@ -54,9 +54,12 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                                 <div key={timer.id} className={`rounded-xl p-3 ${colors.bg} shadow-md flex flex-col items-center justify-between flex-1 relative overflow-hidden transition-all`}>
                                     {isReady && <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-shine pointer-events-none"></div>}
                                     <div className={`text-[10px] font-black uppercase ${colors.text} tracking-widest bg-black/40 px-2 py-0.5 rounded-full mb-1`}>{timer.label}</div>
-                                    <div className={`leading-none transition-transform duration-300 ${isReady ? 'scale-110 animate-bounce' : 'opacity-50 grayscale scale-90'}`}
-                                        style={{ fontSize: '64px' }}>
-                                        {timer.id === 0 ? <img src="/symbols/diamond.png" alt="" style={{ width: '64px', height: '64px', objectFit: 'contain' }} /> : timer.id === 1 ? '🧧' : '👑'}
+                                    <div className={`leading-none transition-transform duration-300 ${isReady ? 'scale-110 animate-bounce' : 'opacity-50 grayscale scale-90'}`}>
+                                        <img
+                                            src={timer.id === 0 ? '/ui/double.png' : timer.id === 1 ? '/ui/roller.png' : '/ui/jackpot.png'}
+                                            alt=""
+                                            style={{ width: '64px', height: '64px', objectFit: 'contain' }}
+                                        />
                                     </div>
                                     <div className="mt-2 w-full">
                                         <div className="text-base font-black text-white drop-shadow-md mb-2 font-mono text-center">

@@ -373,7 +373,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isQuestLocked ? onOpenMiniGames : undefined} className={iconBtn(isQuestLocked)}>
                                 {isQuestLocked && lockBadge(20)}
                                 <div className="relative leading-none">
-                                    <img src="/ui/games.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/minigames.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {!isQuestLocked && (wildCredits + diceCredits) > 0 && (
                                         <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
