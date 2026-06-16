@@ -87,6 +87,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const [grid, setGrid] = useState<WildGridCell[]>([]);
     const [stageWinning, setStageWinning] = useState(false);
+    const [stagePending, setStagePending] = useState(false);
     const [stageClearData, setStageClearData] = useState<{coins: number; gems: number} | null>(null);
     const [noPicksMsg, setNoPicksMsg] = useState(false);
     const [showBuyPopup, setShowBuyPopup] = useState<'PICKS' | 'DICE' | null>(null);
@@ -162,23 +163,23 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     reward = { type: 'BACK', value: 0, label: 'BACK!' };
                 } else {
                     const r = Math.random();
-                    if (r < 0.03) {
+                    if (r < 0.04) {
                         reward = { type: 'BACK', value: 0, label: 'BACK!' };
-                    } else if (r < 0.26) {
+                    } else if (r < 0.34) {
                         const v = Math.floor(baseCoin * (0.5 + Math.random()));
                         reward = { type: 'COINS', value: v, label: formatNumber(v) };
-                    } else if (r < 0.34) {
+                    } else if (r < 0.44) {
                         reward = { type: 'PICKS', value: 1, label: '×1' };
-                    } else if (r < 0.39) {
+                    } else if (r < 0.505) {
                         reward = { type: 'PICKS', value: 2, label: '×2' };
-                    } else if (r < 0.46) {
+                    } else if (r < 0.595) {
                         const gems = Math.floor(Math.random() * 46) + 5;
                         reward = { type: 'DIAMONDS', value: gems, label: `+${gems}` };
-                    } else if (r < 0.50) {
+                    } else if (r < 0.645) {
                         const packs = Math.floor(Math.random() * 10) + 1;
                         reward = { type: 'PACKS', value: packs, label: `+${packs}` };
                     }
-                    // else: blank tile (50%)
+                    // else: blank tile (~35%)
                 }
             }
             newBoard.push({ index: i, isStart: i === 0, isFinish: i === boardLength, reward });
@@ -203,6 +204,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (isOpen) {
             setStageWinning(false);
             setStageClearData(null);
+            setStagePending(false);
         } else {
             setIsRolling(false);
             setIsMoving(false);
@@ -256,8 +258,18 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         } else if (autoRoll && diceCredits <= 0) setAutoRoll(false);
     }, [autoRoll, isRolling, isMoving, diceCredits]);
 
+    const triggerStageClear = useCallback((coins: number, gems: number) => {
+        audioService.playScatterTrigger();
+        setStagePending(true);
+        setTimeout(() => {
+            setStagePending(false);
+            setStageClearData({ coins, gems });
+            setStageWinning(true);
+        }, 2000);
+    }, []);
+
     const handleTileClick = (index: number) => {
-        if (grid[index].revealed || stageWinning) return;
+        if (grid[index].revealed || stageWinning || stagePending) return;
         if (wildCredits <= 0) {
             setNoPicksMsg(true);
             setTimeout(() => setNoPicksMsg(false), 2000);
@@ -308,10 +320,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 if (onGridUpdate) onGridUpdate(finalGridWithGem);
                 onBatchPick(1, surroundingRewards);
                 if (gemFoundFromBomb) {
-                    setTimeout(() => {
-                        setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
-                        setStageWinning(true);
-                    }, 2000);
+                    triggerStageClear(Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), Math.floor(4 * Math.pow(1.10, wildStage - 1)));
                 }
             }, 600);
             return;
@@ -322,10 +331,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (onGridUpdate) onGridUpdate(gridAfterGem);
         if (cell.content === 'GEM') {
             audioService.playGemFound();
-            setTimeout(() => {
-                setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
-                setStageWinning(true);
-            }, 2000);
+            triggerStageClear(Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), Math.floor(4 * Math.pow(1.10, wildStage - 1)));
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
             onPickTile(false, cell.reward!);
@@ -336,7 +342,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     };
 
     const handleAutoPick = () => {
-        if (wildCredits <= 0 || stageWinning) return;
+        if (wildCredits <= 0 || stageWinning || stagePending) return;
         const unrevealed = grid.map((c, i) => !c.revealed ? i : -1).filter(i => i !== -1);
         for (let i = unrevealed.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -359,10 +365,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
-            setTimeout(() => {
-                setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
-                setStageWinning(true);
-            }, 2000);
+            triggerStageClear(Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), Math.floor(4 * Math.pow(1.10, wildStage - 1)));
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
 
@@ -511,6 +514,15 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             </div>
                         </div>
                     )}
+                    {stagePending && (
+                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-auto" style={{ background: 'rgba(0,0,0,0.72)' }}>
+                            <div style={{ lineHeight: 1, filter: 'drop-shadow(0 0 32px rgba(96,165,250,1))' }} className="animate-vibrate">
+                                <img src="/ui/stage_gem.png" alt="" style={{ width: '72px', height: '72px', objectFit: 'contain', display: 'block' }} />
+                            </div>
+                            <div className="mt-3 font-black text-white text-xl uppercase tracking-widest animate-pulse" style={{ textShadow: '0 0 20px rgba(96,165,250,0.9)' }}>Stage Clear!</div>
+                        </div>
+                    )}
+
                     {stageWinning && (
                         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.88)' }}>
                             <div style={{ lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce"><img src="/ui/stage_gem.png" alt="" style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block' }} /></div>
@@ -542,7 +554,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isReward = revealed && cell.content === 'REWARD';
                                     const isBomb = cell.content === 'BOMB';
                                     const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
-                                    const gemPrize = Math.round((maxBet || 10000) * wildStage * 10);
+                                    const gemPrize = Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1));
                                     const icon: React.ReactNode = isGem ? <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : isReward
                                         ? (cell.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : cell.reward?.type === 'PICKS' ? <img src="/ui/pick.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} />)
                                         : revealed && isBomb ? '💥' : null;
@@ -551,7 +563,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         : 'linear-gradient(180deg,#4c1d95,#2e1065)';
                                     return (
                                         <button key={i} onClick={() => handleTileClick(i)}
-                                            disabled={revealed || wildCredits <= 0 || stageWinning}
+                                            disabled={revealed || wildCredits <= 0 || stageWinning || stagePending}
                                             className={`relative flex flex-col items-center justify-center rounded-xl active:translate-y-[2px] transition-all overflow-hidden${isExploding ? ' animate-bounce' : ''}`}
                                             style={{
                                                 width: tileSize, height: tileSize,

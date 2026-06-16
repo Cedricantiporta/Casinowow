@@ -1,7 +1,17 @@
 
 
 import React, { useState, useEffect, useRef } from 'react';
-import { GAMES_CONFIG, formatCommaNumber, formatTime, formatKShort } from '../constants';
+import { GAMES_CONFIG, formatCommaNumber, formatTime } from '../constants';
+
+// Lobby jackpot pill: whole-number abbreviated (no decimal) e.g. 1,234,567 → "1M"
+const fmtJP = (n: number): string => {
+    if (!isFinite(n) || isNaN(n)) return '0';
+    if (n >= 1e12) return Math.floor(n / 1e12) + 'T';
+    if (n >= 1e9)  return Math.floor(n / 1e9) + 'B';
+    if (n >= 1e6)  return Math.floor(n / 1e6) + 'M';
+    if (n >= 1e3)  return Math.floor(n / 1e3) + 'K';
+    return String(Math.floor(n));
+};
 import { GameConfig, QuestState, MissionState } from '../types';
 import { jackpotService, SLOT_VARS } from '../services/jackpotService';
 
@@ -188,7 +198,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         {/* Jackpot counter */}
                                         <div style={{ width: '120px', background: 'rgba(10,4,0,0.95)', border: '2.5px solid #f59e0b', borderRadius: '8px', padding: '4px 6px', textAlign: 'center', boxShadow: '0 0 12px rgba(245,158,11,0.6)' }}>
                                             <div style={{ fontSize: '7px', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>JACKPOT</div>
-                                            <div style={{ fontSize: '13px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 8px rgba(245,158,11,0.9)' }}>{formatKShort(hrJackpot)}</div>
+                                            <div style={{ fontSize: '13px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 8px rgba(245,158,11,0.9)' }}>{fmtJP(hrJackpot)}</div>
                                         </div>
                                         {/* Card-shaped slot */}
                                         <button
@@ -280,7 +290,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     >
                                         <div className="absolute -top-[22px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
                                             <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'2px solid #7c3aed', borderRadius:'999px', padding:'3px 8px', boxShadow:'0 0 8px rgba(124,58,237,0.6)' }}>
-                                                {formatKShort(jackpotTotals[idx] ?? 0)}
+                                                {fmtJP(jackpotTotals[idx] ?? 0)}
                                             </span>
                                         </div>
                                         <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity${isLocked ? ' blur-[1.5px]' : ''}`}></div>
