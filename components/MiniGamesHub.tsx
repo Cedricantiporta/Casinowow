@@ -64,15 +64,19 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
                 </div>
             </div>
 
-            <div className="flex-1 px-4 pb-4 flex flex-col gap-3 pt-2">
+            <div className="flex-1 flex items-center justify-center gap-4 px-4 pb-4">
                 {games.map(game => (
                     <button
                         key={game.key}
                         onClick={() => { if (!isQuestLocked) { onClose(); setTimeout(game.onOpen, 50); } }}
-                        className="relative flex items-center gap-4 rounded-2xl px-4 py-4 active:scale-[0.98] transition-transform"
+                        className="relative flex flex-col items-center rounded-2xl py-7 px-4 active:scale-[0.97] transition-transform"
                         style={{
                             background: game.bg,
                             opacity: isQuestLocked ? 0.5 : 1,
+                            flex: '1 1 0',
+                            minHeight: '200px',
+                            maxWidth: '160px',
+                            gap: '14px',
                         }}>
                         {questBadge(game.credits)}
                         <img
@@ -83,15 +87,15 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
                                 height: '5rem',
                                 objectFit: 'contain',
                                 flexShrink: 0,
-                                filter: isQuestLocked ? 'grayscale(1)' : `drop-shadow(0 0 12px ${game.accentColor}80)`,
+                                filter: isQuestLocked ? 'grayscale(1)' : `drop-shadow(0 0 14px ${game.accentColor}99)`,
                             }}
                         />
-                        <div className="flex flex-col items-start gap-1">
-                            <span className="font-black text-base uppercase tracking-widest" style={{ color: game.labelColor }}>{game.label}</span>
+                        <div className="flex flex-col items-center gap-1 text-center">
+                            <span className="font-black text-sm uppercase tracking-widest" style={{ color: game.labelColor }}>{game.label}</span>
                             {!isQuestLocked && game.credits > 0 && (
-                                <span className="text-sm font-bold" style={{ color: game.creditColor }}>{game.credits} / 60 credits</span>
+                                <span className="text-xs font-bold" style={{ color: game.creditColor }}>{game.credits} / 60</span>
                             )}
-                            {isQuestLocked && <span className="text-xs text-gray-500 font-bold">Unlocks at Level 20</span>}
+                            {isQuestLocked && <span className="text-[10px] text-gray-500 font-bold">Unlocks at Lv.20</span>}
                         </div>
                     </button>
                 ))}

@@ -86,8 +86,8 @@ const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive
             const c = ARCTIC_MULT_COLORS[idx];
             return (
                 <div key={idx} className="flex items-center justify-center rounded transition-all duration-200"
-                    style={{ padding: '2px 8px', background: active ? c.solid : 'rgba(255,255,255,0.06)', border: 'none' }}>
-                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: 'clamp(9px,1.6vw,12px)', color: active ? '#000' : 'rgba(255,255,255,0.20)', fontWeight: 900 }}>×{m}</span>
+                    style={{ padding: '2px 8px', background: active ? c.solid : 'rgba(0,0,0,0.30)', border: 'none' }}>
+                    <span style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: 'clamp(9px,1.6vw,12px)', color: active ? '#000' : 'rgba(0,0,0,0.65)', fontWeight: 900 }}>×{m}</span>
                 </div>
             );
         })}
@@ -1402,17 +1402,20 @@ const App: React.FC = () => {
       const bet = currentBetRef.current;
       const result = computeGridWins(newGrid, bet);
       if (result.payout > 0) {
-          const cascadeWin = result.payout * mult;
+          const inFreeSpins = freeSpinsRemaining > 0;
+          const effectiveMult = inFreeSpins ? mult : 1;
+          const cascadeWin = result.payout * effectiveMult;
           const newAccWin = accWin + cascadeWin;
           setPlayer(p => ({ ...p, balance: p.balance + cascadeWin }));
           if (totalFreeSpins > 0) setFreeSpinTotalWin(p => p + cascadeWin);
-          setCascadeMultiplier(mult);
+          setCascadeMultiplier(effectiveMult);
           setCascadeTotalWin(newAccWin);
           setWinData({ payout: newAccWin, winningLines: result.winningLines, winningCells: result.winningCells, isBigWin: false, scattersFound: 0, winType: undefined });
           // Show new grid with drop-in, then dissolve winners before next cascade
+          const nextMult = inFreeSpins ? mult + 1 : 1;
           setTimeout(() => {
               setCascadeDissolving(true);
-              setTimeout(() => runCascadeRef.current!(newGrid, mult + 1, newAccWin, result.winningCells), 350);
+              setTimeout(() => runCascadeRef.current!(newGrid, nextMult, newAccWin, result.winningCells), 350);
           }, 500);
       } else {
           // No further wins — keep cascade grid visible until next spin(); clear it there
@@ -1759,7 +1762,7 @@ const App: React.FC = () => {
           }
           // Wild chances: free spins heavily boosted
           const fullColChance = isFreeSpin ? 0.20 : 0.02;
-          const singleWildChance = isFreeSpin ? 0.50 : 0.17;
+          const singleWildChance = isFreeSpin ? 0.60 : 0.17;
           if (Math.random() < fullColChance) {
               for (let r = 0; r < rows; r++) {
                   if (newGrid[2]?.[r] !== SymbolType.SCATTER) newGrid[2][r] = SymbolType.WILD;
