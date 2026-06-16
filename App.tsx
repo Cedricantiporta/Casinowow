@@ -269,7 +269,7 @@ const App: React.FC = () => {
     const updateScale = () => {
       const widthScale = window.innerWidth / 844;
       const heightScale = window.innerHeight / 390;
-      setMobileScale(Math.min(widthScale, heightScale));
+      setMobileScale(Math.min(1, widthScale, heightScale));
     };
 
     updateScale();
@@ -3358,8 +3358,8 @@ const App: React.FC = () => {
   const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
   return (
-    <div className="min-h-screen min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden">
-      <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
+    <div className="min-w-full bg-[#0a0015] flex items-center justify-center overflow-hidden" style={{ minHeight: '100dvh' }}>
+      <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'top center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
