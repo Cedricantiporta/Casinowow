@@ -3638,7 +3638,7 @@ const App: React.FC = () => {
                         GOLDEN_POT: 'linear-gradient(180deg,rgba(100,65,0,0.6),rgba(50,28,0,0.6))',
                     };
                     return (
-                        <div className="w-full z-10 p-0 m-0 rounded-t-lg overflow-hidden" style={{ background: JP_BG[selectedGame.theme] ?? 'linear-gradient(180deg,rgba(20,8,52,0.6),rgba(10,0,30,0.6))' }}>
+                        <div className="w-full z-10 p-0 m-0">
                             {selectedGame.theme === 'ARCTIC' ? (
                                 showArcticPickModal
                                     ? <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={false} />

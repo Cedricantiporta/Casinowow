@@ -113,13 +113,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const baseCoin = Math.floor((maxBet || 10000) * 0.125 * Math.pow(1.10, wildStage - 1));
         for (let i = 0; i < totalCells; i++) {
             const r = Math.random();
-            if (r < 0.20) {
-                // stays BLANK (2x blank rate)
-            } else if (r < 0.73) {
+            if (r < 0.50) {
+                // stays BLANK (50% of tiles)
+            } else if (r < 0.83) {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) } };
-            } else if (r < 0.87) {
+            } else if (r < 0.915) {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'PICKS', value: 1, label: '+1 Pick' } };
-            } else if (r < 0.96) {
+            } else if (r < 0.97) {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'PICKS', value: 2, label: '+2 Picks' } };
             } else {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'DIAMONDS', value: 5, label: '+5 Gems' } };
@@ -162,23 +162,23 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     reward = { type: 'BACK', value: 0, label: 'BACK!' };
                 } else {
                     const r = Math.random();
-                    if (r < 0.06) {
+                    if (r < 0.03) {
                         reward = { type: 'BACK', value: 0, label: 'BACK!' };
-                    } else if (r < 0.43) {
+                    } else if (r < 0.26) {
                         const v = Math.floor(baseCoin * (0.5 + Math.random()));
                         reward = { type: 'COINS', value: v, label: formatNumber(v) };
-                    } else if (r < 0.56) {
+                    } else if (r < 0.34) {
                         reward = { type: 'PICKS', value: 1, label: '×1' };
-                    } else if (r < 0.65) {
+                    } else if (r < 0.39) {
                         reward = { type: 'PICKS', value: 2, label: '×2' };
-                    } else if (r < 0.76) {
+                    } else if (r < 0.46) {
                         const gems = Math.floor(Math.random() * 46) + 5;
                         reward = { type: 'DIAMONDS', value: gems, label: `+${gems}` };
-                    } else if (r < 0.84) {
+                    } else if (r < 0.50) {
                         const packs = Math.floor(Math.random() * 10) + 1;
                         reward = { type: 'PACKS', value: packs, label: `+${packs}` };
                     }
-                    // else: blank tile (~16%, 2x the original 8%)
+                    // else: blank tile (50%)
                 }
             }
             newBoard.push({ index: i, isStart: i === 0, isFinish: i === boardLength, reward });
@@ -308,8 +308,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 if (onGridUpdate) onGridUpdate(finalGridWithGem);
                 onBatchPick(1, surroundingRewards);
                 if (gemFoundFromBomb) {
-                    setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
-                    setStageWinning(true);
+                    setTimeout(() => {
+                        setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
+                        setStageWinning(true);
+                    }, 2000);
                 }
             }, 600);
             return;
@@ -320,8 +322,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (onGridUpdate) onGridUpdate(gridAfterGem);
         if (cell.content === 'GEM') {
             audioService.playGemFound();
-            setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
-            setStageWinning(true);
+            setTimeout(() => {
+                setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
+                setStageWinning(true);
+            }, 2000);
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
             onPickTile(false, cell.reward!);
@@ -355,8 +359,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
-            setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
-            setStageWinning(true);
+            setTimeout(() => {
+                setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
+                setStageWinning(true);
+            }, 2000);
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
 
@@ -488,7 +494,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 <div className="flex items-center gap-1 shrink-0">
                     <span style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(253,230,138,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>Prize</span>
                     <span style={{ fontSize: '0.8rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1 }}>
-                        {formatCommaNumber((maxBet || 10000) * (isWild ? wildStage : diceStage) * 10)}
+                        {formatCommaNumber(Math.floor((maxBet || 10000) * (isWild ? 4 : 2) * Math.pow(1.10, (isWild ? wildStage : diceStage) - 1)))}
                     </span>
                 </div>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
