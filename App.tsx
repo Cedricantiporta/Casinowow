@@ -1624,7 +1624,7 @@ const App: React.FC = () => {
       // During free spins, Ghost Ship is GUARANTEED — no jackpot symbols during walk.
       // 20% chance of a second Ghost Ship boarding 1-3 cols to the left of the first.
       if (selectedGame.theme === 'PIRATE' && !pirateWalkRef.current.active) {
-          if (isFreeSpin || Math.random() < 0.04) {
+          if (isFreeSpin || freeSpinsWon > 0 || Math.random() < 0.04) {
               const lastCol = cols - 1;
               for (let r = 0; r < rows; r++) newGrid[lastCol][r] = SymbolType.WILD;
               if (isFreeSpin && cols >= 4 && Math.random() < 0.70) {
@@ -1912,7 +1912,7 @@ const App: React.FC = () => {
       }
 
       return newGrid;
-  }, [selectedGame, freeSpinsRemaining, spinsWithoutBonus]);
+  }, [selectedGame, freeSpinsRemaining, freeSpinsWon, spinsWithoutBonus]);
 
   const handleQuestModeSelect = (mode: 'NONE' | 'WILD' | 'DICE') => {
         setQuest(q => ({ ...q, activeGame: mode }));
@@ -2310,11 +2310,14 @@ const App: React.FC = () => {
                  return next;
              }
 
-             const spinsWon = selectedGame.theme === 'ARCTIC'
+             const baseSpins = selectedGame.theme === 'ARCTIC'
                  ? 15
                  : selectedGame.theme === 'PIRATE'
                  ? scatterCount
                  : 10;
+             const spinsWon = selectedGame.theme !== 'PIRATE' && scatterCount > 3
+                 ? baseSpins + (scatterCount - 3) * 5
+                 : baseSpins;
              setFreeSpinsWon(spinsWon);
              setTotalFreeSpins(prev => prev + spinsWon);
 
@@ -3349,7 +3352,7 @@ const App: React.FC = () => {
               if (activeModal === 'NONE' && !showFreeSpinsPopup && !showArcticPickModal) setTimeout(() => spin(), delay);
           } else if (freeSpinsWon > 0 && !showFreeSpinsPopup && !showFreeSpinSummary) {
               setShowFreeSpinSummary(true);
-          } else if (player.autoSpin && !showFreeSpinSummary) {
+          } else if (player.autoSpin && !showFreeSpinSummary && freeSpinsWon === 0) {
               if (activeModal === 'NONE') {
                   if (autoSpinRemainingRef.current === 0) {
                       setPlayer(p => ({ ...p, autoSpin: false }));
