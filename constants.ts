@@ -565,8 +565,8 @@ export const formatKShort = (n: number): string => {
     return sign + Math.round(abs).toLocaleString('en-US');
 };
 
-// Coin formatter: shows full number with commas up to 12 raw digits.
-// At 13+ digits (trillions), abbreviates to T, Qd, Qi.
+// Coin formatter: shows full number with commas up to 11 raw digits.
+// At 12+ digits (100 billions+), abbreviates to T, Qd, Qi.
 export const formatK = (n: number): string => {
     if (!isFinite(n) || isNaN(n)) return '0';
     const abs = Math.abs(n);
@@ -574,7 +574,7 @@ export const formatK = (n: number): string => {
 
     const digitCount = (v: number) => v < 1 ? 1 : Math.floor(Math.log10(v)) + 1;
 
-    if (digitCount(abs) <= 12) {
+    if (digitCount(abs) <= 11) {
         return sign + Math.round(abs).toLocaleString('en-US');
     }
 
