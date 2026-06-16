@@ -9,6 +9,7 @@ interface PremiumModalProps {
     isPremium: boolean;
     onBuyVip: () => void;
     onBuyPremium: () => void;
+    onBuyBundle?: () => void;
     maxBet?: number;
 }
 
@@ -110,7 +111,7 @@ const getBundles = (maxBet: number) => [
 const parsePesosNum = (s: string) => parseInt(s.replace(/[^\d,]/g, '').replace(',', ''), 10);
 const vipDiscountedPrice = (price: string) => `₱ ${Math.floor(parsePesosNum(price) * 0.8).toLocaleString()}`;
 
-export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isVip, isPremium, onBuyVip, onBuyPremium, maxBet = 10000 }) => {
+export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isVip, isPremium, onBuyVip, onBuyPremium, onBuyBundle, maxBet = 10000 }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const bundles = getBundles(maxBet);
     const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
@@ -236,7 +237,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                                 ))}
                             </div>
                             <div className="shrink-0 px-3 pb-3 pt-1">
-                                <button onClick={() => setPurchasedIds(prev => new Set(prev).add(bundle.id))}
+                                <button onClick={() => onBuyBundle?.()}
                                     className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest text-white flex items-center justify-center gap-1.5"
                                     style={{ background: `linear-gradient(180deg,${bundle.tagColor},${bundle.tagColor}88)`, boxShadow: `0 3px 0 rgba(0,0,0,0.5)` }}>
                                     <span className="line-through opacity-50">{isVip ? bundle.price : bundle.origPrice}</span>

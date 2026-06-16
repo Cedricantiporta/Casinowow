@@ -320,7 +320,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 if (onGridUpdate) onGridUpdate(finalGridWithGem);
                 onBatchPick(1, surroundingRewards);
                 if (gemFoundFromBomb) {
-                    triggerStageClear(Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), Math.floor(4 * Math.pow(1.10, wildStage - 1)));
+                    triggerStageClear(Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage)), Math.floor(3 + 0.1 * wildStage));
                 }
             }, 600);
             return;
@@ -331,7 +331,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (onGridUpdate) onGridUpdate(gridAfterGem);
         if (cell.content === 'GEM') {
             audioService.playGemFound();
-            triggerStageClear(Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), Math.floor(4 * Math.pow(1.10, wildStage - 1)));
+            triggerStageClear(Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage)), Math.floor(3 + 0.1 * wildStage));
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
             onPickTile(false, cell.reward!);
@@ -365,7 +365,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
-            triggerStageClear(Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), Math.floor(4 * Math.pow(1.10, wildStage - 1)));
+            triggerStageClear(Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage)), Math.floor(3 + 0.1 * wildStage));
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
 
@@ -497,7 +497,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 <div className="flex items-center gap-1 shrink-0">
                     <span style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(253,230,138,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>Prize</span>
                     <span style={{ fontSize: '0.8rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1 }}>
-                        {formatCommaNumber(Math.floor((maxBet || 10000) * (isWild ? 4 : 2) * Math.pow(1.10, (isWild ? wildStage : diceStage) - 1)))}
+                        {formatCommaNumber(Math.floor((maxBet || 10000) * (3 + 0.1 * (isWild ? wildStage : diceStage))))}
                     </span>
                 </div>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
@@ -554,7 +554,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isReward = revealed && cell.content === 'REWARD';
                                     const isBomb = cell.content === 'BOMB';
                                     const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
-                                    const gemPrize = Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1));
+                                    const gemPrize = Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage));
                                     const icon: React.ReactNode = isGem ? <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : isReward
                                         ? (cell.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : cell.reward?.type === 'PICKS' ? <img src="/ui/pick.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} />)
                                         : revealed && isBomb ? '💥' : null;

@@ -299,18 +299,17 @@ const App: React.FC = () => {
     return () => window.removeEventListener('resize', updateScale);
   }, []);
 
-  // Quest state initialized with separate stages
-  const [quest, setQuest] = useState<QuestState>({
-      credits: 5,
-      picks: 5,
-      diceCredits: 5,
-      wildCredits: 5,
-      wildStage: 1,
-      diceStage: 1,
-      max: 60,
-      dicePosition: 0,
-      activeGame: 'NONE',
-      wildGrid: []
+  // Quest state initialized with separate stages, persisted to localStorage
+  const [quest, setQuest] = useState<QuestState>(() => {
+      const defaults: QuestState = { credits: 5, picks: 5, diceCredits: 5, wildCredits: 5, wildStage: 1, diceStage: 1, max: 60, dicePosition: 0, activeGame: 'NONE', wildGrid: [] };
+      try {
+          const saved = localStorage.getItem('cw_quest');
+          if (saved) {
+              const parsed = JSON.parse(saved);
+              return { ...defaults, wildStage: parsed.wildStage || 1, diceStage: parsed.diceStage || 1, dicePosition: parsed.dicePosition || 0, wildGrid: parsed.wildGrid || [] };
+          }
+      } catch {}
+      return defaults;
   });
   // Hold and Win state (Egypt / Pharaoh's Tomb)
   const [holdWinActive, setHoldWinActive] = useState(false);
@@ -894,6 +893,10 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_player', JSON.stringify(player)); } catch {}
   }, [player]);
+
+  useEffect(() => {
+    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid })); } catch {}
+  }, [quest.wildStage, quest.diceStage, quest.dicePosition, quest.wildGrid]);
 
   // Expire VIP when 30-day window elapses
   useEffect(() => {
@@ -1940,7 +1943,7 @@ const App: React.FC = () => {
       }
       if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
       if (isFinish) {
-          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * 2 * Math.pow(1.10, quest.diceStage - 1));
+          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (3 + 0.1 * quest.diceStage));
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
           const currentStage = quest.diceStage;
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
@@ -4676,6 +4679,7 @@ const App: React.FC = () => {
           maxBet={MAX_BET_BY_LEVEL(player.level)}
           onBuyVip={() => { setShowPremiumModal(false); setShowNopay(true); }}
           onBuyPremium={() => { setShowPremiumModal(false); setShowNopay(true); }}
+          onBuyBundle={() => { setShowPremiumModal(false); setShowNopay(true); }}
       />
 
       <ProfileModal
