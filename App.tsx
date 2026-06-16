@@ -2197,20 +2197,22 @@ const App: React.FC = () => {
                     });
                 });
                 holdWinRef.current = { active: false, lockedGrid, coinValues, jpGrid, respins: 3 };
-                audioService.playScatterTrigger();
-                setSpinsWithoutBonus(0);
-                setStatus(GameStatus.SCATTER_SHOWCASE);
-                setShowEgyptHoldWinPopup(true);
                 setTimeout(() => {
-                    setShowEgyptHoldWinPopup(false);
-                    setReelTransitioning('out');
+                    audioService.playScatterTrigger();
+                    setSpinsWithoutBonus(0);
+                    setStatus(GameStatus.SCATTER_SHOWCASE);
+                    setShowEgyptHoldWinPopup(true);
                     setTimeout(() => {
-                        holdWinRef.current.active = true;
-                        setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
-                        setReelTransitioning('in');
-                        setTimeout(() => { setReelTransitioning(false); setStatus(GameStatus.IDLE); }, 1100);
-                    }, 900);
-                }, 2500);
+                        setShowEgyptHoldWinPopup(false);
+                        setReelTransitioning('out');
+                        setTimeout(() => {
+                            holdWinRef.current.active = true;
+                            setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
+                            setReelTransitioning('in');
+                            setTimeout(() => { setReelTransitioning(false); setStatus(GameStatus.IDLE); }, 1100);
+                        }, 900);
+                    }, 2500);
+                }, 0);
                 return next;
             }
         }
@@ -2540,11 +2542,7 @@ const App: React.FC = () => {
                 setQuest(q => ({ ...q, wildCredits: Math.min(60, q.wildCredits + 1) }));
             }
         }
-        const arcticPackDropChance = Math.max(0.007, (0.20 - (arcticMaxBetIdx - betIndex) * 0.02) * 0.7);
-        if (player.level >= 30 && Math.random() < arcticPackDropChance) {
-            setPlayer(p => ({ ...p, packCredits: p.packCredits + 1 }));
-            showToast({ type: 'PACK' });
-        } else if (player.level >= 30) {
+        if (player.level >= 30) {
             const cardRoll = Math.random();
             if (cardRoll < 0.035) handleCardDrop('RARE');
             else if (cardRoll < 0.105) handleCardDrop('COMMON');
@@ -2622,14 +2620,10 @@ const App: React.FC = () => {
             setQuest(q => ({ ...q, wildCredits: Math.min(60, q.wildCredits + 1) }));
         }
     }
-    const packDropChance = Math.max(0.007, (0.20 - (maxBetIdx - betIndex) * 0.02) * 0.7);
-    if (player.level >= 30 && Math.random() < packDropChance) {
-        setPlayer(p => ({ ...p, packCredits: p.packCredits + 1 }));
-        showToast({ type: 'PACK' });
-    } else if (player.level >= 30) {
+    if (player.level >= 30) {
         const cardRoll = Math.random();
-        if (cardRoll < 0.07) handleCardDrop('RARE');
-        else if (cardRoll < 0.21) handleCardDrop('COMMON');
+        if (cardRoll < 0.035) handleCardDrop('RARE');
+        else if (cardRoll < 0.105) handleCardDrop('COMMON');
     }
 
     if (totalPayout > 0) {
