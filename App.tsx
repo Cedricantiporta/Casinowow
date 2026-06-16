@@ -1913,7 +1913,7 @@ const App: React.FC = () => {
       }
       if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
       if (isFinish) {
-          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * 5 * Math.pow(1.10, quest.diceStage - 1));
+          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * 2 * Math.pow(1.10, quest.diceStage - 1));
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
           const currentStage = quest.diceStage;
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));

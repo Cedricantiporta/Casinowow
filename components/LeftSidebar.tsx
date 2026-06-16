@@ -42,7 +42,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     const isMissionsUnlocked = playerLevel >= 10;
 
     return (
-        <div className="fixed top-1/2 -translate-y-1/2 flex flex-col gap-6 z-30 pointer-events-none items-center" style={{ left: 'calc(env(safe-area-inset-left, 0px) + 0.5rem)' }}>
+        <div className="fixed top-1/2 -translate-y-1/2 flex flex-col gap-8 z-30 pointer-events-none items-center" style={{ left: 'calc(env(safe-area-inset-left, 0px) + 0.5rem)' }}>
             {/* Quest Widget - Unlocked or Locked always visible */}
             <div className={`pointer-events-auto flex flex-col items-center animate-pop-in relative ${!isQuestUnlocked ? 'grayscale opacity-60' : ''}`}>
                 <QuestSidebar 
@@ -69,11 +69,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 <div className="relative flex flex-col items-center justify-center">
                     <button 
                         onClick={isMissionsUnlocked ? onOpenBattlePass : undefined}
-                        className={`group relative w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-fuchsia-900 to-[#4a044e] shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible z-10 ${!isMissionsUnlocked ? 'grayscale opacity-60' : ''}`}
+                        className={`group relative w-20 h-20 rounded-full bg-gradient-to-br from-fuchsia-900 to-[#4a044e] shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible z-10 ${!isMissionsUnlocked ? 'grayscale opacity-60' : ''}`}
                     >
                         <div className="absolute inset-0 rounded-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none overflow-hidden"></div>
                         <div className="flex flex-col items-center justify-center">
-                             <img src="/ui/pass.png" alt="" className="drop-shadow-md group-hover:-translate-y-1 transition-transform mb-1" style={{ width: 46, height: 46, objectFit: 'contain' }} />
+                             <img src="/ui/pass.png" alt="" className="drop-shadow-md group-hover:-translate-y-1 transition-transform mb-1" style={{ width: 54, height: 54, objectFit: 'contain' }} />
                              <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)] z-10">
                                 Pass
                              </span>
@@ -105,7 +105,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
             {/* XP Boost Indicator (Redesigned) - Show always if active */}
             {xpMultiplier > 1 && (
-                <div className="relative w-16 h-16 md:w-20 md:h-20 animate-pop-in z-30 rounded-full shadow-xl mt-2 pointer-events-auto">
+                <div className="relative w-20 h-20 animate-pop-in z-30 rounded-full shadow-xl mt-2 pointer-events-auto">
                      {/* Pulsing Glow */}
                      <div className="absolute inset-0 bg-yellow-400 rounded-full blur-md animate-pulse opacity-60"></div>
                      

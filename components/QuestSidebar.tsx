@@ -25,10 +25,10 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim }) =>
             {/* Mine Button */}
             <button
                 onClick={onClaim}
-                className="group relative w-14 h-14 md:w-20 md:h-20 rounded-full shadow-xl flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible"
+                className="group relative w-20 h-20 rounded-full shadow-xl flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible"
                 style={{ background: 'linear-gradient(180deg,#2a1b3d,#1a1025)' }}
             >
-                <img src="/ui/coinmine.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} className="group-hover:-translate-y-0.5 transition-transform" />
+                <img src="/ui/coinmine.png" alt="" style={{ width: 50, height: 50, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} className="group-hover:-translate-y-0.5 transition-transform" />
                 <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">Mine</span>
                 {wildCredits > 0 && (
                     <div className={DOT} style={DOT_STYLE}>
@@ -40,10 +40,10 @@ export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim }) =>
             {/* Dice Button */}
             <button
                 onClick={onClaim}
-                className="group relative w-14 h-14 md:w-20 md:h-20 rounded-full shadow-xl flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible"
+                className="group relative w-20 h-20 rounded-full shadow-xl flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible"
                 style={{ background: 'linear-gradient(180deg,#1a2b3d,#101a25)' }}
             >
-                <img src="/ui/dice.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} className="group-hover:-translate-y-0.5 transition-transform" />
+                <img src="/ui/dice.png" alt="" style={{ width: 50, height: 50, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} className="group-hover:-translate-y-0.5 transition-transform" />
                 <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">Dice</span>
                 {diceCredits > 0 && (
                     <div className={DOT} style={DOT_STYLE}>

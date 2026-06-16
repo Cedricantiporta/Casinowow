@@ -113,13 +113,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const baseCoin = Math.floor((maxBet || 10000) * 0.125 * Math.pow(1.10, wildStage - 1));
         for (let i = 0; i < totalCells; i++) {
             const r = Math.random();
-            if (r < 0.10) {
-                // stays BLANK
-            } else if (r < 0.70) {
+            if (r < 0.20) {
+                // stays BLANK (2x blank rate)
+            } else if (r < 0.73) {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) } };
-            } else if (r < 0.85) {
+            } else if (r < 0.87) {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'PICKS', value: 1, label: '+1 Pick' } };
-            } else if (r < 0.95) {
+            } else if (r < 0.96) {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'PICKS', value: 2, label: '+2 Picks' } };
             } else {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'DIAMONDS', value: 5, label: '+5 Gems' } };
@@ -164,20 +164,21 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     const r = Math.random();
                     if (r < 0.06) {
                         reward = { type: 'BACK', value: 0, label: 'BACK!' };
-                    } else if (r < 0.48) {
+                    } else if (r < 0.43) {
                         const v = Math.floor(baseCoin * (0.5 + Math.random()));
                         reward = { type: 'COINS', value: v, label: formatNumber(v) };
-                    } else if (r < 0.63) {
+                    } else if (r < 0.56) {
                         reward = { type: 'PICKS', value: 1, label: '×1' };
-                    } else if (r < 0.72) {
+                    } else if (r < 0.65) {
                         reward = { type: 'PICKS', value: 2, label: '×2' };
-                    } else if (r < 0.84) {
+                    } else if (r < 0.76) {
                         const gems = Math.floor(Math.random() * 46) + 5;
                         reward = { type: 'DIAMONDS', value: gems, label: `+${gems}` };
-                    } else if (r < 0.92) {
+                    } else if (r < 0.84) {
                         const packs = Math.floor(Math.random() * 10) + 1;
                         reward = { type: 'PACKS', value: packs, label: `+${packs}` };
                     }
+                    // else: blank tile (~16%, 2x the original 8%)
                 }
             }
             newBoard.push({ index: i, isStart: i === 0, isFinish: i === boardLength, reward });
@@ -307,7 +308,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 if (onGridUpdate) onGridUpdate(finalGridWithGem);
                 onBatchPick(1, surroundingRewards);
                 if (gemFoundFromBomb) {
-                    setStageClearData({ coins: Math.floor((maxBet || 10000) * 10 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(10 * Math.pow(1.10, wildStage - 1)) });
+                    setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
                     setStageWinning(true);
                 }
             }, 600);
@@ -319,7 +320,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (onGridUpdate) onGridUpdate(gridAfterGem);
         if (cell.content === 'GEM') {
             audioService.playGemFound();
-            setStageClearData({ coins: Math.floor((maxBet || 10000) * 10 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(10 * Math.pow(1.10, wildStage - 1)) });
+            setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
             setStageWinning(true);
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
@@ -354,7 +355,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
-            setStageClearData({ coins: Math.floor((maxBet || 10000) * 10 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(10 * Math.pow(1.10, wildStage - 1)) });
+            setStageClearData({ coins: Math.floor((maxBet || 10000) * 4 * Math.pow(1.10, wildStage - 1)), gems: Math.floor(4 * Math.pow(1.10, wildStage - 1)) });
             setStageWinning(true);
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
