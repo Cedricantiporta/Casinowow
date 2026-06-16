@@ -3886,10 +3886,12 @@ const App: React.FC = () => {
                                             style={{ position: 'absolute', fontSize: 'clamp(18px,3.5vw,28px)', lineHeight: 1, top: '-14px', left: '50%', transform: 'translateX(-50%)', pointerEvents: 'none' }}
                                         >🪙</span>
                                     )}
-                                    <span
+                                    <img
+                                        src="/ui/dragon_vase.png"
+                                        alt=""
                                         className={dragonPotShaking ? 'animate-vibrate' : ''}
-                                        style={{ fontSize: 'clamp(52px,10vw,80px)', lineHeight: 1, display: 'block' }}
-                                    >🏆</span>
+                                        style={{ width: 'clamp(52px,10vw,80px)', height: 'clamp(52px,10vw,80px)', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 2px 8px rgba(255,140,0,0.6))' }}
+                                    />
                                 </div>
                                 <div className="flex flex-row items-center gap-1">
                                     {[10, 20, 30, 40, 50].map((threshold, idx) => {
