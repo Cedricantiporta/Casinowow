@@ -715,6 +715,49 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
     return missions;
 };
 
+export const REGENERATE_MISSION_STACK = (
+    mission: { type: MissionType; xpReward: number; coinReward: number },
+    stacksCompleted: number,
+    maxBet: number,
+    playerLevel: number,
+): { type: MissionType; description: string; target: number; xpReward: number; coinReward: number } => {
+    const templates = [
+        { type: MissionType.SPIN_COUNT,    desc: 'Spin the reels',    base: 125 },
+        { type: MissionType.WIN_COINS,     desc: 'Win total coins',   base: 0   },
+        { type: MissionType.BET_COINS,     desc: 'Bet total coins',   base: 0   },
+        { type: MissionType.BIG_WIN_COUNT, desc: 'Hit Big Wins',      base: 10  },
+        { type: MissionType.LEVEL_UP,      desc: 'Level Up',          base: 3   },
+        { type: MissionType.MAX_BET_SPIN,  desc: 'Spin on max bet',   base: 30  },
+    ];
+    const mb = maxBet > 0 ? maxBet : 10000;
+    const scale = Math.pow(1.2, stacksCompleted);
+
+    // Pick a different template than the current one
+    const currentIdx = templates.findIndex(t => t.type === mission.type);
+    const nextIdx = (currentIdx + stacksCompleted) % templates.length;
+    const t = templates[nextIdx];
+
+    let target: number;
+    if (t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS) {
+        target = Math.floor(mb * 10 * scale);
+    } else if (t.type === MissionType.SPIN_COUNT) {
+        target = Math.floor((125 + playerLevel * 5) * scale);
+    } else if (t.type === MissionType.MAX_BET_SPIN) {
+        target = Math.ceil((30 + playerLevel) * scale);
+    } else {
+        target = Math.ceil(t.base * scale);
+    }
+
+    const isCoinType = t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS;
+    return {
+        type: t.type,
+        description: `${t.desc} ${formatNumber(target)}${isCoinType ? '' : ' times'}`,
+        target,
+        xpReward:   Math.floor(mission.xpReward   * scale),
+        coinReward: Math.floor(mission.coinReward  * scale),
+    };
+};
+
 export const GENERATE_WEEKLY_MISSIONS = (playerLevel: number, maxBet?: number): Mission[] => {
     const missions: Mission[] = [];
 

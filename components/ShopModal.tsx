@@ -15,9 +15,11 @@ interface ShopModalProps {
     maxBet?: number;
     claimedItems?: string[];
     onClaimItem?: (label: string) => void;
+    isVip?: boolean;
+    vipLevel?: number;
 }
 
-export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, freeCoinsAvailable = false, freeCoinsAmount = 300000, balance = 0, diamonds = 0, maxBet = 10000, initialTab, claimedItems, onClaimItem }) => {
+export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, freeCoinsAvailable = false, freeCoinsAmount = 300000, balance = 0, diamonds = 0, maxBet = 10000, initialTab, claimedItems, onClaimItem, isVip, vipLevel }) => {
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
     const [cooldown, setCooldown] = useState(false);
     const [popup, setPopup] = useState<'nopay' | 'nogems' | null>(null);
@@ -92,6 +94,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     }, [isOpen, maxBet]);
 
     if (!isOpen) return null;
+
+    const discount = isVip
+        ? (vipLevel === 1 ? 5 : vipLevel === 2 ? 10 : 20)
+        : 0;
 
     const gemPacks = [
         { icon: '/symbols/diamond.png', label: '100 Gems',   sub: '100',   pesosLabel: '99',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
@@ -221,8 +227,20 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                         if (gemCost !== undefined && diamonds < gemCost) { setPopup('nogems'); return; }
                                         handleBuy(item.action);
                                     };
+                                    const showVipDiscount = isVip && discount > 0 && item.isRealMoney;
+                                    const pesoMatch = item.price.match(/₱\s*(\d+)/);
+                                    const originalPeso = pesoMatch ? parseInt(pesoMatch[1], 10) : null;
+                                    const discountedPeso = (showVipDiscount && originalPeso !== null)
+                                        ? Math.floor(originalPeso * (1 - discount / 100))
+                                        : null;
                                     return (
-                                        <div key={i} className={`flex-shrink-0 w-[140px] flex flex-col items-center justify-between rounded-2xl overflow-hidden px-3 pt-3 pb-2 bg-gradient-to-b ${item.color} shadow-xl transition-all`}>
+                                        <div key={i} className={`flex-shrink-0 w-[140px] flex flex-col items-center justify-between rounded-2xl overflow-hidden px-3 pt-3 pb-2 bg-gradient-to-b ${item.color} shadow-xl transition-all relative`}>
+                                            {showVipDiscount && (
+                                                <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-full text-[9px] font-black leading-none"
+                                                    style={{ background: 'linear-gradient(135deg,#f59e0b,#b45309)', color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+                                                    VIP -{discount}%
+                                                </div>
+                                            )}
                                             <div className="text-xs font-black uppercase text-white tracking-widest leading-none text-center">{item.label}</div>
                                             <div className="flex-1 flex items-center justify-center py-1">
                                                 {typeof item.icon === 'string' && item.icon.startsWith('/') ? (
@@ -234,6 +252,12 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                             <div className="w-full flex flex-col gap-1.5">
                                                 {item.sub && (
                                                     <div className="text-sm font-black text-white text-center leading-none drop-shadow-sm">{item.sub}</div>
+                                                )}
+                                                {showVipDiscount && originalPeso !== null && discountedPeso !== null && (
+                                                    <div className="flex flex-col items-center leading-none gap-0.5">
+                                                        <span className="text-[10px] text-white/50 line-through">₱ {originalPeso}</span>
+                                                        <span className="text-sm font-black text-white">₱ {discountedPeso}</span>
+                                                    </div>
                                                 )}
                                                 <button
                                                     onClick={onItemClick}

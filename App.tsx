@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK } from './constants';
 import { Reel } from './components/Reel';
 import { WinPopup } from './components/WinPopup';
 import { LeftSidebar } from './components/LeftSidebar';
@@ -136,7 +136,7 @@ const App: React.FC = () => {
       playerRef.current = player;
   }, [player]);
   
-  const [bonusTimers, setBonusTimers] = useState(() => {
+  const [bonusTimers, setBonusTimers] = useState<{ id: number; endTime: number; reward: number; label: string }[]>(() => {
       try {
           const saved = localStorage.getItem('cw_bonus_timers');
           if (saved) return JSON.parse(saved);
@@ -940,11 +940,12 @@ const App: React.FC = () => {
           setPlayer(p => ({ ...p, balance: p.balance + coinGain }));
           const remainingStacks = (mission.stacks ?? 1) - 1;
           if (remainingStacks > 0) {
-              // Stacked mission: reset for next stack
+              const stacksCompleted = 3 - remainingStacks;
+              const newProps = REGENERATE_MISSION_STACK(mission, stacksCompleted, MAX_BET_BY_LEVEL(player.level), player.level);
               setMissionState(prev => ({
                   ...prev,
                   activeMissions: prev.activeMissions.map(m => m.id === mission.id
-                      ? { ...m, current: 0, completed: false, claimed: false, stacks: remainingStacks }
+                      ? { ...m, ...newProps, current: 0, completed: false, claimed: false, stacks: remainingStacks }
                       : m),
               }));
           } else {
@@ -4115,7 +4116,7 @@ const App: React.FC = () => {
                 setActiveModal('COLLECTION');
             }, 50);
         }
-    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} />}
+    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} isVip={!!player.isVip} vipLevel={player.vipLevel || 1} />}
 
       {activeModal === 'COLLECTION' && <CardCollectionModal
           isOpen
