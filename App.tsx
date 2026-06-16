@@ -2013,7 +2013,7 @@ const App: React.FC = () => {
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
-              piggyBank: Math.min(prev.piggyBank + savings, cap)
+              piggyBank: prev.piggyBank >= cap ? prev.piggyBank : Math.min(prev.piggyBank + savings, cap)
           }));
           // Trigger Piggy Glow
           setPiggyGlow(true);
@@ -3316,7 +3316,7 @@ const App: React.FC = () => {
                   }, 250);
                   // DO NOT call spin() here — the IDLE effect re-runs after pirateWalkActive flips false
                   // and will correctly show the free-spin summary (freeSpinsWon > 0) or auto-spin.
-              } else if (activeModal === 'NONE') {
+              } else if (activeModal === 'NONE' && !jackpotWinTier) {
                   pirateWalkRef.current.shipCol -= 1;
                   setPirateShipCol(pirateWalkRef.current.shipCol);
 
@@ -3370,7 +3370,7 @@ const App: React.FC = () => {
               }
           }
       }
-  }, [status, reelTransitioning, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary]);
+  }, [status, reelTransitioning, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary, jackpotWinTier]);
 
   const handleHeaderBack = () => {
     if (showCandyRoulette) {
@@ -3564,18 +3564,16 @@ const App: React.FC = () => {
                 </div>
 
                     {/* Piggy Bank quick button (left icons) */}
-                    <div className="relative shrink-0 ml-1" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div
-                            onClick={handleOpenPiggyBank}
-                            className={`round-btn relative ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
-                            title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
-                            style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
-                        >
-                            <img src="/ui/piggy.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
-                        </div>
+                    <div
+                        onClick={handleOpenPiggyBank}
+                        className={`round-btn relative shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
+                        title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
+                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                    >
+                        <img src="/ui/piggy.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
                         {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 5 && (
-                            <div className="px-1 py-px rounded pointer-events-none"
-                                style={{ background: '#dc2626', fontSize: '7px', fontWeight: 900, color: 'white', letterSpacing: '0.05em', whiteSpace: 'nowrap', border: '1px solid #f87171', marginTop: 2 }}>
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
+                                style={{ background: '#dc2626', fontSize: '6px', fontWeight: 900, color: 'white', padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', lineHeight: 1.4 }}>
                                 FULL
                             </div>
                         )}

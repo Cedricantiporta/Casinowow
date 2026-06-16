@@ -6,13 +6,17 @@ import { GameConfig, QuestState, MissionState } from '../types';
 import { jackpotService, SLOT_VARS } from '../services/jackpotService';
 
 const THEME_PNG: Partial<Record<string, string>> = {
-    DRAGON: '/dragon/dragon-1.png',
+    DRAGON: '/dragon/dragon-11.png',
     EGYPT:  '/egypt/wild.png',
     NEON:   '/symbols/seven.png',
     CANDY:  '/candy/sugar1.png',
     PIRATE: '/pirate/skull.png',
     PIGGY:  '/piggy/pig.png',
     ARCTIC: '/arctic/penguin.png',
+};
+
+const THEME_ICON_SIZE: Partial<Record<string, string>> = {
+    PIGGY: '6rem', EGYPT: '6rem', ARCTIC: '6rem', PIRATE: '6rem', CANDY: '6rem', DRAGON: '6rem',
 };
 
 interface LobbyProps {
@@ -291,7 +295,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             {!game.coverImage && (
                                                 <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '1.2rem' }}>
                                                     {THEME_PNG[game.theme] ? (
-                                                        <img src={THEME_PNG[game.theme]} alt="" style={{ width: '4.5rem', height: '4.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }} />
+                                                        <img src={THEME_PNG[game.theme]} alt="" style={{ width: THEME_ICON_SIZE[game.theme] ?? '4.5rem', height: THEME_ICON_SIZE[game.theme] ?? '4.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }} />
                                                     ) : (
                                                         <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
                                                     )}

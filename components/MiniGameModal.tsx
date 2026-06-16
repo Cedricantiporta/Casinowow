@@ -423,7 +423,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             }
             setIsMoving(false);
             onDiceRoll(rollValue, endPos, rewards, isFinish);
-            if (isFinish) { audioService.playWinBig(); setAutoRoll(false); }
+            if (isFinish) { audioService.playWinBig(); }
         }
     };
 

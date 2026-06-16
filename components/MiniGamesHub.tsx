@@ -74,7 +74,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
                             background: game.bg,
                             opacity: isQuestLocked ? 0.5 : 1,
                             flex: '1 1 0',
-                            minHeight: '200px',
+                            minHeight: '260px',
                             maxWidth: '160px',
                             gap: '14px',
                         }}>
