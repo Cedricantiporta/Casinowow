@@ -3,14 +3,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GAMES_CONFIG, formatCommaNumber, formatTime } from '../constants';
 
-// Lobby jackpot pill: whole-number abbreviated (no decimal) e.g. 1,234,567 → "1M"
+// Lobby jackpot pill: same smart abbreviation as formatKShort but kicks in 1 digit earlier (at 100K instead of 1M)
 const fmtJP = (n: number): string => {
     if (!isFinite(n) || isNaN(n)) return '0';
-    if (n >= 1e12) return Math.floor(n / 1e12) + 'T';
-    if (n >= 1e9)  return Math.floor(n / 1e9) + 'B';
-    if (n >= 1e6)  return Math.floor(n / 1e6) + 'M';
-    if (n >= 1e3)  return Math.floor(n / 1e3) + 'K';
-    return String(Math.floor(n));
+    const abs = Math.abs(n);
+    const sign = n < 0 ? '-' : '';
+    if (abs >= 1e18) return sign + (abs / 1e18).toFixed(1).replace(/\.0$/, '') + 'Qi';
+    if (abs >= 1e15) return sign + (abs / 1e15).toFixed(1).replace(/\.0$/, '') + 'Qd';
+    if (abs >= 1e12) return sign + (abs / 1e12).toFixed(1).replace(/\.0$/, '') + 'T';
+    if (abs >= 1e9)  return sign + (abs / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+    if (abs >= 1e6)  return sign + (abs / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (abs >= 1e5)  return sign + Math.floor(abs / 1e3) + 'K';
+    return sign + Math.round(abs).toLocaleString('en-US');
 };
 import { GameConfig, QuestState, MissionState } from '../types';
 import { jackpotService, SLOT_VARS } from '../services/jackpotService';
