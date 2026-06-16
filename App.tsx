@@ -359,6 +359,7 @@ const App: React.FC = () => {
   const arcticPickSpinsRef = useRef(0);
   const arcticProgressRef = useRef(0);
   const arcticFreeSpinCountRef = useRef(0);
+  const arcticJpPickTriggeredRef = useRef(false);
   const [pendingArcticFreePick, setPendingArcticFreePick] = useState(false);
 
   // Pirate's Bounty — Ghost Ship Walking Wilds state
@@ -2421,14 +2422,23 @@ const App: React.FC = () => {
             }
         }
 
-        // Arctic: 5% chance every 5 free spins — set pending flag, show after IDLE
+        // Arctic free-spin JP pick chances:
+        //   Spin 1: 10%  |  Every 5th spin: 7%  |  After first trigger: flat 3% every spin
         if (selectedGame.theme === 'ARCTIC' && freeSpinsRemaining > 0 && !showArcticPickModal && !pendingArcticFreePick) {
             arcticFreeSpinCountRef.current++;
-            if (arcticFreeSpinCountRef.current >= 5) {
-                arcticFreeSpinCountRef.current = 0;
-                if (Math.random() < 0.05) {
-                    setPendingArcticFreePick(true);
-                }
+            const spinNum = arcticFreeSpinCountRef.current;
+            const alreadyTriggered = arcticJpPickTriggeredRef.current;
+            let chance = 0;
+            if (alreadyTriggered) {
+                chance = 0.03;
+            } else if (spinNum === 1) {
+                chance = 0.10;
+            } else if (spinNum % 5 === 0) {
+                chance = 0.07;
+            }
+            if (chance > 0 && Math.random() < chance) {
+                arcticJpPickTriggeredRef.current = true;
+                setPendingArcticFreePick(true);
             }
         }
 
@@ -3183,6 +3193,9 @@ const App: React.FC = () => {
       // Normal → Free Spins: 2-second transition animation
       // SPACE: reset the Supernova multiplier for a fresh feature
       spaceFsMultRef.current = 1;
+      // Arctic: reset free-spin JP pick counters for the new session
+      arcticFreeSpinCountRef.current = 0;
+      arcticJpPickTriggeredRef.current = false;
       setSpaceMultiplier(1);
       setReelTransitioning('out');
       setTimeout(() => {
