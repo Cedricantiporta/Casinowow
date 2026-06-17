@@ -555,7 +555,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 {/* Icon — centered */}
                                                 <div className="flex-1 flex items-center justify-center w-full">
                                                     {isLocked ? (
-                                                        <span className="text-6xl leading-none drop-shadow-md">🔒</span>
+                                                        <img src="/ui/lock.png" alt="" style={{ width: '4rem', height: '4rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.7))' }} />
                                                     ) : card.icon.startsWith('/') ? (
                                                         <img src={card.icon} alt="" style={{ width: '4rem', height: '4rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.7))' }} />
                                                     ) : (

@@ -421,7 +421,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                 {renderIcon(premReward)}
                                                 {!missionState.isPremium && (
                                                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', borderRadius: '4px' }}>
-                                                        <i className="ti ti-lock" style={{ fontSize: '1.4rem', color: '#fbbf24' }} />
+                                                        <img src="/ui/lock.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
                                                     </div>
                                                 )}
                                                 <span style={{

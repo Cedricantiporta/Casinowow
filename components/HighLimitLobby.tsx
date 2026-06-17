@@ -173,7 +173,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                                     {/* Lock overlay */}
                                     {isLocked && (
                                         <div className="absolute inset-0 rounded-xl overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
-                                            <span className="text-3xl leading-none opacity-80">🔒</span>
+                                            <img src="/ui/lock.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.8))' }} />
                                             <span className="text-white/70 font-bold text-[9px] mt-1 uppercase">Lvl {unlockLevel}</span>
                                         </div>
                                     )}

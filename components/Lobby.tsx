@@ -164,7 +164,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 backgroundPosition: 'center',
             }}>
 
-              <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9">
+              <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
@@ -225,7 +225,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             </div>
                                             {isLocked && (
                                                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
-                                                    <span className="text-3xl leading-none grayscale drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">🔒</span>
+                                                    <img src="/ui/lock.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,1))' }} />
                                                     <span className="text-white font-black text-[10px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                                 </div>
                                             )}
@@ -312,7 +312,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                         {isLocked && (
                                             <div className="absolute inset-0 rounded-xl z-20 flex flex-col items-center justify-center pointer-events-none">
-                                                <span className="text-4xl leading-none grayscale drop-shadow-[0_1px_6px_rgba(0,0,0,1)]">🔒</span>
+                                                <img src="/ui/lock.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,1))' }} />
                                                 <span className="text-white font-black text-[11px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                             </div>
                                         )}
@@ -331,7 +331,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                     `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform${locked ? ' [&>*:not(.lock-badge)]:blur-[1.5px]' : ''}`;
                 const lockBadge = (unlockLevel: number) => (
                     <div className="lock-badge absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
-                        <span className="text-2xl leading-none grayscale drop-shadow-[0_1px_4px_rgba(0,0,0,1)]">🔒</span>
+                        <img src="/ui/lock.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,1))' }} />
                         <span className="text-white font-black text-[10px] mt-0.5 uppercase leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                     </div>
                 );
@@ -359,7 +359,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     background: barBg,
                                     border: `1.5px solid ${borderCol}`,
                                     borderBottom: 'none',
-                                    boxShadow: `${barGlow}, 0 -8px 32px rgba(0,0,0,0.7), 0 -2px 8px rgba(0,0,0,0.5)`,
+                                    boxShadow: `${barGlow}, 0 -12px 48px rgba(0,0,0,0.92), 0 -4px 16px rgba(0,0,0,0.8), 0 -1px 4px rgba(0,0,0,0.9)`,
                                     zIndex: -1,
                                 }}>
                                 <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'45%', borderRadius:'18px 18px 0 0', background:'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }}></div>

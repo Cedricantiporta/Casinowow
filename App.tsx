@@ -3509,8 +3509,8 @@ const App: React.FC = () => {
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
-              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'2px solid #8b6200', boxShadow:'0 8px 15px rgba(0,0,0,0.6)' } :
-              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'2px solid #5a10b0', boxShadow:'0 8px 15px rgba(0,0,0,0.6)' }}>
+              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'2px solid #8b6200', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' } :
+              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'2px solid #5a10b0', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' }>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
                 {/* Lobby Home Button */}
@@ -3529,14 +3529,14 @@ const App: React.FC = () => {
                 <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[290px] md:max-w-[430px] shrink-0">
                     {/* Separate Coins Pill — 30% longer than before */}
                     <div className="currency-pill flex-[4] max-w-[195px] md:max-w-[289px] flex items-center gap-1 shrink-0">
-                        <img src="/symbols/coin.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain', flexShrink: 0 }} />
-                        <span className="num flex-1">{formatK(animBalance !== null ? animBalance : player.balance)}</span>
+                        <img src="/symbols/coin.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain', flexShrink: 0, marginLeft: 'auto' }} />
+                        <span className="num" style={{ marginRight: 'auto', paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                     </div>
 
                     {/* Separate Gem Pill */}
                     <div className="currency-pill flex-[2] max-w-[100px] md:max-w-[148px] flex items-center gap-1 shrink-0">
-                        <img src="/symbols/diamond.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }} />
-                        <span className="num flex-1">{formatK(player.diamonds)}</span>
+                        <img src="/symbols/diamond.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0, marginLeft: 'auto' }} />
+                        <span className="num" style={{ marginRight: 'auto', paddingRight: '4px' }}>{formatK(player.diamonds)}</span>
                     </div>
                 </div>
 
@@ -3595,7 +3595,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Active Multiplier indicator */}
-                <div className="relative shrink-0 ml-2 flex items-center justify-center" style={{ width: 24, height: 24 }}>
+                <div className="relative shrink-0 ml-2 flex items-center justify-center" style={{ width: 34, height: 34 }}>
                     <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
                     <span style={{ position: 'relative', zIndex: 1, fontSize: 9, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
                         {(() => {

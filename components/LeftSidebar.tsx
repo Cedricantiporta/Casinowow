@@ -54,7 +54,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 />
                 {!isQuestUnlocked && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 backdrop-blur-[1px] rounded-full z-20 pointer-events-none">
-                        <span className="text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">🔒</span>
+                        <img src="/ui/lock.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 2px 2px rgba(0,0,0,1))' }} />
                         <span className="text-white text-[8px] px-1 rounded font-bold bg-red-600 shadow-md mt-0.5">Lvl 20</span>
                     </div>
                 )}
@@ -89,7 +89,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     
                     {!isMissionsUnlocked && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 backdrop-blur-[1px] rounded-full z-20 pointer-events-none">
-                            <span className="text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">🔒</span>
+                            <img src="/ui/lock.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 2px 2px rgba(0,0,0,1))' }} />
                             <span className="text-white text-[8px] px-1 rounded font-bold bg-red-600 shadow-md mt-0.5">Lvl 10</span>
                         </div>
                     )}
