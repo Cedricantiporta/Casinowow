@@ -291,7 +291,7 @@ const App: React.FC = () => {
     const updateScale = () => {
       const widthScale = window.innerWidth / 844;
       const heightScale = window.innerHeight / 390;
-      setMobileScale(Math.min(1, widthScale, heightScale));
+      setMobileScale(Math.min(2, widthScale, heightScale));
     };
 
     updateScale();
