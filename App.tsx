@@ -3521,7 +3521,7 @@ const App: React.FC = () => {
                 >
                     {currentView !== 'LOBBY'
                         ? <i className="ti ti-arrow-left"></i>
-                        : <img src="/ui/lobby.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
+                        : (profileEmoji ? <span className="text-base leading-none">{profileEmoji}</span> : <i className="ti ti-user" />)
                     }
                 </div>
 
