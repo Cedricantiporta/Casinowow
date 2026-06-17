@@ -188,17 +188,17 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 const isLocked = playerLevel < unlockLevel;
                                 const hrJackpot = jackpotTotals[idx] ?? 0;
                                 return (
-                                    <div key={game.id} className="flex flex-col items-center gap-1.5 shrink-0">
+                                    <div key={game.id} className="flex flex-col items-center gap-0 shrink-0">
                                         {/* Jackpot counter */}
-                                        <div style={{ width: '110px', background: 'rgba(10,4,0,0.95)', border: '2px solid #f59e0b', borderRadius: '7px', padding: '3px 5px', textAlign: 'center', boxShadow: '0 0 10px rgba(245,158,11,0.5)' }}>
+                                        <div style={{ width: '100px', background: 'rgba(10,4,0,0.95)', border: '2px solid #f59e0b', borderRadius: '7px', padding: '3px 5px', textAlign: 'center', boxShadow: '0 0 10px rgba(245,158,11,0.5)', marginBottom: '-8px' }}>
                                             <div style={{ fontSize: '6px', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>JACKPOT</div>
                                             <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 8px rgba(245,158,11,0.9)' }}>{formatK(hrJackpot)}</div>
                                         </div>
                                         {/* Card-shaped slot */}
                                         <button
-                                            onClick={() => onSelectGame(game, false)}
+                                            onClick={() => onSelectGame(game, true)}
                                             className={`relative overflow-hidden ${isLocked ? 'cursor-not-allowed' : 'active:scale-95 transition-transform'}`}
-                                            style={{ width: '120px', height: '178px', borderRadius: '16px', boxShadow: '0 0 18px rgba(245,158,11,0.35), inset 0 2px 0 rgba(255,220,80,0.7), 0 8px 24px rgba(0,0,0,0.7)', border: '2.5px solid rgba(245,158,11,0.55)' }}
+                                            style={{ width: '108px', height: '162px', borderRadius: '22px', boxShadow: '0 0 18px rgba(245,158,11,0.35), inset 0 2px 0 rgba(255,220,80,0.7), 0 8px 24px rgba(0,0,0,0.7)', border: '2.5px solid rgba(245,158,11,0.55)' }}
                                         >
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}${isLocked ? ' blur-[1.5px]' : ''}`}></div>
                                             {game.coverImage && (
@@ -279,10 +279,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     <button
                                         key={game.id}
                                         onClick={() => onSelectGame(game, false)}
-                                        className={`row-span-1 relative group w-[85px] h-[85px] md:w-[105px] md:h-[105px] rounded-xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed' : ''}`}
+                                        className={`row-span-1 relative group w-[76px] h-[76px] md:w-[96px] md:h-[96px] rounded-2xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed' : ''}`}
                                         style={{ boxShadow: 'inset 0 2px 0 rgba(210,150,255,0.85), 0 0 12px rgba(160,80,255,0.28), 0 6px 18px rgba(0,0,0,0.55)' }}
                                     >
-                                        <div className="absolute -top-[22px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
+                                        <div className="absolute -top-[10px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
                                             <span style={{ fontSize:'9px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'999px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
                                                 {formatK(jackpotTotals[idx] ?? 0)}
                                             </span>

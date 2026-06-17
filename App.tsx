@@ -3149,10 +3149,16 @@ const App: React.FC = () => {
           const savedBetStr = localStorage.getItem('cw_bet_' + game.id);
           if (savedBetStr) {
               const savedBetVal = Number(savedBetStr);
-              const currentAllowed = ALL_BETS.filter(b => b <= MAX_BET_BY_LEVEL(playerRef.current.level)).slice(-15);
-              let closest = 0, minD = Infinity;
-              currentAllowed.forEach((b, i) => { const d = Math.abs(b - savedBetVal); if (d < minD) { minD = d; closest = i; } });
-              setBetIndex(closest);
+              const currentAllowed = highLimit
+                  ? ALL_BETS.map(b => b * 10).filter(b => b <= MAX_BET_BY_LEVEL(playerRef.current.level) * 10 && b >= 100000).slice(-15)
+                  : ALL_BETS.filter(b => b <= MAX_BET_BY_LEVEL(playerRef.current.level)).slice(-15);
+              if (currentAllowed.length === 0) {
+                  setBetIndex(0);
+              } else {
+                  let closest = 0, minD = Infinity;
+                  currentAllowed.forEach((b, i) => { const d = Math.abs(b - savedBetVal); if (d < minD) { minD = d; closest = i; } });
+                  setBetIndex(closest);
+              }
           }
           setCurrentView('GAME');
           setActiveModal('NONE');

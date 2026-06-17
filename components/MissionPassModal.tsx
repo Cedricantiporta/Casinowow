@@ -113,7 +113,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3">
         <div className="w-full max-w-[720px] flex flex-col rounded-2xl overflow-hidden relative"
-            style={{ background: 'linear-gradient(160deg,#1a0535,#2d0764)', height: 'min(96%, 1160px)' }}>
+            style={{ background: 'linear-gradient(160deg,#1a0535,#2d0764)', height: 'min(94%, 420px)' }}>
             {showPremiumInfo && (
                 <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
@@ -361,37 +361,42 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 };
 
                                 return (
-                                    <div key={lvl} className="flex-none flex flex-col gap-1 relative snap-center" style={{ width: '80px' }}>
+                                    <div key={lvl} className="flex-none flex flex-col gap-0 relative snap-center" style={{ width: '80px' }}>
                                         {/* FREE card — blue */}
                                         <div style={{
-                                            background: 'linear-gradient(180deg,#0e2460,#06123a)',
-                                            border: '1.5px solid #3b82f6',
-                                            boxShadow: '0 3px 0 #1d4ed8, inset 0 1px 0 rgba(147,197,253,0.25)',
+                                            background: 'linear-gradient(180deg,#1e4ed8,#1e3a8a)',
+                                            border: '2px solid #60a5fa',
+                                            boxShadow: '0 4px 0 #1a56db',
                                             borderRadius: '10px',
                                             padding: '6px 4px',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                                            opacity: freeReward?.claimed ? 0.5 : 1,
+                                            opacity: freeReward?.claimed ? 0.55 : 1,
                                         }}>
                                             <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                                                 {renderIcon(freeReward)}
                                                 <span style={{
                                                     position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                                                    fontSize: '7px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', lineHeight: 1.3,
-                                                    background: 'rgba(0,10,40,0.85)', borderRadius: '4px', padding: '1px 4px',
-                                                    border: '1px solid rgba(59,130,246,0.5)',
+                                                    fontSize: '9px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', lineHeight: 1.3,
+                                                    background: 'rgba(0,20,80,0.9)', borderRadius: '4px', padding: '1px 4px',
                                                 }}>
                                                     {freeReward ? getDisplayValue(freeReward) : ''}
                                                 </span>
                                             </div>
-                                            <button onClick={() => freeReward && onClaimReward(freeReward)} disabled={!isUnlocked || freeReward?.claimed}
-                                                className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
-                                                style={isUnlocked && !freeReward?.claimed ? { background: 'linear-gradient(180deg,#60a5fa,#2563eb)', boxShadow: '0 2px 0 #1d4ed8', color: '#fff' } : { background: 'rgba(0,0,0,0.4)', color: '#4b5563', boxShadow: 'none', cursor: 'default' }}>
-                                                {freeReward?.claimed ? 'Claimed' : isUnlocked ? 'Claim' : 'Locked'}
-                                            </button>
+                                            {isUnlocked && !freeReward?.claimed ? (
+                                                <button onClick={() => freeReward && onClaimReward(freeReward)}
+                                                    className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
+                                                    style={{ background: 'linear-gradient(180deg,#60a5fa,#2563eb)', boxShadow: '0 2px 0 #1d4ed8', color: '#fff' }}>
+                                                    Claim
+                                                </button>
+                                            ) : (
+                                                <div className="w-full py-0.5 text-[8px] font-black text-center rounded-lg" style={{ color: freeReward?.claimed ? '#4ade80' : '#6b7280' }}>
+                                                    {freeReward?.claimed ? '✓' : 'Locked'}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Level node */}
-                                        <div className="flex items-center justify-center shrink-0 relative" style={{ height: 30 }}>
+                                        <div className="flex items-center justify-center shrink-0 relative" style={{ height: 44 }}>
                                             <div className="absolute left-0 right-[50%]" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#7c3aed,#a855f7)' : '#1e1b4b' }} />
                                             <div className="absolute left-[50%] right-0" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#7c3aed)' : '#1e1b4b' }} />
                                             {lvl === missionState.passLevel + 1 ? (
@@ -409,35 +414,40 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                                         {/* PREMIUM card — gold */}
                                         <div style={{
-                                            background: 'linear-gradient(180deg,#3d1f00,#1c0d00)',
-                                            border: '1.5px solid #f59e0b',
-                                            boxShadow: '0 3px 0 #92400e, inset 0 1px 0 rgba(253,230,138,0.25)',
+                                            background: 'linear-gradient(180deg,#b45309,#92400e)',
+                                            border: '2px solid #fbbf24',
+                                            boxShadow: '0 4px 0 #92400e',
                                             borderRadius: '10px',
                                             padding: '6px 4px',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                                            opacity: premReward?.claimed ? 0.5 : 1,
+                                            opacity: premReward?.claimed ? 0.55 : 1,
                                         }}>
                                             <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                                                 {renderIcon(premReward)}
                                                 {!missionState.isPremium && (
-                                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', borderRadius: '4px' }}>
+                                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }}>
                                                         <img src="/ui/lock.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
                                                     </div>
                                                 )}
                                                 <span style={{
                                                     position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                                                    fontSize: '7px', fontWeight: 900, color: '#fde68a', whiteSpace: 'nowrap', lineHeight: 1.3,
-                                                    background: 'rgba(40,10,0,0.85)', borderRadius: '4px', padding: '1px 4px',
-                                                    border: '1px solid rgba(245,158,11,0.5)',
+                                                    fontSize: '9px', fontWeight: 900, color: '#fde68a', whiteSpace: 'nowrap', lineHeight: 1.3,
+                                                    background: 'rgba(60,20,0,0.9)', borderRadius: '4px', padding: '1px 4px',
                                                 }}>
                                                     {premReward ? getDisplayValue(premReward) : ''}
                                                 </span>
                                             </div>
-                                            <button onClick={() => premReward && onClaimReward(premReward)} disabled={!isUnlocked || premReward?.claimed || !missionState.isPremium}
-                                                className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
-                                                style={isUnlocked && !premReward?.claimed && missionState.isPremium ? { background: 'linear-gradient(180deg,#fde68a,#d97706)', boxShadow: '0 2px 0 #92400e', color: '#1c0900' } : { background: 'rgba(0,0,0,0.4)', color: '#4b5563', boxShadow: 'none', cursor: 'default' }}>
-                                                {premReward?.claimed ? 'Claimed' : (isUnlocked && missionState.isPremium) ? 'Claim' : 'Locked'}
-                                            </button>
+                                            {isUnlocked && !premReward?.claimed && missionState.isPremium ? (
+                                                <button onClick={() => premReward && onClaimReward(premReward)}
+                                                    className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
+                                                    style={{ background: 'linear-gradient(180deg,#fde68a,#d97706)', boxShadow: '0 2px 0 #92400e', color: '#1c0900' }}>
+                                                    Claim
+                                                </button>
+                                            ) : (
+                                                <div className="w-full py-0.5 text-[8px] font-black text-center rounded-lg" style={{ color: premReward?.claimed ? '#fbbf24' : '#9ca3af' }}>
+                                                    {premReward?.claimed ? '✓' : 'Locked'}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 );
