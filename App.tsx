@@ -3510,7 +3510,7 @@ const App: React.FC = () => {
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
               { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'2px solid #8b6200', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' } :
-              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'2px solid #5a10b0', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' }>
+              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'2px solid #5a10b0', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
                 {/* Lobby Home Button */}
