@@ -125,8 +125,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
-        <div className="w-full max-w-[600px] flex flex-col rounded-2xl overflow-hidden"
-            style={{ height: 'min(88%, 680px)', background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
+        <div className="w-full max-w-[600px] flex flex-col rounded-3xl overflow-hidden"
+            style={{ height: 'min(88%, 680px)', background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)', boxShadow: 'inset 0 2px 0 rgba(220,170,255,0.9), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">

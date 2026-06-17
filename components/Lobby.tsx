@@ -198,7 +198,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         <button
                                             onClick={() => onSelectGame(game, true)}
                                             className={`relative overflow-hidden ${isLocked ? 'cursor-not-allowed' : 'active:scale-95 transition-transform'}`}
-                                            style={{ width: '108px', height: '162px', borderRadius: '22px', boxShadow: '0 0 18px rgba(245,158,11,0.35), inset 0 2px 0 rgba(255,220,80,0.7), 0 8px 24px rgba(0,0,0,0.7)', border: '2.5px solid rgba(245,158,11,0.55)' }}
+                                            style={{ width: '108px', height: '162px', borderRadius: '6px', boxShadow: 'inset 0 3px 0 rgba(255,240,100,0.9), inset 0 -3px 0 rgba(120,60,0,0.8), inset 3px 0 0 rgba(255,200,50,0.3), inset -3px 0 0 rgba(120,60,0,0.4), 0 8px 24px rgba(0,0,0,0.7)' }}
                                         >
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`}></div>
                                             {game.coverImage && (
@@ -279,19 +279,19 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     <button
                                         key={game.id}
                                         onClick={() => onSelectGame(game, false)}
-                                        className={`row-span-1 relative group w-[76px] h-[76px] md:w-[96px] md:h-[96px] rounded-2xl overflow-visible snap-center ${isLocked ? 'cursor-not-allowed' : ''}`}
-                                        style={{ boxShadow: 'inset 0 2px 0 rgba(210,150,255,0.85), 0 0 12px rgba(160,80,255,0.28), 0 6px 18px rgba(0,0,0,0.55)' }}
+                                        className={`row-span-1 relative group w-[76px] h-[76px] md:w-[96px] md:h-[96px] overflow-visible snap-center ${isLocked ? 'cursor-not-allowed' : ''}`}
+                                        style={{ borderRadius: 6, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)' }}
                                     >
-                                        <div className="absolute -top-[10px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
-                                            <span style={{ fontSize:'9px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'999px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
+                                        <div className="absolute -top-[6px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
+                                            <span style={{ fontSize:'9px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'4px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
                                                 {formatK(jackpotTotals[idx] ?? 0)}
                                             </span>
                                         </div>
-                                        <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
+                                        <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 4 }}></div>
                                         {game.coverImage && (
-                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-contain rounded-xl" style={{ zIndex: 1 }} />
+                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-contain" style={{ zIndex: 1, borderRadius: 4 }} />
                                         )}
-                                        <div className="absolute inset-0 rounded-xl overflow-hidden z-10 select-none">
+                                        <div className="absolute inset-0 overflow-hidden z-10 select-none" style={{ borderRadius: 4 }}>
                                             {!game.coverImage && (
                                                 <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '1.2rem' }}>
                                                     {THEME_PNG[game.theme] ? (
@@ -311,12 +311,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             )}
                                         </div>
                                         {isLocked && (
-                                            <div className="absolute inset-0 rounded-xl z-20 flex flex-col items-center justify-center pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)' }}>
+                                            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)', borderRadius: 4 }}>
                                                 <img src="/ui/lock.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,1))' }} />
-                                                <span className="text-white font-black text-[11px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
+                                                <span className="text-white font-black text-[11px] mt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                             </div>
                                         )}
-                                        <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10"></div>
+                                        <div className="absolute inset-0 overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: 4 }}></div>
                                     </button>
                                 );
                             })}
@@ -384,7 +384,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
                                 {isPiggyLocked && lockBadge(5)}
                                 <div className="relative leading-none">
-                                    <img src="/ui/piggy.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/piggy.png" alt="" className="w-20 h-20 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {piggyFull && (
                                         <div className="absolute -top-1 -right-2 text-white font-black text-[7px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap"
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>

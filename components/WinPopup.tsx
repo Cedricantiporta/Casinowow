@@ -74,13 +74,10 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
                     {type}
                 </div>
 
-                {/* Amount box — solid gold, square corners, no border */}
-                <div className="flex items-center justify-center px-8 py-3"
-                    style={{ background: '#d97706', borderRadius: 0 }}>
-                    <span style={{ fontSize: 'clamp(28px,7vw,56px)', lineHeight: 1, ...AMOUNT_STYLE }}>
-                        {formatK(displayAmount)}
-                    </span>
-                </div>
+                {/* Amount — no container, just the text */}
+                <span style={{ fontSize: 'clamp(28px,7vw,56px)', lineHeight: 1, ...AMOUNT_STYLE }}>
+                    {formatK(displayAmount)}
+                </span>
 
                 <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: 4 }}>
                     Tap to close

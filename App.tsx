@@ -3569,23 +3569,7 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                    {/* Piggy Bank quick button (left icons) */}
-                    <div
-                        onClick={handleOpenPiggyBank}
-                        className={`round-btn relative shrink-0 ml-1 ${player.level < 5 ? 'opacity-50 grayscale pointer-events-none' : ''}`}
-                        title={player.level < 5 ? 'Unlocks at Level 5' : 'Piggy Bank'}
-                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
-                    >
-                        <img src="/ui/piggy.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
-                        {player.level >= 5 && player.piggyBank >= MAX_BET_BY_LEVEL(player.level) * 5 && (
-                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none"
-                                style={{ background: '#dc2626', fontSize: '6px', fontWeight: 900, color: 'white', padding: '1px 5px', borderRadius: 3, whiteSpace: 'nowrap', lineHeight: 1.4 }}>
-                                FULL
-                            </div>
-                        )}
-                    </div>
-
-                {/* Level Pill — star protruding on left, LVL.XX text centered */}
+                {/* Level Pill — star protruding on left, LV.XX text centered */}
                 <div className="rtrack !flex-none w-[120px] md:w-[155px] ml-2" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible' }}>
                     {/* Fill bar — wrapped in overflow:hidden div so it clips to pill border-radius */}
                     <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 10, pointerEvents: 'none' }}>
@@ -3594,9 +3578,9 @@ const App: React.FC = () => {
                             return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
                         })()}
                     </div>
-                    <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 28, height: 28, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
-                    <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
-                        {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LVL.${player.level}`}
+                    <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
+                    <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'left', paddingLeft: '3px' }}>
+                        {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LV.${player.level}`}
                     </span>
                 </div>
 
@@ -3670,65 +3654,46 @@ const App: React.FC = () => {
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;
                     return (
-                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', border: isHighLimit ? '1.5px solid #8b6200' : '1.5px solid #38106e', borderRadius:'21px', padding:'6px 6px', gap:'2px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'69px' }}>
-                            {/* Wild Quest / Mine icon */}
+                        <div className="absolute left-1 top-2 bottom-2 z-40 flex flex-col justify-evenly select-none"
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'8px 6px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'72px' }}>
+                            {/* Mine */}
                             <button
                                 onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
+                                className={`relative flex flex-col items-center justify-center gap-1 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                             >
-                                {isQuestLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {quest.wildCredits > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.wildCredits}
-                                            </div>
-                                        )}
-                                        <img src="/ui/mine_new.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 tracking-wider leading-none">Mine</span>
+                                {quest.wildCredits > 0 && !isQuestLocked && (
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                        {quest.wildCredits}
+                                    </div>
+                                )}
+                                <img src="/ui/mine_new.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)' }}>Play</div>
                             </button>
-                            <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
-                            {/* Dice Quest icon */}
+                            {/* Dice */}
                             <button
                                 onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
+                                className={`relative flex flex-col items-center justify-center gap-1 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                             >
-                                {isQuestLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {quest.diceCredits > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.diceCredits}
-                                            </div>
-                                        )}
-                                        <img src="/ui/dice.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 tracking-wider leading-none">Dice</span>
+                                {quest.diceCredits > 0 && !isQuestLocked && (
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                        {quest.diceCredits}
+                                    </div>
+                                )}
+                                <img src="/ui/dice.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)' }}>Play</div>
                             </button>
-                            <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
+                            {/* Pass */}
                             <button
                                 onClick={!isPassLocked ? openBattlePassModal : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-0.5 transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                style={{ padding:'3px 3px' }}
+                                className={`relative flex flex-col items-center justify-center gap-1 transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                             >
-                                {isPassLocked
-                                    ? <span className="text-[28px] leading-none">🔒</span>
-                                    : <>
-                                        {totalNotifs > 0 && (
-                                            <div className="absolute -top-0.5 -right-0.5 w-6 h-6 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[14px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {totalNotifs}
-                                            </div>
-                                        )}
-                                        <img src="/ui/pass.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                      </>
-                                }
-                                <span className="text-[11px] font-black text-white/90 tracking-wider leading-none">Pass</span>
+                                {totalNotifs > 0 && !isPassLocked && (
+                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                        {totalNotifs}
+                                    </div>
+                                )}
+                                <img src="/ui/pass.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0' }}>LV.{missionState.passLevel}</div>
                             </button>
                         </div>
                     );

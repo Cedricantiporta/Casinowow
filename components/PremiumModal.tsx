@@ -135,7 +135,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
     return (
         <div className="absolute inset-0 z-[200] flex flex-col animate-pop-in select-none"
-            style={{ background: 'linear-gradient(180deg,#0d0814 0%,#1a0535 100%)' }}>
+            style={{ background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2">
