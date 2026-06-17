@@ -377,7 +377,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Cards</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Cards</span>
                             </button>
 
                             {/* Piggy */}
@@ -390,7 +390,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>FULL</div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Piggy</span>
                             </button>
 
                             {/* Wild Quest */}
@@ -405,7 +405,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Wild</span>
                             </button>
 
                             {/* Dice Quest */}
@@ -420,7 +420,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Dice</span>
                             </button>
 
                             {/* Pass */}
@@ -435,7 +435,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Pass</span>
                             </button>
 
                             {/* FREE COINS — center */}
@@ -454,7 +454,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Collect</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Collect</span>
                             </button>
 
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
@@ -467,7 +467,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Missions</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Missions</span>
                             </button>
 
                             <button onClick={onOpenInbox} className={iconBtn(false)}>
@@ -479,13 +479,13 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Inbox</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Inbox</span>
                             </button>
 
                             {/* VIP LOUNGE */}
                             <button onClick={onOpenVipLounge} className={iconBtn(false)}>
                                 <img src="/ui/VIP.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">VIP</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">VIP</span>
                             </button>
 
                         </div>

@@ -342,66 +342,100 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                 {view === 'PASS' && (
                     <div className="flex-1 flex flex-col relative" style={{ background: '#12052a' }}>
                         {/* Rewards horizontal scroll — swipe/wheel only, no nav arrows */}
-                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-stretch p-3 gap-3 no-scrollbar snap-x" style={{ background: 'linear-gradient(180deg,#1e0a40,#120526)' }}>
+                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar snap-x" style={{ background: 'linear-gradient(180deg,#1e0a40,#120526)', alignItems: 'flex-start' }}>
                             {levels.map((lvl) => {
                                 const rewards = missionState.passRewards.filter(r => r.level === lvl);
                                 const freeReward = rewards.find(r => r.tier === 'FREE');
                                 const premReward = rewards.find(r => r.tier === 'PREMIUM');
                                 const isUnlocked = missionState.passLevel >= lvl;
 
+                                const renderIcon = (reward: typeof freeReward) => {
+                                    if (!reward) return null;
+                                    const s = '3rem';
+                                    if (reward.type === 'COINS') return <img src="/symbols/coin.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
+                                    if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
+                                    if (reward.type === 'PICKS') return <span style={{ fontSize: s, lineHeight: 1 }}>⛏️</span>;
+                                    if (reward.type === 'DICE_CREDITS') return <span style={{ fontSize: s, lineHeight: 1 }}>🎲</span>;
+                                    if (reward.type === 'CREDIT_BACK') return <span style={{ fontSize: s, lineHeight: 1 }}>🃏</span>;
+                                    return <img src="/ui/star.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
+                                };
+
                                 return (
-                                    <div key={lvl} className="flex-none flex flex-col gap-1 relative snap-center h-full" style={{ width: '88px' }}>
-                                        {/* FREE card */}
-                                        <div className={`flex-1 bg-gradient-to-b from-[#382952] to-[#231833] rounded-xl p-1 flex flex-col items-center justify-between relative shadow ${freeReward?.claimed ? 'opacity-50 grayscale' : ''}`}>
-                                            <span className="text-[7px] text-gray-300 uppercase font-bold bg-black/50 px-1.5 py-0.5 rounded-full mt-0.5">Free</span>
-                                            <div className="flex-1 flex flex-col items-center justify-center w-full gap-0.5">
-                                                <div className="text-4xl flex items-center justify-center">{freeReward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '2.25rem', height: '2.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : freeReward?.type === 'DIAMONDS' ? <img src="/symbols/diamond.png" alt="" style={{ width: '2.25rem', height: '2.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : freeReward?.type === 'PICKS' ? '⛏️' : freeReward?.type === 'DICE_CREDITS' ? '🎲' : freeReward?.type === 'CREDIT_BACK' ? '🃏' : <img src="/ui/star.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />}</div>
-                                                <span className="font-black text-white text-[10px] text-center leading-tight drop-shadow-md">{freeReward ? getDisplayValue(freeReward) : ''}</span>
+                                    <div key={lvl} className="flex-none flex flex-col gap-1 relative snap-center" style={{ width: '80px' }}>
+                                        {/* FREE card — blue */}
+                                        <div style={{
+                                            background: 'linear-gradient(180deg,#0e2460,#06123a)',
+                                            border: '1.5px solid #3b82f6',
+                                            boxShadow: '0 3px 0 #1d4ed8, inset 0 1px 0 rgba(147,197,253,0.25)',
+                                            borderRadius: '10px',
+                                            padding: '6px 4px',
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                                            opacity: freeReward?.claimed ? 0.5 : 1,
+                                        }}>
+                                            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                {renderIcon(freeReward)}
+                                                <span style={{
+                                                    position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+                                                    fontSize: '7px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', lineHeight: 1.3,
+                                                    background: 'rgba(0,10,40,0.85)', borderRadius: '4px', padding: '1px 4px',
+                                                    border: '1px solid rgba(59,130,246,0.5)',
+                                                }}>
+                                                    {freeReward ? getDisplayValue(freeReward) : ''}
+                                                </span>
                                             </div>
                                             <button onClick={() => freeReward && onClaimReward(freeReward)} disabled={!isUnlocked || freeReward?.claimed}
-                                                className={`btn-3d w-full py-0.5 text-[8px] font-black uppercase rounded-lg ${isUnlocked && !freeReward?.claimed ? 'bg-gradient-to-b from-green-400 to-green-700 text-white' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>
+                                                className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
+                                                style={isUnlocked && !freeReward?.claimed ? { background: 'linear-gradient(180deg,#60a5fa,#2563eb)', boxShadow: '0 2px 0 #1d4ed8', color: '#fff' } : { background: 'rgba(0,0,0,0.4)', color: '#4b5563', boxShadow: 'none', cursor: 'default' }}>
                                                 {freeReward?.claimed ? 'Claimed' : isUnlocked ? 'Claim' : 'Locked'}
                                             </button>
                                         </div>
 
-                                        {/* Level node with connecting line */}
-                                        <div className="flex items-center justify-center shrink-0 relative" style={{ height: 34 }}>
-                                            {/* Left line half */}
-                                            <div className="absolute left-0 right-[50%]" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#7c3aed,#a855f7)' : '#1e1b4b' }} />
-                                            {/* Right line half */}
-                                            <div className="absolute left-[50%] right-0" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#7c3aed)' : '#1e1b4b' }} />
-                                            {/* Circle node — or Buy Level button for next available level */}
+                                        {/* Level node */}
+                                        <div className="flex items-center justify-center shrink-0 relative" style={{ height: 30 }}>
+                                            <div className="absolute left-0 right-[50%]" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#7c3aed,#a855f7)' : '#1e1b4b' }} />
+                                            <div className="absolute left-[50%] right-0" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#7c3aed)' : '#1e1b4b' }} />
                                             {lvl === missionState.passLevel + 1 ? (
-                                                <button onClick={onBuyLevel}
-                                                    className="relative z-10 btn-3d font-black text-[8px] rounded-lg text-white flex items-center justify-center gap-0.5"
-                                                    style={{ width: 64, height: 22, background: 'linear-gradient(180deg,#6366f1,#3730a3)', boxShadow: '0 2px 0 #1e1b4b', flexShrink: 0 }}>
+                                                <button onClick={onBuyLevel} className="relative z-10 btn-3d font-black text-[8px] rounded-lg text-white flex items-center justify-center gap-0.5"
+                                                    style={{ width: 58, height: 20, background: 'linear-gradient(180deg,#6366f1,#3730a3)', boxShadow: '0 2px 0 #1e1b4b', flexShrink: 0 }}>
                                                     <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> 100
                                                 </button>
                                             ) : (
                                                 <div className="relative z-10 flex items-center justify-center font-black text-[9px] rounded-full"
-                                                    style={{
-                                                        width: 28, height: 28,
-                                                        background: isUnlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827',
-                                                        border: `2px solid ${isUnlocked ? '#e879f9' : '#374151'}`,
-                                                        boxShadow: isUnlocked ? '0 2px 8px rgba(168,85,247,0.6),inset 0 1px 2px rgba(255,255,255,0.3)' : 'none',
-                                                        color: isUnlocked ? 'white' : '#4b5563',
-                                                        flexShrink: 0,
-                                                    }}>
+                                                    style={{ width: 24, height: 24, background: isUnlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827', border: `2px solid ${isUnlocked ? '#e879f9' : '#374151'}`, boxShadow: isUnlocked ? '0 2px 8px rgba(168,85,247,0.6)' : 'none', color: isUnlocked ? 'white' : '#4b5563', flexShrink: 0 }}>
                                                     {lvl}
                                                 </div>
                                             )}
                                         </div>
 
-                                        {/* PREMIUM card — greyed/grayscale when locked, no blur */}
-                                        <div className={`flex-1 bg-gradient-to-b ${missionState.isPremium ? 'from-[#451a03] to-[#2e1065]' : 'from-gray-800 to-black'} rounded-xl p-1 flex flex-col items-center justify-between relative shadow ${!missionState.isPremium ? 'grayscale opacity-60' : premReward?.claimed ? 'opacity-50 grayscale' : ''}`}>
-                                            <span className={`text-[7px] uppercase font-bold px-1.5 py-0.5 rounded-full mt-0.5 ${missionState.isPremium ? 'text-yellow-400 bg-black/50' : 'text-gray-500 bg-black/20'}`}>Premium</span>
-                                            <div className="flex-1 flex flex-col items-center justify-center w-full relative gap-0.5">
-                                                {!missionState.isPremium && <div className="absolute inset-0 flex items-center justify-center z-10"><span className="text-3xl text-gray-400">🔒</span></div>}
-                                                <div className="text-4xl flex items-center justify-center">{premReward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '2.25rem', height: '2.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : premReward?.type === 'DIAMONDS' ? <img src="/symbols/diamond.png" alt="" style={{ width: '2.25rem', height: '2.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : premReward?.type === 'PICKS' ? '⛏️' : premReward?.type === 'DICE_CREDITS' ? '🎲' : premReward?.type === 'CREDIT_BACK' ? '🎴' : '👑'}</div>
-                                                <span className={`font-black text-[10px] text-center leading-tight drop-shadow-md ${missionState.isPremium ? 'text-yellow-100' : 'text-gray-500'}`}>{premReward ? getDisplayValue(premReward) : ''}</span>
+                                        {/* PREMIUM card — gold */}
+                                        <div style={{
+                                            background: 'linear-gradient(180deg,#3d1f00,#1c0d00)',
+                                            border: '1.5px solid #f59e0b',
+                                            boxShadow: '0 3px 0 #92400e, inset 0 1px 0 rgba(253,230,138,0.25)',
+                                            borderRadius: '10px',
+                                            padding: '6px 4px',
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
+                                            opacity: premReward?.claimed ? 0.5 : 1,
+                                        }}>
+                                            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                {renderIcon(premReward)}
+                                                {!missionState.isPremium && (
+                                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.45)', borderRadius: '4px' }}>
+                                                        <i className="ti ti-lock" style={{ fontSize: '1.4rem', color: '#fbbf24' }} />
+                                                    </div>
+                                                )}
+                                                <span style={{
+                                                    position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+                                                    fontSize: '7px', fontWeight: 900, color: '#fde68a', whiteSpace: 'nowrap', lineHeight: 1.3,
+                                                    background: 'rgba(40,10,0,0.85)', borderRadius: '4px', padding: '1px 4px',
+                                                    border: '1px solid rgba(245,158,11,0.5)',
+                                                }}>
+                                                    {premReward ? getDisplayValue(premReward) : ''}
+                                                </span>
                                             </div>
                                             <button onClick={() => premReward && onClaimReward(premReward)} disabled={!isUnlocked || premReward?.claimed || !missionState.isPremium}
-                                                className={`btn-3d w-full py-0.5 text-[8px] font-black uppercase rounded-lg ${isUnlocked && !premReward?.claimed && missionState.isPremium ? 'bg-gradient-to-b from-yellow-300 to-yellow-600 text-black' : 'bg-gray-800 text-gray-600 cursor-not-allowed'}`}>
+                                                className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
+                                                style={isUnlocked && !premReward?.claimed && missionState.isPremium ? { background: 'linear-gradient(180deg,#fde68a,#d97706)', boxShadow: '0 2px 0 #92400e', color: '#1c0900' } : { background: 'rgba(0,0,0,0.4)', color: '#4b5563', boxShadow: 'none', cursor: 'default' }}>
                                                 {premReward?.claimed ? 'Claimed' : (isUnlocked && missionState.isPremium) ? 'Claim' : 'Locked'}
                                             </button>
                                         </div>
