@@ -216,7 +216,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                 )}
                                                 {!game.coverImage && (
                                                     <div className="absolute bottom-0 left-0 right-0 pb-2 px-1 text-center">
-                                                        <h3 className={`text-[11px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
+                                                        <h3 className={`text-[11px] font-black tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
                                                             style={{ WebkitTextStroke: '1px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
                                                             {game.name}
                                                         </h3>
@@ -303,7 +303,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             )}
                                             {!game.coverImage && (
                                                 <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
-                                                    <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
+                                                    <h3 className={`text-[13px] md:text-[16px] font-black tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
                                                         style={{ WebkitTextStroke:'1.5px rgba(0,0,0,0.95)', paintOrder:'stroke fill' }}>
                                                         {game.name}
                                                     </h3>
@@ -355,11 +355,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
                                 style={{
                                     height:'52px',
-                                    borderRadius:'18px 18px 0 0',
+                                    borderRadius:'28px 28px 0 0',
                                     background: barBg,
                                     border: `1.5px solid ${borderCol}`,
                                     borderBottom: 'none',
-                                    boxShadow: barGlow,
+                                    boxShadow: `${barGlow}, 0 -8px 32px rgba(0,0,0,0.7), 0 -2px 8px rgba(0,0,0,0.5)`,
                                     zIndex: -1,
                                 }}>
                                 <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'45%', borderRadius:'18px 18px 0 0', background:'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }}></div>
@@ -393,19 +393,34 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Piggy</span>
                             </button>
 
-                            {/* Mini Games (Wild + Dice + Coin Flip) */}
-                            <button onClick={!isQuestLocked ? onOpenMiniGames : undefined} className={iconBtn(isQuestLocked)}>
+                            {/* Wild Quest */}
+                            <button onClick={!isQuestLocked ? onOpenWildQuest : undefined} className={iconBtn(isQuestLocked)}>
                                 {isQuestLocked && lockBadge(20)}
                                 <div className="relative leading-none">
-                                    <img src="/ui/games.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                    {!isQuestLocked && (wildCredits + diceCredits) > 0 && (
+                                    <img src="/ui/coinmine.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    {!isQuestLocked && wildCredits > 0 && (
                                         <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
-                                            {wildCredits + diceCredits}
+                                            {wildCredits}
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Mini Games</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Wild</span>
+                            </button>
+
+                            {/* Dice Quest */}
+                            <button onClick={!isQuestLocked ? onOpenDiceQuest : undefined} className={iconBtn(isQuestLocked)}>
+                                {isQuestLocked && lockBadge(20)}
+                                <div className="relative leading-none">
+                                    <img src="/ui/dice.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    {!isQuestLocked && diceCredits > 0 && (
+                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
+                                            {diceCredits}
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
                             </button>
 
                             {/* Pass */}
@@ -465,19 +480,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     )}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Inbox</span>
-                            </button>
-
-                            {/* HIGH ROLLER — icon flips to "back to lobby" when in HR */}
-                            <button onClick={!isHighRollerLocked ? onOpenHighRoller : undefined} className={iconBtn(isHighRollerLocked)}>
-                                {isHighRollerLocked && lockBadge(35)}
-                                <img
-                                    src={isHighLimit ? '/ui/lobby.png' : '/ui/high_roller.png'}
-                                    alt=""
-                                    className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]"
-                                />
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">
-                                    {isHighLimit ? 'Lobby' : 'High Roller'}
-                                </span>
                             </button>
 
                             {/* VIP LOUNGE */}

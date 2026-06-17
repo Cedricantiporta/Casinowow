@@ -4713,6 +4713,7 @@ const App: React.FC = () => {
           vipXp={player.vipXp ?? 0}
           vipXpToNext={player.vipXpToNext ?? 500}
           onJoinVip={handleJoinVip}
+          onOpenHighLimit={() => { setShowVipLounge(false); setTimeout(handleOpenHighRoller, 50); }}
       />
 
       <MiniGamesHub

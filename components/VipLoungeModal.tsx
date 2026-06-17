@@ -9,6 +9,7 @@ interface VipLoungeModalProps {
     vipXp?: number;
     vipXpToNext?: number;
     onJoinVip: () => void;
+    onOpenHighLimit?: () => void;
 }
 
 interface VipTier {
@@ -35,7 +36,7 @@ const getCurrentTier = (vipLevel: number): VipTier | null => {
 };
 
 export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
-    isOpen, onClose, isVip, playerLevel, vipLevel = 1, vipXp = 0, vipXpToNext = 500, onJoinVip
+    isOpen, onClose, isVip, playerLevel, vipLevel = 1, vipXp = 0, vipXpToNext = 500, onJoinVip, onOpenHighLimit
 }) => {
     if (!isOpen) return null;
 
@@ -137,6 +138,32 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                         </div>
                     );
                 })}
+            </div>
+
+            {/* High Limit entry */}
+            <div className="shrink-0 px-4 pb-2">
+                <button
+                    onClick={() => { if (playerLevel >= 35) { onClose(); setTimeout(() => onOpenHighLimit?.(), 50); } }}
+                    disabled={playerLevel < 35}
+                    className="btn-3d w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-black relative overflow-hidden"
+                    style={playerLevel >= 35 ? {
+                        background: 'linear-gradient(180deg,#ffe066,#d48800)',
+                        boxShadow: '0 3px 0 #7a5000',
+                        color: '#1c0900',
+                    } : {
+                        background: 'rgba(255,255,255,0.06)',
+                        color: '#6b7280',
+                        cursor: 'not-allowed',
+                        boxShadow: 'none',
+                    }}
+                >
+                    <img src="/ui/high_roller.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: playerLevel < 35 ? 'grayscale(1)' : undefined }} />
+                    <div className="flex flex-col items-start gap-0.5">
+                        <span className="text-[12px] uppercase tracking-widest leading-none">High Limit</span>
+                        <span className="text-[9px] font-bold leading-none opacity-60">{playerLevel < 35 ? `Unlocks at Lv.35` : '10× bet amounts'}</span>
+                    </div>
+                    {playerLevel >= 35 && <i className="ti ti-chevron-right ml-auto text-lg" />}
+                </button>
             </div>
 
             {/* CTA */}
