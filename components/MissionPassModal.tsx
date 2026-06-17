@@ -113,7 +113,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-3">
         <div className="w-full max-w-[720px] flex flex-col rounded-2xl overflow-hidden relative"
-            style={{ background: 'linear-gradient(160deg,#1a0535,#2d0764)', height: 'min(94%, 420px)' }}>
+            style={{ background: 'linear-gradient(160deg,#1a0535,#2d0764)', height: 'min(94%, 320px)' }}>
             {showPremiumInfo && (
                 <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
@@ -360,14 +360,23 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     return <img src="/ui/star.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
                                 };
 
+                                // Cable-like border: uniform inset highlight top, no bottom drop shadow
+                                const freeBorder = {
+                                    border: '3px solid #60a5fa',
+                                    boxShadow: 'inset 0 3px 4px rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,10,60,0.6), 0 0 10px rgba(96,165,250,0.25)',
+                                };
+                                const premBorder = {
+                                    border: '3px solid #fbbf24',
+                                    boxShadow: 'inset 0 3px 4px rgba(255,240,180,0.45), inset 0 -2px 4px rgba(60,20,0,0.6), 0 0 10px rgba(251,191,36,0.25)',
+                                };
+
                                 return (
                                     <div key={lvl} className="flex-none flex flex-col gap-0 relative snap-center" style={{ width: '80px' }}>
                                         {/* FREE card — blue */}
                                         <div style={{
                                             background: 'linear-gradient(180deg,#1e4ed8,#1e3a8a)',
-                                            border: '2px solid #60a5fa',
-                                            boxShadow: '0 4px 0 #1a56db',
-                                            borderRadius: '10px',
+                                            ...freeBorder,
+                                            borderRadius: '12px',
                                             padding: '6px 4px',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
                                             opacity: freeReward?.claimed ? 0.55 : 1,
@@ -377,7 +386,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                 <span style={{
                                                     position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
                                                     fontSize: '9px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', lineHeight: 1.3,
-                                                    background: 'rgba(0,20,80,0.9)', borderRadius: '4px', padding: '1px 4px',
+                                                    textShadow: '0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.9)',
                                                 }}>
                                                     {freeReward ? getDisplayValue(freeReward) : ''}
                                                 </span>
@@ -389,14 +398,14 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     Claim
                                                 </button>
                                             ) : (
-                                                <div className="w-full py-0.5 text-[8px] font-black text-center rounded-lg" style={{ color: freeReward?.claimed ? '#4ade80' : '#6b7280' }}>
-                                                    {freeReward?.claimed ? '✓' : 'Locked'}
+                                                <div className="w-full py-0.5 text-[8px] font-black text-center" style={{ color: freeReward?.claimed ? '#4ade80' : '#4b5563' }}>
+                                                    {freeReward?.claimed ? '✓' : ''}
                                                 </div>
                                             )}
                                         </div>
 
-                                        {/* Level node */}
-                                        <div className="flex items-center justify-center shrink-0 relative" style={{ height: 44 }}>
+                                        {/* Level node — more space */}
+                                        <div className="flex items-center justify-center shrink-0 relative" style={{ height: 56 }}>
                                             <div className="absolute left-0 right-[50%]" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#7c3aed,#a855f7)' : '#1e1b4b' }} />
                                             <div className="absolute left-[50%] right-0" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#7c3aed)' : '#1e1b4b' }} />
                                             {lvl === missionState.passLevel + 1 ? (
@@ -415,9 +424,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         {/* PREMIUM card — gold */}
                                         <div style={{
                                             background: 'linear-gradient(180deg,#b45309,#92400e)',
-                                            border: '2px solid #fbbf24',
-                                            boxShadow: '0 4px 0 #92400e',
-                                            borderRadius: '10px',
+                                            ...premBorder,
+                                            borderRadius: '12px',
                                             padding: '6px 4px',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
                                             opacity: premReward?.claimed ? 0.55 : 1,
@@ -432,7 +440,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                 <span style={{
                                                     position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
                                                     fontSize: '9px', fontWeight: 900, color: '#fde68a', whiteSpace: 'nowrap', lineHeight: 1.3,
-                                                    background: 'rgba(60,20,0,0.9)', borderRadius: '4px', padding: '1px 4px',
+                                                    textShadow: '0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.9)',
                                                 }}>
                                                     {premReward ? getDisplayValue(premReward) : ''}
                                                 </span>
@@ -444,8 +452,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     Claim
                                                 </button>
                                             ) : (
-                                                <div className="w-full py-0.5 text-[8px] font-black text-center rounded-lg" style={{ color: premReward?.claimed ? '#fbbf24' : '#9ca3af' }}>
-                                                    {premReward?.claimed ? '✓' : 'Locked'}
+                                                <div className="w-full py-0.5 text-[8px] font-black text-center" style={{ color: premReward?.claimed ? '#fbbf24' : '#6b7280' }}>
+                                                    {premReward?.claimed ? '✓' : ''}
                                                 </div>
                                             )}
                                         </div>
