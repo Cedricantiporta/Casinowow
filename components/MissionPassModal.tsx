@@ -104,9 +104,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
     const fmt = (n: number) => n.toLocaleString('en-US');
 
-    const passBtn = "btn-3d font-black uppercase text-[8px] rounded-lg flex items-center justify-center";
-    const passBtnSize = { width: '54px', height: '26px', flexShrink: 0 as const };
-
     const topbarBase = "font-nunito w-full flex flex-col shrink-0 select-none";
     const topbarStyle = { background: 'transparent', borderBottom: '1px solid rgba(255,255,255,0.06)' };
 
@@ -118,14 +115,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                 <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
                     {/* Header row */}
-                    <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative"
-                        style={{ background: 'linear-gradient(180deg,#92400e,#78350f)' }}>
+                    <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
                         <div className="flex-1">
-                            <h2 className="font-black text-base uppercase tracking-widest leading-none"
+                            <h2 className="font-black text-base tracking-widest leading-none"
                                 style={{ background: 'linear-gradient(180deg,#fff8c0,#f0c000)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                Monthly Pass
+                                Mission Pass
                             </h2>
-                            <p className="text-yellow-200/50 text-[9px] font-bold uppercase tracking-wider mt-0.5">Unlock exclusive rewards</p>
+                            <p className="text-yellow-200/50 text-[9px] font-bold tracking-wider mt-0.5">Unlock exclusive rewards</p>
                         </div>
                         <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
                     </div>
@@ -142,7 +138,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 style={{ background: 'rgba(255,200,0,0.08)' }}>
                                 <span style={{ fontSize: '24px', lineHeight: 1, flexShrink: 0 }}>{p.icon}</span>
                                 <div className="min-w-0">
-                                    <div className="text-yellow-200 font-black text-[10px] uppercase tracking-wide leading-none">{p.title}</div>
+                                    <div className="text-yellow-200 font-black text-[10px] tracking-wide leading-none">{p.title}</div>
                                     <div className="text-yellow-200/50 text-[8px] mt-0.5 leading-snug">{p.desc}</div>
                                 </div>
                             </div>
@@ -158,9 +154,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             </div>
                         </div>
                         <button onClick={handlePremiumPurchase}
-                            className="btn-3d px-8 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest text-black relative overflow-hidden"
+                            className="btn-3d px-8 py-2.5 rounded-xl font-black text-sm tracking-widest text-black relative overflow-hidden"
                             style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 4px 0 #7a5000,0 6px 16px rgba(0,0,0,0.5)' }}>
-                            <span className="relative z-10">Unlock Monthly Pass</span>
+                            <span className="relative z-10">Unlock Premium</span>
                             <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none"></div>
                         </button>
                     </div>
@@ -175,7 +171,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     /* MISSIONS topbar: title | counter | X */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-2 px-3 h-[40px]">
-                            <span className="font-black text-white text-xs uppercase tracking-widest shrink-0">Daily Missions</span>
+                            <span className="font-black text-white text-xs tracking-widest shrink-0">Daily Missions</span>
                             {(() => {
                                 const daily = missionState.activeMissions.filter(m => m.frequency === 'DAILY');
                                 const done = daily.filter(m => m.completed || m.claimed).length;
@@ -190,7 +186,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             {/* Pass level + XP shortcut */}
                             <button onClick={() => setView('PASS')} className="flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0"
                                 style={{ background: 'rgba(251,191,36,0.12)', border: 'none', cursor: 'pointer' }}>
-                                <span className="font-black text-[9px] text-yellow-300 uppercase">Lv.{missionState.passLevel}</span>
+                                <span className="font-black text-[9px] text-yellow-300">Lv.{missionState.passLevel}</span>
                                 <span className="font-black text-[9px] text-yellow-200/60">{missionState.passXP}/{missionState.passXpToNext}</span>
                             </button>
                             {/* Gems pill with + shortcut */}
@@ -206,11 +202,11 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </div>
                     </div>
                 ) : (
-                    /* PASS topbar: title | spacer | CLAIM ALL | Buy Monthly Pass / ACTIVE | X */
+                    /* PASS topbar: title | spacer | currencies | X */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="flex items-center gap-2 px-3 h-[40px]">
                             {/* Title */}
-                            <span className="font-black text-white text-xs uppercase tracking-widest shrink-0">Monthly Pass</span>
+                            <span className="font-black text-white text-xs tracking-widest shrink-0">Mission Pass</span>
                             <div className="flex-1"></div>
                             {/* Currency pills */}
                             <div className="currency-pill flex items-center gap-1 shrink-0" style={{ fontSize: '10px' }}>
@@ -222,25 +218,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                 <span className="font-black text-[10px] text-blue-300">{diamonds.toLocaleString('en-US')}</span>
                                 {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} style={{ fontSize: '10px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', color: '#c084fc', fontWeight: 900, lineHeight: 1 }}>+</button>}
-                            </div>
-                            {/* Action buttons */}
-                            <div className="flex items-center gap-1 shrink-0">
-                                <button onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
-                                    className={`${passBtn} ${rewardsToClaimCount > 0 ? 'bg-gradient-to-b from-green-400 to-green-700 text-white' : 'text-gray-500'}`}
-                                    style={{ ...passBtnSize, background: rewardsToClaimCount > 0 ? undefined : 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                    CLAIM ALL
-                                </button>
-                                {!missionState.isPremium ? (
-                                    <button onClick={() => setShowPremiumInfo(true)}
-                                        className={`${passBtn} bg-gradient-to-b from-yellow-300 to-yellow-600 text-black`}
-                                        style={{ width: '90px', height: '26px', flexShrink: 0 }}>
-                                        Buy Monthly Pass
-                                    </button>
-                                ) : (
-                                    <div className="flex items-center justify-center text-yellow-300 font-black text-[9px]" style={passBtnSize}>
-                                        ACTIVE
-                                    </div>
-                                )}
                             </div>
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
@@ -310,20 +287,20 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <div className="relative z-10">
                                     {mission.claimed ? (
                                         <button disabled
-                                            className="w-full py-1.5 text-[10px] font-black uppercase rounded-lg cursor-not-allowed"
+                                            className="w-full py-1.5 text-[10px] font-black rounded-lg cursor-not-allowed"
                                             style={{ background: 'rgba(34,197,94,0.15)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.3)' }}>
-                                            ✓ MISSION DONE
+                                            ✓ Done
                                         </button>
                                     ) : mission.completed ? (
                                         <button onClick={() => onClaimMissionReward(mission)}
-                                            className="btn-3d w-full py-1.5 text-[10px] font-black uppercase rounded-lg flex items-center justify-center gap-1"
+                                            className="btn-3d w-full py-1.5 text-[10px] font-black rounded-lg flex items-center justify-center gap-1"
                                             style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00', boxShadow: '0 3px 0 #7a4a00' }}>
-                                            🎁 CLAIM REWARD
+                                            Claim Reward
                                         </button>
                                     ) : (
                                         <button onClick={() => onFinishMission(mission)}
-                                            className="btn-3d w-full py-1.5 bg-gradient-to-b from-[#4a2e61] to-[#2e1845] text-cyan-200 text-[9px] font-bold uppercase rounded-lg flex items-center justify-center gap-1">
-                                            <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> SKIP {diamondCostToSkip(mission.xpReward)}
+                                            className="btn-3d w-full py-1.5 bg-gradient-to-b from-[#4a2e61] to-[#2e1845] text-cyan-200 text-[9px] font-bold rounded-lg flex items-center justify-center gap-1">
+                                            <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> Skip {diamondCostToSkip(mission.xpReward)}
                                         </button>
                                     )}
                                 </div>
@@ -333,7 +310,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         {currentMissions.length === 0 && (
                             <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 text-center p-4">
                                 <span className="text-4xl">🎉</span>
-                                <span className="mt-3 text-[12px] text-purple-300 font-bold uppercase tracking-widest">All Done!</span>
+                                <span className="mt-3 text-[12px] text-purple-300 font-bold tracking-widest">All Done!</span>
                             </div>
                         )}
                     </div>
@@ -341,7 +318,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                 {view === 'PASS' && (
                     <div className="flex-1 flex flex-col relative" style={{ background: '#12052a' }}>
-                        {/* Rewards horizontal scroll — swipe/wheel only, no nav arrows */}
+                        {/* Rewards horizontal scroll */}
                         <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar snap-x" style={{ background: 'linear-gradient(180deg,#1e0a40,#120526)', alignItems: 'flex-start' }}>
                             {levels.map((lvl) => {
                                 const rewards = missionState.passRewards.filter(r => r.level === lvl);
@@ -360,21 +337,20 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     return <img src="/ui/star.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
                                 };
 
-                                // Cable-like border: uniform inset highlight top, no bottom drop shadow
                                 const freeBorder = {
                                     border: '3px solid #60a5fa',
                                     boxShadow: 'inset 0 3px 4px rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,10,60,0.6), 0 0 10px rgba(96,165,250,0.25)',
                                 };
                                 const premBorder = {
-                                    border: '3px solid #fbbf24',
-                                    boxShadow: 'inset 0 3px 4px rgba(255,240,180,0.45), inset 0 -2px 4px rgba(60,20,0,0.6), 0 0 10px rgba(251,191,36,0.25)',
+                                    border: '3px solid #fde047',
+                                    boxShadow: 'inset 0 3px 4px rgba(255,250,180,0.45), inset 0 -2px 4px rgba(60,40,0,0.6), 0 0 10px rgba(253,224,71,0.3)',
                                 };
 
                                 return (
                                     <div key={lvl} className="flex-none flex flex-col gap-0 relative snap-center" style={{ width: '80px' }}>
-                                        {/* FREE card — blue */}
+                                        {/* FREE card — bright blue */}
                                         <div style={{
-                                            background: 'linear-gradient(180deg,#1e4ed8,#1e3a8a)',
+                                            background: 'linear-gradient(180deg,#3b82f6,#1d4ed8)',
                                             ...freeBorder,
                                             borderRadius: '12px',
                                             padding: '6px 4px',
@@ -385,26 +361,34 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                 {renderIcon(freeReward)}
                                                 <span style={{
                                                     position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                                                    fontSize: '9px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', lineHeight: 1.3,
+                                                    fontSize: '10px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', lineHeight: 1.3,
                                                     textShadow: '0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.9)',
                                                 }}>
                                                     {freeReward ? getDisplayValue(freeReward) : ''}
                                                 </span>
                                             </div>
-                                            {isUnlocked && !freeReward?.claimed ? (
+                                            {freeReward?.claimed ? (
+                                                <button disabled
+                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
+                                                    style={{ background: 'rgba(74,222,128,0.15)', color: '#4ade80' }}>
+                                                    ✓
+                                                </button>
+                                            ) : isUnlocked ? (
                                                 <button onClick={() => freeReward && onClaimReward(freeReward)}
                                                     className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
                                                     style={{ background: 'linear-gradient(180deg,#60a5fa,#2563eb)', boxShadow: '0 2px 0 #1d4ed8', color: '#fff' }}>
                                                     Claim
                                                 </button>
                                             ) : (
-                                                <div className="w-full py-0.5 text-[8px] font-black text-center" style={{ color: freeReward?.claimed ? '#4ade80' : '#4b5563' }}>
-                                                    {freeReward?.claimed ? '✓' : ''}
-                                                </div>
+                                                <button disabled
+                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
+                                                    style={{ background: 'rgba(255,255,255,0.06)', color: '#6b7280' }}>
+                                                    Locked
+                                                </button>
                                             )}
                                         </div>
 
-                                        {/* Level node — more space */}
+                                        {/* Level node */}
                                         <div className="flex items-center justify-center shrink-0 relative" style={{ height: 56 }}>
                                             <div className="absolute left-0 right-[50%]" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#7c3aed,#a855f7)' : '#1e1b4b' }} />
                                             <div className="absolute left-[50%] right-0" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#7c3aed)' : '#1e1b4b' }} />
@@ -421,9 +405,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             )}
                                         </div>
 
-                                        {/* PREMIUM card — gold */}
+                                        {/* PREMIUM card — yellow */}
                                         <div style={{
-                                            background: 'linear-gradient(180deg,#b45309,#92400e)',
+                                            background: 'linear-gradient(180deg,#eab308,#a16207)',
                                             ...premBorder,
                                             borderRadius: '12px',
                                             padding: '6px 4px',
@@ -439,28 +423,69 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                 )}
                                                 <span style={{
                                                     position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                                                    fontSize: '9px', fontWeight: 900, color: '#fde68a', whiteSpace: 'nowrap', lineHeight: 1.3,
+                                                    fontSize: '10px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', lineHeight: 1.3,
                                                     textShadow: '0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.9)',
                                                 }}>
                                                     {premReward ? getDisplayValue(premReward) : ''}
                                                 </span>
                                             </div>
-                                            {isUnlocked && !premReward?.claimed && missionState.isPremium ? (
+                                            {premReward?.claimed ? (
+                                                <button disabled
+                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
+                                                    style={{ background: 'rgba(253,224,71,0.15)', color: '#fde047' }}>
+                                                    ✓
+                                                </button>
+                                            ) : !missionState.isPremium ? (
+                                                <button disabled
+                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
+                                                    style={{ background: 'rgba(255,255,255,0.06)', color: '#6b7280' }}>
+                                                    Locked
+                                                </button>
+                                            ) : isUnlocked ? (
                                                 <button onClick={() => premReward && onClaimReward(premReward)}
                                                     className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
                                                     style={{ background: 'linear-gradient(180deg,#fde68a,#d97706)', boxShadow: '0 2px 0 #92400e', color: '#1c0900' }}>
                                                     Claim
                                                 </button>
                                             ) : (
-                                                <div className="w-full py-0.5 text-[8px] font-black text-center" style={{ color: premReward?.claimed ? '#fbbf24' : '#6b7280' }}>
-                                                    {premReward?.claimed ? '✓' : ''}
-                                                </div>
+                                                <button disabled
+                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
+                                                    style={{ background: 'rgba(255,255,255,0.06)', color: '#6b7280' }}>
+                                                    Locked
+                                                </button>
                                             )}
                                         </div>
                                     </div>
                                 );
                             })}
                             <div className="w-6 shrink-0"></div>
+                        </div>
+
+                        {/* Bottom bar — Claim All + Unlock Premium */}
+                        <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-2" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                            <button onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
+                                className="btn-3d font-black text-[10px] rounded-xl px-5 py-2"
+                                style={{
+                                    background: rewardsToClaimCount > 0 ? 'linear-gradient(180deg,#22c55e,#15803d)' : 'rgba(255,255,255,0.06)',
+                                    boxShadow: rewardsToClaimCount > 0 ? '0 3px 0 #14532d' : 'none',
+                                    color: rewardsToClaimCount > 0 ? '#fff' : '#4b5563',
+                                    cursor: rewardsToClaimCount > 0 ? 'pointer' : 'not-allowed',
+                                }}>
+                                Claim All {rewardsToClaimCount > 0 ? `(${rewardsToClaimCount})` : ''}
+                            </button>
+                            {!missionState.isPremium ? (
+                                <button onClick={() => setShowPremiumInfo(true)}
+                                    className="btn-3d font-black text-[10px] rounded-xl px-5 py-2 relative overflow-hidden"
+                                    style={{ background: 'linear-gradient(180deg,#fde68a,#d97706)', boxShadow: '0 3px 0 #92400e', color: '#1c0900' }}>
+                                    <span className="relative z-10">Unlock Premium</span>
+                                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+                                </button>
+                            ) : (
+                                <div className="flex items-center gap-1 px-4 py-2 rounded-xl font-black text-[10px]"
+                                    style={{ background: 'rgba(253,224,71,0.12)', color: '#fde047' }}>
+                                    ✓ Premium Active
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}
