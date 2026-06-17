@@ -200,11 +200,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             className={`relative overflow-hidden ${isLocked ? 'cursor-not-allowed' : 'active:scale-95 transition-transform'}`}
                                             style={{ width: '108px', height: '162px', borderRadius: '22px', boxShadow: '0 0 18px rgba(245,158,11,0.35), inset 0 2px 0 rgba(255,220,80,0.7), 0 8px 24px rgba(0,0,0,0.7)', border: '2.5px solid rgba(245,158,11,0.55)' }}
                                         >
-                                            <div className={`absolute inset-0 bg-gradient-to-br ${game.color}${isLocked ? ' blur-[1.5px]' : ''}`}></div>
+                                            <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`}></div>
                                             {game.coverImage && (
-                                                <img src={game.coverImage} alt="" className={`absolute inset-0 w-full h-full object-contain${isLocked ? ' blur-[1.5px]' : ''}`} style={{ zIndex: 1 }} />
+                                                <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-contain" style={{ zIndex: 1 }} />
                                             )}
-                                            <div className={`absolute inset-0 z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
+                                            <div className="absolute inset-0 z-10 select-none">
                                                 {!game.coverImage && (
                                                     <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '1.5rem' }}>
                                                         {THEME_PNG[game.theme] ? (
@@ -224,7 +224,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                 )}
                                             </div>
                                             {isLocked && (
-                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
+                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)' }}>
                                                     <img src="/ui/lock.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,1))' }} />
                                                     <span className="text-white font-black text-[10px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                                 </div>
@@ -287,11 +287,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                 {formatK(jackpotTotals[idx] ?? 0)}
                                             </span>
                                         </div>
-                                        <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity${isLocked ? ' blur-[1.5px]' : ''}`}></div>
+                                        <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`}></div>
                                         {game.coverImage && (
-                                            <img src={game.coverImage} alt="" className={`absolute inset-0 w-full h-full object-contain rounded-xl${isLocked ? ' blur-[1.5px]' : ''}`} style={{ zIndex: 1 }} />
+                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-contain rounded-xl" style={{ zIndex: 1 }} />
                                         )}
-                                        <div className={`absolute inset-0 rounded-xl overflow-hidden z-10 select-none${isLocked ? ' blur-[1.5px]' : ''}`}>
+                                        <div className="absolute inset-0 rounded-xl overflow-hidden z-10 select-none">
                                             {!game.coverImage && (
                                                 <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '1.2rem' }}>
                                                     {THEME_PNG[game.theme] ? (
@@ -311,7 +311,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             )}
                                         </div>
                                         {isLocked && (
-                                            <div className="absolute inset-0 rounded-xl z-20 flex flex-col items-center justify-center pointer-events-none">
+                                            <div className="absolute inset-0 rounded-xl z-20 flex flex-col items-center justify-center pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)' }}>
                                                 <img src="/ui/lock.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,1))' }} />
                                                 <span className="text-white font-black text-[11px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                             </div>
@@ -328,7 +328,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             {/* Bottom bar — centered floating platform, icons protrude above */}
             {(() => {
                 const iconBtn = (locked: boolean) =>
-                    `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform${locked ? ' [&>*:not(.lock-badge)]:blur-[1.5px]' : ''}`;
+                    `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform${locked ? ' opacity-60' : ''}`;
                 const lockBadge = (unlockLevel: number) => (
                     <div className="lock-badge absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
                         <img src="/ui/lock.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,1))' }} />
