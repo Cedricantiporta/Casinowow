@@ -479,11 +479,11 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
-            style={{ background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
+            style={{ background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
 
             {/* Topbar */}
             <div className="shrink-0 flex items-center gap-2 px-3 h-[38px] z-20"
-                style={{ background: HDR, boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+                style={{ background: 'transparent' }}>
                 <span className="font-black text-white text-xs uppercase tracking-widest drop-shadow shrink-0">{questTitle}</span>
                 <div className="flex-1 flex items-center justify-center gap-1.5">
                     <div className="currency-pill flex items-center gap-1">

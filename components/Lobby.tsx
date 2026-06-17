@@ -373,7 +373,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative">
                                     <img src="/ui/cards_new.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 0 && (
-                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
+                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 99 ? '99+' : (packCredits ?? 0) + (premiumPackCredits ?? 0)}</span>
                                         </div>
@@ -385,22 +385,16 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {sep}
 
                             {/* Piggy */}
-                            <button
-                                onClick={!isPiggyLocked ? onOpenPiggyBank : undefined}
-                                className={`relative flex flex-col items-center active:scale-95 transition-transform shrink-0${isPiggyLocked ? ' opacity-60' : ''}`}
-                                style={{ background: 'linear-gradient(180deg,#1a6000,#0e3a00)', borderRadius: 16, paddingBottom: 4, boxShadow: '0 4px 6px rgba(0,0,0,0.5)', minWidth: 52 }}>
+                            <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
                                 {isPiggyLocked && lockBadge(5)}
-                                <div style={{ background: 'linear-gradient(180deg,#a0f040 0%,#6ad818 45%,#4ab800 100%)', borderRadius: 14, overflow: 'hidden', padding: '6px 8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, position: 'relative' }}>
-                                    <div style={{ position: 'absolute', left: 4, right: 4, top: 0, height: '50%', borderRadius: '10px 10px 50% 50%', background: 'linear-gradient(180deg,rgba(255,255,255,0.9) 0%,rgba(255,255,255,0.35) 40%,rgba(255,255,255,0) 100%)', pointerEvents: 'none' }} />
-                                    <img src="/ui/piggy.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', position: 'relative', zIndex: 1 }} />
-                                    <span style={{ position: 'relative', zIndex: 1, fontSize: 9, fontWeight: 900, color: '#0a3000', WebkitTextStroke: '1px rgba(150,255,80,0.8)', paintOrder: 'stroke fill', lineHeight: 1 }}>
-                                        {formatK(piggyBank ?? 0)}
-                                    </span>
+                                <div className="relative leading-none">
+                                    <img src="/ui/piggy.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    {piggyFull && (
+                                        <div className="absolute top-1 right-1 text-white font-black text-[7px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>Full</div>
+                                    )}
                                 </div>
-                                {piggyFull && (
-                                    <div className="absolute -bottom-1 -right-1 text-white font-black text-[7px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap"
-                                        style={{ background: '#dc2626', border: '1.5px solid #f0c000', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)' }}>Full</div>
-                                )}
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Piggy</span>
                             </button>
 
                             {sep}
@@ -411,7 +405,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative leading-none">
                                     <img src="/ui/mine_new.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {!isQuestLocked && wildCredits > 0 && (
-                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
+                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{wildCredits}</span>
                                         </div>
@@ -428,7 +422,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative leading-none">
                                     <img src="/ui/dice.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {!isQuestLocked && diceCredits > 0 && (
-                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
+                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{diceCredits}</span>
                                         </div>
@@ -445,7 +439,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative leading-none">
                                     <img src="/ui/pass.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {totalMissionNotifs > 0 && !isMissionsLocked && (
-                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
+                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{totalMissionNotifs}</span>
                                         </div>
@@ -466,7 +460,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]"
                                     />
                                     {isReadyToCollect && (
-                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
+                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>1</span>
                                         </div>
@@ -482,7 +476,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative">
                                     <img src="/ui/missions_new.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {missionsReady > 0 && !isMissionsLocked && (
-                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
+                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{missionsReady > 99 ? '99+' : missionsReady}</span>
                                         </div>
@@ -497,7 +491,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="relative">
                                     <img src="/ui/inbox.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {(inboxCount ?? 0) > 0 && (
-                                        <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
+                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{(inboxCount ?? 0) > 99 ? '99+' : inboxCount}</span>
                                         </div>

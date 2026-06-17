@@ -135,7 +135,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
     return (
         <div className="absolute inset-0 z-[200] flex flex-col animate-pop-in select-none"
-            style={{ background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
+            style={{ background: 'linear-gradient(160deg,#5a18a0 0%,#40108a 50%,#2a0860 100%)' }}>
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2">
@@ -149,7 +149,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
                     {/* VIP Lounge Card */}
                     {!isVip && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0"
-                        style={{ width: CARD_W, background: 'linear-gradient(160deg,#2a1500,#5c3000,#2a1500)' }}>
+                        style={{ width: CARD_W, background: 'linear-gradient(180deg,rgba(60,100,200,0.55) 0%,rgba(20,30,100,0.95) 100%)', boxShadow: 'inset 0 1px 0 rgba(130,180,255,0.5), 0 4px 16px rgba(0,0,0,0.6)' }}>
                         <div className="shrink-0 px-4 pt-4 pb-2">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-2xl">👑</span>
@@ -179,7 +179,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
                     {/* Monthly Pass Card */}
                     {!isPremium && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0"
-                        style={{ width: CARD_W, background: 'linear-gradient(160deg,#3b0764,#7c3aed,#3b0764)' }}>
+                        style={{ width: CARD_W, background: 'linear-gradient(180deg,rgba(60,100,200,0.55) 0%,rgba(20,30,100,0.95) 100%)', boxShadow: 'inset 0 1px 0 rgba(130,180,255,0.5), 0 4px 16px rgba(0,0,0,0.6)' }}>
                         <div className="shrink-0 px-4 pt-4 pb-2">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-2xl">📜</span>
@@ -208,7 +208,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     {/* Bundle Cards */}
                     {visibleBundles.map(bundle => (
                         <div key={bundle.id} className="flex flex-col rounded-2xl overflow-hidden shrink-0"
-                            style={{ width: CARD_W, background: bundle.bg }}>
+                            style={{ width: CARD_W, background: 'linear-gradient(180deg,rgba(60,100,200,0.55) 0%,rgba(20,30,100,0.95) 100%)', boxShadow: 'inset 0 1px 0 rgba(130,180,255,0.5), 0 4px 16px rgba(0,0,0,0.6)' }}>
                             <div className="shrink-0 px-4 pt-4 pb-2">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"

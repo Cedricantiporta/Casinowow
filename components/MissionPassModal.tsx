@@ -328,7 +328,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                                 const renderIcon = (reward: typeof freeReward) => {
                                     if (!reward) return null;
-                                    const s = '3rem';
+                                    const s = '4rem';
                                     if (reward.type === 'COINS') return <img src="/symbols/coin.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
                                     if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
                                     if (reward.type === 'PICKS') return <span style={{ fontSize: s, lineHeight: 1 }}>⛏️</span>;

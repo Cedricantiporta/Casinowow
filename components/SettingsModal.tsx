@@ -126,7 +126,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
         <div className="w-full max-w-[600px] flex flex-col rounded-3xl overflow-hidden"
-            style={{ height: 'min(88%, 680px)', background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)', boxShadow: 'inset 0 2px 0 rgba(220,170,255,0.9), 0 8px 32px rgba(0,0,0,0.8)' }}>
+            style={{ height: 'min(88%, 680px)', background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)', boxShadow: '0 8px 32px rgba(0,0,0,0.8)' }}>
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">
@@ -155,7 +155,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Redeem Code</div>
                         <div className="rounded-xl p-3 flex flex-col gap-2"
-                            style={{ background: 'rgba(0,0,0,0.35)' }}>
+                            style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                             <p className="text-purple-200/50 text-[9px] leading-snug">Enter a code to claim special rewards.</p>
                             <div className={`flex gap-2 ${errorShake ? 'animate-[shake_0.4s_ease]' : ''}`}>
                                 <input
@@ -180,7 +180,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">About</div>
                         <div className="rounded-xl p-3 flex flex-col gap-1.5"
-                            style={{ background: 'rgba(0,0,0,0.25)' }}>
+                            style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">🎰</span>
                                 <div>

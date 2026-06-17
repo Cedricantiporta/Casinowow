@@ -131,7 +131,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     return (
         <div
             className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
-            style={{ background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)', boxShadow: 'inset 0 2px 0 rgba(220,170,255,0.9), 0 8px 32px rgba(0,0,0,0.8)' }}
+            style={{ background: 'linear-gradient(160deg,#5a18a0 0%,#40108a 50%,#2a0860 100%)' }}
         >
             {/* Header */}
             <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0">
@@ -235,7 +235,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                         ? Math.floor(originalPeso * (1 - discount / 100))
                                         : null;
                                     return (
-                                        <div key={i} className={`flex-shrink-0 w-[140px] flex flex-col items-center justify-between rounded-2xl overflow-hidden px-3 pt-3 pb-2 bg-gradient-to-b ${item.color} shadow-xl transition-all relative`}>
+                                        <div key={i} className={`flex-shrink-0 w-[140px] flex flex-col items-center justify-between rounded-2xl overflow-hidden px-3 pt-3 pb-2 transition-all relative`} style={{ background: 'linear-gradient(180deg,rgba(60,100,200,0.55) 0%,rgba(20,30,100,0.95) 100%)', boxShadow: 'inset 0 1px 0 rgba(130,180,255,0.5), 0 4px 16px rgba(0,0,0,0.6)' }}>
                                             {showVipDiscount && (
                                                 <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-full text-[9px] font-black leading-none"
                                                     style={{ background: 'linear-gradient(135deg,#f59e0b,#b45309)', color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
