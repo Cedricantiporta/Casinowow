@@ -239,7 +239,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                         /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
-                            className="grid gap-x-2 gap-y-2 h-[93%] max-h-[580px] auto-cols-max pt-5 overflow-x-auto no-scrollbar snap-x"
+                            className="grid gap-x-2 gap-y-0.5 h-[93%] max-h-[580px] auto-cols-max pt-5 overflow-x-auto no-scrollbar snap-x"
                             style={{
                                 gridTemplateRows: 'repeat(2, 1fr)',
                                 gridAutoFlow: 'column',
@@ -280,18 +280,18 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         key={game.id}
                                         onClick={() => onSelectGame(game, false)}
                                         className={`row-span-1 relative group w-[76px] h-[76px] md:w-[96px] md:h-[96px] overflow-visible snap-center ${isLocked ? 'cursor-not-allowed' : ''}`}
-                                        style={{ borderRadius: 6, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)' }}
+                                        style={{ borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)' }}
                                     >
                                         <div className="absolute -top-[6px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
                                             <span style={{ fontSize:'9px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'4px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
                                                 {formatK(jackpotTotals[idx] ?? 0)}
                                             </span>
                                         </div>
-                                        <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 4 }}></div>
+                                        <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 14 }}></div>
                                         {game.coverImage && (
-                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-contain" style={{ zIndex: 1, borderRadius: 4 }} />
+                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-contain" style={{ zIndex: 1, borderRadius: 14 }} />
                                         )}
-                                        <div className="absolute inset-0 overflow-hidden z-10 select-none" style={{ borderRadius: 4 }}>
+                                        <div className="absolute inset-0 overflow-hidden z-10 select-none" style={{ borderRadius: 14 }}>
                                             {!game.coverImage && (
                                                 <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '1.2rem' }}>
                                                     {THEME_PNG[game.theme] ? (
@@ -311,12 +311,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             )}
                                         </div>
                                         {isLocked && (
-                                            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)', borderRadius: 4 }}>
+                                            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)', borderRadius: 14 }}>
                                                 <img src="/ui/lock.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,1))' }} />
                                                 <span className="text-white font-black text-[11px] mt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                             </div>
                                         )}
-                                        <div className="absolute inset-0 overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: 4 }}></div>
+                                        <div className="absolute inset-0 overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: 14 }}></div>
                                     </button>
                                 );
                             })}

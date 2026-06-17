@@ -229,7 +229,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                 {/* ===== CONTENT ===== */}
 
                 {view === 'MISSIONS' && (
-                    <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden" style={{ background: 'linear-gradient(180deg,#1e0a40,#120526)' }}>
+                    <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden" style={{ background: 'transparent' }}>
                         {currentMissions.map((mission) => (
                             <div key={mission.id}
                                 className={`flex-1 flex flex-col gap-2 rounded-xl p-3 relative overflow-hidden shadow-lg border ${mission.isGolden ? (mission.completed ? 'border-yellow-500/60' : 'border-yellow-700/40') : mission.completed ? 'border-green-900/40' : 'border-white/5'}`}
@@ -317,9 +317,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                 )}
 
                 {view === 'PASS' && (
-                    <div className="flex-1 flex flex-col relative" style={{ background: '#12052a' }}>
+                    <div className="flex-1 flex flex-col relative" style={{ background: 'transparent' }}>
                         {/* Rewards horizontal scroll */}
-                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar snap-x" style={{ background: 'linear-gradient(180deg,#1e0a40,#120526)', alignItems: 'flex-start' }}>
+                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar snap-x" style={{ background: 'transparent', alignItems: 'flex-start' }}>
                             {levels.map((lvl) => {
                                 const rewards = missionState.passRewards.filter(r => r.level === lvl);
                                 const freeReward = rewards.find(r => r.tier === 'FREE');

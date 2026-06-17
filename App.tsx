@@ -3504,7 +3504,7 @@ const App: React.FC = () => {
       className="bg-[#0a0015] flex items-center justify-center overflow-hidden"
       style={{ position: 'fixed', inset: 0 }}
     >
-      <div className="relative overflow-hidden rounded-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
+      <div className="relative overflow-hidden rounded-none shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
@@ -3541,7 +3541,7 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Buy & Sale Buttons (Adjacent to each other) */}
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 flex-1 justify-center">
                     {/* Buy Button */}
                     <div 
                         onClick={() => openShop('COINS')}
@@ -3573,7 +3573,7 @@ const App: React.FC = () => {
                         })()}
                     </div>
                     <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
-                    <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'left', paddingLeft: '3px' }}>
+                    <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
                         {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LV.${player.level}`}
                     </span>
                 </div>
@@ -3648,8 +3648,8 @@ const App: React.FC = () => {
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;
                     return (
-                        <div className="absolute left-1 top-2 bottom-2 z-40 flex flex-col justify-evenly select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'8px 6px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'72px' }}>
+                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3 items-center select-none"
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'10px 6px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'72px' }}>
                             {/* Mine */}
                             <button
                                 onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
@@ -3660,7 +3660,7 @@ const App: React.FC = () => {
                                         {quest.wildCredits}
                                     </div>
                                 )}
-                                <img src="/ui/mine_new.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                <img src="/ui/mine_new.png" alt="" style={{ width: 60, height: 60, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                 <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)' }}>Play</div>
                             </button>
                             {/* Dice */}
@@ -3673,7 +3673,7 @@ const App: React.FC = () => {
                                         {quest.diceCredits}
                                     </div>
                                 )}
-                                <img src="/ui/dice.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                <img src="/ui/dice.png" alt="" style={{ width: 60, height: 60, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                 <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)' }}>Play</div>
                             </button>
                             {/* Pass */}
@@ -3686,7 +3686,7 @@ const App: React.FC = () => {
                                         {totalNotifs}
                                     </div>
                                 )}
-                                <img src="/ui/pass.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                <img src="/ui/pass.png" alt="" style={{ width: 60, height: 60, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                 <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0' }}>LV.{missionState.passLevel}</div>
                             </button>
                         </div>
