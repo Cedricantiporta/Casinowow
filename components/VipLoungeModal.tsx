@@ -27,6 +27,15 @@ const VIP_TIERS: VipTier[] = [
     { name: 'Platinum', icon: '/symbols/diamond.png', color: '#b8d4ff', unlockLevel: 30, benefits: ['20% cashback', '+15% Piggy', '+30% XP', 'Daily gems'] },
 ];
 
+const LOUNGE_FEATURES = [
+    { icon: '/ui/piggy.png', label: 'Piggy Bonus', desc: '+5–15% fill' },
+    { icon: '/ui/boost.png', label: 'XP Boost', desc: '+10–30% XP' },
+    { icon: '/ui/collect.png', label: 'Cashback', desc: '5–20% back' },
+    { icon: '/ui/pass.png', label: 'Pass Perks', desc: 'Bonus rewards' },
+    { icon: '/ui/inbox.png', label: 'Gem Gifts', desc: 'Weekly / Daily' },
+    { icon: '/ui/VIP.png', label: 'VIP Status', desc: 'Exclusive badge' },
+];
+
 const getCurrentTier = (vipLevel: number): VipTier | null => {
     let current: VipTier | null = null;
     for (const tier of VIP_TIERS) {
@@ -41,147 +50,163 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
     if (!isOpen) return null;
 
     const currentTier = getCurrentTier(vipLevel);
+    const xpPct = Math.min(100, (vipXp / vipXpToNext) * 100);
+    const hlUnlocked = playerLevel >= 35;
 
     return (
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none overflow-hidden"
-            style={{ background: 'linear-gradient(160deg,#1c0900 0%,#2a1200 50%,#0f0600 100%)' }}>
+            style={{ backgroundImage: 'url(/lobby-bg-vip.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
 
-            {/* Header */}
-            <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">
-                <span className="font-black text-lg uppercase tracking-widest flex-1"
-                    style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    VIP Lounge
-                </span>
-                {isVip && currentTier ? (
-                    <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase tracking-widest shrink-0"
-                        style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' }}>
-                        {currentTier.icon} {currentTier.name}
-                    </div>
-                ) : (
-                    <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase tracking-widest shrink-0"
-                        style={{ background: 'rgba(255,255,255,0.08)', color: '#9ca3af' }}>
-                        NOT VIP
-                    </div>
-                )}
-                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
-                    style={{ background: 'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow: '0 2px 0 #5a3800' }}>
-                    <i className="ti ti-x"></i>
-                </div>
-            </div>
+            {/* Dark overlay for legibility */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(10,4,0,0.55)' }} />
 
-            {/* VIP XP bar */}
-            <div className="shrink-0 mx-4 mb-2">
-                <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: 'rgba(253,230,138,0.8)' }}>
-                        VIP Lv {vipLevel}
+            {/* Content — above overlay */}
+            <div className="relative flex flex-col h-full z-10">
+
+                {/* Header */}
+                <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">
+                    <span className="font-black text-lg tracking-widest flex-1"
+                        style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                        VIP Lounge
                     </span>
-                    <span className="text-[9px] font-bold" style={{ color: 'rgba(253,230,138,0.5)' }}>
-                        {vipXp.toLocaleString()} / {vipXpToNext.toLocaleString()} XP
-                    </span>
-                </div>
-                <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.4)' }}>
-                    <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(100, (vipXp / vipXpToNext) * 100)}%`, background: 'linear-gradient(90deg,#fbbf24,#f59e0b)' }} />
-                </div>
-            </div>
-
-            {/* Current tier highlight — compact */}
-            {isVip && currentTier && (
-                <div className="shrink-0 mx-4 mb-2 rounded-xl px-3 py-2 flex items-center gap-2.5"
-                    style={{ background: `rgba(251,191,36,0.12)` }}>
-                    {currentTier.icon.startsWith('/') ? <img src={currentTier.icon} alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{currentTier.icon}</span>}
-                    <div>
-                        <div className="font-black text-[11px] uppercase tracking-widest" style={{ color: currentTier.color }}>
-                            {currentTier.name} VIP Active
+                    {isVip && currentTier ? (
+                        <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase tracking-widest shrink-0"
+                            style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' }}>
+                            {currentTier.icon.startsWith('/') ? <img src={currentTier.icon} alt="" style={{ width: 12, height: 12, display: 'inline', objectFit: 'contain' }} /> : currentTier.icon} {currentTier.name}
                         </div>
-                        <div className="text-[9px]" style={{ color: 'rgba(253,230,138,0.55)' }}>{currentTier.benefits[0]}</div>
+                    ) : (
+                        <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase tracking-widest shrink-0"
+                            style={{ background: 'rgba(255,255,255,0.08)', color: '#9ca3af' }}>
+                            Not VIP
+                        </div>
+                    )}
+                    <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
+                        style={{ background: 'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow: '0 2px 0 #5a3800' }}>
+                        <i className="ti ti-x"></i>
                     </div>
                 </div>
-            )}
 
-            {/* Tier grid — 2×2, no overflow */}
-            <div className="flex-1 px-4 pb-2 grid grid-cols-2 gap-2 min-h-0">
-                {VIP_TIERS.map(tier => {
-                    const isUnlocked = vipLevel >= tier.unlockLevel;
-                    const isActive = currentTier?.name === tier.name && isVip;
-                    return (
-                        <div key={tier.name}
-                            className="rounded-xl px-2.5 py-2 flex flex-col gap-1 relative overflow-hidden"
-                            style={{
-                                background: isActive ? 'rgba(251,191,36,0.15)' : 'rgba(255,255,255,0.05)',
-                                boxShadow: isActive ? `0 0 10px ${tier.color}33` : 'none',
-                                opacity: isUnlocked ? 1 : 0.45,
-                            }}>
-                            {!isUnlocked && (
-                                <div className="absolute top-1.5 right-1.5 text-[8px] font-black px-1 py-0.5 rounded-full"
-                                    style={{ background: 'rgba(0,0,0,0.55)', color: '#9ca3af' }}>
-                                    Lv {tier.unlockLevel}
+                {/* XP Bar */}
+                <div className="shrink-0 mx-4 mb-3">
+                    <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: 'rgba(253,230,138,0.9)' }}>
+                            VIP Lv {vipLevel}
+                        </span>
+                        <span className="text-[9px] font-bold" style={{ color: 'rgba(253,230,138,0.6)' }}>
+                            {vipXp.toLocaleString()} / {vipXpToNext.toLocaleString()} XP
+                        </span>
+                    </div>
+                    <div className="relative h-3 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,200,50,0.3)' }}>
+                        <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                            style={{ width: `${xpPct}%`, background: 'linear-gradient(90deg,#fbbf24,#f59e0b)' }} />
+                    </div>
+                </div>
+
+                {/* Main body — two columns */}
+                <div className="flex-1 flex gap-2.5 px-4 pb-4 min-h-0">
+
+                    {/* LEFT — Lounge Benefits */}
+                    <div className="flex-[3] flex flex-col rounded-2xl overflow-hidden"
+                        style={{ background: 'linear-gradient(160deg,rgba(80,20,140,0.92),rgba(40,8,80,0.92))', border: '1.5px solid rgba(180,120,255,0.35)', boxShadow: '0 4px 20px rgba(0,0,0,0.6)' }}>
+
+                        {/* Section header */}
+                        <div className="shrink-0 px-3 py-2 text-center"
+                            style={{ background: 'linear-gradient(180deg,rgba(140,60,255,0.5),rgba(80,20,160,0.3))', borderBottom: '1px solid rgba(180,120,255,0.2)' }}>
+                            <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>Lounge Benefits</span>
+                        </div>
+
+                        {/* 2×3 benefit grid */}
+                        <div className="flex-1 grid grid-cols-3 gap-2 p-3 content-start">
+                            {LOUNGE_FEATURES.map((feat, i) => {
+                                const locked = !isVip && i > 0;
+                                return (
+                                    <div key={feat.label}
+                                        className="flex flex-col items-center gap-1 rounded-xl py-2 px-1 relative"
+                                        style={{ background: locked ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.10)', opacity: locked ? 0.55 : 1 }}>
+                                        <div className="relative">
+                                            <img src={feat.icon} alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: locked ? 'grayscale(1) brightness(0.6)' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
+                                            {locked && (
+                                                <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+                                                    style={{ background: '#b91c1c', border: '1px solid #f0c000' }}>
+                                                    <i className="ti ti-lock" style={{ fontSize: 8, color: '#fff' }} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <span className="font-black text-[8px] text-center leading-tight" style={{ color: locked ? '#6b7280' : '#e9d5ff' }}>{feat.label}</span>
+                                        <span className="text-[7px] text-center leading-tight" style={{ color: locked ? '#4b5563' : 'rgba(200,160,255,0.7)' }}>{feat.desc}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Join / Active CTA */}
+                        <div className="shrink-0 px-3 pb-3">
+                            {!isVip ? (
+                                <button onClick={onJoinVip}
+                                    className="btn-3d font-black text-xs uppercase tracking-widest text-black relative overflow-hidden px-4 py-2 rounded-xl w-full"
+                                    style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 3px 0 #7a5000' }}>
+                                    <span className="relative z-10">Join VIP Lounge</span>
+                                    <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
+                                </button>
+                            ) : (
+                                <div className="text-center text-[9px] font-black uppercase tracking-widest py-1" style={{ color: 'rgba(253,230,138,0.6)' }}>
+                                    {currentTier ? `${currentTier.name} VIP Active — 30 day` : '✓ VIP Active'}
                                 </div>
                             )}
-                            <div className="flex items-center gap-1.5">
-                                {tier.icon.startsWith('/') ? <img src={tier.icon} alt="" style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain' }} /> : <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{tier.icon}</span>}
-                                <div>
-                                    <div className="font-black text-[11px] uppercase tracking-wide" style={{ color: isUnlocked ? tier.color : '#6b7280' }}>
-                                        {tier.name}
-                                    </div>
+                        </div>
+                    </div>
+
+                    {/* RIGHT — High Limit */}
+                    <div className="flex-[2] flex flex-col rounded-2xl overflow-hidden"
+                        style={{ background: 'linear-gradient(160deg,rgba(60,30,0,0.95),rgba(30,12,0,0.95))', border: `1.5px solid ${hlUnlocked ? 'rgba(245,158,11,0.6)' : 'rgba(100,60,0,0.4)'}`, boxShadow: '0 4px 20px rgba(0,0,0,0.6)' }}>
+
+                        {/* Section header */}
+                        <div className="shrink-0 px-3 py-2 text-center"
+                            style={{ background: 'linear-gradient(180deg,rgba(180,100,0,0.5),rgba(100,50,0,0.3))', borderBottom: '1px solid rgba(245,158,11,0.2)' }}>
+                            <span className="font-black text-[12px] tracking-widest" style={{ color: '#fde68a' }}>High Limit</span>
+                        </div>
+
+                        {/* Big icon */}
+                        <div className="flex-1 flex flex-col items-center justify-center gap-2 p-3">
+                            <img src="/ui/high_roller.png" alt=""
+                                style={{ width: 80, height: 80, objectFit: 'contain', filter: hlUnlocked ? 'drop-shadow(0 4px 12px rgba(245,158,11,0.7))' : 'grayscale(1) brightness(0.5)' }} />
+                            <div className="text-center">
+                                <div className="font-black text-[11px] uppercase tracking-wide" style={{ color: hlUnlocked ? '#fde68a' : '#6b7280' }}>
+                                    {hlUnlocked ? '10× Bet Amounts' : `Unlocks at Lv.35`}
                                 </div>
-                            </div>
-                            <div className="flex flex-col gap-0.5">
-                                {tier.benefits.map(b => (
-                                    <div key={b} className="text-[8.5px] leading-tight flex items-start gap-1"
-                                        style={{ color: isUnlocked ? 'rgba(253,230,138,0.7)' : 'rgba(255,255,255,0.2)' }}>
-                                        <span className="shrink-0 mt-px">•</span>
-                                        <span>{b}</span>
+                                {hlUnlocked && (
+                                    <div className="text-[8px] mt-0.5" style={{ color: 'rgba(253,230,138,0.5)' }}>
+                                        Massive wins await
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
-                    );
-                })}
-            </div>
 
-            {/* High Limit entry */}
-            <div className="shrink-0 px-4 pb-2">
-                <button
-                    onClick={() => { if (playerLevel >= 35) { onClose(); setTimeout(() => onOpenHighLimit?.(), 50); } }}
-                    disabled={playerLevel < 35}
-                    className="btn-3d w-full flex items-center gap-3 px-4 py-2.5 rounded-xl font-black relative overflow-hidden"
-                    style={playerLevel >= 35 ? {
-                        background: 'linear-gradient(180deg,#ffe066,#d48800)',
-                        boxShadow: '0 3px 0 #7a5000',
-                        color: '#1c0900',
-                    } : {
-                        background: 'rgba(255,255,255,0.06)',
-                        color: '#6b7280',
-                        cursor: 'not-allowed',
-                        boxShadow: 'none',
-                    }}
-                >
-                    <img src="/ui/high_roller.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: playerLevel < 35 ? 'grayscale(1)' : undefined }} />
-                    <div className="flex flex-col items-start gap-0.5">
-                        <span className="text-[12px] uppercase tracking-widest leading-none">High Limit</span>
-                        <span className="text-[9px] font-bold leading-none opacity-60">{playerLevel < 35 ? `Unlocks at Lv.35` : '10× bet amounts'}</span>
+                        {/* Enter button */}
+                        <div className="shrink-0 px-3 pb-3">
+                            <button
+                                onClick={() => { if (hlUnlocked) { onClose(); setTimeout(() => onOpenHighLimit?.(), 50); } }}
+                                disabled={!hlUnlocked}
+                                className="btn-3d w-full py-2 rounded-xl font-black text-xs uppercase tracking-widest relative overflow-hidden"
+                                style={hlUnlocked ? {
+                                    background: 'linear-gradient(180deg,#ffe066,#d48800)',
+                                    boxShadow: '0 3px 0 #7a5000', color: '#1c0900',
+                                } : {
+                                    background: 'rgba(255,255,255,0.05)',
+                                    color: '#4b5563', cursor: 'not-allowed', boxShadow: 'none',
+                                }}>
+                                {hlUnlocked ? (
+                                    <>
+                                        <span className="relative z-10">Enter</span>
+                                        <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent pointer-events-none" />
+                                    </>
+                                ) : `Lv.35`}
+                            </button>
+                        </div>
                     </div>
-                    {playerLevel >= 35 && <i className="ti ti-chevron-right ml-auto text-lg" />}
-                </button>
-            </div>
 
-            {/* CTA */}
-            <div className="shrink-0 px-4 pb-3">
-                {!isVip ? (
-                    <button onClick={onJoinVip}
-                        className="btn-3d font-black text-sm uppercase tracking-widest text-black relative overflow-hidden px-10 py-2.5 rounded-xl w-full"
-                        style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 3px 0 #7a5000' }}>
-                        <span className="relative z-10">Join VIP Lounge</span>
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
-                    </button>
-                ) : (
-                    <div className="text-yellow-200/50 text-[10px] text-center font-bold uppercase tracking-widest py-1">
-                        {currentTier ? `${currentTier.icon} ${currentTier.name} VIP — 30 day membership` : '✓ VIP Active'}
-                    </div>
-                )}
+                </div>
             </div>
-
         </div>
     );
 };

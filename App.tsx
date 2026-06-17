@@ -3533,16 +3533,16 @@ const App: React.FC = () => {
 
                 {/* Separate Coins & Gems pills joined closely */}
                 <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[290px] md:max-w-[430px] shrink-0">
-                    {/* Separate Coins Pill — 30% longer than before */}
+                    {/* Separate Coins Pill — icon on far right */}
                     <div className="currency-pill flex-[4] max-w-[195px] md:max-w-[289px] flex items-center gap-1 shrink-0">
-                        <img src="/symbols/coin.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain', flexShrink: 0, marginLeft: 'auto' }} />
-                        <span className="num" style={{ marginRight: 'auto', paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
+                        <span className="num flex-1" style={{ paddingLeft: '6px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
+                        <img src="/symbols/coin.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain', flexShrink: 0 }} />
                     </div>
 
-                    {/* Separate Gem Pill */}
+                    {/* Separate Gem Pill — icon on far right */}
                     <div className="currency-pill flex-[2] max-w-[100px] md:max-w-[148px] flex items-center gap-1 shrink-0">
-                        <img src="/symbols/diamond.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0, marginLeft: 'auto' }} />
-                        <span className="num" style={{ marginRight: 'auto', paddingRight: '4px' }}>{formatK(player.diamonds)}</span>
+                        <span className="num flex-1" style={{ paddingLeft: '6px' }}>{formatK(player.diamonds)}</span>
+                        <img src="/symbols/diamond.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }} />
                     </div>
                 </div>
 

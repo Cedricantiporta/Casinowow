@@ -199,20 +199,20 @@
       .blue .face{background:linear-gradient(180deg,#5fa8ff 0%,#2b7fe8 55%,#1565c8 100%);box-shadow:inset 0 -3px 5px rgba(10,50,120,0.3);}
       .blue .lbl{-webkit-text-stroke:2.5px #073060;text-shadow:0 1px 2px rgba(10,50,120,0.7);paint-order:stroke fill;}
 
-      .flat{cursor:pointer;flex-shrink:0;z-index:1;border-radius:12px;padding-bottom:4px;box-shadow:0 3px 4px rgba(0,0,0,0.4);}
-      .flat.green{background:linear-gradient(180deg,#2c8800,#176000);}
+      .flat{cursor:pointer;flex-shrink:0;z-index:1;border-radius:20px;padding-bottom:5px;box-shadow:0 5px 8px rgba(0,0,0,0.5);}
+      .flat.green{background:linear-gradient(180deg,#1a6000,#0e3a00);}
       .flat.blue{background:linear-gradient(180deg,#1d56b0,#13408a);}
       .flat.red{background:linear-gradient(180deg,#b81010,#8a0000);}
-      .flat.red .flat-face{background:linear-gradient(180deg,#ff5a5a 0%,#e82020 55%,#c80000 100%);}
+      .flat.red .flat-face{background:linear-gradient(180deg,#ff7070 0%,#e82020 50%,#c00000 100%);}
       .flat.red .lbl{-webkit-text-stroke:2.5px #5a0000;text-shadow:0 1px 2px rgba(120,0,0,0.7);paint-order:stroke fill;}
-      .flat.red .sub{color:#ff8888;-webkit-text-stroke:0.8px #7a0000;paint-order:stroke fill;}
-      .flat-face{position:relative;border-radius:10px;overflow:hidden;height:100%;}
-      .flat-face::before{content:"";position:absolute;left:0;right:0;top:0;height:55%;
-        background:linear-gradient(180deg,rgba(255,255,255,0.8) 0%,rgba(255,255,255,0.4) 30%,rgba(255,255,255,0) 100%);pointer-events:none;}
-      .flat-face::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;
-        background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.7) 50%,rgba(255,255,255,0) 100%);pointer-events:none;}
-      .flat.green .flat-face{background:linear-gradient(180deg,#7ada2a 0%,#5cc814 55%,#48ba0a 100%);}
-      .flat.blue .flat-face{background:linear-gradient(180deg,#5fa8ff 0%,#2b7fe8 55%,#1565c8 100%);}
+      .flat.red .sub{color:#ffaaaa;-webkit-text-stroke:0.8px #7a0000;paint-order:stroke fill;}
+      .flat-face{position:relative;border-radius:18px;overflow:hidden;height:100%;}
+      .flat-face::before{content:"";position:absolute;left:4px;right:4px;top:0;height:50%;border-radius:14px 14px 50% 50%;
+        background:linear-gradient(180deg,rgba(255,255,255,0.95) 0%,rgba(255,255,255,0.55) 40%,rgba(255,255,255,0) 100%);pointer-events:none;}
+      .flat-face::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;border-radius:0 0 18px 18px;
+        background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.8) 50%,rgba(255,255,255,0) 100%);pointer-events:none;}
+      .flat.green .flat-face{background:linear-gradient(180deg,#a0f040 0%,#6ad818 45%,#4ab800 100%);}
+      .flat.blue .flat-face{background:linear-gradient(180deg,#70b8ff 0%,#2b7fe8 50%,#1058b8 100%);}
       .flat-in{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:0.95;height:100%;}
 
       .bar{position:relative;overflow:hidden;}
@@ -273,12 +273,12 @@
         .icon-btn span { font-size: 8px; }
       }
       .pm{width:20px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;cursor:pointer;z-index:1;
-        background:linear-gradient(180deg,#9b6ce0,#5022a8);border:1px solid #38106e;border-radius:6px;
-        box-shadow:inset 0 1px 2px rgba(255,255,255,0.5),inset 0 -2px 2px rgba(0,0,0,0.3);user-select:none;}
+        background:linear-gradient(180deg,#b07cf0,#6030c0);border:1px solid #5020a0;border-radius:12px;
+        box-shadow:inset 0 1px 3px rgba(255,255,255,0.6),0 3px 0 #3a1080,0 4px 6px rgba(0,0,0,0.4);user-select:none;}
       @media (min-width: 768px) {
         .pm { width: 26px; font-size: 20px; }
       }
-      .bet-disp{background:rgba(0,0,0,0.45);border:1px solid #38106e;border-radius:6px;display:flex;flex-direction:column;z-index:1;
+      .bet-disp{background:rgba(0,0,0,0.45);border:1px solid #38106e;border-radius:12px;display:flex;flex-direction:column;z-index:1;
         align-items:center;justify-content:center;box-shadow:inset 0 2px 3px rgba(0,0,0,0.6);min-width:72px;padding: 0 4px;}
       .bet-amt{font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.7);text-align:center;overflow:hidden;text-overflow:ellipsis;width:100%;}
       .bet-lbl{font-size:7px;font-weight:900;color:#c79bff;letter-spacing:0.5px;}
