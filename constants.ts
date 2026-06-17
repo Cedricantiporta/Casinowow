@@ -508,12 +508,9 @@ export const CALCULATE_TIME_BONUS = (level: number): number => {
     return Math.max(50000, 100000 * Math.pow(level, 1.1));
 };
 
-export const SCALE_COIN_REWARD = (base: number, level: number, maxBet?: number): number => {
-    if (maxBet && maxBet > 10000) {
-        const factor = maxBet / 10000;
-        return Math.floor(base * factor);
-    }
-    return Math.floor(base * (1 + level * 0.1));
+export const SCALE_COIN_REWARD = (base: number, _level: number, maxBet?: number): number => {
+    const factor = maxBet ? maxBet / 10000 : 1;
+    return Math.floor(base * factor);
 };
 
 export const formatNumber = (num: number): string => {
@@ -865,7 +862,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         if (i % 10 === 0) {
             typeFree = 'DIAMONDS'; valueFree = 20; labelFree = '20 💎';
         } else if (i % 2 === 1) {
-            const v = Math.floor(10000 * 0.15 * Math.pow(1.2, i - 1));
+            const v = Math.round(maxBet * i * 0.8);
             typeFree = 'COINS'; valueFree = v; labelFree = formatNumber(v);
         } else {
             const spec = freeSpecials[1 + ((i / 2 - 1) % (freeSpecials.length - 1))];
@@ -882,7 +879,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         if (i % 10 === 0) {
             typePrem = 'DIAMONDS'; valuePrem = 100; labelPrem = '100 💎';
         } else if (i % 3 === 0) {
-            const v = Math.floor(10000 * 1.0 * Math.pow(1.2, i - 1));
+            const v = Math.round(maxBet * i * 4);
             typePrem = 'COINS'; valuePrem = v; labelPrem = formatNumber(v);
         } else {
             const spec = premSpecials[1 + ((i - 1) % (premSpecials.length - 1))];

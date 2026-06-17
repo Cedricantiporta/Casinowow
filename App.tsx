@@ -218,9 +218,9 @@ const App: React.FC = () => {
           if (parsed.lastDailyReset !== todayKey) {
               const level = parsed.passLevel || 1;
               const nonDaily = (parsed.activeMissions || []).filter((m: { frequency: string }) => m.frequency !== 'DAILY');
-              return { ...parsed, lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(level), ...nonDaily] };
+              return { ...parsed, lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(level), ...nonDaily], passXpToNext: 100 };
           }
-          return parsed;
+          return { ...parsed, passXpToNext: 100 };
       }
     } catch {}
     const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; })();
@@ -4381,7 +4381,7 @@ const App: React.FC = () => {
           onBuyLevel={handleBuyPassLevel}
           onClaimAll={handleClaimAllMissions}
           playerLevel={player.level}
-          maxBet={MAX_BET_BY_LEVEL(player.level)}
+          maxBet={MAX_BET_BY_LEVEL(player.level) * (isHighLimit ? 10 : 1)}
           onOpenGemShop={() => { setActiveModal('NONE'); setTimeout(() => openShop('DIAMONDS'), 50); }}
       />}
 
