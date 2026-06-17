@@ -3521,7 +3521,7 @@ const App: React.FC = () => {
                 >
                     {currentView !== 'LOBBY'
                         ? <i className="ti ti-arrow-left"></i>
-                        : (profileEmoji ? <span className="text-base leading-none">{profileEmoji}</span> : <i className="ti ti-user" />)
+                        : <img src="/ui/lobby.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
                     }
                 </div>
 
@@ -3595,17 +3595,20 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Active Multiplier indicator */}
-                <div className="mult shrink-0 ml-2" style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}>
-                    {(() => {
-                        const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                        if (boostActive && showXpTimer) {
-                            const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
-                            const h = Math.floor(rem / 3600000);
-                            const m = Math.floor((rem % 3600000) / 60000);
-                            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                        }
-                        return `x${player.xpMultiplier}`;
-                    })()}
+                <div className="relative shrink-0 ml-2 flex items-center justify-center" style={{ width: 24, height: 24 }}>
+                    <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                    <span style={{ position: 'relative', zIndex: 1, fontSize: 9, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
+                        {(() => {
+                            const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
+                            if (boostActive && showXpTimer) {
+                                const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
+                                const h = Math.floor(rem / 3600000);
+                                const m = Math.floor((rem % 3600000) / 60000);
+                                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                            }
+                            return `x${player.xpMultiplier}`;
+                        })()}
+                    </span>
                 </div>
 
                 {/* Settings button */}

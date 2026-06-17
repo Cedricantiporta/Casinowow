@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mission, MissionState, PassReward, MissionFrequency } from '../types';
-import { formatNumber, formatCommaNumber, formatK, SCALE_COIN_REWARD } from '../constants';
+import { formatNumber, formatCommaNumber, formatK, formatKShort, SCALE_COIN_REWARD } from '../constants';
 
 interface MissionPassModalProps {
     isOpen: boolean;
@@ -96,8 +96,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
     const getDisplayValue = (reward: PassReward) => {
         if (reward.type === 'COINS') {
-            if (reward.claimed && reward.claimedValue !== undefined) return formatK(reward.claimedValue);
-            return formatK(SCALE_COIN_REWARD(reward.value, playerLevel, maxBet));
+            if (reward.claimed && reward.claimedValue !== undefined) return formatKShort(reward.claimedValue);
+            return formatKShort(SCALE_COIN_REWARD(reward.value, playerLevel, maxBet));
         }
         return reward.label;
     };

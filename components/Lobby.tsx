@@ -397,7 +397,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isQuestLocked ? onOpenMiniGames : undefined} className={iconBtn(isQuestLocked)}>
                                 {isQuestLocked && lockBadge(20)}
                                 <div className="relative leading-none">
-                                    <img src="/ui/minigames.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/games.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {!isQuestLocked && (wildCredits + diceCredits) > 0 && (
                                         <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
@@ -405,7 +405,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Games</span>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Mini Games</span>
                             </button>
 
                             {/* Pass */}
@@ -424,34 +424,22 @@ export const Lobby: React.FC<LobbyProps> = ({
                             </button>
 
                             {/* FREE COINS — center */}
-                            <button onClick={onClaimBonus} className="flex flex-col items-center px-1.5 active:scale-95 transition-transform">
-                                <div className="relative" style={{
-                                    width: '72px', height: '72px', borderRadius: '50%',
-                                    background: isReadyToCollect
-                                        ? 'radial-gradient(circle at 36% 28%,#fff7c0,#ffd027 40%,#f29400 70%,#b85f00)'
-                                        : 'radial-gradient(circle at 36% 28%,#c0c0c0,#888 40%,#555 70%,#333)',
-                                    border: isReadyToCollect ? '3px solid #f0a000' : '3px solid #666',
-                                    boxShadow: isReadyToCollect
-                                        ? 'inset 0 3px 6px rgba(255,255,255,0.65),inset 0 -3px 6px rgba(140,70,0,0.5),0 5px 0 rgba(120,60,0,0.7),0 8px 16px rgba(0,0,0,0.5)'
-                                        : 'inset 0 2px 4px rgba(255,255,255,0.3),0 4px 0 rgba(0,0,0,0.5)',
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                    flexShrink: 0,
-                                }}>
-                                    <img src="/ui/collect.png" alt="" style={{ width: '52px', height: '52px', objectFit: 'contain', filter: isReadyToCollect ? 'none' : 'grayscale(1) brightness(0.55)' }} />
-                                    <div style={{
-                                        position:'absolute', bottom:'-10px', left:'50%', transform:'translateX(-50%)',
-                                        background: isReadyToCollect ? 'linear-gradient(180deg,#3a9900,#1e6600)' : '#444',
-                                        color:'white', fontSize:'7px', fontWeight:900,
-                                        padding:'2px 9px', borderRadius:'8px', whiteSpace:'nowrap', textTransform:'uppercase',
-                                        border:'1px solid rgba(255,255,255,0.25)',
-                                        boxShadow: isReadyToCollect ? '0 2px 0 rgba(0,0,0,0.4)' : 'none',
-                                        letterSpacing:'0.5px',
-                                    }}>
-                                        {isReadyToCollect ? 'COLLECT' : formatTime(timeLeft)}
-                                    </div>
-                                    {isReadyToCollect && <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[11px] font-black text-white z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>!</div>}
+                            <button onClick={onClaimBonus} className={iconBtn(false)}>
+                                <div className="relative leading-none">
+                                    <img
+                                        src="/ui/collect.png"
+                                        alt=""
+                                        className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]"
+                                        style={isReadyToCollect ? {} : { filter: 'grayscale(1) brightness(0.55)' }}
+                                    />
+                                    {isReadyToCollect && (
+                                        <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
+                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
+                                            1
+                                        </div>
+                                    )}
                                 </div>
-                                <div style={{ height:'16px' }}></div>
+                                <span className="text-[8px] font-black text-white/90 uppercase tracking-wider leading-none">Collect</span>
                             </button>
 
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
