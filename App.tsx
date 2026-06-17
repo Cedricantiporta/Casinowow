@@ -733,15 +733,9 @@ const App: React.FC = () => {
   };
 
   const handleJoinVip = () => {
-      setPlayer(p => ({
-          ...p,
-          isVip: true,
-          balance: p.balance + 500_000,
-          diamonds: p.diamonds + 500,
-          vipExpiry: Date.now() + 30 * 24 * 3600000,
-      }));
       setShowVipLounge(false);
       setShowMiniGamesHub(false);
+      setShowNopay(true);
       audioService.playClick();
   };
 
