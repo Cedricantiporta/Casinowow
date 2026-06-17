@@ -57,10 +57,10 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none overflow-hidden"
             style={{ backgroundImage: 'url(/lobby-bg-vip.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
 
-            {/* Dark overlay for legibility */}
-            <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(10,4,0,0.55)' }} />
+            {/* Subtle overlay for legibility */}
+            <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.18)' }} />
 
-            {/* Content — above overlay */}
+            {/* Content */}
             <div className="relative flex flex-col h-full z-10">
 
                 {/* Header */}
@@ -70,12 +70,12 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                         VIP Lounge
                     </span>
                     {isVip && currentTier ? (
-                        <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase tracking-widest shrink-0"
+                        <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] tracking-widest shrink-0"
                             style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' }}>
                             {currentTier.icon.startsWith('/') ? <img src={currentTier.icon} alt="" style={{ width: 12, height: 12, display: 'inline', objectFit: 'contain' }} /> : currentTier.icon} {currentTier.name}
                         </div>
                     ) : (
-                        <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] uppercase tracking-widest shrink-0"
+                        <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] tracking-widest shrink-0"
                             style={{ background: 'rgba(255,255,255,0.08)', color: '#9ca3af' }}>
                             Not VIP
                         </div>
@@ -86,17 +86,17 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                     </div>
                 </div>
 
-                {/* XP Bar */}
-                <div className="shrink-0 mx-4 mb-3">
+                {/* XP Bar — narrow and centered */}
+                <div className="shrink-0 mb-3" style={{ width: '52%', marginLeft: 'auto', marginRight: 'auto' }}>
                     <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: 'rgba(253,230,138,0.9)' }}>
+                        <span className="text-[10px] font-black tracking-wider" style={{ color: 'rgba(253,230,138,0.9)' }}>
                             VIP Lv {vipLevel}
                         </span>
                         <span className="text-[9px] font-bold" style={{ color: 'rgba(253,230,138,0.6)' }}>
                             {vipXp.toLocaleString()} / {vipXpToNext.toLocaleString()} XP
                         </span>
                     </div>
-                    <div className="relative h-3 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,200,50,0.3)' }}>
+                    <div className="relative h-2 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.4)' }}>
                         <div className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
                             style={{ width: `${xpPct}%`, background: 'linear-gradient(90deg,#fbbf24,#f59e0b)' }} />
                     </div>
@@ -107,11 +107,10 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
 
                     {/* LEFT — Lounge Benefits */}
                     <div className="flex-[3] flex flex-col rounded-2xl overflow-hidden"
-                        style={{ background: 'linear-gradient(160deg,rgba(80,20,140,0.92),rgba(40,8,80,0.92))', border: '1.5px solid rgba(180,120,255,0.35)', boxShadow: '0 4px 20px rgba(0,0,0,0.6)' }}>
+                        style={{ background: 'linear-gradient(160deg,#6b21a8,#3b0764)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
 
-                        {/* Section header */}
-                        <div className="shrink-0 px-3 py-2 text-center"
-                            style={{ background: 'linear-gradient(180deg,rgba(140,60,255,0.5),rgba(80,20,160,0.3))', borderBottom: '1px solid rgba(180,120,255,0.2)' }}>
+                        {/* Section header — no separator */}
+                        <div className="shrink-0 px-3 pt-3 pb-1 text-center">
                             <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>Lounge Benefits</span>
                         </div>
 
@@ -122,7 +121,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                                 return (
                                     <div key={feat.label}
                                         className="flex flex-col items-center gap-1 rounded-xl py-2 px-1 relative"
-                                        style={{ background: locked ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.10)', opacity: locked ? 0.55 : 1 }}>
+                                        style={{ background: locked ? 'rgba(255,255,255,0.04)' : 'rgba(255,255,255,0.12)', opacity: locked ? 0.55 : 1 }}>
                                         <div className="relative">
                                             <img src={feat.icon} alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: locked ? 'grayscale(1) brightness(0.6)' : 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
                                             {locked && (
@@ -143,14 +142,14 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                         <div className="shrink-0 px-3 pb-3">
                             {!isVip ? (
                                 <button onClick={onJoinVip}
-                                    className="btn-3d font-black text-xs uppercase tracking-widest text-black relative overflow-hidden px-4 py-2 rounded-xl w-full"
+                                    className="btn-3d font-black text-xs tracking-widest text-black relative overflow-hidden px-4 py-2 rounded-xl w-full"
                                     style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 3px 0 #7a5000' }}>
                                     <span className="relative z-10">Join VIP Lounge</span>
                                     <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
                                 </button>
                             ) : (
-                                <div className="text-center text-[9px] font-black uppercase tracking-widest py-1" style={{ color: 'rgba(253,230,138,0.6)' }}>
-                                    {currentTier ? `${currentTier.name} VIP Active — 30 day` : '✓ VIP Active'}
+                                <div className="text-center text-[9px] font-black tracking-widest py-1" style={{ color: 'rgba(253,230,138,0.6)' }}>
+                                    {currentTier ? `${currentTier.name} VIP Active — 30 day` : 'VIP Active'}
                                 </div>
                             )}
                         </div>
@@ -158,24 +157,23 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
 
                     {/* RIGHT — High Limit */}
                     <div className="flex-[2] flex flex-col rounded-2xl overflow-hidden"
-                        style={{ background: 'linear-gradient(160deg,rgba(60,30,0,0.95),rgba(30,12,0,0.95))', border: `1.5px solid ${hlUnlocked ? 'rgba(245,158,11,0.6)' : 'rgba(100,60,0,0.4)'}`, boxShadow: '0 4px 20px rgba(0,0,0,0.6)' }}>
+                        style={{ background: 'linear-gradient(160deg,#c87800,#8a4e00)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
 
-                        {/* Section header */}
-                        <div className="shrink-0 px-3 py-2 text-center"
-                            style={{ background: 'linear-gradient(180deg,rgba(180,100,0,0.5),rgba(100,50,0,0.3))', borderBottom: '1px solid rgba(245,158,11,0.2)' }}>
-                            <span className="font-black text-[12px] tracking-widest" style={{ color: '#fde68a' }}>High Limit</span>
+                        {/* Section header — no separator */}
+                        <div className="shrink-0 px-3 pt-3 pb-1 text-center">
+                            <span className="font-black text-[12px] tracking-widest" style={{ color: '#fff3c0' }}>High Limit</span>
                         </div>
 
                         {/* Big icon */}
                         <div className="flex-1 flex flex-col items-center justify-center gap-2 p-3">
                             <img src="/ui/high_roller.png" alt=""
-                                style={{ width: 80, height: 80, objectFit: 'contain', filter: hlUnlocked ? 'drop-shadow(0 4px 12px rgba(245,158,11,0.7))' : 'grayscale(1) brightness(0.5)' }} />
+                                style={{ width: 110, height: 110, objectFit: 'contain', filter: hlUnlocked ? 'drop-shadow(0 4px 16px rgba(255,200,50,0.8))' : 'grayscale(1) brightness(0.5)' }} />
                             <div className="text-center">
-                                <div className="font-black text-[11px] uppercase tracking-wide" style={{ color: hlUnlocked ? '#fde68a' : '#6b7280' }}>
+                                <div className="font-black text-[11px] tracking-wide" style={{ color: hlUnlocked ? '#fff3c0' : '#6b7280' }}>
                                     {hlUnlocked ? '10× Bet Amounts' : `Unlocks at Lv.35`}
                                 </div>
                                 {hlUnlocked && (
-                                    <div className="text-[8px] mt-0.5" style={{ color: 'rgba(253,230,138,0.5)' }}>
+                                    <div className="text-[8px] mt-0.5" style={{ color: 'rgba(255,240,160,0.6)' }}>
                                         Massive wins await
                                     </div>
                                 )}
@@ -187,7 +185,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                             <button
                                 onClick={() => { if (hlUnlocked) { onClose(); setTimeout(() => onOpenHighLimit?.(), 50); } }}
                                 disabled={!hlUnlocked}
-                                className="btn-3d w-full py-2 rounded-xl font-black text-xs uppercase tracking-widest relative overflow-hidden"
+                                className="btn-3d w-full py-2 rounded-xl font-black text-xs tracking-widest relative overflow-hidden"
                                 style={hlUnlocked ? {
                                     background: 'linear-gradient(180deg,#ffe066,#d48800)',
                                     boxShadow: '0 3px 0 #7a5000', color: '#1c0900',

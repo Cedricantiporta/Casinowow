@@ -114,7 +114,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 <div className="flex-1 min-w-0">
                     {/* Name row with level */}
                     <div className="flex items-center gap-2 mb-1">
-                        <span className="font-black text-white text-sm uppercase tracking-wider leading-none">
+                        <span className="font-black text-white text-sm tracking-wider leading-none">
                             {playerName}
                         </span>
                         <span className="font-black text-[10px] leading-none px-1.5 py-0.5 rounded-full"

@@ -139,7 +139,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2">
-                <h2 className="font-black text-white text-base uppercase tracking-widest flex-1">Sale</h2>
+                <h2 className="font-black text-white text-base tracking-widest flex-1">Sale</h2>
                 <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></div>
             </div>
 
@@ -157,7 +157,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                                     ? <span className="text-[9px] font-black bg-yellow-500 text-black px-2 py-0.5 rounded-full uppercase">ACTIVE</span>
                                     : <span className="text-[9px] font-black text-yellow-400 uppercase tracking-wide">₱ 299</span>}
                             </div>
-                            <div className="font-black text-yellow-300 text-sm uppercase tracking-wider leading-none">VIP Lounge</div>
+                            <div className="font-black text-yellow-300 text-sm tracking-wider leading-none">VIP Lounge</div>
                             <div className="text-yellow-200/50 text-[10px] mt-0.5 leading-tight">Exclusive high-roller access</div>
                         </div>
                         <div className="flex-1 px-4 py-2 flex flex-col gap-1.5">
@@ -185,7 +185,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                                 <span className="text-2xl">📜</span>
                                 <span className="text-[9px] font-black text-purple-300 uppercase tracking-wide">₱ 199</span>
                             </div>
-                            <div className="font-black text-purple-300 text-sm uppercase tracking-wider leading-none">Monthly Pass</div>
+                            <div className="font-black text-purple-300 text-sm tracking-wider leading-none">Monthly Pass</div>
                             <div className="text-purple-200/50 text-[10px] mt-0.5 leading-tight">30-day premium reward track</div>
                         </div>
                         <div className="flex-1 px-4 py-2 flex flex-col gap-1.5">

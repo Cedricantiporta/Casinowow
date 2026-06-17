@@ -129,9 +129,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             style={{ height: 'min(88%, 680px)', background: 'linear-gradient(160deg,#3b0764 0%,#1e0438 60%,#0d0220 100%)' }}>
 
             {/* Header */}
-            <div className="shrink-0 flex items-center gap-3 px-4 py-2.5"
-                style={{ background: 'linear-gradient(180deg,#6b21a8,#4c1d95)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
-                <span className="text-white font-black text-base uppercase tracking-widest drop-shadow flex-1">⚙️ Settings</span>
+            <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">
+                <span className="text-white font-black text-base drop-shadow flex-1">Settings</span>
                 <div className="flex items-center gap-2">
                     <span className="text-purple-300/30 text-[9px] font-bold tracking-widest">v1.0.0</span>
                     <button className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></button>
@@ -145,7 +144,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
 
                     <div>
-                        <div className="text-purple-400/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 px-0.5">Audio</div>
+                        <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Audio</div>
                         <Toggle on={!isMuted} onToggle={onToggleMute} icon="🔊" label="Sound Effects" sub="Music and SFX" />
                     </div>
 
@@ -154,7 +153,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* RIGHT — Redeem */}
                 <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
                     <div>
-                        <div className="text-purple-400/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 px-0.5">Redeem Code</div>
+                        <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Redeem Code</div>
                         <div className="rounded-xl p-3 flex flex-col gap-2"
                             style={{ background: 'rgba(0,0,0,0.35)' }}>
                             <p className="text-purple-200/50 text-[9px] leading-snug">Enter a code to claim special rewards.</p>
@@ -179,7 +178,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     {/* About */}
                     <div>
-                        <div className="text-purple-400/60 text-[8px] font-black uppercase tracking-[0.2em] mb-1.5 px-0.5">About</div>
+                        <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">About</div>
                         <div className="rounded-xl p-3 flex flex-col gap-1.5"
                             style={{ background: 'rgba(0,0,0,0.25)' }}>
                             <div className="flex items-center gap-2">

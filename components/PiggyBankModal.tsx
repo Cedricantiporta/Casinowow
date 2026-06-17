@@ -60,7 +60,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col items-center justify-center px-6 pb-6 gap-5">
-                <h2 className="text-xl font-black text-white uppercase tracking-wider drop-shadow-md">Piggy Bank</h2>
+                <h2 className="text-xl font-black text-white tracking-wider drop-shadow-md">Piggy Bank</h2>
 
                 {/* Piggy icon */}
                 <div className={`relative flex items-center justify-center transition-transform duration-300 ${breaking ? 'scale-110' : ''}`}>
@@ -78,7 +78,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 <button
                     onClick={handleBreak}
                     disabled={breaking || amount <= 0 || diamonds < GEM_BREAK_COST}
-                    className={`px-10 py-3.5 rounded-2xl font-black text-white uppercase text-base tracking-widest btn-3d transition-all
+                    className={`px-10 py-3.5 rounded-2xl font-black text-white text-base tracking-widest btn-3d transition-all
                         ${(breaking || amount <= 0 || diamonds < GEM_BREAK_COST) ? 'opacity-40 cursor-not-allowed' : 'active:scale-95 hover:scale-105'}`}
                     style={{
                         background: (amount > 0 && diamonds >= GEM_BREAK_COST) ? 'linear-gradient(180deg,#f59e0b,#b45309)' : 'rgba(0,0,0,0.4)',

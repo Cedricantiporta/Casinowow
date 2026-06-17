@@ -33,8 +33,8 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
         <div className="w-full max-w-[420px] flex flex-col rounded-2xl overflow-hidden"
             style={{ height: 'min(80%, 520px)', background: 'linear-gradient(180deg,#0d0814,#1a0535)' }}>
             {/* Header */}
-            <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2" style={{ background: 'linear-gradient(180deg,#4c1d95,#2e1065)' }}>
-                <h2 className="font-black text-white text-sm uppercase tracking-widest flex-1">Inbox</h2>
+            <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2">
+                <h2 className="font-black text-white text-sm tracking-widest flex-1">Inbox</h2>
                 <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></div>
             </div>
             {/* Message list */}
@@ -47,7 +47,7 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
                         style={{ background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}>
                         <img src={MSG_ICONS[msg.type] ?? '/ui/gift_mail.png'} alt="" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.5))' }} />
                         <div className="flex-1 min-w-0">
-                            <div className="font-black text-white text-xs uppercase tracking-wide leading-none">{msg.title}</div>
+                            <div className="font-black text-white text-xs tracking-wide leading-none">{msg.title}</div>
                             <div className="text-purple-300/80 text-xs mt-0.5 leading-tight">{msg.body}</div>
                         </div>
                         <button onClick={() => onClaim(msg.id)}

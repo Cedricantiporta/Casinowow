@@ -108,13 +108,13 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
 
             {/* Topbar */}
             <div className="relative z-10 shrink-0 flex items-center gap-3 px-4 py-3"
-                style={{ background: 'linear-gradient(180deg,rgba(120,53,15,0.95),rgba(92,40,10,0.95))', borderBottom: '1.5px solid rgba(251,191,36,0.5)', boxShadow: '0 4px 16px rgba(0,0,0,0.7)' }}>
+                style={{ background: 'linear-gradient(180deg,rgba(120,53,15,0.95),rgba(92,40,10,0.95))', boxShadow: '0 4px 16px rgba(0,0,0,0.7)' }}>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onBack}><i className="ti ti-arrow-left"></i></div>
-                <span className="font-black text-xl uppercase tracking-widest flex-1"
+                <span className="font-black text-xl tracking-widest flex-1"
                     style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.8))' }}>
                     High Limit Room
                 </span>
-                <div className="px-3 py-1 rounded-full font-black text-[9px] uppercase tracking-widest"
+                <div className="px-3 py-1 rounded-full font-black text-[9px] tracking-widest"
                     style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' }}>
                     VIP
                 </div>

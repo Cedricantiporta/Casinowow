@@ -3689,7 +3689,7 @@ const App: React.FC = () => {
                                         <img src="/ui/mine_new.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                       </>
                                 }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Mine</span>
+                                <span className="text-[11px] font-black text-white/90 tracking-wider leading-none">Mine</span>
                             </button>
                             <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
                             {/* Dice Quest icon */}
@@ -3709,7 +3709,7 @@ const App: React.FC = () => {
                                         <img src="/ui/dice.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                       </>
                                 }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Dice</span>
+                                <span className="text-[11px] font-black text-white/90 tracking-wider leading-none">Dice</span>
                             </button>
                             <div style={{ height:'1px', background:'rgba(255,255,255,0.15)', margin:'0 6px' }}></div>
                             <button
@@ -3728,7 +3728,7 @@ const App: React.FC = () => {
                                         <img src="/ui/pass.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                       </>
                                 }
-                                <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Pass</span>
+                                <span className="text-[11px] font-black text-white/90 tracking-wider leading-none">Pass</span>
                             </button>
                         </div>
                     );

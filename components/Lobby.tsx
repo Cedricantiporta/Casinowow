@@ -191,7 +191,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     <div key={game.id} className="flex flex-col items-center gap-0 shrink-0">
                                         {/* Jackpot counter */}
                                         <div style={{ width: '100px', background: 'rgba(10,4,0,0.95)', border: '2px solid #f59e0b', borderRadius: '7px', padding: '3px 5px', textAlign: 'center', boxShadow: '0 0 10px rgba(245,158,11,0.5)', marginBottom: '-8px' }}>
-                                            <div style={{ fontSize: '6px', fontWeight: 900, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>JACKPOT</div>
+                                            <div style={{ fontSize: '6px', fontWeight: 900, color: '#f59e0b', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>Jackpot</div>
                                             <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 8px rgba(245,158,11,0.9)' }}>{formatK(hrJackpot)}</div>
                                         </div>
                                         {/* Card-shaped slot */}
@@ -226,7 +226,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             {isLocked && (
                                                 <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)' }}>
                                                     <img src="/ui/lock.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,1))' }} />
-                                                    <span className="text-white font-black text-[10px] mt-1 uppercase drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
+                                                    <span className="text-white font-black text-[10px] mt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
                                                 </div>
                                             )}
                                             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: '16px' }}></div>
