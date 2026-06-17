@@ -239,11 +239,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                         /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
-                            className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 overflow-x-auto no-scrollbar snap-x"
+                            className="grid gap-x-2 gap-y-2 h-[93%] max-h-[580px] auto-cols-max pt-5 overflow-x-auto no-scrollbar snap-x"
                             style={{
                                 gridTemplateRows: 'repeat(2, 1fr)',
                                 gridAutoFlow: 'column',
-                                paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 0.75rem)',
+                                paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 2.25rem)',
                                 paddingRight: '0.75rem',
                             }}
                         >
@@ -370,7 +370,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
                                 {isCardsLocked && lockBadge(30)}
                                 <div className="relative">
-                                    <img src="/ui/cards.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/cards_new.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 0 && (
                                         <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 99 ? '99+' : (packCredits ?? 0) + (premiumPackCredits ?? 0)}</span>
@@ -397,7 +397,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isQuestLocked ? onOpenWildQuest : undefined} className={iconBtn(isQuestLocked)}>
                                 {isQuestLocked && lockBadge(20)}
                                 <div className="relative leading-none">
-                                    <img src="/ui/coinmine.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/mine_new.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {!isQuestLocked && wildCredits > 0 && (
                                         <div className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-white font-black leading-none text-[8px]"
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
@@ -460,7 +460,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
                                 {isMissionsLocked && lockBadge(10)}
                                 <div className="relative">
-                                    <img src="/ui/missions.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/ui/missions_new.png" alt="" className="w-16 h-16 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {missionsReady > 0 && !isMissionsLocked && (
                                         <div className="absolute -top-1 -right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{missionsReady > 99 ? '99+' : missionsReady}</span>

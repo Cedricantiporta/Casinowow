@@ -3686,7 +3686,7 @@ const App: React.FC = () => {
                                                 {quest.wildCredits}
                                             </div>
                                         )}
-                                        <img src="/ui/coinmine.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <img src="/ui/mine_new.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                       </>
                                 }
                                 <span className="text-[11px] font-black text-white/90 uppercase tracking-wider leading-none">Mine</span>
