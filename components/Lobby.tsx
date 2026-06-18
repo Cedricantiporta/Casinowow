@@ -164,7 +164,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 backgroundPosition: 'center',
             }}>
 
-              <div className="flex-1 relative flex items-center justify-start p-0.5 pt-0 pb-8 md:pb-9" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)', border: isVip ? '1px solid rgba(200,150,50,0.35)' : '1px solid rgba(140,60,255,0.3)', borderRadius: 14 }}>
+              <div className="flex-1 relative flex items-center justify-start p-0.5 pt-0 pb-8 md:pb-9" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
