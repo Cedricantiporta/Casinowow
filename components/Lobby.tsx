@@ -164,7 +164,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 backgroundPosition: 'center',
             }}>
 
-              <div className="flex-1 relative flex items-center justify-center p-0.5 pt-2 pb-8 md:pb-9" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
+              <div className="flex-1 relative flex items-center justify-start p-0.5 pt-0 pb-8 md:pb-9" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
@@ -233,7 +233,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                         /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
-                            className="grid gap-x-2 gap-y-6 auto-cols-max pt-1 pb-4 overflow-x-auto no-scrollbar snap-x items-start"
+                            className="grid gap-x-2 gap-y-6 auto-cols-max pt-0 pb-4 overflow-x-auto no-scrollbar snap-x items-start"
                             style={{
                                 gridTemplateRows: 'repeat(2, auto)',
                                 gridAutoFlow: 'column',

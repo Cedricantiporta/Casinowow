@@ -121,7 +121,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
             </div>
 
             {/* Slot grid — same horizontal 2-row layout as normal lobby */}
-            <div className="relative z-10 flex-1 flex items-center justify-center p-0.5 pt-2 pb-8">
+            <div className="relative z-10 flex-1 flex items-center justify-start p-0.5 pt-0 pb-8">
                 <>
                     <div
                         ref={scrollRef}
