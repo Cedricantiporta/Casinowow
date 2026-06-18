@@ -253,11 +253,22 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     }, [visualPosition, activeGame, dicePosition]);
 
     useEffect(() => {
-        if (autoRoll && !isRolling && !isMoving && diceCredits > 0) {
+        if (autoRoll && stageWinning && stageClearData) {
+            const t = setTimeout(() => {
+                onStageComplete(stageClearData.coins, stageClearData.gems);
+                setStageClearData(null);
+                setStageWinning(false);
+            }, 1500);
+            return () => clearTimeout(t);
+        }
+    }, [autoRoll, stageWinning, stageClearData]);
+
+    useEffect(() => {
+        if (autoRoll && !isRolling && !isMoving && !stageWinning && !stagePending && diceCredits > 0) {
             const t = setTimeout(handleRollDice, 1000);
             return () => clearTimeout(t);
         } else if (autoRoll && diceCredits <= 0) setAutoRoll(false);
-    }, [autoRoll, isRolling, isMoving, diceCredits]);
+    }, [autoRoll, isRolling, isMoving, stageWinning, stagePending, diceCredits]);
 
     const triggerStageClear = useCallback((coins: number, gems: number) => {
         audioService.playScatterTrigger();

@@ -580,7 +580,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         style={{ width: 680, height: 240, background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                         {/* Header */}
-                        <div className="shrink-0 px-4 pt-3 pb-2 flex items-center gap-3" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                        <div className="shrink-0 px-4 pt-3 pb-2 flex items-center gap-3" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)' }}>
                             <div className="font-black text-white text-sm tracking-widest flex-1">Pack Store</div>
                             <div className="currency-pill flex items-center gap-1.5 ml-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
@@ -636,8 +636,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                         </div>
                                     );
                                 })}
-                                {/* Section separator */}
-                                <div className="w-px self-stretch bg-white/15 mx-1 shrink-0" />
+                                <div className="w-2 shrink-0" />
                                 {/* Premium section label */}
                                 <div ref={packStorePremiumRef} className="flex flex-col justify-center shrink-0">
                                     <div className="text-[9px] font-black uppercase tracking-widest text-purple-300/60"

@@ -3546,7 +3546,7 @@ const App: React.FC = () => {
                     <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
                         <div className="face text-center"><span className="lbl">BUY</span></div>
                     </div>
-                    <div onClick={() => setShowPremiumModal(true)} className="btn pink saleB shrink-0">
+                    <div onClick={() => setShowPremiumModal(true)} className="btn yellow saleB shrink-0">
                         <div className="face text-center"><span className="lbl">SALE</span></div>
                     </div>
                 </div>
@@ -4551,14 +4551,17 @@ const App: React.FC = () => {
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
       
       {showWelcomeGift && (
-        <div className="absolute inset-0 z-[500] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.55)' }}>
-          <div className="animate-pop-in flex flex-col items-center gap-3 rounded-3xl p-7 mx-4 text-center"
-            style={{ background: 'linear-gradient(160deg,#1a0a2e,#2d0060,#0d0220)', maxWidth: 300, width: '100%' }}>
-            <div style={{ fontSize: '56px', lineHeight: 1 }}>🎁</div>
-            <div className="font-black text-white text-lg uppercase tracking-widest">Welcome Gift!</div>
+        <div className="absolute inset-0 z-[500] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.65)' }}>
+          <div className="animate-pop-in flex flex-col items-center gap-3 rounded-3xl p-6 mx-4 text-center"
+            style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxWidth: 300, width: '100%' }}>
+            <div className="font-black text-white text-lg tracking-wide">Welcome Gift</div>
             <div className="text-purple-200 text-xs font-bold">A special gift to start your journey</div>
-            <div className="font-black text-yellow-300 text-2xl" style={{ fontVariantNumeric: 'tabular-nums', minWidth: 180 }}>
-              🪙 {giftDisplayAmount.toLocaleString('en-US')}
+            <div className="flex flex-col items-center gap-1 rounded-2xl px-5 py-3 w-full"
+              style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4)' }}>
+              <img src="/symbols/coin.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+              <div className="font-black text-yellow-300 text-2xl" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                {giftDisplayAmount.toLocaleString('en-US')}
+              </div>
             </div>
             <button
               disabled={!giftCountDone}
@@ -4566,7 +4569,6 @@ const App: React.FC = () => {
                 if (!giftCountDone) return;
                 try { localStorage.setItem('cw_welcome_claimed', '1'); } catch {}
                 setShowWelcomeGift(false);
-                // Animate topbar balance from 0 to 10M
                 const target = 10000000;
                 const duration = 1500;
                 const start = Date.now();
@@ -4583,17 +4585,9 @@ const App: React.FC = () => {
                     setAnimBalance(Math.floor(target * p2));
                 }, 16);
               }}
-              className="btn-3d w-full py-2.5 rounded-2xl font-black text-sm uppercase tracking-widest"
-              style={{
-                background: 'linear-gradient(180deg,#ffd700,#ff9500)',
-                boxShadow: '0 4px 0 #b06000',
-                color: '#1a0800',
-                cursor: giftCountDone ? 'pointer' : 'default',
-                opacity: giftCountDone ? 1 : 0.7,
-                transition: 'opacity 0.3s',
-                pointerEvents: giftCountDone ? 'auto' : 'none',
-              }}>
-              CLAIM
+              className="pill-green w-full"
+              style={{ opacity: giftCountDone ? 1 : 0.5, pointerEvents: giftCountDone ? 'auto' : 'none', transition: 'opacity 0.3s' }}>
+              <div className="pill-face" style={{ padding: '10px 0', fontSize: '12px' }}>Claim</div>
             </button>
           </div>
         </div>
