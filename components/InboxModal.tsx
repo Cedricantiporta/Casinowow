@@ -44,17 +44,19 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
                 )}
                 {messages.map(msg => (
                     <div key={msg.id} className="rounded-2xl p-3 flex items-center gap-3"
-                        style={{ background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}>
+                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                         <img src={MSG_ICONS[msg.type] ?? '/ui/gift_mail.png'} alt="" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.5))' }} />
                         <div className="flex-1 min-w-0">
                             <div className="font-black text-white text-xs tracking-wide leading-none">{msg.title}</div>
                             <div className="text-purple-300/80 text-xs mt-0.5 leading-tight">{msg.body}</div>
                         </div>
-                        <button onClick={() => onClaim(msg.id)}
-                            className="btn-3d px-3 py-1.5 rounded-lg font-black text-xs uppercase shrink-0"
-                            style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #14532d', color: 'white' }}>
-                            Claim
-                        </button>
+                        {msg.claimed ? (
+                            <span className="text-white/40 text-xs font-black shrink-0">Claimed</span>
+                        ) : (
+                            <button onClick={() => onClaim(msg.id)} className="pill-green shrink-0">
+                                <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px' }}>Claim</div>
+                            </button>
+                        )}
                     </div>
                 ))}
             </div>

@@ -596,7 +596,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
                     {/* Right sidebar: stage counter, picks, buy button */}
                     <div className="shrink-0 flex flex-col items-center justify-center gap-2 px-2 py-3"
-                        style={{ background: 'rgba(0,0,0,0.35)', borderLeft: '1px solid rgba(255,255,255,0.06)', width: 80 }}>
+                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)', width: 80 }}>
                         <div className="flex flex-col items-center leading-none">
                             <span className="text-white/50 text-[8px] font-black uppercase tracking-widest">Stage</span>
                             <span className="font-black text-white text-2xl leading-none">{wildStage}</span>
@@ -717,7 +717,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
                     {/* Right sidebar — stage, dice counter, buy, dice face, roll button */}
                     <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
-                        style={{ background: 'rgba(0,0,0,0.35)', borderLeft: '1px solid rgba(255,255,255,0.06)', width: 90 }}>
+                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)', width: 90 }}>
                         <div className="flex flex-col items-center leading-none">
                             <span className="text-white/50 text-[8px] font-black uppercase tracking-widest">Stage</span>
                             <span className="font-black text-white text-2xl leading-none">{diceStage}</span>

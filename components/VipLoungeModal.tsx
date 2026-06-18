@@ -54,21 +54,13 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
     const hlUnlocked = playerLevel >= 35 && isVip;
 
     return (
-        <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none overflow-hidden"
-            style={{ backgroundImage: 'url(/lobby-bg-vip.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-
-            {/* Subtle overlay */}
-            <div className="absolute inset-0 pointer-events-none" style={{ background: 'rgba(0,0,0,0.18)' }} />
-
-            {/* Content */}
-            <div className="relative flex flex-col h-full z-10">
+        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
+            <div className="w-full max-w-[480px] flex flex-col rounded-3xl overflow-hidden"
+                style={{ height: 'min(90%, 400px)', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
                 {/* Header */}
                 <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">
-                    <span className="font-black text-lg tracking-widest flex-1"
-                        style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        VIP Lounge
-                    </span>
+                    <span className="font-black text-white text-sm flex-1">VIP Lounge</span>
                     {isVip && currentTier ? (
                         <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] tracking-widest shrink-0"
                             style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' }}>
@@ -80,13 +72,12 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                             Not VIP
                         </div>
                     )}
-                    <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
-                        style={{ background: 'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow: '0 2px 0 #5a3800' }}>
+                    <div className="round-btn cursor-pointer shrink-0" onClick={onClose}>
                         <i className="ti ti-x"></i>
                     </div>
                 </div>
 
-                {/* XP Bar — solid pill style like topbar, gold color */}
+                {/* XP Bar */}
                 <div className="shrink-0 mb-3 px-4">
                     <div className="relative mx-auto overflow-hidden"
                         style={{
@@ -114,7 +105,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
 
                     {/* LEFT — Lounge Benefits */}
                     <div className="flex-[3] flex flex-col rounded-2xl overflow-hidden"
-                        style={{ background: 'linear-gradient(160deg,#6b21a8,#3b0764)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
 
                         <div className="shrink-0 px-3 pt-3 pb-1 text-center">
                             <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>Lounge Benefits</span>
@@ -125,7 +116,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                             {LOUNGE_FEATURES.map((feat) => (
                                 <div key={feat.label}
                                     className="flex flex-col items-center gap-1 rounded-xl py-2 px-1"
-                                    style={{ background: 'rgba(255,255,255,0.12)' }}>
+                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
                                     <img src={feat.icon} alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
                                     <span className="font-black text-[8px] text-center leading-tight" style={{ color: '#e9d5ff' }}>{feat.label}</span>
                                     <span className="text-[7px] text-center leading-tight" style={{ color: 'rgba(200,160,255,0.7)' }}>{feat.desc}</span>
@@ -135,11 +126,8 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
 
                         <div className="shrink-0 px-3 pb-3">
                             {!isVip ? (
-                                <button onClick={onJoinVip}
-                                    className="btn-3d font-black text-xs tracking-widest text-black relative overflow-hidden px-4 py-2 rounded-xl w-full"
-                                    style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 3px 0 #7a5000' }}>
-                                    <span className="relative z-10">Join VIP Lounge</span>
-                                    <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none" />
+                                <button onClick={onJoinVip} className="pill-green w-full">
+                                    <div className="pill-face">Join VIP Lounge</div>
                                 </button>
                             ) : (
                                 <div className="text-center text-[9px] font-black tracking-widest py-1" style={{ color: 'rgba(253,230,138,0.6)' }}>
@@ -151,10 +139,10 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
 
                     {/* RIGHT — High Limit */}
                     <div className="flex-[2] flex flex-col rounded-2xl overflow-hidden"
-                        style={{ background: 'linear-gradient(160deg,#e0a800,#a87000)', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
 
                         <div className="shrink-0 px-3 pt-3 pb-1 text-center">
-                            <span className="font-black text-[12px] tracking-widest" style={{ color: '#fff8c0' }}>High Limit</span>
+                            <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>High Limit</span>
                         </div>
 
                         <div className="flex-1 flex flex-col items-center justify-center gap-2 p-3">
@@ -175,21 +163,10 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                         <div className="shrink-0 px-3 pb-3">
                             <button
                                 onClick={() => { if (hlUnlocked) { onClose(); setTimeout(() => onOpenHighLimit?.(), 50); } }}
-                                disabled={!hlUnlocked}
-                                className="btn-3d w-full py-2 rounded-xl font-black text-xs tracking-widest relative overflow-hidden"
-                                style={hlUnlocked ? {
-                                    background: 'linear-gradient(180deg,#ffe066,#d48800)',
-                                    boxShadow: '0 3px 0 #7a5000', color: '#1c0900',
-                                } : {
-                                    background: 'rgba(0,0,0,0.2)',
-                                    color: '#6b7280', cursor: 'not-allowed', boxShadow: 'none',
-                                }}>
-                                {hlUnlocked ? (
-                                    <>
-                                        <span className="relative z-10">Enter</span>
-                                        <div className="absolute inset-0 bg-gradient-to-b from-white/25 to-transparent pointer-events-none" />
-                                    </>
-                                ) : !isVip ? 'VIP Only' : 'Lv.35'}
+                                className={`pill-green w-full${!hlUnlocked ? ' opacity-40' : ''}`}>
+                                <div className="pill-face">
+                                    {hlUnlocked ? 'Enter' : (!isVip ? 'VIP Only' : 'Lv.35')}
+                                </div>
                             </button>
                         </div>
                     </div>
