@@ -18,6 +18,7 @@ interface MissionPassModalProps {
     playerLevel: number;
     maxBet?: number;
     onOpenGemShop?: () => void;
+    onOpenPremium?: () => void;
 }
 
 export const MissionPassModal: React.FC<MissionPassModalProps> = ({
@@ -36,6 +37,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     playerLevel,
     maxBet = 10000,
     onOpenGemShop,
+    onOpenPremium,
 }) => {
     const [view, setView] = useState<'MISSIONS' | 'PASS'>('MISSIONS');
     const [activeTab, setActiveTab] = useState<MissionFrequency>('DAILY');
@@ -347,13 +349,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 };
 
                                 return (
-                                    <div key={lvl} className="flex-none flex flex-col gap-0 relative snap-center" style={{ width: '80px' }}>
+                                    <div key={lvl} className="flex-none flex flex-col gap-0 relative snap-center" style={{ width: '92px' }}>
                                         {/* FREE card — bright blue */}
                                         <div style={{
                                             background: 'linear-gradient(180deg,#3b82f6,#1d4ed8)',
                                             ...freeBorder,
                                             borderRadius: '12px',
-                                            padding: '6px 4px',
+                                            padding: '10px 4px',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
                                             opacity: freeReward?.claimed ? 0.55 : 1,
                                         }}>
@@ -408,7 +410,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             background: 'linear-gradient(180deg,#eab308,#a16207)',
                                             ...premBorder,
                                             borderRadius: '12px',
-                                            padding: '6px 4px',
+                                            padding: '10px 4px',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
                                             opacity: premReward?.claimed ? 0.55 : 1,
                                         }}>
@@ -470,7 +472,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 </div>
                             </button>
                             {!missionState.isPremium ? (
-                                <button onClick={() => setShowPremiumInfo(true)} className="pill-green">
+                                <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-green">
                                     <div className="pill-face" style={{ padding: '7px 20px', fontSize: '10px' }}>Unlock Premium</div>
                                 </button>
                             ) : (

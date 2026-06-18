@@ -4342,6 +4342,7 @@ const App: React.FC = () => {
           playerLevel={player.level}
           maxBet={MAX_BET_BY_LEVEL(player.level) * (isHighLimit ? 10 : 1)}
           onOpenGemShop={() => { setActiveModal('NONE'); setTimeout(() => openShop('DIAMONDS'), 50); }}
+          onOpenPremium={() => { setActiveModal('NONE'); setTimeout(() => setShowPremiumModal(true), 50); }}
       />}
 
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus} />
