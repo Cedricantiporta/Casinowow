@@ -3733,20 +3733,20 @@ const App: React.FC = () => {
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
                     {(() => {
                         const REEL_BORDER: Record<string, { cls: string; shadow: string }> = {
-                            DRAGON:     { cls: 'rounded-xl border-[3px] border-orange-600',   shadow: '0 0 22px rgba(234,88,12,0.55),inset 0 0 10px rgba(180,40,0,0.2)' },
-                            EGYPT:      { cls: 'rounded-none border-[3px] border-yellow-500', shadow: '0 0 20px rgba(234,179,8,0.5),inset 0 0 8px rgba(160,110,0,0.15)' },
-                            NEON:       { cls: 'rounded-xl border-[2px] border-fuchsia-500',  shadow: '0 0 24px rgba(217,70,239,0.65),inset 0 0 12px rgba(160,0,220,0.2)' },
-                            CANDY:      { cls: 'rounded-2xl border-[3px] border-pink-300',    shadow: '0 0 20px rgba(249,168,212,0.6),inset 0 0 8px rgba(219,39,119,0.15)' },
-                            PIRATE:     { cls: 'rounded-lg border-[4px] border-amber-700',    shadow: '0 0 14px rgba(180,83,9,0.45)' },
-                            PIGGY:      { cls: 'rounded-2xl border-[3px] border-pink-400',    shadow: '0 0 18px rgba(244,114,182,0.5)' },
-                            ARCTIC:     { cls: 'rounded-xl border-[2px] border-cyan-300',     shadow: '0 0 22px rgba(103,232,249,0.5),inset 0 0 10px rgba(0,200,240,0.1)' },
-                            WESTERN:    { cls: 'rounded-lg border-[4px] border-amber-800',    shadow: '0 0 12px rgba(120,50,0,0.45)' },
-                            SPACE:      { cls: 'rounded-xl border-[2px] border-cyan-400',     shadow: '0 0 26px rgba(34,211,238,0.65),inset 0 0 12px rgba(0,200,255,0.15)' },
-                            JUNGLE:     { cls: 'rounded-xl border-[3px] border-green-500',    shadow: '0 0 16px rgba(34,197,94,0.5)' },
-                            UNDERWATER: { cls: 'rounded-xl border-[2px] border-blue-400',     shadow: '0 0 22px rgba(96,165,250,0.5),inset 0 0 10px rgba(0,80,200,0.1)' },
-                            SAMURAI:    { cls: 'rounded border-[3px] border-red-800',          shadow: '0 0 16px rgba(185,28,28,0.55)' },
-                            LEPRECHAUN: { cls: 'rounded-xl border-[3px] border-emerald-400',  shadow: '0 0 18px rgba(52,211,153,0.5)' },
-                            GOLDEN_POT: { cls: 'rounded-xl border-[3px] border-yellow-400',   shadow: '0 0 22px rgba(250,204,21,0.55),inset 0 0 10px rgba(180,130,0,0.1)' },
+                            DRAGON:     { cls: 'rounded-none border-[3px] border-orange-600',   shadow: '0 0 22px rgba(234,88,12,0.55),inset 0 0 10px rgba(180,40,0,0.2)' },
+                            EGYPT:      { cls: 'rounded-none border-[3px] border-yellow-500',   shadow: '0 0 20px rgba(234,179,8,0.5),inset 0 0 8px rgba(160,110,0,0.15)' },
+                            NEON:       { cls: 'rounded-none border-[2px] border-fuchsia-500',  shadow: '0 0 24px rgba(217,70,239,0.65),inset 0 0 12px rgba(160,0,220,0.2)' },
+                            CANDY:      { cls: 'rounded-none border-[3px] border-pink-300',     shadow: '0 0 20px rgba(249,168,212,0.6),inset 0 0 8px rgba(219,39,119,0.15)' },
+                            PIRATE:     { cls: 'rounded-none border-[4px] border-amber-700',    shadow: '0 0 14px rgba(180,83,9,0.45)' },
+                            PIGGY:      { cls: 'rounded-none border-[3px] border-pink-400',     shadow: '0 0 18px rgba(244,114,182,0.5)' },
+                            ARCTIC:     { cls: 'rounded-none border-[2px] border-cyan-300',     shadow: '0 0 22px rgba(103,232,249,0.5),inset 0 0 10px rgba(0,200,240,0.1)' },
+                            WESTERN:    { cls: 'rounded-none border-[4px] border-amber-800',    shadow: '0 0 12px rgba(120,50,0,0.45)' },
+                            SPACE:      { cls: 'rounded-none border-[2px] border-cyan-400',     shadow: '0 0 26px rgba(34,211,238,0.65),inset 0 0 12px rgba(0,200,255,0.15)' },
+                            JUNGLE:     { cls: 'rounded-none border-[3px] border-green-500',    shadow: '0 0 16px rgba(34,197,94,0.5)' },
+                            UNDERWATER: { cls: 'rounded-none border-[2px] border-blue-400',     shadow: '0 0 22px rgba(96,165,250,0.5),inset 0 0 10px rgba(0,80,200,0.1)' },
+                            SAMURAI:    { cls: 'rounded-none border-[3px] border-red-800',      shadow: '0 0 16px rgba(185,28,28,0.55)' },
+                            LEPRECHAUN: { cls: 'rounded-none border-[3px] border-emerald-400',  shadow: '0 0 18px rgba(52,211,153,0.5)' },
+                            GOLDEN_POT: { cls: 'rounded-none border-[3px] border-yellow-400',   shadow: '0 0 22px rgba(250,204,21,0.55),inset 0 0 10px rgba(180,130,0,0.1)' },
                         };
                         const reelBorder = REEL_BORDER[selectedGame.theme];
                         return (
