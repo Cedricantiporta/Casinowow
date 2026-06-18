@@ -359,7 +359,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
             )}
 
                 {/* Header */}
-                <div className="px-3 py-2 flex items-center gap-2 shrink-0 z-10" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                <div className="px-3 py-2 flex items-center gap-2 shrink-0 z-10">
                     {selectedDeckId && (
                         <button onClick={() => setSelectedDeckId(null)} className="round-btn shrink-0">
                             <i className="ti ti-arrow-left"></i>
