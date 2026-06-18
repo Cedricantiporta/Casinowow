@@ -115,7 +115,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   if (forcedSymbols && forcedSymbols.length > 0) {
       return (
           <div
-              className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
+              className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} min-w-0`}
               style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}` }}
           >
               <div className="w-full h-full flex flex-col">
@@ -141,14 +141,13 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                       );
                   })}
               </div>
-              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 pointer-events-none z-10" />
           </div>
       );
   }
 
   return (
     <div
-        className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
+        className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} min-w-0`}
         style={{
             aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}`,
             ...(anticipation ? { boxShadow: '0 0 0 2px #fbbf24, 0 0 18px rgba(251,191,36,0.7)', transition: 'box-shadow 0.2s' } : {}),
@@ -199,8 +198,6 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
             </div>
        </div>
 
-      {/* Overlay Gradients */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 pointer-events-none z-10"></div>
     </div>
   );
 };
@@ -282,7 +279,7 @@ const ReelCell: React.FC<{
     const jpLabel = JP_LABELS[symbol];
     const jpStyle = isJackpot ? JP_BG_STYLES[symbol] : undefined;
 
-    let bgClasses = config?.bg || 'bg-transparent';
+    let bgClasses = isImageIcon ? 'bg-transparent' : (config?.bg || 'bg-transparent');
 
     if (highlight) {
         // Keep original bg color, add shiny border on top

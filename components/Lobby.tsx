@@ -438,7 +438,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     <img
                                         src="/ui/collect.png"
                                         alt=""
-                                        style={{ width: 72, height: 72, objectFit: 'contain', ...(isReadyToCollect ? {} : { filter: 'grayscale(1) brightness(0.55)' }) }}
+                                        style={{ width: 72, height: 72, objectFit: 'contain' }}
                                         className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]"
                                     />
                                     {isReadyToCollect && (

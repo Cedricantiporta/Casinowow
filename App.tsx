@@ -3740,16 +3740,12 @@ const App: React.FC = () => {
                             LEPRECHAUN: { cls: 'rounded-xl border-[3px] border-emerald-400',  shadow: '0 0 18px rgba(52,211,153,0.5)' },
                             GOLDEN_POT: { cls: 'rounded-xl border-[3px] border-yellow-400',   shadow: '0 0 22px rgba(250,204,21,0.55),inset 0 0 10px rgba(180,130,0,0.1)' },
                         };
-                        const rb = REEL_BORDER[selectedGame.theme] ?? { cls: 'rounded-xl border-[2px] border-white/15', shadow: '' };
                         return (
                     <div
-                        className={`relative z-10 ${selectedGame.theme === 'ARCTIC' ? 'bg-black/20' : 'bg-black/60'} p-1 md:p-1.5 h-full max-h-full overflow-hidden
-                            ${selectedGame.theme === 'PIGGY' ? 'flex gap-2' : 'flex gap-0.5'}
-                            ${rb.cls}
-                            ${isHighLimit ? '' : ''}
+                        className={`relative z-10 h-full max-h-full overflow-hidden flex gap-0
                             ${reelTransitioning === 'out' ? 'animate-reel-out' : reelTransitioning === 'in' ? 'animate-reel-in' : ''}
                         `}
-                        style={{ aspectRatio: selectedGame.theme === 'NEON' ? `${selectedGame.reels}/2` : `${selectedGame.reels}/${selectedGame.rows}`, boxShadow: isHighLimit ? `${rb.shadow}, 0 0 30px rgba(220,180,0,0.4)` : rb.shadow }}
+                        style={{ aspectRatio: selectedGame.theme === 'NEON' ? `${selectedGame.reels}/2` : `${selectedGame.reels}/${selectedGame.rows}` }}
                     >
                         {(() => {
                             // Pre-compute which reel starts the anticipation window so ALL remaining reels
