@@ -164,7 +164,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                     onChange={e => setRedeemInput(e.target.value)}
                                     onKeyDown={e => { if (e.key === 'Enter') handleRedeem(); }}
                                     placeholder="Enter code..."
-                                    className="w-28 bg-black/50 text-white text-xs px-3 py-2 rounded-lg border border-white/10 outline-none font-mono placeholder:text-white/25 focus:border-purple-500/60"
+                                    className="flex-1 bg-black/50 text-white text-xs px-3 py-2 rounded-lg border border-white/10 outline-none font-mono placeholder:text-white/25 focus:border-purple-500/60"
                                 />
                                 <button onClick={handleRedeem} className="pill-green">
                                     <div className="pill-face" style={{ padding: '6px 14px', fontSize: '10px' }}>Redeem</div>

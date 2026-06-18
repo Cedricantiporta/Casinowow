@@ -10,6 +10,7 @@ interface VipLoungeModalProps {
     vipXpToNext?: number;
     onJoinVip: () => void;
     onOpenHighLimit?: () => void;
+    onOpenPremium?: () => void;
 }
 
 interface VipTier {
@@ -45,7 +46,7 @@ const getCurrentTier = (vipLevel: number): VipTier | null => {
 };
 
 export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
-    isOpen, onClose, isVip, playerLevel, vipLevel = 1, vipXp = 0, vipXpToNext = 500, onJoinVip, onOpenHighLimit
+    isOpen, onClose, isVip, playerLevel, vipLevel = 1, vipXp = 0, vipXpToNext = 500, onJoinVip, onOpenHighLimit, onOpenPremium
 }) => {
     if (!isOpen) return null;
 
@@ -67,10 +68,9 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                             {currentTier.icon.startsWith('/') ? <img src={currentTier.icon} alt="" style={{ width: 12, height: 12, display: 'inline', objectFit: 'contain' }} /> : currentTier.icon} {currentTier.name}
                         </div>
                     ) : (
-                        <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] tracking-widest shrink-0"
-                            style={{ background: 'rgba(255,255,255,0.08)', color: '#9ca3af' }}>
-                            Not VIP
-                        </div>
+                        <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-green shrink-0">
+                            <div className="pill-face" style={{ fontSize: '10px', padding: '5px 12px' }}>Unlock VIP</div>
+                        </button>
                     )}
                     <div className="round-btn cursor-pointer shrink-0" onClick={onClose}>
                         <i className="ti ti-x"></i>
