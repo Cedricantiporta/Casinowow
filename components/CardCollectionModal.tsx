@@ -265,7 +265,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     );
                                 })}
                             </div>
-                            <div className="shrink-0 flex items-center gap-2 px-3 py-2" style={{ background: 'rgba(0,0,0,0.5)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                            <div className="shrink-0 flex items-center gap-2 px-3 py-2" style={{ background: 'rgba(0,0,0,0.5)' }}>
                                 {(() => {
                                     const gems = getExchangeGems(selectedDuplicateIds);
                                     return (
@@ -276,13 +276,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     );
                                 })()}
                                 <button onClick={() => setSelectedDuplicateIds(new Set(allDuplicates.map(d => `${d.deckId}-${d.cardIdx}`)))}
-                                    className="btn-3d px-3 py-1.5 rounded-lg text-xs font-black text-white uppercase"
-                                    style={{ background: 'rgba(255,255,255,0.15)' }}>All</button>
+                                    className="pill-green">
+                                    <div className="pill-face" style={{ padding: '4px 10px', fontSize: '10px' }}>All</div>
+                                </button>
                                 <button disabled={selectedDuplicateIds.size === 0}
                                     onClick={() => handleExchangeDuplicates(selectedDuplicateIds)}
-                                    className="btn-3d px-4 py-1.5 rounded-lg text-xs font-black text-white uppercase"
-                                    style={{ background: selectedDuplicateIds.size > 0 ? 'linear-gradient(180deg,#f59e0b,#b45309)' : '#374151', boxShadow: selectedDuplicateIds.size > 0 ? '0 3px 0 #78350f' : 'none' }}>
-                                    Exchange
+                                    className={`pill-green${selectedDuplicateIds.size === 0 ? ' opacity-40' : ''}`}>
+                                    <div className="pill-face" style={{ padding: '4px 10px', fontSize: '10px' }}>Exchange</div>
                                 </button>
                             </div>
                         </>
@@ -332,15 +332,19 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 })}
                             </div>
                             <div className="shrink-0 mt-4 flex flex-col sm:flex-row gap-2 z-50 items-center bg-black/70 p-2.5 rounded-xl">
-                                <button onClick={closePack} className="px-5 py-1.5 bg-gray-700 rounded-lg text-white font-bold text-xs uppercase hover:bg-gray-600">Close</button>
+                                <button onClick={closePack} className="pill-green">
+                                    <div className="pill-face" style={{ padding: '6px 16px', fontSize: '10px' }}>Close</div>
+                                </button>
                                 {lastPackId && (
                                     <div className="flex gap-1.5 items-center">
                                         <button onClick={() => { setPackStage('DONE'); setOpenedCards([]); setTimeout(() => handleDraw(lastPackId!, 1), 100); }}
-                                            className="px-4 py-1.5 bg-green-600 rounded-lg text-white font-bold text-xs uppercase">1x</button>
+                                            className="pill-green">
+                                            <div className="pill-face" style={{ padding: '6px 14px', fontSize: '10px' }}>1×</div>
+                                        </button>
                                         <button onClick={() => { setPackStage('DONE'); setOpenedCards([]); setTimeout(() => handleDraw(lastPackId!, 10), 100); }}
-                                            className="px-4 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-lg text-white font-bold text-xs uppercase relative overflow-hidden">
-                                            10x
-                                            <span className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</span>
+                                            className="pill-green relative">
+                                            <div className="pill-face" style={{ padding: '6px 14px', fontSize: '10px' }}>10×</div>
+                                            <span className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white z-10">-10%</span>
                                         </button>
                                         <label className="flex items-center gap-1 bg-black/50 px-2 py-1 rounded-md cursor-pointer ml-1">
                                             <input type="checkbox" checked={skipAnimation} onChange={(e) => setSkipAnimation(e.target.checked)} className="w-3 h-3 text-yellow-500 rounded bg-gray-800 border-gray-600" />
@@ -355,29 +359,25 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
             )}
 
                 {/* Header */}
-                <div className="bg-gradient-to-r from-[#4c1d95] to-[#3b0764] px-3 py-2 flex items-center gap-2 shrink-0 z-10 shadow-lg">
+                <div className="px-3 py-2 flex items-center gap-2 shrink-0 z-10" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
                     {selectedDeckId && (
                         <button onClick={() => setSelectedDeckId(null)} className="round-btn shrink-0">
                             <i className="ti ti-arrow-left"></i>
                         </button>
                     )}
-                    <h2 className="text-xs font-display font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-200 to-fuchsia-200 uppercase tracking-wider shrink-0">
+                    <h2 className="text-white font-black text-xs tracking-widest shrink-0">
                         {selectedDeckId ? decks.find(d => d.gameId === selectedDeckId)?.gameName : 'Album'}
                     </h2>
 
                     {!selectedDeckId && (
                         <div className="flex items-center gap-1.5 ml-1">
                             {activeTab === 'ALBUM' ? (
-                                <button onClick={() => setActiveTab('PACKS')}
-                                    className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white"
-                                    style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #14532d' }}>
-                                    Draw Cards
+                                <button onClick={() => setActiveTab('PACKS')} className="pill-green">
+                                    <div className="pill-face" style={{ padding: '4px 12px', fontSize: '10px' }}>Draw Cards</div>
                                 </button>
                             ) : (
-                                <button onClick={() => setActiveTab('ALBUM')}
-                                    className="btn-3d px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white"
-                                    style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 #4c1d95' }}>
-                                    Decks
+                                <button onClick={() => setActiveTab('ALBUM')} className="pill-green">
+                                    <div className="pill-face" style={{ padding: '4px 12px', fontSize: '10px' }}>Decks</div>
                                 </button>
                             )}
                         </div>
@@ -386,14 +386,16 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     <div className="flex-1"></div>
 
                     <div className="flex items-center gap-1.5 text-[10px]">
-                        <div className="currency-pill flex items-center gap-1 shrink-0">
+                        <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
                             <div className="coin">$</div>
                             <span className="num">{formatNumber(balance)}</span>
                         </div>
-                        <div className="currency-pill flex items-center gap-1 shrink-0">
+                        <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
                             <div className="gem"></div>
                             <span className="num">{formatNumber(diamonds)}</span>
-                            <button onClick={() => onOpenShop('DIAMONDS')} style={{ fontSize: '10px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', color: '#c084fc', fontWeight: 900, lineHeight: 1 }}>+</button>
+                            <button onClick={() => onOpenShop('DIAMONDS')} className="pill-green" style={{ fontSize: '9px' }}>
+                                <div className="pill-face" style={{ padding: '2px 6px', fontSize: '9px' }}>Buy</div>
+                            </button>
                         </div>
                         <div className="currency-pill flex items-center gap-1 shrink-0">
                             <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>🃏</span>
@@ -426,7 +428,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     const isComplete = collected === 7;
                                     return (
                                         <button key={deck.gameId} onClick={() => setSelectedDeckId(deck.gameId)}
-                                            className="flex-none w-36 flex flex-col items-center bg-black/40 p-2 rounded-xl h-full active:scale-95 transition-transform">
+                                            className="flex-none w-36 flex flex-col items-center p-2 rounded-xl h-full active:scale-95 transition-transform"
+                                            style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                                             <div className={`w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0`} style={{ background: deck.theme === 'NEON' ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : deck.theme === 'EGYPT' ? 'linear-gradient(135deg,#b45309,#78350f)' : deck.theme === 'DRAGON' ? 'linear-gradient(135deg,#dc2626,#7f1d1d)' : deck.theme === 'PIRATE' ? 'linear-gradient(135deg,#0369a1,#0c4a6e)' : deck.theme === 'SPACE' ? 'linear-gradient(135deg,#1d4ed8,#0f172a)' : deck.theme === 'CANDY' ? 'linear-gradient(135deg,#db2777,#9d174d)' : deck.theme === 'JUNGLE' ? 'linear-gradient(135deg,#15803d,#14532d)' : deck.theme === 'UNDERWATER' ? 'linear-gradient(135deg,#0891b2,#164e63)' : deck.theme === 'WESTERN' ? 'linear-gradient(135deg,#ca8a04,#713f12)' : deck.theme === 'SAMURAI' ? 'linear-gradient(135deg,#9f1239,#4c0519)' : deck.theme === 'PIGGY' ? 'linear-gradient(135deg,#ec4899,#9d174d)' : 'linear-gradient(135deg,#475569,#1e293b)' }}>
                                                 <div className="text-[5rem] drop-shadow-2xl leading-none">
                                                     {deck.theme === 'NEON' ? '🎰' : deck.theme === 'EGYPT' ? '🦂' : deck.theme === 'DRAGON' ? '🐉' : deck.theme === 'PIRATE' ? '🏴‍☠️' : deck.theme === 'SPACE' ? '👽' : deck.theme === 'PIGGY' ? '🐷' : deck.theme === 'CANDY' ? '🧁' : deck.theme === 'JUNGLE' ? '🦍' : deck.theme === 'UNDERWATER' ? '🦈' : deck.theme === 'WESTERN' ? '🤠' : deck.theme === 'SAMURAI' ? '⚔️' : '🃏'}
@@ -452,34 +455,29 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 {packOptions.map(pack => {
                                     const canDrawOne = pack.credits >= 1;
                                     const canDrawTen = pack.credits >= 9;
-                                    const isStandard = pack.id === 'super';
                                     return (
                                         <div key={pack.id} className="flex flex-col rounded-2xl overflow-hidden"
                                             style={{
                                                 width: 160,
                                                 height: '100%',
                                                 maxHeight: 260,
-                                                background: isStandard
-                                                    ? 'linear-gradient(160deg,#0f1f55,#1a35a0,#0f1f55)'
-                                                    : 'linear-gradient(160deg,#4a1a00,#8a3500,#4a1a00)',
+                                                background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)',
+                                                boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
                                                 padding: '14px 12px 12px',
                                             }}>
                                             <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                                                <span style={{ fontSize: '4rem', lineHeight: 1 }}>{pack.emoji}</span>
-                                                <div className="font-black text-white text-sm uppercase tracking-widest text-center leading-none">{pack.name}</div>
+                                                <div className="font-black text-white text-sm tracking-widest text-center leading-none">{pack.name}</div>
                                                 <div className="font-bold text-white/50 text-[11px]">{pack.credits} packs</div>
                                             </div>
                                             <div className="flex flex-col gap-1.5 mt-2">
                                                 <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
-                                                    className="btn-3d w-full py-2 rounded-xl font-black text-white uppercase text-xs"
-                                                    style={{ background: canDrawOne ? 'linear-gradient(180deg,#22c55e,#15803d)' : '#374151', boxShadow: canDrawOne ? '0 3px 0 #14532d' : 'none' }}>
-                                                    DRAW 1×
+                                                    className={`pill-green w-full${!canDrawOne ? ' opacity-40' : ''}`}>
+                                                    <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>Draw 1×</div>
                                                 </button>
                                                 <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
-                                                    className="btn-3d w-full py-2 rounded-xl font-black text-white uppercase text-xs relative overflow-hidden"
-                                                    style={{ background: canDrawTen ? 'linear-gradient(180deg,#f59e0b,#b45309)' : '#374151', boxShadow: canDrawTen ? '0 3px 0 #78350f' : 'none' }}>
-                                                    DRAW 10×
-                                                    {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white">-10%</div>}
+                                                    className={`pill-green w-full relative${!canDrawTen ? ' opacity-40' : ''}`}>
+                                                    <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>Draw 10×</div>
+                                                    {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white z-10">-10%</div>}
                                                 </button>
                                             </div>
                                         </div>
@@ -489,17 +487,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                             {/* RIGHT PANEL — Buy Packs + Exchange Dupes */}
                             <div className="flex flex-col gap-3 shrink-0 justify-center" style={{ width: 120 }}>
-                                <button onClick={() => setShowPackBuyPopup('standard')}
-                                    className="btn-3d w-full rounded-xl font-black text-white uppercase flex flex-col items-center justify-center gap-1"
-                                    style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065', minHeight: 64, padding: '10px 8px' }}>
-                                    <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🃏</span>
-                                    <span className="text-[10px] tracking-widest">Buy Packs</span>
+                                <button onClick={() => setShowPackBuyPopup('standard')} className="pill-green w-full">
+                                    <div className="pill-face" style={{ padding: '10px 8px', fontSize: '10px' }}>Buy Packs</div>
                                 </button>
-                                <button onClick={() => setShowExchangePanel(true)}
-                                    className="btn-3d w-full rounded-xl font-black text-white uppercase flex flex-col items-center justify-center gap-1 relative"
-                                    style={{ background: 'linear-gradient(180deg,#f59e0b,#b45309)', boxShadow: '0 3px 0 #78350f', minHeight: 64, padding: '10px 8px' }}>
-                                    <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🔄</span>
-                                    <span className="text-[10px] tracking-widest">Exch. Dupes</span>
+                                <button onClick={() => setShowExchangePanel(true)} className="pill-green w-full relative">
+                                    <div className="pill-face" style={{ padding: '10px 8px', fontSize: '10px' }}>Exch. Dupes</div>
                                     {allDuplicates.length > 0 && (
                                         <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
@@ -515,14 +507,16 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <div className="flex flex-col h-full">
                             {/* Completion reward — centered, no container */}
                             <div className="shrink-0 text-center mb-2">
-                                <div className="text-yellow-400 text-[8px] font-black uppercase tracking-widest">🏆 Completion Reward</div>
+                                <div className="text-yellow-400 text-[8px] font-black uppercase tracking-widest">Completion Reward</div>
                                 <div className="text-white font-black text-lg font-mono leading-none">{formatCommaNumber(getDeckReward(selectedDeckId))}</div>
                                 <div className="mt-1">
                                     {decks.find(d => d.gameId === selectedDeckId)?.isCompleted ? (
                                         decks.find(d => d.gameId === selectedDeckId)?.rewardClaimed ? (
                                             <span className="text-gray-500 text-[9px] font-bold uppercase">Reward Claimed</span>
                                         ) : (
-                                            <button onClick={() => onClaimDeckReward(selectedDeckId!, getDeckReward(selectedDeckId))} className="btn-3d bg-gradient-to-r from-yellow-500 to-yellow-600 px-6 py-1 rounded-lg font-black text-black text-[10px] uppercase shadow-md">Claim Reward</button>
+                                            <button onClick={() => onClaimDeckReward(selectedDeckId!, getDeckReward(selectedDeckId))} className="pill-green">
+                                                <div className="pill-face" style={{ padding: '6px 20px', fontSize: '10px' }}>Claim Reward</div>
+                                            </button>
                                         )
                                     ) : (
                                         <span className="text-gray-500 text-[8px] font-bold uppercase">Collect all cards to claim</span>
@@ -583,15 +577,17 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
                     onClick={() => setShowPackBuyPopup(null)}>
                     <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col"
-                        style={{ width: 680, height: 240, background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}
+                        style={{ width: 680, height: 240, background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                         {/* Header */}
-                        <div className="shrink-0 px-4 pt-3 pb-2 flex items-center gap-3">
-                            <div className="font-black text-white text-sm uppercase tracking-widest flex-1">Pack Store</div>
-                            <div className="flex items-center gap-1.5 ml-1">
+                        <div className="shrink-0 px-4 pt-3 pb-2 flex items-center gap-3" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+                            <div className="font-black text-white text-sm tracking-widest flex-1">Pack Store</div>
+                            <div className="currency-pill flex items-center gap-1.5 ml-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                 <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
-                                <button onClick={() => { setShowPackBuyPopup(null); onOpenShop('DIAMONDS'); }} style={{ fontSize: '11px', background: 'rgba(255,255,255,0.1)', border: 'none', width: 20, height: 20, borderRadius: '50%', cursor: 'pointer', color: '#c084fc', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>
+                                <button onClick={() => { setShowPackBuyPopup(null); onOpenShop('DIAMONDS'); }} className="pill-green" style={{ fontSize: '9px' }}>
+                                    <div className="pill-face" style={{ padding: '2px 6px', fontSize: '9px' }}>Buy</div>
+                                </button>
                             </div>
                             <button onClick={() => setShowPackBuyPopup(null)} className="round-btn ml-1"><i className="ti ti-x" /></button>
                         </div>
@@ -631,9 +627,10 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             <div className="px-3 pb-3 pt-1 shrink-0">
                                                 <button onClick={() => { if (!canAfford) return; onBuyCredits(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
                                                     disabled={!canAfford}
-                                                    className="btn-3d w-full py-1.5 rounded-xl font-black text-white uppercase text-[10px] tracking-widest flex items-center justify-center gap-1"
-                                                    style={{ background: canAfford ? `linear-gradient(180deg,${opt.accent},${opt.shadowClr})` : '#374151', boxShadow: canAfford ? `0 3px 0 ${opt.shadowClr}` : 'none' }}>
-                                                    <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {opt.gemCost}
+                                                    className="pill-green w-full">
+                                                    <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                                        <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {opt.gemCost}
+                                                    </div>
                                                 </button>
                                             </div>
                                         </div>
@@ -675,9 +672,10 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             <div className="px-3 pb-3 pt-1 shrink-0">
                                                 <button onClick={() => { if (!canAfford || !buyFn) return; buyFn(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
                                                     disabled={!canAfford}
-                                                    className="btn-3d w-full py-1.5 rounded-xl font-black text-white uppercase text-[10px] tracking-widest flex items-center justify-center gap-1"
-                                                    style={{ background: canAfford ? `linear-gradient(180deg,${opt.accent},${opt.shadowClr})` : '#374151', boxShadow: canAfford ? `0 3px 0 ${opt.shadowClr}` : 'none' }}>
-                                                    <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {opt.gemCost}
+                                                    className="pill-green w-full">
+                                                    <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                                                        <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {opt.gemCost}
+                                                    </div>
                                                 </button>
                                             </div>
                                         </div>
