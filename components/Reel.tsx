@@ -268,12 +268,12 @@ const ReelCell: React.FC<{
         [SymbolType.JACKPOT_MEGA]:  'MEGA',
         [SymbolType.JACKPOT_GRAND]: 'GRAND',
     };
-    const JP_BG_STYLES: Partial<Record<SymbolType, { border: string; glow: string; text: string; solidBg: string }>> = {
-        [SymbolType.JACKPOT_MINI]:  { border: '#16a34a', glow: 'rgba(34,197,94,0.8)',  text: 'white', solidBg: '#16a34a' },
-        [SymbolType.JACKPOT_MINOR]: { border: '#0891b2', glow: 'rgba(6,182,212,0.8)',  text: 'white', solidBg: '#0891b2' },
-        [SymbolType.JACKPOT_MAJOR]: { border: '#7c3aed', glow: 'rgba(124,58,237,0.8)', text: 'white', solidBg: '#7c3aed' },
-        [SymbolType.JACKPOT_MEGA]:  { border: '#dc2626', glow: 'rgba(220,38,38,0.8)',  text: 'white', solidBg: '#dc2626' },
-        [SymbolType.JACKPOT_GRAND]: { border: '#d97706', glow: 'rgba(217,119,6,0.8)',  text: 'white', solidBg: '#d97706' },
+    const JP_BG_STYLES: Partial<Record<SymbolType, { border: string; glow: string; text: string; solidBg: string; darkColor: string }>> = {
+        [SymbolType.JACKPOT_MINI]:  { border: '#16a34a', glow: 'rgba(34,197,94,0.8)',  text: 'white', solidBg: '#16a34a', darkColor: '#063d1a' },
+        [SymbolType.JACKPOT_MINOR]: { border: '#0891b2', glow: 'rgba(6,182,212,0.8)',  text: 'white', solidBg: '#0891b2', darkColor: '#034d62' },
+        [SymbolType.JACKPOT_MAJOR]: { border: '#7c3aed', glow: 'rgba(124,58,237,0.8)', text: 'white', solidBg: '#7c3aed', darkColor: '#3b0e8a' },
+        [SymbolType.JACKPOT_MEGA]:  { border: '#dc2626', glow: 'rgba(220,38,38,0.8)',  text: 'white', solidBg: '#dc2626', darkColor: '#7a0d0d' },
+        [SymbolType.JACKPOT_GRAND]: { border: '#d97706', glow: 'rgba(217,119,6,0.8)',  text: 'white', solidBg: '#d97706', darkColor: '#7a3e00' },
     };
     const isJackpot = symbol in JP_LABELS;
     const jpLabel = JP_LABELS[symbol];
@@ -340,7 +340,7 @@ const ReelCell: React.FC<{
                             className="font-titan font-black tracking-widest select-none text-white leading-none text-center px-1"
                             style={{
                                 fontSize: `clamp(0.4rem, ${(1.8 * cellScale).toFixed(2)}vw, ${(1.0 * cellScale).toFixed(3)}rem)`,
-                                textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 10px rgba(0,0,0,0.7)',
+                                textShadow: `0 1px 4px ${jpStyle?.darkColor ?? 'rgba(0,0,0,0.9)'}, 0 0 10px ${jpStyle?.darkColor ?? 'rgba(0,0,0,0.7)'}`,
                             }}
                         >
                             {jpLabel}
