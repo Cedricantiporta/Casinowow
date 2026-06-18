@@ -3509,8 +3509,8 @@ const App: React.FC = () => {
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
-              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' } :
-              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' }}>
+              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none' } :
+              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
@@ -4078,8 +4078,8 @@ const App: React.FC = () => {
       {currentView === 'GAME' && (
           <div className="fixed bottom-0 w-full z-50 flex flex-col select-none"
             style={isHighLimit ?
-              { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTop:'none', boxShadow:'0 -10px 35px rgba(0,0,0,0.85)' } :
-              { background:'#0a001a', borderTop:'none', boxShadow:'0 -10px 35px rgba(0,0,0,0.85)' }}>
+              { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTop:'none' } :
+              { background:'#0a001a', borderTop:'none' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
                 style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
@@ -4609,8 +4609,8 @@ const App: React.FC = () => {
                   return next;
               });
               if (code === 'dev777') {
-                  setPlayer(p => ({ ...p, level: 50, balance: p.balance + 100_000_000_000 }));
-                  setCelebrationMsg('⚡ Level Rush! +100B Coins · Level 50');
+                  setPlayer(p => ({ ...p, level: 40, diamonds: p.diamonds + 10_000, balance: p.balance + 100_000_000_000 }));
+                  setCelebrationMsg('⚡ Level Rush! +100B Coins · +10K Gems · Level 40');
               } else if (code === 'dev999') {
                   setPlayer(p => ({ ...p, balance: p.balance + 100_000_000_000_000 }));
                   setCelebrationMsg('💰 Coin Flood! +100T Coins');
