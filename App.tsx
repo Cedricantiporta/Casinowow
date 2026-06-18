@@ -4612,6 +4612,15 @@ const App: React.FC = () => {
           onToggleMute={() => setIsMuted(audioService.toggleMute())}
           redeemedCodes={redeemedCodes}
           onRedeem={(code) => {
+              if (code === 'reset') {
+                  try {
+                      Object.keys(localStorage)
+                          .filter(k => k.startsWith('cw_'))
+                          .forEach(k => localStorage.removeItem(k));
+                  } catch {}
+                  window.location.reload();
+                  return;
+              }
               if (redeemedCodes.includes(code)) return;
               setRedeemedCodes(prev => {
                   const next = [...prev, code];

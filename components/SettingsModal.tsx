@@ -11,12 +11,13 @@ interface SettingsModalProps {
 
 const REDEEM_CODES: Record<string, { title: string; description: string; icon: string; rewards: { icon: string; label: string }[] }> = {
     dev777: {
-        title: 'LEVEL RUSH',
-        description: 'Jumpstart your game with coins and a level boost.',
+        title: 'Level Rush',
+        description: 'Jumpstart your game with coins, gems and a level boost.',
         icon: '⚡',
         rewards: [
             { icon: '/symbols/coin.png', label: '+100,000,000,000 Coins' },
-            { icon: '/ui/star.png', label: 'Level 50' },
+            { icon: '/symbols/diamond.png', label: '+10,000 Gems' },
+            { icon: '/ui/star.png', label: 'Level 40' },
         ],
     },
     dev999: {
@@ -54,6 +55,15 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
         rewards: [
             { icon: '👑', label: 'VIP + Monthly Pass' },
             { icon: '🚀', label: 'XP Boost ×5 — 7 Days' },
+        ],
+    },
+    reset: {
+        title: 'Reset Progress',
+        description: 'Wipes ALL progress — coins, level, gems, missions, everything. This cannot be undone. The app will reload.',
+        icon: '⚠️',
+        rewards: [
+            { icon: '🗑️', label: 'Erase all saved data' },
+            { icon: '🔄', label: 'Start over from scratch' },
         ],
     },
 };
