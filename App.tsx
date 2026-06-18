@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
+import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
 import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK } from './constants';
 import { Reel } from './components/Reel';
 import { WinPopup } from './components/WinPopup';
@@ -44,6 +44,20 @@ interface SavedGameState {
     spinsWithoutBonus: number;
     grid: SymbolType[][];
 }
+
+// Feature-theme aliasing: the lower-tier slots reuse a proven feature mechanic from one of the
+// flagship themes. This map applies ONLY to bonus/feature logic — each slot keeps its own symbols,
+// background and paylines (which are driven by selectedGame.theme directly, never by this alias).
+// For every flagship/untouched game the alias is identity, so their behaviour is unchanged.
+//   Deep Blue (UNDERWATER) → Arctic   : cascading reels + climbing multiplier
+//   Gold Rush (WESTERN)     → Pirate   : walking wilds
+//   Samurai Honor (SAMURAI) → Egypt    : hold & win respins
+//   Lucky Leprechaun        → Candy    : bonus wheel (distinct pot-of-gold variant)
+//   Jungle Rumble (JUNGLE)  → Space    : progressive-multiplier free spins
+const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
+    JUNGLE: 'SPACE',
+};
+const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
 const getRandomSymbol = (isFreeSpin: boolean, spinsWithoutBonus: number): SymbolType => {
   const weights = GET_DYNAMIC_WEIGHTS(isFreeSpin, spinsWithoutBonus);
@@ -1436,6 +1450,7 @@ const App: React.FC = () => {
   const generateSmartGrid = useCallback(() => {
       const cols = selectedGame.reels;
       const rows = selectedGame.rows;
+      const ft = featureThemeOf(selectedGame.theme);
       const isFreeSpin = freeSpinsRemaining > 0;
       const newGrid: SymbolType[][] = [];
       const isSmallGrid = cols <= 3;
@@ -1804,7 +1819,7 @@ const App: React.FC = () => {
 
       // SPACE: Wild Planet reels. Base game ~6% drifts one middle reel fully WILD.
       // During Supernova free spins, reels can align fully WILD (≈55% one reel, 15% two).
-      if (selectedGame.theme === 'SPACE') {
+      if (ft === 'SPACE') {
           if (isFreeSpin) {
               const roll = Math.random();
               let numWildReels = 0;
@@ -2038,7 +2053,7 @@ const App: React.FC = () => {
     } else {
         setFreeSpinsRemaining(prev => prev - 1);
         // SPACE: ramp the Supernova multiplier (+1 each free spin, capped ×15)
-        if (selectedGame.theme === 'SPACE') {
+        if (featureThemeOf(selectedGame.theme) === 'SPACE') {
             spaceFsMultRef.current = Math.min(8, spaceFsMultRef.current + 1);
             setSpaceMultiplier(spaceFsMultRef.current);
         }
@@ -2466,6 +2481,7 @@ const App: React.FC = () => {
   }, [targetGrid, selectedGame, freeSpinsRemaining, spinsWithoutBonus]);
 
   const calculateWin = (finalGrid: SymbolType[][]) => {
+    const ft = featureThemeOf(selectedGame.theme);
     const currentBet = availableBets[betIndex];
     let totalPayout = 0;
     const winningLines: number[] = [];
@@ -2515,7 +2531,7 @@ const App: React.FC = () => {
 
     // SPACE: Supernova progressive multiplier applies to line wins during free spins.
     // No-win spin resets the multiplier back to ×1.
-    if (selectedGame.theme === 'SPACE' && totalFreeSpins > 0) {
+    if (ft === 'SPACE' && totalFreeSpins > 0) {
         if (totalPayout > 0) {
             totalPayout = Math.floor(totalPayout * spaceFsMultRef.current);
         } else {
@@ -3925,22 +3941,22 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* SPACE Supernova — progressive multiplier banner during free spins */}
-                        {selectedGame.theme === 'SPACE' && totalFreeSpins > 0 && (
+                        {/* SPACE Supernova — progressive multiplier banner during free spins (reused by Jungle) */}
+                        {featureThemeOf(selectedGame.theme) === 'SPACE' && totalFreeSpins > 0 && (
                             <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
                                 <div style={{
-                                    background: 'linear-gradient(180deg,#3b1a6e,#1a0a3a)',
-                                    border: '2px solid #c084fc',
+                                    background: selectedGame.theme === 'JUNGLE' ? 'linear-gradient(180deg,#1f5e1a,#0a2a08)' : 'linear-gradient(180deg,#3b1a6e,#1a0a3a)',
+                                    border: selectedGame.theme === 'JUNGLE' ? '2px solid #86efac' : '2px solid #c084fc',
                                     borderRadius: 999,
                                     padding: '4px 14px',
-                                    boxShadow: '0 0 18px rgba(192,132,252,0.6), 0 4px 10px rgba(0,0,0,0.6)',
+                                    boxShadow: selectedGame.theme === 'JUNGLE' ? '0 0 18px rgba(134,239,172,0.6), 0 4px 10px rgba(0,0,0,0.6)' : '0 0 18px rgba(192,132,252,0.6), 0 4px 10px rgba(0,0,0,0.6)',
                                     whiteSpace: 'nowrap',
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     gap: 6,
                                 }}>
-                                    <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#e9d5ff', textShadow: '0 0 8px rgba(192,132,252,0.9)' }}>
-                                        <img src="/ui/star.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 3 }} />Supernova
+                                    <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: selectedGame.theme === 'JUNGLE' ? '#dcfce7' : '#e9d5ff', textShadow: selectedGame.theme === 'JUNGLE' ? '0 0 8px rgba(134,239,172,0.9)' : '0 0 8px rgba(192,132,252,0.9)' }}>
+                                        <img src="/ui/star.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 3 }} />{selectedGame.theme === 'JUNGLE' ? 'Jungle Frenzy' : 'Supernova'}
                                     </span>
                                     <span className="font-black" style={{ fontSize: 'clamp(11px,3vw,16px)', color: '#fde68a', textShadow: '0 0 8px rgba(251,191,36,0.8)' }}>
                                         ×{spaceMultiplier}
