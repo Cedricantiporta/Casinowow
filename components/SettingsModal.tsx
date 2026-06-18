@@ -129,9 +129,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             style={{ height: 'min(88%, 680px)', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
             {/* Header */}
-            <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">
-                <span className="text-white font-black text-base drop-shadow flex-1">Settings</span>
-                <div className="flex items-center gap-2">
+            <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
+                <span className="absolute left-0 right-0 text-center text-white font-black text-base drop-shadow pointer-events-none">Settings</span>
+                <div className="flex items-center gap-2 ml-auto z-10">
                     <span className="text-purple-300/30 text-[9px] font-bold tracking-widest">v1.0.0</span>
                     <button className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></button>
                 </div>

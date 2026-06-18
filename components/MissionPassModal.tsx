@@ -170,15 +170,15 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                 {/* ===== TOPBAR ===== */}
                 {view === 'MISSIONS' ? (
-                    /* MISSIONS topbar: title | counter | X */
+                    /* MISSIONS topbar: counter | centered title | level + gems + X */
                     <div className={topbarBase} style={topbarStyle}>
-                        <div className="flex items-center gap-2 px-3 h-[40px]">
-                            <span className="font-black text-white text-xs tracking-widest shrink-0">Daily Missions</span>
+                        <div className="relative flex items-center gap-2 px-3 h-[40px]">
+                            <span className="absolute left-0 right-0 text-center font-black text-white text-xs tracking-widest pointer-events-none">Daily Missions</span>
                             {(() => {
                                 const daily = missionState.activeMissions.filter(m => m.frequency === 'DAILY');
                                 const done = daily.filter(m => m.completed || m.claimed).length;
                                 return (
-                                    <span className="font-black text-[10px] px-2 py-0.5 rounded-full"
+                                    <span className="font-black text-[10px] px-2 py-0.5 rounded-full z-10 shrink-0"
                                         style={{ background: done >= 4 ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.08)', color: done >= 4 ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>
                                         {done}/4
                                     </span>
@@ -186,28 +186,28 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             })()}
                             <div className="flex-1" />
                             {/* Pass level + XP shortcut */}
-                            <button onClick={() => setView('PASS')} className="flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0"
+                            <button onClick={() => setView('PASS')} className="flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0 z-10"
                                 style={{ background: 'rgba(251,191,36,0.12)', border: 'none', cursor: 'pointer' }}>
                                 <span className="font-black text-[9px] text-yellow-300">Lv.{missionState.passLevel}</span>
                                 <span className="font-black text-[9px] text-yellow-200/60">{missionState.passXP}/{missionState.passXpToNext}</span>
                             </button>
                             {/* Gems pill with + shortcut */}
-                            <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
+                            <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0 z-10" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                 <span className="font-black text-[10px] text-white">{diamonds.toLocaleString('en-US')}</span>
                                 {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '1px 6px', fontSize: '8px' }}>Buy</div></button>}
                             </div>
-                            <div className="round-btn shrink-0" onClick={onClose}>
+                            <div className="round-btn shrink-0 z-10" onClick={onClose}>
                                 <i className="ti ti-x"></i>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    /* PASS topbar: title | spacer | currencies | X */
+                    /* PASS topbar: centered title | currencies | X */
                     <div className={topbarBase} style={topbarStyle}>
-                        <div className="flex items-center gap-2 px-3 h-[40px]">
-                            {/* Title */}
-                            <span className="font-black text-white text-xs tracking-widest shrink-0">Mission Pass</span>
+                        <div className="relative flex items-center gap-2 px-3 h-[40px]">
+                            {/* Title — absolutely centered */}
+                            <span className="absolute left-0 right-0 text-center font-black text-white text-xs tracking-widest pointer-events-none">Mission Pass</span>
                             <div className="flex-1"></div>
                             {/* Currency pills */}
                             <div className="currency-pill flex items-center gap-1 shrink-0" style={{ fontSize: '10px' }}>

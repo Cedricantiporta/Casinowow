@@ -498,8 +498,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {/* Topbar */}
             <div className="shrink-0 flex items-center gap-2 px-3 h-[38px] z-20"
                 style={{ background: 'transparent' }}>
-                <span className="font-black text-white text-xs uppercase tracking-widest drop-shadow shrink-0">{questTitle}</span>
-                <div className="flex-1 flex items-center justify-center gap-1.5">
+                {/* LEFT — currency pills */}
+                <div className="flex items-center gap-1.5 shrink-0">
                     <div className="currency-pill flex items-center gap-1">
                         <div className="coin shrink-0">$</div>
                         <span className="num" style={{ fontSize: '10px' }}>{formatCommaNumber(balance)}</span>
@@ -507,15 +507,16 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     <div className="currency-pill flex items-center gap-1">
                         <div className="gem shrink-0"></div>
                         <span className="num" style={{ fontSize: '10px' }}>{diamonds}</span>
-                        {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop, 50); }} style={{ fontSize: '10px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', lineHeight: 1, color: '#c084fc', fontWeight: 900 }}>+</button>}
+                        {onOpenGemShop && (
+                            <button onClick={() => { onClose(); setTimeout(onOpenGemShop, 50); }} className="pill-green" style={{ marginLeft: '2px' }}>
+                                <div className="pill-face" style={{ padding: '1px 6px', fontSize: '8px' }}>Buy</div>
+                            </button>
+                        )}
                     </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                    <span style={{ fontSize: '8px', fontWeight: 700, color: 'rgba(253,230,138,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em', lineHeight: 1 }}>Prize</span>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 900, background: 'linear-gradient(180deg,#fff8a0,#ffd700 50%,#ff9500)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))', whiteSpace: 'nowrap', lineHeight: 1 }}>
-                        {formatCommaNumber(Math.floor((maxBet || 10000) * (3 + 0.1 * (isWild ? wildStage : diceStage))))}
-                    </span>
-                </div>
+                {/* CENTER — title */}
+                <span className="flex-1 text-center font-black text-white text-xs tracking-wide drop-shadow">{questTitle}</span>
+                {/* RIGHT — X */}
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 

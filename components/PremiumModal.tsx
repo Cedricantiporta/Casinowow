@@ -149,7 +149,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
                     {/* VIP Lounge Card */}
                     {!isVip && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0"
-                        style={{ width: CARD_W, background: 'linear-gradient(180deg,rgba(60,100,200,0.55) 0%,rgba(20,30,100,0.95) 100%)', boxShadow: 'inset 0 1px 0 rgba(130,180,255,0.5), 0 4px 16px rgba(0,0,0,0.6)' }}>
+                        style={{ width: CARD_W, background: 'linear-gradient(180deg,rgba(200,140,0,0.5) 0%,rgba(90,50,0,0.95) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,220,80,0.4), 0 4px 16px rgba(0,0,0,0.6)' }}>
                         <div className="shrink-0 px-4 pt-4 pb-2">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-2xl">👑</span>
@@ -177,22 +177,22 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                         </div>
                     </div>}
 
-                    {/* Monthly Pass Card */}
+                    {/* Mission Pass Card */}
                     {!isPremium && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0"
-                        style={{ width: CARD_W, background: 'linear-gradient(180deg,rgba(60,100,200,0.55) 0%,rgba(20,30,100,0.95) 100%)', boxShadow: 'inset 0 1px 0 rgba(130,180,255,0.5), 0 4px 16px rgba(0,0,0,0.6)' }}>
+                        style={{ width: CARD_W, background: 'linear-gradient(180deg,rgba(200,140,0,0.5) 0%,rgba(90,50,0,0.95) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,220,80,0.4), 0 4px 16px rgba(0,0,0,0.6)' }}>
                         <div className="shrink-0 px-4 pt-4 pb-2">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-2xl">📜</span>
-                                <span className="text-[9px] font-black text-purple-300 uppercase tracking-wide">₱ 199</span>
+                                <span className="text-[9px] font-black text-yellow-300 uppercase tracking-wide">₱ 199</span>
                             </div>
-                            <div className="font-black text-purple-300 text-sm tracking-wider leading-none">Monthly Pass</div>
-                            <div className="text-purple-200/50 text-[10px] mt-0.5 leading-tight">30-day premium reward track</div>
+                            <div className="font-black text-yellow-300 text-sm tracking-wider leading-none">Mission Pass</div>
+                            <div className="text-yellow-200/50 text-[10px] mt-0.5 leading-tight">30-day premium reward track</div>
                         </div>
                         <div className="flex-1 px-4 py-2 flex flex-col gap-1.5">
                             {passBenefits.map((b, i) => (
                                 <div key={i} className="flex items-start gap-1.5">
-                                    <span className="text-purple-400 text-[10px] leading-none mt-0.5 shrink-0">✦</span>
-                                    <span className="text-purple-100/80 text-[10px] leading-tight">{b}</span>
+                                    <span className="text-yellow-400 text-[10px] leading-none mt-0.5 shrink-0">✦</span>
+                                    <span className="text-yellow-100/80 text-[10px] leading-tight">{b}</span>
                                 </div>
                             ))}
                         </div>
