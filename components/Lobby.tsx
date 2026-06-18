@@ -233,7 +233,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                         /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
-                            className="grid gap-x-2 gap-y-2 auto-cols-max pt-4 pb-4 overflow-x-auto no-scrollbar snap-x items-start"
+                            className="grid gap-x-2 gap-y-6 auto-cols-max pt-4 pb-4 overflow-x-auto no-scrollbar snap-x items-start"
                             style={{
                                 gridTemplateRows: 'repeat(2, auto)',
                                 gridAutoFlow: 'column',
