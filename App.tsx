@@ -3512,7 +3512,7 @@ const App: React.FC = () => {
               { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' } :
               { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
-            <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
+            <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
                 {/* LEFT ZONE — Avatar + Coins + Gems */}
                 <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0">
