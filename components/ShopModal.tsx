@@ -147,38 +147,31 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 </div>
                 <div className="flex-1"></div>
                 {/* Section tabs */}
-                {[
-                    { name: 'Coins',  sec: 'COINS'    as const, bg: '#b8860b' },
-                    { name: 'Gems',   sec: 'DIAMONDS' as const, bg: '#0e7490' },
-                    { name: 'Boosts', sec: 'BOOSTS'   as const, bg: '#7c3aed' },
-                ].map((tab, i) => (
-                    <React.Fragment key={tab.name}>
-                        {i > 0 && <div className="w-px self-stretch bg-white/20 mx-0.5" />}
-                        <button onClick={() => scrollToSection(tab.sec)}
-                            className="btn-3d px-3 py-1.5 rounded-lg text-[9px] font-black text-white uppercase leading-none"
-                            style={{ background: tab.bg, minWidth: '34px' }}>
-                            {tab.name}
+                <div className="flex items-center gap-1">
+                    {[
+                        { name: 'Coins',  sec: 'COINS'    as const },
+                        { name: 'Gems',   sec: 'DIAMONDS' as const },
+                        { name: 'Boosts', sec: 'BOOSTS'   as const },
+                    ].map(tab => (
+                        <button key={tab.name} onClick={() => scrollToSection(tab.sec)} className="pill-green">
+                            <div className="pill-face" style={{ padding: '5px 10px', fontSize: '10px' }}>{tab.name}</div>
                         </button>
-                    </React.Fragment>
-                ))}
-                <div className="w-px self-stretch bg-white/20 mx-0.5" />
-                <button key="Free" onClick={() => scrollToSection('FREE')}
-                    className="btn-3d px-3 py-1.5 rounded-lg text-[9px] font-black text-white uppercase leading-none relative"
-                    style={{ background: '#166534', minWidth: '34px' }}>
-                    Free
-                    {freeCoinsAvailable && (
-                        <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full" style={{ background: '#dc2626', border: '1.5px solid #f0c000' }} />
-                    )}
-                </button>
+                    ))}
+                    <button onClick={() => scrollToSection('FREE')} className="pill-green relative">
+                        <div className="pill-face" style={{ padding: '5px 10px', fontSize: '10px' }}>Free</div>
+                        {freeCoinsAvailable && (
+                            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full z-10" style={{ background: '#dc2626', border: '1.5px solid #f0c000' }} />
+                        )}
+                    </button>
+                </div>
                 <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
             {/* Popup overlay */}
             {popup && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setPopup(null)}>
-                    <div className="bg-[#1e0d30] rounded-2xl px-6 py-5 max-w-[260px] text-center shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
-                        <div className="text-3xl mb-2">{popup === 'nogems' ? <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : '🎮'}</div>
-                        <div className="text-white font-black text-sm uppercase tracking-wide mb-1">
+                    <div className="rounded-3xl px-6 py-5 max-w-[260px] text-center shadow-2xl" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }} onClick={e => e.stopPropagation()}>
+                        <div className="text-white font-black text-sm mb-1">
                             {popup === 'nogems' ? 'Not Enough Gems' : 'Purchase Unavailable'}
                         </div>
                         <div className="text-white/50 text-[10px] mb-3">

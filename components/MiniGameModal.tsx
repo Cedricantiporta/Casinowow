@@ -598,20 +598,18 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     <div className="shrink-0 flex flex-col items-center justify-center gap-2 px-2 py-3"
                         style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 80, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
                         <div className="flex flex-col items-center leading-none">
-                            <span className="text-white/50 text-[8px] font-black uppercase tracking-widest">Stage</span>
+                            <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
                             <span className="font-black text-white text-2xl leading-none">{wildStage}</span>
                         </div>
                         <div className="w-full h-px bg-white/10" />
                         <div className="flex flex-col items-center leading-none">
                             <img src="/ui/pick.png" alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain' }} />
                             <span className="font-black text-white text-xl leading-none mt-0.5">{wildCredits}</span>
-                            <span className="text-white/50 text-[8px] font-black uppercase">Picks</span>
+                            <span className="text-white/50 text-[8px] font-black">Picks</span>
                         </div>
-                        <Btn3D onClick={() => setShowBuyPopup('PICKS')}
-                            color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
-                            className="w-full py-1.5 rounded-lg text-white" style={{ fontSize: '0.6rem' }}>
-                            + Buy
-                        </Btn3D>
+                        <button onClick={() => setShowBuyPopup('PICKS')} className="pill-green w-full">
+                            <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
+                        </button>
                     </div>
                 </div>
             )}
@@ -719,20 +717,18 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
                         style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 90, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
                         <div className="flex flex-col items-center leading-none">
-                            <span className="text-white/50 text-[8px] font-black uppercase tracking-widest">Stage</span>
+                            <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
                             <span className="font-black text-white text-2xl leading-none">{diceStage}</span>
                         </div>
                         <div className="w-full h-px bg-white/10" />
                         <div className="flex flex-col items-center leading-none">
                             <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>🎲</span>
                             <span className="font-black text-white text-xl leading-none mt-0.5">{diceCredits}</span>
-                            <span className="text-white/50 text-[8px] font-black uppercase">Dice</span>
+                            <span className="text-white/50 text-[8px] font-black">Dice</span>
                         </div>
-                        <Btn3D onClick={() => setShowBuyPopup('DICE')}
-                            color="linear-gradient(180deg,#0ea5e9,#0369a1)" shadow="0 3px 0 #0c4a6e"
-                            className="w-full py-1.5 rounded-lg text-white" style={{ fontSize: '0.6rem' }}>
-                            + Buy
-                        </Btn3D>
+                        <button onClick={() => setShowBuyPopup('DICE')} className="pill-green w-full">
+                            <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
+                        </button>
                         <div className="flex-1" />
                         <DiceFace value={diceValue} rolling={isRolling} size={52} />
                         <button
@@ -760,44 +756,45 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {showBuyPopup && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
                     onClick={() => setShowBuyPopup(null)}>
-                    <div className="rounded-2xl overflow-hidden shadow-2xl" style={{ width: 300, background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}
+                    <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ width: 300, background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                         {/* Header */}
-                        <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-                            <div>
-                                <div className="text-white font-black text-base leading-none">
+                        <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+                            <div className="flex-1">
+                                <div className="text-white font-black text-sm leading-none">
                                     {showBuyPopup === 'PICKS' ? 'Buy Picks' : 'Buy Dice'}
                                 </div>
-                                <div className="text-purple-300/60 text-[10px] mt-0.5">Bundles include coins & gems bonus</div>
+                                <div className="text-purple-300/60 text-[10px] mt-0.5">Bundles include coin bonus</div>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full">
-                                    <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                                    <span className="text-white font-black text-sm">{diamonds}</span>
-                                </div>
-                                {onOpenGemShop && <button onClick={() => { setShowBuyPopup(null); onClose(); setTimeout(onOpenGemShop, 50); }} style={{ fontSize: '11px', background: 'rgba(255,255,255,0.1)', border: 'none', width: 22, height: 22, borderRadius: '50%', cursor: 'pointer', color: '#c084fc', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>+</button>}
+                            <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                                <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', marginLeft: '-2px' }} />
+                                <span className="num text-xs">{diamonds}</span>
+                                {onOpenGemShop && (
+                                    <button onClick={() => { setShowBuyPopup(null); onClose(); setTimeout(onOpenGemShop, 50); }} className="pill-green">
+                                        <div className="pill-face" style={{ padding: '2px 6px', fontSize: '9px' }}>Buy</div>
+                                    </button>
+                                )}
                             </div>
+                            <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowBuyPopup(null)}><i className="ti ti-x" /></div>
                         </div>
                         {/* Bundle options */}
-                        <div className="px-4 pb-4 flex gap-3">
+                        <div className="px-3 pb-3 flex gap-2">
                             {(showBuyPopup === 'PICKS'
                                 ? [
-                                    { label: 'Starter', picks: 5,  dice: 0,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
-                                    { label: 'Pro',     picks: 20, dice: 0,  coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
+                                    { label: 'Starter', picks: 5,  dice: 0,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 150 },
+                                    { label: 'Pro',     picks: 20, dice: 0,  coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 500 },
                                 ]
                                 : [
-                                    { label: 'Starter', picks: 0,  dice: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 150, color: 'linear-gradient(160deg,#052e16,#166534)' },
-                                    { label: 'Pro',     picks: 0,  dice: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 500, color: 'linear-gradient(160deg,#1e1b4b,#3730a3)' },
+                                    { label: 'Starter', picks: 0,  dice: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 150 },
+                                    { label: 'Pro',     picks: 0,  dice: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 500 },
                                 ]
                             ).map(opt => {
                                 const canAfford = diamonds >= opt.gemCost;
                                 return (
-                                    <button key={opt.label}
-                                        onClick={() => { if (!canAfford) return; onBuyQuestBundle?.(showBuyPopup, opt.picks, opt.dice, opt.coins, opt.gemCost, opt.bonusGems); setShowBuyPopup(null); }}
-                                        disabled={!canAfford}
+                                    <div key={opt.label}
                                         className="flex-1 rounded-2xl flex flex-col items-center p-3 gap-1.5"
-                                        style={{ background: canAfford ? opt.color : 'rgba(0,0,0,0.5)', opacity: canAfford ? 1 : 0.5, border: '1px solid rgba(255,255,255,0.15)' }}>
-                                        <div className="text-white font-black text-sm uppercase tracking-wider">{opt.label}</div>
+                                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)', opacity: canAfford ? 1 : 0.5 }}>
+                                        <div className="text-white font-black text-sm">{opt.label}</div>
                                         <div className="w-full flex flex-col gap-1 my-1">
                                             <div className="flex items-center gap-1.5 text-white text-xs font-bold">
                                                 {showBuyPopup === 'PICKS' ? <img src="/ui/pick.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle' }} /> : <span>🎲</span>}
@@ -808,11 +805,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 <span>+{formatCommaNumber(opt.coins)}</span>
                                             </div>
                                         </div>
-                                        <div className="w-full py-2 rounded-xl text-center font-black text-white text-sm flex items-center justify-center gap-1"
-                                            style={{ background: canAfford ? 'linear-gradient(180deg,#7c3aed,#4c1d95)' : 'rgba(0,0,0,0.4)', boxShadow: canAfford ? '0 3px 0 #2e1065' : 'none' }}>
-                                            <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {opt.gemCost}
-                                        </div>
-                                    </button>
+                                        <button
+                                            onClick={() => { if (!canAfford) return; onBuyQuestBundle?.(showBuyPopup, opt.picks, opt.dice, opt.coins, opt.gemCost, opt.bonusGems); setShowBuyPopup(null); }}
+                                            className={`pill-green w-full ${!canAfford ? 'opacity-40' : ''}`}>
+                                            <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>
+                                                <img src="/symbols/diamond.png" alt="" style={{ width: '0.9em', height: '0.9em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 3 }} />{opt.gemCost}
+                                            </div>
+                                        </button>
+                                    </div>
                                 );
                             })}
                         </div>
