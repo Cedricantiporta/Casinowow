@@ -148,10 +148,10 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                         <div className="flex-1 flex flex-col items-center justify-center gap-2 p-3">
                             <img src="/ui/high_roller.png" alt=""
                                 style={{ width: 110, height: 110, objectFit: 'contain', filter: hlUnlocked ? 'drop-shadow(0 4px 16px rgba(255,220,50,0.9))' : 'grayscale(1) brightness(0.5)' }} />
-                            {!hlUnlocked && (
+                            {!hlUnlocked && playerLevel < 35 && (
                                 <div className="text-center">
                                     <div className="font-black text-[11px] tracking-wide" style={{ color: '#6b7280' }}>
-                                        {playerLevel < 35 ? `Unlocks at Lv.35` : 'VIP Required'}
+                                        Unlocks at Lv.35
                                     </div>
                                 </div>
                             )}

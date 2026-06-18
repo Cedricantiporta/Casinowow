@@ -276,7 +276,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         className={`row-span-1 relative group w-[76px] h-[76px] md:w-[96px] md:h-[96px] overflow-visible snap-center ${isLocked ? 'cursor-not-allowed' : ''}`}
                                         style={{ borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
                                     >
-                                        <div className="absolute -top-[6px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
+                                        <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none flex items-center justify-center" style={{ transform: 'translateY(-100%)' }}>
                                             <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'4px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
                                                 {formatK(jackpotTotals[idx] ?? 0)}
                                             </span>
