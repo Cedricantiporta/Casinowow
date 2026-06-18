@@ -125,8 +125,8 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                 <>
                     <div
                         ref={scrollRef}
-                        className="grid gap-x-4 gap-y-3 h-[93%] max-h-[580px] auto-cols-max pt-5 px-3 overflow-x-auto no-scrollbar snap-x"
-                        style={{ gridTemplateRows: 'repeat(2, 1fr)', gridAutoFlow: 'column' }}
+                        className="grid gap-x-4 gap-y-3 auto-cols-max pt-1 px-3 overflow-x-auto no-scrollbar snap-x items-start"
+                        style={{ gridTemplateRows: 'repeat(2, auto)', gridAutoFlow: 'column' }}
                     >
                         {GAMES_CONFIG.map((game, idx) => {
                             const icon = getIcon(game.theme);
