@@ -59,6 +59,7 @@ const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
     WESTERN: 'PIRATE',
     LEPRECHAUN: 'CANDY',
     UNDERWATER: 'ARCTIC',
+    SAMURAI: 'EGYPT',
 };
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
@@ -1460,7 +1461,7 @@ const App: React.FC = () => {
       let pirateShipSeeded = false;
 
       // EGYPT Hold and Win: generate respin grid keeping locked cells as COIN
-      if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
+      if (ft === 'EGYPT' && holdWinRef.current.active) {
           const lockedGrid = holdWinRef.current.lockedGrid;
           // Base 50% chance any coins appear; decreases 15% for each non-productive respin (last slot ~1%)
           const respinsUsed = 3 - holdWinRef.current.respins; // 0 on first respin, 1 on second, etc.
@@ -1708,8 +1709,8 @@ const App: React.FC = () => {
           }
       }
 
-      // EGYPT: inject coin symbols (1-6 cells) in base game; 6+ triggers Hold and Win
-      if (selectedGame.theme === 'EGYPT' && !isFreeSpin) {
+      // EGYPT: inject coin symbols (1-6 cells) in base game; 6+ triggers Hold and Win (reused by Samurai)
+      if (ft === 'EGYPT' && !isFreeSpin) {
           const coinRoll = Math.random();
           let targetCoins = 0;
           if (coinRoll >= 0.994)      targetCoins = 6;
@@ -2158,7 +2159,7 @@ const App: React.FC = () => {
         }
 
         // EGYPT: Hold and Win respin handling
-        if (selectedGame.theme === 'EGYPT' && holdWinRef.current.active) {
+        if (ft === 'EGYPT' && holdWinRef.current.active) {
             const lockedGrid = holdWinRef.current.lockedGrid;
             const coinValues = holdWinRef.current.coinValues;
             const jpGrid = holdWinRef.current.jpGrid;
@@ -2204,7 +2205,7 @@ const App: React.FC = () => {
         }
 
         // EGYPT: assign values to all COIN cells (shown on overlay) + trigger HW if 6+ (normal spins only)
-        if (selectedGame.theme === 'EGYPT' && !holdWinRef.current.active) {
+        if (ft === 'EGYPT' && !holdWinRef.current.active) {
             const currentBet = currentBetRef.current;
             const preValues: (number|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
             const preJpGrid: (string|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
@@ -2283,7 +2284,7 @@ const App: React.FC = () => {
 
         let scatterCount = 0;
         const scatters: {col: number, row: number}[] = [];
-        if (selectedGame.theme !== 'EGYPT') {
+        if (ft !== 'EGYPT') {
         targetGrid.forEach((col, colIdx) => {
             col.forEach((sym, rowIdx) => {
                 if (sym === SymbolType.SCATTER) {
@@ -3800,7 +3801,7 @@ const App: React.FC = () => {
                         })()}
 
                         {/* Hold and Win locked-cell overlay */}
-                        {holdWinActive && selectedGame.theme === 'EGYPT' && (
+                        {holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
                                     <div key={c} className="flex-1 flex flex-col gap-0.5">
@@ -3842,7 +3843,7 @@ const App: React.FC = () => {
                         )}
 
                         {/* Egypt coin meta overlay — show values on COIN cells during normal/free spins */}
-                        {!holdWinActive && selectedGame.theme === 'EGYPT' && egyptCoinMeta &&
+                        {!holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && egyptCoinMeta &&
                          status !== GameStatus.SPINNING && (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
@@ -4076,7 +4077,7 @@ const App: React.FC = () => {
                     )}
 
                     {/* Egypt HW respin counter — absolute right so reel grid stays centered */}
-                    {holdWinActive && selectedGame.theme === 'EGYPT' && (
+                    {holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && (
                         <div className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg absolute"
                             style={{ right: 0, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(251,191,36,0.5)', boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}>
                             <span style={{ fontSize: 'clamp(7px,1.3vw,10px)', color: '#fbbf24', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>RESPINS</span>

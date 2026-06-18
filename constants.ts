@@ -158,8 +158,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     theme: 'SAMURAI',
     rows: 5,
     reels: 5,
-    scattersToTrigger: 4,
-    description: 'Sharp blades and sharper wins.',
+    scattersToTrigger: 999,
+    description: 'Hold & Win! Land 6+ honor coins to lock them and trigger respins.',
     color: 'from-red-700 via-red-900 to-black',
     bgImage: 'radial-gradient(circle at 50% 0%, #991b1b 0%, #450a0a 100%)',
     reelBg: REEL_BGS.SAMURAI
