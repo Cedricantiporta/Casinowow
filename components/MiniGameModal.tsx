@@ -496,10 +496,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             style={{ background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
 
             {/* Topbar */}
-            <div className="shrink-0 flex items-center gap-2 px-3 h-[38px] z-20"
+            <div className="relative shrink-0 flex items-center px-3 h-[38px] z-20"
                 style={{ background: 'transparent' }}>
                 {/* LEFT — currency pills */}
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0 z-10">
                     <div className="currency-pill flex items-center gap-1">
                         <div className="coin shrink-0">$</div>
                         <span className="num" style={{ fontSize: '10px' }}>{formatCommaNumber(balance)}</span>
@@ -514,10 +514,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         )}
                     </div>
                 </div>
-                {/* CENTER — title */}
-                <span className="flex-1 text-center font-black text-white text-xs tracking-wide drop-shadow">{questTitle}</span>
+                {/* CENTER — title absolutely centered */}
+                <span className="absolute left-0 right-0 text-center font-black text-white text-xs tracking-wide drop-shadow pointer-events-none">{questTitle}</span>
                 {/* RIGHT — X */}
-                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
+                <div className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
             {/* ── COINMINE (Wild Quest) ── */}
