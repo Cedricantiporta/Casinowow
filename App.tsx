@@ -3515,7 +3515,7 @@ const App: React.FC = () => {
             <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
                 {/* LEFT ZONE — Avatar + Coins + Gems */}
-                <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0">
+                <div className="flex items-center gap-1 md:gap-1.5 shrink-0">
                     {/* Lobby Home Button */}
                     <div
                         onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
