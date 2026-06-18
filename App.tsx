@@ -3509,8 +3509,8 @@ const App: React.FC = () => {
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
-              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none' } :
-              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none' }}>
+              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6), 0 6px 18px rgba(180,90,0,0.5)' } :
+              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6), 0 6px 18px rgba(160,40,255,0.45)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
