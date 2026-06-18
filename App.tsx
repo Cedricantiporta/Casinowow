@@ -56,6 +56,7 @@ interface SavedGameState {
 //   Jungle Rumble (JUNGLE)  → Space    : progressive-multiplier free spins
 const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
     JUNGLE: 'SPACE',
+    WESTERN: 'PIRATE',
 };
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
@@ -1636,7 +1637,7 @@ const App: React.FC = () => {
       // PIRATE: ~4% base-game chance for a Ghost Ship to board on the rightmost reel.
       // During free spins, Ghost Ship is GUARANTEED — no jackpot symbols during walk.
       // 20% chance of a second Ghost Ship boarding 1-3 cols to the left of the first.
-      if (selectedGame.theme === 'PIRATE' && !pirateWalkRef.current.active) {
+      if (ft === 'PIRATE' && !pirateWalkRef.current.active) {
           if (isFreeSpin || freeSpinsWon > 0 || Math.random() < 0.04) {
               const lastCol = cols - 1;
               for (let r = 0; r < rows; r++) newGrid[lastCol][r] = SymbolType.WILD;
@@ -1653,7 +1654,7 @@ const App: React.FC = () => {
       // NEON uses jackpot cells instead of scatters; PIGGY uses coin cells.
       // PIRATE skips scatter injection while a Ghost Ship is boarding or walking (avoids double features).
       if (selectedGame.theme !== 'NEON' && selectedGame.theme !== 'PIGGY'
-          && !pirateShipSeeded && !(selectedGame.theme === 'PIRATE' && pirateWalkRef.current.active)) {
+          && !pirateShipSeeded && !(ft === 'PIRATE' && pirateWalkRef.current.active)) {
           const scatterRoll = Math.random() * 100;
           let targetScatters = 0;
           // 3×3 slots: 20% less free spin chance (raise thresholds so fewer scatters spawn)
@@ -1880,7 +1881,7 @@ const App: React.FC = () => {
       }
 
       // Jackpot cell injection: during free spins only, except ARCTIC, NEON, and PIRATE (Ghost Ship feature uses no jackpots)
-      if (freeSpinsRemaining > 0 && selectedGame.theme !== 'ARCTIC' && selectedGame.theme !== 'NEON' && selectedGame.theme !== 'PIRATE') {
+      if (freeSpinsRemaining > 0 && ft !== 'ARCTIC' && ft !== 'NEON' && ft !== 'PIRATE') {
           // CANDY gets 50% reduced jackpot spawn rates
           const jpScale = selectedGame.theme === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
@@ -1913,7 +1914,7 @@ const App: React.FC = () => {
       }
 
       // PIRATE: while the Ghost Ship is walking, force all active ship columns to full WILD stacks.
-      if (selectedGame.theme === 'PIRATE' && pirateWalkRef.current.active) {
+      if (ft === 'PIRATE' && pirateWalkRef.current.active) {
           const shipCol = pirateWalkRef.current.shipCol;
           if (shipCol >= 0 && shipCol < cols) {
               for (let r = 0; r < rows; r++) newGrid[shipCol][r] = SymbolType.WILD;
@@ -2124,6 +2125,7 @@ const App: React.FC = () => {
   }, [status, targetGrid.length, fastSpin]); 
 
   const handleReelStop = useCallback(() => {
+    const ft = featureThemeOf(selectedGame.theme);
     setStoppedReels(prev => {
       const next = prev + 1;
       audioService.playReelStop();
@@ -2252,7 +2254,7 @@ const App: React.FC = () => {
 
         // PIRATE: Ghost Ship Walking Wilds. The wild column "sails" one reel left per free respin
         // (the leftward step is taken in the IDLE auto-continue effect, so the overlay matches the screen).
-        if (selectedGame.theme === 'PIRATE') {
+        if (ft === 'PIRATE') {
             if (pirateWalkRef.current.active) {
                 calculateWin(targetGrid);
                 return next;
@@ -3895,30 +3897,36 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* PIRATE Ghost Ship — glowing wild column highlight + ship marker (dual ships supported) */}
-                        {pirateWalkActive && selectedGame.theme === 'PIRATE' && pirateShipCol >= 0 && (
+                        {/* PIRATE Ghost Ship walking wilds — reused by Gold Rush (themed gold + galloping marker) */}
+                        {pirateWalkActive && featureThemeOf(selectedGame.theme) === 'PIRATE' && pirateShipCol >= 0 && (() => {
+                            const isWest = selectedGame.theme === 'WESTERN';
+                            const edge = isWest ? '#ffcc33' : '#38e8ff';
+                            const glowRGB = isWest ? '255,180,40' : '56,232,255';
+                            const marker = isWest ? '🐎' : '🚢';
+                            return (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
                                     <div key={c} className="flex-1 relative">
                                         {(c === pirateShipCol || c === pirateShip2Col) && (
                                             <div className="absolute inset-0 flex items-start justify-center animate-pop-in"
                                                 style={{
-                                                    border: '2.5px solid #38e8ff',
+                                                    border: `2.5px solid ${edge}`,
                                                     borderRadius: 5,
-                                                    boxShadow: '0 0 22px rgba(56,232,255,0.85), inset 0 0 26px rgba(56,232,255,0.35)',
-                                                    background: 'linear-gradient(180deg,rgba(56,232,255,0.18),rgba(20,80,120,0.05))',
+                                                    boxShadow: `0 0 22px rgba(${glowRGB},0.85), inset 0 0 26px rgba(${glowRGB},0.35)`,
+                                                    background: `linear-gradient(180deg,rgba(${glowRGB},0.18),rgba(20,80,120,0.05))`,
                                                 }}>
-                                                <span style={{ fontSize: 'clamp(20px,5vw,34px)', lineHeight: 1, marginTop: '-2px', filter: 'drop-shadow(0 0 8px rgba(56,232,255,0.9))' }}>🚢</span>
+                                                <span style={{ fontSize: 'clamp(20px,5vw,34px)', lineHeight: 1, marginTop: '-2px', filter: `drop-shadow(0 0 8px rgba(${glowRGB},0.9))` }}>{marker}</span>
                                             </div>
                                         )}
                                     </div>
                                 ))}
                             </div>
-                        )}
+                            );
+                        })()}
 
 
                         {/* PIRATE free-spin counter — shows remaining / total beneath the Ghost Ship banner */}
-                        {selectedGame.theme === 'PIRATE' && totalFreeSpins > 0 && (
+                        {featureThemeOf(selectedGame.theme) === 'PIRATE' && totalFreeSpins > 0 && (
                             <div className="absolute -bottom-1 inset-x-0 flex justify-center z-30 pointer-events-none">
                                 <div style={{
                                     background: 'linear-gradient(180deg,#06212b,#030e14)',
