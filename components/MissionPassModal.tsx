@@ -232,9 +232,15 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden" style={{ background: 'transparent' }}>
                         {currentMissions.map((mission) => (
                             <div key={mission.id}
-                                className={`flex-1 flex flex-col gap-2 rounded-xl p-3 relative overflow-hidden shadow-lg border ${mission.isGolden ? (mission.completed ? 'border-yellow-500/60' : 'border-yellow-700/40') : mission.completed ? 'border-green-900/40' : 'border-white/5'}`}
-                                style={{ background: mission.isGolden ? (mission.completed ? 'linear-gradient(180deg,#5a3f00,#3d2900)' : 'linear-gradient(180deg,#4a3300,#2e1e00)') : mission.completed ? 'linear-gradient(180deg,#0a2e0a,#0e1c0e)' : 'linear-gradient(180deg,#2a233e,#1a1230)' }}>
-                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
+                                className="flex-1 flex flex-col gap-2 rounded-xl p-3 relative overflow-hidden shadow-lg"
+                                style={{
+                                    background: mission.isGolden
+                                        ? 'linear-gradient(160deg,#a16207 0%,#78350f 60%,#451a03 100%)'
+                                        : 'linear-gradient(160deg,#1e3a8a 0%,#1e1b4b 60%,#0a0f2e 100%)',
+                                    boxShadow: mission.isGolden
+                                        ? 'inset 0 1px 0 rgba(255,220,80,0.4), 0 4px 12px rgba(0,0,0,0.5)'
+                                        : 'inset 0 1px 0 rgba(100,160,255,0.35), 0 4px 12px rgba(0,0,0,0.5)',
+                                }}>
 
                                 {/* Golden / stacks badges */}
                                 {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
@@ -251,7 +257,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 )}
 
                                 {/* Icon */}
-                                <div className="flex-1 bg-black/30 rounded-xl flex items-center justify-center shrink-0 shadow-inner mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(3rem, 8vw, 5rem)' }}>
+                                <div className="flex-1 rounded-xl flex items-center justify-center shrink-0 mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(2.5rem, 7vw, 4rem)', background: mission.isGolden ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.25)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>
                                     {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : mission.type === 'BET_COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : mission.type === 'MAX_BET_SPIN' ? <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : <img src="/ui/star.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />}
                                 </div>
 
@@ -261,8 +267,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 {/* Progress */}
                                 <div className="relative z-10">
                                     <div className="relative h-5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.5)' }}>
-                                        <div className={`absolute inset-y-0 left-0 rounded-full transition-all ${mission.completed ? (mission.isGolden ? 'bg-yellow-400' : 'bg-green-500') : (mission.isGolden ? 'bg-amber-500' : 'bg-fuchsia-500')}`}
-                                            style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%` }} />
+                                        <div className="absolute inset-y-0 left-0 rounded-full transition-all"
+                                            style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%`, background: mission.isGolden ? 'linear-gradient(180deg,#fbbf24,#d97706)' : 'linear-gradient(180deg,#60a5fa,#2563eb)' }} />
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <span className="text-[10px] font-black leading-none text-white" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
                                                 {`${formatK(mission.current)} / ${formatK(mission.target)}`}
@@ -274,7 +280,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 {/* Rewards */}
                                 <div className="flex flex-col gap-0.5 relative z-10">
                                     <div className="text-center">
-                                        <span className={`font-mono text-[11px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
+                                        <span className={`font-mono text-[11px] font-black ${isXpBoosted || mission.isGolden ? 'text-yellow-300' : 'text-blue-300'}`}>
                                             +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} Pass XP
                                         </span>
                                     </div>
@@ -328,7 +334,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                                 const renderIcon = (reward: typeof freeReward) => {
                                     if (!reward) return null;
-                                    const s = '4rem';
+                                    const s = '2.5rem';
                                     if (reward.type === 'COINS') return <img src="/symbols/coin.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
                                     if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
                                     if (reward.type === 'PICKS') return <span style={{ fontSize: s, lineHeight: 1 }}>⛏️</span>;
@@ -338,12 +344,10 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 };
 
                                 const freeBorder = {
-                                    border: '3px solid #60a5fa',
-                                    boxShadow: 'inset 0 3px 4px rgba(255,255,255,0.45), inset 0 -2px 4px rgba(0,10,60,0.6), 0 0 10px rgba(96,165,250,0.25)',
+                                    boxShadow: 'inset 0 1px 0 rgba(150,200,255,0.4), 0 4px 10px rgba(0,0,0,0.5)',
                                 };
                                 const premBorder = {
-                                    border: '3px solid #fde047',
-                                    boxShadow: 'inset 0 3px 4px rgba(255,250,180,0.45), inset 0 -2px 4px rgba(60,40,0,0.6), 0 0 10px rgba(253,224,71,0.3)',
+                                    boxShadow: 'inset 0 1px 0 rgba(255,240,120,0.4), 0 4px 10px rgba(0,0,0,0.5)',
                                 };
 
                                 return (
