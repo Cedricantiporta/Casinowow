@@ -3509,10 +3509,10 @@ const App: React.FC = () => {
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
-              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6), 0 6px 18px rgba(180,90,0,0.5)' } :
+              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' } :
               { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6), 0 6px 18px rgba(160,40,255,0.45)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
-            <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
+            <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
                 {/* LEFT ZONE — Avatar + Coins + Gems */}
                 <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0">
@@ -3541,13 +3541,15 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* CENTER ZONE — Buy & Sale (truly centered) */}
-                <div className="flex items-center gap-1 shrink-0">
-                    <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
-                        <div className="face text-center"><span className="lbl">BUY</span></div>
-                    </div>
-                    <div onClick={() => setShowPremiumModal(true)} className="btn pink saleB shrink-0">
-                        <div className="face text-center"><span className="lbl">SALE</span></div>
+                {/* CENTER ZONE — Buy & Sale (absolutely centered) */}
+                <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 shrink-0 z-10 pointer-events-none">
+                    <div className="pointer-events-auto flex items-center gap-1">
+                        <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
+                            <div className="face text-center"><span className="lbl">BUY</span></div>
+                        </div>
+                        <div onClick={() => setShowPremiumModal(true)} className="btn pink saleB shrink-0">
+                            <div className="face text-center"><span className="lbl">SALE</span></div>
+                        </div>
                     </div>
                 </div>
 
@@ -3556,6 +3558,12 @@ const App: React.FC = () => {
                     <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
                         style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
                         className="shrink-0 active:scale-90 transition-transform" />
+
+                    {/* Events pill */}
+                    <div className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2"
+                        style={{ height: 22, background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                        <span className="font-black text-white tracking-widest" style={{ fontSize: 9 }}>EVENTS</span>
+                    </div>
 
                     {/* Level Pill */}
                     <div className="rtrack !flex-none w-[110px] md:w-[145px]" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible' }}>

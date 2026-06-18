@@ -342,7 +342,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     background: barBg,
                                     border: `1.5px solid ${borderCol}`,
                                     borderBottom: 'none',
-                                    boxShadow: `${barGlow}, 0 -16px 60px rgba(0,0,0,0.98), 0 -6px 24px rgba(0,0,0,0.95), 0 -2px 8px rgba(0,0,0,1)`,
+                                    boxShadow: isGolden ? barGlow : `${barGlow}, 0 -16px 60px rgba(0,0,0,0.98), 0 -6px 24px rgba(0,0,0,0.95), 0 -2px 8px rgba(0,0,0,1)`,
                                     zIndex: -1,
                                 }}>
                                 <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'45%', borderRadius:'18px 18px 0 0', background:'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }}></div>

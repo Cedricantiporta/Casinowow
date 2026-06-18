@@ -340,7 +340,7 @@ const ReelCell: React.FC<{
                             className="font-titan font-black tracking-widest select-none text-white leading-none text-center px-1"
                             style={{
                                 fontSize: `clamp(0.4rem, ${(1.8 * cellScale).toFixed(2)}vw, ${(1.0 * cellScale).toFixed(3)}rem)`,
-                                textShadow: `0 1px 4px ${jpStyle?.darkColor ?? 'rgba(0,0,0,0.9)'}, 0 0 10px ${jpStyle?.darkColor ?? 'rgba(0,0,0,0.7)'}`,
+                                textShadow: `0 1px 4px ${jpStyle?.darkColor ?? 'rgba(0,0,0,0.9)'}`,
                             }}
                         >
                             {jpLabel}
