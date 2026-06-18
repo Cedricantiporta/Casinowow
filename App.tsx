@@ -3546,7 +3546,7 @@ const App: React.FC = () => {
                     <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
                         <div className="face text-center"><span className="lbl">BUY</span></div>
                     </div>
-                    <div onClick={() => setShowPremiumModal(true)} className="btn yellow saleB shrink-0">
+                    <div onClick={() => setShowPremiumModal(true)} className="btn pink saleB shrink-0">
                         <div className="face text-center"><span className="lbl">SALE</span></div>
                     </div>
                 </div>
@@ -4102,12 +4102,12 @@ const App: React.FC = () => {
                   {/* Minus Bet */}
                   <div
                       onClick={() => {
-                          if (betIndex > 0 && status === GameStatus.IDLE) {
+                          if (betIndex > 0 && status === GameStatus.IDLE && !player.autoSpin) {
                               setBetIndex(prev => prev - 1);
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || player.autoSpin || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                       style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       −
@@ -4122,12 +4122,12 @@ const App: React.FC = () => {
                   {/* Plus Bet */}
                   <div
                       onClick={() => {
-                          if (betIndex < availableBets.length - 1 && status === GameStatus.IDLE) {
+                          if (betIndex < availableBets.length - 1 && status === GameStatus.IDLE && !player.autoSpin) {
                               setBetIndex(prev => prev + 1);
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || player.autoSpin || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                       style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       +

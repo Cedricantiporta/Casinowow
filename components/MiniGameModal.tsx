@@ -99,6 +99,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [isMoving, setIsMoving] = useState(false);
     const [diceValue, setDiceValue] = useState(1);
     const [visualPosition, setVisualPosition] = useState(dicePosition);
+    const visualPositionRef = useRef(dicePosition);
     const [board, setBoard] = useState<BoardStep[]>([]);
     const [autoRoll, setAutoRoll] = useState(false);
     const rollButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -251,6 +252,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             }
         }
     }, [visualPosition, activeGame, dicePosition]);
+
+    useEffect(() => { visualPositionRef.current = visualPosition; }, [visualPosition]);
 
     useEffect(() => {
         if (autoRoll && stageWinning && stageClearData) {
@@ -458,7 +461,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 const final = Math.floor(Math.random() * 6) + 1;
                 setDiceValue(final);
                 setIsRolling(false);
-                movePlayerStepByStep(visualPosition, final);
+                movePlayerStepByStep(visualPositionRef.current, final);
             }
         }, 80);
     };

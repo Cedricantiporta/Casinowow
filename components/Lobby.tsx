@@ -415,23 +415,6 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {sep}
 
-                            {/* Pass */}
-                            <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
-
-                                <div className="relative leading-none">
-                                    <img src="/ui/pass.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                    {totalMissionNotifs > 0 && !isMissionsLocked && (
-                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
-                                            style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{totalMissionNotifs}</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Pass</span>
-                            </button>
-
-                            {sep}
-
                             {/* FREE COINS — center */}
                             <button onClick={onClaimBonus} className={iconBtn(false)}>
                                 <div className="relative leading-none">
@@ -449,6 +432,23 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     )}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Collect</span>
+                            </button>
+
+                            {sep}
+
+                            {/* Pass */}
+                            <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
+
+                                <div className="relative leading-none">
+                                    <img src="/ui/pass.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    {totalMissionNotifs > 0 && !isMissionsLocked && (
+                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
+                                            style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{totalMissionNotifs}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Pass</span>
                             </button>
 
                             {sep}
