@@ -29,34 +29,31 @@ export const FreeSpinsWonPopup: React.FC<FreeSpinsWonPopupProps> = ({ isOpen, co
     if (!isOpen) return null;
 
     return (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/90 animate-pop-in">
-            {/* 3D container — offset bottom layer for thickness */}
-            <div className="relative">
-                <div className="absolute inset-0 rounded-2xl" style={{ background: '#2e0660', transform: 'translateY(7px)', borderRadius: '16px' }}></div>
-                <div className="relative rounded-2xl overflow-hidden flex flex-col items-center text-center px-8 py-6 min-w-[220px]"
-                    style={{
-                        background: 'linear-gradient(160deg,#9333ea 0%,#6d28d9 50%,#4c1d95 100%)',
-                        border: '1.5px solid rgba(196,151,255,0.4)',
-                        boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.25)',
-                    }}>
-                    {/* Shine overlay */}
-                    <div className="absolute top-0 left-0 right-0 h-1/2 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.15),transparent)' }}></div>
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-pop-in select-none">
+            <div className="w-full max-w-[260px] flex flex-col rounded-3xl overflow-hidden"
+                style={{
+                    background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)',
+                    boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
+                }}>
+                {/* Header */}
+                <div className="shrink-0 px-4 pt-4 pb-1 text-center">
+                    <h2 className="text-sm font-black text-white">You Won Free Spins!</h2>
+                </div>
 
-                    <h2 className="relative z-10 text-sm font-black text-purple-100 uppercase tracking-widest mb-1 drop-shadow">
-                        YOU WON FREE
-                    </h2>
-                    <div className="relative z-10 text-6xl font-black font-display text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] my-2 animate-bounce">
+                {/* Body */}
+                <div className="flex flex-col items-center justify-center px-4 py-4 text-center">
+                    <div className="text-6xl font-black text-white animate-bounce">
                         {count}
                     </div>
-                    <div className="relative z-10 text-sm font-black text-purple-100 uppercase tracking-[0.3em] drop-shadow mb-4">
-                        SPINS
+                    <div className="text-sm font-black text-purple-200/80 tracking-wider mt-1">
+                        Spins
                     </div>
-                    <button
-                        onClick={handleStartNow}
-                        className="relative z-10 px-6 py-1.5 text-white font-black uppercase text-xs tracking-widest rounded-lg active:scale-95 transition-transform"
-                        style={{ background: 'linear-gradient(180deg,#a855f7,#7c3aed)', boxShadow: '0 3px 0 #3b0764', border: '1px solid rgba(255,255,255,0.2)' }}
-                    >
-                        Start Now
+                </div>
+
+                {/* Footer */}
+                <div className="shrink-0 px-4 pb-4">
+                    <button onClick={handleStartNow} className="pill-green w-full">
+                        <div className="pill-face">Start Now</div>
                     </button>
                 </div>
             </div>
