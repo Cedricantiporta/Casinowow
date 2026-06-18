@@ -3512,101 +3512,91 @@ const App: React.FC = () => {
               { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' } :
               { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none', boxShadow:'0 8px 24px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
-            <div className="barB bar font-nunito w-full h-full flex items-center justify-between gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
-                {/* Lobby Home Button */}
-                <div
-                    onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
-                    className="round-btn shrink-0 cursor-pointer"
-                    style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
-                >
-                    {currentView !== 'LOBBY'
-                        ? <i className="ti ti-arrow-left"></i>
-                        : (profileEmoji ? <span className="text-base leading-none">{profileEmoji}</span> : <i className="ti ti-user" />)
-                    }
-                </div>
+            <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
-                {/* Separate Coins & Gems pills joined closely */}
-                <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[320px] md:max-w-[460px] shrink-0 ml-2">
-                    {/* Separate Coins Pill — icon protruding on far left */}
-                    <div className="currency-pill flex-[5] max-w-[230px] md:max-w-[330px] flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '120px' }}>
-                        <img src="/symbols/coin.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
-                        <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
-                    </div>
-
-                    {/* Separate Gem Pill — icon protruding on far left */}
-                    <div className="currency-pill flex-[2] max-w-[100px] md:max-w-[148px] flex items-center gap-1 shrink-0" style={{ overflow: 'visible' }}>
-                        <img src="/symbols/diamond.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
-                        <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(player.diamonds)}</span>
-                    </div>
-                </div>
-
-                {/* Buy & Sale Buttons (Adjacent to each other) */}
-                <div className="flex items-center gap-1 flex-1 justify-center">
-                    {/* Buy Button */}
+                {/* LEFT ZONE — Avatar + Coins + Gems */}
+                <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0">
+                    {/* Lobby Home Button */}
                     <div
-                        onClick={() => openShop('COINS')}
-                        className="btn green buyB shrink-0"
+                        onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
+                        className="round-btn shrink-0 cursor-pointer"
+                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
                     >
-                        <div className="face text-center">
-                            <span className="lbl">BUY</span>
+                        {currentView !== 'LOBBY'
+                            ? <i className="ti ti-arrow-left"></i>
+                            : (profileEmoji ? <span className="text-base leading-none">{profileEmoji}</span> : <i className="ti ti-user" />)
+                        }
+                    </div>
+
+                    {/* Coins + Gems pills */}
+                    <div className="flex items-center gap-[3px] md:gap-1.5 min-w-0">
+                        <div className="currency-pill flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '110px', maxWidth: '200px' }}>
+                            <img src="/symbols/coin.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
+                            <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                         </div>
-                    </div>
-
-                    {/* Sale Button */}
-                    <div
-                        onClick={() => setShowPremiumModal(true)}
-                        className="btn pink saleB shrink-0"
-                    >
-                        <div className="face text-center">
-                            <span className="lbl">SALE</span>
+                        <div className="currency-pill flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '72px', maxWidth: '110px' }}>
+                            <img src="/symbols/diamond.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
+                            <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(player.diamonds)}</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Piggy Bank icon */}
-                <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
-                    style={{ width: 36, height: 36, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
-                    className="shrink-0 active:scale-90 transition-transform" />
-
-                {/* Level Pill — star protruding on left, LV.XX text centered */}
-                <div className="rtrack !flex-none w-[120px] md:w-[155px] ml-2" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible' }}>
-                    {/* Fill bar — wrapped in overflow:hidden div so it clips to pill border-radius */}
-                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 10, pointerEvents: 'none' }}>
-                        {(() => {
-                            const xpBoostOn = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                            return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
-                        })()}
+                {/* CENTER ZONE — Buy & Sale (truly centered) */}
+                <div className="flex items-center gap-1 shrink-0">
+                    <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
+                        <div className="face text-center"><span className="lbl">BUY</span></div>
                     </div>
-                    <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
-                    <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
-                        {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LV.${player.level}`}
-                    </span>
+                    <div onClick={() => setShowPremiumModal(true)} className="btn yellow saleB shrink-0">
+                        <div className="face text-center"><span className="lbl">SALE</span></div>
+                    </div>
                 </div>
 
-                {/* Active Multiplier indicator */}
-                <div className="relative shrink-0 ml-2 flex items-center justify-center" style={{ width: 34, height: 34 }}>
-                    <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
-                    <span style={{ position: 'relative', zIndex: 1, fontSize: 12, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-3px' }}>
-                        {(() => {
-                            const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                            if (boostActive && showXpTimer) {
-                                const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
-                                const h = Math.floor(rem / 3600000);
-                                const m = Math.floor((rem % 3600000) / 60000);
-                                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                            }
-                            return `x${player.xpMultiplier}`;
-                        })()}
-                    </span>
-                </div>
+                {/* RIGHT ZONE — Piggy + Level + Multiplier + Settings */}
+                <div className="flex items-center gap-1 md:gap-1.5 flex-1 justify-end">
+                    {/* Piggy Bank icon */}
+                    <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
+                        style={{ width: 36, height: 36, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
+                        className="shrink-0 active:scale-90 transition-transform" />
 
-                {/* Settings button */}
-                <div
-                    onClick={() => showNeonRoulette ? handleNeonRouletteClose() : setShowSettings(true)}
-                    className="round-btn shrink-0"
-                    style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
-                >
-                    <i className="ti ti-settings"></i>
+                    {/* Level Pill */}
+                    <div className="rtrack !flex-none w-[110px] md:w-[145px]" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible' }}>
+                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 10, pointerEvents: 'none' }}>
+                            {(() => {
+                                const xpBoostOn = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
+                                return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
+                            })()}
+                        </div>
+                        <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
+                        <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
+                            {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LV.${player.level}`}
+                        </span>
+                    </div>
+
+                    {/* Active Multiplier indicator */}
+                    <div className="relative shrink-0 flex items-center justify-center" style={{ width: 34, height: 34 }}>
+                        <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <span style={{ position: 'relative', zIndex: 1, fontSize: 12, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-3px' }}>
+                            {(() => {
+                                const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
+                                if (boostActive && showXpTimer) {
+                                    const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
+                                    const h = Math.floor(rem / 3600000);
+                                    const m = Math.floor((rem % 3600000) / 60000);
+                                    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                                }
+                                return `x${player.xpMultiplier}`;
+                            })()}
+                        </span>
+                    </div>
+
+                    {/* Settings button */}
+                    <div
+                        onClick={() => showNeonRoulette ? handleNeonRouletteClose() : setShowSettings(true)}
+                        className="round-btn shrink-0 cursor-pointer"
+                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                    >
+                        <i className="ti ti-settings"></i>
+                    </div>
                 </div>
             </div>
       </header>
@@ -3653,46 +3643,46 @@ const App: React.FC = () => {
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;
                     return (
-                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 items-center select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'8px 6px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'72px' }}>
+                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-1 items-center select-none"
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px' }}>
                             {/* Mine */}
                             <button
                                 onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-1 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                             >
                                 {quest.wildCredits > 0 && !isQuestLocked && (
                                     <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                         {quest.wildCredits}
                                     </div>
                                 )}
-                                <img src="/ui/mine_new.png" alt="" style={{ width: 60, height: 60, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)' }}>Play</div>
+                                <img src="/ui/mine_new.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)', marginTop:'-6px' }}>Play</div>
                             </button>
                             {/* Dice */}
                             <button
                                 onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-1 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                             >
                                 {quest.diceCredits > 0 && !isQuestLocked && (
                                     <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                         {quest.diceCredits}
                                     </div>
                                 )}
-                                <img src="/ui/dice.png" alt="" style={{ width: 60, height: 60, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)' }}>Play</div>
+                                <img src="/ui/dice.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)', marginTop:'-6px' }}>Play</div>
                             </button>
                             {/* Pass */}
                             <button
                                 onClick={!isPassLocked ? openBattlePassModal : undefined}
-                                className={`relative flex flex-col items-center justify-center gap-1 transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                className={`relative flex flex-col items-center transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                             >
                                 {totalNotifs > 0 && !isPassLocked && (
                                     <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                         {totalNotifs}
                                     </div>
                                 )}
-                                <img src="/ui/pass.png" alt="" style={{ width: 60, height: 60, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0' }}>LV.{missionState.passLevel}</div>
+                                <img src="/ui/pass.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0', marginTop:'-6px' }}>LV.{missionState.passLevel}</div>
                             </button>
                         </div>
                     );
