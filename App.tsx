@@ -1533,8 +1533,9 @@ const App: React.FC = () => {
             }
             if (active) megaMatchActive = true;
       }
-      // NEON, PIGGY, LEPRECHAUN, EGYPT, ARCTIC, PIRATE, SPACE, and CANDY never use full-column same-symbol matches
-      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY'].includes(selectedGame.theme)) megaMatchActive = false;
+      // These themes never use full-column same-symbol matches (3-column "mega match").
+      // Only GOLDEN_POT (untouched generic slot) keeps it among the lower-tier games.
+      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE'].includes(selectedGame.theme)) megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
