@@ -136,11 +136,11 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             {/* Header */}
             <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0">
                 <div className="flex items-center gap-2 shrink-0">
-                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
                         <img src="/symbols/coin.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{fmt(balance)}</span>
                     </div>
-                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
                         <img src="/symbols/diamond.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{fmt(diamonds)}</span>
                     </div>
@@ -148,26 +148,24 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                 <div className="flex-1"></div>
                 {/* Section tabs */}
                 {[
-                    { label: <img src="/symbols/coin.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Coins',  sec: 'COINS'    as const, bg: '#b8860b' },
-                    { label: <img src="/symbols/diamond.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Gems',   sec: 'DIAMONDS' as const, bg: '#0e7490' },
-                    { label: <img src="/ui/boost.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />, name: 'Boosts', sec: 'BOOSTS'   as const, bg: '#7c3aed' },
+                    { name: 'Coins',  sec: 'COINS'    as const, bg: '#b8860b' },
+                    { name: 'Gems',   sec: 'DIAMONDS' as const, bg: '#0e7490' },
+                    { name: 'Boosts', sec: 'BOOSTS'   as const, bg: '#7c3aed' },
                 ].map((tab, i) => (
                     <React.Fragment key={tab.name}>
                         {i > 0 && <div className="w-px self-stretch bg-white/20 mx-0.5" />}
                         <button onClick={() => scrollToSection(tab.sec)}
-                            className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5"
+                            className="btn-3d px-3 py-1.5 rounded-lg text-[9px] font-black text-white uppercase leading-none"
                             style={{ background: tab.bg, minWidth: '34px' }}>
-                            <span>{tab.label}</span>
-                            <span>{tab.name}</span>
+                            {tab.name}
                         </button>
                     </React.Fragment>
                 ))}
                 <div className="w-px self-stretch bg-white/20 mx-0.5" />
                 <button key="Free" onClick={() => scrollToSection('FREE')}
-                    className="btn-3d px-2 py-1 rounded-lg text-[9px] font-black text-white uppercase leading-none flex flex-col items-center gap-0.5 relative"
+                    className="btn-3d px-3 py-1.5 rounded-lg text-[9px] font-black text-white uppercase leading-none relative"
                     style={{ background: '#166534', minWidth: '34px' }}>
-                    <img src="/ui/gift_store.png" alt="" style={{ width: '1.5em', height: '1.5em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                    <span>Free</span>
+                    Free
                     {freeCoinsAvailable && (
                         <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full" style={{ background: '#dc2626', border: '1.5px solid #f0c000' }} />
                     )}
@@ -186,7 +184,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                         <div className="text-white/50 text-[10px] mb-3">
                             {popup === 'nogems' ? 'You need more gems to purchase this item.' : 'Real money purchases are not available in this environment.'}
                         </div>
-                        <button onClick={() => setPopup(null)} className="btn-3d px-5 py-1.5 rounded-lg font-black text-white text-xs uppercase" style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)' }}>OK</button>
+                        <button onClick={() => setPopup(null)} className="pill-green"><div className="pill-face">OK</div></button>
                     </div>
                 </div>
             )}
@@ -262,19 +260,17 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                                 )}
                                                 <button
                                                     onClick={onItemClick}
-                                                    disabled={btnDisabled}
-                                                    className="btn-3d w-full py-2 rounded-xl text-xs font-black text-white uppercase text-center tracking-wide transition-all hover:brightness-110 active:scale-[0.97]"
-                                                    style={{
-                                                        background: item.isClaimed
-                                                            ? 'linear-gradient(180deg,#6b7280,#374151)'
-                                                            : item.price === 'FREE' || item.price === 'CLAIM'
-                                                                ? 'linear-gradient(180deg,#22c55e,#15803d)'
-                                                                : gemCost !== undefined
-                                                                    ? 'linear-gradient(180deg,#a855f7,#6d28d9)'
-                                                                    : 'linear-gradient(180deg,#f59e0b,#b45309)',
-                                                        boxShadow: '0 3px 0 rgba(0,0,0,0.6)',
-                                                    }}
-                                                >{item.price.startsWith('GEM:') ? <><img src="/symbols/diamond.png" alt="" style={{ width: '0.85em', height: '0.85em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 2 }} />{item.price.slice(4)}</> : item.price}</button>
+                                                    disabled={btnDisabled || item.isClaimed}
+                                                    className={`pill-green w-full ${item.isClaimed ? 'opacity-40' : ''}`}
+                                                >
+                                                    <div className="pill-face" style={{ fontSize: '10px' }}>
+                                                        {item.isClaimed
+                                                            ? '✓ Claimed'
+                                                            : item.price.startsWith('GEM:')
+                                                                ? <><img src="/symbols/diamond.png" alt="" style={{ width: '0.85em', height: '0.85em', objectFit: 'contain', display: 'inline-block' }} /> {item.price.slice(4)}</>
+                                                                : item.price}
+                                                    </div>
+                                                </button>
                                             </div>
                                         </div>
                                     );

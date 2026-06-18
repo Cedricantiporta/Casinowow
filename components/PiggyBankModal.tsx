@@ -44,14 +44,14 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
                 <div className="flex items-center gap-2">
-                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
                         <img src="/symbols/coin.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{formatK(Math.floor(balance || 0))}</span>
                     </div>
-                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
                         <img src="/symbols/diamond.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{diamonds}</span>
-                        {onOpenGemShop && <button onClick={onOpenGemShop} style={{ fontSize: '11px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', color: '#c084fc', fontWeight: 900, lineHeight: 1 }}>+</button>}
+                        {onOpenGemShop && <button onClick={onOpenGemShop} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '2px 8px', fontSize: '9px' }}>Buy</div></button>}
                     </div>
                 </div>
                 <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
@@ -77,17 +77,15 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 <button
                     onClick={handleBreak}
                     disabled={breaking || amount <= 0 || diamonds < GEM_BREAK_COST}
-                    className={`px-10 py-3.5 rounded-2xl font-black text-white text-base tracking-widest btn-3d transition-all
-                        ${(breaking || amount <= 0 || diamonds < GEM_BREAK_COST) ? 'opacity-40 cursor-not-allowed' : 'active:scale-95 hover:scale-105'}`}
-                    style={{
-                        background: (amount > 0 && diamonds >= GEM_BREAK_COST) ? 'linear-gradient(180deg,#f59e0b,#b45309)' : 'rgba(0,0,0,0.4)',
-                        boxShadow: (amount > 0 && diamonds >= GEM_BREAK_COST) ? '0 5px 0 #78350f, 0 8px 20px rgba(0,0,0,0.5)' : 'none',
-                    }}
+                    className="pill-green px-10"
+                    style={{ opacity: (breaking || amount <= 0 || diamonds < GEM_BREAK_COST) ? 0.4 : 1 }}
                 >
-                    Break Piggy Bank
-                    <span className="block text-xs font-bold opacity-80 mt-0.5 normal-case tracking-normal flex items-center justify-center gap-1">
-                        <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> {GEM_BREAK_COST} Gems
-                    </span>
+                    <div className="pill-face" style={{ padding: '10px 24px', fontSize: '13px', flexDirection: 'column', gap: '2px' }}>
+                        <span>Break Piggy Bank</span>
+                        <span style={{ fontSize: '9px', opacity: 0.8 }}>
+                            <img src="/symbols/diamond.png" alt="" style={{ width: '0.9em', height: '0.9em', objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle' }} /> {GEM_BREAK_COST} Gems
+                        </span>
+                    </div>
                 </button>
 
                 <p className="text-white/30 text-[9px] text-center max-w-xs">

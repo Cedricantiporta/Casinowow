@@ -190,11 +190,10 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <span className="font-black text-[9px] text-yellow-200/60">{missionState.passXP}/{missionState.passXpToNext}</span>
                             </button>
                             {/* Gems pill with + shortcut */}
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0"
-                                style={{ background: 'rgba(96,165,250,0.12)' }}>
+                            <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                                <span className="font-black text-[10px] text-blue-300">{diamonds.toLocaleString('en-US')}</span>
-                                {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} style={{ fontSize: '10px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', color: '#c084fc', fontWeight: 900, lineHeight: 1 }}>+</button>}
+                                <span className="font-black text-[10px] text-white">{diamonds.toLocaleString('en-US')}</span>
+                                {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '1px 6px', fontSize: '8px' }}>Buy</div></button>}
                             </div>
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
@@ -213,11 +212,10 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <img src="/symbols/coin.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain' }} />
                                 <span className="num" style={{ fontSize: '10px' }}>{balance.toLocaleString('en-US')}</span>
                             </div>
-                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0"
-                                style={{ background: 'rgba(96,165,250,0.12)' }}>
+                            <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                                <span className="font-black text-[10px] text-blue-300">{diamonds.toLocaleString('en-US')}</span>
-                                {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} style={{ fontSize: '10px', background: 'none', border: 'none', padding: '0 0 0 2px', cursor: 'pointer', color: '#c084fc', fontWeight: 900, lineHeight: 1 }}>+</button>}
+                                <span className="font-black text-[10px] text-white">{diamonds.toLocaleString('en-US')}</span>
+                                {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '1px 6px', fontSize: '8px' }}>Buy</div></button>}
                             </div>
                             <div className="round-btn shrink-0" onClick={onClose}>
                                 <i className="ti ti-x"></i>
@@ -298,10 +296,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             ✓ Done
                                         </button>
                                     ) : mission.completed ? (
-                                        <button onClick={() => onClaimMissionReward(mission)}
-                                            className="btn-3d w-full py-1.5 text-[10px] font-black rounded-lg flex items-center justify-center gap-1"
-                                            style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00', boxShadow: '0 3px 0 #7a4a00' }}>
-                                            Claim Reward
+                                        <button onClick={() => onClaimMissionReward(mission)} className="pill-green w-full">
+                                            <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px' }}>Claim Reward</div>
                                         </button>
                                     ) : (
                                         <button onClick={() => onFinishMission(mission)}
@@ -378,10 +374,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     ✓
                                                 </button>
                                             ) : isUnlocked ? (
-                                                <button onClick={() => freeReward && onClaimReward(freeReward)}
-                                                    className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
-                                                    style={{ background: 'linear-gradient(180deg,#60a5fa,#2563eb)', boxShadow: '0 2px 0 #1d4ed8', color: '#fff' }}>
-                                                    Claim
+                                                <button onClick={() => freeReward && onClaimReward(freeReward)} className="pill-green w-full">
+                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px' }}>Claim</div>
                                                 </button>
                                             ) : (
                                                 <button disabled
@@ -446,10 +440,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     Locked
                                                 </button>
                                             ) : isUnlocked ? (
-                                                <button onClick={() => premReward && onClaimReward(premReward)}
-                                                    className="btn-3d w-full py-0.5 text-[8px] font-black rounded-lg"
-                                                    style={{ background: 'linear-gradient(180deg,#fde68a,#d97706)', boxShadow: '0 2px 0 #92400e', color: '#1c0900' }}>
-                                                    Claim
+                                                <button onClick={() => premReward && onClaimReward(premReward)} className="pill-green w-full">
+                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px' }}>Claim</div>
                                                 </button>
                                             ) : (
                                                 <button disabled
@@ -466,27 +458,24 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </div>
 
                         {/* Bottom bar — Claim All + Unlock Premium */}
-                        <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-2" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                            <button onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
-                                className="btn-3d font-black text-[10px] rounded-xl px-5 py-2"
-                                style={{
-                                    background: rewardsToClaimCount > 0 ? 'linear-gradient(180deg,#22c55e,#15803d)' : 'rgba(255,255,255,0.06)',
-                                    boxShadow: rewardsToClaimCount > 0 ? '0 3px 0 #14532d' : 'none',
-                                    color: rewardsToClaimCount > 0 ? '#fff' : '#4b5563',
-                                    cursor: rewardsToClaimCount > 0 ? 'pointer' : 'not-allowed',
-                                }}>
-                                Claim All {rewardsToClaimCount > 0 ? `(${rewardsToClaimCount})` : ''}
+                        <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-2">
+                            <button
+                                onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
+                                disabled={rewardsToClaimCount === 0}
+                                className="pill-green"
+                                style={{ opacity: rewardsToClaimCount === 0 ? 0.4 : 1 }}
+                            >
+                                <div className="pill-face" style={{ padding: '7px 20px', fontSize: '10px' }}>
+                                    Claim All {rewardsToClaimCount > 0 ? `(${rewardsToClaimCount})` : ''}
+                                </div>
                             </button>
                             {!missionState.isPremium ? (
-                                <button onClick={() => setShowPremiumInfo(true)}
-                                    className="btn-3d font-black text-[10px] rounded-xl px-5 py-2 relative overflow-hidden"
-                                    style={{ background: 'linear-gradient(180deg,#fde68a,#d97706)', boxShadow: '0 3px 0 #92400e', color: '#1c0900' }}>
-                                    <span className="relative z-10">Unlock Premium</span>
-                                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent pointer-events-none" />
+                                <button onClick={() => setShowPremiumInfo(true)} className="pill-green">
+                                    <div className="pill-face" style={{ padding: '7px 20px', fontSize: '10px' }}>Unlock Premium</div>
                                 </button>
                             ) : (
-                                <div className="flex items-center gap-1 px-4 py-2 rounded-xl font-black text-[10px]"
-                                    style={{ background: 'rgba(253,224,71,0.12)', color: '#fde047' }}>
+                                <div className="flex items-center gap-1 px-4 py-2 rounded-full font-black text-[10px]"
+                                    style={{ background: 'rgba(255,255,255,0.08)', color: '#86efac' }}>
                                     ✓ Premium Active
                                 </div>
                             )}

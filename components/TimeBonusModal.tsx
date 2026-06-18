@@ -21,13 +21,6 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
 
     if (!isOpen) return null;
 
-    const getBtnStyle = (id: number, isReady: boolean) => {
-        if (!isReady) return { background: 'rgba(0,0,0,0.4)', color: '#555', boxShadow: 'none', cursor: 'default' as const };
-        if (id === 0) return { background: 'linear-gradient(180deg,#5fa8ff,#2b7fe8)', boxShadow: '0 3px 0 #13408a', color: '#fff', cursor: 'pointer' as const };
-        if (id === 1) return { background: 'linear-gradient(180deg,#ff5a5a,#c81010)', boxShadow: '0 3px 0 #8a0000', color: '#fff', cursor: 'pointer' as const };
-        return { background: 'linear-gradient(180deg,#ffe066,#d48800)', boxShadow: '0 3px 0 #7a5000', color: '#000', cursor: 'pointer' as const };
-    };
-
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
         <div className="w-full max-w-[480px] flex flex-col rounded-3xl overflow-hidden"
@@ -60,10 +53,11 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                             <button
                                 onClick={() => isReady ? onClaim(timer.id, timer.reward) : undefined}
                                 disabled={!isReady}
-                                className="btn-3d w-full py-1.5 rounded-xl font-black uppercase text-xs tracking-wider"
-                                style={getBtnStyle(timer.id, isReady)}
+                                className={`pill-green w-full ${!isReady ? 'opacity-40' : ''}`}
                             >
-                                {isReady ? 'Collect' : formatTime(timeLeft)}
+                                <div className="pill-face" style={{ padding: '6px 12px', fontSize: '10px' }}>
+                                    {isReady ? 'Collect' : formatTime(timeLeft)}
+                                </div>
                             </button>
                         </div>
                     );

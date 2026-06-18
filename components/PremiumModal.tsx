@@ -169,10 +169,10 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             ))}
                         </div>
                         <div className="shrink-0 px-3 pb-3 pt-1">
-                            <button onClick={onBuyVip} disabled={isVip}
-                                className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest"
-                                style={{ background: isVip ? 'linear-gradient(180deg,#6b7280,#374151)' : 'linear-gradient(180deg,#fbbf24,#b45309)', boxShadow: isVip ? '0 3px 0 #1f2937' : '0 3px 0 #78350f', color: '#fff', cursor: isVip ? 'not-allowed' : 'pointer' }}>
-                                {isVip ? '✓ Active' : '₱ 299'}
+                            <button onClick={onBuyVip} disabled={isVip} className={`pill-green w-full ${isVip ? 'opacity-40' : ''}`}>
+                                <div className="pill-face" style={{ padding: '8px 12px', fontSize: '10px' }}>
+                                    {isVip ? '✓ Active' : '₱ 299'}
+                                </div>
                             </button>
                         </div>
                     </div>}
@@ -197,10 +197,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             ))}
                         </div>
                         <div className="shrink-0 px-3 pb-3 pt-1">
-                            <button onClick={onBuyPremium}
-                                className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest"
-                                style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 #4c1d95', color: '#fff' }}>
-                                ₱ 199
+                            <button onClick={onBuyPremium} className="pill-green w-full">
+                                <div className="pill-face" style={{ padding: '8px 12px', fontSize: '10px' }}>₱ 199</div>
                             </button>
                         </div>
                     </div>}
@@ -237,11 +235,11 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                                 ))}
                             </div>
                             <div className="shrink-0 px-3 pb-3 pt-1">
-                                <button onClick={() => onBuyBundle?.()}
-                                    className="w-full py-2.5 rounded-xl font-black uppercase text-xs btn-3d tracking-widest text-white flex items-center justify-center gap-1.5"
-                                    style={{ background: `linear-gradient(180deg,${bundle.tagColor},${bundle.tagColor}88)`, boxShadow: `0 3px 0 rgba(0,0,0,0.5)` }}>
-                                    <span className="line-through opacity-50">{isVip ? bundle.price : bundle.origPrice}</span>
-                                    <span>{isVip ? vipDiscountedPrice(bundle.price) : bundle.price}</span>
+                                <button onClick={() => onBuyBundle?.()} className="pill-green w-full">
+                                    <div className="pill-face" style={{ padding: '8px 12px', fontSize: '10px', gap: '6px' }}>
+                                        <span style={{ opacity: 0.6, textDecoration: 'line-through' }}>{isVip ? bundle.price : bundle.origPrice}</span>
+                                        <span>{isVip ? vipDiscountedPrice(bundle.price) : bundle.price}</span>
+                                    </div>
                                 </button>
                             </div>
                         </div>

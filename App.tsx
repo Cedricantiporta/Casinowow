@@ -3530,7 +3530,7 @@ const App: React.FC = () => {
 
                     {/* Coins + Gems pills */}
                     <div className="flex items-center gap-[3px] md:gap-1.5 min-w-0">
-                        <div className="currency-pill flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '110px', maxWidth: '200px' }}>
+                        <div className="currency-pill flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '150px', maxWidth: '220px' }}>
                             <img src="/symbols/coin.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
                             <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                         </div>
@@ -3546,17 +3546,17 @@ const App: React.FC = () => {
                     <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
                         <div className="face text-center"><span className="lbl">BUY</span></div>
                     </div>
-                    <div onClick={() => setShowPremiumModal(true)} className="btn yellow saleB shrink-0">
+                    <div onClick={() => setShowPremiumModal(true)} className="btn pink saleB shrink-0">
                         <div className="face text-center"><span className="lbl">SALE</span></div>
                     </div>
+                    {/* Piggy Bank icon — right of sale, left of right zone */}
+                    <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
+                        style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))', marginLeft: '4px' }}
+                        className="shrink-0 active:scale-90 transition-transform" />
                 </div>
 
-                {/* RIGHT ZONE — Piggy + Level + Multiplier + Settings */}
-                <div className="flex items-center gap-1 md:gap-1.5 flex-1 justify-end">
-                    {/* Piggy Bank icon */}
-                    <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
-                        style={{ width: 36, height: 36, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
-                        className="shrink-0 active:scale-90 transition-transform" />
+                {/* RIGHT ZONE — Level + XP + Settings */}
+                <div className="flex items-center gap-1 flex-1 justify-end">
 
                     {/* Level Pill */}
                     <div className="rtrack !flex-none w-[110px] md:w-[145px]" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible' }}>

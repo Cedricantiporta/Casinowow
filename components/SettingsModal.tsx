@@ -166,11 +166,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                     placeholder="Enter code..."
                                     className="w-28 bg-black/50 text-white text-xs px-3 py-2 rounded-lg border border-white/10 outline-none font-mono placeholder:text-white/25 focus:border-purple-500/60"
                                 />
-                                <button
-                                    onClick={handleRedeem}
-                                    className="px-3 py-2 rounded-lg text-xs font-black text-white uppercase tracking-wide transition-all active:scale-95"
-                                    style={{ background: 'linear-gradient(180deg,#9333ea,#6b21a8)', boxShadow: '0 2px 0 #3b0764' }}>
-                                    Redeem
+                                <button onClick={handleRedeem} className="pill-green">
+                                    <div className="pill-face" style={{ padding: '6px 14px', fontSize: '10px' }}>Redeem</div>
                                 </button>
                             </div>
                         </div>
@@ -233,14 +230,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                     style={{ background: 'rgba(255,255,255,0.08)' }}>
                                     Cancel
                                 </button>
-                                <button
-                                    onClick={handleClaim}
-                                    className="flex-[2] py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-white transition-all active:scale-95"
-                                    style={{
-                                        background: 'linear-gradient(180deg,#a855f7,#7c3aed)',
-                                        boxShadow: '0 4px 0 #4c1d95, 0 6px 20px rgba(168,85,247,0.4)',
-                                    }}>
-                                    ✨ Claim Reward
+                                <button onClick={handleClaim} className="pill-green flex-[2]">
+                                    <div className="pill-face" style={{ padding: '10px 12px' }}>Claim Reward</div>
                                 </button>
                             </div>
                         </div>
