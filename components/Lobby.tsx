@@ -198,7 +198,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         <button
                                             onClick={() => onSelectGame(game, true)}
                                             className={`relative overflow-hidden ${isLocked ? 'cursor-not-allowed' : 'active:scale-95 transition-transform'}`}
-                                            style={{ width: '108px', height: '162px', borderRadius: '6px', boxShadow: 'inset 0 3px 0 rgba(255,240,100,0.9), inset 0 -3px 0 rgba(120,60,0,0.8), inset 3px 0 0 rgba(255,200,50,0.3), inset -3px 0 0 rgba(120,60,0,0.4), 0 8px 24px rgba(0,0,0,0.7)' }}
+                                            style={{ width: '108px', height: '162px', borderRadius: '6px', boxShadow: 'inset 0 3px 0 rgba(255,240,100,0.9), inset 0 -3px 0 rgba(120,60,0,0.8), inset 3px 0 0 rgba(255,200,50,0.3), inset -3px 0 0 rgba(120,60,0,0.4), 0 8px 24px rgba(0,0,0,0.7)', filter: isLocked ? 'brightness(0.55)' : undefined }}
                                         >
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`}></div>
                                             {game.coverImage && (
@@ -223,12 +223,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                     </div>
                                                 )}
                                             </div>
-                                            {isLocked && (
-                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)' }}>
-                                                    <img src="/ui/lock.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,1))' }} />
-                                                    <span className="text-white font-black text-[10px] mt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
-                                                </div>
-                                            )}
                                             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: '16px' }}></div>
                                         </button>
                                     </div>
@@ -239,7 +233,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                         /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
-                            className="grid gap-x-2 gap-y-0.5 h-[93%] max-h-[580px] auto-cols-max pt-5 overflow-x-auto no-scrollbar snap-x"
+                            className="grid gap-x-2 gap-y-0 h-[93%] max-h-[580px] auto-cols-max pt-5 overflow-x-auto no-scrollbar snap-x"
                             style={{
                                 gridTemplateRows: 'repeat(2, 1fr)',
                                 gridAutoFlow: 'column',
@@ -280,7 +274,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         key={game.id}
                                         onClick={() => onSelectGame(game, false)}
                                         className={`row-span-1 relative group w-[76px] h-[76px] md:w-[96px] md:h-[96px] overflow-visible snap-center ${isLocked ? 'cursor-not-allowed' : ''}`}
-                                        style={{ borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)' }}
+                                        style={{ borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
                                     >
                                         <div className="absolute -top-[6px] left-0 right-0 z-30 pointer-events-none flex items-center justify-center">
                                             <span style={{ fontSize:'9px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'4px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
@@ -310,12 +304,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                 </div>
                                             )}
                                         </div>
-                                        {isLocked && (
-                                            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none" style={{ background: 'rgba(0,0,0,0.45)', borderRadius: 14 }}>
-                                                <img src="/ui/lock.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,1))' }} />
-                                                <span className="text-white font-black text-[11px] mt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
-                                            </div>
-                                        )}
                                         <div className="absolute inset-0 overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: 14 }}></div>
                                     </button>
                                 );
@@ -328,13 +316,7 @@ export const Lobby: React.FC<LobbyProps> = ({
             {/* Bottom bar — centered floating platform, icons protrude above */}
             {(() => {
                 const iconBtn = (locked: boolean) =>
-                    `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform${locked ? ' opacity-60' : ''}`;
-                const lockBadge = (unlockLevel: number) => (
-                    <div className="lock-badge absolute top-0 right-0 flex flex-col items-center pointer-events-none z-10" style={{ padding: '2px 3px' }}>
-                        <img src="/ui/lock.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,1))' }} />
-                        <span style={{ fontSize: 7, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,1)' }}>Lv{unlockLevel}</span>
-                    </div>
-                );
+                    `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform${locked ? ' brightness-[0.55] cursor-not-allowed' : ''}`;
                 const sep = <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.18)', flexShrink: 0, alignSelf: 'flex-end', marginBottom: '14px' }} />;
                 const isGolden = isVip;
                 const barBg = isGolden
@@ -369,7 +351,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* Cards — utmost left */}
                             <button onClick={!isCardsLocked ? onOpenCollection : undefined} className={iconBtn(isCardsLocked)}>
-                                {isCardsLocked && lockBadge(30)}
+
                                 <div className="relative">
                                     <img src="/ui/cards_new.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {((packCredits ?? 0) + (premiumPackCredits ?? 0)) > 0 && (
@@ -386,7 +368,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* Piggy */}
                             <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
-                                {isPiggyLocked && lockBadge(5)}
+
                                 <div className="relative leading-none">
                                     <img src="/ui/piggy.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {piggyFull && (
@@ -401,7 +383,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* Wild Quest */}
                             <button onClick={!isQuestLocked ? onOpenWildQuest : undefined} className={iconBtn(isQuestLocked)}>
-                                {isQuestLocked && lockBadge(20)}
+
                                 <div className="relative leading-none">
                                     <img src="/ui/mine_new.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {!isQuestLocked && wildCredits > 0 && (
@@ -418,7 +400,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* Dice Quest */}
                             <button onClick={!isQuestLocked ? onOpenDiceQuest : undefined} className={iconBtn(isQuestLocked)}>
-                                {isQuestLocked && lockBadge(20)}
+
                                 <div className="relative leading-none">
                                     <img src="/ui/dice.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {!isQuestLocked && diceCredits > 0 && (
@@ -435,7 +417,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* Pass */}
                             <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
-                                {isMissionsLocked && lockBadge(10)}
+
                                 <div className="relative leading-none">
                                     <img src="/ui/pass.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {totalMissionNotifs > 0 && !isMissionsLocked && (
@@ -472,7 +454,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {sep}
 
                             <button onClick={!isMissionsLocked ? onOpenMissions : undefined} className={iconBtn(isMissionsLocked)}>
-                                {isMissionsLocked && lockBadge(10)}
+
                                 <div className="relative">
                                     <img src="/ui/missions_new.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {missionsReady > 0 && !isMissionsLocked && (

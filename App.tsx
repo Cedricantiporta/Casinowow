@@ -3526,9 +3526,9 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Separate Coins & Gems pills joined closely */}
-                <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[290px] md:max-w-[430px] shrink-0 ml-2">
+                <div className="flex items-center gap-[3px] md:gap-1.5 flex-1 max-w-[320px] md:max-w-[460px] shrink-0 ml-2">
                     {/* Separate Coins Pill — icon protruding on far left */}
-                    <div className="currency-pill flex-[4] max-w-[195px] md:max-w-[289px] flex items-center gap-1 shrink-0" style={{ overflow: 'visible' }}>
+                    <div className="currency-pill flex-[5] max-w-[230px] md:max-w-[330px] flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '120px' }}>
                         <img src="/symbols/coin.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
                         <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                     </div>
@@ -3540,15 +3540,10 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Piggy Bank icon */}
-                <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
-                    style={{ width: 26, height: 26, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
-                    className="shrink-0 active:scale-90 transition-transform" />
-
                 {/* Buy & Sale Buttons (Adjacent to each other) */}
                 <div className="flex items-center gap-1 flex-1 justify-center">
                     {/* Buy Button */}
-                    <div 
+                    <div
                         onClick={() => openShop('COINS')}
                         className="btn green buyB shrink-0"
                     >
@@ -3567,6 +3562,11 @@ const App: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Piggy Bank icon */}
+                <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
+                    style={{ width: 36, height: 36, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
+                    className="shrink-0 active:scale-90 transition-transform" />
 
                 {/* Level Pill — star protruding on left, LV.XX text centered */}
                 <div className="rtrack !flex-none w-[120px] md:w-[155px] ml-2" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible' }}>

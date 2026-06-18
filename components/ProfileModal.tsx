@@ -80,12 +80,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     const labelColor = vip ? 'text-yellow-300/50' : 'text-white/30';
 
     return (
-        <div className="absolute inset-0 z-[200] flex flex-col animate-pop-in select-none"
-            style={{ background: bgStyle }}>
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
+        <div className="w-full max-w-[560px] flex flex-col rounded-3xl overflow-hidden"
+            style={{ height: 'min(88%, 560px)', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-2.5 pb-3"
-                style={{ background: headerStyle, boxShadow: '0 4px 16px rgba(0,0,0,0.6)' }}>
+                style={{ background: 'transparent' }}>
 
                 {/* Avatar — clickable emoji */}
                 <div className="relative shrink-0">
@@ -191,6 +192,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     )}
                 </div>
             </div>
+        </div>
         </div>
     );
 };
