@@ -182,8 +182,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     theme: 'LEPRECHAUN',
     rows: 3,
     reels: 6,
-    scattersToTrigger: 999,
-    description: 'Collect 6 clovers for a pot of gold!',
+    scattersToTrigger: 3,
+    description: 'Spin the Lucky Wheel! 3 scatters open the pot-of-gold wild wheel.',
     color: 'from-green-500 via-emerald-600 to-green-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #16a34a 0%, #052e16 100%)',
     reelBg: REEL_BGS.LEPRECHAUN

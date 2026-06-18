@@ -57,6 +57,7 @@ interface SavedGameState {
 const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
     JUNGLE: 'SPACE',
     WESTERN: 'PIRATE',
+    LEPRECHAUN: 'CANDY',
 };
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
@@ -458,7 +459,7 @@ const App: React.FC = () => {
 
   // CANDY: shuffle wild container positions once when spin starts for a "switching" animation
   useEffect(() => {
-      if (status === GameStatus.SPINNING && selectedGame.theme === 'CANDY' && totalFreeSpins > 0) {
+      if (status === GameStatus.SPINNING && featureThemeOf(selectedGame.theme) === 'CANDY' && totalFreeSpins > 0) {
           const reels = selectedGame.reels;
           const rows = selectedGame.rows;
           const cols = candyPendingColsRef.current;
@@ -1507,7 +1508,7 @@ const App: React.FC = () => {
           const colData: SymbolType[] = [];
           for(let r=0; r<rows; r++) {
               let sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
-              while ((selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') && sym === SymbolType.SCATTER) {
+              while (selectedGame.theme === 'PIGGY' && sym === SymbolType.SCATTER) {
                   sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
               }
               if (c === 2) {
@@ -1575,8 +1576,8 @@ const App: React.FC = () => {
                    if (c === 1) wildStackChance = 0.105 * wildMult;
                    if (c === 2) wildStackChance = 0.14 * wildMult;
                }
-               // PIGGY/LEPRECHAUN: 20% higher wild rate + extend to extra columns
-               if (selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') {
+               // PIGGY: 20% higher wild rate + extend to extra columns
+               if (selectedGame.theme === 'PIGGY') {
                    if (c === 5) wildStackChance = 0.21 * wildMult;
                    if (c === 6) wildStackChance = 0.252 * wildMult;
                    wildStackChance *= 1.2;
@@ -1787,8 +1788,8 @@ const App: React.FC = () => {
           }
       }
 
-      // PIGGY / LEPRECHAUN: inject coin symbols (1-6 cells), 6+ triggers free spins
-      if (selectedGame.theme === 'PIGGY' || selectedGame.theme === 'LEPRECHAUN') {
+      // PIGGY: inject coin symbols (1-6 cells), 6+ triggers free spins
+      if (selectedGame.theme === 'PIGGY') {
           const coinRoll = Math.random();
           let targetCoins = 0;
           if (coinRoll >= 0.989)     targetCoins = 6;  // ~1.1% → free spins
@@ -1847,7 +1848,7 @@ const App: React.FC = () => {
 
       // CANDY: Wild Wheel free spins. The wheel-picked config places persistent "switching" wilds
       // that re-roll their positions each free spin. Single wilds = N wild cells; column wilds = N full WILD reels.
-      if (selectedGame.theme === 'CANDY') {
+      if (ft === 'CANDY') {
           candyPendingColsRef.current = [];
           if (isFreeSpin && candyWildConfigRef.current) {
               const cfg = candyWildConfigRef.current;
@@ -1883,7 +1884,7 @@ const App: React.FC = () => {
       // Jackpot cell injection: during free spins only, except ARCTIC, NEON, and PIRATE (Ghost Ship feature uses no jackpots)
       if (freeSpinsRemaining > 0 && ft !== 'ARCTIC' && ft !== 'NEON' && ft !== 'PIRATE') {
           // CANDY gets 50% reduced jackpot spawn rates
-          const jpScale = selectedGame.theme === 'CANDY' ? 0.5 : 1.0;
+          const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
               { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * jpScale },
               { type: SymbolType.JACKPOT_MINOR, prob: 0.048 * jpScale },
@@ -2084,7 +2085,7 @@ const App: React.FC = () => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
       setTargetGrid(generateSmartGrid());
       // CANDY: show wild containers immediately at spin start so borders appear before wilds land
-      if (selectedGame.theme === 'CANDY' && freeSpinsRemaining > 0) {
+      if (featureThemeOf(selectedGame.theme) === 'CANDY' && freeSpinsRemaining > 0) {
           setCandyCols(candyPendingColsRef.current);
           setCandySingleWilds(candySingleWildsRef.current);
           setCandyFsSpinKey(k => k + 1);
@@ -2149,7 +2150,7 @@ const App: React.FC = () => {
         scatterAnticipationRef.current = false;
 
         // CANDY: sync the Wild Wheel overlay to the reels that just stopped (replays the expand animation)
-        if (selectedGame.theme === 'CANDY') {
+        if (ft === 'CANDY') {
             setCandyCols(candyPendingColsRef.current);
             setCandySingleWilds(candySingleWildsRef.current);
             setCandyFsSpinKey(k => k + 1);
@@ -2308,7 +2309,7 @@ const App: React.FC = () => {
              }
 
              // CANDY: scatters open the Wild Wheel bonus, which picks the persistent wild setup before free spins begin.
-             if (selectedGame.theme === 'CANDY') {
+             if (ft === 'CANDY') {
                  const spinsWon = 10;
                  setFreeSpinsWon(spinsWon);
                  setTotalFreeSpins(prev => prev + spinsWon);
@@ -2371,26 +2372,6 @@ const App: React.FC = () => {
             }
         }
 
-        // LEPRECHAUN: same coin-count mechanic as PIGGY — 6+ 🍀 cells trigger free spins
-        if (selectedGame.theme === 'LEPRECHAUN') {
-            let coinCount = 0;
-            targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
-            if (coinCount >= 6) {
-                const spinsWon = 10;
-                setFreeSpinsWon(spinsWon);
-                setTotalFreeSpins(prev => prev + spinsWon);
-                if (freeSpinsRemaining > 0) {
-                    setShowFreeSpinsPopup(true);
-                    audioService.playWinBig();
-                } else {
-                    setStatus(GameStatus.SCATTER_SHOWCASE);
-                    audioService.playScatterTrigger();
-                    setSpinsWithoutBonus(0);
-                    setTimeout(() => { setShowFreeSpinsPopup(true); }, 2000);
-                    return next;
-                }
-            }
-        }
 
         // DRAGON: coin absorb animation + count spins for Pick-and-Win trigger
         if (selectedGame.theme === 'DRAGON') {
@@ -3974,7 +3955,7 @@ const App: React.FC = () => {
                         )}
 
                         {/* CANDY Wild Wheel — expanding wild-reel highlights */}
-                        {selectedGame.theme === 'CANDY' && totalFreeSpins > 0 && candyCols.length > 0 && (
+                        {featureThemeOf(selectedGame.theme) === 'CANDY' && totalFreeSpins > 0 && candyCols.length > 0 && (
                             <div className="absolute inset-0 z-20 pointer-events-none">
                                 {(candyShuffledCols ?? candyCols).map((colInfo, idx) => (
                                     <div key={idx} className="absolute inset-y-1"
@@ -3993,7 +3974,7 @@ const App: React.FC = () => {
                         )}
 
                         {/* CANDY — individual wild cell containers (single-mode wilds) */}
-                        {selectedGame.theme === 'CANDY' && totalFreeSpins > 0 && candySingleWilds.length > 0 && (
+                        {featureThemeOf(selectedGame.theme) === 'CANDY' && totalFreeSpins > 0 && candySingleWilds.length > 0 && (
                             <div className="absolute inset-0 z-20 pointer-events-none">
                                 {(candyShuffledSingles ?? candySingleWilds).map((w, idx) => (
                                     <div key={idx} className="absolute"
@@ -4013,7 +3994,7 @@ const App: React.FC = () => {
                         )}
 
                         {/* CANDY Wild Wheel — feature banner above the reels */}
-                        {selectedGame.theme === 'CANDY' && totalFreeSpins > 0 && candyConfig && (
+                        {featureThemeOf(selectedGame.theme) === 'CANDY' && totalFreeSpins > 0 && candyConfig && (
                             <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
                                 <div style={{
                                     background: 'linear-gradient(180deg,#9d174d,#500724)',
