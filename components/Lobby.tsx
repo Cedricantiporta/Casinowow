@@ -164,7 +164,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 backgroundPosition: 'center',
             }}>
 
-              <div className="flex-1 relative flex items-center justify-start p-0.5 pt-0 pb-8 md:pb-9" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
+              <div className="flex-1 relative flex items-center justify-start p-0.5 pt-0 pb-8 md:pb-9" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)', border: isVip ? '1px solid rgba(200,150,50,0.35)' : '1px solid rgba(140,60,255,0.3)', borderRadius: 14 }}>
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
@@ -277,7 +277,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         style={{ borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
                                     >
                                         <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none flex items-center justify-center" style={{ transform: 'translateY(-100%)' }}>
-                                            <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'4px', padding:'2px 6px', boxShadow:'0 0 6px rgba(124,58,237,0.5)' }}>
+                                            <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'4px', padding:'2px 6px' }}>
                                                 {formatK(jackpotTotals[idx] ?? 0)}
                                             </span>
                                         </div>

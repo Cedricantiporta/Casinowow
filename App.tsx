@@ -3560,8 +3560,8 @@ const App: React.FC = () => {
                         className="shrink-0 active:scale-90 transition-transform" />
 
                     {/* Events pill */}
-                    <div className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2"
-                        style={{ height: 22, background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                    <div className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2 h-5 md:h-[23px]"
+                        style={{ background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}>
                         <span className="font-black text-white tracking-widest" style={{ fontSize: 9 }}>EVENTS</span>
                     </div>
 

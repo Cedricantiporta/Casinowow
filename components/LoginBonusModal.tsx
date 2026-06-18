@@ -32,10 +32,10 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
             cardStyle = { ...innerCardBase, opacity: 0.5, filter: 'grayscale(1)' };
         } else if (isGoldenDay) {
             cardStyle = {
-                ...innerCardBase,
-                boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5), 0 0 0 2px rgba(255,200,50,0.6), 0 0 12px rgba(255,200,50,0.4)',
+                background: 'linear-gradient(180deg,rgba(255,215,50,0.55) 0%,rgba(180,100,0,0.98) 100%)',
+                boxShadow: 'inset 0 1px 0 rgba(255,245,150,0.6), 0 3px 10px rgba(0,0,0,0.5)',
             };
-            cardExtra = 'animate-pulse';
+            cardExtra = '';
         } else if (isToday) {
             cardStyle = {
                 ...innerCardBase,
