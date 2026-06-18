@@ -58,6 +58,7 @@ const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
     JUNGLE: 'SPACE',
     WESTERN: 'PIRATE',
     LEPRECHAUN: 'CANDY',
+    UNDERWATER: 'ARCTIC',
 };
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
@@ -1356,7 +1357,7 @@ const App: React.FC = () => {
           const newSyms = Array(newCount).fill(null).map(() => {
               // Arctic: wild chance on falling cells (boosted in free spins)
               const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.24 : 0.17;
-              if (selectedGame.theme === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < arcticCascadeWildChance) {
+              if (featureThemeOf(selectedGame.theme) === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < arcticCascadeWildChance) {
                   return SymbolType.WILD;
               }
               let sym: SymbolType;
@@ -1660,7 +1661,7 @@ const App: React.FC = () => {
           let targetScatters = 0;
           // 3×3 slots: 20% less free spin chance (raise thresholds so fewer scatters spawn)
           // Arctic: 1&2-scatter thresholds lowered by 10%; retrigger (s3) lowered extra 5% during free spins
-          const isArctic = selectedGame.theme === 'ARCTIC';
+          const isArctic = ft === 'ARCTIC';
           const s1 = isSmallGrid ? 68 : (isArctic ? 50 : 60);
           const s2 = isSmallGrid ? 85.6 : (isArctic ? 72 : 82);
           const s3 = isSmallGrid ? 99.2 : 99.0;
@@ -1764,7 +1765,7 @@ const App: React.FC = () => {
 
       // ARCTIC: no jackpot or coin symbols — replace them with regular symbols
       // Then 10% chance to spawn a single wild on column 2, 3, or 4 (1-indexed)
-      if (selectedGame.theme === 'ARCTIC') {
+      if (ft === 'ARCTIC') {
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
                   while (String(newGrid[c][r]).startsWith('JACKPOT') || newGrid[c][r] === SymbolType.COIN) {
@@ -2326,7 +2327,7 @@ const App: React.FC = () => {
                  return next;
              }
 
-             const baseSpins = selectedGame.theme === 'ARCTIC'
+             const baseSpins = ft === 'ARCTIC'
                  ? 15
                  : selectedGame.theme === 'PIRATE'
                  ? scatterCount
@@ -2400,7 +2401,7 @@ const App: React.FC = () => {
                 }
             }
         }
-        if (selectedGame.theme === 'ARCTIC' && freeSpinsRemaining === 0) {
+        if (ft === 'ARCTIC' && freeSpinsRemaining === 0) {
             arcticPickSpinsRef.current++;
             // Fill progress bar +1 to +5 per spin, cap at 250, stay full
             if (arcticProgressRef.current < 250) {
@@ -2439,7 +2440,7 @@ const App: React.FC = () => {
 
         // Arctic free-spin JP pick chances:
         //   Spin 1: 10%  |  Every 5th spin: 7%  |  After first trigger: flat 3% every spin
-        if (selectedGame.theme === 'ARCTIC' && freeSpinsRemaining > 0 && !showArcticPickModal && !pendingArcticFreePick) {
+        if (ft === 'ARCTIC' && freeSpinsRemaining > 0 && !showArcticPickModal && !pendingArcticFreePick) {
             arcticFreeSpinCountRef.current++;
             const spinNum = arcticFreeSpinCountRef.current;
             const alreadyTriggered = arcticJpPickTriggeredRef.current;
@@ -2523,8 +2524,8 @@ const App: React.FC = () => {
         }
     }
 
-    // ARCTIC: no jackpot logic — start cascade sequence
-    if (selectedGame.theme === 'ARCTIC') {
+    // ARCTIC: no jackpot logic — start cascade sequence (reused by Deep Blue)
+    if (ft === 'ARCTIC') {
         setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: false, scattersFound: scatterCount, winType: undefined });
         // Award XP for arctic spins
         const arcticVipMult = player.isVip ? 1.2 : 1.0;
@@ -3713,7 +3714,7 @@ const App: React.FC = () => {
                     };
                     return (
                         <div className="w-full z-10 p-0 m-0">
-                            {selectedGame.theme === 'ARCTIC' ? (
+                            {featureThemeOf(selectedGame.theme) === 'ARCTIC' ? (
                                 showArcticPickModal
                                     ? <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={false} />
                                     : freeSpinsRemaining > 0
@@ -4026,7 +4027,7 @@ const App: React.FC = () => {
                         )}
 
                         {/* Arctic Pick-and-Win grid — same layout as Dragon, ice cube theme */}
-                        {showArcticPickModal && selectedGame.theme === 'ARCTIC' && (
+                        {showArcticPickModal && featureThemeOf(selectedGame.theme) === 'ARCTIC' && (
                             <ArcticPickGrid
                                 jackpotAmounts={jackpotService.getAmounts()}
                                 currentBet={availableBets[betIndex]}
