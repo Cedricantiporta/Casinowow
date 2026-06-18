@@ -213,7 +213,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     };
 
     return (
-        <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
+        <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)' }}>
             {/* Duplicate Exchange Overlay */}
             {showExchangePanel && (
                 <div className="absolute inset-0 z-[170] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(160deg,#2e1065 0%,#0f0518 100%)' }}>

@@ -330,12 +330,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                 const iconBtn = (locked: boolean) =>
                     `relative flex flex-col items-center gap-0.5 px-2 md:px-2.5 active:scale-95 transition-transform${locked ? ' opacity-60' : ''}`;
                 const lockBadge = (unlockLevel: number) => (
-                    <div className="lock-badge absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10">
-                        <img src="/ui/lock.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,1))' }} />
-                        <span className="text-white font-black text-[10px] mt-0.5 uppercase leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,1)]">Lvl {unlockLevel}</span>
+                    <div className="lock-badge absolute top-0 right-0 flex flex-col items-center pointer-events-none z-10" style={{ padding: '2px 3px' }}>
+                        <img src="/ui/lock.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,1))' }} />
+                        <span style={{ fontSize: 7, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,1)' }}>Lv{unlockLevel}</span>
                     </div>
                 );
-                const sep = <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.18)', flexShrink: 0, alignSelf: 'center' }} />;
+                const sep = <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.18)', flexShrink: 0, alignSelf: 'flex-end', marginBottom: '14px' }} />;
                 const isGolden = isVip;
                 const barBg = isGolden
                     ? 'linear-gradient(180deg,#e8b020 0%,#c9901a 30%,#7a5000 100%)'

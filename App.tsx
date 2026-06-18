@@ -3540,6 +3540,11 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Piggy Bank icon */}
+                <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
+                    style={{ width: 26, height: 26, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
+                    className="shrink-0 active:scale-90 transition-transform" />
+
                 {/* Buy & Sale Buttons (Adjacent to each other) */}
                 <div className="flex items-center gap-1 flex-1 justify-center">
                     {/* Buy Button */}
@@ -3648,15 +3653,15 @@ const App: React.FC = () => {
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;
                     return (
-                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-3 items-center select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'10px 6px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'72px' }}>
+                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-2 items-center select-none"
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'8px 6px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'72px' }}>
                             {/* Mine */}
                             <button
                                 onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
                                 className={`relative flex flex-col items-center justify-center gap-1 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                             >
                                 {quest.wildCredits > 0 && !isQuestLocked && (
-                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                    <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                         {quest.wildCredits}
                                     </div>
                                 )}
@@ -3669,7 +3674,7 @@ const App: React.FC = () => {
                                 className={`relative flex flex-col items-center justify-center gap-1 transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                             >
                                 {quest.diceCredits > 0 && !isQuestLocked && (
-                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                    <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                         {quest.diceCredits}
                                     </div>
                                 )}
@@ -3682,7 +3687,7 @@ const App: React.FC = () => {
                                 className={`relative flex flex-col items-center justify-center gap-1 transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                             >
                                 {totalNotifs > 0 && !isPassLocked && (
-                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full border-2 border-yellow-400 flex items-center justify-center text-[10px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                    <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
                                         {totalNotifs}
                                     </div>
                                 )}

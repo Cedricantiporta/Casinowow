@@ -31,7 +31,7 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in">
         <div className="w-full max-w-[420px] flex flex-col rounded-3xl overflow-hidden"
-            style={{ height: 'min(80%, 520px)', background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)', boxShadow: 'inset 0 2px 0 rgba(220,170,255,0.9), 0 8px 32px rgba(0,0,0,0.8)' }}>
+            style={{ height: 'min(80%, 520px)', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-3 pb-2">
                 <h2 className="font-black text-white text-sm tracking-widest flex-1">Inbox</h2>
