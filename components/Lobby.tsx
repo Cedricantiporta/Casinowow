@@ -239,6 +239,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 gridAutoFlow: 'column',
                                 paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 2.25rem)',
                                 paddingRight: '0.75rem',
+                                transform: 'translateY(-14px)',
                             }}
                         >
                             {GAMES_CONFIG.map((game, idx) => {
@@ -361,7 +362,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Cards</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Cards</span>
                             </button>
 
                             {sep}
@@ -376,7 +377,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>Full</div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Piggy</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Piggy</span>
                             </button>
 
                             {sep}
@@ -393,7 +394,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Wild</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Wild</span>
                             </button>
 
                             {sep}
@@ -410,7 +411,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Dice</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Dice</span>
                             </button>
 
                             {sep}
@@ -431,7 +432,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Collect</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Collect</span>
                             </button>
 
                             {sep}
@@ -448,7 +449,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Pass</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Pass</span>
                             </button>
 
                             {sep}
@@ -464,7 +465,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Missions</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Missions</span>
                             </button>
 
                             {sep}
@@ -479,7 +480,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">Inbox</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Inbox</span>
                             </button>
 
                             {sep}
@@ -487,7 +488,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {/* VIP LOUNGE */}
                             <button onClick={onOpenVipLounge} className={iconBtn(false)}>
                                 <img src="/ui/VIP.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none">VIP</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">VIP</span>
                             </button>
 
                         </div>

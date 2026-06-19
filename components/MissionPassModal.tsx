@@ -324,6 +324,16 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className="flex-1 flex flex-col relative" style={{ background: 'transparent' }}>
                         {/* Rewards horizontal scroll */}
                         <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar snap-x" style={{ background: 'transparent', alignItems: 'flex-start' }}>
+                            {/* Leading row labels — Free / Premium */}
+                            <div className="flex-none flex flex-col gap-0 sticky left-0 z-20" style={{ width: '26px' }}>
+                                <div className="flex items-center justify-center" style={{ height: 80 }}>
+                                    <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: 900, fontSize: '16px', letterSpacing: '1px', color: '#93c5fd', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Free</span>
+                                </div>
+                                <div style={{ height: 56 }} />
+                                <div className="flex items-center justify-center" style={{ height: 88 }}>
+                                    <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: 900, fontSize: '16px', letterSpacing: '1px', color: '#fcd34d', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Premium</span>
+                                </div>
+                            </div>
                             {levels.map((lvl) => {
                                 const rewards = missionState.passRewards.filter(r => r.level === lvl);
                                 const freeReward = rewards.find(r => r.tier === 'FREE');
@@ -460,23 +470,23 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </div>
 
                         {/* Bottom bar — Claim All + Unlock Premium */}
-                        <div className="shrink-0 flex items-center justify-center gap-3 px-4 py-2">
+                        <div className="shrink-0 flex items-center justify-center gap-3 px-4 pt-1 pb-4">
                             <button
                                 onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
                                 disabled={rewardsToClaimCount === 0}
                                 className="pill-green"
                                 style={{ opacity: rewardsToClaimCount === 0 ? 0.4 : 1 }}
                             >
-                                <div className="pill-face" style={{ padding: '7px 20px', fontSize: '10px' }}>
+                                <div className="pill-face" style={{ padding: '11px 32px', fontSize: '13px' }}>
                                     Claim All {rewardsToClaimCount > 0 ? `(${rewardsToClaimCount})` : ''}
                                 </div>
                             </button>
                             {!missionState.isPremium ? (
                                 <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-green">
-                                    <div className="pill-face" style={{ padding: '7px 20px', fontSize: '10px', background: 'linear-gradient(180deg,#ffd700 0%,#e6a500 50%,#cc8800 100%)', color: '#3a1a00', textShadow: '0 1px 2px rgba(100,60,0,0.4)' }}>Unlock Premium</div>
+                                    <div className="pill-face" style={{ padding: '11px 32px', fontSize: '13px', background: 'linear-gradient(180deg,#ffd700 0%,#e6a500 50%,#cc8800 100%)', color: '#3a1a00', textShadow: '0 1px 2px rgba(100,60,0,0.4)' }}>Unlock Premium</div>
                                 </button>
                             ) : (
-                                <div className="flex items-center gap-1 px-4 py-2 rounded-full font-black text-[10px]"
+                                <div className="flex items-center gap-1 px-6 py-3 rounded-full font-black text-[13px]"
                                     style={{ background: 'rgba(255,255,255,0.08)', color: '#86efac' }}>
                                     ✓ Premium Active
                                 </div>
