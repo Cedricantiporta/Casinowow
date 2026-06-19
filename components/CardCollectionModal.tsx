@@ -232,13 +232,17 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)' }}>
-            {/* Duplicate Exchange Overlay */}
+            {/* Duplicate Exchange — centered modal */}
             {showExchangePanel && (
-                <div className="absolute inset-0 z-[170] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(160deg,#2e1065 0%,#0f0518 100%)' }}>
-                    <div className="shrink-0 flex items-center gap-2 px-3 py-1.5" style={{ background: 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="absolute inset-0 z-[175] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-pop-in"
+                    onClick={() => { setShowExchangePanel(false); setSelectedDuplicateIds(new Set()); }}>
+                    <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
+                        style={{ width: 680, maxWidth: '94%', height: 440, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
+                        onClick={e => e.stopPropagation()}>
+                    <div className="shrink-0 flex items-center gap-2 px-3 py-2">
                         <span className="font-black text-white text-xs uppercase tracking-widest flex-1">Exchange Duplicates</span>
                         <button onClick={() => { setShowExchangePanel(false); setSelectedDuplicateIds(new Set()); }}
-                            className="round-btn" style={{ width:24, height:24, fontSize:14 }}><i className="ti ti-x" /></button>
+                            className="round-btn shrink-0"><i className="ti ti-x" /></button>
                     </div>
                     {allDuplicates.length === 0 ? (
                         <div className="flex-1 flex items-center justify-center text-white/50 text-sm font-bold uppercase">No duplicates yet</div>
@@ -301,6 +305,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             </div>
                         </>
                     )}
+                    </div>
                 </div>
             )}
 
@@ -415,6 +420,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 {/* ALBUM view */}
                 {!selectedDeckId && (
                     <div className="flex flex-col h-full">
+                        <div className="flex-1" />
                         {/* Album scroll strip — fixed height (half the available area) */}
                         <div ref={albumScrollRef} className="overflow-x-auto no-scrollbar shrink-0">
                             <div className="flex gap-3" style={{ minWidth: 'max-content', paddingBottom: 2 }}>
@@ -448,24 +454,22 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Grand reward — below albums, bigger text, centered */}
-                        <div className="shrink-0 text-center mt-4">
-                            <div className="text-yellow-400/60 text-[10px] font-black uppercase tracking-widest">Grand Reward</div>
-                            <div className="text-white font-black font-mono leading-tight" style={{ fontSize: '2rem' }}>{abbrev18(grandPrize)}</div>
-                        </div>
-
-                        <div className="flex-1" />
-
-                        {/* Draw Cards FAB — bottom center */}
-                        <div className="shrink-0 pb-2 flex justify-center">
+                        {/* Grand reward row — reward centered, draw switcher far right */}
+                        <div className="shrink-0 relative flex items-center justify-center mt-4 px-2">
+                            <div className="text-center">
+                                <div className="text-yellow-400/60 text-[10px] font-black uppercase tracking-widest">Grand Reward</div>
+                                <div className="text-white font-black font-mono leading-tight" style={{ fontSize: '2rem' }}>{abbrev18(grandPrize)}</div>
+                            </div>
                             <button
                                 onClick={() => setShowDrawPopup(true)}
-                                className="btn-3d rounded-2xl flex flex-col items-center justify-center gap-1"
+                                className="btn-3d rounded-2xl flex flex-col items-center justify-center gap-1 absolute right-2"
                                 style={{ width: 72, height: 72, background: 'linear-gradient(180deg,#c084fc,#7c3aed)', boxShadow: '0 4px 0 #4c1d95, 0 6px 20px rgba(124,58,237,0.5)' }}>
                                 <i className="ti ti-cards" style={{ fontSize: '1.8rem', color: '#fff' }} />
                                 <span className="text-white font-black text-[9px] uppercase tracking-widest">Draw</span>
                             </button>
                         </div>
+
+                        <div className="flex-1" />
                     </div>
                 )}
 
@@ -535,81 +539,83 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 )}
             </div>
 
-            {/* Draw Cards Popup */}
+            {/* Draw Cards Popup — centered floating card */}
             {showDrawPopup && (
-                <div className="absolute inset-0 z-[165] flex flex-col animate-pop-in"
-                    style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)' }}>
-                    {/* Header */}
-                    <div className="shrink-0 flex items-center gap-2 px-3 py-2">
-                        <button onClick={() => setShowDrawPopup(false)} className="round-btn shrink-0">
-                            <i className="ti ti-arrow-left" />
-                        </button>
-                        <span className="text-white font-black text-xs tracking-widest flex-1">Draw Cards</span>
-                        <div className="flex items-center gap-1.5 text-[10px]">
-                            <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
-                                <div className="gem"></div>
-                                <span className="num">{formatNumber(diamonds)}</span>
-                            </div>
-                            <div className="currency-pill flex items-center gap-1 shrink-0">
-                                <span style={{ fontSize: '14px', lineHeight: 1 }}>🃏</span>
-                                <span className="num">{packCredits}</span>
-                            </div>
-                            <div className="currency-pill flex items-center gap-1 shrink-0">
-                                <span style={{ fontSize: '14px', lineHeight: 1 }}>🎴</span>
-                                <span className="num">{premiumPackCredits}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Content — draw packs + stacked actions */}
-                    <div className="flex-1 min-h-0 flex flex-col p-3 gap-3">
-                        {/* Pack draw options */}
-                        <div className="flex gap-3 justify-center items-stretch flex-1 min-h-0">
-                            {packOptions.map(pack => {
-                                const canDrawOne = pack.credits >= 1;
-                                const canDrawTen = pack.credits >= 9;
-                                return (
-                                    <div key={pack.id} className="flex flex-col rounded-2xl overflow-hidden"
-                                        style={{
-                                            width: 160,
-                                            background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(10,0,50,0.75) 100%)',
-                                            boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
-                                            padding: '14px 12px 12px',
-                                        }}>
-                                        <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                                            <div className="font-black text-white text-sm tracking-widest text-center leading-none">{pack.name}</div>
-                                            <div className="font-bold text-white/50 text-[11px]">{pack.credits} packs</div>
-                                        </div>
-                                        <div className="flex flex-col gap-1.5 mt-2">
-                                            <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
-                                                className={`pill-green w-full${!canDrawOne ? ' opacity-40' : ''}`}>
-                                                <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>Draw 1×</div>
-                                            </button>
-                                            <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
-                                                className={`pill-green w-full relative${!canDrawTen ? ' opacity-40' : ''}`}>
-                                                <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>Draw 10×</div>
-                                                {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white z-10">-10%</div>}
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {/* Buy Packs */}
-                        <button onClick={() => setShowPackBuyPopup('standard')} className="pill-green w-full shrink-0">
-                            <div className="pill-face" style={{ padding: '10px 8px', fontSize: '10px' }}>Buy Packs</div>
-                        </button>
-
-                        {/* Exchange Duplicates */}
-                        <button onClick={() => setShowExchangePanel(true)} className="pill-green w-full relative shrink-0">
-                            <div className="pill-face" style={{ padding: '10px 8px', fontSize: '10px' }}>Exchange Duplicates</div>
-                            {allDuplicates.length > 0 && (
-                                <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
-                                    <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
+                <div className="absolute inset-0 z-[165] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-pop-in"
+                    onClick={() => setShowDrawPopup(false)}>
+                    <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
+                        style={{ width: 680, maxWidth: '94%', height: 320, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
+                        onClick={e => e.stopPropagation()}>
+                        {/* Seamless topbar */}
+                        <div className="shrink-0 flex items-center gap-2 px-3 py-2">
+                            <span className="text-white font-black text-xs tracking-widest flex-1">Draw Cards</span>
+                            <div className="flex items-center gap-1.5 text-[10px]">
+                                <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                                    <div className="gem"></div>
+                                    <span className="num">{formatNumber(diamonds)}</span>
                                 </div>
-                            )}
-                        </button>
+                                <div className="currency-pill flex items-center gap-1 shrink-0">
+                                    <span style={{ fontSize: '14px', lineHeight: 1 }}>🃏</span>
+                                    <span className="num">{packCredits}</span>
+                                </div>
+                                <div className="currency-pill flex items-center gap-1 shrink-0">
+                                    <span style={{ fontSize: '14px', lineHeight: 1 }}>🎴</span>
+                                    <span className="num">{premiumPackCredits}</span>
+                                </div>
+                            </div>
+                            <button onClick={() => setShowDrawPopup(false)} className="round-btn shrink-0"><i className="ti ti-x" /></button>
+                        </div>
+
+                        {/* Content — draw packs (left) + right-side actions (vertically centered) */}
+                        <div className="flex-1 min-h-0 flex p-3 gap-3 items-stretch">
+                            {/* Pack draw options */}
+                            <div className="flex-1 flex gap-3 justify-center items-stretch min-h-0">
+                                {packOptions.map(pack => {
+                                    const canDrawOne = pack.credits >= 1;
+                                    const canDrawTen = pack.credits >= 9;
+                                    return (
+                                        <div key={pack.id} className="flex flex-col rounded-2xl overflow-hidden"
+                                            style={{
+                                                width: 160,
+                                                background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(10,0,50,0.75) 100%)',
+                                                boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
+                                                padding: '14px 12px 12px',
+                                            }}>
+                                            <div className="flex-1 flex flex-col items-center justify-center gap-2">
+                                                <div className="font-black text-white text-sm tracking-widest text-center leading-none">{pack.name}</div>
+                                                <div className="font-bold text-white/50 text-[11px]">{pack.credits} packs</div>
+                                            </div>
+                                            <div className="flex flex-col gap-1.5 mt-2">
+                                                <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
+                                                    className={`pill-green w-full${!canDrawOne ? ' opacity-40' : ''}`}>
+                                                    <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>Draw 1×</div>
+                                                </button>
+                                                <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
+                                                    className={`pill-green w-full relative${!canDrawTen ? ' opacity-40' : ''}`}>
+                                                    <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>Draw 10×</div>
+                                                    {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white z-10">-10%</div>}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Right side — vertically centered actions */}
+                            <div className="shrink-0 flex flex-col justify-center gap-2" style={{ width: 140 }}>
+                                <button onClick={() => setShowPackBuyPopup('standard')} className="pill-green w-full">
+                                    <div className="pill-face" style={{ padding: '10px 8px', fontSize: '10px' }}>Buy Packs</div>
+                                </button>
+                                <button onClick={() => setShowExchangePanel(true)} className="pill-green w-full relative">
+                                    <div className="pill-face" style={{ padding: '10px 8px', fontSize: '10px' }}>Exchange Duplicates</div>
+                                    {allDuplicates.length > 0 && (
+                                        <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
+                                        </div>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
