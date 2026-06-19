@@ -4,7 +4,7 @@ class AudioService {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private muted: boolean = false;
-  private volume: number = 0.45; // Master volume (was 0.3, +50%)
+  private volume: number = 0.675; // Master volume (was 0.45, +50% again)
   private bufferCache: Record<string, AudioBuffer> = {};
 
   constructor() {
