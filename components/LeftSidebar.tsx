@@ -28,7 +28,6 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     playerLevel
 }) => {
     
-    const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
     const isMissionXpBoosted = missionState.passBoostMultiplier > 1;
     
     // Only count premium rewards if user is premium
