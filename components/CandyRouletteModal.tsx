@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { audioService } from '../services/audioService';
-import { WheelDefs, WheelRim, WheelGloss } from './wheel3d';
+import { WheelDefs, WheelRim, WheelGloss, containerShell } from './wheel3d';
 
 export interface CandyWildConfig {
     mode: 'single' | 'column';
@@ -117,69 +117,31 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
 
     if (!isOpen) return null;
 
-    const rightContent = () => {
-        switch (phase) {
-            case 'ready':
-                return (
-                    <div className="flex flex-col gap-2 text-center select-none">
-                        <div className="text-white font-black text-sm uppercase tracking-widest">🍬 Wild Wheel</div>
-                        <div className="text-pink-200/60 text-xs leading-relaxed mt-2">Tap the wheel to spin!</div>
-                        <div className="text-pink-200/35 text-[9px] mt-3 leading-relaxed">
-                            Win persistent switching wilds<br />for all {freeSpins} free spins!
-                        </div>
-                    </div>
-                );
-            case 'spinning':
-                return (
-                    <div className="flex flex-col items-center gap-3 select-none">
-                        <div className="text-white/40 text-[9px] uppercase tracking-widest animate-pulse">Spinning…</div>
-                        <div className="font-black text-4xl transition-colors duration-75"
-                            style={{ color: liveSeg.textColor, textShadow: `0 0 20px ${liveSeg.textColor}` }}>
-                            {liveSeg.label}
-                        </div>
-                        <div className="text-white/25 text-[9px] uppercase tracking-wide mt-1">{liveSeg.sub}</div>
-                    </div>
-                );
-            case 'done':
-                return wonSeg ? (
-                    <div className="flex flex-col items-center gap-2 select-none animate-pop-in">
-                        <div className="text-white/50 text-[9px] uppercase tracking-widest">You Won</div>
-                        <div className="flex items-baseline gap-1.5">
-                            <span className="font-black text-5xl" style={{ color: wonSeg.textColor, textShadow: `0 0 20px ${wonSeg.textColor}` }}>{wonSeg.label}</span>
-                        </div>
-                        <div className="font-black text-white text-sm uppercase tracking-widest">{wonSeg.sub}</div>
-                    </div>
-                ) : null;
-            default:
-                return null;
-        }
-    };
-
     return (
-        <div className="absolute inset-0 z-[200] flex items-center justify-center animate-pop-in">
+        <div className="absolute inset-0 z-[200] animate-pop-in select-none">
 
-            {/* Prompt screen */}
+            {/* Bonus prompt popup — new 3D gradient container */}
             {phase === 'prompt' && (
-                <div className="flex flex-col items-center justify-center gap-6 w-full h-full select-none">
-                    <div className="animate-pop-in flex flex-col items-center gap-4 rounded-3xl px-8 py-7 text-center"
-                        style={{ background: 'linear-gradient(160deg,#3b0420,#831843)', border: '2px solid #ec4899', boxShadow: '0 0 40px rgba(236,72,153,0.6)', maxWidth: 280 }}>
-                        <div style={{ fontSize: '3.5rem', lineHeight: 1 }}>🍬</div>
-                        <div className="font-black text-white uppercase tracking-widest text-xl text-center" style={{ textShadow: '0 0 20px rgba(236,72,153,0.9)' }}>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="animate-pop-in flex flex-col items-center gap-4 rounded-3xl px-9 py-7 text-center overflow-hidden"
+                        style={{ ...containerShell('candy'), maxWidth: 300 }}>
+                        <div style={{ fontSize: '3.4rem', lineHeight: 1, filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.5))' }}>🍬</div>
+                        <div className="font-black text-white uppercase tracking-wide text-2xl leading-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
                             Wild Wheel<br />Bonus!
                         </div>
-                        <div className="text-pink-300 text-[11px] font-bold uppercase tracking-widest">{freeSpins} Free Spins</div>
+                        <div className="text-pink-100/80 text-[11px] font-black uppercase tracking-[0.2em]">{freeSpins} Free Spins</div>
                         <button onClick={() => setPhase('ready')}
-                            className="btn-3d w-full py-3 rounded-2xl font-black text-sm uppercase tracking-widest"
-                            style={{ background: 'linear-gradient(180deg,#f472b6,#db2777)', color: '#fff', boxShadow: '0 4px 0 #831843' }}>
+                            className="btn-3d w-full py-3 rounded-2xl font-black text-sm uppercase tracking-widest mt-1"
+                            style={{ background: 'linear-gradient(180deg,#f9a8d4,#db2777)', color: '#fff', boxShadow: '0 4px 0 #831843' }}>
                             Spin Now!
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Wheel — centred, no right panel */}
+            {/* Wheel — fixed location (lower, clears jackpot text), never moves */}
             {phase !== 'prompt' && (
-                <div className="flex flex-col items-center gap-3 select-none">
+                <div className="absolute" style={{ left: '50%', top: 92, transform: 'translateX(-50%)', width: SZ, height: SZ }}>
                     {/* Wheel */}
                     <div className="relative" style={{ width: SZ, height: SZ, cursor: phase === 'ready' ? 'pointer' : 'default' }}
                         onClick={phase === 'ready' ? doSpin : undefined}>
@@ -252,28 +214,22 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
                             </div>
                         )}
                     </div>
+                </div>
+            )}
 
-                    {/* Compact status + action below wheel */}
-                    <div className="flex flex-col items-center gap-2 select-none" style={{ minHeight: 48 }}>
-                        {phase === 'spinning' && wonSeg && (
-                            <div className="font-black text-2xl animate-pulse transition-colors duration-75"
-                                style={{ color: wonSeg.textColor, textShadow: `0 0 16px ${wonSeg.textColor}` }}>
-                                {wonSeg.label}
-                            </div>
-                        )}
-                        {phase === 'done' && wonSeg && (
-                            <>
-                                <div className="flex flex-col items-center gap-0.5 animate-pop-in">
-                                    <span className="font-black text-2xl" style={{ color: wonSeg.textColor, textShadow: `0 0 16px ${wonSeg.textColor}` }}>{wonSeg.label}</span>
-                                    <span className="text-white/60 text-[10px] uppercase tracking-widest">{wonSeg.sub}</span>
-                                </div>
-                                <button onClick={() => onComplete(wonSeg.cfg)}
-                                    className="btn-3d px-6 py-2 rounded-xl font-black uppercase tracking-widest text-white text-sm"
-                                    style={{ background: 'linear-gradient(180deg,#f472b6,#db2777)', boxShadow: '0 4px 0 #831843' }}>
-                                    Start Free Spins!
-                                </button>
-                            </>
-                        )}
+            {/* Result popup — new 3D gradient container (replaces below-wheel content) */}
+            {phase === 'done' && wonSeg && (
+                <div className="absolute inset-0 z-[210] flex items-center justify-center animate-pop-in">
+                    <div className="flex flex-col items-center gap-3 rounded-3xl px-10 py-7 text-center overflow-hidden"
+                        style={{ ...containerShell('candy'), maxWidth: 300 }}>
+                        <div className="text-pink-100/70 text-[10px] font-black uppercase tracking-[0.25em]">You Won</div>
+                        <span className="font-black text-white" style={{ fontSize: '3.5rem', lineHeight: 1, textShadow: '0 3px 10px rgba(0,0,0,0.55)' }}>{wonSeg.label}</span>
+                        <div className="font-black text-white text-sm uppercase tracking-[0.2em]">{wonSeg.sub}</div>
+                        <button onClick={() => onComplete(wonSeg.cfg)}
+                            className="btn-3d w-full py-3 rounded-2xl font-black uppercase tracking-widest text-white text-sm mt-1"
+                            style={{ background: 'linear-gradient(180deg,#f9a8d4,#db2777)', boxShadow: '0 4px 0 #831843' }}>
+                            Start Free Spins!
+                        </button>
                     </div>
                 </div>
             )}

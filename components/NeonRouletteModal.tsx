@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { formatCommaNumber } from '../constants';
 import { audioService } from '../services/audioService';
-import { WheelDefs, WheelRim, WheelGloss } from './wheel3d';
+import { WheelDefs, WheelRim, WheelGloss, containerShell } from './wheel3d';
 
 interface Seg {
     label: string;
@@ -186,32 +186,31 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
     if (!isOpen) return null;
 
     return (
-        <div className="absolute inset-0 z-[200] flex items-center justify-center animate-pop-in">
+        <div className="absolute inset-0 z-[200] animate-pop-in select-none">
 
-            {/* Prompt screen */}
+            {/* Bonus prompt popup — new 3D gradient container */}
             {phase === 'prompt' && (
-                <div className="flex flex-col items-center justify-center gap-6 w-full h-full select-none">
-                    <div className="animate-pop-in flex flex-col items-center gap-4 rounded-3xl px-8 py-7 text-center"
-                        style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '2px solid #a855f7', boxShadow: '0 0 40px rgba(168,85,247,0.6)', maxWidth: 280 }}>
-                        <div style={{ fontSize: '3.5rem', lineHeight: 1 }}>🎡</div>
-                        <div className="font-black text-white uppercase tracking-widest text-xl text-center"
-                            style={{ textShadow: '0 0 20px rgba(147,51,234,0.9)' }}>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="animate-pop-in flex flex-col items-center gap-4 rounded-3xl px-9 py-7 text-center overflow-hidden"
+                        style={{ ...containerShell('neon'), maxWidth: 300 }}>
+                        <div style={{ fontSize: '3.4rem', lineHeight: 1, filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.5))' }}>🎡</div>
+                        <div className="font-black text-white uppercase tracking-wide text-2xl leading-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
                             You Won a<br />Roulette Spin!
                         </div>
-                        <div className="text-purple-300 text-[11px] font-bold uppercase tracking-widest">Bonus Round</div>
+                        <div className="text-sky-100/80 text-[11px] font-black uppercase tracking-[0.2em]">Bonus Round</div>
                         <button
                             onClick={() => setPhase('ready')}
-                            className="btn-3d w-full py-3 rounded-2xl font-black text-sm uppercase tracking-widest"
-                            style={{ background: 'linear-gradient(180deg,#d946ef,#a855f7)', color: '#fff', boxShadow: '0 4px 0 #6b21a8' }}>
+                            className="btn-3d w-full py-3 rounded-2xl font-black text-sm uppercase tracking-widest mt-1"
+                            style={{ background: 'linear-gradient(180deg,#93c5fd,#2563eb)', color: '#fff', boxShadow: '0 4px 0 #1e3a8a' }}>
                             Spin Now!
                         </button>
                     </div>
                 </div>
             )}
 
-            {/* Wheel — centred, no right panel */}
+            {/* Wheel — fixed location (lower, clears jackpot text), never moves */}
             {phase !== 'prompt' && (
-                <div className="flex flex-col items-center gap-3 select-none">
+                <div className="absolute" style={{ left: '50%', top: 92, transform: 'translateX(-50%)', width: SZ, height: SZ }}>
                     {/* Wheel */}
                     <div className="relative"
                         style={{ width: SZ, height: SZ, cursor: phase === 'ready' ? 'pointer' : 'default' }}
@@ -281,42 +280,29 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                             </div>
                         )}
                     </div>
+                </div>
+            )}
 
-                    {/* Compact status below wheel */}
-                    <div className="flex flex-col items-center gap-1 select-none" style={{ minHeight: 36 }}>
-                        {phase === 'spinning' && (
-                            <div className="font-black text-2xl transition-colors duration-75 animate-pulse"
-                                style={{ color: liveSeg.textColor, textShadow: `0 0 16px ${liveSeg.textColor}` }}>
-                                {liveSeg.label}
-                            </div>
-                        )}
-                        {phase === 'mult_popup' && (
-                            <div className="flex items-center gap-2 animate-pop-in">
-                                <span className="font-black text-white text-lg font-mono">+{formatCommaNumber(multPayout)}</span>
-                                <span className="text-white/40 text-[9px] uppercase tracking-widest animate-pulse">Respinning…</span>
-                            </div>
-                        )}
-                        {phase === 'done' && wonSeg && (
-                            <div className="font-black text-xl" style={{ color: wonSeg.textColor, textShadow: `0 0 16px ${wonSeg.textColor}` }}>
-                                {wonSeg.label} Jackpot!
-                            </div>
-                        )}
+            {/* Bonus multiplier win popup (between respins) — new 3D gradient container */}
+            {phase === 'mult_popup' && wonSeg && (
+                <div className="absolute left-1/2 -translate-x-1/2 z-[209] animate-pop-in" style={{ top: 20 }}>
+                    <div className="flex flex-col items-center gap-1 rounded-2xl px-6 py-3 text-center overflow-hidden"
+                        style={{ ...containerShell('neon') }}>
+                        <div className="text-sky-100/70 text-[9px] font-black uppercase tracking-[0.25em]">{wonSeg.label} Bonus</div>
+                        <span className="font-black text-white text-2xl font-mono" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>+{formatCommaNumber(multPayout)}</span>
+                        <span className="text-white/50 text-[9px] uppercase tracking-widest animate-pulse">Respinning…</span>
                     </div>
                 </div>
             )}
 
-            {/* End-of-roulette summary popup */}
+            {/* End-of-roulette summary popup — new 3D gradient container */}
             {showSummary && wonSeg && (
                 <div className="absolute inset-0 z-[210] flex items-center justify-center animate-pop-in">
-                    <div className="flex flex-col items-center gap-3 rounded-3xl px-10 py-7 select-none"
-                        style={{
-                            background: '#3b0764',
-                            boxShadow: `0 0 60px ${wonSeg.textColor}44, 0 0 120px rgba(0,0,0,0.8)`,
-                            minWidth: 240,
-                        }}>
-                        <div className="text-white/60 text-[10px] font-black uppercase tracking-widest">🎉 Roulette Complete!</div>
-                        <div className="font-black uppercase tracking-wider text-center"
-                            style={{ fontSize: '2rem', color: wonSeg.textColor, textShadow: `0 0 24px ${wonSeg.textColor}` }}>
+                    <div className="flex flex-col items-center gap-3 rounded-3xl px-10 py-7 select-none overflow-hidden"
+                        style={{ ...containerShell('neon'), minWidth: 250 }}>
+                        <div className="text-sky-100/70 text-[10px] font-black uppercase tracking-widest">🎉 Roulette Complete!</div>
+                        <div className="font-black uppercase tracking-wider text-center text-white"
+                            style={{ fontSize: '2rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
                             {wonSeg.jp} Jackpot
                         </div>
 
@@ -324,18 +310,18 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                         <div className="w-full flex flex-col gap-1.5 mt-1">
                             {totalMultWins > 0 && (
                                 <div className="flex items-center justify-between px-3 py-1.5 rounded-xl"
-                                    style={{ background: 'rgba(255,255,255,0.06)' }}>
-                                    <span className="text-white/60 text-[10px] uppercase tracking-wide">Multiplier Wins</span>
+                                    style={{ background: 'rgba(255,255,255,0.1)' }}>
+                                    <span className="text-white/70 text-[10px] uppercase tracking-wide">Multiplier Wins</span>
                                     <span className="font-black text-yellow-300 text-sm font-mono">+{formatCommaNumber(totalMultWins)}</span>
                                 </div>
                             )}
                             <div className="flex items-center justify-between px-3 py-1.5 rounded-xl"
-                                style={{ background: 'rgba(255,255,255,0.06)' }}>
-                                <span className="text-white/60 text-[10px] uppercase tracking-wide">Jackpot Prize</span>
+                                style={{ background: 'rgba(255,255,255,0.1)' }}>
+                                <span className="text-white/70 text-[10px] uppercase tracking-wide">Jackpot Prize</span>
                                 <span className="font-black text-white text-sm font-mono">+{formatCommaNumber(prize)}</span>
                             </div>
                             <div className="flex items-center justify-between px-3 py-2 rounded-xl"
-                                style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)' }}>
+                                style={{ background: 'rgba(251,191,36,0.18)', border: '1px solid rgba(251,191,36,0.35)' }}>
                                 <span className="text-yellow-300 font-black text-[11px] uppercase tracking-wide">Total Won</span>
                                 <span className="font-black text-yellow-300 text-base font-mono">+{formatCommaNumber(summaryTotal)}</span>
                             </div>
