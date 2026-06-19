@@ -396,8 +396,9 @@
         box-shadow: 0 0px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.2) !important;
       }
 
-      .buyB, .saleB{z-index:1; border-radius: 6px !important; padding-bottom:1px !important;}
-      .buyB .face, .saleB .face{padding:7px 8px; display:flex; align-items:center; justify-content:center; border-radius: 5px !important; min-width:46px;}
+      .buyB, .saleB{z-index:1; border-radius: 10px !important; padding-bottom:2px !important;}
+      .buyB .face, .saleB .face{padding:7px 8px; display:flex; align-items:center; justify-content:center; border-radius: 9px !important; min-width:46px;}
+      .buyB .face::before, .saleB .face::before{left:3px;right:3px;border-radius:9px 9px 50% 50%;background:linear-gradient(180deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%);}
       .buyB .lbl, .saleB .lbl{font-size:11px; font-family:'Nunito',sans-serif !important;}
       @media (min-width: 768px) {
         .buyB .face, .saleB .face { padding: 9px 16px; min-width: 62px; }

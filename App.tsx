@@ -3562,7 +3562,7 @@ const App: React.FC = () => {
                     {/* Events pill */}
                     <div className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2 h-5 md:h-[23px]"
                         style={{ background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                        <span className="font-black text-white tracking-widest" style={{ fontSize: 9 }}>EVENTS</span>
+                        <span className="font-black text-white tracking-widest" style={{ fontSize: 11 }}>EVENTS</span>
                     </div>
 
                     {/* Level Pill */}
@@ -3883,20 +3883,18 @@ const App: React.FC = () => {
                             const isWest = selectedGame.theme === 'WESTERN';
                             const edge = isWest ? '#ffcc33' : '#38e8ff';
                             const glowRGB = isWest ? '255,180,40' : '56,232,255';
-                            const marker = isWest ? '🐎' : '🚢';
                             return (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
                                     <div key={c} className="flex-1 relative">
                                         {(c === pirateShipCol || c === pirateShip2Col) && (
-                                            <div className="absolute inset-0 flex items-start justify-center animate-pop-in"
+                                            <div className="absolute inset-0 animate-pop-in"
                                                 style={{
                                                     border: `2.5px solid ${edge}`,
                                                     borderRadius: 5,
                                                     boxShadow: `0 0 22px rgba(${glowRGB},0.85), inset 0 0 26px rgba(${glowRGB},0.35)`,
                                                     background: `linear-gradient(180deg,rgba(${glowRGB},0.18),rgba(20,80,120,0.05))`,
                                                 }}>
-                                                <span style={{ fontSize: 'clamp(20px,5vw,34px)', lineHeight: 1, marginTop: '-2px', filter: `drop-shadow(0 0 8px rgba(${glowRGB},0.9))` }}>{marker}</span>
                                             </div>
                                         )}
                                     </div>
