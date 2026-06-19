@@ -20,7 +20,7 @@ const getBundles = (maxBet: number) => [
         id: 'starter',
         name: 'Starter Bundle',
         tag: '50% OFF',
-        tagColor: '#22c55e',
+        tagColor: '#dc2626',
         bg: 'linear-gradient(160deg,#052e16,#166534,#052e16)',
         items: [
             { icon: '/symbols/coin.png', label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
@@ -34,7 +34,7 @@ const getBundles = (maxBet: number) => [
         id: 'gem',
         name: 'Gem Bundle',
         tag: '60% OFF',
-        tagColor: '#a855f7',
+        tagColor: '#dc2626',
         bg: 'linear-gradient(160deg,#2e1065,#5b21b6,#2e1065)',
         items: [
             { icon: '/symbols/diamond.png', label: '2,000 Gems' },
@@ -48,7 +48,7 @@ const getBundles = (maxBet: number) => [
         id: 'quest',
         name: 'Quest Bundle',
         tag: '55% OFF',
-        tagColor: '#0ea5e9',
+        tagColor: '#dc2626',
         bg: 'linear-gradient(160deg,#0c1a5e,#1e3a8a,#0c1a5e)',
         items: [
             { icon: '⛏️', label: '+20 Picks' },
@@ -63,7 +63,7 @@ const getBundles = (maxBet: number) => [
         id: 'mega',
         name: 'Mega Bundle',
         tag: '70% OFF',
-        tagColor: '#f59e0b',
+        tagColor: '#dc2626',
         bg: 'linear-gradient(160deg,#451a03,#92400e,#451a03)',
         items: [
             { icon: '/symbols/coin.png', label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
@@ -79,7 +79,7 @@ const getBundles = (maxBet: number) => [
         id: 'vip-boost',
         name: 'VIP Boost Pack',
         tag: '65% OFF',
-        tagColor: '#f43f5e',
+        tagColor: '#dc2626',
         bg: 'linear-gradient(160deg,#4c0519,#9f1239,#4c0519)',
         items: [
             { icon: '👑', label: 'VIP Access (7 Days)' },
@@ -95,13 +95,15 @@ const getBundles = (maxBet: number) => [
         id: 'diamond',
         name: 'Diamond Pack',
         tag: '75% OFF',
-        tagColor: '#22d3ee',
+        tagColor: '#dc2626',
         bg: 'linear-gradient(160deg,#083344,#0e7490,#083344)',
         items: [
             { icon: '/symbols/diamond.png', label: '10,000 Gems' },
             { icon: '/symbols/coin.png', label: `${formatCommaNumber(Math.round(maxBet * 300))} Coins` },
-            { icon: '🎴', label: '20 Premium Packs' },
+            { icon: '🎴', label: '40 Premium Packs' },
             { icon: '📜', label: 'Monthly Pass (30d)' },
+            { icon: '🎲', label: '+50 Dice' },
+            { icon: '⛏️', label: '+50 Pickaxes' },
         ],
         origPrice: '₱ 3,999',
         price: '₱ 999',
@@ -207,7 +209,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <div className="shrink-0 px-4 pt-4 pb-2">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
-                                        style={{ background: bundle.tagColor, color: '#000' }}>{bundle.tag}{isVip ? ' +VIP' : ''}</span>
+                                        style={{ background: bundle.tagColor, color: '#fff' }}>{bundle.tag}{isVip ? ' +VIP' : ''}</span>
                                 </div>
                                 <div className="font-black text-white text-sm uppercase tracking-wider leading-none mt-1">{bundle.name}</div>
                             </div>
