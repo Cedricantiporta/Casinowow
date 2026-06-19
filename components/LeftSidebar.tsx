@@ -30,10 +30,9 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     
     const isMissionXpBoosted = missionState.passBoostMultiplier > 1;
     
-    // Only count premium rewards if user is premium
-    const passRewardsReady = missionState.passRewards.filter(r => 
-        r.level <= missionState.passLevel && 
-        !r.claimed && 
+    const passRewardsReady = missionState.passRewards.filter(r =>
+        r.level <= missionState.passLevel + (missionState.isPremium ? 10 : 0) &&
+        !r.claimed &&
         (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
     ).length;
 

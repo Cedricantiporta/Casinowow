@@ -176,7 +176,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
     const abbrev18 = (n: number): string => {
         const s = formatCommaNumber(n);
-        if (s.length <= 18) return s;
+        if (s.length <= 15) return s;
         const tiers: [number, string][] = [[1e15,'Q'],[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']];
         for (const [div, sfx] of tiers) {
             if (n >= div) return (n / div).toFixed(1).replace(/\.0$/, '') + sfx;
@@ -462,10 +462,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             </div>
                             <button
                                 onClick={() => setShowDrawPopup(true)}
-                                className="btn-3d rounded-2xl flex flex-col items-center justify-center gap-1 absolute right-2"
-                                style={{ width: 72, height: 72, background: 'linear-gradient(180deg,#c084fc,#7c3aed)', boxShadow: '0 4px 0 #4c1d95, 0 6px 20px rgba(124,58,237,0.5)' }}>
-                                <i className="ti ti-cards" style={{ fontSize: '1.8rem', color: '#fff' }} />
-                                <span className="text-white font-black text-[9px] uppercase tracking-widest">Draw</span>
+                                className="btn-3d rounded-xl px-4 py-2 absolute right-2"
+                                style={{ background: 'linear-gradient(180deg,#c084fc,#7c3aed)', boxShadow: '0 4px 0 #4c1d95, 0 6px 20px rgba(124,58,237,0.5)' }}>
+                                <span className="text-white font-black text-xs">Draw Cards</span>
                             </button>
                         </div>
 

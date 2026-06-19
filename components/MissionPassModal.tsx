@@ -68,8 +68,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
         .slice(0, 4);
 
     const levels = Array.from(new Set(missionState.passRewards.map(r => r.level))).sort((a: number, b: number) => a - b);
+    const premiumLevelBonus = missionState.isPremium ? 10 : 0;
     const rewardsToClaimCount = missionState.passRewards.filter(r =>
-        r.level <= missionState.passLevel &&
+        r.level <= missionState.passLevel + premiumLevelBonus &&
         !r.claimed &&
         (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
     ).length;
@@ -338,7 +339,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 const rewards = missionState.passRewards.filter(r => r.level === lvl);
                                 const freeReward = rewards.find(r => r.tier === 'FREE');
                                 const premReward = rewards.find(r => r.tier === 'PREMIUM');
-                                const isUnlocked = missionState.passLevel >= lvl;
+                                const isUnlocked = missionState.passLevel + premiumLevelBonus >= lvl;
 
                                 const renderIcon = (reward: typeof freeReward) => {
                                     if (!reward) return null;

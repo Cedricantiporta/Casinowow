@@ -1131,9 +1131,10 @@ const App: React.FC = () => {
   };
 
   const handleClaimAllMissions = () => {
-      const rewardsToClaim = missionState.passRewards.filter(r => 
-          r.level <= missionState.passLevel && 
-          !r.claimed && 
+      const premBonus = missionState.isPremium ? 10 : 0;
+      const rewardsToClaim = missionState.passRewards.filter(r =>
+          r.level <= missionState.passLevel + premBonus &&
+          !r.claimed &&
           (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
       );
       if (rewardsToClaim.length === 0) return;
@@ -3875,7 +3876,7 @@ const App: React.FC = () => {
                 {/* Quest + Pass vertical panel — always visible in game view */}
                 {(() => {
                     const qReady = false;
-                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
+                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel + (missionState.isPremium ? 10 : 0) && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
                     const totalNotifs = passReady;
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;
