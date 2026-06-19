@@ -282,7 +282,7 @@ const ReelCell: React.FC<{
     let bgClasses = isImageIcon ? 'bg-transparent' : (config?.bg || 'bg-transparent');
 
     if (highlight) {
-        bgClasses = `${config?.bg || 'bg-transparent'} shadow-[0_0_14px_rgba(251,191,36,0.55)] z-20`;
+        bgClasses = `${config?.bg || 'bg-transparent'} shadow-[0_0_14px_rgba(255,229,0,0.55)] z-20`;
     } else if (isScatter && isScatterShowcase) {
         bgClasses = 'border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
     }
@@ -339,12 +339,12 @@ const ReelCell: React.FC<{
                             x="1.5" y="1.5"
                             width="97" height="97"
                             fill="none"
-                            stroke="#fbbf24"
+                            stroke="#ffe500"
                             strokeWidth="3"
                             strokeLinecap="round"
-                            strokeDasharray="97 97"
+                            strokeDasharray="140 54"
                             style={{
-                                filter: 'drop-shadow(0 0 4px #f59e0b) drop-shadow(0 0 8px rgba(251,191,36,0.65))',
+                                filter: 'drop-shadow(0 0 5px #ffe500) drop-shadow(0 0 10px rgba(255,229,0,0.8))',
                                 animation: 'snakeBorder 1.2s linear infinite',
                             }}
                         />

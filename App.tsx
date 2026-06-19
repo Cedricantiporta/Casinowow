@@ -4875,7 +4875,7 @@ const App: React.FC = () => {
                   window.location.reload();
                   return;
               }
-              if (redeemedCodes.includes(code)) return;
+              if (redeemedCodes.includes(code) && !code.startsWith('dev')) return;
               setRedeemedCodes(prev => {
                   const next = [...prev, code];
                   try { localStorage.setItem('cw_redeemed_codes', JSON.stringify(next)); } catch {}
