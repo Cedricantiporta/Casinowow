@@ -27,9 +27,9 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
             style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
             {/* Header */}
-            <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">
-                <span className="text-white font-black text-base flex-1">Golden Treasury</span>
-                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
+            <div className="shrink-0 flex items-center px-4 py-2.5 relative">
+                <span className="absolute left-0 right-0 text-center text-white font-black text-base pointer-events-none">Golden Treasury</span>
+                <div className="ml-auto round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
             {/* Body */}

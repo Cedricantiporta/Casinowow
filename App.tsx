@@ -3574,7 +3574,7 @@ const App: React.FC = () => {
                             })()}
                         </div>
                         <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
-                        <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
+                        <span className="rnum font-black" style={{ fontSize: '11px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
                             {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LV.${player.level}`}
                         </span>
                     </div>

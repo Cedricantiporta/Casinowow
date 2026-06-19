@@ -400,16 +400,17 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                                         {/* Level node */}
                                         <div className="flex items-center justify-center shrink-0 relative" style={{ height: 56 }}>
-                                            <div className="absolute left-0 right-[50%]" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#7c3aed,#a855f7)' : '#1e1b4b' }} />
-                                            <div className="absolute left-[50%] right-0" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#7c3aed)' : '#1e1b4b' }} />
+                                            {/* Continuous line — always full width, color changes for unlocked */}
+                                            <div className="absolute left-0 right-0" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#c084fc)' : 'rgba(255,255,255,0.18)' }} />
                                             {lvl === missionState.passLevel + 1 ? (
-                                                <button onClick={onBuyLevel} className="relative z-10 btn-3d font-black text-[8px] rounded-lg text-white flex items-center justify-center gap-0.5"
-                                                    style={{ width: 58, height: 20, background: 'linear-gradient(180deg,#6366f1,#3730a3)', boxShadow: '0 2px 0 #1e1b4b', flexShrink: 0 }}>
-                                                    <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> 100
+                                                <button onClick={onBuyLevel} className="pill-green relative z-10">
+                                                    <div className="pill-face flex items-center gap-1" style={{ padding: '4px 10px', fontSize: '8px' }}>
+                                                        <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> 100
+                                                    </div>
                                                 </button>
                                             ) : (
                                                 <div className="relative z-10 flex items-center justify-center font-black text-[9px] rounded-full"
-                                                    style={{ width: 24, height: 24, background: isUnlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827', border: `2px solid ${isUnlocked ? '#e879f9' : '#374151'}`, boxShadow: isUnlocked ? '0 2px 8px rgba(168,85,247,0.6)' : 'none', color: isUnlocked ? 'white' : '#4b5563', flexShrink: 0 }}>
+                                                    style={{ width: 24, height: 24, background: isUnlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827', border: `2px solid ${isUnlocked ? '#e879f9' : 'rgba(255,255,255,0.25)'}`, boxShadow: isUnlocked ? '0 2px 8px rgba(168,85,247,0.6)' : 'none', color: 'white', flexShrink: 0 }}>
                                                     {lvl}
                                                 </div>
                                             )}
