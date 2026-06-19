@@ -2900,7 +2900,7 @@ const App: React.FC = () => {
                        });
                        setShownUnlocks(prev => new Set(prev).add(slotUnlock.lvl));
                        setActiveModal('FEATURE_UNLOCK');
-                       setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 5000);
+                       setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 3000);
                   }
                   else if (justUnlocked(newLevel)) {
                       if (newLevel === 5) {
@@ -2960,7 +2960,7 @@ const App: React.FC = () => {
                           setShownUnlocks(prev => new Set(prev).add(40));
                       }
                       setActiveModal('FEATURE_UNLOCK');
-                      setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 5000);
+                      setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 3000);
                   }
               }, 500);
 
