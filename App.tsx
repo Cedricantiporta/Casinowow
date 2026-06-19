@@ -946,6 +946,7 @@ const App: React.FC = () => {
     const target = 10000000;
     const duration = 2000;
     const start = Date.now();
+    let lastTick = 0;
     const interval = setInterval(() => {
         const elapsed = Date.now() - start;
         if (elapsed >= duration) {
@@ -956,6 +957,11 @@ const App: React.FC = () => {
         }
         const p = 1 - Math.pow(1 - elapsed / duration, 3);
         setGiftDisplayAmount(Math.floor(target * p));
+        const speed = 1 + p * 1.5;
+        if (elapsed - lastTick >= Math.max(35, 80 / speed)) {
+            audioService.playCoinTick(speed);
+            lastTick = elapsed;
+        }
     }, 16);
     return () => clearInterval(interval);
   }, [showWelcomeGift]);
@@ -3509,7 +3515,9 @@ const App: React.FC = () => {
   };
 
   const handleSpinMouseDown = () => {
-      if (freeSpinsRemaining > 0 || pirateWalkRef.current.active) return;
+      if (pirateWalkRef.current.active) return;
+      // During free spins, don't register long-press for autospin menu
+      if (freeSpinsRemaining > 0) return;
       isLongPressRef.current = false;
       spinButtonTimeoutRef.current = setTimeout(() => {
           isLongPressRef.current = true;
@@ -3524,7 +3532,16 @@ const App: React.FC = () => {
           spinButtonTimeoutRef.current = null;
       }
       if (isLongPressRef.current) return;
-      if (freeSpinsRemaining > 0 || pirateWalkRef.current.active) return;
+      if (pirateWalkRef.current.active) return;
+      // During free spins: allow tap to instant-stop the current spin animation
+      if (freeSpinsRemaining > 0) {
+          if (status === GameStatus.SPINNING) {
+              setInstantStop(true);
+              setStatus(GameStatus.STOPPING);
+              audioService.playClick();
+          }
+          return;
+      }
       if (player.autoSpin) {
           setPlayer(p => ({ ...p, autoSpin: false }));
           setAutoSpinRemaining(-1);
@@ -4723,6 +4740,7 @@ const App: React.FC = () => {
                 const target = 10000000;
                 const duration = 1500;
                 const start = Date.now();
+                let lastTick2 = 0;
                 const iv = setInterval(() => {
                     const elapsed = Date.now() - start;
                     if (elapsed >= duration) {
@@ -4734,6 +4752,11 @@ const App: React.FC = () => {
                     }
                     const p2 = 1 - Math.pow(1 - elapsed / duration, 3);
                     setAnimBalance(Math.floor(target * p2));
+                    const spd = 1 + p2 * 1.5;
+                    if (elapsed - lastTick2 >= Math.max(35, 80 / spd)) {
+                        audioService.playCoinTick(spd);
+                        lastTick2 = elapsed;
+                    }
                 }, 16);
               }}
               className="pill-green w-full"

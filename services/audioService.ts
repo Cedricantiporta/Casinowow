@@ -204,6 +204,24 @@ class AudioService {
       this.playTone(1975.5, 'sine', 0.12, 0.04);
   }
 
+  // Coin counting tick — short metallic ping, slightly randomised pitch
+  // Call this once per ~80ms step inside a count-up interval.
+  playCoinTick(speed: number = 1) {
+      if (!this.ctx || !this.masterGain) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      const freq = 1200 + Math.random() * 400; // 1200–1600 Hz randomised
+      const dur = Math.max(0.025, 0.06 / speed);
+      const osc = this.ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(freq * 0.7, this.ctx.currentTime + dur);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.18, this.ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+      osc.connect(g); g.connect(this.masterGain);
+      osc.start(); osc.stop(this.ctx.currentTime + dur);
+  }
+
   // Cascading coin shower — rapid descending tings
   playCoinShower() {
       for (let i = 0; i < 12; i++) {

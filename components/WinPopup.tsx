@@ -47,6 +47,7 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
         audioService.playWinCheer();
         const startTime = Date.now();
         const countDuration = 1500;
+        let lastTick = 0;
         const timerInterval = setInterval(() => {
             const elapsed = Date.now() - startTime;
             if (elapsed >= countDuration) {
@@ -55,6 +56,12 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
             } else {
                 const p = 1 - Math.pow(1 - elapsed / countDuration, 3);
                 setDisplayAmount(Math.floor(amount * p));
+                // Coin tick every ~75ms, speeds up proportionally to count rate
+                const speed = 1 + p * 1.5;
+                if (elapsed - lastTick >= Math.max(35, 80 / speed)) {
+                    audioService.playCoinTick(speed);
+                    lastTick = elapsed;
+                }
             }
         }, 16);
         const autoClose = setTimeout(() => onCompleteRef.current(), 3000);
