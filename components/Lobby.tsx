@@ -268,6 +268,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 else if (game.theme === 'GOLDEN_POT') icon = '🏮';
                                 else if (game.theme === 'LEPRECHAUN') icon = '🍀';
                                 else if (game.theme === 'ARCTIC') icon = '🐧';
+                                else if (game.theme === 'PETS') icon = '🦄';
+                                else if (game.theme === 'MMORPG') icon = '⚔️';
                                 const unlockLevel = getUnlockLevel(idx);
                                 const isLocked = playerLevel < unlockLevel;
                                 return (

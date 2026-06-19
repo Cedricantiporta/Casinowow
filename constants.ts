@@ -22,6 +22,8 @@ const REEL_BGS: Record<GameTheme, string> = {
     GOLDEN_POT: 'bg-gradient-to-b from-[#2d1200] via-[#4a1e00] to-[#1a0a00]',
     LEPRECHAUN: 'bg-gradient-to-b from-[#011a05] via-[#013a0c] to-[#011505]',
     ARCTIC:     'bg-gradient-to-b from-[#001428] via-[#001e3a] to-[#000e1e]',
+    PETS:       'bg-gradient-to-b from-[#2a0b3d] via-[#3d1259] to-[#1a0626]',
+    MMORPG:     'bg-gradient-to-b from-[#0a1626] via-[#13243d] to-[#060d18]',
 };
 
 // --- Games Configuration ---
@@ -117,7 +119,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Interstellar wins on a 4×6 Grid!',
     color: 'from-indigo-500 via-violet-700 to-purple-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #6366f1 0%, #1e1b4b 100%)',
-    reelBg: REEL_BGS.SPACE
+    reelBg: REEL_BGS.SPACE,
+    coverImage: '/slots/cosmic_covernew.png',
   },
   {
     id: 'sugar-rush',
@@ -204,6 +207,30 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #059669 0%, #064e3b 100%)',
     reelBg: REEL_BGS.JUNGLE
   },
+  {
+    id: 'mystic-pets',
+    name: 'Mystic Pets',
+    theme: 'PETS',
+    rows: 3,
+    reels: 6,
+    scattersToTrigger: 3,
+    description: 'Summon the Companion Wheel! 3 paws spin switching wilds across the reels.',
+    color: 'from-violet-500 via-fuchsia-600 to-purple-900',
+    bgImage: 'radial-gradient(circle at 50% 0%, #a855f7 0%, #2e1065 100%)',
+    reelBg: REEL_BGS.PETS
+  },
+  {
+    id: 'dungeon-raid',
+    name: 'Dungeon Raid',
+    theme: 'MMORPG',
+    rows: 3,
+    reels: 6,
+    scattersToTrigger: 999,
+    description: 'Loot Hold & Win! Land 6+ treasure coins to lock them and trigger raid respins.',
+    color: 'from-sky-600 via-indigo-800 to-slate-950',
+    bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #0f172a 100%)',
+    reelBg: REEL_BGS.MMORPG
+  },
 ];
 
 // --- Themed Symbol Maps ---
@@ -283,6 +310,16 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/arctic/ice.png', [SymbolType.BELL]: '/arctic/fish.png', [SymbolType.BAR]: '/arctic/wave.png', [SymbolType.CHERRY]: '/arctic/seal.png', [SymbolType.SEVEN]: '/arctic/penguin.png',
     [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '/arctic/snow.png', ...JP_ICONS
+  },
+  PETS: {
+    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+    [SymbolType.GRAPE]: '🐰', [SymbolType.BELL]: '🦊', [SymbolType.BAR]: '🦉', [SymbolType.CHERRY]: '🦄', [SymbolType.SEVEN]: '🐲',
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🐾', ...JP_ICONS, [SymbolType.COIN]: '🦴'
+  },
+  MMORPG: {
+    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+    [SymbolType.GRAPE]: '🛡️', [SymbolType.BELL]: '🏹', [SymbolType.BAR]: '🪄', [SymbolType.CHERRY]: '🧙', [SymbolType.SEVEN]: '🐉',
+    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '💎', ...JP_ICONS, [SymbolType.COIN]: '🪙'
   },
 };
 

@@ -60,6 +60,8 @@ const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
     LEPRECHAUN: 'CANDY',
     UNDERWATER: 'ARCTIC',
     SAMURAI: 'EGYPT',
+    PETS: 'CANDY',      // Mystic Pets → Sugar Rush wild-wheel free spins (Companion Wheel)
+    MMORPG: 'EGYPT',    // Dungeon Raid → Pharaoh hold & win respins (Loot Hold & Win)
 };
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
@@ -1554,7 +1556,7 @@ const App: React.FC = () => {
       }
       // These themes never use full-column same-symbol matches (3-column "mega match").
       // Only GOLDEN_POT (untouched generic slot) keeps it among the lower-tier games.
-      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE'].includes(selectedGame.theme)) megaMatchActive = false;
+      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG'].includes(selectedGame.theme)) megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -3747,6 +3749,8 @@ const App: React.FC = () => {
                             SAMURAI:    { cls: 'rounded-none border-[3px] border-red-800',      shadow: '0 0 16px rgba(185,28,28,0.55)' },
                             LEPRECHAUN: { cls: 'rounded-none border-[3px] border-emerald-400',  shadow: '0 0 18px rgba(52,211,153,0.5)' },
                             GOLDEN_POT: { cls: 'rounded-none border-[3px] border-yellow-400',   shadow: '0 0 22px rgba(250,204,21,0.55),inset 0 0 10px rgba(180,130,0,0.1)' },
+                            PETS:       { cls: 'rounded-none border-[3px] border-fuchsia-400',  shadow: '0 0 22px rgba(232,121,249,0.6),inset 0 0 10px rgba(168,85,247,0.18)' },
+                            MMORPG:     { cls: 'rounded-none border-[3px] border-sky-400',      shadow: '0 0 22px rgba(56,189,248,0.6),inset 0 0 10px rgba(30,64,175,0.2)' },
                         };
                         const reelBorder = REEL_BORDER[selectedGame.theme];
                         return (
