@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { formatCommaNumber } from '../constants';
 import { audioService } from '../services/audioService';
+import { WheelDefs, WheelRim, WheelGloss } from './wheel3d';
 
 interface Seg {
     label: string;
@@ -225,10 +226,24 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                         </div>
 
                         <svg width={SZ} height={SZ} style={{ overflow: 'visible' }}>
-                            <circle cx={CX} cy={CY} r={R + 10} fill="none" stroke="#fbbf24" strokeWidth={3.5} />
-                            <circle cx={CX} cy={CY} r={R + 5}  fill="none" stroke="#92400e" strokeWidth={1.5} />
-                            <circle cx={CX} cy={CY} r={R}      fill="none" stroke="rgba(147,51,234,0.15)" strokeWidth={18} />
+                            <WheelDefs colors={SEGMENTS.map(s => s.color)} idPrefix="nw" />
+                            <WheelRim idPrefix="nw" />
 
+                            {/* Wedges (rotating) */}
+                            <g style={{
+                                transform: `rotate(${rotation}deg)`,
+                                transformOrigin: `${CX}px ${CY}px`,
+                                transition: phase === 'spinning' ? `transform ${SPIN_MS}ms cubic-bezier(0.05, 0.8, 0.3, 1)` : 'none',
+                            }}>
+                                {SEGMENTS.map((seg, i) => (
+                                    <path key={i} d={slicePath(i)} fill={`url(#nw${i})`} />
+                                ))}
+                            </g>
+
+                            {/* Glossy dome overlay (fixed) */}
+                            <WheelGloss idPrefix="nw" />
+
+                            {/* Labels (rotating, above gloss) */}
                             <g style={{
                                 transform: `rotate(${rotation}deg)`,
                                 transformOrigin: `${CX}px ${CY}px`,
@@ -239,20 +254,18 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                                     const lp = polarXY(midDeg, R * 0.72);
                                     const fs = seg.label.length > 3 ? 8 : seg.jp ? 10 : 9;
                                     return (
-                                        <g key={i}>
-                                            <path d={slicePath(i)} fill={seg.color} stroke="#000" strokeWidth={1.5} />
-                                            <text x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle"
-                                                fill={seg.textColor} fontSize={fs} fontWeight={900}
-                                                fontFamily="'Titan One', cursive"
-                                                style={{ transform: `rotate(${midDeg}deg)`, transformOrigin: `${lp.x}px ${lp.y}px` }}>
-                                                {seg.label}
-                                            </text>
-                                        </g>
+                                        <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle"
+                                            fill={seg.textColor} fontSize={fs} fontWeight={900}
+                                            fontFamily="'Titan One', cursive"
+                                            style={{ transform: `rotate(${midDeg}deg)`, transformOrigin: `${lp.x}px ${lp.y}px`, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}>
+                                            {seg.label}
+                                        </text>
                                     );
                                 })}
                             </g>
 
-                            <circle cx={CX} cy={CY} r={22} fill="#0d0220" stroke="#7c3aed" strokeWidth={3} />
+                            {/* Glossy hub */}
+                            <circle cx={CX} cy={CY} r={23} fill="url(#nwhub)" stroke="rgba(120,70,10,0.7)" strokeWidth={1.5} />
                             <image href="/symbols/diamond.png" x={CX - 10} y={CY - 10} width={20} height={20} />
                         </svg>
 
