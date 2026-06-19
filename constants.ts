@@ -38,7 +38,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #f472b6 0%, #831843 100%)',
     reelBg: REEL_BGS.PIGGY,
     slotBg: '/slots/piggy_bg.jpg',
-    coverImage: '/slots/piggy_cover.jpg',
+    coverImage: '/slots/piggy_covernew.jpg',
   },
   {
     id: 'neon-vegas',
@@ -64,6 +64,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #451a03 100%)',
     reelBg: REEL_BGS.EGYPT,
     slotBg: '/slots/egypt_bg.jpg',
+    coverImage: '/slots/pharaoh_covernew.jpg',
   },
   {
     id: 'arctic-freeze',
@@ -90,6 +91,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #ef4444 0%, #450a0a 100%)',
     reelBg: REEL_BGS.DRAGON,
     slotBg: '/slots/dragon_bg.jpg',
+    coverImage: '/slots/dragon_covernew.png',
   },
   {
     id: 'pirate-bounty',
@@ -103,6 +105,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #0f172a 100%)',
     reelBg: REEL_BGS.PIRATE,
     slotBg: '/slots/pirate_bg.jpg',
+    coverImage: '/slots/pirate_covernew.png',
   },
   {
     id: 'cosmic-cash',
