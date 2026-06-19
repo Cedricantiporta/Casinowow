@@ -245,12 +245,6 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                                 {item.sub && (
                                                     <div className="text-sm font-black text-white text-center leading-none drop-shadow-sm">{item.sub}</div>
                                                 )}
-                                                {showVipDiscount && originalPeso !== null && discountedPeso !== null && (
-                                                    <div className="flex flex-col items-center leading-none gap-0.5">
-                                                        <span className="text-[10px] text-white/50 line-through">₱ {originalPeso}</span>
-                                                        <span className="text-sm font-black text-white">₱ {discountedPeso}</span>
-                                                    </div>
-                                                )}
                                                 <button
                                                     onClick={onItemClick}
                                                     disabled={btnDisabled || item.isClaimed}
