@@ -22,10 +22,8 @@ export const WheelDefs: React.FC<{ colors: string[]; idPrefix: string }> = ({ co
     <defs>
         {colors.map((c, i) => (
             <radialGradient key={i} id={`${idPrefix}${i}`} cx={CX} cy={CY} r={R} gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor={darken(c, 0.08)} />
-                <stop offset="42%" stopColor={c} />
-                <stop offset="82%" stopColor={lighten(c, 0.22)} />
-                <stop offset="100%" stopColor={darken(c, 0.34)} />
+                <stop offset="0%" stopColor={darken(c, 0.03)} />
+                <stop offset="100%" stopColor={lighten(c, 0.03)} />
             </radialGradient>
         ))}
         {/* Top specular highlight (fixed light from above) */}

@@ -95,6 +95,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     {showEmojiPicker && (
                         <div className="absolute top-14 left-0 z-50 rounded-2xl p-2 shadow-2xl flex flex-wrap gap-1.5"
                             style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 160 }}>
+                            {/* None option */}
+                            <button
+                                onClick={() => { onSetProfileEmoji?.(''); setShowEmojiPicker(false); }}
+                                className="w-9 h-9 rounded-xl flex items-center justify-center transition-transform active:scale-90 hover:brightness-125"
+                                style={{ background: (!profileEmoji) ? (vip ? 'rgba(251,191,36,0.3)' : 'rgba(168,85,247,0.3)') : 'rgba(255,255,255,0.07)' }}>
+                                <i className="ti ti-user" style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.6)' }} />
+                            </button>
                             {PROFILE_EMOJIS.map(e => (
                                 <button key={e} onClick={() => { onSetProfileEmoji?.(e); setShowEmojiPicker(false); }}
                                     className="w-9 h-9 rounded-xl flex items-center justify-center text-2xl transition-transform active:scale-90 hover:brightness-125"

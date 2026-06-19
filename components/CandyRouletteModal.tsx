@@ -182,13 +182,13 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
                                     return (
                                         <g key={i}>
                                             <text x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle"
-                                                fill={seg.textColor} fontSize={20} fontWeight={900}
+                                                fill="#fff" fontSize={20} fontWeight={900}
                                                 fontFamily="'Titan One', cursive"
                                                 style={{ transform: `rotate(${midDeg}deg)`, transformOrigin: `${lp.x}px ${lp.y}px`, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.55))' }}>
                                                 {seg.label}
                                             </text>
                                             <text x={sp.x} y={sp.y} textAnchor="middle" dominantBaseline="middle"
-                                                fill={seg.textColor} fontSize={6.5} fontWeight={900}
+                                                fill="#fff" fontSize={6.5} fontWeight={900}
                                                 style={{ transform: `rotate(${midDeg}deg)`, transformOrigin: `${sp.x}px ${sp.y}px`, letterSpacing: '0.05em', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.5))' }}>
                                                 {seg.sub}
                                             </text>

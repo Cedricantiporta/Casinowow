@@ -445,6 +445,7 @@ const App: React.FC = () => {
   const arcticProgressRef = useRef(0);
   const arcticFreeSpinCountRef = useRef(0);
   const arcticJpPickTriggeredRef = useRef(false);
+  const arcticMidFreeSpinsRef = useRef(false);
   const [pendingArcticFreePick, setPendingArcticFreePick] = useState(false);
 
   // Pirate's Bounty — Ghost Ship Walking Wilds state
@@ -2173,6 +2174,9 @@ const App: React.FC = () => {
     if (status === GameStatus.IDLE && pendingArcticFreePick && !showArcticPickModal) {
         setPendingArcticFreePick(false);
         setPlayer(p => ({ ...p, autoSpin: false }));
+        if (freeSpinsRemaining > 0) {
+            arcticMidFreeSpinsRef.current = true;
+        }
         setTimeout(() => {
             setShowArcticTriggerPopup(true);
             setInstantStop(true);
@@ -2190,7 +2194,7 @@ const App: React.FC = () => {
             }, 3000);
         }, 300);
     }
-  }, [status, pendingArcticFreePick, showArcticPickModal]);
+  }, [status, pendingArcticFreePick, showArcticPickModal, freeSpinsRemaining]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length > 0) {
@@ -3022,6 +3026,9 @@ const App: React.FC = () => {
   const handleArcticPickWin = (tier: string, amount: number) => {
       setShowArcticPickModal(false);
       setPlayer(p => ({ ...p, balance: p.balance + amount }));
+      if (arcticMidFreeSpinsRef.current) {
+          setFreeSpinTotalWin(p => p + amount);
+      }
       const TIER_META: Record<string, { color: string; icon: string }> = {
           MINI:  { color: '#4ade80', icon: '🥉' },
           MINOR: { color: '#67e8f9', icon: '🥈' },
@@ -3064,6 +3071,11 @@ const App: React.FC = () => {
 
   const handleJackpotClose = () => {
       setJackpotWinTier(null);
+      if (arcticMidFreeSpinsRef.current) {
+          arcticMidFreeSpinsRef.current = false;
+          setPlayer(p => ({ ...p, autoSpin: true }));
+          return;
+      }
       if (hwCountContinuationRef.current) {
           const cont = hwCountContinuationRef.current;
           hwCountContinuationRef.current = null;
@@ -4855,6 +4867,14 @@ const App: React.FC = () => {
                   setCelebrationMsg('👑 GOD MODE! VIP+Pass · 5× XP');
               }
               audioService.playWinBig();
+          }}
+          onReset={() => {
+              try {
+                  Object.keys(localStorage)
+                      .filter(k => k.startsWith('cw_'))
+                      .forEach(k => localStorage.removeItem(k));
+              } catch {}
+              window.location.reload();
           }}
       />
 

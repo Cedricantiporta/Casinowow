@@ -253,7 +253,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                                     const fs = seg.label.length > 3 ? 8 : seg.jp ? 10 : 9;
                                     return (
                                         <text key={i} x={lp.x} y={lp.y} textAnchor="middle" dominantBaseline="middle"
-                                            fill={seg.textColor} fontSize={fs} fontWeight={900}
+                                            fill="#fff" fontSize={fs} fontWeight={900}
                                             fontFamily="'Titan One', cursive"
                                             style={{ transform: `rotate(${midDeg}deg)`, transformOrigin: `${lp.x}px ${lp.y}px`, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}>
                                             {seg.label}
