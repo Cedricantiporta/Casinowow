@@ -107,6 +107,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const visibleDailyMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
     const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
     const totalMissionNotifs = passRewardsReady;
+    const missionsNotifs = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
     const questReady = (questState.diceCredits ?? 0) > 0 || (questState.wildCredits ?? 0) > 0;
 
     const getQuestIcon = () => {
@@ -459,10 +460,10 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                                 <div className="relative">
                                     <img src="/ui/missions_new.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                    {totalMissionNotifs > 0 && !isMissionsLocked && (
+                                    {missionsNotifs > 0 && !isMissionsLocked && (
                                         <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{totalMissionNotifs > 99 ? '99+' : totalMissionNotifs}</span>
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{missionsNotifs > 99 ? '99+' : missionsNotifs}</span>
                                         </div>
                                     )}
                                 </div>
