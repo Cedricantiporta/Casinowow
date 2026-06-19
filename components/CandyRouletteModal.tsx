@@ -123,15 +123,14 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
             {/* Bonus prompt popup — new 3D gradient container */}
             {phase === 'prompt' && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="animate-pop-in flex flex-col items-center gap-4 rounded-3xl px-9 py-7 text-center overflow-hidden"
-                        style={{ ...containerShell('candy'), maxWidth: 300 }}>
-                        <div style={{ fontSize: '3.4rem', lineHeight: 1, filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.5))' }}>🍬</div>
-                        <div className="font-black text-white uppercase tracking-wide text-2xl leading-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
-                            Wild Wheel<br />Bonus!
+                    <div className="animate-pop-in flex flex-col items-center gap-2 rounded-3xl px-7 py-5 text-center overflow-hidden"
+                        style={{ ...containerShell('candy'), maxWidth: 260 }}>
+                        <div className="font-black text-white uppercase tracking-wide text-xl leading-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+                            Wild Wheel Bonus
                         </div>
                         <div className="text-pink-100/80 text-[11px] font-black uppercase tracking-[0.2em]">{freeSpins} Free Spins</div>
                         <button onClick={() => setPhase('ready')}
-                            className="btn-3d w-full py-3 rounded-2xl font-black text-sm uppercase tracking-widest mt-1"
+                            className="btn-3d w-full py-2.5 rounded-2xl font-black text-sm uppercase tracking-widest mt-1"
                             style={{ background: 'linear-gradient(180deg,#f9a8d4,#db2777)', color: '#fff', boxShadow: '0 4px 0 #831843' }}>
                             Spin Now!
                         </button>
@@ -198,9 +197,6 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
                                 })}
                             </g>
 
-                            {/* Glossy hub */}
-                            <circle cx={CX} cy={CY} r={23} fill="url(#cwhub)" stroke="rgba(120,70,10,0.7)" strokeWidth={1.5} />
-                            <text x={CX} y={CY + 1} textAnchor="middle" dominantBaseline="middle" fontSize={18}>🍬</text>
                         </svg>
 
                         {phase === 'ready' && (

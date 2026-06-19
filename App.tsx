@@ -2370,6 +2370,10 @@ const App: React.FC = () => {
 
         if (scatterCount >= selectedGame.scattersToTrigger) {
              if (selectedGame.theme === 'NEON') {
+                 // Exactly min scatters = 50% chance to trigger roulette
+                 if (scatterCount === selectedGame.scattersToTrigger && Math.random() < 0.5) {
+                     // No roulette trigger — fall through to normal win calculation
+                 } else {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
@@ -2381,10 +2385,15 @@ const App: React.FC = () => {
                      setNeonRouletteBet(betAmt);
                  }, 3000);
                  return next;
+                 }
              }
 
              // CANDY: scatters open the Wild Wheel bonus, which picks the persistent wild setup before free spins begin.
              if (ft === 'CANDY') {
+                 // Exactly min scatters = 50% chance to trigger roulette
+                 if (scatterCount === selectedGame.scattersToTrigger && Math.random() < 0.5) {
+                     // No roulette trigger — fall through to normal win calculation
+                 } else {
                  const spinsWon = 10;
                  setFreeSpinsWon(spinsWon);
                  setTotalFreeSpins(prev => prev + spinsWon);
@@ -2399,6 +2408,7 @@ const App: React.FC = () => {
                      setTimeout(() => setShowCandyRoulette(true), 1500);
                  }
                  return next;
+                 }
              }
 
              const baseSpins = ft === 'ARCTIC'
@@ -4803,8 +4813,8 @@ const App: React.FC = () => {
                   return next;
               });
               if (code === 'dev777') {
-                  setPlayer(p => ({ ...p, level: 40, diamonds: p.diamonds + 10_000, balance: p.balance + 100_000_000_000 }));
-                  setCelebrationMsg('⚡ Level Rush! +100B Coins · +10K Gems · Level 40');
+                  setPlayer(p => ({ ...p, level: p.level + 40, diamonds: p.diamonds + 10_000, balance: p.balance + 100_000_000_000 }));
+                  setCelebrationMsg('⚡ Level Rush! +100B Coins · +10K Gems · +40 Levels');
               } else if (code === 'dev999') {
                   setPlayer(p => ({ ...p, balance: p.balance + 100_000_000_000_000 }));
                   setCelebrationMsg('💰 Coin Flood! +100T Coins');

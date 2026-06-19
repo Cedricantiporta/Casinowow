@@ -191,16 +191,15 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
             {/* Bonus prompt popup — new 3D gradient container */}
             {phase === 'prompt' && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="animate-pop-in flex flex-col items-center gap-4 rounded-3xl px-9 py-7 text-center overflow-hidden"
-                        style={{ ...containerShell('neon'), maxWidth: 300 }}>
-                        <div style={{ fontSize: '3.4rem', lineHeight: 1, filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.5))' }}>🎡</div>
-                        <div className="font-black text-white uppercase tracking-wide text-2xl leading-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
-                            You Won a<br />Roulette Spin!
+                    <div className="animate-pop-in flex flex-col items-center gap-2 rounded-3xl px-7 py-5 text-center overflow-hidden"
+                        style={{ ...containerShell('neon'), maxWidth: 260 }}>
+                        <div className="font-black text-white uppercase tracking-wide text-xl leading-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+                            Roulette Bonus
                         </div>
                         <div className="text-sky-100/80 text-[11px] font-black uppercase tracking-[0.2em]">Bonus Round</div>
                         <button
                             onClick={() => setPhase('ready')}
-                            className="btn-3d w-full py-3 rounded-2xl font-black text-sm uppercase tracking-widest mt-1"
+                            className="btn-3d w-full py-2.5 rounded-2xl font-black text-sm uppercase tracking-widest mt-1"
                             style={{ background: 'linear-gradient(180deg,#93c5fd,#2563eb)', color: '#fff', boxShadow: '0 4px 0 #1e3a8a' }}>
                             Spin Now!
                         </button>
@@ -263,9 +262,6 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                                 })}
                             </g>
 
-                            {/* Glossy hub */}
-                            <circle cx={CX} cy={CY} r={23} fill="url(#nwhub)" stroke="rgba(120,70,10,0.7)" strokeWidth={1.5} />
-                            <image href="/symbols/diamond.png" x={CX - 10} y={CY - 10} width={20} height={20} />
                         </svg>
 
                         {phase === 'ready' && (
