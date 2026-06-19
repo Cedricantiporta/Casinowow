@@ -266,27 +266,26 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
 
                         {phase === 'ready' && (
                             <div className="absolute pointer-events-none flex items-center justify-center"
-                                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 66, height: 66, borderRadius: '50%',
-                                    background: 'radial-gradient(circle, rgba(13,2,32,0.97) 60%, rgba(13,2,32,0.6) 100%)',
-                                    border: '2px solid rgba(147,51,234,0.7)', boxShadow: '0 0 20px rgba(147,51,234,0.5)' }}>
+                                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
                                 <span className="font-black text-white text-center uppercase animate-pulse"
-                                    style={{ fontSize: 9, letterSpacing: '0.08em', lineHeight: 1.3 }}>
-                                    TAP<br />TO<br />SPIN
+                                    style={{ fontSize: 11, letterSpacing: '0.14em', lineHeight: 1.5, textShadow: '0 2px 10px rgba(0,0,0,1), 0 0 24px rgba(0,0,0,0.9)' }}>
+                                    TAP TO SPIN
                                 </span>
                             </div>
                         )}
-                    </div>
-                </div>
-            )}
 
-            {/* Bonus multiplier win popup (between respins) — new 3D gradient container */}
-            {phase === 'mult_popup' && wonSeg && (
-                <div className="absolute left-1/2 -translate-x-1/2 z-[209] animate-pop-in" style={{ top: 20 }}>
-                    <div className="flex flex-col items-center gap-1 rounded-2xl px-6 py-3 text-center overflow-hidden"
-                        style={{ ...containerShell('neon') }}>
-                        <div className="text-sky-100/70 text-[9px] font-black uppercase tracking-[0.25em]">{wonSeg.label} Bonus</div>
-                        <span className="font-black text-white text-2xl font-mono" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>+{formatCommaNumber(multPayout)}</span>
-                        <span className="text-white/50 text-[9px] uppercase tracking-widest animate-pulse">Respinning…</span>
+                        {/* Multiplier win popup — centered over wheel */}
+                        {phase === 'mult_popup' && wonSeg && (
+                            <div className="absolute z-30 pointer-events-none animate-pop-in"
+                                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                                <div className="flex flex-col items-center gap-1 rounded-2xl px-6 py-3 text-center overflow-hidden"
+                                    style={{ ...containerShell('neon') }}>
+                                    <div className="text-sky-100/70 text-[9px] font-black uppercase tracking-[0.25em]">{wonSeg.label} Bonus</div>
+                                    <span className="font-black text-white text-2xl font-mono" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>+{formatCommaNumber(multPayout)}</span>
+                                    <span className="text-white/50 text-[9px] uppercase tracking-widest animate-pulse">Spinning again…</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -296,7 +295,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                 <div className="absolute inset-0 z-[210] flex items-center justify-center animate-pop-in">
                     <div className="flex flex-col items-center gap-3 rounded-3xl px-10 py-7 select-none overflow-hidden"
                         style={{ ...containerShell('neon'), minWidth: 250 }}>
-                        <div className="text-sky-100/70 text-[10px] font-black uppercase tracking-widest">🎉 Roulette Complete!</div>
+                        <div className="text-sky-100/70 text-[10px] font-black uppercase tracking-widest">Roulette Complete</div>
                         <div className="font-black uppercase tracking-wider text-center text-white"
                             style={{ fontSize: '2rem', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
                             {wonSeg.jp} Jackpot
@@ -327,7 +326,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                             onClick={() => onComplete(prize)}
                             className="btn-3d w-full py-3 rounded-xl font-black uppercase tracking-widest text-black text-sm mt-1"
                             style={{ background: 'linear-gradient(180deg,#fbbf24,#f59e0b)', boxShadow: '0 5px 0 #92400e' }}>
-                            ✨ Claim All
+                            Claim All
                         </button>
                     </div>
                 </div>

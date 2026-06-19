@@ -201,11 +201,10 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
 
                         {phase === 'ready' && (
                             <div className="absolute pointer-events-none flex items-center justify-center"
-                                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 66, height: 66, borderRadius: '50%',
-                                    background: 'radial-gradient(circle, rgba(59,4,32,0.97) 60%, rgba(59,4,32,0.6) 100%)',
-                                    border: '2px solid rgba(236,72,153,0.7)', boxShadow: '0 0 20px rgba(236,72,153,0.5)' }}>
-                                <span className="font-black text-white text-center uppercase animate-pulse" style={{ fontSize: 9, letterSpacing: '0.08em', lineHeight: 1.3 }}>
-                                    TAP<br />TO<br />SPIN
+                                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                                <span className="font-black text-white text-center uppercase animate-pulse"
+                                    style={{ fontSize: 11, letterSpacing: '0.14em', lineHeight: 1.5, textShadow: '0 2px 10px rgba(0,0,0,1), 0 0 24px rgba(0,0,0,0.9)' }}>
+                                    TAP TO SPIN
                                 </span>
                             </div>
                         )}
