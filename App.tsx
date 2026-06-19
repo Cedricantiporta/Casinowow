@@ -3634,15 +3634,30 @@ const App: React.FC = () => {
 
   if (!appReady) {
       return (
-          <div style={{ position: 'fixed', inset: 0, background: '#0a0015', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
-              <div style={{ fontSize: '4.5rem', lineHeight: 1 }}>🎰</div>
-              <div style={{ fontFamily: "'Titan One', cursive", fontWeight: 900, fontSize: 28, background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: 2 }}>
-                  Scatter Pa More
+          <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28,
+              backgroundImage: 'url(/lobby-bg-vip.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              {/* Dark scrim so text pops */}
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
+              <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+                  <div style={{ fontFamily: "'Titan One', cursive", fontWeight: 900, fontSize: 52, lineHeight: 1,
+                      background: 'linear-gradient(180deg,#fff8c0 0%,#ffd700 45%,#e08800 100%)',
+                      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+                      textShadow: 'none', letterSpacing: 2, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.8))' }}>
+                      Casino Slop
+                  </div>
+                  {/* Purple XP-bar style progress — matches the topbar rtrack */}
+                  <div style={{ width: 240, height: 22, borderRadius: 18, background: 'linear-gradient(180deg,#2a0d52,#1a0838)',
+                      border: '1px solid #38106e', boxShadow: 'inset 0 2px 3px rgba(0,0,0,0.6)', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${loadProgress}%`, borderRadius: 18,
+                          background: 'linear-gradient(180deg,#c060ff,#8020e0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)',
+                          transition: 'width 0.2s ease' }} />
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <span style={{ fontSize: 10, fontWeight: 900, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)', letterSpacing: 1 }}>
+                              {loadProgress}%
+                          </span>
+                      </div>
+                  </div>
               </div>
-              <div style={{ width: 200, height: 6, borderRadius: 6, background: 'rgba(255,255,255,0.1)', overflow: 'hidden', marginTop: 4 }}>
-                  <div style={{ height: '100%', width: `${loadProgress}%`, borderRadius: 6, background: 'linear-gradient(90deg,#ffd700,#ffb300)', transition: 'width 0.2s ease' }} />
-              </div>
-              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginTop: -12 }}>{loadProgress}%</div>
           </div>
       );
   }
