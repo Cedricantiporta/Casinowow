@@ -390,7 +390,7 @@ const App: React.FC = () => {
           const saved = localStorage.getItem('cw_quest');
           if (saved) {
               const parsed = JSON.parse(saved);
-              return { ...defaults, wildStage: parsed.wildStage || 1, diceStage: parsed.diceStage || 1, dicePosition: parsed.dicePosition || 0, wildGrid: parsed.wildGrid || [] };
+              return { ...defaults, wildStage: parsed.wildStage || 1, diceStage: parsed.diceStage || 1, dicePosition: parsed.dicePosition || 0, wildGrid: parsed.wildGrid || [], diceCredits: parsed.diceCredits ?? 5, wildCredits: parsed.wildCredits ?? 5 };
           }
       } catch {}
       return defaults;
@@ -986,7 +986,7 @@ const App: React.FC = () => {
   }, [player]);
 
   useEffect(() => {
-    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid })); } catch {}
+    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, diceCredits: quest.diceCredits, wildCredits: quest.wildCredits })); } catch {}
   }, [quest.wildStage, quest.diceStage, quest.dicePosition, quest.wildGrid]);
 
   // Expire VIP when 30-day window elapses
