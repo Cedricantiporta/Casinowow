@@ -3673,7 +3673,7 @@ const App: React.FC = () => {
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
               { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' } :
-              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6), 0 6px 18px rgba(160,40,255,0.45)' }}>
+              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
@@ -3875,10 +3875,8 @@ const App: React.FC = () => {
                 {/* Quest + Pass vertical panel — always visible in game view */}
                 {(() => {
                     const qReady = false;
-                    const visibleDailyMissions = missionState.activeMissions.filter((m: any) => m.frequency === 'DAILY').slice(0, 4);
-                    const missReady = visibleDailyMissions.filter((m: any) => m.completed && !m.claimed).length;
                     const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
-                    const totalNotifs = missReady + passReady;
+                    const totalNotifs = passReady;
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;
                     return (
