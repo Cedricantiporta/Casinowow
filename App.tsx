@@ -4700,6 +4700,15 @@ const App: React.FC = () => {
       
       <SimpleCelebrationModal isOpen={!!celebrationMsg} message={celebrationMsg} onClose={handleCloseCelebration} />
 
+      <StageCompleteModal
+          isOpen={!!stageCompletePopup}
+          gameType={stageCompletePopup?.gameType ?? 'DICE'}
+          stage={stageCompletePopup?.stage ?? 1}
+          coins={stageCompletePopup?.coins ?? 0}
+          diamonds={stageCompletePopup?.diamonds ?? 0}
+          onNext={() => setStageCompletePopup(null)}
+      />
+
       {showHRLoading && (
           <div className="absolute inset-0 z-[400] flex flex-col items-center justify-center"
               style={{ background: 'linear-gradient(160deg,#1c0a00,#3a1800,#0f0600)' }}>
