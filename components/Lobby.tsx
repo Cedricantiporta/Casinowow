@@ -202,7 +202,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         >
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`}></div>
                                             {game.coverImage && (
-                                                <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1, objectPosition: 'center' }} />
+                                                <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1, objectPosition: 'center bottom' }} />
                                             )}
                                             <div className="absolute inset-0 z-10 select-none">
                                                 {!game.coverImage && (
@@ -283,7 +283,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                         <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 14 }}></div>
                                         {game.coverImage && (
-                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1, borderRadius: 14, objectPosition: 'center' }} />
+                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1, borderRadius: 14, objectPosition: 'center bottom' }} />
                                         )}
                                         <div className="absolute inset-0 overflow-hidden z-10 select-none" style={{ borderRadius: 14 }}>
                                             {!game.coverImage && (

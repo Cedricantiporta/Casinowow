@@ -3517,7 +3517,7 @@ const App: React.FC = () => {
             <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
                 {/* LEFT ZONE — Avatar + Coins + Gems */}
-                <div className="flex items-center gap-1 md:gap-1.5 shrink-0">
+                <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0">
                     {/* Lobby Home Button */}
                     <div
                         onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
@@ -3531,8 +3531,8 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Coins + Gems pills */}
-                    <div className="flex items-center gap-[3px] md:gap-1.5 min-w-0">
-                        <div className="currency-pill flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '150px', maxWidth: '220px' }}>
+                    <div className="flex items-center gap-[3px] md:gap-1.5 min-w-0 flex-1">
+                        <div className="currency-pill flex items-center gap-1 flex-1" style={{ overflow: 'visible', minWidth: '130px', maxWidth: 'none' }}>
                             <img src="/symbols/coin.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
                             <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                         </div>
@@ -3543,20 +3543,18 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* CENTER ZONE — Buy & Sale (absolutely centered) */}
-                <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1 shrink-0 z-10 pointer-events-none">
-                    <div className="pointer-events-auto flex items-center gap-1">
-                        <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
-                            <div className="face text-center"><span className="lbl">BUY</span></div>
-                        </div>
-                        <div onClick={() => setShowPremiumModal(true)} className="btn pink saleB shrink-0">
-                            <div className="face text-center"><span className="lbl">SALE</span></div>
-                        </div>
+                {/* CENTER ZONE — Buy & Sale (persistent margins via header gap) */}
+                <div className="flex items-center gap-1 shrink-0 z-10">
+                    <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
+                        <div className="face text-center"><span className="lbl">BUY</span></div>
+                    </div>
+                    <div onClick={() => setShowPremiumModal(true)} className="btn pink saleB shrink-0">
+                        <div className="face text-center"><span className="lbl">SALE</span></div>
                     </div>
                 </div>
 
                 {/* RIGHT ZONE — Piggy + Level + XP + Settings */}
-                <div className="flex items-center gap-1 flex-1 justify-end">
+                <div className="flex items-center gap-1 flex-1 min-w-0">
                     <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
                         style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
                         className="shrink-0 active:scale-90 transition-transform" />
@@ -3568,11 +3566,11 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Level Pill */}
-                    <div className="rtrack !flex-none w-[110px] md:w-[145px]" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible' }}>
-                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 10, pointerEvents: 'none' }}>
+                    <div className="rtrack flex-1" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible', minWidth: 95, maxWidth: 'none' }}>
+                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
                             {(() => {
                                 const xpBoostOn = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                                return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
+                                return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
                             })()}
                         </div>
                         <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
@@ -3582,9 +3580,9 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Active Multiplier indicator */}
-                    <div className="relative shrink-0 flex items-center justify-center" style={{ width: 34, height: 34 }}>
+                    <div className="relative shrink-0 flex items-center justify-center" style={{ width: 42, height: 42 }}>
                         <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
-                        <span style={{ position: 'relative', zIndex: 1, fontSize: 12, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-3px' }}>
+                        <span style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-3px' }}>
                             {(() => {
                                 const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
                                 if (boostActive && showXpTimer) {
