@@ -2052,8 +2052,8 @@ const App: React.FC = () => {
       setQuest(q => ({ ...q, wildGrid: newGrid }));
   };
 
-  const handleDiceRoll = (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean) => {
-      setQuest(q => ({ ...q, diceCredits: Math.max(0, q.diceCredits - 1), dicePosition: newPosition }));
+  const handleDiceRoll = (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean, cost: number = 1) => {
+      setQuest(q => ({ ...q, diceCredits: Math.max(0, q.diceCredits - cost), dicePosition: newPosition }));
       const msgParts: string[] = [];
       let totalCoins = 0;
       let totalGems = 0;

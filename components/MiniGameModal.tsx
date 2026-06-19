@@ -23,7 +23,7 @@ interface MiniGameModalProps {
     onBatchPick: (picksUsed: number, rewards: MiniGameReward[]) => void;
     onStageComplete: (bonusCoins: number, bonusDiamonds: number) => void;
     onGridUpdate?: (grid: WildGridCell[]) => void;
-    onDiceRoll: (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean) => void;
+    onDiceRoll: (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean, cost?: number) => void;
     onClose: () => void;
     playerLevel: number;
     maxBet?: number;
@@ -102,6 +102,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const visualPositionRef = useRef(dicePosition);
     const [board, setBoard] = useState<BoardStep[]>([]);
     const [autoRoll, setAutoRoll] = useState(false);
+    const [doubleRoll, setDoubleRoll] = useState(false);
+    const [diceValue2, setDiceValue2] = useState(1);
     const rollButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isLongPressRef = useRef(false);
     const mouseIsDownRef = useRef(false);
@@ -384,7 +386,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
 
-    const movePlayerStepByStep = async (start: number, rollValue: number) => {
+    const movePlayerStepByStep = async (start: number, rollValue: number, cost: number = 1) => {
         setIsMoving(true);
         const endPos = Math.min(start + rollValue, boardLength);
 
@@ -415,7 +417,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 audioService.playWinSmall();
             }
             setIsMoving(false);
-            onDiceRoll(rollValue, backPos, backRewards, false);
+            onDiceRoll(rollValue, backPos, backRewards, false, cost);
         } else {
             const rewards: MiniGameReward[] = [];
             if (landedStep?.reward && !isFinish && !landedStep.isStart) {
@@ -440,7 +442,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 }
             }
             setIsMoving(false);
-            onDiceRoll(rollValue, endPos, rewards, isFinish);
+            onDiceRoll(rollValue, endPos, rewards, isFinish, cost);
             if (isFinish) { audioService.playWinBig(); }
         }
     };
@@ -453,19 +455,23 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     };
 
     const handleRollDice = () => {
-        if (diceCredits <= 0 || isRolling || isMoving) { if (diceCredits <= 0) setAutoRoll(false); return; }
+        const cost = doubleRoll ? 2 : 1;
+        if (diceCredits < cost || isRolling || isMoving) { if (diceCredits < cost) setAutoRoll(false); return; }
         setIsRolling(true);
         audioService.playClick();
         let rolls = 0;
         const interval = setInterval(() => {
             setDiceValue(Math.floor(Math.random() * 6) + 1);
+            if (doubleRoll) setDiceValue2(Math.floor(Math.random() * 6) + 1);
             rolls++;
             if (rolls > 12) {
                 clearInterval(interval);
-                const final = Math.floor(Math.random() * 6) + 1;
-                setDiceValue(final);
+                const final1 = Math.floor(Math.random() * 6) + 1;
+                const final2 = doubleRoll ? Math.floor(Math.random() * 6) + 1 : 0;
+                setDiceValue(final1);
+                if (doubleRoll) setDiceValue2(final2);
                 setIsRolling(false);
-                movePlayerStepByStep(visualPositionRef.current, final);
+                movePlayerStepByStep(visualPositionRef.current, doubleRoll ? final1 + final2 : final1, cost);
             }
         }, 80);
     };
@@ -544,23 +550,20 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                     )}
 
-                    {stageWinning && (
-                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: 'rgba(0,0,0,0.88)' }}>
-                            <div style={{ lineHeight: 1, filter: 'drop-shadow(0 0 24px rgba(96,165,250,0.8))' }} className="animate-bounce"><img src="/ui/stage_gem.png" alt="" style={{ width: '80px', height: '80px', objectFit: 'contain', display: 'block' }} /></div>
-                            <div className="mt-3 text-2xl font-black text-white uppercase tracking-widest">Stage Clear!</div>
-                            {stageClearData && (
-                                <>
-                                    <div className="mt-3 flex flex-col items-center gap-1">
-                                        <div className="font-black text-yellow-300 text-xl drop-shadow flex items-center gap-1"><img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> +{formatCommaNumber(stageClearData.coins)}</div>
-                                        <div className="font-black text-blue-300 text-sm flex items-center gap-1"><img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> +{stageClearData.gems} Gems</div>
-                                    </div>
-                                    <button onClick={handleNextStage}
-                                        className="mt-5 btn-3d px-8 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-widest"
-                                        style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #0a4a23' }}>
-                                        Next Stage →
-                                    </button>
-                                </>
-                            )}
+                    {stageWinning && stageClearData && (
+                        <div className="absolute inset-x-3 bottom-4 z-50 animate-pop-in">
+                            <div className="flex items-center gap-4 rounded-2xl px-5 py-3"
+                                style={{ background: 'linear-gradient(180deg,#1e3a8a,#0f172a)', boxShadow: 'inset 0 1px 0 rgba(100,180,255,0.3), 0 6px 24px rgba(0,0,0,0.9)' }}>
+                                <div className="flex-1 flex items-center gap-4">
+                                    <span className="text-white font-black text-2xl font-mono leading-none">+{formatCommaNumber(stageClearData.coins)}</span>
+                                    {stageClearData.gems > 0 && <span className="text-white font-black text-xl font-mono leading-none">+{stageClearData.gems}</span>}
+                                </div>
+                                <button onClick={handleNextStage}
+                                    className="btn-3d px-5 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-wide shrink-0"
+                                    style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #0a4a23' }}>
+                                    Next Stage →
+                                </button>
+                            </div>
                         </div>
                     )}
 
@@ -749,7 +752,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
                         </button>
                         <div className="flex-1" />
-                        <DiceFace value={diceValue} rolling={isRolling} size={52} />
+                        {doubleRoll ? (
+                            <div className="flex flex-col items-center gap-1">
+                                <DiceFace value={diceValue2} rolling={isRolling} size={36} />
+                                <DiceFace value={diceValue} rolling={isRolling} size={36} />
+                            </div>
+                        ) : (
+                            <DiceFace value={diceValue} rolling={isRolling} size={52} />
+                        )}
                         <button
                             onMouseDown={handleRollMouseDown}
                             onMouseUp={handleRollMouseUp}
@@ -766,6 +776,17 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 cursor: diceCredits <= 0 ? 'not-allowed' : 'pointer',
                             }}>
                             {autoRoll ? 'STOP' : 'ROLL'}
+                        </button>
+                        <button
+                            onClick={() => setDoubleRoll(d => !d)}
+                            className="w-full rounded-lg flex items-center justify-center gap-1 transition-all"
+                            style={{
+                                height: 28,
+                                background: doubleRoll ? 'rgba(251,191,36,0.25)' : 'rgba(255,255,255,0.07)',
+                                border: doubleRoll ? '1.5px solid #fbbf24' : '1.5px solid rgba(255,255,255,0.15)',
+                            }}>
+                            <span style={{ fontSize: '0.85rem', lineHeight: 1 }}>🎲</span>
+                            <span className="font-black text-[9px]" style={{ color: doubleRoll ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>+🎲 2×</span>
                         </button>
                     </div>
                 </div>

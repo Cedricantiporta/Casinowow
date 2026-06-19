@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatCommaNumber } from '../constants';
 
 interface StageCompleteModalProps {
@@ -11,33 +11,45 @@ interface StageCompleteModalProps {
 }
 
 export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, gameType, stage, coins, diamonds, onNext }) => {
+    const [timeLeft, setTimeLeft] = useState(180);
+
+    useEffect(() => {
+        if (!isOpen || gameType !== 'DICE') return;
+        setTimeLeft(180);
+        const interval = setInterval(() => {
+            setTimeLeft(t => {
+                if (t <= 1) { clearInterval(interval); onNext(); return 0; }
+                return t - 1;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [isOpen, gameType]);
+
     if (!isOpen) return null;
 
-    const icon = gameType === 'WILD' ? '🗿' : '🎲';
-    const color = gameType === 'WILD' ? 'from-indigo-600 to-purple-900' : 'from-amber-500 to-orange-800';
+    const bg = gameType === 'WILD'
+        ? 'linear-gradient(180deg,#1e3a8a,#0f172a)'
+        : 'linear-gradient(180deg,#78350f,#1c0a00)';
 
     return (
-        <div className="absolute inset-0 z-[350] flex items-center justify-center bg-black/80 backdrop-blur-sm">
-            <div className={`animate-pop-in flex flex-col items-center gap-3 rounded-3xl p-8 bg-gradient-to-b ${color} shadow-2xl border border-white/20 min-w-[260px]`}>
-                <div className="text-5xl leading-none animate-bounce">{icon}</div>
-                <div className="font-black text-white text-center uppercase tracking-widest text-xl" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
-                    Stage {stage} Complete!
+        <div className="absolute inset-0 z-[350] flex items-end justify-center pb-4 bg-black/75 backdrop-blur-sm">
+            <div className="animate-pop-in flex items-center gap-4 rounded-2xl px-5 py-3 mx-3 w-full max-w-sm"
+                style={{ background: bg, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), 0 8px 32px rgba(0,0,0,0.9)' }}>
+                <div className="flex-1 flex items-center gap-4 min-w-0">
+                    {coins > 0 && (
+                        <span className="text-white font-black font-mono leading-none" style={{ fontSize: '1.6rem' }}>+{formatCommaNumber(coins)}</span>
+                    )}
+                    {diamonds > 0 && (
+                        <span className="text-white font-black font-mono leading-none" style={{ fontSize: '1.4rem' }}>+{diamonds}</span>
+                    )}
+                    {gameType === 'DICE' && timeLeft <= 30 && (
+                        <span className="text-white/40 font-black text-[10px] font-mono ml-auto">{timeLeft}s</span>
+                    )}
                 </div>
-                {coins > 0 && (
-                    <div className="font-mono font-black text-yellow-300 text-2xl flex items-center gap-2" style={{ textShadow: '0 0 10px rgba(255,200,0,0.6)' }}>
-                        +{formatCommaNumber(coins)} <img src="/symbols/coin.png" alt="" style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                    </div>
-                )}
-                {diamonds > 0 && (
-                    <div className="font-mono font-black text-cyan-300 text-lg flex items-center gap-2">
-                        +{diamonds} <img src="/symbols/diamond.png" alt="" style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                    </div>
-                )}
                 <button
                     onClick={onNext}
-                    className="mt-2 px-8 py-3 rounded-2xl font-black uppercase text-white text-lg btn-3d"
-                    style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 4px 0 #052e16', border: '1px solid rgba(255,255,255,0.3)' }}
-                >
+                    className="btn-3d px-5 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-wide shrink-0"
+                    style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #0a4a23' }}>
                     Next Stage →
                 </button>
             </div>
