@@ -175,16 +175,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="relative flex items-center gap-2 px-3 h-[40px]">
                             <span className="absolute left-0 right-0 text-center font-black text-white text-xs tracking-widest pointer-events-none">Daily Missions</span>
-                            {(() => {
-                                const daily = missionState.activeMissions.filter(m => m.frequency === 'DAILY');
-                                const done = daily.filter(m => m.completed || m.claimed).length;
-                                return (
-                                    <span className="font-black text-[10px] px-2 py-0.5 rounded-full z-10 shrink-0"
-                                        style={{ background: done >= 4 ? 'rgba(251,191,36,0.2)' : 'rgba(255,255,255,0.08)', color: done >= 4 ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>
-                                        {done}/4
-                                    </span>
-                                );
-                            })()}
+                            {missionState.passBoostMultiplier > 1 && missionState.passBoostEndTime > Date.now() && (
+                                <span className="font-black text-[10px] px-2 py-0.5 rounded-full z-10 shrink-0 flex items-center gap-1"
+                                    style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24' }}>
+                                    <i className="ti ti-bolt" style={{ fontSize: '0.75rem' }} />
+                                    {missionState.passBoostMultiplier}x XP
+                                </span>
+                            )}
                             <div className="flex-1" />
                             {/* Pass level + XP shortcut */}
                             <button onClick={() => setView('PASS')} className="flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0 z-10"

@@ -51,7 +51,7 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
     },
     dev222: {
         title: 'GOD MODE',
-        description: 'All premium features, VIP, and pass boosts unlocked.',
+        description: 'All premium features and VIP status unlocked.',
         icon: '👑',
         rewards: [
             { icon: '👑', label: 'VIP Status' },

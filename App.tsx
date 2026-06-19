@@ -327,6 +327,7 @@ const App: React.FC = () => {
   const [autoMaxBet, setAutoMaxBet] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showEventsPopup, setShowEventsPopup] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showVipLounge, setShowVipLounge] = useState(false);
   const [showMiniGamesHub, setShowMiniGamesHub] = useState(false);
@@ -3722,10 +3723,10 @@ const App: React.FC = () => {
                         className="shrink-0 active:scale-90 transition-transform" />
 
                     {/* Events pill */}
-                    <div className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2 h-5 md:h-[23px]"
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2 h-5 md:h-[23px]"
                         style={{ background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}>
                         <span className="font-black text-white tracking-widest" style={{ fontSize: 13 }}>EVENTS</span>
-                    </div>
+                    </button>
 
                     {/* Level Pill + Multiplier + XP popup */}
                     <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 95 }}>
@@ -4860,6 +4861,28 @@ const App: React.FC = () => {
 
       <BankruptcyModal isOpen={showBankruptcy} onCollect={() => { setPlayer(p => ({ ...p, balance: p.balance + 100000 })); setShowBankruptcy(false); setCelebrationMsg("+100,000 Coins"); audioService.playWinBig(); }} />
 
+      {/* Events Popup */}
+      {showEventsPopup && (
+          <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none" onClick={() => setShowEventsPopup(false)}>
+              <div className="w-full max-w-sm rounded-3xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}
+                  style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+                  {/* Header */}
+                  <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
+                      <span className="absolute left-0 right-0 text-center text-white font-black text-base drop-shadow pointer-events-none">Events</span>
+                      <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={() => setShowEventsPopup(false)}><i className="ti ti-x"></i></button>
+                  </div>
+                  {/* Empty state */}
+                  <div className="flex flex-col items-center justify-center gap-3 py-12 px-6">
+                      <i className="ti ti-calendar-off" style={{ fontSize: '2.5rem', color: 'rgba(200,150,255,0.4)' }} />
+                      <div className="text-center">
+                          <div className="text-white font-black text-sm">No current events</div>
+                          <div className="text-purple-300/50 text-xs mt-1">Check back soon for limited-time events and rewards.</div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      )}
+
       <SettingsModal
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
@@ -4917,8 +4940,6 @@ const App: React.FC = () => {
                       ...ms,
                       isPremium: true,
                       premiumExpiry: now + 365 * 24 * 60 * 60 * 1000,
-                      passBoostMultiplier: 5,
-                      passBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
                   }));
                   setCelebrationMsg('👑 GOD MODE! VIP + Premium Pass');
               }
