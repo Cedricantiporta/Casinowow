@@ -153,9 +153,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                         <div className="shrink-0 px-4 pt-4 pb-2">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-2xl">👑</span>
-                                {isVip
-                                    ? <span className="text-[9px] font-black bg-yellow-500 text-black px-2 py-0.5 rounded-full uppercase">ACTIVE</span>
-                                    : <span className="text-[9px] font-black text-yellow-400 uppercase tracking-wide">₱ 299</span>}
+                                {isVip && <span className="text-[9px] font-black bg-yellow-500 text-black px-2 py-0.5 rounded-full uppercase">ACTIVE</span>}
                             </div>
                             <div className="font-black text-yellow-300 text-sm tracking-wider leading-none">VIP Lounge</div>
                             <div className="text-yellow-200/50 text-[10px] mt-0.5 leading-tight">Exclusive high-roller access</div>
@@ -183,7 +181,6 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                         <div className="shrink-0 px-4 pt-4 pb-2">
                             <div className="flex items-center justify-between mb-1">
                                 <span className="text-2xl">📜</span>
-                                <span className="text-[9px] font-black text-yellow-300 uppercase tracking-wide">₱ 199</span>
                             </div>
                             <div className="font-black text-yellow-300 text-sm tracking-wider leading-none">Mission Pass</div>
                             <div className="text-yellow-200/50 text-[10px] mt-0.5 leading-tight">30-day premium reward track</div>
@@ -211,16 +208,8 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
                                         style={{ background: bundle.tagColor, color: '#000' }}>{bundle.tag}{isVip ? ' +VIP' : ''}</span>
-                                    <span className="text-[9px] font-black line-through" style={{ color: 'rgba(255,255,255,0.3)' }}>{bundle.origPrice}</span>
                                 </div>
                                 <div className="font-black text-white text-sm uppercase tracking-wider leading-none mt-1">{bundle.name}</div>
-                                <div className="flex items-center gap-1.5 mt-0.5">
-                                    {isVip && <span className="text-[9px] font-black line-through" style={{ color: 'rgba(255,255,255,0.35)' }}>{bundle.price}</span>}
-                                    <span className="font-black text-xs" style={{ color: isVip ? '#fde68a' : bundle.tagColor }}>
-                                        {isVip ? vipDiscountedPrice(bundle.price) : bundle.price}
-                                    </span>
-                                    {isVip && <span className="text-[8px] font-black px-1 py-0.5 rounded-full" style={{ background: '#d97706', color: '#000' }}>-20%</span>}
-                                </div>
                             </div>
                             <div className="flex-1 px-4 py-2 flex flex-col gap-2">
                                 {bundle.items.map((item, i) => (

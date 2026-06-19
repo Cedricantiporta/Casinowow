@@ -369,7 +369,7 @@ const ReelCell: React.FC<{
                         <img
                             src={config.icon}
                             alt=""
-                            className="select-none object-contain pointer-events-none"
+                            className={`select-none object-contain pointer-events-none${highlight && theme === 'PIGGY' ? ' animate-pulse' : ''}`}
                             style={{ width: `${85 * cellScale * (config.imageScale ?? 1)}%`, height: `${85 * cellScale * (config.imageScale ?? 1)}%` }}
                         />
                     ) : (
