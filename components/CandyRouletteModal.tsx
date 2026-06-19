@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { audioService } from '../services/audioService';
 
 export interface CandyWildConfig {
     mode: 'single' | 'column';
@@ -83,6 +84,7 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
 
         setRotation(finalRot);
         setPhase('spinning');
+        audioService.playWheelSpin();
 
         clearAll();
         trackRef.current = setInterval(() => {

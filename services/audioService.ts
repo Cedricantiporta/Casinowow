@@ -4,6 +4,8 @@ class AudioService {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private muted: boolean = false;
+  private volume: number = 0.45; // Master volume (was 0.3, +50%)
+  private bufferCache: Record<string, AudioBuffer> = {};
 
   constructor() {
     try {
@@ -12,7 +14,7 @@ class AudioService {
         this.ctx = new Ctx();
         this.masterGain = this.ctx.createGain();
         this.masterGain.connect(this.ctx.destination);
-        this.masterGain.gain.value = 0.3; // Default volume
+        this.masterGain.gain.value = this.volume;
       }
     } catch (e) {
       console.error("Web Audio API not supported");
@@ -22,9 +24,34 @@ class AudioService {
   toggleMute() {
     this.muted = !this.muted;
     if (this.masterGain) {
-      this.masterGain.gain.value = this.muted ? 0 : 0.3;
+      this.masterGain.gain.value = this.muted ? 0 : this.volume;
     }
     return this.muted;
+  }
+
+  // ── Base64 / data-URI sample playback ───────────────────────────────
+  // Decodes a short base64-encoded clip once, caches it, and plays it.
+  // Honors a single shared master gain so mute + volume apply uniformly.
+  playBase64(key: string, dataUri: string, gainScale: number = 1) {
+    if (!this.ctx || !this.masterGain) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const fire = (buf: AudioBuffer) => {
+      const src = this.ctx!.createBufferSource();
+      src.buffer = buf;
+      const g = this.ctx!.createGain();
+      g.gain.value = gainScale;
+      src.connect(g); g.connect(this.masterGain!);
+      src.start();
+    };
+    const cached = this.bufferCache[key];
+    if (cached) { fire(cached); return; }
+    try {
+      const b64 = dataUri.split(',')[1] || dataUri;
+      const bin = atob(b64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      this.ctx.decodeAudioData(bytes.buffer, (buf) => { this.bufferCache[key] = buf; fire(buf); }, () => {});
+    } catch (e) { /* ignore bad sample */ }
   }
 
   playTone(freq: number, type: OscillatorType, duration: number, startTime: number = 0) {
@@ -167,6 +194,105 @@ class AudioService {
       this.playTone(1500, 'sine', 0.2, 0.1);
       this.playTone(1800, 'sine', 0.4, 0.2);
       this.playTone(2200, 'triangle', 0.5, 0.3);
+  }
+
+  // ── New short SFX (compact synth, no external assets) ───────────────
+
+  // Single coin "ting" — bright two-tone metallic pop
+  playCoin() {
+      this.playTone(1318.5, 'triangle', 0.08, 0);
+      this.playTone(1975.5, 'sine', 0.12, 0.04);
+  }
+
+  // Cascading coin shower — rapid descending tings
+  playCoinShower() {
+      for (let i = 0; i < 12; i++) {
+          const f = 1800 - i * 60 + (Math.random() * 120 - 60);
+          this.playTone(f, 'triangle', 0.09, i * 0.045);
+      }
+  }
+
+  // Tumble/cascade pop for falling symbols
+  playCascade() {
+      this.playTone(300, 'sine', 0.06, 0);
+      this.playTone(420, 'sine', 0.08, 0.05);
+  }
+
+  // Soft UI hover tick
+  playHover() {
+      this.playTone(2000, 'sine', 0.03, 0);
+  }
+
+  // Cash-register "cha-ching" purchase confirm
+  playPurchase() {
+      this.playTone(1046.5, 'square', 0.06, 0);
+      this.playTone(1567.98, 'square', 0.06, 0.06);
+      this.playTone(2093, 'triangle', 0.25, 0.12);
+      this.playTone(2637, 'sine', 0.3, 0.16);
+  }
+
+  // Error / not-enough / denied — descending buzz
+  playError() {
+      this.playTone(300, 'sawtooth', 0.12, 0);
+      this.playTone(200, 'sawtooth', 0.18, 0.1);
+  }
+
+  // Whoosh — quick filtered noise sweep (transitions / spin kickoff)
+  playWhoosh() {
+      if (!this.ctx || !this.masterGain) return;
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+      const t = this.ctx.currentTime;
+      const size = Math.floor(this.ctx.sampleRate * 0.35);
+      const buffer = this.ctx.createBuffer(1, size, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < size; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / size);
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(400, t);
+      filter.frequency.exponentialRampToValueAtTime(3000, t + 0.3);
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0.25, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      noise.connect(filter); filter.connect(g); g.connect(this.masterGain);
+      noise.start(t); noise.stop(t + 0.35);
+  }
+
+  // Sparkle — fast arpeggio shimmer
+  playSparkle() {
+      [1568, 1976, 2349, 2637, 3136].forEach((f, i) => this.playTone(f, 'sine', 0.12, i * 0.04));
+  }
+
+  // Card flip — short woody click pair
+  playCardFlip() {
+      this.playTone(600, 'square', 0.03, 0);
+      this.playTone(900, 'triangle', 0.05, 0.04);
+  }
+
+  // Unlock / achievement — rising fanfare
+  playUnlock() {
+      [523.25, 783.99, 1046.5, 1318.5].forEach((f, i) => this.playTone(f, 'triangle', 0.18, i * 0.09));
+  }
+
+  // Countdown tick (timers)
+  playTick() {
+      this.playTone(880, 'square', 0.04, 0);
+  }
+
+  // Mega win fanfare — big triumphant run
+  playMegaWin() {
+      [523.25, 659.25, 783.99, 1046.5, 1318.5, 1046.5, 1318.5, 1568, 2093].forEach((f, i) => {
+          this.playTone(f, 'sawtooth', 0.18, i * 0.1);
+      });
+      for (let i = 0; i < 16; i++) this.playTone(2200 + Math.random() * 800, 'sine', 0.1, 0.4 + i * 0.05);
+  }
+
+  // Wheel / roulette spin — accelerating ticks
+  playWheelSpin() {
+      for (let i = 0; i < 22; i++) {
+          this.playTone(1000, 'square', 0.02, Math.pow(i / 22, 1.6) * 1.6);
+      }
   }
 }
 

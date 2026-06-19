@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { audioService } from '../services/audioService';
 
 interface FeatureUnlockModalProps {
     isOpen: boolean;
@@ -10,6 +11,7 @@ interface FeatureUnlockModalProps {
 }
 
 export const FeatureUnlockModal: React.FC<FeatureUnlockModalProps> = ({ isOpen, featureName, icon, description, onOpenFeature, onClose }) => {
+    useEffect(() => { if (isOpen) audioService.playUnlock(); }, [isOpen]);
     if (!isOpen) return null;
 
     const handleGoTo = () => {

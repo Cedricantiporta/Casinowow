@@ -431,6 +431,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     }));
                     setStarBuff(true);
                     audioService.playWinBig();
+                } else if (landedStep.reward.type === 'COINS') {
+                    audioService.playCoin();
+                } else if (landedStep.reward.type === 'DIAMONDS') {
+                    audioService.playGemFound();
                 } else {
                     audioService.playWinSmall();
                 }

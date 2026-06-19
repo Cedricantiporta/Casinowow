@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { formatCommaNumber } from '../constants';
+import { audioService } from '../services/audioService';
 
 interface Seg {
     label: string;
@@ -111,6 +112,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
 
         setRotation(finalRot);
         setPhase('spinning');
+        audioService.playWheelSpin();
 
         clearAll();
         trackRef.current = setInterval(() => {

@@ -624,7 +624,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 </div>
                                             </div>
                                             <div className="px-3 pb-3 pt-1 shrink-0">
-                                                <button onClick={() => { if (!canAfford) return; onBuyCredits(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
+                                                <button onClick={() => { if (!canAfford) { audioService.playError(); return; } audioService.playPurchase(); onBuyCredits(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
                                                     disabled={!canAfford}
                                                     className="pill-green w-full">
                                                     <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
@@ -668,7 +668,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 </div>
                                             </div>
                                             <div className="px-3 pb-3 pt-1 shrink-0">
-                                                <button onClick={() => { if (!canAfford || !buyFn) return; buyFn(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
+                                                <button onClick={() => { if (!canAfford || !buyFn) { audioService.playError(); return; } audioService.playPurchase(); buyFn(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
                                                     disabled={!canAfford}
                                                     className="pill-green w-full">
                                                     <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
