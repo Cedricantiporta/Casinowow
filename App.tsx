@@ -3562,7 +3562,7 @@ const App: React.FC = () => {
                     {/* Events pill */}
                     <div className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2 h-5 md:h-[23px]"
                         style={{ background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                        <span className="font-black text-white tracking-widest" style={{ fontSize: 11 }}>EVENTS</span>
+                        <span className="font-black text-white tracking-widest" style={{ fontSize: 13 }}>EVENTS</span>
                     </div>
 
                     {/* Level Pill */}
@@ -3574,7 +3574,7 @@ const App: React.FC = () => {
                             })()}
                         </div>
                         <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
-                        <span className="rnum font-black" style={{ fontSize: '11px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
+                        <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
                             {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LV.${player.level}`}
                         </span>
                     </div>
