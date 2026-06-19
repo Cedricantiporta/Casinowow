@@ -421,6 +421,7 @@ const App: React.FC = () => {
   // Neon Vegas Scatter Roulette state
   const [showNeonRoulette, setShowNeonRoulette] = useState(false);
   const [neonRouletteBet, setNeonRouletteBet] = useState(0);
+  const [neonRouletteTotal, setNeonRouletteTotal] = useState(0);
   const neonRouletteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showRouletteTriggerNotif, setShowRouletteTriggerNotif] = useState(false);
   const [showHRLoading, setShowHRLoading] = useState(false);
@@ -3231,6 +3232,9 @@ const App: React.FC = () => {
           setCurrentView('GAME');
           setActiveModal('NONE');
           setStatus(GameStatus.IDLE);
+          // Always stop auto spin on slot change
+          setPlayer(p => ({ ...p, autoSpin: false }));
+          setAutoSpinRemaining(-1);
           // Cancel any pending roulette timer and close roulette/win popups on game change
           if (neonRouletteTimerRef.current) { clearTimeout(neonRouletteTimerRef.current); neonRouletteTimerRef.current = null; }
           setShowNeonRoulette(false);
@@ -3326,6 +3330,10 @@ const App: React.FC = () => {
       const currentBet = availableBets[betIndex];
       const latestTotalWin = freeSpinTotalWinRef.current;
       const tier = latestTotalWin > 0 ? getWinTier(latestTotalWin, currentBet) : null;
+
+      // Stop auto spin after free spins — player must re-enable manually
+      setPlayer(p => ({ ...p, autoSpin: false }));
+      setAutoSpinRemaining(-1);
 
       // Reset all feature state immediately so the slot is clean on the way back
       setFreeSpinsWon(0);
@@ -4312,6 +4320,8 @@ const App: React.FC = () => {
                               formatK(holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
                           ) : pirateWalkActive ? (
                               formatK(pirateWalkTotalWin)
+                          ) : showNeonRoulette ? (
+                              neonRouletteTotal > 0 ? formatK(neonRouletteTotal) : '—'
                           ) : freeSpinsRemaining > 0 ? (
                               formatK(freeSpinTotalWin)
                           ) : status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
@@ -4323,7 +4333,7 @@ const App: React.FC = () => {
                           )}
                       </span>
                       <span className="total-win">
-                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : pirateWalkActive ? 'GHOST SHIP' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
+                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : pirateWalkActive ? 'GHOST SHIP' : showNeonRoulette ? 'ROULETTE' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
                       </span>
                   </div>
 
@@ -4590,6 +4600,7 @@ const App: React.FC = () => {
           onMultPayout={(amount) => setPlayer(p => ({ ...p, balance: p.balance + amount }))}
           onComplete={handleNeonRouletteComplete}
           onClose={handleNeonRouletteClose}
+          onRunningTotal={(total) => setNeonRouletteTotal(total)}
       />
 
       <CandyRouletteModal

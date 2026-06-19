@@ -60,10 +60,10 @@ const slicePath = (i: number) => {
 
 const JP_IDX: Record<string, number> = { MINI: 0, MINOR: 1, MAJOR: 2, MEGA: 3, GRAND: 4 };
 
-interface Props { isOpen: boolean; bet: number; jackpotAmounts: number[]; onMultPayout?: (amount: number) => void; onComplete: (prize: number) => void; onClose?: () => void; }
+interface Props { isOpen: boolean; bet: number; jackpotAmounts: number[]; onMultPayout?: (amount: number) => void; onComplete: (prize: number) => void; onClose?: () => void; onRunningTotal?: (total: number) => void; }
 type Phase = 'prompt' | 'ready' | 'spinning' | 'mult_popup' | 'done';
 
-export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts, onMultPayout, onComplete, onClose }) => {
+export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts, onMultPayout, onComplete, onClose, onRunningTotal }) => {
     const [phase, setPhase] = useState<Phase>('prompt');
     const [rotation, setRotation] = useState(0);
     const [liveSeg, setLiveSeg] = useState<Seg>(SEGMENTS[0]);
@@ -176,79 +176,13 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
             setMultPayout(0);
             setTotalMultWins(0);
             setSummaryTotal(0);
+            onRunningTotal?.(0);
         }
     }, [isOpen]);
 
-    if (!isOpen) return null;
+    useEffect(() => { onRunningTotal?.(totalMultWins); }, [totalMultWins]);
 
-    const rightContent = () => {
-        switch (phase) {
-            case 'ready':
-                return (
-                    <div className="flex flex-col gap-2 text-center select-none">
-                        <div className="text-white font-black text-sm uppercase tracking-widest flex items-center gap-1.5"><img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> Scatter Roulette</div>
-                        <div className="text-purple-200/60 text-xs leading-relaxed mt-2">
-                            Tap the wheel to spin!
-                        </div>
-                        <div className="text-purple-200/35 text-[9px] mt-3 leading-relaxed">
-                            Land multipliers to earn<br />bonus wins and respin.<br />Keep spinning until a jackpot!
-                        </div>
-                        <div className="text-purple-200/25 text-[9px] mt-2">Bet: {formatCommaNumber(bet)}</div>
-                    </div>
-                );
-            case 'spinning':
-                return (
-                    <div className="flex flex-col items-center gap-3 select-none">
-                        <div className="text-white/40 text-[9px] uppercase tracking-widest animate-pulse">Spinning…</div>
-                        <div className="font-black text-3xl transition-colors duration-75"
-                            style={{ color: liveSeg.textColor, textShadow: `0 0 20px ${liveSeg.textColor}` }}>
-                            {liveSeg.label}
-                        </div>
-                        <div className="text-white/25 text-[9px] uppercase tracking-wide mt-1">
-                            {liveSeg.mult !== undefined ? 'Multiplier' : liveSeg.jp ? `${liveSeg.jp} Jackpot` : ''}
-                        </div>
-                        {totalMultWins > 0 && (
-                            <div className="mt-2 flex flex-col items-center gap-0.5 rounded-xl px-3 py-2 w-full"
-                                style={{ background: 'rgba(0,0,0,0.35)' }}>
-                                <div className="text-white/40 text-[8px] uppercase tracking-widest">Total Won</div>
-                                <div className="font-black text-yellow-300 text-sm font-mono">+{formatCommaNumber(totalMultWins)}</div>
-                            </div>
-                        )}
-                    </div>
-                );
-            case 'mult_popup':
-                return (
-                    <div className="flex flex-col items-center gap-2 animate-pop-in select-none">
-                        <div className="text-white/50 text-[9px] uppercase tracking-widest">Bonus Win!</div>
-                        <div className="font-black text-2xl" style={{ color: wonSeg?.textColor }}>
-                            {wonSeg?.label}
-                        </div>
-                        <div className="font-black text-white text-xl font-mono">
-                            +{formatCommaNumber(multPayout)}
-                        </div>
-                        <div className="text-white/40 text-[9px] uppercase mt-1 animate-pulse">Respinning…</div>
-                        {totalMultWins > 0 && (
-                            <div className="mt-1 flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 w-full"
-                                style={{ background: 'rgba(0,0,0,0.35)' }}>
-                                <div className="text-white/40 text-[8px] uppercase tracking-widest">Total Won</div>
-                                <div className="font-black text-yellow-300 text-sm font-mono">+{formatCommaNumber(totalMultWins)}</div>
-                            </div>
-                        )}
-                    </div>
-                );
-            case 'done':
-                return wonSeg ? (
-                    <div className="flex flex-col items-center gap-2 select-none">
-                        <div className="font-black text-2xl" style={{ color: wonSeg.textColor, textShadow: `0 0 20px ${wonSeg.textColor}` }}>
-                            {wonSeg.label}
-                        </div>
-                        <div className="text-white/50 text-xs uppercase tracking-wide">Jackpot!</div>
-                    </div>
-                ) : null;
-            default:
-                return null;
-        }
-    };
+    if (!isOpen) return null;
 
     return (
         <div className="absolute inset-0 z-[200] flex items-center justify-center animate-pop-in">
@@ -274,9 +208,9 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                 </div>
             )}
 
-            {/* Wheel + right panel */}
+            {/* Wheel — centred, no right panel */}
             {phase !== 'prompt' && (
-                <div className="flex flex-row items-center gap-6 select-none">
+                <div className="flex flex-col items-center gap-3 select-none">
                     {/* Wheel */}
                     <div className="relative"
                         style={{ width: SZ, height: SZ, cursor: phase === 'ready' ? 'pointer' : 'default' }}
@@ -318,23 +252,15 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                                 })}
                             </g>
 
-                            {/* Center hub — always rendered so overlay can cover it */}
                             <circle cx={CX} cy={CY} r={22} fill="#0d0220" stroke="#7c3aed" strokeWidth={3} />
                             <image href="/symbols/diamond.png" x={CX - 10} y={CY - 10} width={20} height={20} />
                         </svg>
 
-                        {/* "TAP TO SPIN" overlay — covers center hub, above SVG */}
                         {phase === 'ready' && (
                             <div className="absolute pointer-events-none flex items-center justify-center"
-                                style={{
-                                    top: '50%', left: '50%',
-                                    transform: 'translate(-50%, -50%)',
-                                    width: 66, height: 66,
-                                    borderRadius: '50%',
+                                style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 66, height: 66, borderRadius: '50%',
                                     background: 'radial-gradient(circle, rgba(13,2,32,0.97) 60%, rgba(13,2,32,0.6) 100%)',
-                                    border: '2px solid rgba(147,51,234,0.7)',
-                                    boxShadow: '0 0 20px rgba(147,51,234,0.5)',
-                                }}>
+                                    border: '2px solid rgba(147,51,234,0.7)', boxShadow: '0 0 20px rgba(147,51,234,0.5)' }}>
                                 <span className="font-black text-white text-center uppercase animate-pulse"
                                     style={{ fontSize: 9, letterSpacing: '0.08em', lineHeight: 1.3 }}>
                                     TAP<br />TO<br />SPIN
@@ -343,13 +269,25 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                         )}
                     </div>
 
-                    {/* Right info panel */}
-                    <div className="flex flex-col items-center justify-center rounded-2xl px-5 py-5"
-                        style={{
-                            background: '#3b0764',
-                            minWidth: 172, minHeight: 220,
-                        }}>
-                        {rightContent()}
+                    {/* Compact status below wheel */}
+                    <div className="flex flex-col items-center gap-1 select-none" style={{ minHeight: 36 }}>
+                        {phase === 'spinning' && (
+                            <div className="font-black text-2xl transition-colors duration-75 animate-pulse"
+                                style={{ color: liveSeg.textColor, textShadow: `0 0 16px ${liveSeg.textColor}` }}>
+                                {liveSeg.label}
+                            </div>
+                        )}
+                        {phase === 'mult_popup' && (
+                            <div className="flex items-center gap-2 animate-pop-in">
+                                <span className="font-black text-white text-lg font-mono">+{formatCommaNumber(multPayout)}</span>
+                                <span className="text-white/40 text-[9px] uppercase tracking-widest animate-pulse">Respinning…</span>
+                            </div>
+                        )}
+                        {phase === 'done' && wonSeg && (
+                            <div className="font-black text-xl" style={{ color: wonSeg.textColor, textShadow: `0 0 16px ${wonSeg.textColor}` }}>
+                                {wonSeg.label} Jackpot!
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

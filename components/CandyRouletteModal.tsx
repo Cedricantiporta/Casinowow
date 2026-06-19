@@ -176,8 +176,9 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
                 </div>
             )}
 
+            {/* Wheel — centred, no right panel */}
             {phase !== 'prompt' && (
-                <div className="flex flex-row items-center gap-6 select-none">
+                <div className="flex flex-col items-center gap-3 select-none">
                     {/* Wheel */}
                     <div className="relative" style={{ width: SZ, height: SZ, cursor: phase === 'ready' ? 'pointer' : 'default' }}
                         onClick={phase === 'ready' ? doSpin : undefined}>
@@ -236,15 +237,26 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
                         )}
                     </div>
 
-                    {/* Right info panel */}
-                    <div className="flex flex-col items-center justify-center rounded-2xl px-5 py-5" style={{ background: '#831843', minWidth: 172, minHeight: 220 }}>
-                        {rightContent()}
+                    {/* Compact status + action below wheel */}
+                    <div className="flex flex-col items-center gap-2 select-none" style={{ minHeight: 48 }}>
+                        {phase === 'spinning' && wonSeg && (
+                            <div className="font-black text-2xl animate-pulse transition-colors duration-75"
+                                style={{ color: wonSeg.textColor, textShadow: `0 0 16px ${wonSeg.textColor}` }}>
+                                {wonSeg.label}
+                            </div>
+                        )}
                         {phase === 'done' && wonSeg && (
-                            <button onClick={() => onComplete(wonSeg.cfg)}
-                                className="btn-3d w-full py-3 rounded-xl font-black uppercase tracking-widest text-white text-sm mt-4"
-                                style={{ background: 'linear-gradient(180deg,#f472b6,#db2777)', boxShadow: '0 5px 0 #831843' }}>
-                                Start Free Spins!
-                            </button>
+                            <>
+                                <div className="flex flex-col items-center gap-0.5 animate-pop-in">
+                                    <span className="font-black text-2xl" style={{ color: wonSeg.textColor, textShadow: `0 0 16px ${wonSeg.textColor}` }}>{wonSeg.label}</span>
+                                    <span className="text-white/60 text-[10px] uppercase tracking-widest">{wonSeg.sub}</span>
+                                </div>
+                                <button onClick={() => onComplete(wonSeg.cfg)}
+                                    className="btn-3d px-6 py-2 rounded-xl font-black uppercase tracking-widest text-white text-sm"
+                                    style={{ background: 'linear-gradient(180deg,#f472b6,#db2777)', boxShadow: '0 4px 0 #831843' }}>
+                                    Start Free Spins!
+                                </button>
+                            </>
                         )}
                     </div>
                 </div>
