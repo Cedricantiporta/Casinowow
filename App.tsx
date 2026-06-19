@@ -132,17 +132,66 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     );
 };
 
+// Phase 1: critical assets needed before the lobby is shown
 const PRELOAD_ASSETS = [
+    // lobby backgrounds
+    '/lobby-bg.jpg', '/lobby-bg-vip.jpg',
+    // slot cover images (shown in lobby cards)
+    '/slots/piggy_covernew.jpg', '/slots/pharaoh_covernew.jpg', '/slots/dragon_covernew.png',
+    '/slots/pirate_covernew.png', '/slots/cosmic_covernew.png', '/slots/artic_covernew.png',
+    // bottom-bar + topbar UI icons
+    '/ui/piggy.png', '/ui/missions.png', '/ui/collect.png', '/ui/cards.png',
+    '/ui/pass.png', '/ui/games.png', '/ui/lobby.png', '/ui/exp_multiplier.png',
+    '/ui/jackpot.png', '/ui/coinmine.png', '/ui/boost.png',
+    // key symbols visible on first spin
+    '/symbols/coin.png', '/symbols/seven.png', '/symbols/bar.png', '/symbols/bell.png',
+    '/symbols/cherry.png', '/symbols/diamond.png',
+];
+
+// Phase 2: remaining assets preloaded while user browses the lobby
+const LOBBY_PRELOAD_ASSETS = [
+    // slot backgrounds
     '/slots/piggy_bg.jpg', '/slots/egypt_bg.jpg', '/slots/arctic_bg.jpg',
     '/slots/dragon_bg.jpg', '/slots/pirate_bg.jpg', '/slots/candy_bg.png',
-    '/symbols/coin.png', '/ui/pass.png',
-    '/egypt/wild.png', '/symbols/seven.png', '/candy/sugar1.png',
-    '/pirate/skull.png', '/piggy/pig.png', '/arctic/penguin.png', '/dragon/dragon-1.png',
+    // piggy symbols
+    '/piggy/pig.png', '/piggy/bank.png', '/piggy/bell.png', '/piggy/cash.png', '/piggy/coin.png', '/piggy/hammer.png',
+    // egypt symbols
+    '/egypt/wild.png', '/egypt/bar.png', '/egypt/bell.png', '/egypt/cherry.png',
+    '/egypt/grape.png', '/egypt/scatter.png', '/egypt/seven.png',
+    // arctic symbols
+    '/arctic/penguin.png', '/arctic/fish.png', '/arctic/ice.png',
+    '/arctic/seal.png', '/arctic/snow.png', '/arctic/wave.png',
+    // pirate symbols
+    '/pirate/skull.png', '/pirate/anchor.png', '/pirate/bomb.png',
+    '/pirate/compass.png', '/pirate/flag.png', '/pirate/parrot.png',
+    // dragon symbols
+    '/dragon/dragon-1.png', '/dragon/dragon-2.png', '/dragon/dragon-3.png',
+    '/dragon/dragon-4.png', '/dragon/dragon-5.png', '/dragon/dragon-6.png',
+    '/dragon/dragon-7.png', '/dragon/dragon-8.png', '/dragon/dragon-9.png',
+    '/dragon/dragon-10.png', '/dragon/dragon-11.png',
+    // candy symbols
+    '/candy/sugar1.png', '/candy/sugar2.png', '/candy/sugar3.png',
+    '/candy/sugar4.png', '/candy/sugar5.png', '/candy/sugar6.png',
+    '/candy/sugar7.png', '/candy/sugar8.png', '/candy/sugar9.png',
+    '/candy/sugar10.png', '/candy/sugar11.png',
+    // remaining symbols
+    '/symbols/apple.png', '/symbols/clover.png', '/symbols/die.png',
+    '/symbols/grapefruit.png', '/symbols/heart.png', '/symbols/horseshoe.png',
+    '/symbols/lemon.png', '/symbols/orange.png', '/symbols/plum.png', '/symbols/watermelon.png',
+    // modal / UI assets
+    '/ui/VIP.png', '/ui/bigbag.png', '/ui/dice.png', '/ui/double.png',
+    '/ui/dragon_vase.png', '/ui/gems500.png', '/ui/gems5000.png',
+    '/ui/gift_mail.png', '/ui/gift_store.png', '/ui/high_roller.png',
+    '/ui/inbox.png', '/ui/lock.png', '/ui/mine_new.png', '/ui/minigames.png',
+    '/ui/missions_new.png', '/ui/pick.png', '/ui/piggy_red.png',
+    '/ui/rock.png', '/ui/roller.png', '/ui/stage_gem.png', '/ui/star.png',
+    '/ui/cards_new.png',
 ];
 
 const App: React.FC = () => {
   const toastCountRef = useRef(0);
   const [appReady, setAppReady] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
   const spinButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
@@ -183,11 +232,16 @@ const App: React.FC = () => {
       jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
   }, [player.level]);
 
-  // Preload game assets on first mount, then mark app as ready
+  // Phase 1: preload critical assets, then mark app as ready
   useEffect(() => {
       let loaded = 0;
       const total = PRELOAD_ASSETS.length;
-      const done = () => { loaded++; if (loaded >= total) setAppReady(true); };
+      if (total === 0) { setAppReady(true); return; }
+      const done = () => {
+          loaded++;
+          setLoadProgress(Math.round((loaded / total) * 100));
+          if (loaded >= total) setAppReady(true);
+      };
       PRELOAD_ASSETS.forEach(src => {
           const img = new Image();
           img.onload = done;
@@ -195,6 +249,15 @@ const App: React.FC = () => {
           img.src = src;
       });
   }, []);
+
+  // Phase 2: preload remaining assets in the background once lobby is visible
+  useEffect(() => {
+      if (!appReady) return;
+      LOBBY_PRELOAD_ASSETS.forEach(src => {
+          const img = new Image();
+          img.src = src;
+      });
+  }, [appReady]);
 
   // Toggle XP mult display between multiplier and countdown every 15s when boost active
   useEffect(() => {
@@ -3493,12 +3556,10 @@ const App: React.FC = () => {
               <div style={{ fontFamily: "'Titan One', cursive", fontWeight: 900, fontSize: 28, background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', letterSpacing: 2 }}>
                   Scatter Pa More
               </div>
-              <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Loading…</div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                  {[0,1,2].map(i => (
-                      <div key={i} className="animate-bounce" style={{ width: 8, height: 8, borderRadius: '50%', background: '#ffd700', animationDelay: `${i * 0.18}s` }} />
-                  ))}
+              <div style={{ width: 200, height: 6, borderRadius: 6, background: 'rgba(255,255,255,0.1)', overflow: 'hidden', marginTop: 4 }}>
+                  <div style={{ height: '100%', width: `${loadProgress}%`, borderRadius: 6, background: 'linear-gradient(90deg,#ffd700,#ffb300)', transition: 'width 0.2s ease' }} />
               </div>
+              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginTop: -12 }}>{loadProgress}%</div>
           </div>
       );
   }

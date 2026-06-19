@@ -80,6 +80,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #22d3ee 0%, #1e3a8a 100%)',
     reelBg: REEL_BGS.ARCTIC,
     slotBg: '/slots/arctic_bg.jpg',
+    coverImage: '/slots/artic_covernew.png',
   },
   {
     id: 'dragon-fortune',
