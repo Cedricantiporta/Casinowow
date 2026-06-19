@@ -447,6 +447,7 @@ const App: React.FC = () => {
   const arcticJpPickTriggeredRef = useRef(false);
   const arcticMidFreeSpinsRef = useRef(false);
   const [pendingArcticFreePick, setPendingArcticFreePick] = useState(false);
+  const pirateJpTierRef = useRef<number | null>(null);
 
   // Pirate's Bounty — Ghost Ship Walking Wilds state
   const [pirateWalkActive, setPirateWalkActive] = useState(false);
@@ -1957,8 +1958,9 @@ const App: React.FC = () => {
           }
       }
 
-      // Jackpot cell injection: during free spins only, except ARCTIC, NEON, and PIRATE (Ghost Ship feature uses no jackpots)
-      if (freeSpinsRemaining > 0 && ft !== 'ARCTIC' && ft !== 'NEON' && ft !== 'PIRATE') {
+      // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
+      // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
+      if (freeSpinsRemaining > 0 && ft !== 'ARCTIC' && ft !== 'NEON') {
           // CANDY gets 50% reduced jackpot spawn rates
           const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
@@ -1999,6 +2001,32 @@ const App: React.FC = () => {
           const ship2Col = pirateWalkRef.current.ship2Col;
           if (ship2Col >= 0 && ship2Col < cols) {
               for (let r = 0; r < rows; r++) newGrid[ship2Col][r] = SymbolType.WILD;
+          }
+
+          // Ghost Ship jackpot: 8% chance per walk-spin to embed a jackpot symbol
+          // inside the ship's wild column, replacing one wild cell.
+          if (Math.random() < 0.08) {
+              const JP_PIRATE = [
+                  { sym: SymbolType.JACKPOT_MINI,  w: 60 },
+                  { sym: SymbolType.JACKPOT_MINOR, w: 25 },
+                  { sym: SymbolType.JACKPOT_MAJOR, w: 10 },
+                  { sym: SymbolType.JACKPOT_MEGA,  w: 4  },
+                  { sym: SymbolType.JACKPOT_GRAND, w: 1  },
+              ];
+              const totalW = JP_PIRATE.reduce((a, j) => a + j.w, 0);
+              let pick = Math.random() * totalW;
+              let jpSym = JP_PIRATE[0].sym;
+              let jpTier = 0;
+              for (let ji = 0; ji < JP_PIRATE.length; ji++) {
+                  pick -= JP_PIRATE[ji].w;
+                  if (pick <= 0) { jpSym = JP_PIRATE[ji].sym; jpTier = ji; break; }
+              }
+              const targetShipCol = shipCol >= 0 ? shipCol : (ship2Col >= 0 ? ship2Col : -1);
+              if (targetShipCol >= 0) {
+                  const jpRow = Math.floor(Math.random() * rows);
+                  newGrid[targetShipCol][jpRow] = jpSym;
+                  pirateJpTierRef.current = jpTier;
+              }
           }
       }
 
@@ -2374,10 +2402,6 @@ const App: React.FC = () => {
 
         if (scatterCount >= selectedGame.scattersToTrigger) {
              if (selectedGame.theme === 'NEON') {
-                 // Exactly min scatters = 50% chance to trigger roulette
-                 if (scatterCount === selectedGame.scattersToTrigger && Math.random() < 0.5) {
-                     // No roulette trigger — fall through to normal win calculation
-                 } else {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
@@ -2389,15 +2413,10 @@ const App: React.FC = () => {
                      setNeonRouletteBet(betAmt);
                  }, 3000);
                  return next;
-                 }
              }
 
              // CANDY: scatters open the Wild Wheel bonus, which picks the persistent wild setup before free spins begin.
              if (ft === 'CANDY') {
-                 // Exactly min scatters = 50% chance to trigger roulette
-                 if (scatterCount === selectedGame.scattersToTrigger && Math.random() < 0.5) {
-                     // No roulette trigger — fall through to normal win calculation
-                 } else {
                  const spinsWon = 10;
                  setFreeSpinsWon(spinsWon);
                  setTotalFreeSpins(prev => prev + spinsWon);
@@ -2412,7 +2431,6 @@ const App: React.FC = () => {
                      setTimeout(() => setShowCandyRoulette(true), 1500);
                  }
                  return next;
-                 }
              }
 
              const baseSpins = ft === 'ARCTIC'
@@ -2686,6 +2704,21 @@ const App: React.FC = () => {
     const JP_BET_MULTIPLIERS = [10, 20, 30, 50, 100];
     const jpAmounts = JP_BET_MULTIPLIERS.map(m => Math.floor(currentBet * m));
     let jackpotWon = false;
+
+    // PIRATE Ghost Ship jackpot: awarded via the embedded wild-column JP symbol
+    if (ft === 'PIRATE' && pirateJpTierRef.current !== null) {
+        const tier = pirateJpTierRef.current;
+        pirateJpTierRef.current = null;
+        jackpotWon = true;
+        totalPayout += jpAmounts[tier];
+        const jpCells: {col: number, row: number}[] = [];
+        finalGrid.forEach((col, c) => col.forEach((s, r) => {
+            if (s === JP_WIN_TYPES[tier]) jpCells.push({ col: c, row: r });
+        }));
+        winningCells.push(...jpCells);
+        setJackpotWinTier({ ...JP_META[tier], amount: jpAmounts[tier] });
+    }
+
     JP_WIN_TYPES.forEach((jpType, tier) => {
         let jpCount = 0;
         const jpCells: {col: number, row: number}[] = [];
@@ -3266,6 +3299,7 @@ const App: React.FC = () => {
           pirateTriggerArmedRef.current = false;
           pirateDualShipRef.current = false;
           pirateWalkTotalWinRef.current = 0;
+          pirateJpTierRef.current = null;
           setPirateWalkActive(false);
           setPirateShipCol(-1);
           setPirateShip2Col(-1);
@@ -3377,6 +3411,7 @@ const App: React.FC = () => {
       pirateTriggerArmedRef.current = false;
       pirateDualShipRef.current = false;
       pirateWalkTotalWinRef.current = 0;
+      pirateJpTierRef.current = null;
       setPirateWalkActive(false);
       setPirateShipCol(-1);
       setPirateShip2Col(-1);
