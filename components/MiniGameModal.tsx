@@ -413,7 +413,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             const backRewards: MiniGameReward[] = [{ type: 'BACK', value: 0, label: 'BACK!' }];
             const backPosStep = board.find(s => s.index === backPos);
             if (backPosStep?.reward && !backPosStep.isStart && backPosStep.reward.type !== 'BACK') {
-                backRewards.push(backPosStep.reward);
+                const r = backPosStep.reward;
+                backRewards.push(cost >= 2 ? { ...r, value: r.value * 2 } : r);
                 audioService.playWinSmall();
             }
             setIsMoving(false);
@@ -421,7 +422,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         } else {
             const rewards: MiniGameReward[] = [];
             if (landedStep?.reward && !isFinish && !landedStep.isStart) {
-                rewards.push(landedStep.reward);
+                const r = landedStep.reward;
+                rewards.push(cost >= 2 && r.type !== 'BACK' ? { ...r, value: r.value * 2 } : r);
                 // Star tile: apply 3× buff to all remaining coin/gem tiles
                 if (landedStep.reward.type === 'STAR') {
                     setBoard(prev => prev.map(step => {
@@ -526,8 +528,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 </div>
                 {/* CENTER — title absolutely centered */}
                 <span className="absolute left-0 right-0 text-center font-black text-white text-xs tracking-wide drop-shadow pointer-events-none">{questTitle}</span>
-                {/* RIGHT — X */}
-                <div className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={onClose}><i className="ti ti-x"></i></div>
+                {/* RIGHT — stage prize + X */}
+                {activeGame !== 'NONE' && (
+                    <span className="font-black text-white font-mono text-sm ml-auto mr-2 z-10 leading-none">
+                        {formatCommaNumber(Math.floor((maxBet || 10000) * (3 + 0.1 * (activeGame === 'WILD' ? wildStage : diceStage))))}
+                    </span>
+                )}
+                <div className="round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 
             {/* ── COINMINE (Wild Quest) ── */}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { formatCommaNumber } from '../constants';
 
 interface StageCompleteModalProps {
@@ -11,18 +11,10 @@ interface StageCompleteModalProps {
 }
 
 export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, gameType, stage, coins, diamonds, onNext }) => {
-    const [timeLeft, setTimeLeft] = useState(180);
-
     useEffect(() => {
         if (!isOpen || gameType !== 'DICE') return;
-        setTimeLeft(180);
-        const interval = setInterval(() => {
-            setTimeLeft(t => {
-                if (t <= 1) { clearInterval(interval); onNext(); return 0; }
-                return t - 1;
-            });
-        }, 1000);
-        return () => clearInterval(interval);
+        const t = setTimeout(onNext, 2000);
+        return () => clearTimeout(t);
     }, [isOpen, gameType]);
 
     if (!isOpen) return null;
@@ -41,9 +33,6 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
                     )}
                     {diamonds > 0 && (
                         <span className="text-white font-black font-mono leading-none" style={{ fontSize: '1.4rem' }}>+{diamonds}</span>
-                    )}
-                    {gameType === 'DICE' && timeLeft <= 30 && (
-                        <span className="text-white/40 font-black text-[10px] font-mono ml-auto">{timeLeft}s</span>
                     )}
                 </div>
                 <button
