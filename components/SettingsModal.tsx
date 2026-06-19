@@ -51,11 +51,11 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
     },
     dev222: {
         title: 'GOD MODE',
-        description: 'All premium features, VIP, and max boosts unlocked.',
+        description: 'All premium features, VIP, and pass boosts unlocked.',
         icon: '👑',
         rewards: [
-            { icon: '👑', label: 'VIP + Monthly Pass' },
-            { icon: '🚀', label: 'XP Boost ×5 — 7 Days' },
+            { icon: '👑', label: 'VIP Status' },
+            { icon: '🎫', label: 'Monthly Pass (Premium) — 1 Year' },
         ],
     },
     reset: {
@@ -105,25 +105,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
     const [redeemInput, setRedeemInput] = useState('');
     const [pendingCode, setPendingCode] = useState<string | null>(null);
-    const [errorShake, setErrorShake] = useState(false);
+    const [redeemMsg, setRedeemMsg] = useState<{ text: string; type: 'error' | 'warn' } | null>(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
 
     if (!isOpen) return null;
 
+    const showMsg = (text: string, type: 'error' | 'warn') => {
+        setRedeemMsg({ text, type });
+        setTimeout(() => setRedeemMsg(null), 3000);
+    };
+
     const handleRedeem = () => {
         const code = redeemInput.trim().toLowerCase();
-        if (REDEEM_CODES[code]) {
-            if (redeemedCodes.includes(code)) {
-                setErrorShake(true);
-                setTimeout(() => setErrorShake(false), 500);
-                return;
-            }
-            setPendingCode(code);
-            setRedeemInput('');
-        } else {
-            setErrorShake(true);
-            setTimeout(() => setErrorShake(false), 500);
+        if (!REDEEM_CODES[code]) {
+            showMsg('Invalid code', 'error');
+            return;
         }
+        if (redeemedCodes.includes(code)) {
+            showMsg('Code already redeemed', 'warn');
+            return;
+        }
+        setPendingCode(code);
+        setRedeemInput('');
     };
 
     const handleClaim = () => {
@@ -183,7 +186,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <div className="rounded-xl p-3 flex flex-col gap-2"
                             style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                             <p className="text-purple-200/50 text-[9px] leading-snug">Enter a code to claim special rewards.</p>
-                            <div className={`flex gap-2 ${errorShake ? 'animate-[shake_0.4s_ease]' : ''}`}>
+                            <div className="flex gap-2">
                                 <input
                                     type="text"
                                     value={redeemInput}
@@ -196,6 +199,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                     <div className="pill-face" style={{ padding: '6px 14px', fontSize: '10px' }}>Redeem</div>
                                 </button>
                             </div>
+                            {redeemMsg && (
+                                <div className={`text-[10px] font-black px-1 animate-pop-in ${redeemMsg.type === 'error' ? 'text-red-400' : 'text-yellow-400'}`}>
+                                    {redeemMsg.text}
+                                </div>
+                            )}
                         </div>
                     </div>
 

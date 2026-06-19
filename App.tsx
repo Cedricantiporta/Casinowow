@@ -4876,7 +4876,7 @@ const App: React.FC = () => {
                   window.location.reload();
                   return;
               }
-              if (redeemedCodes.includes(code) && !code.startsWith('dev')) return;
+              if (redeemedCodes.includes(code)) return;
               setRedeemedCodes(prev => {
                   const next = [...prev, code];
                   try { localStorage.setItem('cw_redeemed_codes', JSON.stringify(next)); } catch {}
@@ -4912,8 +4912,6 @@ const App: React.FC = () => {
                       ...p,
                       isVip: true,
                       vipExpiry: now + 30 * 24 * 3600000,
-                      xpMultiplier: 5,
-                      xpBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
                   }));
                   setMissionState(ms => ({
                       ...ms,
@@ -4922,7 +4920,7 @@ const App: React.FC = () => {
                       passBoostMultiplier: 5,
                       passBoostEndTime: now + 7 * 24 * 60 * 60 * 1000,
                   }));
-                  setCelebrationMsg('👑 GOD MODE! VIP+Pass · 5× XP');
+                  setCelebrationMsg('👑 GOD MODE! VIP + Premium Pass');
               }
               audioService.playWinBig();
           }}
