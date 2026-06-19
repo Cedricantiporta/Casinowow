@@ -624,19 +624,23 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 <div className="absolute inset-0 z-[175] flex items-center justify-center bg-black/80 backdrop-blur-sm"
                     onClick={() => setShowPackBuyPopup(null)}>
                     <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
-                        style={{ width: 680, height: 210, background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
+                        style={{ width: 680, maxWidth: '94%', height: 250, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
-                        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
-                            <div className="currency-pill flex items-center gap-1.5" style={{ background: 'rgba(0,0,0,0.55)' }}>
-                                <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                                <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
-                                <button onClick={() => { setShowPackBuyPopup(null); onOpenShop('DIAMONDS'); }} className="pill-green" style={{ fontSize: '9px' }}>
-                                    <div className="pill-face" style={{ padding: '2px 6px', fontSize: '9px' }}>Buy</div>
-                                </button>
+                        {/* Seamless topbar */}
+                        <div className="shrink-0 flex items-center gap-2 px-3 py-2 relative">
+                            <span className="absolute left-0 right-0 text-center text-white font-black text-sm pointer-events-none">Buy Packs</span>
+                            <div className="flex items-center gap-1.5 ml-auto z-10">
+                                <div className="currency-pill flex items-center gap-1.5" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                                    <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+                                    <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
+                                    <button onClick={() => { setShowPackBuyPopup(null); onOpenShop('DIAMONDS'); }} className="pill-green" style={{ fontSize: '9px' }}>
+                                        <div className="pill-face" style={{ padding: '2px 6px', fontSize: '9px' }}>Buy</div>
+                                    </button>
+                                </div>
+                                <button onClick={() => setShowPackBuyPopup(null)} className="round-btn"><i className="ti ti-x" /></button>
                             </div>
-                            <button onClick={() => setShowPackBuyPopup(null)} className="round-btn"><i className="ti ti-x" /></button>
                         </div>
-                        <div ref={packStoreScrollRef} className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar px-3 py-3">
+                        <div ref={packStoreScrollRef} className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar px-3 pb-3">
                             <div className="flex gap-3 h-full items-stretch" style={{ minWidth: 'max-content' }}>
                                 <div className="flex flex-col justify-center shrink-0">
                                     <div className="text-[9px] font-black uppercase tracking-widest text-blue-300/60"

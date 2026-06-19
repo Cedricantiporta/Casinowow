@@ -2788,7 +2788,7 @@ const App: React.FC = () => {
        const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult * 2);
 
        addXp(xpGained);
-       if (player.isVip) addVipXp(Math.max(1, Math.floor(xpGained * 0.1)));
+       if (player.isVip) addVipXp(1);
        updateMissions(MissionType.WIN_COINS, totalPayout);
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
 
@@ -2812,7 +2812,7 @@ const App: React.FC = () => {
        const betFractionLoss = currentBet / MAX_BET_BY_LEVEL(player.level);
        const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss * 2);
        addXp(lossXp);
-       if (player.isVip) addVipXp(Math.max(1, Math.floor(lossXp * 0.1)));
+       if (player.isVip) addVipXp(1);
        const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
     }
@@ -2976,11 +2976,11 @@ const App: React.FC = () => {
       setPlayer(prev => {
           let newVipXp = (prev.vipXp ?? 0) + amount;
           let newVipLevel = prev.vipLevel ?? 1;
-          let newVipXpToNext = prev.vipXpToNext ?? 500;
+          let newVipXpToNext = 500 * newVipLevel;
           while (newVipXp >= newVipXpToNext) {
-              newVipLevel++;
               newVipXp -= newVipXpToNext;
-              newVipXpToNext = Math.floor(newVipXpToNext * 1.3);
+              newVipLevel++;
+              newVipXpToNext = 500 * newVipLevel;
           }
           return { ...prev, vipXp: newVipXp, vipLevel: newVipLevel, vipXpToNext: newVipXpToNext };
       });
@@ -3630,7 +3630,7 @@ const App: React.FC = () => {
   };
   const getGrandAlbumReward = (level: number) => MAX_BET_BY_LEVEL(level) * 1000;
 
-  const showGoldHeader = !!player.isVip && (currentView === 'LOBBY' || currentView === 'HIGH_LIMIT');
+  const showGoldHeader = (!!player.isVip && currentView === 'LOBBY') || currentView === 'HIGH_LIMIT';
   const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
   const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
