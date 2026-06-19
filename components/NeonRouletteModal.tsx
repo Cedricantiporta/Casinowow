@@ -212,7 +212,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                 <div className="absolute" style={{ left: '50%', top: 92, transform: 'translateX(-50%)', width: SZ, height: SZ }}>
                     {/* Wheel */}
                     <div className="relative"
-                        style={{ width: SZ, height: SZ, cursor: phase === 'ready' ? 'pointer' : 'default' }}
+                        style={{ width: SZ, height: SZ, cursor: phase === 'ready' ? 'pointer' : 'default', overflow: 'visible' }}
                         onClick={phase === 'ready' ? () => doSpinRef.current(0) : undefined}>
 
                         {/* Arrow at 12 o'clock */}
@@ -268,7 +268,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                             <div className="absolute pointer-events-none flex items-center justify-center"
                                 style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
                                 <span className="font-black text-white text-center uppercase animate-pulse"
-                                    style={{ fontSize: 11, letterSpacing: '0.14em', lineHeight: 1.5, textShadow: '0 2px 10px rgba(0,0,0,1), 0 0 24px rgba(0,0,0,0.9)' }}>
+                                    style={{ fontSize: 18, letterSpacing: '0.14em', lineHeight: 1.5, textShadow: '0 2px 12px rgba(0,0,0,1), 0 0 28px rgba(0,0,0,0.95)' }}>
                                     TAP TO SPIN
                                 </span>
                             </div>
