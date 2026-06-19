@@ -38,6 +38,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #f472b6 0%, #831843 100%)',
     reelBg: REEL_BGS.PIGGY,
     slotBg: '/slots/piggy_bg.jpg',
+    coverImage: '/slots/piggy_cover.jpg',
   },
   {
     id: 'neon-vegas',
