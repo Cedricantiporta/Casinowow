@@ -282,9 +282,7 @@ const ReelCell: React.FC<{
     let bgClasses = isImageIcon ? 'bg-transparent' : (config?.bg || 'bg-transparent');
 
     if (highlight) {
-        // Keep original bg color, add shiny border on top
-        const borderColor = config?.highlightClass?.match(/border-(\S+)/)?.[1] ?? 'yellow-300/60';
-        bgClasses = `${config?.bg || 'bg-transparent'} border-2 border-${borderColor} shadow-[0_0_12px_rgba(255,255,255,0.6)] z-20`;
+        bgClasses = `${config?.bg || 'bg-transparent'} shadow-[0_0_14px_rgba(251,191,36,0.55)] z-20`;
     } else if (isScatter && isScatterShowcase) {
         bgClasses = 'border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
     }
@@ -330,6 +328,28 @@ const ReelCell: React.FC<{
                 : undefined
             }
             >
+                {highlight && (
+                    <svg
+                        className="absolute inset-0 w-full h-full pointer-events-none"
+                        viewBox="0 0 100 100"
+                        preserveAspectRatio="none"
+                        style={{ zIndex: 25, overflow: 'visible' }}
+                    >
+                        <rect
+                            x="1.5" y="1.5"
+                            width="97" height="97"
+                            fill="none"
+                            stroke="#fbbf24"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeDasharray="97 97"
+                            style={{
+                                filter: 'drop-shadow(0 0 4px #f59e0b) drop-shadow(0 0 8px rgba(251,191,36,0.65))',
+                                animation: 'snakeBorder 1.2s linear infinite',
+                            }}
+                        />
+                    </svg>
+                )}
                 {/* Content wrapper */}
                 <div className={`
                     relative flex flex-col items-center justify-center z-10 w-full h-full

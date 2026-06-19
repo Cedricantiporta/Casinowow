@@ -170,6 +170,9 @@
     <style>
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      @keyframes snakeBorder {
+        to { stroke-dashoffset: -194; }
+      }
       @keyframes candyGlow {
         0%, 100% { box-shadow: 0 0 14px rgba(236,72,153,0.75), inset 0 0 14px rgba(236,72,153,0.25); border-color: #f9a8d4; }
         50% { box-shadow: 0 0 30px rgba(236,72,153,1.0), inset 0 0 22px rgba(236,72,153,0.5); border-color: #fff; }
