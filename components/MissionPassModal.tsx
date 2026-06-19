@@ -242,22 +242,22 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         : 'inset 0 1px 0 rgba(100,160,255,0.35), 0 4px 12px rgba(0,0,0,0.5)',
                                 }}>
 
-                                {/* Golden / stacks badges */}
+                                {/* Stacks badges */}
                                 {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
-                                    <div className="flex items-center justify-between relative z-10 -mb-1">
-                                        {!mission.isGolden && <span />}
-                                        {mission.stacks && mission.stacks > 0 && (
-                                            <div className="flex gap-0.5 items-center">
-                                                {Array.from({ length: 3 }).map((_, idx) => (
-                                                    <div key={idx} className="w-2 h-2 rounded-full" style={{ background: idx < mission.stacks! ? '#a855f7' : 'rgba(255,255,255,0.15)' }} />
-                                                ))}
-                                            </div>
-                                        )}
+                                    <div className="flex items-center justify-start relative z-10 -mb-1">
+                                        <div className="flex gap-0.5 items-center">
+                                            {Array.from({ length: 3 }).map((_, idx) => {
+                                                const filled = mission.isGolden ? 1 : (mission.stacks || 0);
+                                                return (
+                                                    <div key={idx} className="w-2 h-2 rounded-full" style={{ background: idx < filled ? (mission.isGolden ? '#fbbf24' : '#a855f7') : 'rgba(255,255,255,0.15)' }} />
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Icon */}
-                                <div className="flex-1 rounded-xl flex items-center justify-center shrink-0 mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(2.5rem, 7vw, 4rem)', background: mission.isGolden ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.25)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>
+                                <div className="flex-1 flex items-center justify-center shrink-0 mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(2.5rem, 7vw, 4rem)' }}>
                                     {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : mission.type === 'BET_COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : mission.type === 'MAX_BET_SPIN' ? <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : <img src="/ui/star.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />}
                                 </div>
 

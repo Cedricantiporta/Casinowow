@@ -576,23 +576,22 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
             {showPackBuyPopup && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
                     onClick={() => setShowPackBuyPopup(null)}>
-                    <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col"
-                        style={{ width: 680, height: 240, background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
+                    <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
+                        style={{ width: 680, height: 210, background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
-                        {/* Header */}
-                        <div className="shrink-0 px-4 pt-3 pb-2 flex items-center gap-3" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)' }}>
-                            <div className="font-black text-white text-sm tracking-widest flex-1">Pack Store</div>
-                            <div className="currency-pill flex items-center gap-1.5 ml-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                        {/* Floating close + gem balance */}
+                        <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+                            <div className="currency-pill flex items-center gap-1.5" style={{ background: 'rgba(0,0,0,0.55)' }}>
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                 <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
                                 <button onClick={() => { setShowPackBuyPopup(null); onOpenShop('DIAMONDS'); }} className="pill-green" style={{ fontSize: '9px' }}>
                                     <div className="pill-face" style={{ padding: '2px 6px', fontSize: '9px' }}>Buy</div>
                                 </button>
                             </div>
-                            <button onClick={() => setShowPackBuyPopup(null)} className="round-btn ml-1"><i className="ti ti-x" /></button>
+                            <button onClick={() => setShowPackBuyPopup(null)} className="round-btn"><i className="ti ti-x" /></button>
                         </div>
                         {/* Horizontal scroll */}
-                        <div ref={packStoreScrollRef} className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar px-3 pb-3">
+                        <div ref={packStoreScrollRef} className="flex-1 overflow-x-auto overflow-y-hidden no-scrollbar px-3 py-3">
                             <div className="flex gap-3 h-full items-stretch" style={{ minWidth: 'max-content' }}>
                                 {/* Standard section label */}
                                 <div className="flex flex-col justify-center shrink-0">

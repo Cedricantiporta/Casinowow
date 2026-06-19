@@ -663,9 +663,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const cellIcon: React.ReactNode = step.isFinish ? '🏆'
                                         : step.reward?.type === 'BACK' ? '⬅️'
                                         : isFiveX ? '⭐'
-                                        : step.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: 'clamp(12px,2.5vw,18px)', height: 'clamp(12px,2.5vw,18px)', objectFit: 'contain', display: 'inline-block' }} />
+                                        : step.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
                                         : step.reward?.type === 'PICKS' ? '🎲'
-                                        : step.reward?.type === 'DIAMONDS' ? <img src="/symbols/diamond.png" alt="" style={{ width: 'clamp(12px,2.5vw,18px)', height: 'clamp(12px,2.5vw,18px)', objectFit: 'contain', display: 'inline-block' }} />
+                                        : step.reward?.type === 'DIAMONDS' ? <img src="/symbols/diamond.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
                                         : step.reward?.type === 'PACKS' ? '📦'
                                         : null;
                                     return (
@@ -693,12 +693,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 </div>
                                             )}
                                             {step.isStart ? (
-                                                <span style={{ fontSize: 'clamp(6px,1.5vw,9px)', fontWeight: 900, color: 'white', lineHeight: 1 }}>START</span>
+                                                <span style={{ fontSize: 'clamp(7px,1.8vw,10px)', fontWeight: 900, color: 'white', lineHeight: 1 }}>START</span>
                                             ) : cellIcon ? (
                                                 <div className="flex flex-col items-center" style={{ gap: 1 }}>
-                                                    <span style={{ lineHeight: 1 }}>{cellIcon}</span>
+                                                    <span style={{ lineHeight: 1, fontSize: 'clamp(14px,3vw,20px)' }}>{cellIcon}</span>
                                                     {step.reward?.label && step.reward.type !== 'BACK' && (
-                                                        <span style={{ fontSize: 'clamp(5px,1.2vw,8px)', fontWeight: 900, color: 'white', lineHeight: 1, textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.reward.label}</span>
+                                                        <span style={{ fontSize: 'clamp(7px,1.5vw,10px)', fontWeight: 900, color: 'white', lineHeight: 1, textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.reward.label}</span>
                                                     )}
                                                 </div>
                                             ) : null}

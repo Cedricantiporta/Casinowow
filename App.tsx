@@ -344,6 +344,7 @@ const App: React.FC = () => {
   const [piggyGlow, setPiggyGlow] = useState(false);
   const [showXpTimer, setShowXpTimer] = useState(false);
   const [showXpPct, setShowXpPct] = useState(false);
+  const [showXpPopup, setShowXpPopup] = useState(false);
   const xpPctTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const [activeModal, setActiveModal] = useState<'NONE' | 'SHOP' | 'COLLECTION' | 'MINIGAME' | 'MISSIONS' | 'TIME_BONUS' | 'LOGIN_BONUS' | 'PIGGY' | 'FEATURE_UNLOCK'>('NONE');
@@ -3569,7 +3570,7 @@ const App: React.FC = () => {
       className="bg-[#0a0015] flex items-center justify-center overflow-hidden"
       style={{ position: 'fixed', inset: 0 }}
     >
-      <div className="relative overflow-hidden rounded-none shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
+      <div className="relative overflow-hidden rounded-none shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" onClick={() => showXpPopup && setShowXpPopup(false)} style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
@@ -3628,36 +3629,107 @@ const App: React.FC = () => {
                         <span className="font-black text-white tracking-widest" style={{ fontSize: 13 }}>EVENTS</span>
                     </div>
 
-                    {/* Level Pill */}
-                    <div className="rtrack flex-1" style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible', minWidth: 95, maxWidth: 'none' }}>
-                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
-                            {(() => {
-                                const xpBoostOn = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                                return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
-                            })()}
+                    {/* Level Pill + Multiplier + XP popup */}
+                    <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 95 }}>
+                        {/* Level Pill */}
+                        <div className="rtrack flex-1" onClick={() => setShowXpPopup(v => !v)} style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible', maxWidth: 'none', cursor: 'pointer' }}>
+                            <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                                {(() => {
+                                    const xpBoostOn = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
+                                    return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
+                                })()}
+                            </div>
+                            <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
+                            <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
+                                {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LV.${player.level}`}
+                            </span>
                         </div>
-                        <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
-                        <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
-                            {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LV.${player.level}`}
-                        </span>
-                    </div>
 
-                    {/* Active Multiplier indicator */}
-                    <div className="relative shrink-0 flex items-center justify-center" style={{ width: 42, height: 42 }}>
-                        <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
-                        <span style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-3px' }}>
-                            {(() => {
-                                const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                                if (boostActive && showXpTimer) {
-                                    const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
-                                    const h = Math.floor(rem / 3600000);
-                                    const m = Math.floor((rem % 3600000) / 60000);
-                                    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                                }
-                                return `x${player.xpMultiplier}`;
-                            })()}
-                        </span>
-                    </div>
+                        {/* Active Multiplier indicator */}
+                        <div className="relative shrink-0 flex items-center justify-center" onClick={() => setShowXpPopup(v => !v)} style={{ width: 42, height: 42, cursor: 'pointer' }}>
+                            <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                            <span style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-3px' }}>
+                                {(() => {
+                                    const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
+                                    if (boostActive && showXpTimer) {
+                                        const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
+                                        const h = Math.floor(rem / 3600000);
+                                        const m = Math.floor((rem % 3600000) / 60000);
+                                        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                                    }
+                                    return `x${player.xpMultiplier}`;
+                                })()}
+                            </span>
+                        </div>
+
+                        {/* XP details popup */}
+                        {showXpPopup && (() => {
+                            const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
+                            const vipMult = player.isVip ? 1 + (player.vipLevel || 1) * 0.1 : 1;
+                            const totalMult = (player.xpMultiplier || 1) * vipMult;
+                            const rem = boostActive ? Math.max(0, (player.xpBoostEndTime || 0) - Date.now()) : 0;
+                            const remH = Math.floor(rem / 3600000);
+                            const remM = Math.floor((rem % 3600000) / 60000);
+                            const xpPct = Math.min(100, Math.round((player.xp / player.xpToNextLevel) * 100));
+                            return (
+                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 200, background: 'linear-gradient(180deg,#2a0d52,#1a0838)', border: '1px solid #38106e', borderRadius: 14, boxShadow: 'inset 0 2px 3px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.7)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
+                                    onClick={e => e.stopPropagation()}>
+                                    {/* XP bar */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span style={{ color: '#a78bfa', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em' }}>XP Progress</span>
+                                            <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>{player.xp.toLocaleString()} / {player.xpToNextLevel.toLocaleString()}</span>
+                                        </div>
+                                        <div style={{ height: 6, borderRadius: 6, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', width: `${xpPct}%`, borderRadius: 6, background: boostActive ? 'linear-gradient(90deg,#ffe066,#e8a800)' : 'linear-gradient(90deg,#7fd0ff,#2b8fe8)', transition: 'width 0.4s ease' }} />
+                                        </div>
+                                        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, textAlign: 'right', marginTop: 2 }}>{xpPct}%</div>
+                                    </div>
+                                    {/* Divider */}
+                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginLeft: 2, marginRight: 2 }} />
+                                    {/* Multipliers */}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                        <span style={{ color: '#a78bfa', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em' }}>Multipliers</span>
+                                        <div className="flex items-center justify-between">
+                                            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>Base</span>
+                                            <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>×1</span>
+                                        </div>
+                                        {boostActive && (
+                                            <div className="flex items-center justify-between">
+                                                <span style={{ color: '#fbbf24', fontSize: 10 }}>XP Boost <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9 }}>({String(remH).padStart(2,'0')}:{String(remM).padStart(2,'0')} left)</span></span>
+                                                <span style={{ color: '#fbbf24', fontSize: 10, fontWeight: 700 }}>×{player.xpMultiplier}</span>
+                                            </div>
+                                        )}
+                                        {player.isVip && (
+                                            <div className="flex items-center justify-between">
+                                                <span style={{ color: '#fcd34d', fontSize: 10 }}>VIP Lv.{player.vipLevel || 1}</span>
+                                                <span style={{ color: '#fcd34d', fontSize: 10, fontWeight: 700 }}>×{vipMult.toFixed(1)}</span>
+                                            </div>
+                                        )}
+                                        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)' }} />
+                                        <div className="flex items-center justify-between">
+                                            <span style={{ color: 'white', fontSize: 11, fontWeight: 900 }}>Total</span>
+                                            <span style={{ color: '#7fd0ff', fontSize: 11, fontWeight: 900 }}>×{totalMult % 1 === 0 ? totalMult : totalMult.toFixed(1)}</span>
+                                        </div>
+                                    </div>
+                                    {/* VIP XP bar */}
+                                    {player.isVip && (
+                                        <>
+                                            <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginLeft: 2, marginRight: 2 }} />
+                                            <div>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span style={{ color: '#fcd34d', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em' }}>VIP XP</span>
+                                                    <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>{(player.vipXp || 0).toLocaleString()} / {(player.vipXpToNext || 500).toLocaleString()}</span>
+                                                </div>
+                                                <div style={{ height: 6, borderRadius: 6, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                                                    <div style={{ height: '100%', width: `${Math.min(100, Math.round(((player.vipXp||0)/(player.vipXpToNext||500))*100))}%`, borderRadius: 6, background: 'linear-gradient(90deg,#fcd34d,#d97706)' }} />
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            );
+                        })()}</div>
 
                     {/* Settings button */}
                     <div
