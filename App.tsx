@@ -3557,7 +3557,7 @@ const App: React.FC = () => {
 
                 {/* RIGHT ZONE — Piggy + Level + XP + Settings */}
                 <div className="flex items-center gap-1 flex-1 justify-end">
-                    <img src="/ui/piggy_red.png" alt="" onClick={handleOpenPiggyBank}
+                    <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
                         style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
                         className="shrink-0 active:scale-90 transition-transform" />
 
