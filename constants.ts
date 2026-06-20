@@ -149,7 +149,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-cyan-500 via-blue-600 to-blue-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #1e3a8a 100%)',
     reelBg: REEL_BGS.UNDERWATER,
-    coverImage: '/slots/deep_covernew.png',
+    coverImage: '/slots/deep_covernew2.jpg',
   },
   {
     id: 'wild-west',
@@ -174,7 +174,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Hold & Win! Land 6+ honor coins to lock them and trigger respins.',
     color: 'from-red-700 via-red-900 to-black',
     bgImage: 'radial-gradient(circle at 50% 0%, #991b1b 0%, #450a0a 100%)',
-    reelBg: REEL_BGS.SAMURAI
+    reelBg: REEL_BGS.SAMURAI,
+    coverImage: '/slots/samurai_covernew.jpg',
   },
   {
     id: 'golden-lucky-pot',
@@ -186,7 +187,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Chinese fortune — land 3 pots to trigger free spins!',
     color: 'from-yellow-500 via-amber-700 to-red-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #7f1d1d 100%)',
-    reelBg: REEL_BGS.GOLDEN_POT
+    reelBg: REEL_BGS.GOLDEN_POT,
+    coverImage: '/slots/golden_covernew.jpg',
   },
   {
     id: 'lucky-leprechaun',
@@ -211,7 +213,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Wild wins in the deep rainforest.',
     color: 'from-green-600 via-emerald-700 to-green-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #059669 0%, #064e3b 100%)',
-    reelBg: REEL_BGS.JUNGLE
+    reelBg: REEL_BGS.JUNGLE,
+    coverImage: '/slots/jungle_covernew.png',
   },
   {
     id: 'mystic-pets',
@@ -236,7 +239,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Loot Hold & Win! Land 6+ treasure coins to lock them and trigger raid respins.',
     color: 'from-sky-600 via-indigo-800 to-slate-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #0f172a 100%)',
-    reelBg: REEL_BGS.MMORPG
+    reelBg: REEL_BGS.MMORPG,
+    coverImage: '/slots/fantasy_covernew.jpg',
   },
 ];
 
