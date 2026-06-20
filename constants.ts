@@ -109,7 +109,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #0f172a 100%)',
     reelBg: REEL_BGS.PIRATE,
     slotBg: '/slots/pirate_bg.jpg',
-    coverImage: '/slots/pirate_covernew.png',
+    coverImage: '/slots/pirate_covernew2.jpg',
   },
   {
     id: 'cosmic-cash',
@@ -198,7 +198,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Spin the Lucky Wheel! 3 scatters open the pot-of-gold wild wheel.',
     color: 'from-green-500 via-emerald-600 to-green-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #16a34a 0%, #052e16 100%)',
-    reelBg: REEL_BGS.LEPRECHAUN
+    reelBg: REEL_BGS.LEPRECHAUN,
+    coverImage: '/slots/lucky_covernew.png',
   },
   {
     id: 'jungle-rumble',
@@ -318,7 +319,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   },
   PETS: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '/pets/green.png', [SymbolType.BELL]: '/pets/blue.png', [SymbolType.BAR]: '/pets/purple.png', [SymbolType.CHERRY]: '/pets/red.png', [SymbolType.SEVEN]: '🐲',
+    [SymbolType.GRAPE]: '/pets/green.png', [SymbolType.BELL]: '/pets/blue.png', [SymbolType.BAR]: '/pets/purple.png', [SymbolType.CHERRY]: '/pets/red.png', [SymbolType.SEVEN]: '/pets/yellow.png',
     [SymbolType.WILD]: '/pets/wild.png', [SymbolType.SCATTER]: '/pets/scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🦴'
   },
   MMORPG: {

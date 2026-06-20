@@ -338,6 +338,11 @@ const App: React.FC = () => {
   const targetGridRef = useRef<SymbolType[][]>([]);
   const fastSpinRef = useRef(fastSpin);
   useEffect(() => { fastSpinRef.current = fastSpin; }, [fastSpin]);
+  useEffect(() => {
+    if (currentView === 'LOBBY') audioService.playLobbyMusic();
+    else if (currentView === 'HIGH_LIMIT') audioService.playHighLimitMusic();
+    else audioService.stopMusic();
+  }, [currentView]);
   useEffect(() => { autoSpinRemainingRef.current = autoSpinRemaining; }, [autoSpinRemaining]);
   useEffect(() => { targetGridRef.current = targetGrid; }, [targetGrid]);
   const [showWinPopup, setShowWinPopup] = useState(false);
@@ -2718,6 +2723,7 @@ const App: React.FC = () => {
             if (s === JP_WIN_TYPES[tier]) jpCells.push({ col: c, row: r });
         }));
         winningCells.push(...jpCells);
+        audioService.playJackpotSound(JP_META[tier].name);
         setJackpotWinTier({ ...JP_META[tier], amount: jpAmounts[tier] });
     }
 
@@ -2731,6 +2737,7 @@ const App: React.FC = () => {
             jackpotWon = true;
             totalPayout += jpAmounts[tier];
             winningCells.push(...jpCells);
+            audioService.playJackpotSound(JP_META[tier].name);
             setJackpotWinTier({ ...JP_META[tier], amount: jpAmounts[tier] });
         }
     });
@@ -2793,7 +2800,7 @@ const App: React.FC = () => {
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
 
        if (winTier) {
-           audioService.playWinBig();
+           audioService.playWinTier(winTier);
            if (jackpotWon) {
                setPendingBigWin(true);
            } else {
@@ -3038,6 +3045,7 @@ const App: React.FC = () => {
               setHwCountingTotal(runningTotal);
               audioService.playWinSmall();
               if (jpTier) {
+                  audioService.playJackpotSound(jpTier);
                   setJackpotWinTier({ name: jpTier, color: JP_COLORS_MAP[jpTier], icon: JP_ICONS_MAP[jpTier], amount: cellValue });
                   hwCountContinuationRef.current = () => setTimeout(() => countNext(idx + 1), 1000);
                   return;
@@ -3051,6 +3059,7 @@ const App: React.FC = () => {
           const grandBonus = currentBet * 100;
           runningTotal += grandBonus;
           setHwCountingTotal(grandBonus);
+          audioService.playJackpotSound('GRAND');
           setJackpotWinTier({ name: 'GRAND', color: '#fbbf24', icon: '🏆', amount: grandBonus });
           hwCountContinuationRef.current = () => setTimeout(beginCounting, 240);
       } else {
@@ -3072,6 +3081,7 @@ const App: React.FC = () => {
           GRAND: { color: '#fde68a', icon: '🏆' },
       };
       const meta = TIER_META[tier] || { color: '#fde68a', icon: '🏆' };
+      audioService.playJackpotSound(tier);
       setJackpotWinTier({ name: tier, color: meta.color, icon: meta.icon, amount });
   };
 
@@ -3086,6 +3096,7 @@ const App: React.FC = () => {
           GRAND: { color: '#fde68a', icon: '🏆' },
       };
       const meta = TIER_META[tier] || { color: '#fde68a', icon: '🏆' };
+      audioService.playJackpotSound(tier);
       setJackpotWinTier({ name: tier, color: meta.color, icon: meta.icon, amount });
   };
 
