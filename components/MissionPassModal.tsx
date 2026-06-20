@@ -19,8 +19,6 @@ interface MissionPassModalProps {
     maxBet?: number;
     onOpenGemShop?: () => void;
     onOpenPremium?: () => void;
-    jackpotRouletteLastTime?: number;
-    onJackpotRouletteClaim?: (amount: number) => void;
 }
 
 export const MissionPassModal: React.FC<MissionPassModalProps> = ({
@@ -40,17 +38,11 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     maxBet = 10000,
     onOpenGemShop,
     onOpenPremium,
-    jackpotRouletteLastTime = 0,
-    onJackpotRouletteClaim,
 }) => {
     const [view, setView] = useState<'MISSIONS' | 'PASS'>('MISSIONS');
     const [activeTab, setActiveTab] = useState<MissionFrequency>('DAILY');
     const [showPremiumInfo, setShowPremiumInfo] = useState(false);
     const rewardsContainerRef = useRef<HTMLDivElement>(null);
-    const [showJackpotRoulette, setShowJackpotRoulette] = useState(false);
-    const [rouletteSpinning, setRouletteSpinning] = useState(false);
-    const [rouletteResult, setRouletteResult] = useState<number | null>(null);
-    const rouletteRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -178,7 +170,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
             <div className="w-full h-full flex flex-col relative overflow-hidden">
 
                 {/* ===== TOPBAR ===== */}
-                <div className="shrink-0 flex items-center gap-1.5 px-3 pt-2 pb-1.5">
+                <div className="shrink-0 flex items-center gap-1.5 px-3 pt-2 pb-1.5 relative">
                     {/* XP progress pill */}
                     <div className="rtrack" style={{ flex: 'none', width: 80 }}>
                         <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18 }}>
@@ -186,6 +178,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </div>
                         <span className="rnum" style={{ fontSize: 8 }}>Lv.{missionState.passLevel} {missionState.passXP}/{missionState.passXpToNext}</span>
                     </div>
+                    {/* Single switcher — shortcut to the other page */}
+                    <button onClick={() => setView(view === 'MISSIONS' ? 'PASS' : 'MISSIONS')} className="pill-green relative shrink-0">
+                        <div className="pill-face" style={{ padding: '3px 10px', fontSize: '9px' }}>{view === 'MISSIONS' ? 'Mission Pass' : 'Daily Missions'}</div>
+                        {view === 'MISSIONS' && rewardsToClaimCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-white flex items-center justify-center leading-none" style={{ fontSize: 7, fontWeight: 900 }}>{rewardsToClaimCount}</span>
+                        )}
+                    </button>
                     {missionState.passBoostMultiplier > 1 && missionState.passBoostEndTime > Date.now() && (
                         <span className="font-black text-[9px] px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5"
                             style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24' }}>
@@ -193,19 +192,11 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             {missionState.passBoostMultiplier}x XP
                         </span>
                     )}
+                    {/* Centered title */}
+                    <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">
+                        {view === 'MISSIONS' ? 'Daily Missions' : 'Mission Pass'}
+                    </span>
                     <div className="flex-1" />
-                    {/* Tab switcher */}
-                    <div className="flex gap-1 shrink-0">
-                        <button onClick={() => setView('MISSIONS')} className="pill-green">
-                            <div className="pill-face" style={{ padding: '3px 10px', fontSize: '9px', ...(view !== 'MISSIONS' && { background: 'linear-gradient(180deg,#555,#333,#222)' }) }}>Missions</div>
-                        </button>
-                        <button onClick={() => setView('PASS')} className="pill-green relative">
-                            <div className="pill-face" style={{ padding: '3px 10px', fontSize: '9px', ...(view !== 'PASS' && { background: 'linear-gradient(180deg,#555,#333,#222)' }) }}>Pass</div>
-                            {rewardsToClaimCount > 0 && (
-                                <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-white flex items-center justify-center leading-none" style={{ fontSize: 7, fontWeight: 900 }}>{rewardsToClaimCount}</span>
-                            )}
-                        </button>
-                    </div>
                     {/* Gems pill */}
                     <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
                         <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
@@ -301,53 +292,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 </div>
                             </div>
                         ))}
-
-                        {/* Golden Treasury Jackpot card */}
-                        {(() => {
-                            const THREE_HOURS = 3 * 60 * 60 * 1000;
-                            const lastTime = jackpotRouletteLastTime ?? 0;
-                            const now = Date.now();
-                            const isAvailable = (now - lastTime) >= THREE_HOURS;
-                            const remaining = Math.max(0, THREE_HOURS - (now - lastTime));
-                            const remH = Math.floor(remaining / 3600000);
-                            const remM = Math.floor((remaining % 3600000) / 60000);
-                            const baseAmount = (maxBet ?? 10000) * 7;
-                            return (
-                                <div className="flex-1 flex flex-col gap-2 rounded-xl p-3 relative overflow-hidden shadow-lg"
-                                    style={{
-                                        background: 'linear-gradient(160deg,#a16207 0%,#78350f 50%,#3d1a00 100%)',
-                                        boxShadow: 'inset 0 1px 0 rgba(255,220,80,0.5), 0 4px 12px rgba(0,0,0,0.6)',
-                                        minWidth: 0,
-                                    }}>
-                                    {/* Gold shimmer overlay */}
-                                    <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg,rgba(255,220,100,0.12) 0%,transparent 50%,rgba(255,180,50,0.08) 100%)', borderRadius: 12 }} />
-                                    {/* Label */}
-                                    <div className="relative z-10 flex items-center gap-1">
-                                        <div className="w-2 h-2 rounded-full" style={{ background: '#fbbf24' }} />
-                                        <span className="font-black text-yellow-300 text-[10px] tracking-widest">Treasury</span>
-                                    </div>
-                                    {/* Icon + Title */}
-                                    <div className="relative z-10 flex flex-col items-center flex-1 justify-center">
-                                        <i className="ti ti-crown" style={{ fontSize: '2rem', color: '#fde68a', filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.8))' }} />
-                                        <span className="font-tanker text-yellow-300 tracking-widest mt-1" style={{ fontSize: '1rem', textShadow: '0 0 12px rgba(251,191,36,0.6)' }}>Jackpot</span>
-                                        <span className="font-mono font-black text-white/70 text-[9px] mt-0.5">{(baseAmount).toLocaleString('en-US')}</span>
-                                        <span className="text-yellow-400/60 text-[8px] font-black">base × multiplier</span>
-                                    </div>
-                                    {/* Timer or play button */}
-                                    <div className="relative z-10">
-                                        {isAvailable ? (
-                                            <button onClick={() => setShowJackpotRoulette(true)} className="pill-green w-full">
-                                                <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px' }}>Play</div>
-                                            </button>
-                                        ) : (
-                                            <button disabled className="pill-green w-full opacity-50">
-                                                <div className="pill-face" style={{ padding: '5px 12px', fontSize: '8px', background: 'linear-gradient(180deg,#2a2a2a,#1a1a1a)' }}>{remH}h {remM}m</div>
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })()}
 
                         {currentMissions.length === 0 && (
                             <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 text-center p-4">
@@ -533,128 +477,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </div>
                     </div>
                 )}
-                {/* ===== JACKPOT ROULETTE ===== */}
-                {showJackpotRoulette && (() => {
-                    const segments = [
-                        { mult: 2,  weight: 40, color: '#4ade80', dark: '#14532d' },
-                        { mult: 4,  weight: 30, color: '#60a5fa', dark: '#1e3a8a' },
-                        { mult: 6,  weight: 15, color: '#c084fc', dark: '#581c87' },
-                        { mult: 8,  weight: 10, color: '#fbbf24', dark: '#78350f' },
-                        { mult: 10, weight: 5,  color: '#f87171', dark: '#7f1d1d' },
-                    ];
-                    const totalWeight = segments.reduce((s, x) => s + x.weight, 0);
-                    // Build conic gradient
-                    let cumulative = 0;
-                    const conicParts = segments.map(seg => {
-                        const startPct = (cumulative / totalWeight) * 100;
-                        cumulative += seg.weight;
-                        const endPct = (cumulative / totalWeight) * 100;
-                        return `${seg.color} ${startPct.toFixed(1)}% ${endPct.toFixed(1)}%`;
-                    }).join(', ');
-
-                    const handleSpin = () => {
-                        if (rouletteSpinning || rouletteResult !== null) return;
-                        // Pick a segment based on weights
-                        const rand = Math.random() * totalWeight;
-                        let acc = 0;
-                        let chosen = segments[0];
-                        let chosenIdx = 0;
-                        for (let i = 0; i < segments.length; i++) {
-                            acc += segments[i].weight;
-                            if (rand < acc) { chosen = segments[i]; chosenIdx = i; break; }
-                        }
-                        // Calculate the center angle of the chosen segment in degrees
-                        let cumW = 0;
-                        for (let i = 0; i < chosenIdx; i++) cumW += segments[i].weight;
-                        const segCenter = ((cumW + segments[chosenIdx].weight / 2) / totalWeight) * 360;
-                        // We want the pointer (top, 270°) to point to segCenter
-                        // The wheel's 0° starts at top (CSS conic starts at 12 o'clock)
-                        // Spin: many full rotations + offset so pointer aligns with segment center
-                        const spins = 5 + Math.floor(Math.random() * 3);
-                        const finalAngle = spins * 360 + (360 - segCenter);
-                        if (rouletteRef.current) {
-                            rouletteRef.current.style.transition = 'none';
-                            rouletteRef.current.style.transform = 'rotate(0deg)';
-                            requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                    if (rouletteRef.current) {
-                                        rouletteRef.current.style.transition = `transform ${3 + Math.random()}s cubic-bezier(0.17,0.67,0.12,1.0)`;
-                                        rouletteRef.current.style.transform = `rotate(${finalAngle}deg)`;
-                                    }
-                                });
-                            });
-                        }
-                        setRouletteSpinning(true);
-                        setTimeout(() => {
-                            setRouletteSpinning(false);
-                            setRouletteResult(chosen.mult);
-                        }, 4500);
-                    };
-
-                    const baseAmount = (maxBet ?? 10000) * 7;
-
-                    return (
-                        <div className="absolute inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm"
-                            onClick={() => { if (!rouletteSpinning) { setShowJackpotRoulette(false); setRouletteResult(null); } }}>
-                            <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col items-center gap-3 p-4 relative"
-                                style={{ width: 300, background: 'linear-gradient(180deg,#a16207 0%,#78350f 40%,#3d1a00 100%)', boxShadow: 'inset 0 1px 0 rgba(255,220,80,0.4), 0 8px 32px rgba(0,0,0,0.8)' }}
-                                onClick={e => e.stopPropagation()}>
-                                {/* Header */}
-                                <div className="flex items-center justify-between w-full">
-                                    <span className="font-tanker text-yellow-300 tracking-widest" style={{ fontSize: '1.1rem' }}>Golden Treasury</span>
-                                    {!rouletteSpinning && <div className="round-btn cursor-pointer" onClick={() => { setShowJackpotRoulette(false); setRouletteResult(null); }}><i className="ti ti-x" /></div>}
-                                </div>
-                                {/* Wheel */}
-                                <div className="relative flex items-center justify-center" style={{ width: 200, height: 200 }}>
-                                    {/* Pointer */}
-                                    <div className="absolute top-0 left-1/2 z-10" style={{ transform: 'translateX(-50%) translateY(-4px)', width: 0, height: 0, borderLeft: '10px solid transparent', borderRight: '10px solid transparent', borderTop: '20px solid #fde68a', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.8))' }} />
-                                    {/* Spinning disc */}
-                                    <div ref={rouletteRef} style={{ width: 190, height: 190, borderRadius: '50%', background: `conic-gradient(${conicParts})`, boxShadow: '0 0 20px rgba(251,191,36,0.4), inset 0 0 0 3px rgba(255,220,80,0.3)' }}>
-                                        {/* Segment labels */}
-                                        {segments.map((seg, i) => {
-                                            let cumW2 = 0;
-                                            for (let j = 0; j < i; j++) cumW2 += segments[j].weight;
-                                            const midPct = (cumW2 + seg.weight / 2) / totalWeight;
-                                            const angle = midPct * 360;
-                                            const rad = (angle - 90) * Math.PI / 180;
-                                            const r = 68;
-                                            const x = 95 + r * Math.cos(rad);
-                                            const y = 95 + r * Math.sin(rad);
-                                            return (
-                                                <div key={i} className="absolute font-tanker font-black" style={{ left: x, top: y, transform: `translate(-50%,-50%) rotate(${angle}deg)`, fontSize: 13, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)', pointerEvents: 'none' }}>
-                                                    {seg.mult}×
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                    {/* Center cap */}
-                                    <div className="absolute" style={{ width: 30, height: 30, borderRadius: '50%', background: 'radial-gradient(circle,#fde68a,#d97706)', boxShadow: '0 0 8px rgba(251,191,36,0.6)', zIndex: 5 }} />
-                                </div>
-                                {/* Base amount */}
-                                <div className="text-center">
-                                    <div className="text-yellow-400/60 text-[9px] font-black uppercase tracking-widest">Base Amount</div>
-                                    <div className="font-mono font-black text-white" style={{ fontSize: '1.1rem' }}>{baseAmount.toLocaleString('en-US')}</div>
-                                </div>
-                                {/* Result or Spin button */}
-                                {rouletteResult !== null ? (
-                                    <div className="flex flex-col items-center gap-2 w-full">
-                                        <div className="text-center">
-                                            <div className="font-tanker text-yellow-300" style={{ fontSize: '1.5rem' }}>{rouletteResult}× Win!</div>
-                                            <div className="font-mono font-black text-white" style={{ fontSize: '1.2rem' }}>+{(baseAmount * rouletteResult).toLocaleString('en-US')}</div>
-                                        </div>
-                                        <button onClick={() => { onJackpotRouletteClaim?.(baseAmount * rouletteResult!); setShowJackpotRoulette(false); setRouletteResult(null); }} className="pill-green w-full">
-                                            <div className="pill-face" style={{ padding: '6px 12px', fontSize: '11px' }}>Claim</div>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <button onClick={handleSpin} disabled={rouletteSpinning} className={`pill-green w-full${rouletteSpinning ? ' opacity-60' : ''}`}>
-                                        <div className="pill-face" style={{ padding: '6px 12px', fontSize: '11px' }}>{rouletteSpinning ? 'Spinning...' : 'Spin!'}</div>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })()}
             </div>
         </div>
         </div>

@@ -149,7 +149,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-cyan-500 via-blue-600 to-blue-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #1e3a8a 100%)',
     reelBg: REEL_BGS.UNDERWATER,
-    coverImage: '/slots/deep_covernew.png',
+    coverImage: '/slots/deep_covernew.jpg',
   },
   {
     id: 'wild-west',

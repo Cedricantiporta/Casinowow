@@ -400,7 +400,8 @@ const ReelCell: React.FC<{
                             {(() => {
                                 const isEgypt = theme === 'EGYPT';
                                 const isDragonOrPiggy = theme === 'DRAGON' || theme === 'PIGGY';
-                                const wantStroke = (isEgypt || isDragonOrPiggy) && inFreeSpins;
+                                // Egypt: black stroke on both free + normal spins. Dragon/Piggy: free spins only.
+                                const wantStroke = isEgypt || (isDragonOrPiggy && inFreeSpins);
                                 const bigText = isEgypt;
                                 return (
                                     <span

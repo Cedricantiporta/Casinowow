@@ -4695,11 +4695,17 @@ const App: React.FC = () => {
           maxBet={MAX_BET_BY_LEVEL(player.level) * (isHighLimit ? 10 : 1)}
           onOpenGemShop={() => { setActiveModal('NONE'); setTimeout(() => openShop('DIAMONDS'), 50); }}
           onOpenPremium={() => { setActiveModal('NONE'); setTimeout(() => setShowPremiumModal(true), 50); }}
-          jackpotRouletteLastTime={player.jackpotRouletteLastTime ?? 0}
-          onJackpotRouletteClaim={(amount) => setPlayer(p => ({ ...p, balance: p.balance + amount, jackpotRouletteLastTime: Date.now() }))}
       />}
 
-      <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus} />
+      <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus}
+          jackpotLastTime={player.jackpotRouletteLastTime ?? 0}
+          jackpotBaseAmount={MAX_BET_BY_LEVEL(player.level) * 7}
+          onJackpotClaim={(amount) => {
+              setPlayer(p => ({ ...p, balance: p.balance + amount, jackpotRouletteLastTime: Date.now() }));
+              triggerCoinAnim(amount);
+              audioService.playWinBig();
+              setCelebrationMsg(`+${formatCommaNumber(amount)} Coins`);
+          }} />
       
       <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} />
       
