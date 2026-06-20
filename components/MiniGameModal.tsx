@@ -558,7 +558,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     {/* Rock grid */}
                     <div className="flex-1 flex items-center justify-center p-3">
                         <div className="relative p-2">
-                            <div className="grid" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))`, gap: 2 }}>
+                            <div className="grid" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))`, gap: 1 }}>
                                 {grid.map((cell, i) => {
                                     const revealed = cell.revealed;
                                     const isExploding = explodingCells.has(i);
@@ -630,7 +630,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 <div className="flex-1 flex overflow-hidden">
                     {/* S-shape board — scrollable, snaps back to player on roll */}
                     <div className="flex-1 flex overflow-hidden p-2">
-                        <div ref={boardContainerRef} className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-1.5 py-2">
+                        <div ref={boardContainerRef} className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-0 py-1">
                             {(() => {
                                 // 8 main tiles per row + 1 bridge = 9 per segment
                                 // Layout: 12-column CSS grid, tiles in cols 3-10, bridge at col 10 (even) or col 3 (odd)
@@ -646,23 +646,15 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isHere = step.index === visualPosition;
                                     const isFiveX = step.reward?.type === 'STAR';
                                     const isBuffed = starBuff && !isFiveX && (step.reward?.type === 'COINS' || step.reward?.type === 'DIAMONDS') && step.index > visualPosition;
-                                    const bg = step.isFinish ? 'linear-gradient(180deg,#f59e0b,#b45309)'
-                                        : step.isStart ? 'linear-gradient(180deg,#22c55e,#15803d)'
-                                        : step.reward?.type === 'BACK' ? 'linear-gradient(180deg,#dc2626,#991b1b)'
-                                        : isFiveX ? 'linear-gradient(180deg,#fbbf24,#d97706)'
-                                        : step.reward?.type === 'COINS' ? 'linear-gradient(180deg,#ca8a04,#713f12)'
-                                        : step.reward?.type === 'PICKS' ? 'linear-gradient(180deg,#7c3aed,#3b0764)'
-                                        : step.reward?.type === 'DIAMONDS' ? 'linear-gradient(180deg,#0891b2,#0c4a6e)'
-                                        : step.reward?.type === 'PACKS' ? 'linear-gradient(180deg,#d97706,#451a03)'
-                                        : 'linear-gradient(180deg,#312e81,#1e1b4b)';
-                                    const iconSrc: string | null = step.isFinish ? '/coinmine_stageclearicon.png'
+                                    const iconSrc: string = step.isStart ? '/dice_starticon.png'
+                                        : step.isFinish ? '/coinmine_stageclearicon.png'
                                         : step.reward?.type === 'BACK' ? '/dice_backicon.png'
                                         : isFiveX ? '/dice_staricon.png'
                                         : step.reward?.type === 'COINS' ? '/coinmine_coinicon.png'
                                         : step.reward?.type === 'PICKS' ? '/coinmine_pickaxe.png'
                                         : step.reward?.type === 'DIAMONDS' ? '/coinmine_gemicon.png'
                                         : step.reward?.type === 'PACKS' ? '/coinmine_gemicon.png'
-                                        : null;
+                                        : '/dice_blankicon.png';
                                     return (
                                         <div key={step.index}
                                             data-active={isHere ? 'true' : undefined}
@@ -674,39 +666,34 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 boxShadow: 'none',
                                                 border: 'none',
                                                 transition: 'transform 0.2s',
-                                                transform: isHere ? 'scale(1.15)' : 'scale(1)',
+                                                transform: isHere ? 'scale(1.18)' : 'scale(1)',
                                             }}>
                                             {isHere && (
-                                                <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-                                                    <img src="/coinmine_pickaxe.png" alt="" style={{ width: 'clamp(14px,2.5vw,20px)', height: 'clamp(14px,2.5vw,20px)', objectFit: 'contain' }} />
+                                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+                                                    <img src="/coinmine_pickaxe.png" alt="" style={{ width: 'clamp(18px,3vw,26px)', height: 'clamp(18px,3vw,26px)', objectFit: 'contain' }} />
                                                 </div>
                                             )}
-                                            {step.isStart ? (
-                                                <span style={{ fontSize: 'clamp(8px,1.5vw,11px)', fontWeight: 900, color: 'white', lineHeight: 1, textAlign: 'center' }}>START</span>
-                                            ) : iconSrc ? (
-                                                <div className="relative flex items-center justify-center w-full h-full">
-                                                    <img src={iconSrc} alt="" style={{ width: '90%', height: '90%', objectFit: 'contain', display: 'block' }} />
-                                                    {step.reward?.label && step.reward.type !== 'BACK' && step.reward.type !== 'STAR' && !step.isFinish && (
-                                                        <span className="absolute bottom-0 left-0 right-0 text-center font-black text-white leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" style={{ fontSize: 'clamp(7px,1.4vw,10px)' }}>{step.reward.label}</span>
-                                                    )}
-                                                </div>
-                                            ) : null}
+                                            <div className="relative flex items-end justify-center w-full h-full">
+                                                <img src={iconSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+                                                {step.reward?.label && step.reward.type !== 'BACK' && step.reward.type !== 'STAR' && !step.isFinish && !step.isStart && (
+                                                    <span className="absolute bottom-[8%] left-0 right-0 text-center font-black text-white leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,1)]" style={{ fontSize: 'clamp(8px,1.6vw,12px)' }}>{step.reward.label}</span>
+                                                )}
+                                            </div>
                                         </div>
                                     );
                                 };
                                 return [...segments].reverse().map(({ si, main, bridge }) => {
                                     const isEven = si % 2 === 0;
-                                    // Single 12-column CSS grid per segment: cols 1-2 blank, cols 3-10 for 8 main tiles, cols 11-12 blank
-                                    // Bridge (9th tile) sits at col 10 (even) or col 3 (odd) in row 1 — directly above the corner main tile in row 2
+                                    // 8-column grid: cols 1-8 for main tiles, bridge at col 8 (even) or col 1 (odd)
                                     return (
-                                        <div key={si} style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 1 }}>
+                                        <div key={si} style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 0 }}>
                                             {bridge && (
-                                                <div style={{ gridColumn: isEven ? 10 : 3, gridRow: 1, minWidth: 0 }}>
+                                                <div style={{ gridColumn: isEven ? 8 : 1, gridRow: 1, minWidth: 0 }}>
                                                     {renderCell(bridge)}
                                                 </div>
                                             )}
                                             {main.map((step, idx) => (
-                                                <div key={step.index} style={{ gridColumn: isEven ? 3 + idx : 10 - idx, gridRow: bridge ? 2 : 1, minWidth: 0 }}>
+                                                <div key={step.index} style={{ gridColumn: isEven ? 1 + idx : 8 - idx, gridRow: bridge ? 2 : 1, minWidth: 0 }}>
                                                     {renderCell(step)}
                                                 </div>
                                             ))}
