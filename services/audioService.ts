@@ -2,7 +2,8 @@
 class AudioService {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
-  private muted: boolean = false;
+  private sfxMuted: boolean = false;
+  private musicMuted: boolean = false;
   private volume: number = 0.675;
   private bufferCache: Record<string, AudioBuffer> = {};
   private musicEl: HTMLAudioElement | null = null;
@@ -18,14 +19,13 @@ class AudioService {
         this.masterGain.gain.value = this.volume;
       }
     } catch (e) {}
-    // Preload all SFX into buffers so they fire instantly on first play
     this.preloadSfx();
   }
 
   private preloadSfx() {
     const paths = [
       '/sfx/bigwin_soundeffect.wav', '/sfx/greatwin_soundeffect.wav',
-      '/sfx/epicwin_soundeffect.wav', '/sfx/megawin_soundeffect.wav',
+      '/sfx/megawin_soundeffect.wav',
       '/sfx/ultimatewin_soundeffect.wav', '/sfx/grandjackpot_soundeffect.wav',
       '/sfx/majorjackpot_soundeffect.wav', '/sfx/megajackpot_soundeffect.wav',
       '/sfx/minijackpot_soundeffect.wav', '/sfx/minorjackpot_soundeffect.wav',
@@ -44,16 +44,32 @@ class AudioService {
       .catch(() => null);
   }
 
+  get isSfxMuted() { return this.sfxMuted; }
+  get isMusicMuted() { return this.musicMuted; }
+
   toggleMute() {
-    this.muted = !this.muted;
-    if (this.masterGain) this.masterGain.gain.value = this.muted ? 0 : this.volume;
-    if (this.musicEl) this.musicEl.muted = this.muted;
-    return this.muted;
+    this.sfxMuted = !this.sfxMuted;
+    this.musicMuted = this.sfxMuted;
+    if (this.masterGain) this.masterGain.gain.value = this.sfxMuted ? 0 : this.volume;
+    if (this.musicEl) this.musicEl.muted = this.musicMuted;
+    return this.sfxMuted;
+  }
+
+  toggleSfxMute() {
+    this.sfxMuted = !this.sfxMuted;
+    if (this.masterGain) this.masterGain.gain.value = this.sfxMuted ? 0 : this.volume;
+    return this.sfxMuted;
+  }
+
+  toggleMusicMute() {
+    this.musicMuted = !this.musicMuted;
+    if (this.musicEl) this.musicEl.muted = this.musicMuted;
+    return this.musicMuted;
   }
 
   // ── File-based SFX via Web Audio API buffer ─────────────────────────────────
   private playSfxFile(path: string, vol = 1, opts?: { rate?: number; stopAfter?: number }) {
-    if (this.muted || !this.ctx || !this.masterGain) return;
+    if (this.sfxMuted || !this.ctx || !this.masterGain) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
     this.loadBuffer(path).then(buf => {
       if (!buf || !this.ctx || !this.masterGain) return;
@@ -74,11 +90,11 @@ class AudioService {
     if (path === this.currentMusicSrc && this.musicEl) return;
     this.currentMusicSrc = path;
     if (this.musicEl) { this.musicEl.pause(); this.musicEl = null; }
-    if (this.muted) return;
+    if (this.musicMuted) return;
     const el = new Audio(path);
     el.loop = true;
     el.volume = vol;
-    el.muted = this.muted;
+    el.muted = this.musicMuted;
     el.play().catch(() => {});
     this.musicEl = el;
   }
@@ -110,7 +126,7 @@ class AudioService {
     const map: Record<string, string> = {
       'BIG WIN':     '/sfx/bigwin_soundeffect.wav',
       'GREAT WIN':   '/sfx/greatwin_soundeffect.wav',
-      'EPIC WIN':    '/sfx/epicwin_soundeffect.wav',
+      'EPIC WIN':    '/sfx/megawin_soundeffect.wav',
       'MEGA WIN':    '/sfx/megawin_soundeffect.wav',
       'ULTIMATE WIN':'/sfx/ultimatewin_soundeffect.wav',
     };

@@ -337,6 +337,7 @@ const App: React.FC = () => {
   const autoSpinRemainingRef = useRef(-1);
   const [autoMaxBet, setAutoMaxBet] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isMusicMuted, setIsMusicMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showEventsPopup, setShowEventsPopup] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -768,7 +769,7 @@ const App: React.FC = () => {
   const showToast = (toast: NonNullable<ActiveToast>) => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
       setActiveToast(toast);
-      toastTimerRef.current = setTimeout(() => setActiveToast(null), 1000);
+      toastTimerRef.current = setTimeout(() => setActiveToast(null), 1500);
   };
 
   const openModal = (modal: 'NONE' | 'SHOP' | 'COLLECTION' | 'MINIGAME' | 'MISSIONS' | 'TIME_BONUS' | 'LOGIN_BONUS' | 'PIGGY' | 'FEATURE_UNLOCK') => {
@@ -1444,7 +1445,7 @@ const App: React.FC = () => {
           setTimeout(() => {
               if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
               setActiveToast({ type: 'CARD', rarity, cardName: pick.name });
-              toastTimerRef.current = setTimeout(() => setActiveToast(null), 2000);
+              toastTimerRef.current = setTimeout(() => setActiveToast(null), 1500);
           }, 0);
           return prev.map((deck, di) => {
               if (di !== pick.deckIdx) return deck;
@@ -3837,7 +3838,7 @@ const App: React.FC = () => {
                             const remM = Math.floor((rem % 3600000) / 60000);
                             const xpPct = Math.min(100, Math.round((player.xp / player.xpToNextLevel) * 100));
                             return (
-                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 200, background: 'linear-gradient(180deg,#2a0d52,#1a0838)', border: '1px solid #38106e', borderRadius: 14, boxShadow: 'inset 0 2px 3px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.7)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
+                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 200, background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderRadius: 14, boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 24px rgba(0,0,0,0.8)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
                                     onClick={e => e.stopPropagation()}>
                                     {/* XP bar */}
                                     <div>
@@ -4373,7 +4374,7 @@ const App: React.FC = () => {
           <div className="fixed bottom-0 w-full z-50 flex flex-col select-none"
             style={isHighLimit ?
               { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderTop:'none' } :
-              { background:'#0a001a', borderTop:'none' }}>
+              { background:'linear-gradient(180deg,#3a006a,#0a001a)', borderTop:'none' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
                 style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
@@ -4795,31 +4796,29 @@ const App: React.FC = () => {
       )}
 
       {activeToast && (
-          <div className="absolute inset-0 z-[201] flex items-center justify-center bg-black/10 backdrop-blur-md pointer-events-none animate-pop-in">
-              <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', padding: '24px 36px' }}>
-                  <div className="flex flex-col items-center gap-3 text-center">
-                      {activeToast.type === 'LEVEL_UP'
-                          ? <img src="/ui/star.png" alt="" style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
-                          : <span style={{ fontSize: '3rem', lineHeight: 1 }}>🃏</span>}
-                      <div>
-                          {activeToast.type === 'LEVEL_UP' ? (
-                              <>
-                                  <div className="font-tanker text-white tracking-widest" style={{ fontSize: '1.4rem' }}>Level {activeToast.level}!</div>
-                                  {activeToast.reward > 0 && <div className="text-purple-300 text-sm font-bold mt-1">+{formatCommaNumber(activeToast.reward)} coins</div>}
-                                  {activeToast.maxBetIncreased && <div className="text-yellow-300 text-sm font-bold">Max Bet ↑ {formatCommaNumber(activeToast.newMaxBet)}</div>}
-                              </>
-                          ) : activeToast.type === 'CARD' ? (
-                              <>
-                                  <div className="font-tanker tracking-widest" style={{ fontSize: '1.4rem', color: activeToast.rarity === 'RARE' ? '#fbbf24' : '#e2e8f0' }}>{activeToast.rarity === 'RARE' ? 'Rare' : 'Common'} Card!</div>
-                                  <div className="text-purple-300 text-sm font-bold mt-1">{activeToast.cardName}</div>
-                              </>
-                          ) : (
-                              <>
-                                  <div className="font-tanker text-white tracking-widest" style={{ fontSize: '1.4rem' }}>+1 Card Pack!</div>
-                                  <div className="text-purple-300 text-sm font-bold mt-1">Added to your stash</div>
-                              </>
-                          )}
-                      </div>
+          <div className="absolute top-[38px] right-2 z-[201] animate-pop-in pointer-events-none">
+              <div className="rounded-2xl overflow-hidden flex items-center gap-2.5" style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 6px 20px rgba(0,0,0,0.8)', padding: '9px 13px' }}>
+                  {activeToast.type === 'LEVEL_UP'
+                      ? <img src="/ui/star.png" alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain', flexShrink: 0 }} />
+                      : <span style={{ fontSize: '1.4rem', lineHeight: 1, flexShrink: 0 }}>🃏</span>}
+                  <div>
+                      {activeToast.type === 'LEVEL_UP' ? (
+                          <>
+                              <div className="font-tanker text-white" style={{ fontSize: '0.95rem', lineHeight: 1.1 }}>Level {activeToast.level}!</div>
+                              {activeToast.reward > 0 && <div className="text-purple-200 font-bold" style={{ fontSize: 9, marginTop: 2 }}>+{formatCommaNumber(activeToast.reward)} coins</div>}
+                              {activeToast.maxBetIncreased && <div className="text-yellow-300 font-bold" style={{ fontSize: 9 }}>Max Bet ↑ {formatCommaNumber(activeToast.newMaxBet)}</div>}
+                          </>
+                      ) : activeToast.type === 'CARD' ? (
+                          <>
+                              <div className="font-tanker" style={{ fontSize: '0.95rem', lineHeight: 1.1, color: activeToast.rarity === 'RARE' ? '#fbbf24' : '#e2e8f0' }}>{activeToast.rarity === 'RARE' ? 'Rare' : 'Common'} Card!</div>
+                              <div className="text-purple-200 font-bold" style={{ fontSize: 9, marginTop: 2 }}>{activeToast.cardName}</div>
+                          </>
+                      ) : (
+                          <>
+                              <div className="font-tanker text-white" style={{ fontSize: '0.95rem', lineHeight: 1.1 }}>+1 Card Pack!</div>
+                              <div className="text-purple-200 font-bold" style={{ fontSize: 9, marginTop: 2 }}>Added to your stash</div>
+                          </>
+                      )}
                   </div>
               </div>
           </div>
@@ -4934,7 +4933,9 @@ const App: React.FC = () => {
           isOpen={showSettings}
           onClose={() => setShowSettings(false)}
           isMuted={isMuted}
-          onToggleMute={() => setIsMuted(audioService.toggleMute())}
+          onToggleMute={() => setIsMuted(audioService.toggleSfxMute())}
+          isMusicMuted={isMusicMuted}
+          onToggleMusic={() => setIsMusicMuted(audioService.toggleMusicMute())}
           redeemedCodes={redeemedCodes}
           onRedeem={(code) => {
               if (code === 'reset') {

@@ -5,6 +5,8 @@ interface SettingsModalProps {
     onClose: () => void;
     isMuted: boolean;
     onToggleMute: () => void;
+    isMusicMuted: boolean;
+    onToggleMusic: () => void;
     onRedeem: (code: string) => void;
     redeemedCodes: string[];
     onReset: () => void;
@@ -101,7 +103,7 @@ const Toggle: React.FC<{ on: boolean; onToggle: () => void; label: string; sub?:
 );
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
-    isOpen, onClose, isMuted, onToggleMute, onRedeem, redeemedCodes, onReset
+    isOpen, onClose, isMuted, onToggleMute, isMusicMuted, onToggleMusic, onRedeem, redeemedCodes, onReset
 }) => {
     const [redeemInput, setRedeemInput] = useState('');
     const [pendingCode, setPendingCode] = useState<string | null>(null);
@@ -160,7 +162,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Audio</div>
-                        <Toggle on={!isMuted} onToggle={onToggleMute} icon="🔊" label="Sound Effects" sub="Music and SFX" />
+                        <div className="flex flex-col gap-1.5">
+                            <Toggle on={!isMuted} onToggle={onToggleMute} icon="🔊" label="Sound Effects" sub="Button clicks, wins, SFX" />
+                            <Toggle on={!isMusicMuted} onToggle={onToggleMusic} icon="🎵" label="Music" sub="Background music" />
+                        </div>
                     </div>
 
                     <div>
