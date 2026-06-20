@@ -81,6 +81,23 @@ export const Lobby: React.FC<LobbyProps> = ({
         GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1) * (isHighLimit ? 10 : 1)))
     );
     const scrollRef = useRef<HTMLDivElement>(null);
+    const hlScrollRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const makeWheelHandler = (el: HTMLDivElement) => {
+            const handler = (e: WheelEvent) => {
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                    e.preventDefault();
+                    el.scrollLeft += e.deltaY;
+                }
+            };
+            el.addEventListener('wheel', handler, { passive: false });
+            return () => el.removeEventListener('wheel', handler);
+        };
+        const cleanHL = hlScrollRef.current ? makeWheelHandler(hlScrollRef.current) : null;
+        const cleanNormal = scrollRef.current ? makeWheelHandler(scrollRef.current) : null;
+        return () => { cleanHL?.(); cleanNormal?.(); };
+    }, []);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -168,8 +185,8 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
-                        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar w-full h-full" style={{ paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 0.75rem)', paddingRight: '0.75rem' }}>
-                            {GAMES_CONFIG.slice(0, 6).map((game, idx) => {
+                        <div ref={hlScrollRef} className="flex items-center gap-3 overflow-x-auto no-scrollbar w-full h-full" style={{ paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 0.75rem)', paddingRight: '0.75rem' }}>
+                            {GAMES_CONFIG.slice(0, 8).map((game, idx) => {
                                 const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300' :
                                     game.theme === 'EGYPT' ? 'text-amber-400' :
                                     game.theme === 'DRAGON' ? 'text-red-400' :
@@ -189,16 +206,16 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 const hrJackpot = jackpotTotals[idx] ?? 0;
                                 return (
                                     <div key={game.id} className="flex flex-col items-center gap-0 shrink-0">
-                                        {/* Jackpot counter */}
-                                        <div style={{ width: '100px', background: 'rgba(10,4,0,0.95)', border: '2px solid #f59e0b', borderRadius: '7px', padding: '3px 5px', textAlign: 'center', boxShadow: '0 0 10px rgba(245,158,11,0.5)', marginBottom: '-8px' }}>
-                                            <div style={{ fontSize: '6px', fontWeight: 900, color: '#f59e0b', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>Jackpot</div>
-                                            <div style={{ fontSize: '11px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 8px rgba(245,158,11,0.9)' }}>{formatK(hrJackpot)}</div>
+                                        {/* Jackpot counter — sits above card with clear gap */}
+                                        <div style={{ width: '130px', background: 'rgba(10,4,0,0.95)', border: '2px solid #f59e0b', borderRadius: '7px', padding: '3px 5px', textAlign: 'center', boxShadow: '0 0 10px rgba(245,158,11,0.5)', marginBottom: '6px', position: 'relative', zIndex: 2 }}>
+                                            <div style={{ fontSize: '7px', fontWeight: 900, color: '#f59e0b', letterSpacing: '1px', lineHeight: 1, marginBottom: '2px' }}>Jackpot</div>
+                                            <div style={{ fontSize: '12px', fontWeight: 900, color: '#fff8c0', lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textShadow: '0 0 8px rgba(245,158,11,0.9)' }}>{formatK(hrJackpot)}</div>
                                         </div>
                                         {/* Card-shaped slot */}
                                         <button
                                             onClick={() => onSelectGame(game, true)}
                                             className={`relative overflow-hidden ${isLocked ? 'cursor-not-allowed' : 'active:scale-95 transition-transform'}`}
-                                            style={{ width: '108px', height: '162px', borderRadius: '6px', boxShadow: 'inset 0 3px 0 rgba(255,240,100,0.9), inset 0 -3px 0 rgba(120,60,0,0.8), inset 3px 0 0 rgba(255,200,50,0.3), inset -3px 0 0 rgba(120,60,0,0.4), 0 8px 24px rgba(0,0,0,0.7)', filter: isLocked ? 'brightness(0.55)' : undefined }}
+                                            style={{ width: '130px', height: '195px', borderRadius: '6px', boxShadow: 'inset 0 3px 0 rgba(255,240,100,0.9), inset 0 -3px 0 rgba(120,60,0,0.8), inset 3px 0 0 rgba(255,200,50,0.3), inset -3px 0 0 rgba(120,60,0,0.4), 0 8px 24px rgba(0,0,0,0.7)', filter: isLocked ? 'brightness(0.55)' : undefined }}
                                         >
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`}></div>
                                             {game.coverImage && (

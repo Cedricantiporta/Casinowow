@@ -234,7 +234,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'url(/album_background.jpg) center/cover no-repeat' }}>
             {/* Duplicate Exchange — centered modal */}
             {showExchangePanel && (
-                <div className="absolute inset-0 z-[175] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-pop-in"
+                <div className="absolute inset-0 z-[175] flex items-center justify-center bg-black/10 backdrop-blur-md animate-pop-in"
                     onClick={() => { setShowExchangePanel(false); setSelectedDuplicateIds(new Set()); }}>
                     <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
                         style={{ width: 680, maxWidth: '94%', height: 440, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
@@ -543,7 +543,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
             {/* Draw Cards Popup — centered floating card */}
             {showDrawPopup && (
-                <div className="absolute inset-0 z-[165] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-pop-in"
+                <div className="absolute inset-0 z-[165] flex items-center justify-center bg-black/10 backdrop-blur-md animate-pop-in"
                     onClick={() => setShowDrawPopup(false)}>
                     <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
                         style={{ width: 680, maxWidth: '94%', height: 320, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
@@ -624,7 +624,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
             {/* Card Pack Buy Popup */}
             {showPackBuyPopup && (
-                <div className="absolute inset-0 z-[175] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                <div className="absolute inset-0 z-[175] flex items-center justify-center bg-black/10 backdrop-blur-md"
                     onClick={() => setShowPackBuyPopup(null)}>
                     <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
                         style={{ width: 680, maxWidth: '94%', height: 250, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}

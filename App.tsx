@@ -163,7 +163,7 @@ const LOBBY_PRELOAD_ASSETS = [
     '/coinmine_stageclearicon.png',
     // dice & album backgrounds + dice tile icons
     '/dice_background.jpg', '/album_background.jpg',
-    '/dice_backicon.png', '/dice_staricon.png', '/dice_blankicon.png', '/dice_starticon.png',
+    '/dice_backicon.png', '/dice_staricon.png', '/dice_blankicon.png', '/dice_starticon.png', '/dice_avatar.png',
     // piggy symbols
     '/piggy/pig.png', '/piggy/bank.png', '/piggy/bell.png', '/piggy/cash.png', '/piggy/coin.png', '/piggy/hammer.png',
     // egypt symbols
@@ -4674,7 +4674,7 @@ const App: React.FC = () => {
 
       {/* Dragon Trigger Popup */}
       {showDragonTriggerPopup && (
-          <div className="absolute inset-0 z-[250] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
+          <div className="absolute inset-0 z-[250] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
                   style={{ background: 'linear-gradient(160deg,#1a0000,#380000)', border: '2px solid #fbbf24', boxShadow: '0 0 40px rgba(251,191,36,0.5)', maxWidth: 300, textAlign: 'center' }}>
                   <img src="/ui/dragon_vase.png" alt="" style={{ width: '3.5rem', height: '3.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(255,140,0,0.7))' }} />
@@ -4701,7 +4701,7 @@ const App: React.FC = () => {
       )}
 
       {showEgyptHoldWinPopup && (
-          <div className="absolute inset-0 z-[250] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.82)' }}>
+          <div className="absolute inset-0 z-[250] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
                   style={{ background: 'linear-gradient(160deg,#2a1400,#4a2600)', border: '2px solid #f59e0b', boxShadow: '0 0 40px rgba(245,158,11,0.6)', maxWidth: 300, textAlign: 'center' }}>
                   <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>🏺</span>
@@ -4714,7 +4714,7 @@ const App: React.FC = () => {
       )}
 
       {showArcticTriggerPopup && (
-          <div className="absolute inset-0 z-[250] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.85)' }}>
+          <div className="absolute inset-0 z-[250] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
                   style={{ background: 'linear-gradient(160deg,#001428,#00080f)', border: '2px solid #22d3ee', boxShadow: '0 0 40px rgba(34,211,238,0.5)', maxWidth: 300, textAlign: 'center' }}>
                   <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>❄️</span>
@@ -4746,7 +4746,7 @@ const App: React.FC = () => {
 
       {/* Gems claimed popup */}
       {gemsClaimedPopup !== null && (
-          <div className="absolute inset-0 z-[300] flex items-center justify-center animate-pop-in" onClick={() => setGemsClaimedPopup(null)}>
+          <div className="absolute inset-0 z-[300] flex items-center justify-center animate-pop-in backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }} onClick={() => setGemsClaimedPopup(null)}>
               <div className="flex flex-col items-center gap-3 rounded-2xl px-10 py-7 select-none"
                   style={{ background: 'linear-gradient(160deg,#1e3a5f,#0d1f3c)', boxShadow: '0 0 60px rgba(96,165,250,0.4)' }}>
                   <div className="text-5xl">💎</div>
@@ -4840,7 +4840,7 @@ const App: React.FC = () => {
       )}
 
       {showPurchaseModal && (
-          <div className="absolute inset-0 z-[300] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.75)' }}
+          <div className="absolute inset-0 z-[300] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}
               onClick={() => setShowPurchaseModal(null)}>
               <div className="animate-pop-in rounded-2xl px-6 py-5 flex flex-col items-center gap-3 text-center"
                   style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.2)', boxShadow: '0 16px 48px rgba(0,0,0,0.8)', maxWidth: 280 }}
@@ -4872,7 +4872,7 @@ const App: React.FC = () => {
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
       
       {showWelcomeGift && (
-        <div className="absolute inset-0 z-[500] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.65)' }}>
+        <div className="absolute inset-0 z-[500] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
           <div className="animate-pop-in flex flex-col items-center gap-3 rounded-3xl p-6 mx-4 text-center"
             style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxWidth: 300, width: '100%' }}>
             <div className="font-black text-white text-lg tracking-wide">Welcome Gift</div>
@@ -4924,7 +4924,7 @@ const App: React.FC = () => {
 
       {/* Events Popup */}
       {showEventsPopup && (
-          <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none" onClick={() => setShowEventsPopup(false)}>
+          <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none" onClick={() => setShowEventsPopup(false)}>
               <div className="w-full max-w-sm rounded-3xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}
                   style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
                   {/* Header */}
@@ -5074,7 +5074,7 @@ const App: React.FC = () => {
 
       {/* Purchase Unavailable Popup */}
       {showNopay && (
-          <div className="absolute inset-0 z-[400] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-pop-in" onClick={() => setShowNopay(false)}>
+          <div className="absolute inset-0 z-[400] flex items-center justify-center bg-black/10 backdrop-blur-md animate-pop-in" onClick={() => setShowNopay(false)}>
               <div className="rounded-2xl overflow-hidden shadow-2xl max-w-[280px] w-full mx-4 flex flex-col items-center text-center px-6 py-6 gap-3" onClick={e => e.stopPropagation()}
                   style={{ background: 'linear-gradient(160deg,#1a0535,#2d0060)' }}>
                   <i className="ti ti-shopping-cart-off" style={{ fontSize: '2.5rem', color: '#a855f7' }} />
@@ -5090,7 +5090,7 @@ const App: React.FC = () => {
 
       {/* Purchase Confirmation Popup */}
       {purchaseConfirm && (
-          <div className="absolute inset-0 z-[300] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-pop-in" onClick={() => setPurchaseConfirm(null)}>
+          <div className="absolute inset-0 z-[300] flex items-center justify-center bg-black/10 backdrop-blur-md animate-pop-in" onClick={() => setPurchaseConfirm(null)}>
               <div className="rounded-2xl overflow-hidden shadow-2xl max-w-[300px] w-full mx-4 flex flex-col" onClick={e => e.stopPropagation()}
                   style={{ background: purchaseConfirm === 'VIP' ? 'linear-gradient(160deg,#2a1500,#5c3000)' : 'linear-gradient(160deg,#0e0030,#2d0060)' }}>
                   <div className="px-5 pt-5 pb-3 flex flex-col items-center text-center">

@@ -628,6 +628,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {/* ── FORTUNE TRAIL (Dice Quest) ── */}
             {activeGame === 'DICE' && (
                 <div className="flex-1 flex overflow-hidden">
+                    <style>{`@keyframes diceBounce{0%,100%{transform:translateY(-7%)}50%{transform:translateY(0)}}`}</style>
                     {/* S-shape board — scrollable, snaps back to player on roll */}
                     <div className="flex-1 flex overflow-hidden p-2">
                         <div ref={boardContainerRef} className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-0 py-1">
@@ -669,14 +670,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 transform: isHere ? 'scale(1.18)' : 'scale(1)',
                                             }}>
                                             {isHere && (
-                                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-                                                    <img src="/coinmine_pickaxe.png" alt="" style={{ width: 'clamp(18px,3vw,26px)', height: 'clamp(18px,3vw,26px)', objectFit: 'contain' }} />
+                                                <div className="absolute left-1/2 -translate-x-1/2 z-10" style={{ top: '-90%', animation: 'diceBounce 1s ease-in-out infinite' }}>
+                                                    <img src="/dice_avatar.png" alt="" style={{ width: 'clamp(36px,6vw,52px)', height: 'clamp(36px,6vw,52px)', objectFit: 'contain' }} />
                                                 </div>
                                             )}
-                                            <div className="relative flex items-end justify-center w-full h-full">
+                                            <div className="relative flex items-center justify-center w-full h-full">
                                                 <img src={iconSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
                                                 {step.reward?.label && step.reward.type !== 'BACK' && step.reward.type !== 'STAR' && !step.isFinish && !step.isStart && (
-                                                    <span className="absolute bottom-[8%] left-0 right-0 text-center font-black text-white leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,1)]" style={{ fontSize: 'clamp(8px,1.6vw,12px)' }}>{step.reward.label}</span>
+                                                    <span className="absolute inset-0 flex items-center justify-center text-center font-black text-white leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,1)]" style={{ fontSize: 'clamp(11px,2.2vw,16px)' }}>{step.reward.label}</span>
                                                 )}
                                             </div>
                                         </div>
@@ -781,7 +782,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
             {/* Buy Picks/Dice Popup */}
             {showBuyPopup && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-md"
                     onClick={() => setShowBuyPopup(null)}>
                     <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ width: 300, background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
