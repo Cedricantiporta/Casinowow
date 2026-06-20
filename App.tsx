@@ -2484,12 +2484,12 @@ const App: React.FC = () => {
                  if (freeSpinsRemaining > 0) {
                      // Retrigger mid-feature: just add spins, keep the current wild config.
                      setShowFreeSpinsPopup(true);
-                     audioService.playWinBig();
+                     audioService.playFreeSpinTrigger();
                  } else {
                      setStatus(GameStatus.SCATTER_SHOWCASE);
                      audioService.playScatterTrigger();
                      setSpinsWithoutBonus(0);
-                     setTimeout(() => { setShowCandyRoulette(true); }, 1500);
+                     setTimeout(() => { audioService.playBonusTrigger(); setShowCandyRoulette(true); }, 1500);
                  }
                  return next;
              }
@@ -2507,7 +2507,7 @@ const App: React.FC = () => {
 
              if (freeSpinsRemaining > 0) {
                  setShowFreeSpinsPopup(true);
-                 audioService.playWinBig();
+                 audioService.playFreeSpinTrigger();
              } else {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
@@ -2530,7 +2530,7 @@ const App: React.FC = () => {
                 setTotalFreeSpins(prev => prev + spinsWon);
                 if (freeSpinsRemaining > 0) {
                     setShowFreeSpinsPopup(true);
-                    audioService.playWinBig();
+                    audioService.playFreeSpinTrigger();
                 } else {
                     setStatus(GameStatus.SCATTER_SHOWCASE);
                     setSpinsWithoutBonus(0);

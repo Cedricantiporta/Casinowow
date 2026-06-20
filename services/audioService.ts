@@ -25,7 +25,7 @@ class AudioService {
   private preloadSfx() {
     const paths = [
       '/sfx/bigwin_soundeffect.wav', '/sfx/greatwin_soundeffect.wav',
-      '/sfx/megawin_soundeffect.wav',
+      '/sfx/epicwin_soundeffect.wav', '/sfx/megawin_soundeffect.wav',
       '/sfx/ultimatewin_soundeffect.wav', '/sfx/grandjackpot_soundeffect.wav',
       '/sfx/majorjackpot_soundeffect.wav', '/sfx/megajackpot_soundeffect.wav',
       '/sfx/minijackpot_soundeffect.wav', '/sfx/minorjackpot_soundeffect.wav',
@@ -78,7 +78,7 @@ class AudioService {
       src.buffer = buf;
       if (opts?.rate) src.playbackRate.value = opts.rate;
       const g = this.ctx.createGain();
-      g.gain.value = Math.min(1, vol * this.volume);
+      g.gain.value = Math.min(1, vol);
       src.connect(g);
       g.connect(this.masterGain);
       src.start();
@@ -132,8 +132,11 @@ class AudioService {
       'ULTIMATE WIN':'/sfx/ultimatewin_soundeffect.wav',
     };
     const src = map[tier];
-    if (src) this.playSfxFile(src, 0.9);
-    else this.playWinBig();
+    if (!src) { this.playWinBig(); return; }
+    this.loadBuffer(src).then(buf => {
+      if (buf) this.playSfxFile(src, 0.9);
+      else this.playWinBig();
+    });
   }
 
   // ── Jackpot SFX ─────────────────────────────────────────────────────────────
@@ -146,7 +149,11 @@ class AudioService {
       'GRAND': '/sfx/grandjackpot_soundeffect.wav',
     };
     const src = map[tier];
-    if (src) this.playSfxFile(src, 1.0);
+    if (!src) return;
+    this.loadBuffer(src).then(buf => {
+      if (buf) this.playSfxFile(src, 1.0);
+      else this.playWinBig();
+    });
   }
 
   // ── Scatter / free spins ────────────────────────────────────────────────────
@@ -157,61 +164,59 @@ class AudioService {
   playFreeSpinTrigger() {
     if (!this.ctx || !this.masterGain) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
-    // Use WAV if available, else procedural fanfare
-    if (this.bufferCache['/sfx/freespin_soundeffect.wav']) {
-      this.playSfxFile('/sfx/freespin_soundeffect.wav', 0.9);
-      return;
-    }
-    const t = this.ctx.currentTime;
-    [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568, 2093].forEach((f, i) => {
-      const osc = this.ctx!.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(f, t + i * 0.08);
-      const g = this.ctx!.createGain();
-      g.gain.setValueAtTime(0.5, t + i * 0.08);
-      g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 0.35);
-      osc.connect(g); g.connect(this.masterGain!);
-      osc.start(t + i * 0.08); osc.stop(t + i * 0.08 + 0.4);
-    });
-    [2637, 3136].forEach((f, i) => {
-      const osc = this.ctx!.createOscillator();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(f, t + 0.6 + i * 0.07);
-      const g = this.ctx!.createGain();
-      g.gain.setValueAtTime(0.35, t + 0.6 + i * 0.07);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.6 + i * 0.07 + 0.3);
-      osc.connect(g); g.connect(this.masterGain!);
-      osc.start(t + 0.6 + i * 0.07); osc.stop(t + 0.6 + i * 0.07 + 0.35);
+    this.loadBuffer('/sfx/freespin_soundeffect.wav').then(buf => {
+      if (buf) { this.playSfxFile('/sfx/freespin_soundeffect.wav', 0.9); return; }
+      if (!this.ctx || !this.masterGain) return;
+      const t = this.ctx.currentTime;
+      [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568, 2093].forEach((f, i) => {
+        const osc = this.ctx!.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, t + i * 0.08);
+        const g = this.ctx!.createGain();
+        g.gain.setValueAtTime(0.5, t + i * 0.08);
+        g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 0.35);
+        osc.connect(g); g.connect(this.masterGain!);
+        osc.start(t + i * 0.08); osc.stop(t + i * 0.08 + 0.4);
+      });
+      [2637, 3136].forEach((f, i) => {
+        const osc = this.ctx!.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(f, t + 0.6 + i * 0.07);
+        const g = this.ctx!.createGain();
+        g.gain.setValueAtTime(0.35, t + 0.6 + i * 0.07);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.6 + i * 0.07 + 0.3);
+        osc.connect(g); g.connect(this.masterGain!);
+        osc.start(t + 0.6 + i * 0.07); osc.stop(t + 0.6 + i * 0.07 + 0.35);
+      });
     });
   }
 
   playBonusTrigger() {
     if (!this.ctx || !this.masterGain) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
-    // Use WAV if available, else procedural boom+chord
-    if (this.bufferCache['/sfx/bonus_soundeffect.wav']) {
-      this.playSfxFile('/sfx/bonus_soundeffect.wav', 0.9);
-      return;
-    }
-    const t = this.ctx.currentTime;
-    const boom = this.ctx.createOscillator();
-    boom.type = 'sine';
-    boom.frequency.setValueAtTime(90, t);
-    boom.frequency.exponentialRampToValueAtTime(35, t + 0.45);
-    const bg = this.ctx.createGain();
-    bg.gain.setValueAtTime(0.75, t);
-    bg.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
-    boom.connect(bg); bg.connect(this.masterGain);
-    boom.start(t); boom.stop(t + 0.5);
-    [220, 277.18, 329.63, 440, 554.37, 659.25].forEach((f, i) => {
-      const osc = this.ctx!.createOscillator();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(f, t + 0.15 + i * 0.09);
-      const g = this.ctx!.createGain();
-      g.gain.setValueAtTime(0.4, t + 0.15 + i * 0.09);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.15 + i * 0.09 + 0.3);
-      osc.connect(g); g.connect(this.masterGain!);
-      osc.start(t + 0.15 + i * 0.09); osc.stop(t + 0.15 + i * 0.09 + 0.35);
+    this.loadBuffer('/sfx/bonus_soundeffect.wav').then(buf => {
+      if (buf) { this.playSfxFile('/sfx/bonus_soundeffect.wav', 0.9); return; }
+      if (!this.ctx || !this.masterGain) return;
+      const t = this.ctx.currentTime;
+      const boom = this.ctx.createOscillator();
+      boom.type = 'sine';
+      boom.frequency.setValueAtTime(90, t);
+      boom.frequency.exponentialRampToValueAtTime(35, t + 0.45);
+      const bg = this.ctx.createGain();
+      bg.gain.setValueAtTime(0.75, t);
+      bg.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+      boom.connect(bg); bg.connect(this.masterGain);
+      boom.start(t); boom.stop(t + 0.5);
+      [220, 277.18, 329.63, 440, 554.37, 659.25].forEach((f, i) => {
+        const osc = this.ctx!.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(f, t + 0.15 + i * 0.09);
+        const g = this.ctx!.createGain();
+        g.gain.setValueAtTime(0.4, t + 0.15 + i * 0.09);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.15 + i * 0.09 + 0.3);
+        osc.connect(g); g.connect(this.masterGain!);
+        osc.start(t + 0.15 + i * 0.09); osc.stop(t + 0.15 + i * 0.09 + 0.35);
+      });
     });
   }
 
