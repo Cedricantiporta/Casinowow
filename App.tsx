@@ -116,17 +116,35 @@ const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive
 
 const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     const pct = Math.min((progress / 250) * 100, 100);
-    const full = progress >= 500;
+    const full = pct >= 100;
     return (
-        <div className="flex items-center justify-center py-1.5">
-            <div className="relative overflow-hidden" style={{ width: '50%', height: 5, borderRadius: 3, background: 'rgba(255,255,255,0.07)' }}>
+        <div className="flex items-center justify-center py-1.5 px-3">
+            <div className="relative flex items-center" style={{ width: '70%', height: 20, borderRadius: 10, background: 'rgba(0,0,0,0.35)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>
+                {/* Fill */}
                 <div className="absolute inset-y-0 left-0 transition-all duration-500" style={{
                     width: `${pct}%`,
-                    background: 'linear-gradient(90deg,#0369a1,#0ea5e9,#7dd3fc)',
-                    boxShadow: full ? '0 0 8px rgba(34,211,238,0.9)' : '0 0 4px rgba(34,211,238,0.4)',
-                    borderRadius: 3,
+                    borderRadius: 10,
+                    background: full
+                        ? 'linear-gradient(90deg,#a855f7,#d946ef,#a855f7)'
+                        : 'linear-gradient(90deg,#7c3aed,#a855f7)',
+                    boxShadow: full ? '0 0 8px rgba(192,132,252,0.9)' : '0 0 4px rgba(168,85,247,0.5)',
                 }} />
-                <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.15) 0%,transparent 55%)', borderRadius: 3 }} />
+                {/* Shine */}
+                <div className="absolute inset-0 pointer-events-none" style={{ borderRadius: 10, background: 'linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 55%)' }} />
+                {/* Label */}
+                <span className="relative z-10 pl-2 font-black text-white/70 leading-none" style={{ fontSize: 9, letterSpacing: '0.06em' }}>Pick Bonus</span>
+                {/* Inner pill at end */}
+                <div className="absolute right-1 flex items-center justify-center rounded-full font-black" style={{
+                    height: 14, paddingLeft: 6, paddingRight: 6,
+                    background: full ? 'linear-gradient(90deg,#d946ef,#a855f7)' : 'rgba(255,255,255,0.12)',
+                    boxShadow: full ? '0 0 6px rgba(217,70,239,0.8)' : 'none',
+                    fontSize: 8,
+                    color: full ? '#fff' : 'rgba(255,255,255,0.4)',
+                    letterSpacing: '0.05em',
+                    transition: 'all 0.5s',
+                }}>
+                    {full ? '✓ Ready' : `${Math.round(pct)}%`}
+                </div>
             </div>
         </div>
     );

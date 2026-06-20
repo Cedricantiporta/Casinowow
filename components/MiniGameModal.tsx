@@ -30,8 +30,15 @@ interface MiniGameModalProps {
     onOpenGemShop?: () => void;
 }
 
-// Grid grows every 5 stages: 3 (1-5), 4 (6-10), 5 (11-15), 6 (16+)
-const getGridSize = (stage: number) => Math.min(Math.floor((stage - 1) / 5) + 3, 6);
+// Grid dimensions cycle every 25 stages: 3×3, 3×4, 4×4, 5×4, 6×4, then resets
+const getGridDimensions = (stage: number): { cols: number; rows: number } => {
+    const cycle = (stage - 1) % 25;
+    if (cycle < 5)  return { cols: 3, rows: 3 };
+    if (cycle < 10) return { cols: 3, rows: 4 };
+    if (cycle < 15) return { cols: 4, rows: 4 };
+    if (cycle < 20) return { cols: 5, rows: 4 };
+    return { cols: 6, rows: 4 };
+};
 // Picks needed to open before the hidden gem appears: 2 at stage 1, +1 every 3 stages, max 12
 const getGemRequirement = (stage: number) => Math.min(Math.floor((stage - 1) / 3) + 2, 12);
 const GEM_COST = 100;
@@ -83,8 +90,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 }) => {
     const diceCredits = diceCreditsRaw ?? 0;
     const wildCredits = wildCreditsRaw ?? 0;
-    const currentGridSize = getGridSize(wildStage);
-    const totalCells = currentGridSize * currentGridSize;
+    const { cols: gridCols, rows: gridRows } = getGridDimensions(wildStage);
+    const totalCells = gridCols * gridRows;
 
     const [grid, setGrid] = useState<WildGridCell[]>([]);
     const [stageWinning, setStageWinning] = useState(false);
@@ -104,6 +111,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [autoRoll, setAutoRoll] = useState(false);
     const [doubleRoll, setDoubleRoll] = useState(false);
     const [diceValue2, setDiceValue2] = useState(1);
+    const [showDiceTip, setShowDiceTip] = useState(false);
     const rollButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isLongPressRef = useRef(false);
     const mouseIsDownRef = useRef(false);
@@ -113,13 +121,11 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const initGrid = useCallback(() => {
         const cells: WildGridCell[] = Array(totalCells).fill(null).map(() => ({ revealed: false, content: 'BLANK' as const }));
-        // Rock distribution: 30% blank, 40% coins (50% reduced), 20% picks, 10% diamonds
-        // No gem is placed at init — it appears dynamically after enough rocks are opened
         const baseCoin = Math.floor((maxBet || 10000) * 0.125 * Math.pow(1.10, wildStage - 1));
         for (let i = 0; i < totalCells; i++) {
             const r = Math.random();
             if (r < 0.50) {
-                // stays BLANK (50% of tiles)
+                // stays BLANK
             } else if (r < 0.83) {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) } };
             } else if (r < 0.915) {
@@ -130,11 +136,25 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'DIAMONDS', value: 5, label: '+5 Gems' } };
             }
         }
-        // Add bomb cells on blank tiles (~10% chance each)
+        // Add bomb cells on blank tiles
         for (let i = 0; i < totalCells; i++) {
             if (cells[i].content === 'BLANK' && Math.random() < 0.10) {
                 cells[i] = { revealed: false, content: 'BOMB' };
             }
+        }
+        // Add block tiles: early relative stages (1-2 in cycle) get BLOCK_2X, later get BLOCK_3X
+        const relStage = ((wildStage - 1) % 5) + 1;
+        const isEarlyStage = relStage <= 2;
+        const blockType = isEarlyStage ? 'BLOCK_2X' : 'BLOCK_3X';
+        const maxBlocks = isEarlyStage ? 2 : 3;
+        const blockCount = Math.floor(Math.random() * maxBlocks) + 1;
+        const candidates = cells.map((c, i) => (c.content === 'BLANK' || c.content === 'REWARD') ? i : -1).filter(i => i !== -1);
+        for (let b = 0; b < Math.min(blockCount, candidates.length); b++) {
+            const randIdx = Math.floor(Math.random() * candidates.length);
+            const ci = candidates.splice(randIdx, 1)[0];
+            const base: 'BLANK' | 'REWARD' = cells[ci].content === 'REWARD' ? 'REWARD' : 'BLANK';
+            const baseReward = cells[ci].reward;
+            cells[ci] = { revealed: false, content: blockType as 'BLOCK_2X' | 'BLOCK_3X', blockBase: base, reward: baseReward };
         }
         setGrid(cells);
         if (onGridUpdate) onGridUpdate(cells);
@@ -217,6 +237,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     }, [isOpen, activeGame]);
 
     useEffect(() => {
+        if (isOpen && activeGame === 'DICE') {
+            setShowDiceTip(true);
+            const t = setTimeout(() => setShowDiceTip(false), 3500);
+            return () => clearTimeout(t);
+        }
+    }, [isOpen, activeGame]);
+
+    useEffect(() => {
         if (!isOpen) return;
         if (activeGame === 'WILD') {
             if (!(savedGrid && savedGrid.length > 0)) initGrid();
@@ -294,20 +322,39 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
         const cell = grid[index];
         const newGrid = [...grid.map(c => ({ ...c }))];
+
+        // Handle multi-hit blocks
+        if (cell.content === 'BLOCK_3X') {
+            audioService.playStoneBreak();
+            newGrid[index] = { ...cell, content: 'BLOCK_2X' };
+            setGrid(newGrid);
+            if (onGridUpdate) onGridUpdate(newGrid);
+            onPickTile(false, null);
+            return;
+        }
+        if (cell.content === 'BLOCK_2X') {
+            audioService.playStoneBreak();
+            newGrid[index] = { revealed: false, content: cell.blockBase ?? 'BLANK', reward: cell.reward };
+            setGrid(newGrid);
+            if (onGridUpdate) onGridUpdate(newGrid);
+            onPickTile(false, null);
+            return;
+        }
+
         newGrid[index] = { ...cell, revealed: true };
 
         if (cell.content === 'BOMB') {
             // Collect up to 3 random unrevealed neighbors with explode animation
-            const row = Math.floor(index / currentGridSize);
-            const col = index % currentGridSize;
+            const row = Math.floor(index / gridCols);
+            const col = index % gridCols;
             const neighbors: number[] = [];
             for (let dr = -1; dr <= 1; dr++) {
                 for (let dc = -1; dc <= 1; dc++) {
                     if (dr === 0 && dc === 0) continue;
                     const nr = row + dr;
                     const nc = col + dc;
-                    if (nr >= 0 && nr < currentGridSize && nc >= 0 && nc < currentGridSize) {
-                        const ni = nr * currentGridSize + nc;
+                    if (nr >= 0 && nr < gridRows && nc >= 0 && nc < gridCols) {
+                        const ni = nr * gridCols + nc;
                         if (!newGrid[ni].revealed) neighbors.push(ni);
                     }
                 }
@@ -457,6 +504,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     };
 
     const handleRollDice = () => {
+        setShowDiceTip(false);
         const cost = doubleRoll ? 2 : 1;
         if (diceCredits < cost || isRolling || isMoving) { if (diceCredits < cost) setAutoRoll(false); return; }
         setIsRolling(true);
@@ -558,17 +606,22 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     {/* Rock grid */}
                     <div className="flex-1 flex items-center justify-center p-3">
                         <div className="relative p-2">
-                            <div className="grid" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))`, gap: 0 }}>
+                            <div className="grid" style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))`, gap: 0 }}>
                                 {grid.map((cell, i) => {
                                     const revealed = cell.revealed;
                                     const isExploding = explodingCells.has(i);
                                     const isGem = revealed && cell.content === 'GEM';
                                     const isReward = revealed && cell.content === 'REWARD';
                                     const isBomb = cell.content === 'BOMB';
-                                    const tileSize = currentGridSize >= 6 ? 78 : currentGridSize >= 5 ? 88 : currentGridSize >= 4 ? 100 : 114;
+                                    const isBlock2x = cell.content === 'BLOCK_2X';
+                                    const isBlock3x = cell.content === 'BLOCK_3X';
+                                    const maxDim = Math.max(gridCols, gridRows);
+                                    const tileSize = maxDim >= 6 ? 78 : maxDim >= 5 ? 88 : maxDim >= 4 ? 100 : 114;
                                     const gemPrize = Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage));
 
                                     const iconSrc = isExploding ? null
+                                        : isBlock3x ? '/coinmine_3xblock.png'
+                                        : isBlock2x ? '/coinmine_2xblock.png'
                                         : !revealed ? '/coinmine_rockicon.png'
                                         : isGem ? '/coinmine_stageclearicon.png'
                                         : isBomb ? '/coinmine_bombicon.png'
@@ -710,7 +763,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     </div>
 
                     {/* Right sidebar — stage, dice counter, buy, dice face, roll button */}
-                    <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
+                    <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3 relative"
                         style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 90, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
                         <div className="flex flex-col items-center leading-none">
                             <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
@@ -726,6 +779,17 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
                         </button>
                         <div className="flex-1" />
+                        {/* Dice tooltip bubble */}
+                        {showDiceTip && (
+                            <div className="absolute pointer-events-none"
+                                style={{ right: '100%', bottom: 80, marginRight: 8, zIndex: 20, width: 130 }}>
+                                <div className="rounded-xl px-3 py-2 font-black text-white text-center leading-tight"
+                                    style={{ fontSize: 10, background: 'rgba(0,0,0,0.88)', boxShadow: '0 2px 12px rgba(0,0,0,0.7)', border: '1.5px solid rgba(255,255,255,0.12)' }}>
+                                    Tap to spin<br />Hold for auto roll
+                                </div>
+                                <div style={{ position: 'absolute', right: -6, bottom: 14, width: 0, height: 0, borderTop: '6px solid transparent', borderBottom: '6px solid transparent', borderLeft: '6px solid rgba(0,0,0,0.88)' }} />
+                            </div>
+                        )}
                         {doubleRoll ? (
                             <div className="flex flex-col items-center gap-1">
                                 <DiceFace value={diceValue2} rolling={isRolling} size={36} />
@@ -749,18 +813,26 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 color: diceCredits > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
                                 cursor: diceCredits <= 0 ? 'not-allowed' : 'pointer',
                             }}>
-                            {autoRoll ? 'STOP' : 'ROLL'}
+                            {autoRoll ? 'Stop' : 'Roll'}
                         </button>
+                        {/* Double Dice toggle */}
                         <button
                             onClick={() => setDoubleRoll(d => !d)}
-                            className="w-full rounded-lg flex items-center justify-center gap-1 transition-all"
+                            className="w-full rounded-lg flex items-center justify-between px-2 transition-all"
                             style={{
                                 height: 28,
-                                background: doubleRoll ? 'rgba(251,191,36,0.25)' : 'rgba(255,255,255,0.07)',
-                                border: doubleRoll ? '1.5px solid #fbbf24' : '1.5px solid rgba(255,255,255,0.15)',
+                                background: doubleRoll ? 'rgba(251,191,36,0.18)' : 'rgba(255,255,255,0.06)',
+                                border: doubleRoll ? '1.5px solid rgba(251,191,36,0.6)' : '1.5px solid rgba(255,255,255,0.12)',
                             }}>
-                            <span style={{ fontSize: '0.85rem', lineHeight: 1 }}>🎲</span>
-                            <span className="font-black text-[9px]" style={{ color: doubleRoll ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>+🎲 2×</span>
+                            <span className="font-black text-[9px]" style={{ color: doubleRoll ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>Double Dice</span>
+                            <div className="flex items-center justify-center rounded" style={{
+                                width: 14, height: 14,
+                                background: doubleRoll ? '#fbbf24' : 'rgba(255,255,255,0.1)',
+                                border: doubleRoll ? '1.5px solid #d97706' : '1.5px solid rgba(255,255,255,0.2)',
+                                flexShrink: 0,
+                            }}>
+                                {doubleRoll && <i className="ti ti-check" style={{ fontSize: 9, color: '#1c1917', fontWeight: 900 }} />}
+                            </div>
                         </button>
                     </div>
                 </div>

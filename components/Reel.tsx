@@ -319,7 +319,7 @@ const ReelCell: React.FC<{
             <div className={`
                 relative h-full w-full max-w-full rounded-none
                 flex items-center justify-center
-                transition-all duration-300 overflow-hidden
+                transition-all duration-300 overflow-visible
                 ${bgClasses}
             `}
             style={
