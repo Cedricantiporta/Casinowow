@@ -1001,7 +1001,7 @@ const App: React.FC = () => {
         const p = 1 - Math.pow(1 - elapsed / duration, 3);
         setGiftDisplayAmount(Math.floor(target * p));
         const speed = 1 + p * 1.5;
-        if (elapsed - lastTick >= Math.max(35, 80 / speed)) {
+        if (elapsed - lastTick >= Math.max(120, 200 / speed)) {
             audioService.playCoinTick(speed);
             lastTick = elapsed;
         }
@@ -4895,7 +4895,7 @@ const App: React.FC = () => {
                     const p2 = 1 - Math.pow(1 - elapsed / duration, 3);
                     setAnimBalance(Math.floor(target * p2));
                     const spd = 1 + p2 * 1.5;
-                    if (elapsed - lastTick2 >= Math.max(35, 80 / spd)) {
+                    if (elapsed - lastTick2 >= Math.max(120, 200 / spd)) {
                         audioService.playCoinTick(spd);
                         lastTick2 = elapsed;
                     }
