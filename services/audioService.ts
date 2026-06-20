@@ -123,9 +123,9 @@ class AudioService {
     this.playSfxFile('/sfx/scatter_soundeffect.wav', 0.9);
   }
 
-  // ── Coin count-up tick — 40% shorter, 50% quieter ──────────────────────────
+  // ── Coin count-up tick — 40% shorter, very quiet ───────────────────────────
   playCoinTick(_speed: number = 1) {
-    this.playSfxFile('/sfx/cointcount_soundeffect.wav', 0.25, { rate: 1.667 });
+    this.playSfxFile('/sfx/cointcount_soundeffect.wav', 0.125, { rate: 1.667 });
   }
 
   // ── Synth helpers (kept for fallbacks + misc UI) ────────────────────────────

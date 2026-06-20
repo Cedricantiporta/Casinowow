@@ -428,10 +428,10 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     const collected = deck.cards.filter(c => c.count > 0).length;
                                     const isComplete = collected === 7;
                                     return (
-                                        <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 104 }}>
+                                        <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 118 }}>
                                             <button onClick={() => setSelectedDeckId(deck.gameId)}
                                                 className="w-full flex flex-col items-center p-2 rounded-xl active:scale-95 transition-transform"
-                                                style={{ height: 120, background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                                                style={{ height: 138, background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                                                 <div className="w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0"
                                                     style={{ background: getDeckThemeBg(deck.theme) }}>
                                                     {(() => {

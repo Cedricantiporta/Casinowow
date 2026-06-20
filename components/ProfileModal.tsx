@@ -175,14 +175,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                             {recentGames.map((game, i) => {
                                 const icon = THEME_ICONS[game.theme] || '🎰';
                                 return (
-                                    <button key={i} className="rounded-xl overflow-hidden flex flex-col cursor-pointer active:scale-95 transition-transform"
-                                        style={{ background: 'rgba(0,0,0,0.25)' }}
+                                    <button key={i} className="rounded-xl overflow-hidden relative cursor-pointer active:scale-95 transition-transform"
+                                        style={{ aspectRatio: '1/1' }}
                                         onClick={() => { onNavigateToGame?.(game); onClose(); }}>
-                                        <div className={`h-11 flex items-center justify-center bg-gradient-to-br ${game.color}`}>
-                                            <span className="text-2xl leading-none drop-shadow-lg">{icon}</span>
-                                        </div>
-                                        <div className="text-white font-black text-[8px] tracking-wide text-center px-0.5 py-1 leading-tight truncate font-nunito">
-                                            {game.name}
+                                        {/* Cover or gradient bg */}
+                                        <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`} />
+                                        {game.coverImage
+                                            ? <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                                            : <div className="absolute inset-0 flex items-center justify-center"><span className="text-2xl leading-none drop-shadow-lg">{icon}</span></div>
+                                        }
+                                        {/* Name overlay */}
+                                        <div className="absolute bottom-0 left-0 right-0 px-0.5 pb-1 pt-3"
+                                            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%)' }}>
+                                            <div className="text-white font-black text-[8px] tracking-wide text-center leading-tight truncate font-nunito"
+                                                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
+                                                {game.name}
+                                            </div>
                                         </div>
                                     </button>
                                 );

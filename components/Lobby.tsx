@@ -107,7 +107,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const visibleDailyMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
     const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel + (missionState.isPremium ? 10 : 0) && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
     const totalMissionNotifs = passRewardsReady;
-    const missionsNotifs = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
+    const missionsNotifs = missionState.activeMissions.filter(m => m.frequency === 'DAILY' && m.completed && !m.claimed).length;
     const questReady = (questState.diceCredits ?? 0) > 0 || (questState.wildCredits ?? 0) > 0;
 
     const getQuestIcon = () => {

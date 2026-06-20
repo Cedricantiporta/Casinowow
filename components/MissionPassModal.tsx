@@ -269,7 +269,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%`, background: mission.isGolden ? 'linear-gradient(180deg,#fbbf24,#d97706)' : 'linear-gradient(180deg,#60a5fa,#2563eb)' }} />
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <span className="text-[10px] font-black leading-none text-white" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
-                                                {`${formatK(mission.current)} / ${formatK(mission.target)}`}
+                                                {`${formatNumber(mission.current)} / ${formatNumber(mission.target)}`}
                                             </span>
                                         </div>
                                     </div>
@@ -283,7 +283,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         </span>
                                     </div>
                                     <div className="text-center">
-                                        <span className="text-yellow-300 font-mono text-[11px] font-black">+{formatK(mission.coinReward)} Coins</span>
+                                        <span className="text-yellow-300 font-mono text-[11px] font-black">+{formatNumber(mission.coinReward)} Coins</span>
                                     </div>
                                 </div>
 
