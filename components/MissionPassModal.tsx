@@ -261,7 +261,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
                                     <div className="flex items-center justify-start relative z-10 -mb-1">
                                         <div className="flex gap-0.5 items-center">
-                                            {Array.from({ length: 3 }).map((_, idx) => {
+                                            {Array.from({ length: 2 }).map((_, idx) => {
                                                 const filled = mission.isGolden ? 1 : (mission.stacks || 0);
                                                 return (
                                                     <div key={idx} className="w-2 h-2 rounded-full" style={{ background: idx < filled ? (mission.isGolden ? '#fbbf24' : '#a855f7') : 'rgba(255,255,255,0.15)' }} />

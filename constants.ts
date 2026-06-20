@@ -721,9 +721,19 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
         { type: MissionType.MAX_BET_SPIN, base: 30, desc: "Spin on max bet" },
     ];
 
-    // 4 per day (first 3 have 3 stacks; 4th is golden with 4× harder req and 5× rewards)
+    // Shuffle templates daily using date-based seed for consistent randomization per day
+    const today = new Date();
+    const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+    const seededRand = (n: number) => { const x = Math.sin(n * 9301 + dateSeed * 49297 + 233) * 12345; return x - Math.floor(x); };
+    const shuffled = [...templates];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(seededRand(i) * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    // 4 per day (first 3 have 2 stacks; 4th is golden with 4× harder req and 5× rewards)
     for (let i = 0; i < 4; i++) {
-        const t = templates[i % templates.length];
+        const t = shuffled[i % shuffled.length];
         const scale = 1 + (Math.floor(i / 4) * 0.5);
 
         let target = t.base;
@@ -757,7 +767,7 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
             completed: false,
             claimed: false,
             frequency: 'DAILY',
-            ...(isGolden ? { isGolden: true } : { stacks: 3 }),
+            ...(isGolden ? { isGolden: true } : { stacks: 2 }),
         });
     }
 

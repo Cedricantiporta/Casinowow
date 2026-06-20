@@ -2267,7 +2267,7 @@ const App: React.FC = () => {
         setTimeout(() => {
             setShowArcticTriggerPopup(true);
             setInstantStop(true);
-            audioService.playScatterTrigger();
+            audioService.playBonusTrigger();
             setTimeout(() => {
                 setShowArcticTriggerPopup(false);
                 setReelTransitioning('out');
@@ -2400,7 +2400,7 @@ const App: React.FC = () => {
                 });
                 holdWinRef.current = { active: false, lockedGrid, coinValues, jpGrid, respins: 3 };
                 setTimeout(() => {
-                    audioService.playScatterTrigger();
+                    audioService.playBonusTrigger();
                     setSpinsWithoutBonus(0);
                     setStatus(GameStatus.SCATTER_SHOWCASE);
                     setShowEgyptHoldWinPopup(true);
@@ -2439,7 +2439,7 @@ const App: React.FC = () => {
                 setPirateWalkActive(true);
                 setPirateShipCol(selectedGame.reels - 1);
                 setPirateShip2Col(-1); // ship 2 starts off-screen
-                audioService.playScatterTrigger();
+                audioService.playBonusTrigger();
                 setSpinsWithoutBonus(0);
                 calculateWin(targetGrid);
                 return next;
@@ -2462,7 +2462,7 @@ const App: React.FC = () => {
         if (scatterCount >= selectedGame.scattersToTrigger) {
              if (selectedGame.theme === 'NEON') {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
-                 audioService.playScatterTrigger();
+                 audioService.playBonusTrigger();
                  setSpinsWithoutBonus(0);
                  const betAmt = currentBetRef.current;
                  if (neonRouletteTimerRef.current) clearTimeout(neonRouletteTimerRef.current);
@@ -2485,7 +2485,7 @@ const App: React.FC = () => {
                      audioService.playWinBig();
                  } else {
                      setStatus(GameStatus.SCATTER_SHOWCASE);
-                     audioService.playScatterTrigger();
+                     audioService.playFreeSpinTrigger();
                      setSpinsWithoutBonus(0);
                      setTimeout(() => setShowCandyRoulette(true), 1500);
                  }
@@ -2508,7 +2508,7 @@ const App: React.FC = () => {
                  audioService.playWinBig();
              } else {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
-                 audioService.playScatterTrigger();
+                 audioService.playFreeSpinTrigger();
                  setSpinsWithoutBonus(0);
                  setTimeout(() => {
                      setShowFreeSpinsPopup(true);
@@ -2530,7 +2530,7 @@ const App: React.FC = () => {
                     audioService.playWinBig();
                 } else {
                     setStatus(GameStatus.SCATTER_SHOWCASE);
-                    audioService.playScatterTrigger();
+                    audioService.playFreeSpinTrigger();
                     setSpinsWithoutBonus(0);
                     setTimeout(() => { setShowFreeSpinsPopup(true); }, 2000);
                     return next;
@@ -2556,7 +2556,7 @@ const App: React.FC = () => {
                     setTimeout(() => {
                         setDragonPotShaking(true);
                         setInstantStop(true);
-                        audioService.playScatterTrigger();
+                        audioService.playBonusTrigger();
                         setTimeout(() => {
                             setDragonPotShaking(false);
                             setShowDragonTriggerPopup(true);
@@ -2586,7 +2586,7 @@ const App: React.FC = () => {
                     setTimeout(() => {
                         setShowArcticTriggerPopup(true);
                         setInstantStop(true);
-                        audioService.playScatterTrigger();
+                        audioService.playBonusTrigger();
                         setTimeout(() => {
                             setShowArcticTriggerPopup(false);
                             setReelTransitioning('out');
@@ -3495,7 +3495,7 @@ const App: React.FC = () => {
                   setReelTransitioning(false);
                   if (tier) {
                       setWinData({ payout: latestTotalWin, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: tier });
-                      audioService.playWinBig();
+                      audioService.playWinTier(tier);
                       setShowWinPopup(true);
                       setStatus(GameStatus.WIN_ANIMATION);
                   } else {
@@ -3743,7 +3743,7 @@ const App: React.FC = () => {
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
               { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' } :
-              { background:'linear-gradient(180deg,#c060ff,#8020e0)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' }}>
+              { background:'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
@@ -4375,7 +4375,7 @@ const App: React.FC = () => {
           <div className="fixed bottom-0 w-full z-50 flex flex-col select-none"
             style={isHighLimit ?
               { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderTop:'none' } :
-              { background:'linear-gradient(180deg,#3a006a,#0a001a)', borderTop:'none' }}>
+              { background:'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderTop:'none' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
                 style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>

@@ -158,7 +158,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="flex-1 overflow-hidden flex gap-0">
 
                 {/* LEFT — Toggles */}
-                <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
+                <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-3 flex flex-col gap-3">
 
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Audio</div>
@@ -185,7 +185,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
 
                 {/* RIGHT — Redeem */}
-                <div className="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-3">
+                <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-3 flex flex-col gap-3">
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Redeem Code</div>
                         <div className="rounded-xl p-3 flex flex-col gap-2"

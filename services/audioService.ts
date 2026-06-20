@@ -30,6 +30,7 @@ class AudioService {
       '/sfx/majorjackpot_soundeffect.wav', '/sfx/megajackpot_soundeffect.wav',
       '/sfx/minijackpot_soundeffect.wav', '/sfx/minorjackpot_soundeffect.wav',
       '/sfx/scatter_soundeffect.wav', '/sfx/cointcount_soundeffect.wav',
+      '/sfx/freespin_soundeffect.wav', '/sfx/bonus_soundeffect.wav',
     ];
     paths.forEach(p => this.loadBuffer(p));
   }
@@ -151,6 +152,14 @@ class AudioService {
   // ── Scatter / free spins ────────────────────────────────────────────────────
   playScatterTrigger() {
     this.playSfxFile('/sfx/scatter_soundeffect.wav', 0.9);
+  }
+
+  playFreeSpinTrigger() {
+    this.playSfxFile('/sfx/freespin_soundeffect.wav', 0.9);
+  }
+
+  playBonusTrigger() {
+    this.playSfxFile('/sfx/bonus_soundeffect.wav', 0.9);
   }
 
   // ── Coin count-up tick — 40% shorter, very quiet ───────────────────────────
