@@ -527,6 +527,7 @@ const App: React.FC = () => {
   type ActiveToast = { type: 'LEVEL_UP'; level: number; reward: number; maxBetIncreased: boolean; newMaxBet: number } | { type: 'PACK' } | { type: 'CARD'; rarity: 'COMMON' | 'RARE'; cardName: string } | null;
   const [activeToast, setActiveToast] = useState<ActiveToast>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingWinTierRef = useRef<string | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
   const [showNopay, setShowNopay] = useState(false);
@@ -1572,7 +1573,7 @@ const App: React.FC = () => {
           setCascadeTotalWin(0);
           setTimeout(() => {
               if (winTier) {
-                  audioService.playWinBig();
+                  audioService.playWinTier(winTier);
                   setShowWinPopup(true);
                   setStatus(GameStatus.WIN_ANIMATION);
               } else if (accWin > 0) {
@@ -2855,8 +2856,8 @@ const App: React.FC = () => {
 
        if (winTier) {
            if (jackpotWon) {
-               // Jackpot sound plays first; delay win-tier celebration so they don't overlap
-               setTimeout(() => audioService.playWinTier(winTier), 3500);
+               // Store tier; fire sound + popup when jackpot celebration closes
+               pendingWinTierRef.current = winTier;
                setPendingBigWin(true);
            } else {
                audioService.playWinTier(winTier);
@@ -3078,7 +3079,7 @@ const App: React.FC = () => {
           setPlayer(p => ({ ...p, balance: p.balance + total }));
           const winTier = getWinTier(total, currentBet);
           setWinData({ payout: total, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
-          if (winTier) { audioService.playWinBig(); setShowWinPopup(true); setStatus(GameStatus.WIN_ANIMATION); }
+          if (winTier) { audioService.playWinTier(winTier); setShowWinPopup(true); setStatus(GameStatus.WIN_ANIMATION); }
           else if (total > 0) { audioService.playWinSmall(); setStatus(GameStatus.WIN_ANIMATION); setTimeout(() => setStatus(GameStatus.IDLE), 500); }
           else setStatus(GameStatus.IDLE);
       };
@@ -3168,7 +3169,7 @@ const App: React.FC = () => {
       const currentBet = availableBets[betIndex];
       const winTier = getWinTier(prize, currentBet);
       setWinData({ payout: prize, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
-      if (winTier) setShowWinPopup(true);
+      if (winTier) { audioService.playWinTier(winTier); setShowWinPopup(true); }
   };
 
   const handleJackpotClose = () => {
@@ -3186,6 +3187,10 @@ const App: React.FC = () => {
       }
       if (pendingBigWin) {
           setPendingBigWin(false);
+          if (pendingWinTierRef.current) {
+              audioService.playWinTier(pendingWinTierRef.current);
+              pendingWinTierRef.current = null;
+          }
           setShowWinPopup(true);
       }
   };
