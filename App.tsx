@@ -3794,7 +3794,7 @@ const App: React.FC = () => {
                     {/* Events pill */}
                     <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-6"
                         style={{ background: 'linear-gradient(180deg,#ffe066,#f59e0b,#b45309)', border: '1px solid rgba(0,0,0,0.5)' }}>
-                        <span className="font-tanker tracking-widest" style={{ fontSize: 14, lineHeight: 1, color: '#000', textShadow: 'none' }}>Events</span>
+                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 14, lineHeight: 1 }}>Events</span>
                     </button>
 
                     {/* Level Pill + Multiplier + XP popup */}
@@ -4513,8 +4513,8 @@ const App: React.FC = () => {
             <div className="absolute z-[181] animate-pop-in select-none"
                 style={{ bottom: 68, right: 6, width: 200 }}>
                 <div className="rounded-2xl px-3 py-3 flex flex-col gap-2.5"
-                    style={{ background: 'linear-gradient(160deg,#1e0438,#0d0220)', border: '2px solid #7c3aed', boxShadow: '0 0 24px rgba(124,58,237,0.7)' }}>
-                    <div className="text-purple-300 text-[10px] font-black uppercase tracking-widest text-center">Auto Spin</div>
+                    style={{ background: 'linear-gradient(160deg,#1e0438,#0d0220)' }}>
+                    <div className="text-white text-[10px] font-black uppercase tracking-widest text-center">Auto Spin</div>
                     <div className="grid grid-cols-4 gap-1.5">
                         {[50, 100, 500, -1].map(count => (
                             <button key={count}
@@ -4530,15 +4530,8 @@ const App: React.FC = () => {
                             </button>
                         ))}
                     </div>
-                    <div className="h-px bg-white/10" />
                     <div className="flex items-center justify-between px-0.5">
-                        <div className="flex items-center gap-2">
-                            <span className="text-lg">⚡</span>
-                            <div>
-                                <div className="text-white font-black text-xs">Fast Spin</div>
-                                <div className="text-purple-300/50 text-[9px]">Instant reel stop</div>
-                            </div>
-                        </div>
+                        <div className="text-white font-black text-xs">Fast Spin</div>
                         <button
                             onClick={() => { setFastSpin(f => !f); audioService.playClick(); }}
                             className="relative shrink-0"

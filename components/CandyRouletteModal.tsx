@@ -307,12 +307,12 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
 
             {/* Wheel zone */}
             {phase !== 'prompt' && (
-                <div className="absolute" style={{ left: '50%', top: 28, transform: 'translateX(-50%)', width: 240, height: 300 }}>
+                <div className="absolute" style={{ left: '50%', top: 18, transform: 'translateX(-50%)', width: 264, height: 310 }}>
 
-                    {/* Ticker arrow */}
+                    {/* Ticker arrow — smaller so it sits just at the rim */}
                     <div ref={tickerRef} className="absolute z-20"
-                        style={{ top: 0, left: '50%', transform: 'translateX(-50%)', transformOrigin: '50% 15%', width: 40, height: 62 }}>
-                        <svg width={40} height={62} viewBox="0 0 40 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        style={{ top: 0, left: '50%', transform: 'translateX(-50%)', transformOrigin: '50% 15%', width: 28, height: 44 }}>
+                        <svg width={28} height={44} viewBox="0 0 40 62" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M20 2C10 2 2 10 2 20C2 30 12 56 20 60C28 56 38 30 38 20C38 10 30 2 20 2Z"
                                 fill="url(#ctgrad)" stroke="#111827" strokeWidth="2.5"/>
                             <circle cx="20" cy="20" r="12" fill="#f472b6"/>
@@ -329,14 +329,14 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
 
                     {/* Canvas */}
                     <canvas ref={canvasRef} width={CS} height={CS}
-                        style={{ position: 'absolute', top: 48, left: 0, width: 240, height: 240, filter: 'drop-shadow(0 10px 24px rgba(0,0,0,0.8))' }} />
+                        style={{ position: 'absolute', top: 30, left: 0, width: 264, height: 264, filter: 'drop-shadow(0 10px 24px rgba(0,0,0,0.8))' }} />
 
                     {/* Center SPIN button */}
                     {phase === 'ready' && (
                         <button onClick={() => doSpinRef.current()}
                             className="absolute flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
                             style={{
-                                top: 48 + 120 - 34, left: 120 - 34, width: 68, height: 68, borderRadius: '50%',
+                                top: 30 + 132 - 34, left: 132 - 34, width: 68, height: 68, borderRadius: '50%',
                                 background: '#fdf5e2', border: '3px solid #25283d', zIndex: 30,
                                 boxShadow: '0 6px 14px rgba(0,0,0,0.6), inset 0 -5px 0 #edd8af, inset 0 5px 0 #ffffff',
                             }}>
