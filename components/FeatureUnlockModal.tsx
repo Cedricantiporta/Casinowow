@@ -12,6 +12,11 @@ interface FeatureUnlockModalProps {
 
 export const FeatureUnlockModal: React.FC<FeatureUnlockModalProps> = ({ isOpen, featureName, icon, description, onOpenFeature, onClose }) => {
     useEffect(() => { if (isOpen) audioService.playUnlock(); }, [isOpen]);
+    useEffect(() => {
+        if (!isOpen) return;
+        const t = setTimeout(onClose, 2000);
+        return () => clearTimeout(t);
+    }, [isOpen, onClose]);
     if (!isOpen) return null;
 
     const handleGoTo = () => {

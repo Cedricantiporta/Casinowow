@@ -3782,7 +3782,7 @@ const App: React.FC = () => {
                             const remM = Math.floor((rem % 3600000) / 60000);
                             const xpPct = Math.min(100, Math.round((player.xp / player.xpToNextLevel) * 100));
                             return (
-                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 200, background: 'linear-gradient(180deg,#2a0d52,#1a0838)', border: '1px solid #38106e', borderRadius: 14, boxShadow: 'inset 0 2px 3px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.7)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
+                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 200, background: 'linear-gradient(180deg,#5a1ab8 0%,#3a0d90 45%,#1a0838)', border: '1px solid rgba(180,120,255,0.45)', borderRadius: 14, boxShadow: 'inset 0 1px 0 rgba(210,160,255,0.5), 0 4px 0 #0e0028, 0 10px 32px rgba(0,0,0,0.85)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
                                     onClick={e => e.stopPropagation()}>
                                     {/* XP bar */}
                                     <div>
@@ -4748,7 +4748,7 @@ const App: React.FC = () => {
 
       {showPackToast && currentView === 'GAME' && (
           <div className="fixed top-[40px] right-2 z-[200] animate-pop-in pointer-events-none"
-              style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
+              style={{ background: 'linear-gradient(180deg,#6820c0 0%,#3c0e90 45%,#1a0535)', border: '1px solid rgba(180,120,255,0.45)', borderRadius: 14, padding: '10px 14px', boxShadow: 'inset 0 1px 0 rgba(210,160,255,0.5), 0 4px 0 #0e0028, 0 8px 24px rgba(0,0,0,0.8)' }}>
               <div className="flex items-center gap-2">
                   <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🃏</span>
                   <div>
@@ -4761,7 +4761,7 @@ const App: React.FC = () => {
 
       {activeToast && (
           <div className="fixed top-[40px] right-2 z-[201] animate-pop-in pointer-events-none"
-              style={{ background: 'linear-gradient(160deg,#1a0535,#3b0764)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}>
+              style={{ background: 'linear-gradient(180deg,#6820c0 0%,#3c0e90 45%,#1a0535)', border: '1px solid rgba(180,120,255,0.45)', borderRadius: 14, padding: '10px 14px', boxShadow: 'inset 0 1px 0 rgba(210,160,255,0.5), 0 4px 0 #0e0028, 0 8px 24px rgba(0,0,0,0.8)' }}>
               <div className="flex items-center gap-2">
                   {activeToast.type === 'LEVEL_UP'
                       ? <img src="/ui/star.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />

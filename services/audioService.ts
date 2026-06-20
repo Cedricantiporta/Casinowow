@@ -4,7 +4,7 @@ class AudioService {
   private masterGain: GainNode | null = null;
   private muted: boolean = false;
   private volume: number = 0.675;
-  private sfxCache: Record<string, HTMLAudioElement> = {};
+  private bufferCache: Record<string, AudioBuffer> = {};
   private musicEl: HTMLAudioElement | null = null;
   private currentMusicSrc = '';
 
@@ -18,6 +18,30 @@ class AudioService {
         this.masterGain.gain.value = this.volume;
       }
     } catch (e) {}
+    // Preload all SFX into buffers so they fire instantly on first play
+    this.preloadSfx();
+  }
+
+  private preloadSfx() {
+    const paths = [
+      '/sfx/bigwin_soundeffect.wav', '/sfx/greatwin_soundeffect.wav',
+      '/sfx/epicwin_soundeffect.wav', '/sfx/megawin_soundeffect.wav',
+      '/sfx/ultimatewin_soundeffect.wav', '/sfx/grandjackpot_soundeffect.wav',
+      '/sfx/majorjackpot_soundeffect.wav', '/sfx/megajackpot_soundeffect.wav',
+      '/sfx/minijackpot_soundeffect.wav', '/sfx/minorjackpot_soundeffect.wav',
+      '/sfx/scatter_soundeffect.wav', '/sfx/cointcount_soundeffect.wav',
+    ];
+    paths.forEach(p => this.loadBuffer(p));
+  }
+
+  private loadBuffer(path: string): Promise<AudioBuffer | null> {
+    if (!this.ctx) return Promise.resolve(null);
+    if (this.bufferCache[path]) return Promise.resolve(this.bufferCache[path]);
+    return fetch(path)
+      .then(r => r.arrayBuffer())
+      .then(ab => this.ctx!.decodeAudioData(ab))
+      .then(buf => { this.bufferCache[path] = buf; return buf; })
+      .catch(() => null);
   }
 
   toggleMute() {
@@ -27,16 +51,22 @@ class AudioService {
     return this.muted;
   }
 
-  // ── File-based SFX ─────────────────────────────────────────────────────────
-  private playSfxFile(path: string, vol = 1) {
-    if (this.muted) return;
-    try {
-      let base = this.sfxCache[path];
-      if (!base) { base = new Audio(path); base.preload = 'auto'; this.sfxCache[path] = base; }
-      const el = base.cloneNode() as HTMLAudioElement;
-      el.volume = Math.min(1, vol * this.volume);
-      el.play().catch(() => {});
-    } catch (e) {}
+  // ── File-based SFX via Web Audio API buffer ─────────────────────────────────
+  private playSfxFile(path: string, vol = 1, opts?: { rate?: number; stopAfter?: number }) {
+    if (this.muted || !this.ctx || !this.masterGain) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    this.loadBuffer(path).then(buf => {
+      if (!buf || !this.ctx || !this.masterGain) return;
+      const src = this.ctx.createBufferSource();
+      src.buffer = buf;
+      if (opts?.rate) src.playbackRate.value = opts.rate;
+      const g = this.ctx.createGain();
+      g.gain.value = Math.min(1, vol * this.volume);
+      src.connect(g);
+      g.connect(this.masterGain);
+      src.start();
+      if (opts?.stopAfter != null) src.stop(this.ctx.currentTime + opts.stopAfter);
+    });
   }
 
   // ── Background music ────────────────────────────────────────────────────────
@@ -72,7 +102,7 @@ class AudioService {
     };
     const src = map[tier];
     if (src) this.playSfxFile(src, 0.9);
-    else this.playWinBig(); // fallback for epic win until file added
+    else this.playWinBig();
   }
 
   // ── Jackpot SFX ─────────────────────────────────────────────────────────────
@@ -93,9 +123,9 @@ class AudioService {
     this.playSfxFile('/sfx/scatter_soundeffect.wav', 0.9);
   }
 
-  // ── Coin count-up tick ──────────────────────────────────────────────────────
+  // ── Coin count-up tick — 40% shorter, 50% quieter ──────────────────────────
   playCoinTick(_speed: number = 1) {
-    this.playSfxFile('/sfx/cointcount_soundeffect.wav', 0.5);
+    this.playSfxFile('/sfx/cointcount_soundeffect.wav', 0.25, { rate: 1.667 });
   }
 
   // ── Synth helpers (kept for fallbacks + misc UI) ────────────────────────────
