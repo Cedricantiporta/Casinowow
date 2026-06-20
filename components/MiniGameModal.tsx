@@ -671,9 +671,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 transform: isHere ? 'scale(1.18)' : 'scale(1)',
                                             }}>
                                             {isHere && (
-                                                <div className="absolute left-1/2 z-20" style={{ top: '-15%', transform: 'translateX(-50%)', animation: 'diceBounce 1s ease-in-out infinite', width: '110%', height: '110%' }}>
-                                                    <img src="/dice_avatar.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }} />
-                                                </div>
+                                                <img src="/dice_avatar.png" alt="" className="absolute z-20 pointer-events-none"
+                                                    style={{ width: '80%', top: '-5%', left: '10%', objectFit: 'contain', animation: 'diceBounce 1s ease-in-out infinite' }} />
                                             )}
                                             <div className="relative flex items-center justify-center w-full h-full">
                                                 <img src={iconSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />

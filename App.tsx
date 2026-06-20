@@ -2850,10 +2850,12 @@ const App: React.FC = () => {
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
 
        if (winTier) {
-           audioService.playWinTier(winTier);
            if (jackpotWon) {
+               // Jackpot sound plays first; delay win-tier celebration so they don't overlap
+               setTimeout(() => audioService.playWinTier(winTier), 3500);
                setPendingBigWin(true);
            } else {
+               audioService.playWinTier(winTier);
                setShowWinPopup(true);
            }
            setStatus(GameStatus.WIN_ANIMATION);

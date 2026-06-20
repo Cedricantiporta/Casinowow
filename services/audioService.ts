@@ -98,6 +98,7 @@ class AudioService {
       'PIGGY':   '/sfx/piggy_music.mp3',
       'PIRATE':  '/sfx/pirate_music.mp3',
       'CANDY':   '/sfx/sugar_music.mp3',
+      'DRAGON':  '/sfx/dragon_music.mp3',
     };
     const src = map[theme];
     if (src) this.playMusic(src, 0.28);
