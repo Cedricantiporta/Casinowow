@@ -134,7 +134,7 @@ class AudioService {
     const src = map[tier];
     if (!src) { this.playWinBig(); return; }
     this.loadBuffer(src).then(buf => {
-      if (buf) this.playSfxFile(src, 0.9);
+      if (buf) this.playSfxFile(src, 0.63);
       else this.playWinBig();
     });
   }
@@ -151,21 +151,21 @@ class AudioService {
     const src = map[tier];
     if (!src) return;
     this.loadBuffer(src).then(buf => {
-      if (buf) this.playSfxFile(src, 1.0);
+      if (buf) this.playSfxFile(src, 0.7);
       else this.playWinBig();
     });
   }
 
   // ── Scatter / free spins ────────────────────────────────────────────────────
   playScatterTrigger() {
-    this.playSfxFile('/sfx/scatter_soundeffect.wav', 0.9);
+    this.playSfxFile('/sfx/scatter_soundeffect.wav', 0.63);
   }
 
   playFreeSpinTrigger() {
     if (!this.ctx || !this.masterGain) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
     this.loadBuffer('/sfx/freespin_soundeffect.wav').then(buf => {
-      if (buf) { this.playSfxFile('/sfx/freespin_soundeffect.wav', 0.9); return; }
+      if (buf) { this.playSfxFile('/sfx/freespin_soundeffect.wav', 0.63); return; }
       if (!this.ctx || !this.masterGain) return;
       const t = this.ctx.currentTime;
       [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568, 2093].forEach((f, i) => {
@@ -195,7 +195,7 @@ class AudioService {
     if (!this.ctx || !this.masterGain) return;
     if (this.ctx.state === 'suspended') this.ctx.resume();
     this.loadBuffer('/sfx/bonus_soundeffect.wav').then(buf => {
-      if (buf) { this.playSfxFile('/sfx/bonus_soundeffect.wav', 0.9); return; }
+      if (buf) { this.playSfxFile('/sfx/bonus_soundeffect.wav', 0.63); return; }
       if (!this.ctx || !this.masterGain) return;
       const t = this.ctx.currentTime;
       const boom = this.ctx.createOscillator();

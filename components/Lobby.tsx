@@ -325,7 +325,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 const isGolden = isVip;
                 const barBg = isGolden
                     ? 'linear-gradient(180deg,#e8b020 0%,#c9901a 30%,#7a5000 100%)'
-                    : 'linear-gradient(180deg,#d060ff 0%,#b040f8 25%,#7020d0 100%)';
+                    : 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)';
                 const borderCol = isGolden ? '#b07010' : '#9030d0';
                 const topInset = isGolden
                     ? 'inset 0 2px 0 rgba(255,210,80,0.85)'
