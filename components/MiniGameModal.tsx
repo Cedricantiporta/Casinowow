@@ -558,7 +558,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     {/* Rock grid */}
                     <div className="flex-1 flex items-center justify-center p-3">
                         <div className="relative p-2">
-                            <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))` }}>
+                            <div className="grid" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))`, gap: 2 }}>
                                 {grid.map((cell, i) => {
                                     const revealed = cell.revealed;
                                     const isExploding = explodingCells.has(i);
@@ -658,9 +658,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const cellIcon: React.ReactNode = step.isFinish ? '🏆'
                                         : step.reward?.type === 'BACK' ? '⬅️'
                                         : isFiveX ? '⭐'
-                                        : step.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
-                                        : step.reward?.type === 'PICKS' ? '🎲'
-                                        : step.reward?.type === 'DIAMONDS' ? <img src="/symbols/diamond.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
+                                        : step.reward?.type === 'COINS' ? <img src="/coinmine_coinicon.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
+                                        : step.reward?.type === 'PICKS' ? <img src="/coinmine_pickaxe.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
+                                        : step.reward?.type === 'DIAMONDS' ? <img src="/coinmine_gemicon.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
                                         : step.reward?.type === 'PACKS' ? '📦'
                                         : null;
                                     return (
@@ -669,13 +669,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             className={`relative flex flex-col items-center justify-center rounded-lg${isBuffed ? ' animate-pulse' : ''}`}
                                             style={{
                                                 aspectRatio: '1',
-                                                background: bg,
-                                                overflow: 'hidden',
-                                                boxShadow: isHere ? '0 0 0 2px #fde68a, 0 4px 12px rgba(0,0,0,0.5)'
-                                                    : isBuffed ? '0 0 10px #fbbf24, 0 0 20px rgba(251,191,36,0.5), 0 3px 0 rgba(0,0,0,0.4)'
-                                                    : isFiveX ? '0 0 8px #fbbf24, 0 3px 0 rgba(0,0,0,0.4)'
-                                                    : '0 2px 0 rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)',
-                                                border: isHere ? '2px solid #fde68a' : (isBuffed || isFiveX) ? '2px solid #fde68a' : '1px solid rgba(255,255,255,0.1)',
+                                                background: 'none',
+                                                overflow: 'visible',
+                                                boxShadow: 'none',
+                                                border: 'none',
                                                 transition: 'all 0.2s',
                                                 transform: isHere ? 'scale(1.08)' : 'scale(1)',
                                             }}>
@@ -684,7 +681,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             </span>
                                             {isHere && (
                                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-                                                    <span style={{ fontSize: 'clamp(10px,2vw,14px)', lineHeight: 1 }}>🎲</span>
+                                                    <img src="/coinmine_pickaxe.png" alt="" style={{ width: 'clamp(10px,2vw,14px)', height: 'clamp(10px,2vw,14px)', objectFit: 'contain' }} />
                                                 </div>
                                             )}
                                             {step.isStart ? (
@@ -705,7 +702,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     // Single 12-column CSS grid per segment: cols 1-2 blank, cols 3-10 for 8 main tiles, cols 11-12 blank
                                     // Bridge (9th tile) sits at col 10 (even) or col 3 (odd) in row 1 — directly above the corner main tile in row 2
                                     return (
-                                        <div key={si} style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 3 }}>
+                                        <div key={si} style={{ display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: 1 }}>
                                             {bridge && (
                                                 <div style={{ gridColumn: isEven ? 10 : 3, gridRow: 1, minWidth: 0 }}>
                                                     {renderCell(bridge)}
