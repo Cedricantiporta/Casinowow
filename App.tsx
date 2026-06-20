@@ -369,6 +369,8 @@ const App: React.FC = () => {
   const [giftCountDone, setGiftCountDone] = useState(false);
   const [giftDisplayAmount, setGiftDisplayAmount] = useState(0);
   const [animBalance, setAnimBalance] = useState<number | null>(null);
+  const [coinAnimating, setCoinAnimating] = useState(false);
+  const coinAnimIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pendingLoginBonusRef = useRef(false);
   const hasLeftLobbyRef = useRef(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -666,18 +668,46 @@ const App: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const triggerCoinAnim = (addAmount: number) => {
+      if (addAmount <= 0) return;
+      const start = playerRef.current.balance;
+      const end = start + addAmount;
+      if (coinAnimIntervalRef.current) clearInterval(coinAnimIntervalRef.current);
+      setCoinAnimating(true);
+      setAnimBalance(start);
+      const steps = 20;
+      const stepDuration = 1000 / steps;
+      let step = 0;
+      coinAnimIntervalRef.current = setInterval(() => {
+          step++;
+          audioService.playCoinTick();
+          const progress = step / steps;
+          const eased = 1 - Math.pow(1 - progress, 2);
+          setAnimBalance(Math.round(start + (end - start) * eased));
+          if (step >= steps) {
+              clearInterval(coinAnimIntervalRef.current!);
+              coinAnimIntervalRef.current = null;
+              setAnimBalance(null);
+              setCoinAnimating(false);
+          }
+      }, stepDuration);
+  };
+
   const handleClaimInbox = (id: string) => {
       setInbox(prev => {
           const msg = prev.find(m => m.id === id);
           if (!msg) return prev;
           // Apply reward
           if (msg.type === 'WELCOME') {
-              setPlayer(p => ({ ...p, balance: p.balance + 5_000_000, diamonds: p.diamonds + 500 }));
+              const amt = 5_000_000;
+              setPlayer(p => ({ ...p, balance: p.balance + amt, diamonds: p.diamonds + 500 }));
+              triggerCoinAnim(amt);
               setCelebrationMsg('+5,000,000 Coins · +500 Gems');
           } else if (msg.type === 'DAILY_COINS') {
               const day = claimedCoinGiftCount + 1;
               const amount = day * 50_000 * 20;
               setPlayer(p => ({ ...p, balance: p.balance + amount }));
+              triggerCoinAnim(amount);
               setCelebrationMsg(`+${amount.toLocaleString()} Coins`);
               setClaimedCoinGiftCount(c => c + 1);
           } else if (msg.type === 'DAILY_PACK') {
@@ -695,6 +725,7 @@ const App: React.FC = () => {
               const cashback = Math.floor((msg.body.match(/\+([\d,]+)/) ? Number(msg.body.match(/\+([\d,]+)/)?.[1].replace(/,/g, '')) : 0));
               if (cashback > 0) {
                   setPlayer(p => ({ ...p, balance: p.balance + cashback }));
+                  triggerCoinAnim(cashback);
                   setCelebrationMsg(`+${cashback.toLocaleString()} VIP Cashback`);
               }
           }
@@ -800,6 +831,7 @@ const App: React.FC = () => {
               diamonds: p.diamonds - gemCost,
               piggyBank: 0,
           }));
+          triggerCoinAnim(brokenAmount);
           setCelebrationMsg(`🐷 +${formatCommaNumber(brokenAmount)} Coins!`);
           audioService.playWinBig();
       } else {
@@ -852,6 +884,7 @@ const App: React.FC = () => {
       }));
       
       setPlayer(p => ({ ...p, balance: p.balance + scaledReward }));
+      triggerCoinAnim(scaledReward);
       audioService.playWinBig();
       setCelebrationMsg(`+${formatCommaNumber(scaledReward)} Coins`);
   };
@@ -864,11 +897,12 @@ const App: React.FC = () => {
       const reward = DAILY_LOGIN_REWARDS.find(r => r.day === loginState.currentDay);
       if (reward) {
           const scaledCoins = reward.multiplier * MAX_BET_BY_LEVEL(player.level);
-          setPlayer(p => ({ 
-              ...p, 
+          setPlayer(p => ({
+              ...p,
               balance: p.balance + scaledCoins,
               diamonds: p.diamonds + reward.gems
           }));
+          triggerCoinAnim(scaledCoins);
           let nextDay = loginState.currentDay + 1;
           if (nextDay > 7) nextDay = 1;
           setLoginState({
@@ -1065,6 +1099,7 @@ const App: React.FC = () => {
           const coinGain = mission.coinReward;
           addPassXp(xpGain);
           setPlayer(p => ({ ...p, balance: p.balance + coinGain }));
+          triggerCoinAnim(coinGain);
           const remainingStacks = (mission.stacks ?? 1) - 1;
           if (remainingStacks > 0) {
               const stacksCompleted = 3 - remainingStacks;
@@ -1111,6 +1146,7 @@ const App: React.FC = () => {
           const scaledValue = SCALE_COIN_REWARD(reward.value, player.level, MAX_BET_BY_LEVEL(player.level));
           setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true, claimedValue: scaledValue } : r) }));
           setPlayer(p => ({ ...p, balance: p.balance + scaledValue }));
+          triggerCoinAnim(scaledValue);
           msg = `+${formatCommaNumber(scaledValue)} Coins`;
       } else {
           setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true } : r) }));
@@ -1188,12 +1224,13 @@ const App: React.FC = () => {
               : r),
       }));
 
+      if (totalCoins > 0) triggerCoinAnim(totalCoins);
       let msgParts = [];
       if(totalCoins > 0) msgParts.push(`${formatCommaNumber(totalCoins)} Coins`);
       if(totalDiamonds > 0) msgParts.push(`${totalDiamonds} Gems`);
       if(msgParts.length > 0) setCelebrationMsg(`+${msgParts.join(', ')}`);
       else if(xpBoostApplied) setCelebrationMsg("XP Boost Activated!");
-      
+
       audioService.playWinBig();
   };
 
@@ -1377,6 +1414,7 @@ const App: React.FC = () => {
   const handleClaimDeckReward = (deckId: string, reward: number) => {
       setDecks(prev => prev.map(d => d.gameId === deckId ? { ...d, rewardClaimed: true } : d));
       setPlayer(p => ({ ...p, balance: p.balance + reward }));
+      triggerCoinAnim(reward);
       setCelebrationMsg(`+${formatCommaNumber(reward)} Coins`);
       audioService.playWinBig();
   };
@@ -3579,6 +3617,7 @@ const App: React.FC = () => {
       
       if (type === 'COIN') {
           setPlayer(p => ({ ...p, balance: p.balance + amount, freeStashClaimedTime: cost === 0 ? Date.now() : p.freeStashClaimedTime }));
+          triggerCoinAnim(amount);
           setCelebrationMsg(`+${formatCommaNumber(amount)} Coins`);
           audioService.playWinBig();
       } else if (type === 'DIAMOND') {
@@ -3706,7 +3745,7 @@ const App: React.FC = () => {
 
                     {/* Coins + Gems pills */}
                     <div className="flex items-center gap-[3px] md:gap-1.5 min-w-0 flex-1">
-                        <div className="currency-pill flex items-center gap-1 flex-1" style={{ overflow: 'visible', minWidth: '130px', maxWidth: 'none' }}>
+                        <div className="currency-pill flex items-center gap-1 flex-1" style={{ overflow: 'visible', minWidth: '130px', maxWidth: 'none', ...(coinAnimating ? { boxShadow: '0 0 10px 2px rgba(255,220,0,0.6)', transition: 'box-shadow 0.2s' } : {}) }}>
                             <img src="/symbols/coin.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
                             <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                         </div>
@@ -5085,6 +5124,11 @@ const App: React.FC = () => {
               </div>
           </div>
       )}
+
+        {/* Coin animation click blocker */}
+        {coinAnimating && (
+            <div className="absolute inset-0 z-[9999] pointer-events-auto" style={{ cursor: 'default' }} />
+        )}
 
         </div>
       </div>
