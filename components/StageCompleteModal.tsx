@@ -35,11 +35,8 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
                         <span className="text-white font-black font-mono leading-none" style={{ fontSize: '1.4rem' }}>+{diamonds}</span>
                     )}
                 </div>
-                <button
-                    onClick={onNext}
-                    className="btn-3d px-5 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-wide shrink-0"
-                    style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #0a4a23' }}>
-                    Next Stage →
+                <button onClick={onNext} className="pill-green shrink-0">
+                    <div className="pill-face" style={{ padding: '8px 16px', fontSize: '11px' }}>Next Stage →</div>
                 </button>
             </div>
         </div>

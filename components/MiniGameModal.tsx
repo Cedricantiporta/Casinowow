@@ -805,15 +805,19 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             onTouchStart={handleRollMouseDown}
                             onTouchEnd={handleRollMouseUp}
                             disabled={diceCredits <= 0}
-                            className="w-full py-2 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all active:translate-y-[2px]"
-                            style={{
-                                background: autoRoll ? 'linear-gradient(180deg,#ef4444,#b91c1c)' : diceCredits > 0 ? 'linear-gradient(180deg,#fbbf24,#d97706)' : '#374151',
-                                boxShadow: diceCredits > 0 ? (autoRoll ? '0 3px 0 #7f1d1d' : '0 3px 0 #92400e') : 'none',
-                                border: '2px solid rgba(255,255,255,0.15)',
-                                color: diceCredits > 0 ? (autoRoll ? 'white' : '#1c1917') : '#6b7280',
-                                cursor: diceCredits <= 0 ? 'not-allowed' : 'pointer',
+                            className={`pill-green w-full${diceCredits <= 0 ? ' opacity-40' : ''}`}>
+                            <div className="pill-face" style={{
+                                padding: '7px 8px', fontSize: '10px',
+                                ...(autoRoll
+                                    ? { background: 'linear-gradient(180deg,#ef4444,#b91c1c)' }
+                                    : diceCredits <= 0
+                                    ? { background: 'linear-gradient(180deg,#555,#333)' }
+                                    : { background: 'linear-gradient(180deg,#fbbf24,#d97706)' })
                             }}>
-                            {autoRoll ? 'Stop' : 'Roll'}
+                                <span style={{ color: autoRoll ? '#fff' : diceCredits <= 0 ? '#888' : '#1c1917' }}>
+                                    {autoRoll ? 'Stop' : 'Roll'}
+                                </span>
+                            </div>
                         </button>
                         {/* Double Dice toggle */}
                         <button
@@ -848,10 +852,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             <span className="text-white font-black font-mono leading-none" style={{ fontSize: '1.8rem' }}>+{formatCommaNumber(stageClearData.coins)}</span>
                             {stageClearData.gems > 0 && <span className="text-white font-black text-xl font-mono leading-none">+{stageClearData.gems} 💎</span>}
                         </div>
-                        <button onClick={handleNextStage}
-                            className="btn-3d px-6 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-wide"
-                            style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #0a4a23' }}>
-                            Next →
+                        <button onClick={handleNextStage} className="pill-green">
+                            <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px' }}>Next →</div>
                         </button>
                     </div>
                 </div>

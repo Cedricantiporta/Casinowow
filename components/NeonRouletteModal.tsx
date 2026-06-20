@@ -327,10 +327,8 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                             Roulette Bonus
                         </div>
                         <div className="text-sky-100/80 text-[11px] font-black uppercase tracking-[0.2em]">Bonus Round</div>
-                        <button onClick={() => setPhase('ready')}
-                            className="btn-3d w-full py-2.5 rounded-2xl font-black text-sm uppercase tracking-widest mt-1"
-                            style={{ background: 'linear-gradient(180deg,#93c5fd,#2563eb)', color: '#fff', boxShadow: '0 4px 0 #1e3a8a' }}>
-                            Spin Now!
+                        <button onClick={() => setPhase('ready')} className="pill-green w-full mt-1">
+                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>Spin Now!</div>
                         </button>
                     </div>
                 </div>
@@ -417,10 +415,8 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                                 <span className="font-black text-yellow-300 text-base font-mono">+{formatCommaNumber(summaryTotal)}</span>
                             </div>
                         </div>
-                        <button onClick={() => onComplete(prize)}
-                            className="btn-3d w-full py-3 rounded-xl font-black uppercase tracking-widest text-black text-sm mt-1"
-                            style={{ background: 'linear-gradient(180deg,#fbbf24,#f59e0b)', boxShadow: '0 5px 0 #92400e' }}>
-                            Claim All
+                        <button onClick={() => onComplete(prize)} className="pill-green w-full mt-1">
+                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#fbbf24,#f59e0b)', color: '#1c0a00' }}>Claim All</div>
                         </button>
                     </div>
                 </div>

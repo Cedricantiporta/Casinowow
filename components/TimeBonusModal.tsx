@@ -79,7 +79,8 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                 <div className="flex flex-col items-center flex-1 gap-2 rounded-2xl p-3"
                     style={{ background: 'linear-gradient(180deg,rgba(251,191,36,0.28) 0%,rgba(180,90,9,0.22) 20%,rgba(40,15,0,0.78) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,220,120,0.45), 0 3px 10px rgba(0,0,0,0.5)' }}>
                     <div className={`transition-all duration-300 flex items-center justify-center ${jackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
-                        <i className="ti ti-crown" style={{ fontSize: '3rem', color: '#fde68a', filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.8))' }} />
+                        <img src="/symbols/neon_bonus.png" alt=""
+                            style={{ width: 72, height: 72, objectFit: 'contain', filter: jackpotReady ? 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' : undefined }} />
                     </div>
                     <div className="text-[10px] font-black text-yellow-200/90 tracking-wider text-center">Jackpot</div>
                     <div className="text-sm font-black text-white text-center drop-shadow-md">{formatCommaNumber(jackpotBaseAmount)}</div>
@@ -94,15 +95,15 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                     </button>
                 </div>
             </div>
-
-            {/* Jackpot roulette overlay */}
-            <JackpotRouletteModal
-                isOpen={showRoulette}
-                baseAmount={jackpotBaseAmount}
-                onClose={() => setShowRoulette(false)}
-                onClaim={(amount) => { onJackpotClaim?.(amount); setShowRoulette(false); }}
-            />
         </div>
+
+        {/* Jackpot roulette — outside overflow-hidden card so it can fill the screen */}
+        <JackpotRouletteModal
+            isOpen={showRoulette}
+            baseAmount={jackpotBaseAmount}
+            onClose={() => setShowRoulette(false)}
+            onClaim={(amount) => { onJackpotClaim?.(amount); setShowRoulette(false); }}
+        />
         </div>
     );
 };

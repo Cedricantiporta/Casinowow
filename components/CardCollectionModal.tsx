@@ -143,6 +143,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     };
 
     const handleDraw = (packId: string, count: number) => {
+        setShowDrawPopup(false);
         const cards = onBuyPack(packId, count);
         if (cards.length > 0) {
             cards.sort((a, b) => rarityOrder[a.rarity] - rarityOrder[b.rarity]);
@@ -463,11 +464,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 <div className="text-white font-black text-xs tracking-wide">Grand Reward</div>
                                 <div className="text-white font-black font-mono leading-tight" style={{ fontSize: '2.4rem' }}>{abbrev18(grandPrize)}</div>
                             </div>
-                            <button
-                                onClick={() => setShowDrawPopup(true)}
-                                className="btn-3d rounded-xl px-4 py-2 absolute right-2"
-                                style={{ background: 'linear-gradient(180deg,#4ade80,#16a34a)', boxShadow: '0 4px 0 #14532d, 0 6px 20px rgba(22,163,74,0.5)' }}>
-                                <span className="text-white font-black text-xs">Draw Cards</span>
+                            <button onClick={() => setShowDrawPopup(true)} className="pill-green absolute right-2">
+                                <div className="pill-face" style={{ padding: '6px 14px', fontSize: '11px' }}>Draw Cards</div>
                             </button>
                         </div>
 

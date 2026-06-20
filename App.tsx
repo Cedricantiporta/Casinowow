@@ -4912,10 +4912,8 @@ const App: React.FC = () => {
                           </div>
                       ))}
                   </div>
-                  <button onClick={() => setShowPurchaseModal(null)}
-                      className="btn-3d w-full py-2.5 rounded-xl font-black text-white uppercase text-sm tracking-widest"
-                      style={{ background: 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 #4c1d95' }}>
-                      Confirm
+                  <button onClick={() => setShowPurchaseModal(null)} className="pill-green w-full">
+                      <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#c084fc,#a855f7,#6d28d9)' }}>Confirm</div>
                   </button>
               </div>
           </div>
@@ -5134,9 +5132,8 @@ const App: React.FC = () => {
                   <i className="ti ti-shopping-cart-off" style={{ fontSize: '2.5rem', color: '#a855f7' }} />
                   <div className="font-black text-white text-base uppercase tracking-widest">Purchase Unavailable</div>
                   <div className="text-purple-300/80 text-xs leading-relaxed">Real money purchases are not available at this time.</div>
-                  <button onClick={() => setShowNopay(false)} className="btn-3d mt-1 px-6 py-2 rounded-xl font-black text-xs uppercase text-white"
-                      style={{ background: 'linear-gradient(180deg,#7c3aed,#4c1d95)', boxShadow: '0 3px 0 #2e1065' }}>
-                      Ok
+                  <button onClick={() => setShowNopay(false)} className="pill-green mt-1">
+                      <div className="pill-face" style={{ padding: '8px 24px', fontSize: '11px', background: 'linear-gradient(180deg,#c084fc,#7c3aed,#4c1d95)' }}>Ok</div>
                   </button>
               </div>
           </div>
@@ -5180,10 +5177,8 @@ const App: React.FC = () => {
                       ))}
                   </div>
                   <div className="px-4 pb-4">
-                      <button onClick={() => setPurchaseConfirm(null)}
-                          className="btn-3d w-full py-2.5 rounded-xl font-black text-sm uppercase tracking-widest text-black"
-                          style={{ background: purchaseConfirm === 'VIP' ? 'linear-gradient(180deg,#fbbf24,#d97706)' : 'linear-gradient(180deg,#a855f7,#6d28d9)', boxShadow: '0 3px 0 rgba(0,0,0,0.5)', color: purchaseConfirm === 'VIP' ? '#1c0a00' : '#fff' }}>
-                          Let's Go! 🎉
+                      <button onClick={() => setPurchaseConfirm(null)} className="pill-green w-full">
+                          <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', ...(purchaseConfirm === 'VIP' ? { background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' } : { background: 'linear-gradient(180deg,#c084fc,#a855f7,#6d28d9)' }) }}>Let's Go! 🎉</div>
                       </button>
                   </div>
               </div>
