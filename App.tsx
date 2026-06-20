@@ -3694,7 +3694,7 @@ const App: React.FC = () => {
   };
   const getGrandAlbumReward = (level: number) => MAX_BET_BY_LEVEL(level) * 1000;
 
-  const showGoldHeader = (!!player.isVip && currentView === 'LOBBY') || currentView === 'HIGH_LIMIT';
+  const showGoldHeader = (!!player.isVip && currentView === 'LOBBY') || currentView === 'HIGH_LIMIT' || (currentView === 'GAME' && isHighLimit);
   const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
   const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
@@ -4390,7 +4390,7 @@ const App: React.FC = () => {
       {currentView === 'GAME' && (
           <div className="fixed bottom-0 w-full z-50 flex flex-col select-none"
             style={isHighLimit ?
-              { background:'linear-gradient(180deg,#2a1a00,#1a0f00)', borderTop:'none' } :
+              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderTop:'none' } :
               { background:'#0a001a', borderTop:'none' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
