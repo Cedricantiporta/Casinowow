@@ -449,7 +449,7 @@ const ReelCell: React.FC<{
                             </span>
                         </div>
                     )}
-                    {isWild && !blur && isImageIcon && theme === 'PETS' && (
+                    {isWild && !blur && isImageIcon && (theme === 'PETS' || theme === 'CANDY') && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
                             <span
                                 className="block font-titan font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
