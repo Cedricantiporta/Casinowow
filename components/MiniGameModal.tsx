@@ -672,12 +672,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             }}>
                                             {isHere && (
                                                 <img src="/dice_avatar.png" alt="" className="absolute z-20 pointer-events-none"
-                                                    style={{ width: '80%', top: '-5%', left: '10%', objectFit: 'contain', animation: 'diceBounce 1s ease-in-out infinite' }} />
+                                                    style={{ width: '80%', top: '-18%', left: '10%', objectFit: 'contain', animation: 'diceBounce 1s ease-in-out infinite' }} />
                                             )}
                                             <div className="relative flex items-center justify-center w-full h-full">
                                                 <img src={iconSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
                                                 {step.reward?.label && step.reward.type !== 'BACK' && step.reward.type !== 'STAR' && !step.isFinish && !step.isStart && (
-                                                    <span className="absolute inset-0 flex items-center justify-center text-center font-black text-white leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,1)]" style={{ fontSize: 'clamp(11px,2.2vw,16px)' }}>{step.reward.label}</span>
+                                                    <span className="absolute left-0 right-0 text-center font-black text-white leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,1)]" style={{ fontSize: 'clamp(11px,2.2vw,16px)', bottom: '12%' }}>{step.reward.label}</span>
                                                 )}
                                             </div>
                                         </div>

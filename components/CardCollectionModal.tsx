@@ -384,7 +384,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <i className="ti ti-arrow-left"></i>
                     </button>
                 )}
-                <h2 className="text-white font-black text-xs tracking-widest shrink-0">
+                <h2 className="text-white font-tanker text-base shrink-0">
                     {selectedDeckId ? decks.find(d => d.gameId === selectedDeckId)?.gameName : 'Album'}
                 </h2>
 
@@ -431,7 +431,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                         <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 118 }}>
                                             <button onClick={() => setSelectedDeckId(deck.gameId)}
                                                 className="w-full flex flex-col items-center p-2 rounded-xl active:scale-95 transition-transform"
-                                                style={{ height: 138, background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                                                style={{ height: 138, background: 'linear-gradient(180deg,rgba(160,60,255,0.55) 0%,rgba(10,0,50,0.92) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.5), 0 3px 10px rgba(0,0,0,0.6)' }}>
                                                 <div className="w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0"
                                                     style={{ background: getDeckThemeBg(deck.theme) }}>
                                                     {(() => {
@@ -460,13 +460,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         {/* Grand reward row — reward centered, draw switcher far right */}
                         <div className="shrink-0 relative flex items-center justify-center mt-4 px-2">
                             <div className="text-center">
-                                <div className="text-yellow-400/60 text-[10px] font-black uppercase tracking-widest">Grand Reward</div>
-                                <div className="text-white font-black font-mono leading-tight" style={{ fontSize: '2rem' }}>{abbrev18(grandPrize)}</div>
+                                <div className="text-white font-black text-xs tracking-wide">Grand Reward</div>
+                                <div className="text-white font-black font-mono leading-tight" style={{ fontSize: '2.4rem' }}>{abbrev18(grandPrize)}</div>
                             </div>
                             <button
                                 onClick={() => setShowDrawPopup(true)}
                                 className="btn-3d rounded-xl px-4 py-2 absolute right-2"
-                                style={{ background: 'linear-gradient(180deg,#c084fc,#7c3aed)', boxShadow: '0 4px 0 #4c1d95, 0 6px 20px rgba(124,58,237,0.5)' }}>
+                                style={{ background: 'linear-gradient(180deg,#4ade80,#16a34a)', boxShadow: '0 4px 0 #14532d, 0 6px 20px rgba(22,163,74,0.5)' }}>
                                 <span className="text-white font-black text-xs">Draw Cards</span>
                             </button>
                         </div>
