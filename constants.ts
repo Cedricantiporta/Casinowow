@@ -52,7 +52,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Scatter Roulette! Land the 💎 gem on reel 3 to spin the wheel!',
     color: 'from-fuchsia-600 via-purple-600 to-indigo-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #7c3aed 0%, #2e1065 100%)',
-    reelBg: REEL_BGS.NEON
+    reelBg: REEL_BGS.NEON,
+    coverImage: '/slots/vegas_covernew.png',
   },
   {
     id: 'pharaoh-tomb',
@@ -135,6 +136,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #ec4899 0%, #831843 100%)',
     reelBg: REEL_BGS.CANDY,
     slotBg: '/slots/candy_bg.png',
+    coverImage: '/slots/sugar_covernew.png',
   },
   {
     id: 'deep-blue',
@@ -146,7 +148,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Dive deep for sunken treasures.',
     color: 'from-cyan-500 via-blue-600 to-blue-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #1e3a8a 100%)',
-    reelBg: REEL_BGS.UNDERWATER
+    reelBg: REEL_BGS.UNDERWATER,
+    coverImage: '/slots/deep_covernew.png',
   },
   {
     id: 'wild-west',
@@ -158,7 +161,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Gunslinging action and gold bars.',
     color: 'from-orange-700 via-amber-800 to-yellow-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #b45309 0%, #451a03 100%)',
-    reelBg: REEL_BGS.WESTERN
+    reelBg: REEL_BGS.WESTERN,
+    coverImage: '/slots/gold_covernew.png',
   },
   {
     id: 'samurai-honor',
@@ -218,7 +222,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     description: 'Summon the Companion Wheel! 3 paws spin switching wilds across the reels.',
     color: 'from-violet-500 via-fuchsia-600 to-purple-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #a855f7 0%, #2e1065 100%)',
-    reelBg: REEL_BGS.PETS
+    reelBg: REEL_BGS.PETS,
   },
   {
     id: 'dungeon-raid',
@@ -314,8 +318,8 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   },
   PETS: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🐰', [SymbolType.BELL]: '🦊', [SymbolType.BAR]: '🦉', [SymbolType.CHERRY]: '🦄', [SymbolType.SEVEN]: '🐲',
-    [SymbolType.WILD]: 'WILD', [SymbolType.SCATTER]: '🐾', ...JP_ICONS, [SymbolType.COIN]: '🦴'
+    [SymbolType.GRAPE]: '/pets/green.png', [SymbolType.BELL]: '/pets/blue.png', [SymbolType.BAR]: '/pets/purple.png', [SymbolType.CHERRY]: '/pets/red.png', [SymbolType.SEVEN]: '🐲',
+    [SymbolType.WILD]: '/pets/wild.png', [SymbolType.SCATTER]: '/pets/scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🦴'
   },
   MMORPG: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
