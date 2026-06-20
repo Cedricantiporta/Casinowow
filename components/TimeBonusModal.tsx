@@ -22,7 +22,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
     if (!isOpen) return null;
 
     return (
-        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
+        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none">
         <div className="w-full max-w-[480px] flex flex-col rounded-3xl overflow-hidden"
             style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
