@@ -19,6 +19,7 @@ interface ReelProps {
   newCells?: boolean[];
   dissolving?: boolean;
   anticipation?: boolean;
+  inFreeSpins?: boolean;
 }
 
 const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
@@ -37,7 +38,7 @@ const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean, excludeSeven?
   return neon ? SymbolType.TEN : SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
   const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
@@ -137,6 +138,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                               dissolving={dissolving}
                               gameRows={gameConfig.rows}
                               gameReels={gameConfig.reels}
+                              inFreeSpins={inFreeSpins}
                           />
                       );
                   })}
@@ -192,6 +194,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                             dissolving={dissolving}
                             gameRows={gameConfig.rows}
                             gameReels={gameConfig.reels}
+                            inFreeSpins={inFreeSpins}
                         />
                     );
                 })}
@@ -240,6 +243,16 @@ const getLetter3DShadow = (symbol: SymbolType, theme?: GameTheme): string => {
 };
 
 
+// Per-theme win-cell border color — blue for cool/ocean themes, yellow for warm themes
+const WIN_BORDER_COLORS: Partial<Record<GameTheme, string>> = {
+    NEON:       '#38bdf8',
+    PIRATE:     '#38bdf8',
+    ARCTIC:     '#38bdf8',
+    UNDERWATER: '#38bdf8',
+    SPACE:      '#7c3aed',
+    MMORPG:     '#38bdf8',
+};
+
 const ReelCell: React.FC<{
     symbol: SymbolType,
     blur?: boolean,
@@ -253,7 +266,8 @@ const ReelCell: React.FC<{
     dissolving?: boolean,
     gameRows?: number,
     gameReels?: number,
-}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6 }) => {
+    inFreeSpins?: boolean,
+}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6, inFreeSpins }) => {
 
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
@@ -331,28 +345,43 @@ const ReelCell: React.FC<{
                 : undefined
             }
             >
-                {highlight && (
-                    <svg
-                        className="absolute inset-0 w-full h-full pointer-events-none"
-                        viewBox="0 0 100 100"
-                        preserveAspectRatio="none"
-                        style={{ zIndex: 25, overflow: 'visible' }}
-                    >
-                        <rect
-                            x="1.5" y="1.5"
-                            width="97" height="97"
-                            fill="none"
-                            stroke="#ffe500"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeDasharray="140 54"
-                            style={{
-                                filter: 'drop-shadow(0 0 5px #ffe500) drop-shadow(0 0 10px rgba(255,229,0,0.8))',
-                                animation: 'snakeBorder 1.2s linear infinite',
-                            }}
-                        />
-                    </svg>
-                )}
+                {highlight && (() => {
+                    const wc = WIN_BORDER_COLORS[theme] ?? '#ffe500';
+                    const wcFade = wc === '#ffe500' ? 'rgba(255,229,0,0.3)' : 'rgba(56,189,248,0.3)';
+                    return (
+                        <svg
+                            className="absolute inset-0 w-full h-full pointer-events-none"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                            style={{ zIndex: 25, overflow: 'visible' }}
+                        >
+                            {/* Outer broad glow — pulsing halo */}
+                            <rect x="-1" y="-1" width="102" height="102" fill="none"
+                                stroke={wc} strokeWidth="7" strokeOpacity="0.18"
+                                style={{ filter: 'blur(5px)' }} />
+                            {/* Main animated dash — long streaks (almost touching), butt caps for sharp pointy ends */}
+                            <rect x="1.5" y="1.5" width="97" height="97" fill="none"
+                                stroke={wc} strokeWidth="3" strokeLinecap="butt"
+                                strokeDasharray="190 10"
+                                style={{
+                                    filter: `drop-shadow(0 0 5px ${wc}) drop-shadow(0 0 10px ${wcFade})`,
+                                    animation: 'snakeBorder 1.3s linear infinite',
+                                }} />
+                            {/* Bright white highlight — shorter dashes offset to ride the "head" of each streak */}
+                            <rect x="1.5" y="1.5" width="97" height="97" fill="none"
+                                stroke="rgba(255,255,255,0.88)" strokeWidth="1.2" strokeLinecap="butt"
+                                strokeDasharray="80 120"
+                                strokeDashoffset="-20"
+                                style={{ animation: 'snakeBorder 1.3s linear infinite' }} />
+                            {/* Dim trailing fade — rides the "tail" of each streak */}
+                            <rect x="1.5" y="1.5" width="97" height="97" fill="none"
+                                stroke={wc} strokeWidth="2" strokeLinecap="butt" strokeOpacity="0.45"
+                                strokeDasharray="50 150"
+                                strokeDashoffset="160"
+                                style={{ animation: 'snakeBorder 1.3s linear infinite' }} />
+                        </svg>
+                    );
+                })()}
                 {/* Content wrapper */}
                 <div className={`
                     relative flex flex-col items-center justify-center z-10 w-full h-full
@@ -368,17 +397,27 @@ const ReelCell: React.FC<{
                                     style={{ opacity: 0.85 }}
                                 />
                             )}
-                            <span
-                                className="font-tanker font-black tracking-widest select-none leading-none text-center px-1 relative z-10"
-                                style={{
-                                    fontSize: `clamp(0.5rem, ${(2.2 * cellScale).toFixed(2)}vw, ${(1.15 * cellScale).toFixed(3)}rem)`,
-                                    color: jpStyle?.border ?? '#fff',
-                                    textShadow: `0 0 6px ${jpStyle?.glow ?? 'rgba(255,255,255,0.8)'}, 0 1px 3px rgba(0,0,0,0.9)`,
-                                    WebkitTextStroke: `1px ${jpStyle?.border ?? '#fff'}`,
-                                }}
-                            >
-                                {jpLabel}
-                            </span>
+                            {(() => {
+                                const isEgypt = theme === 'EGYPT';
+                                const isDragonOrPiggy = theme === 'DRAGON' || theme === 'PIGGY';
+                                const wantStroke = (isEgypt || isDragonOrPiggy) && inFreeSpins;
+                                const bigText = isEgypt;
+                                return (
+                                    <span
+                                        className="font-tanker font-black tracking-widest select-none leading-none text-center px-1 relative z-10"
+                                        style={{
+                                            fontSize: bigText
+                                                ? `clamp(0.65rem, ${(2.8 * cellScale).toFixed(2)}vw, ${(1.4 * cellScale).toFixed(3)}rem)`
+                                                : `clamp(0.5rem, ${(2.2 * cellScale).toFixed(2)}vw, ${(1.15 * cellScale).toFixed(3)}rem)`,
+                                            color: jpStyle?.border ?? '#fff',
+                                            textShadow: `0 0 6px ${jpStyle?.glow ?? 'rgba(255,255,255,0.8)'}, 0 1px 3px rgba(0,0,0,0.9)`,
+                                            ...(wantStroke ? { WebkitTextStroke: '1.5px #000', paintOrder: 'stroke fill' } : { WebkitTextStroke: `1px ${jpStyle?.border ?? '#fff'}` }),
+                                        }}
+                                    >
+                                        {jpLabel}
+                                    </span>
+                                );
+                            })()}
                         </>
                     ) : isImageIcon ? (
                         <img

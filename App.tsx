@@ -119,7 +119,7 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     const full = pct >= 100;
     return (
         <div className="flex items-center justify-center py-1 px-0">
-            <div className="relative flex items-center" style={{ width: '100%', height: 22, borderRadius: 11, background: 'rgba(10,0,40,0.82)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.7)' }}>
+            <div className="relative flex items-center" style={{ width: '50%', height: 22, borderRadius: 11, background: 'rgba(10,0,40,0.82)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.7)' }}>
                 {/* Fill */}
                 <div className="absolute inset-y-0 left-0 transition-all duration-500" style={{
                     width: `${pct}%`,
@@ -4140,6 +4140,7 @@ const App: React.FC = () => {
                                 newCells={cascadeNewCells ? cascadeNewCells[i] : undefined}
                                 dissolving={cascadeDissolving}
                                 anticipation={isAnticipating && i === stoppedReels}
+                                inFreeSpins={freeSpinsRemaining > 0}
                             />
                             ));
                         })()}
