@@ -612,10 +612,11 @@ const App: React.FC = () => {
               });
           }
 
-          // Daily coin gift — days 1-10 (uses claimedCoinGiftCount, 20× amount)
+          // Daily coin gift — days 1-10 (derive day from claimed inbox history, not separate counter)
           const hasTodayCoinGift = next.some(m => m.type === 'DAILY_COINS' && new Date(m.createdAt).toDateString() === todayStr);
-          if (!hasTodayCoinGift && claimedCoinGiftCount < 10) {
-              const day = claimedCoinGiftCount + 1;
+          const claimedDays = next.filter(m => m.type === 'DAILY_COINS' && m.claimed).length;
+          if (!hasTodayCoinGift && claimedDays < 10) {
+              const day = claimedDays + 1;
               const amount = day * 50_000 * 20;
               next.push({
                   id: `daily_coins_${todayStr}`,
@@ -3791,7 +3792,7 @@ const App: React.FC = () => {
 
                     {/* Events pill */}
                     <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-6"
-                        style={{ background: 'linear-gradient(180deg,#ffe066,#f59e0b,#b45309)', boxShadow: '0 2px 0 #7a3800, 0 3px 10px rgba(245,158,11,0.4)', border: '1px solid rgba(255,255,255,0.25)' }}>
+                        style={{ background: 'linear-gradient(180deg,#ffe066,#f59e0b,#b45309)' }}>
                         <span className="font-tanker text-white tracking-widest" style={{ fontSize: 14, lineHeight: 1 }}>Events</span>
                     </button>
 
