@@ -308,7 +308,7 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
 
             {/* Wheel zone */}
             {phase !== 'prompt' && (
-                <div className="absolute" style={{ left: '50%', top: 38, transform: 'translateX(-50%)', width: 300, height: 350 }}>
+                <div className="absolute" style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 300, height: 350 }}>
 
                     {/* Ticker arrow — sits just at the rim */}
                     <div ref={tickerRef} className="absolute z-20"

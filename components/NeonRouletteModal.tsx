@@ -338,7 +338,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
 
             {/* Wheel zone */}
             {phase !== 'prompt' && (
-                <div className="absolute" style={{ left: '50%', top: 42, transform: 'translateX(-50%)', width: 310, height: 390 }}>
+                <div className="absolute" style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)', width: 310, height: 390 }}>
 
                     {/* Ticker arrow — smaller, sits just at the rim */}
                     <div ref={tickerRef} className="absolute z-20"
