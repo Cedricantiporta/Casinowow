@@ -332,6 +332,7 @@ const App: React.FC = () => {
   const [stoppedReels, setStoppedReels] = useState(0);
   const [instantStop, setInstantStop] = useState(false);
   const [fastSpin, setFastSpin] = useState(false);
+  const [sidebarPage, setSidebarPage] = useState(0);
   const [showAutoSpinPopup, setShowAutoSpinPopup] = useState(false);
   const [autoSpinRemaining, setAutoSpinRemaining] = useState(-1);
   const autoSpinRemainingRef = useRef(-1);
@@ -2488,7 +2489,7 @@ const App: React.FC = () => {
                      setStatus(GameStatus.SCATTER_SHOWCASE);
                      audioService.playScatterTrigger();
                      setSpinsWithoutBonus(0);
-                     setTimeout(() => { audioService.playFreeSpinTrigger(); setShowCandyRoulette(true); }, 1500);
+                     setTimeout(() => { setShowCandyRoulette(true); }, 1500);
                  }
                  return next;
              }
@@ -3950,47 +3951,90 @@ const App: React.FC = () => {
                     const totalNotifs = passReady;
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;
+                    const missReady = missionState.activeMissions.filter((m: any) => m.completed && !m.claimed).length;
+                    const albumReady = decks.filter((d: any) => d.isCompleted && !d.rewardClaimed).length;
+                    const pillStyle = { width:'100%', textAlign:'center' as const, fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)', marginTop:'-6px' };
                     return (
                         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-1 items-center select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'6px 6px 16px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px' }}>
-                            {/* Mine */}
-                            <button
-                                onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
-                                className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                            >
-                                {quest.wildCredits > 0 && !isQuestLocked && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                        {quest.wildCredits}
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px' }}>
+                            {sidebarPage === 0 ? (<>
+                                {/* Mine */}
+                                <button
+                                    onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
+                                    className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                >
+                                    {quest.wildCredits > 0 && !isQuestLocked && (
+                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                            {quest.wildCredits}
+                                        </div>
+                                    )}
+                                    <img src="/ui/mine_new.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                    <div style={pillStyle}>Play</div>
+                                </button>
+                                {/* Dice */}
+                                <button
+                                    onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
+                                    className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                >
+                                    {quest.diceCredits > 0 && !isQuestLocked && (
+                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                            {quest.diceCredits}
+                                        </div>
+                                    )}
+                                    <img src="/ui/dice.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                    <div style={pillStyle}>Play</div>
+                                </button>
+                                {/* Pass */}
+                                <button
+                                    onClick={!isPassLocked ? openBattlePassModal : undefined}
+                                    className={`relative flex flex-col items-center transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                >
+                                    {totalNotifs > 0 && !isPassLocked && (
+                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                            {totalNotifs}
+                                        </div>
+                                    )}
+                                    <img src="/ui/pass.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                    <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0', marginTop:'-6px' }}>LV.{missionState.passLevel}</div>
+                                </button>
+                            </>) : (<>
+                                {/* Missions */}
+                                <button
+                                    onClick={openMissionsModal}
+                                    className="relative flex flex-col items-center active:scale-95 transition-transform"
+                                >
+                                    {missReady > 0 && (
+                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                            {missReady}
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-center rounded-xl" style={{ width:54, height:54, background:'rgba(255,255,255,0.1)', filter:'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
+                                        <i className="ti ti-target-arrow" style={{ fontSize:28, color:'#fff' }} />
                                     </div>
-                                )}
-                                <img src="/ui/mine_new.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)', marginTop:'-6px' }}>Play</div>
-                            </button>
-                            {/* Dice */}
-                            <button
-                                onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
-                                className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                            >
-                                {quest.diceCredits > 0 && !isQuestLocked && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                        {quest.diceCredits}
+                                    <div style={pillStyle}>Check</div>
+                                </button>
+                                {/* Album */}
+                                <button
+                                    onClick={() => openModal('COLLECTION')}
+                                    className="relative flex flex-col items-center active:scale-95 transition-transform"
+                                >
+                                    {albumReady > 0 && (
+                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                            {albumReady}
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-center rounded-xl" style={{ width:54, height:54, background:'rgba(255,255,255,0.1)', filter:'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
+                                        <i className="ti ti-cards" style={{ fontSize:28, color:'#fff' }} />
                                     </div>
-                                )}
-                                <img src="/ui/dice.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)', marginTop:'-6px' }}>Play</div>
-                            </button>
-                            {/* Pass */}
+                                    <div style={pillStyle}>Check</div>
+                                </button>
+                            </>)}
+                            {/* Page toggle pill arrow */}
                             <button
-                                onClick={!isPassLocked ? openBattlePassModal : undefined}
-                                className={`relative flex flex-col items-center transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                            >
-                                {totalNotifs > 0 && !isPassLocked && (
-                                    <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                        {totalNotifs}
-                                    </div>
-                                )}
-                                <img src="/ui/pass.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0', marginTop:'-6px' }}>LV.{missionState.passLevel}</div>
+                                onClick={() => setSidebarPage(p => p === 0 ? 1 : 0)}
+                                className="flex items-center justify-center active:scale-95 transition-transform mt-1"
+                                style={{ width:44, height:20, borderRadius:10, background:'rgba(255,255,255,0.13)', border:'1px solid rgba(255,255,255,0.18)' }}>
+                                <i className={`ti ${sidebarPage === 0 ? 'ti-chevron-down' : 'ti-chevron-up'}`} style={{ fontSize:12, color:'rgba(255,255,255,0.75)' }} />
                             </button>
                         </div>
                     );
