@@ -161,8 +161,9 @@ const LOBBY_PRELOAD_ASSETS = [
     '/coinmine_bg.jpg', '/coinmine_rockicon.png', '/coinmine_bombicon.png',
     '/coinmine_coinicon.png', '/coinmine_gemicon.png', '/coinmine_pickaxe.png',
     '/coinmine_stageclearicon.png',
-    // dice & album backgrounds
+    // dice & album backgrounds + dice tile icons
     '/dice_background.jpg', '/album_background.jpg',
+    '/dice_backicon.png', '/dice_staricon.png', '/dice_blankicon.png',
     // piggy symbols
     '/piggy/pig.png', '/piggy/bank.png', '/piggy/bell.png', '/piggy/cash.png', '/piggy/coin.png', '/piggy/hammer.png',
     // egypt symbols

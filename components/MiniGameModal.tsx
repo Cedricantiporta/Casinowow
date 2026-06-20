@@ -655,42 +655,39 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         : step.reward?.type === 'DIAMONDS' ? 'linear-gradient(180deg,#0891b2,#0c4a6e)'
                                         : step.reward?.type === 'PACKS' ? 'linear-gradient(180deg,#d97706,#451a03)'
                                         : 'linear-gradient(180deg,#312e81,#1e1b4b)';
-                                    const cellIcon: React.ReactNode = step.isFinish ? '🏆'
-                                        : step.reward?.type === 'BACK' ? '⬅️'
-                                        : isFiveX ? '⭐'
-                                        : step.reward?.type === 'COINS' ? <img src="/coinmine_coinicon.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
-                                        : step.reward?.type === 'PICKS' ? <img src="/coinmine_pickaxe.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
-                                        : step.reward?.type === 'DIAMONDS' ? <img src="/coinmine_gemicon.png" alt="" style={{ width: 'clamp(16px,3.5vw,22px)', height: 'clamp(16px,3.5vw,22px)', objectFit: 'contain', display: 'inline-block' }} />
-                                        : step.reward?.type === 'PACKS' ? '📦'
+                                    const iconSrc: string | null = step.isFinish ? '/coinmine_stageclearicon.png'
+                                        : step.reward?.type === 'BACK' ? '/dice_backicon.png'
+                                        : isFiveX ? '/dice_staricon.png'
+                                        : step.reward?.type === 'COINS' ? '/coinmine_coinicon.png'
+                                        : step.reward?.type === 'PICKS' ? '/coinmine_pickaxe.png'
+                                        : step.reward?.type === 'DIAMONDS' ? '/coinmine_gemicon.png'
+                                        : step.reward?.type === 'PACKS' ? '/coinmine_gemicon.png'
                                         : null;
                                     return (
                                         <div key={step.index}
                                             data-active={isHere ? 'true' : undefined}
-                                            className={`relative flex flex-col items-center justify-center rounded-lg${isBuffed ? ' animate-pulse' : ''}`}
+                                            className={`relative flex items-center justify-center${isBuffed ? ' animate-pulse' : ''}`}
                                             style={{
                                                 aspectRatio: '1',
                                                 background: 'none',
                                                 overflow: 'visible',
                                                 boxShadow: 'none',
                                                 border: 'none',
-                                                transition: 'all 0.2s',
-                                                transform: isHere ? 'scale(1.08)' : 'scale(1)',
+                                                transition: 'transform 0.2s',
+                                                transform: isHere ? 'scale(1.15)' : 'scale(1)',
                                             }}>
-                                            <span className="absolute top-0.5 left-0.5 font-black text-white/30 leading-none" style={{ fontSize: 'clamp(5px,1vw,7px)' }}>
-                                                {step.isStart ? '' : step.isFinish ? '' : step.index}
-                                            </span>
                                             {isHere && (
-                                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-                                                    <img src="/coinmine_pickaxe.png" alt="" style={{ width: 'clamp(10px,2vw,14px)', height: 'clamp(10px,2vw,14px)', objectFit: 'contain' }} />
+                                                <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+                                                    <img src="/coinmine_pickaxe.png" alt="" style={{ width: 'clamp(14px,2.5vw,20px)', height: 'clamp(14px,2.5vw,20px)', objectFit: 'contain' }} />
                                                 </div>
                                             )}
                                             {step.isStart ? (
-                                                <span style={{ fontSize: 'clamp(7px,1.8vw,10px)', fontWeight: 900, color: 'white', lineHeight: 1 }}>START</span>
-                                            ) : cellIcon ? (
-                                                <div className="flex flex-col items-center" style={{ gap: 1 }}>
-                                                    <span style={{ lineHeight: 1, fontSize: 'clamp(14px,3vw,20px)' }}>{cellIcon}</span>
-                                                    {step.reward?.label && step.reward.type !== 'BACK' && (
-                                                        <span style={{ fontSize: 'clamp(7px,1.5vw,10px)', fontWeight: 900, color: 'white', lineHeight: 1, textAlign: 'center', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{step.reward.label}</span>
+                                                <span style={{ fontSize: 'clamp(8px,1.5vw,11px)', fontWeight: 900, color: 'white', lineHeight: 1, textAlign: 'center' }}>START</span>
+                                            ) : iconSrc ? (
+                                                <div className="relative flex items-center justify-center w-full h-full">
+                                                    <img src={iconSrc} alt="" style={{ width: '90%', height: '90%', objectFit: 'contain', display: 'block' }} />
+                                                    {step.reward?.label && step.reward.type !== 'BACK' && step.reward.type !== 'STAR' && !step.isFinish && (
+                                                        <span className="absolute bottom-0 left-0 right-0 text-center font-black text-white leading-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" style={{ fontSize: 'clamp(7px,1.4vw,10px)' }}>{step.reward.label}</span>
                                                     )}
                                                 </div>
                                             ) : null}
@@ -781,7 +778,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {stageWinning && stageClearData && (
                 <div className="absolute bottom-4 left-0 right-0 z-50 flex justify-center pointer-events-none">
                     <div className="animate-pop-in flex items-center gap-4 rounded-2xl px-6 py-3 pointer-events-auto"
-                        style={{ background: 'linear-gradient(180deg,#1e3a8a,#0f172a)', boxShadow: 'inset 0 1px 0 rgba(100,180,255,0.3), 0 6px 24px rgba(0,0,0,0.9)', minWidth: 280 }}>
+                        style={{ background: 'none', minWidth: 280 }}>
                         <div className="flex-1 flex items-center gap-3">
                             <span className="text-white font-black text-2xl font-mono leading-none">+{formatCommaNumber(stageClearData.coins)}</span>
                             {stageClearData.gems > 0 && <span className="text-white font-black text-xl font-mono leading-none">+{stageClearData.gems} 💎</span>}
