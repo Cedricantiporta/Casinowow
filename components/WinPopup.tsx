@@ -17,8 +17,8 @@ const WIN_STYLES: Record<string, { textColor: string; shadow: string }> = {
 };
 
 const NUNITO_3D = (color: string): React.CSSProperties => ({
-    fontFamily: "'Nunito', sans-serif",
-    fontWeight: 900,
+    fontFamily: "'Tanker', cursive",
+    fontWeight: 400,
     textTransform: 'uppercase' as const,
     color,
     textShadow: `2px 2px 0 #000, 4px 4px 0 rgba(0,0,0,0.5)`,
@@ -27,8 +27,8 @@ const NUNITO_3D = (color: string): React.CSSProperties => ({
 });
 
 const AMOUNT_STYLE: React.CSSProperties = {
-    fontFamily: "'Nunito', sans-serif",
-    fontWeight: 900,
+    fontFamily: "'Tanker', cursive",
+    fontWeight: 400,
     color: '#ffffff',
     textShadow: '2px 2px 0 #000, 0 0 8px rgba(0,0,0,0.9)',
     WebkitTextStroke: '1.5px #000',

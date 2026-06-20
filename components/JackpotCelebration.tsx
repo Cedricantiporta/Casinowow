@@ -63,7 +63,7 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
                 onClick={e => e.stopPropagation()}>
 
                 {/* Tier name — color coded */}
-                <div style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor }}>
+                <div style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Tanker', cursive", textTransform: 'uppercase', color: style.textColor }}>
                     {tier.name} Jackpot!
                 </div>
 
@@ -73,7 +73,7 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
                         background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)',
                         boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
                     }}>
-                    <span style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Archivo Black', sans-serif", color: style.textColor }}>
+                    <span style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Tanker', cursive", textTransform: 'uppercase', color: style.textColor }}>
                         +{formatNumber(displayAmount)}
                     </span>
                 </div>

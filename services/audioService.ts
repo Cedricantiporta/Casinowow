@@ -127,7 +127,7 @@ class AudioService {
     const map: Record<string, string> = {
       'BIG WIN':     '/sfx/bigwin_soundeffect.wav',
       'GREAT WIN':   '/sfx/greatwin_soundeffect.wav',
-      'EPIC WIN':    '/sfx/megawin_soundeffect.wav',
+      'EPIC WIN':    '/sfx/epicwin_soundeffect.wav',
       'MEGA WIN':    '/sfx/megawin_soundeffect.wav',
       'ULTIMATE WIN':'/sfx/ultimatewin_soundeffect.wav',
     };
