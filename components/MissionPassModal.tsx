@@ -194,25 +194,17 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </span>
                     )}
                     <div className="flex-1" />
-                    {/* Tab switcher — flat button style, green */}
+                    {/* Tab switcher */}
                     <div className="flex gap-1 shrink-0">
-                        {/* Daily Missions shortcut */}
-                        <div onClick={() => setView('MISSIONS')} className="cursor-pointer"
-                            style={{ borderRadius: 10, paddingBottom: 3, background: view === 'MISSIONS' ? 'linear-gradient(180deg,#1a6000,#0e3a00)' : 'linear-gradient(180deg,#333,#111)', boxShadow: '0 3px 6px rgba(0,0,0,0.5)' }}>
-                            <div style={{ borderRadius: 8, background: view === 'MISSIONS' ? 'linear-gradient(180deg,#a0f040,#6ad818,#4ab800)' : 'linear-gradient(180deg,#555,#333,#222)', padding: '3px 8px', textAlign: 'center' }}>
-                                <span style={{ fontSize: 9, fontWeight: 900, color: '#fff', letterSpacing: '0.03em' }}>Missions</span>
-                            </div>
-                        </div>
-                        {/* Mission Pass shortcut */}
-                        <div onClick={() => setView('PASS')} className="cursor-pointer relative"
-                            style={{ borderRadius: 10, paddingBottom: 3, background: view === 'PASS' ? 'linear-gradient(180deg,#1a6000,#0e3a00)' : 'linear-gradient(180deg,#333,#111)', boxShadow: '0 3px 6px rgba(0,0,0,0.5)' }}>
-                            <div style={{ borderRadius: 8, background: view === 'PASS' ? 'linear-gradient(180deg,#a0f040,#6ad818,#4ab800)' : 'linear-gradient(180deg,#555,#333,#222)', padding: '3px 8px', textAlign: 'center' }}>
-                                <span style={{ fontSize: 9, fontWeight: 900, color: '#fff', letterSpacing: '0.03em' }}>Pass</span>
-                            </div>
+                        <button onClick={() => setView('MISSIONS')} className="pill-green">
+                            <div className="pill-face" style={{ padding: '3px 10px', fontSize: '9px', ...(view !== 'MISSIONS' && { background: 'linear-gradient(180deg,#555,#333,#222)' }) }}>Missions</div>
+                        </button>
+                        <button onClick={() => setView('PASS')} className="pill-green relative">
+                            <div className="pill-face" style={{ padding: '3px 10px', fontSize: '9px', ...(view !== 'PASS' && { background: 'linear-gradient(180deg,#555,#333,#222)' }) }}>Pass</div>
                             {rewardsToClaimCount > 0 && (
                                 <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-white flex items-center justify-center leading-none" style={{ fontSize: 7, fontWeight: 900 }}>{rewardsToClaimCount}</span>
                             )}
-                        </div>
+                        </button>
                     </div>
                     {/* Gems pill */}
                     <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
@@ -291,24 +283,20 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 {/* Action */}
                                 <div className="relative z-10">
                                     {mission.claimed ? (
-                                        <div className="w-full"
-                                            style={{ borderRadius: 10, paddingBottom: 3, background: 'linear-gradient(180deg,#1a1a1a,#000)', boxShadow: '0 3px 6px rgba(0,0,0,0.5)' }}>
-                                            <div className="flex items-center justify-center" style={{ borderRadius: 8, background: 'linear-gradient(180deg,#3a3a3a,#222,#111)', padding: '5px 8px' }}>
-                                                <span style={{ fontSize: 10, fontWeight: 900, color: '#fff' }}>DONE</span>
-                                            </div>
-                                        </div>
+                                        <button disabled className="pill-green w-full">
+                                            <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px', background: 'linear-gradient(180deg,#3a3a3a,#222,#111)' }}>DONE</div>
+                                        </button>
                                     ) : mission.completed ? (
                                         <button onClick={() => onClaimMissionReward(mission)} className="pill-green w-full">
                                             <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px' }}>Claim Reward</div>
                                         </button>
                                     ) : (
-                                        <div onClick={() => onFinishMission(mission)} className="w-full cursor-pointer"
-                                            style={{ borderRadius: 10, paddingBottom: 3, background: 'linear-gradient(180deg,#1d56b0,#13408a)', boxShadow: '0 3px 6px rgba(0,0,0,0.5)' }}>
-                                            <div className="flex items-center justify-center gap-1" style={{ borderRadius: 8, background: 'linear-gradient(180deg,#70b8ff,#2b7fe8,#1058b8)', padding: '5px 8px' }}>
+                                        <button onClick={() => onFinishMission(mission)} className="pill-green w-full">
+                                            <div className="pill-face" style={{ padding: '5px 12px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
                                                 <img src="/symbols/diamond.png" alt="" style={{ width: '0.85em', height: '0.85em', objectFit: 'contain' }} />
-                                                <span style={{ fontSize: 9, fontWeight: 900, color: '#fff' }}>Skip {diamondCostToSkip(mission.xpReward)}</span>
+                                                Skip {diamondCostToSkip(mission.xpReward)}
                                             </div>
-                                        </div>
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -348,18 +336,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     {/* Timer or play button */}
                                     <div className="relative z-10">
                                         {isAvailable ? (
-                                            <div onClick={() => setShowJackpotRoulette(true)} className="w-full cursor-pointer"
-                                                style={{ borderRadius: 10, paddingBottom: 3, background: 'linear-gradient(180deg,#1a6000,#0e3a00)', boxShadow: '0 3px 6px rgba(0,0,0,0.5)' }}>
-                                                <div className="flex items-center justify-center" style={{ borderRadius: 8, background: 'linear-gradient(180deg,#a0f040,#6ad818,#4ab800)', padding: '5px 8px' }}>
-                                                    <span style={{ fontSize: 10, fontWeight: 900, color: '#fff' }}>Play</span>
-                                                </div>
-                                            </div>
+                                            <button onClick={() => setShowJackpotRoulette(true)} className="pill-green w-full">
+                                                <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px' }}>Play</div>
+                                            </button>
                                         ) : (
-                                            <div className="w-full text-center" style={{ borderRadius: 10, paddingBottom: 3, background: 'linear-gradient(180deg,#1a1a1a,#000)', boxShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
-                                                <div style={{ borderRadius: 8, background: 'linear-gradient(180deg,#2a2a2a,#1a1a1a)', padding: '5px 8px' }}>
-                                                    <span style={{ fontSize: 8, fontWeight: 900, color: 'rgba(255,255,255,0.5)' }}>{remH}h {remM}m</span>
-                                                </div>
-                                            </div>
+                                            <button disabled className="pill-green w-full opacity-50">
+                                                <div className="pill-face" style={{ padding: '5px 12px', fontSize: '8px', background: 'linear-gradient(180deg,#2a2a2a,#1a1a1a)' }}>{remH}h {remM}m</div>
+                                            </button>
                                         )}
                                     </div>
                                 </div>
@@ -659,20 +642,14 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             <div className="font-tanker text-yellow-300" style={{ fontSize: '1.5rem' }}>{rouletteResult}× Win!</div>
                                             <div className="font-mono font-black text-white" style={{ fontSize: '1.2rem' }}>+{(baseAmount * rouletteResult).toLocaleString('en-US')}</div>
                                         </div>
-                                        <div onClick={() => { onJackpotRouletteClaim?.(baseAmount * rouletteResult!); setShowJackpotRoulette(false); setRouletteResult(null); }} className="w-full cursor-pointer"
-                                            style={{ borderRadius: 10, paddingBottom: 3, background: 'linear-gradient(180deg,#1a6000,#0e3a00)', boxShadow: '0 3px 6px rgba(0,0,0,0.5)' }}>
-                                            <div className="flex items-center justify-center" style={{ borderRadius: 8, background: 'linear-gradient(180deg,#a0f040,#6ad818,#4ab800)', padding: '6px 8px' }}>
-                                                <span style={{ fontSize: 11, fontWeight: 900, color: '#fff' }}>Claim</span>
-                                            </div>
-                                        </div>
+                                        <button onClick={() => { onJackpotRouletteClaim?.(baseAmount * rouletteResult!); setShowJackpotRoulette(false); setRouletteResult(null); }} className="pill-green w-full">
+                                            <div className="pill-face" style={{ padding: '6px 12px', fontSize: '11px' }}>Claim</div>
+                                        </button>
                                     </div>
                                 ) : (
-                                    <div onClick={handleSpin} className={`w-full cursor-pointer ${rouletteSpinning ? 'pointer-events-none opacity-60' : ''}`}
-                                        style={{ borderRadius: 10, paddingBottom: 3, background: 'linear-gradient(180deg,#1a6000,#0e3a00)', boxShadow: '0 3px 6px rgba(0,0,0,0.5)' }}>
-                                        <div className="flex items-center justify-center" style={{ borderRadius: 8, background: 'linear-gradient(180deg,#a0f040,#6ad818,#4ab800)', padding: '6px 8px' }}>
-                                            <span style={{ fontSize: 11, fontWeight: 900, color: '#fff' }}>{rouletteSpinning ? 'Spinning...' : 'Spin!'}</span>
-                                        </div>
-                                    </div>
+                                    <button onClick={handleSpin} disabled={rouletteSpinning} className={`pill-green w-full${rouletteSpinning ? ' opacity-60' : ''}`}>
+                                        <div className="pill-face" style={{ padding: '6px 12px', fontSize: '11px' }}>{rouletteSpinning ? 'Spinning...' : 'Spin!'}</div>
+                                    </button>
                                 )}
                             </div>
                         </div>
