@@ -3955,8 +3955,8 @@ const App: React.FC = () => {
                     const albumReady = decks.filter((d: any) => d.isCompleted && !d.rewardClaimed).length;
                     const pillStyle = { width:'100%', textAlign:'center' as const, fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)', marginTop:'-6px' };
                     return (
-                        <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-1 items-center select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px' }}>
+                        <div className="absolute left-1 z-40 flex flex-col gap-1 items-center select-none"
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
                             {sidebarPage === 0 ? (<>
                                 {/* Mine */}
                                 <button
@@ -4008,9 +4008,7 @@ const App: React.FC = () => {
                                             {missReady}
                                         </div>
                                     )}
-                                    <div className="flex items-center justify-center rounded-xl" style={{ width:54, height:54, background:'rgba(255,255,255,0.1)', filter:'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
-                                        <i className="ti ti-target-arrow" style={{ fontSize:28, color:'#fff' }} />
-                                    </div>
+                                    <img src="/ui/missions_new.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                     <div style={pillStyle}>Check</div>
                                 </button>
                                 {/* Album */}
@@ -4023,18 +4021,16 @@ const App: React.FC = () => {
                                             {albumReady}
                                         </div>
                                     )}
-                                    <div className="flex items-center justify-center rounded-xl" style={{ width:54, height:54, background:'rgba(255,255,255,0.1)', filter:'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }}>
-                                        <i className="ti ti-cards" style={{ fontSize:28, color:'#fff' }} />
-                                    </div>
+                                    <img src="/ui/cards_new.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                     <div style={pillStyle}>Check</div>
                                 </button>
                             </>)}
-                            {/* Page toggle pill arrow */}
+                            {/* Page toggle pill — compact */}
                             <button
                                 onClick={() => setSidebarPage(p => p === 0 ? 1 : 0)}
                                 className="flex items-center justify-center active:scale-95 transition-transform mt-1"
-                                style={{ width:44, height:20, borderRadius:10, background:'rgba(255,255,255,0.13)', border:'1px solid rgba(255,255,255,0.18)' }}>
-                                <i className={`ti ${sidebarPage === 0 ? 'ti-chevron-down' : 'ti-chevron-up'}`} style={{ fontSize:12, color:'rgba(255,255,255,0.75)' }} />
+                                style={{ width:36, height:16, borderRadius:8, background:'rgba(255,255,255,0.13)', border:'1px solid rgba(255,255,255,0.18)' }}>
+                                <i className={`ti ${sidebarPage === 0 ? 'ti-chevron-down' : 'ti-chevron-up'}`} style={{ fontSize:10, color:'rgba(255,255,255,0.75)' }} />
                             </button>
                         </div>
                     );
