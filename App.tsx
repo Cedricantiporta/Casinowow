@@ -138,7 +138,11 @@ const PRELOAD_ASSETS = [
     '/lobby-bg.jpg', '/lobby-bg-vip.jpg',
     // slot cover images (shown in lobby cards)
     '/slots/piggy_covernew.jpg', '/slots/pharaoh_covernew.jpg', '/slots/dragon_covernew.png',
-    '/slots/pirate_covernew.png', '/slots/cosmic_covernew.png', '/slots/artic_covernew.png',
+    '/slots/pirate_covernew2.jpg', '/slots/cosmic_covernew.png', '/slots/artic_covernew.png',
+    '/slots/vegas_covernew.png', '/slots/sugar_covernew.png', '/slots/deep_covernew2.jpg',
+    '/slots/gold_covernew2.jpg', '/slots/samurai_covernew.jpg', '/slots/golden_covernew.jpg',
+    '/slots/lucky_covernew.png', '/slots/jungle_covernew.png', '/slots/mystic_covernew.png',
+    '/slots/fantasy_covernew.jpg',
     // bottom-bar + topbar UI icons
     '/ui/piggy.png', '/ui/missions.png', '/ui/collect.png', '/ui/cards.png',
     '/ui/pass.png', '/ui/games.png', '/ui/lobby.png', '/ui/exp_multiplier.png',
@@ -153,6 +157,12 @@ const LOBBY_PRELOAD_ASSETS = [
     // slot backgrounds
     '/slots/piggy_bg.jpg', '/slots/egypt_bg.jpg', '/slots/arctic_bg.jpg',
     '/slots/dragon_bg.jpg', '/slots/pirate_bg.jpg', '/slots/candy_bg.png',
+    // coinmine assets
+    '/coinmine_bg.jpg', '/coinmine_rockicon.png', '/coinmine_bombicon.png',
+    '/coinmine_coinicon.png', '/coinmine_gemicon.png', '/coinmine_pickaxe.png',
+    '/coinmine_stageclearicon.png',
+    // dice & album backgrounds
+    '/dice_background.jpg', '/album_background.jpg',
     // piggy symbols
     '/piggy/pig.png', '/piggy/bank.png', '/piggy/bell.png', '/piggy/cash.png', '/piggy/coin.png', '/piggy/hammer.png',
     // egypt symbols

@@ -505,7 +505,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
-            style={{ background: activeGame === 'WILD' ? 'url(/coinmine_bg.jpg) center/cover no-repeat' : 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
+            style={{ background: activeGame === 'WILD' ? 'url(/coinmine_bg.jpg) center/cover no-repeat' : activeGame === 'DICE' ? 'url(/dice_background.jpg) center/cover no-repeat' : 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
 
             {/* Topbar */}
             <div className="relative shrink-0 flex items-center px-3 h-[38px] z-20"
@@ -581,7 +581,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isGem = revealed && cell.content === 'GEM';
                                     const isReward = revealed && cell.content === 'REWARD';
                                     const isBomb = cell.content === 'BOMB';
-                                    const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
+                                    const tileSize = currentGridSize >= 6 ? 68 : currentGridSize >= 5 ? 76 : currentGridSize >= 4 ? 86 : 100;
                                     const gemPrize = Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage));
 
                                     const iconSrc = isExploding ? null
