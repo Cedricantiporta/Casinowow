@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { SymbolType, SymbolConfig, GameTheme } from '../types';
-import { WEIGHTS, NEON_WEIGHTS, GET_SYMBOLS } from '../constants';
+import { WEIGHTS, NEON_WEIGHTS, GET_SYMBOLS, JACKPOT_ICONS } from '../constants';
 import { GameConfig } from '../types';
 
 interface ReelProps {
@@ -323,7 +323,10 @@ const ReelCell: React.FC<{
                 ${bgClasses}
             `}
             style={
-                isJackpot && !highlight && jpStyle ? { background: jpStyle.solidBg }
+                isJackpot && !highlight && jpStyle
+                    ? (JACKPOT_ICONS[theme]
+                        ? { background: `${jpStyle.darkColor}cc` }
+                        : { background: jpStyle.solidBg })
                 : isLetter && !highlight ? { background: LETTER_DARK_BG[theme] ?? '#0a0a1a' }
                 : undefined
             }
@@ -356,15 +359,27 @@ const ReelCell: React.FC<{
                     ${activeBounce ? 'animate-bounce-sm' : ''}
                 `}>
                     {isJackpot ? (
-                        <span
-                            className="font-titan font-black tracking-widest select-none text-white leading-none text-center px-1"
-                            style={{
-                                fontSize: `clamp(0.4rem, ${(1.8 * cellScale).toFixed(2)}vw, ${(1.0 * cellScale).toFixed(3)}rem)`,
-                                textShadow: `0 1px 4px ${jpStyle?.darkColor ?? 'rgba(0,0,0,0.9)'}`,
-                            }}
-                        >
-                            {jpLabel}
-                        </span>
+                        <>
+                            {JACKPOT_ICONS[theme] && (
+                                <img
+                                    src={JACKPOT_ICONS[theme]}
+                                    alt=""
+                                    className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
+                                    style={{ opacity: 0.85 }}
+                                />
+                            )}
+                            <span
+                                className="font-tanker font-black tracking-widest select-none leading-none text-center px-1 relative z-10"
+                                style={{
+                                    fontSize: `clamp(0.5rem, ${(2.2 * cellScale).toFixed(2)}vw, ${(1.15 * cellScale).toFixed(3)}rem)`,
+                                    color: jpStyle?.border ?? '#fff',
+                                    textShadow: `0 0 6px ${jpStyle?.glow ?? 'rgba(255,255,255,0.8)'}, 0 1px 3px rgba(0,0,0,0.9)`,
+                                    WebkitTextStroke: `1px ${jpStyle?.border ?? '#fff'}`,
+                                }}
+                            >
+                                {jpLabel}
+                            </span>
+                        </>
                     ) : isImageIcon ? (
                         <img
                             src={config.icon}
