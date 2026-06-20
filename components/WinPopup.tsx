@@ -16,8 +16,10 @@ const WIN_STYLES: Record<string, { textColor: string; shadow: string }> = {
     'BIG WIN':      { textColor: '#86efac', shadow: 'rgba(34,197,94,0.7)'  },
 };
 
-const ARCHIVO_3D = (color: string): React.CSSProperties => ({
-    fontFamily: "'Archivo Black', sans-serif",
+const NUNITO_3D = (color: string): React.CSSProperties => ({
+    fontFamily: "'Nunito', sans-serif",
+    fontWeight: 900,
+    textTransform: 'uppercase' as const,
     color,
     textShadow: `2px 2px 0 #000, 4px 4px 0 rgba(0,0,0,0.5)`,
     WebkitTextStroke: '1px rgba(0,0,0,0.6)',
@@ -25,7 +27,8 @@ const ARCHIVO_3D = (color: string): React.CSSProperties => ({
 });
 
 const AMOUNT_STYLE: React.CSSProperties = {
-    fontFamily: "'Archivo Black', sans-serif",
+    fontFamily: "'Nunito', sans-serif",
+    fontWeight: 900,
     color: '#ffffff',
     textShadow: '2px 2px 0 #000, 0 0 8px rgba(0,0,0,0.9)',
     WebkitTextStroke: '1.5px #000',
@@ -77,7 +80,7 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
 
             <div className="flex flex-col items-center gap-4 p-6">
                 {/* Win type */}
-                <div style={{ fontSize: 'clamp(40px,11vw,88px)', lineHeight: 1, ...ARCHIVO_3D(s.textColor) }}>
+                <div style={{ fontSize: 'clamp(40px,11vw,88px)', lineHeight: 1, ...NUNITO_3D(s.textColor) }}>
                     {type}
                 </div>
 
@@ -86,7 +89,7 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
                     {formatK(displayAmount)}
                 </span>
 
-                <div style={{ fontFamily: "'Archivo Black', sans-serif", fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: 4 }}>
+                <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: 4 }}>
                     Tap to close
                 </div>
             </div>

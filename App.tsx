@@ -2462,12 +2462,13 @@ const App: React.FC = () => {
         if (scatterCount >= selectedGame.scattersToTrigger) {
              if (selectedGame.theme === 'NEON') {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
-                 audioService.playBonusTrigger();
+                 audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
                  const betAmt = currentBetRef.current;
                  if (neonRouletteTimerRef.current) clearTimeout(neonRouletteTimerRef.current);
                  neonRouletteTimerRef.current = setTimeout(() => {
                      neonRouletteTimerRef.current = null;
+                     audioService.playBonusTrigger();
                      setShowNeonRoulette(true);
                      setNeonRouletteBet(betAmt);
                  }, 3000);
@@ -2485,9 +2486,9 @@ const App: React.FC = () => {
                      audioService.playWinBig();
                  } else {
                      setStatus(GameStatus.SCATTER_SHOWCASE);
-                     audioService.playFreeSpinTrigger();
+                     audioService.playScatterTrigger();
                      setSpinsWithoutBonus(0);
-                     setTimeout(() => setShowCandyRoulette(true), 1500);
+                     setTimeout(() => { audioService.playFreeSpinTrigger(); setShowCandyRoulette(true); }, 1500);
                  }
                  return next;
              }
@@ -2508,9 +2509,10 @@ const App: React.FC = () => {
                  audioService.playWinBig();
              } else {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
-                 audioService.playFreeSpinTrigger();
+                 audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
                  setTimeout(() => {
+                     audioService.playFreeSpinTrigger();
                      setShowFreeSpinsPopup(true);
                  }, 2000);
                  return next;
@@ -2530,9 +2532,8 @@ const App: React.FC = () => {
                     audioService.playWinBig();
                 } else {
                     setStatus(GameStatus.SCATTER_SHOWCASE);
-                    audioService.playFreeSpinTrigger();
                     setSpinsWithoutBonus(0);
-                    setTimeout(() => { setShowFreeSpinsPopup(true); }, 2000);
+                    setTimeout(() => { audioService.playFreeSpinTrigger(); setShowFreeSpinsPopup(true); }, 2000);
                     return next;
                 }
             }
@@ -2556,9 +2557,9 @@ const App: React.FC = () => {
                     setTimeout(() => {
                         setDragonPotShaking(true);
                         setInstantStop(true);
-                        audioService.playBonusTrigger();
                         setTimeout(() => {
                             setDragonPotShaking(false);
+                            audioService.playBonusTrigger();
                             setShowDragonTriggerPopup(true);
                             setPlayer(p => ({ ...p, autoSpin: false }));
                         }, 3000);

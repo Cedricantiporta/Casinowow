@@ -155,11 +155,32 @@ class AudioService {
   }
 
   playFreeSpinTrigger() {
-    this.playSfxFile('/sfx/freespin_soundeffect.wav', 0.9);
+    // Bright ascending fanfare for free spins
+    [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568].forEach((f, i) => {
+      this.playTone(f, 'sine', 0.4, i * 0.075);
+    });
+    [2093, 2637, 3136].forEach((f, i) => {
+      this.playTone(f, 'triangle', 0.18, 0.5 + i * 0.06);
+    });
   }
 
   playBonusTrigger() {
-    this.playSfxFile('/sfx/bonus_soundeffect.wav', 0.9);
+    // Dramatic low boom + rising chord for bonus
+    if (!this.ctx || !this.masterGain) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    const boom = this.ctx.createOscillator();
+    boom.type = 'sine';
+    boom.frequency.setValueAtTime(80, t);
+    boom.frequency.exponentialRampToValueAtTime(35, t + 0.45);
+    const bg = this.ctx.createGain();
+    bg.gain.setValueAtTime(0.65, t);
+    bg.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+    boom.connect(bg); bg.connect(this.masterGain);
+    boom.start(t); boom.stop(t + 0.5);
+    [220, 277.18, 329.63, 440, 554.37, 659.25].forEach((f, i) => {
+      this.playTone(f, 'sawtooth', 0.25, 0.15 + i * 0.08);
+    });
   }
 
   // ── Coin count-up tick — 40% shorter, very quiet ───────────────────────────
