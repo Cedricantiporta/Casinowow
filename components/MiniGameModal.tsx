@@ -586,36 +586,36 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isBomb = cell.content === 'BOMB';
                                     const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
                                     const gemPrize = Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage));
-                                    const icon: React.ReactNode = isGem ? <img src="/coinmine_gemicon.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : isReward
-                                        ? (cell.reward?.type === 'COINS' ? <img src="/coinmine_coinicon.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : cell.reward?.type === 'PICKS' ? <img src="/ui/pick.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : <img src="/coinmine_gemicon.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} />)
-                                        : revealed && isBomb ? <img src="/coinmine_bombicon.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : null;
-                                    const tileBg = revealed
-                                        ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isBomb ? 'linear-gradient(180deg,#b45309,#78350f)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
-                                        : 'linear-gradient(180deg,#4c1d95,#2e1065)';
+
+                                    const iconSrc = isExploding ? null
+                                        : !revealed ? '/coinmine_rockicon.png'
+                                        : isGem ? '/coinmine_gemicon.png'
+                                        : isBomb ? '/coinmine_bombicon.png'
+                                        : isReward && cell.reward?.type === 'COINS' ? '/coinmine_coinicon.png'
+                                        : isReward && cell.reward?.type === 'PICKS' ? '/coinmine_pickaxe.png'
+                                        : isReward ? '/coinmine_gemicon.png'
+                                        : null;
+
                                     return (
                                         <button key={i} onClick={() => handleTileClick(i)}
                                             disabled={revealed || wildCredits <= 0 || stageWinning || stagePending}
-                                            className={`relative flex flex-col items-center justify-center rounded-xl active:translate-y-[2px] transition-all overflow-hidden${isExploding ? ' animate-bounce' : ''}`}
+                                            className={`relative flex flex-col items-center justify-center active:scale-95 transition-all${isExploding ? ' animate-bounce' : ''}`}
                                             style={{
                                                 width: tileSize, height: tileSize,
-                                                background: isExploding ? 'linear-gradient(180deg,#f97316,#c2410c)' : tileBg,
-                                                boxShadow: isExploding ? '0 0 16px #f97316' : revealed ? 'none' : '0 4px 0 #1e0438, 0 6px 12px rgba(0,0,0,0.5)',
-                                                border: revealed ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                                                background: 'none',
+                                                border: 'none',
+                                                boxShadow: 'none',
                                                 cursor: revealed || wildCredits <= 0 || stageWinning ? 'default' : 'pointer',
                                             }}>
                                             {isExploding ? (
-                                                <span style={{ fontSize: tileSize * 0.72, lineHeight: 1 }}>💥</span>
-                                            ) : revealed ? (
-                                                icon ? (
-                                                    <>
-                                                        <span style={{ lineHeight: 1 }}>{icon}</span>
-                                                        {isGem && <span style={{ fontSize: Math.max(8, tileSize * 0.16) }} className="font-black text-yellow-300 mt-0.5 leading-none text-center px-0.5">+{formatCommaNumber(gemPrize)}</span>}
-                                                        {isReward && <span style={{ fontSize: Math.max(9, tileSize * 0.19) }} className="font-bold text-white/90 mt-0.5 leading-none">{cell.reward?.label}</span>}
-                                                    </>
-                                                ) : null
-                                            ) : (
-                                                <img src="/coinmine_rockicon.png" alt="" style={{ width: tileSize * 0.75, height: tileSize * 0.75, objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }} />
-                                            )}
+                                                <span style={{ fontSize: tileSize * 0.9, lineHeight: 1 }}>💥</span>
+                                            ) : iconSrc ? (
+                                                <div className="relative flex flex-col items-center">
+                                                    <img src={iconSrc} alt="" style={{ width: tileSize, height: tileSize, objectFit: 'contain' }} />
+                                                    {isGem && <span style={{ position: 'absolute', bottom: -10, fontSize: Math.max(8, tileSize * 0.16), fontWeight: 900, color: '#fde68a', whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>+{formatCommaNumber(gemPrize)}</span>}
+                                                    {isReward && <span style={{ position: 'absolute', bottom: -10, fontSize: Math.max(9, tileSize * 0.19), fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{cell.reward?.label}</span>}
+                                                </div>
+                                            ) : null}
                                         </button>
                                     );
                                 })}
@@ -625,14 +625,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
                     {/* Right sidebar: stage counter, picks, buy button */}
                     <div className="shrink-0 flex flex-col items-center justify-center gap-2 px-2 py-3"
-                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 80, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
+                        style={{ background: 'rgba(10,0,40,0.72)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.3), 0 4px 16px rgba(0,0,0,0.6)', width: 80, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
                         <div className="flex flex-col items-center leading-none">
                             <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
                             <span className="font-black text-white text-2xl leading-none">{wildStage}</span>
                         </div>
                         <div className="w-full h-px bg-white/10" />
                         <div className="flex flex-col items-center leading-none">
-                            <img src="/ui/pick.png" alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain' }} />
+                            <img src="/coinmine_pickaxe.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
                             <span className="font-black text-white text-xl leading-none mt-0.5">{wildCredits}</span>
                             <span className="text-white/50 text-[8px] font-black">Picks</span>
                         </div>
