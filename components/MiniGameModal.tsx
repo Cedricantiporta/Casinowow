@@ -549,8 +549,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                     )}
                     {stagePending && (
-                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-auto" style={{ background: 'rgba(0,0,0,0.72)' }}>
-                            <div className="font-black text-white text-2xl uppercase tracking-widest animate-pulse" style={{ textShadow: '0 0 20px rgba(96,165,250,0.9)' }}>Stage Clear!</div>
+                        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-none">
+                            <div className="font-black text-white uppercase tracking-widest animate-pulse" style={{ fontSize: '2.8rem', textShadow: '0 0 30px rgba(96,165,250,1), 0 2px 8px rgba(0,0,0,0.9)' }}>Stage Clear!</div>
                         </div>
                     )}
 
@@ -671,13 +671,17 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 transform: isHere ? 'scale(1.18)' : 'scale(1)',
                                             }}>
                                             {isHere && (
-                                                <img src="/dice_avatar.png" alt="" className="absolute z-20 pointer-events-none"
-                                                    style={{ width: '80%', top: '-18%', left: '10%', objectFit: 'contain', animation: 'diceBounce 1s ease-in-out infinite' }} />
+                                                <>
+                                                    <span className="absolute z-20 pointer-events-none font-black text-white text-center leading-none"
+                                                        style={{ fontSize: 'clamp(8px,1.8vw,11px)', top: '-38%', left: 0, right: 0, textShadow: '0 1px 3px rgba(0,0,0,1)' }}>You</span>
+                                                    <img src="/dice_avatar.png" alt="" className="absolute z-20 pointer-events-none"
+                                                        style={{ width: '80%', top: '-18%', left: '10%', objectFit: 'contain', animation: 'diceBounce 1s ease-in-out infinite' }} />
+                                                </>
                                             )}
                                             <div className="relative flex items-center justify-center w-full h-full">
                                                 <img src={iconSrc} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
                                                 {step.reward?.label && step.reward.type !== 'BACK' && step.reward.type !== 'STAR' && !step.isFinish && !step.isStart && (
-                                                    <span className="absolute left-0 right-0 text-center font-black text-white leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,1)]" style={{ fontSize: 'clamp(11px,2.2vw,16px)', bottom: '12%' }}>{step.reward.label}</span>
+                                                    <span className="absolute left-0 right-0 text-center font-black text-white leading-none drop-shadow-[0_1px_3px_rgba(0,0,0,1)]" style={{ fontSize: 'clamp(11px,2.2vw,16px)', bottom: '25%' }}>{step.reward.label}</span>
                                                 )}
                                             </div>
                                         </div>
@@ -762,17 +766,18 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 </div>
             )}
 
-            {/* Stage clear reward — centered bottom popup, shown for both WILD and DICE */}
+            {/* Stage clear reward modal — centered, shown for both WILD and DICE */}
             {stageWinning && stageClearData && (
-                <div className="absolute bottom-4 left-0 right-0 z-50 flex justify-center pointer-events-none">
-                    <div className="animate-pop-in flex items-center gap-4 rounded-2xl px-6 py-3 pointer-events-auto"
-                        style={{ background: 'none', minWidth: 280 }}>
-                        <div className="flex-1 flex items-center gap-3">
-                            <span className="text-white font-black text-2xl font-mono leading-none">+{formatCommaNumber(stageClearData.coins)}</span>
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <div className="animate-pop-in rounded-2xl flex flex-col items-center gap-4 px-8 py-6 pointer-events-auto"
+                        style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', minWidth: 240 }}>
+                        <div className="font-black text-yellow-300 uppercase tracking-widest" style={{ fontSize: '1.3rem', textShadow: '0 0 16px rgba(250,220,80,0.7)' }}>Stage Clear!</div>
+                        <div className="flex flex-col items-center gap-1.5">
+                            <span className="text-white font-black font-mono leading-none" style={{ fontSize: '1.8rem' }}>+{formatCommaNumber(stageClearData.coins)}</span>
                             {stageClearData.gems > 0 && <span className="text-white font-black text-xl font-mono leading-none">+{stageClearData.gems} 💎</span>}
                         </div>
                         <button onClick={handleNextStage}
-                            className="btn-3d px-5 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-wide shrink-0"
+                            className="btn-3d px-6 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-wide"
                             style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #0a4a23' }}>
                             Next →
                         </button>
