@@ -206,20 +206,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             )}
                                             <div className="absolute inset-0 z-10 select-none">
                                                 {!game.coverImage && (
-                                                    <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '1.5rem' }}>
+                                                    <div className="absolute inset-0 flex items-center justify-center">
                                                         {THEME_PNG[game.theme] ? (
                                                             <img src={THEME_PNG[game.theme]} alt="" style={{ width: '6.5rem', height: '6.5rem', objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.9))' }} />
                                                         ) : (
                                                             <span style={{ fontSize: '6rem', lineHeight: 1, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.9))' }}>{icon}</span>
                                                         )}
-                                                    </div>
-                                                )}
-                                                {!game.coverImage && (
-                                                    <div className="absolute bottom-0 left-0 right-0 pb-2 px-1 text-center">
-                                                        <h3 className={`text-[11px] font-black tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
-                                                            style={{ WebkitTextStroke: '1px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
-                                                            {game.name}
-                                                        </h3>
                                                     </div>
                                                 )}
                                             </div>
@@ -290,7 +282,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         )}
                                         <div className="absolute inset-0 overflow-hidden z-10 select-none" style={{ borderRadius: 14 }}>
                                             {!game.coverImage && (
-                                                <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: '1.2rem' }}>
+                                                <div className="absolute inset-0 flex items-center justify-center">
                                                     {THEME_PNG[game.theme] ? (
                                                         <img src={THEME_PNG[game.theme]} alt="" style={{ width: THEME_ICON_SIZE[game.theme] ?? '4.5rem', height: THEME_ICON_SIZE[game.theme] ?? '4.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }} />
                                                     ) : (
@@ -298,13 +290,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                     )}
                                                 </div>
                                             )}
-                                            {/* Bottom gradient + name — always shown */}
-                                            <div className="absolute bottom-0 left-0 right-0" style={{ borderBottomLeftRadius: 14, borderBottomRightRadius: 14, background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 60%, transparent 100%)', paddingBottom: 4, paddingTop: 14 }}>
-                                                <h3 className={`text-[10px] font-black tracking-wide leading-tight text-center px-0.5 line-clamp-2 ${getFontClass(game.theme)}`}
-                                                    style={{ color: '#fff', WebkitTextStroke: '0.8px rgba(0,0,0,0.9)', paintOrder: 'stroke fill', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
-                                                    {game.name}
-                                                </h3>
-                                            </div>
                                         </div>
                                         <div className="absolute inset-0 overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: 14 }}></div>
                                     </button>

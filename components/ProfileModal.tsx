@@ -42,7 +42,7 @@ const THEME_ICONS: Record<string, string> = {
     SAMURAI: '⚔️',
 };
 
-const StatRow: React.FC<{ icon: string; label: string; value: string; vip?: boolean }> = ({ icon, label, value, vip }) => (
+const StatRow: React.FC<{ icon: string; label: string; value: string }> = ({ icon, label, value }) => (
     <div className="flex items-center gap-2.5 py-1.5">
         <span className="text-xl leading-none w-7 text-center flex items-center justify-center">
             {icon.startsWith('/') ? (
@@ -50,7 +50,7 @@ const StatRow: React.FC<{ icon: string; label: string; value: string; vip?: bool
             ) : icon}
         </span>
         <span className="text-xs flex-1 font-bold text-white font-nunito">{label}</span>
-        <span className={`font-black text-sm font-mono ${vip ? 'text-yellow-200' : 'text-white'}`}>{value}</span>
+        <span className="font-black text-sm font-nunito text-white">{value}</span>
     </div>
 );
 
@@ -73,15 +73,26 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'
         : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)';
 
+    const containerBg = vip
+        ? 'linear-gradient(180deg,#c9901a 0%,#9a6800 18%,#5a3800 100%)'
+        : 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)';
+    const containerShadow = vip
+        ? 'inset 0 1px 0 rgba(255,220,100,0.5), 0 8px 32px rgba(0,0,0,0.8)'
+        : 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)';
+    const xpBarBg = vip
+        ? 'linear-gradient(180deg,#3a1800,#1e0c00)'
+        : 'linear-gradient(180deg,#2a0d52,#1a0838)';
+    const xpBarBorder = vip ? '#8b5e00' : '#38106e';
+
     return (
         <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
         <div className="w-full max-w-[560px] flex flex-col rounded-3xl overflow-hidden font-nunito"
-            style={{ height: 'min(88%, 560px)', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+            style={{ height: 'min(88%, 560px)', background: containerBg, boxShadow: containerShadow }}>
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 pt-2.5 pb-3">
 
-                {/* Avatar — clickable emoji, styled like round-btn but large */}
+                {/* Avatar */}
                 <div className="relative shrink-0">
                     <button
                         onClick={() => setShowEmojiPicker(v => !v)}
@@ -95,7 +106,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     {showEmojiPicker && (
                         <div className="absolute top-14 left-0 z-50 rounded-2xl p-2 shadow-2xl flex flex-wrap gap-1.5"
                             style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 160 }}>
-                            {/* None option */}
                             <button
                                 onClick={() => { onSetProfileEmoji?.(''); setShowEmojiPicker(false); }}
                                 className="w-9 h-9 rounded-xl flex items-center justify-center transition-transform active:scale-90 hover:brightness-125"
@@ -119,23 +129,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         <span className="font-black text-white text-sm tracking-wider leading-none font-nunito">
                             {playerName}
                         </span>
-                        <span className="font-black text-[10px] leading-none px-1.5 py-0.5 rounded-full font-nunito"
-                            style={{ background: vip ? 'rgba(251,191,36,0.2)' : 'rgba(168,85,247,0.2)', color: vip ? '#fde68a' : '#d8b4fe' }}>
+                        <span className="font-black text-[10px] leading-none text-white font-nunito">
                             Lv.{player.level}
                         </span>
-                        {vip && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide font-nunito"
-                                style={{ background: '#991b1b', border: '1px solid #f0c000', color: '#fde68a' }}>VIP</span>
-                        )}
-                        {isPremium && (
-                            <span className="text-[9px] font-black px-2 py-0.5 rounded-full tracking-wide font-nunito"
-                                style={{ background: '#14532d', border: '1px solid #86efac', color: '#bbf7d0' }}>Pass</span>
-                        )}
                     </div>
 
-                    {/* XP bar — matches topbar rtrack design */}
+                    {/* XP bar */}
                     <div className="relative h-[20px] overflow-hidden"
-                        style={{ borderRadius: 18, background: 'linear-gradient(180deg,#2a0d52,#1a0838)', border: '1px solid #38106e', boxShadow: 'inset 0 2px 3px rgba(0,0,0,0.6)' }}>
+                        style={{ borderRadius: 18, background: xpBarBg, border: `1px solid ${xpBarBorder}`, boxShadow: 'inset 0 2px 3px rgba(0,0,0,0.6)' }}>
                         <div className="absolute left-0 top-0 bottom-0 transition-all"
                             style={{ width: `${xpPct}%`, borderRadius: 12, background: xpFillGradient, boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)' }} />
                         <div className="absolute inset-0 flex items-center justify-center px-2.5">
@@ -158,13 +159,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 {/* LEFT — Stats */}
                 <div className="flex-1 px-3 py-2 flex flex-col overflow-y-auto no-scrollbar">
                     <div className="text-[9px] font-black mb-1 text-white font-nunito">Stats</div>
-                    <StatRow vip={vip} icon="/symbols/coin.png" label="Balance" value={formatK(player.balance)} />
-                    <StatRow vip={vip} icon="/symbols/diamond.png" label="Gems" value={formatK(player.diamonds)} />
-                    <StatRow vip={vip} icon="🎰" label="Total Spins" value={formatK(stats.totalSpins)} />
-                    <StatRow vip={vip} icon="🏆" label="Max Win" value={formatK(stats.maxSingleWin)} />
-                    <StatRow vip={vip} icon="/symbols/coin.png" label="Total Won" value={formatK(stats.totalCoinsWon)} />
-                    <StatRow vip={vip} icon="🎯" label="Max Jackpot" value={formatK(stats.maxJackpotWin)} />
-                    <StatRow vip={vip} icon="📚" label="Albums" value={`${albumsCompleted}/${albumsTotal}`} />
+                    <StatRow icon="/symbols/coin.png" label="Balance" value={formatK(player.balance)} />
+                    <StatRow icon="/symbols/diamond.png" label="Gems" value={formatK(player.diamonds)} />
+                    <StatRow icon="🎰" label="Total Spins" value={formatK(stats.totalSpins)} />
+                    <StatRow icon="🏆" label="Max Win" value={formatK(stats.maxSingleWin)} />
+                    <StatRow icon="/symbols/coin.png" label="Total Won" value={formatK(stats.totalCoinsWon)} />
+                    <StatRow icon="🎯" label="Max Jackpot" value={formatK(stats.maxJackpotWin)} />
                 </div>
 
                 {/* RIGHT — Recent Slots */}
@@ -178,20 +178,11 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                                     <button key={i} className="rounded-xl overflow-hidden relative cursor-pointer active:scale-95 transition-transform"
                                         style={{ aspectRatio: '1/1' }}
                                         onClick={() => { onNavigateToGame?.(game); onClose(); }}>
-                                        {/* Cover or gradient bg */}
                                         <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`} />
                                         {game.coverImage
                                             ? <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
                                             : <div className="absolute inset-0 flex items-center justify-center"><span className="text-2xl leading-none drop-shadow-lg">{icon}</span></div>
                                         }
-                                        {/* Name overlay */}
-                                        <div className="absolute bottom-0 left-0 right-0 px-0.5 pb-1 pt-3"
-                                            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%)' }}>
-                                            <div className="text-white font-black text-[8px] tracking-wide text-center leading-tight truncate font-nunito"
-                                                style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
-                                                {game.name}
-                                            </div>
-                                        </div>
                                     </button>
                                 );
                             })}
