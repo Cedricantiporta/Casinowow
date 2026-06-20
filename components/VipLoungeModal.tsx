@@ -104,8 +104,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                 <div className="flex-1 flex gap-2.5 px-4 pb-4 min-h-0">
 
                     {/* LEFT — Lounge Benefits */}
-                    <div className="flex-[3] flex flex-col rounded-2xl overflow-hidden"
-                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                    <div className="tcard flex-[3] flex flex-col overflow-hidden">
 
                         <div className="shrink-0 px-3 pt-3 pb-1 text-center">
                             <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>Lounge Benefits</span>
@@ -138,8 +137,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                     </div>
 
                     {/* RIGHT — High Limit */}
-                    <div className="flex-[2] flex flex-col rounded-2xl overflow-hidden"
-                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                    <div className="tcard flex-[2] flex flex-col overflow-hidden">
 
                         <div className="shrink-0 px-3 pt-3 pb-1 text-center">
                             <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>High Limit</span>

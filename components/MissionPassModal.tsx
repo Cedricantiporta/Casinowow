@@ -214,15 +214,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden" style={{ background: 'transparent' }}>
                         {currentMissions.map((mission) => (
                             <div key={mission.id}
-                                className="flex-1 flex flex-col gap-2 rounded-xl p-3 relative overflow-hidden shadow-lg"
-                                style={{
-                                    background: mission.isGolden
-                                        ? 'linear-gradient(160deg,#a16207 0%,#78350f 60%,#451a03 100%)'
-                                        : 'linear-gradient(160deg,#1e3a8a 0%,#1e1b4b 60%,#0a0f2e 100%)',
-                                    boxShadow: mission.isGolden
-                                        ? 'inset 0 1px 0 rgba(255,220,80,0.4), 0 4px 12px rgba(0,0,0,0.5)'
-                                        : 'inset 0 1px 0 rgba(100,160,255,0.35), 0 4px 12px rgba(0,0,0,0.5)',
-                                }}>
+                                className={`${mission.isGolden ? 'tcard-gold' : 'tcard'} flex-1 flex flex-col gap-2 p-3 relative overflow-hidden`}>
 
                                 {/* Stacks badges */}
                                 {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (

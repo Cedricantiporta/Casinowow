@@ -43,8 +43,7 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
                     <div className="flex-1 flex items-center justify-center text-white/30 text-sm font-bold uppercase">No messages</div>
                 )}
                 {messages.map(msg => (
-                    <div key={msg.id} className="rounded-2xl p-3 flex items-center gap-3"
-                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                    <div key={msg.id} className="tcard p-3 flex items-center gap-3">
                         <img src={MSG_ICONS[msg.type] ?? '/ui/gift_mail.png'} alt="" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.5))' }} />
                         <div className="flex-1 min-w-0">
                             <div className="font-black text-white text-xs tracking-wide leading-none">{msg.title}</div>

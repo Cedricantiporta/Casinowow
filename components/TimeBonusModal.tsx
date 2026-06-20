@@ -51,8 +51,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                     const isReady = timeLeft === 0;
 
                     return (
-                        <div key={timer.id} className="flex flex-col items-center flex-1 gap-2 rounded-2xl p-3"
-                            style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                        <div key={timer.id} className="tcard flex flex-col items-center flex-1 gap-2 p-3">
                             <div className={`transition-all duration-300 ${isReady ? 'scale-105' : 'brightness-50 grayscale'}`}>
                                 <img
                                     src={timer.id === 0 ? '/ui/double.png' : timer.id === 1 ? '/ui/roller.png' : '/ui/jackpot.png'}
@@ -76,8 +75,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                 })}
 
                 {/* Jackpot roulette tile — playable every 3 hours */}
-                <div className="flex flex-col items-center flex-1 gap-2 rounded-2xl p-3"
-                    style={{ background: 'linear-gradient(180deg,rgba(251,191,36,0.28) 0%,rgba(180,90,9,0.22) 20%,rgba(40,15,0,0.78) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,220,120,0.45), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                <div className="tcard flex flex-col items-center flex-1 gap-2 p-3">
                     <div className={`transition-all duration-300 flex items-center justify-center ${jackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
                         <img src="/symbols/neon_bonus.png" alt=""
                             style={{ width: 72, height: 72, objectFit: 'contain', filter: jackpotReady ? 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' : undefined }} />

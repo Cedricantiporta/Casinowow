@@ -170,8 +170,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <div>
                         <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Account</div>
-                        <div className="rounded-xl p-3 flex flex-col gap-2"
-                            style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                        <div className="tcard p-3 flex flex-col gap-2">
                             <p className="text-white/70 text-[9px] leading-snug">Reset all progress including coins, gems, level, and history. This cannot be undone.</p>
                             <button
                                 onClick={() => setShowResetConfirm(true)}
@@ -188,8 +187,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-3 flex flex-col gap-3">
                     <div>
                         <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Redeem Code</div>
-                        <div className="rounded-xl p-3 flex flex-col gap-2"
-                            style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                        <div className="tcard p-3 flex flex-col gap-2">
                             <p className="text-white/70 text-[9px] leading-snug">Enter a code to claim special rewards.</p>
                             <div className="flex gap-2">
                                 <input
@@ -215,8 +213,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     {/* About */}
                     <div>
                         <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">About</div>
-                        <div className="rounded-xl p-3 flex flex-col gap-1.5"
-                            style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                        <div className="tcard p-3 flex flex-col gap-1.5">
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">🎰</span>
                                 <div>

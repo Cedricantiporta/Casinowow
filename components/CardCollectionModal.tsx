@@ -574,13 +574,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     const canDrawOne = pack.credits >= 1;
                                     const canDrawTen = pack.credits >= 9;
                                     return (
-                                        <div key={pack.id} className="flex flex-col rounded-2xl overflow-hidden"
-                                            style={{
-                                                width: 160,
-                                                background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(10,0,50,0.75) 100%)',
-                                                boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
-                                                padding: '14px 12px 12px',
-                                            }}>
+                                        <div key={pack.id} className="tcard flex flex-col overflow-hidden"
+                                            style={{ width: 160, padding: '14px 12px 12px' }}>
                                             <div className="flex-1 flex flex-col items-center justify-center gap-2">
                                                 <div className="font-black text-white text-sm tracking-widest text-center leading-none">{pack.name}</div>
                                                 <div className="font-bold text-white/50 text-[11px]">{pack.credits} packs</div>
