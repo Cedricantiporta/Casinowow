@@ -550,10 +550,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     )}
                     {stagePending && (
                         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-auto" style={{ background: 'rgba(0,0,0,0.72)' }}>
-                            <div style={{ lineHeight: 1, filter: 'drop-shadow(0 0 32px rgba(96,165,250,1))' }} className="animate-vibrate">
-                                <img src="/coinmine_stageclearicon.png" alt="" style={{ width: '72px', height: '72px', objectFit: 'contain', display: 'block' }} />
-                            </div>
-                            <div className="mt-3 font-black text-white text-xl uppercase tracking-widest animate-pulse" style={{ textShadow: '0 0 20px rgba(96,165,250,0.9)' }}>Stage Clear!</div>
+                            <div className="font-black text-white text-2xl uppercase tracking-widest animate-pulse" style={{ textShadow: '0 0 20px rgba(96,165,250,0.9)' }}>Stage Clear!</div>
                         </div>
                     )}
 
@@ -610,10 +607,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             {isExploding ? (
                                                 <span style={{ fontSize: tileSize * 0.9, lineHeight: 1 }}>💥</span>
                                             ) : iconSrc ? (
-                                                <div className="relative flex flex-col items-center">
+                                                <div className="relative" style={{ width: tileSize, height: tileSize }}>
                                                     <img src={iconSrc} alt="" style={{ width: tileSize, height: tileSize, objectFit: 'contain' }} />
-                                                    {isGem && <span style={{ position: 'absolute', bottom: -10, fontSize: Math.max(8, tileSize * 0.16), fontWeight: 900, color: '#fde68a', whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>+{formatCommaNumber(gemPrize)}</span>}
-                                                    {isReward && <span style={{ position: 'absolute', bottom: -10, fontSize: Math.max(9, tileSize * 0.19), fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{cell.reward?.label}</span>}
+                                                    {isGem && <span style={{ position: 'absolute', bottom: 4, left: 0, right: 0, textAlign: 'center', fontSize: Math.max(8, tileSize * 0.17), fontWeight: 900, color: '#fde68a', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>+{formatCommaNumber(gemPrize)}</span>}
+                                                    {isReward && <span style={{ position: 'absolute', bottom: 4, left: 0, right: 0, textAlign: 'center', fontSize: Math.max(9, tileSize * 0.19), fontWeight: 900, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{cell.reward?.label}</span>}
                                                 </div>
                                             ) : null}
                                         </button>
