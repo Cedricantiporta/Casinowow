@@ -554,39 +554,23 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         </div>
                     )}
 
-                    {stageWinning && stageClearData && (
-                        <div className="absolute inset-x-3 bottom-4 z-50 animate-pop-in">
-                            <div className="flex items-center gap-4 rounded-2xl px-5 py-3"
-                                style={{ background: 'linear-gradient(180deg,#1e3a8a,#0f172a)', boxShadow: 'inset 0 1px 0 rgba(100,180,255,0.3), 0 6px 24px rgba(0,0,0,0.9)' }}>
-                                <div className="flex-1 flex items-center gap-4">
-                                    <span className="text-white font-black text-2xl font-mono leading-none">+{formatCommaNumber(stageClearData.coins)}</span>
-                                    {stageClearData.gems > 0 && <span className="text-white font-black text-xl font-mono leading-none">+{stageClearData.gems}</span>}
-                                </div>
-                                <button onClick={handleNextStage}
-                                    className="btn-3d px-5 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-wide shrink-0"
-                                    style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #0a4a23' }}>
-                                    Next Stage →
-                                </button>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Rock grid */}
                     <div className="flex-1 flex items-center justify-center p-3">
                         <div className="relative p-2">
-                            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))` }}>
+                            <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))` }}>
                                 {grid.map((cell, i) => {
                                     const revealed = cell.revealed;
                                     const isExploding = explodingCells.has(i);
                                     const isGem = revealed && cell.content === 'GEM';
                                     const isReward = revealed && cell.content === 'REWARD';
                                     const isBomb = cell.content === 'BOMB';
-                                    const tileSize = currentGridSize >= 6 ? 68 : currentGridSize >= 5 ? 76 : currentGridSize >= 4 ? 86 : 100;
+                                    const tileSize = currentGridSize >= 6 ? 78 : currentGridSize >= 5 ? 88 : currentGridSize >= 4 ? 100 : 114;
                                     const gemPrize = Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage));
 
                                     const iconSrc = isExploding ? null
                                         : !revealed ? '/coinmine_rockicon.png'
-                                        : isGem ? '/coinmine_gemicon.png'
+                                        : isGem ? '/coinmine_stageclearicon.png'
                                         : isBomb ? '/coinmine_bombicon.png'
                                         : isReward && cell.reward?.type === 'COINS' ? '/coinmine_coinicon.png'
                                         : isReward && cell.reward?.type === 'PICKS' ? '/coinmine_pickaxe.png'
@@ -791,6 +775,24 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             }}>
                             <span style={{ fontSize: '0.85rem', lineHeight: 1 }}>🎲</span>
                             <span className="font-black text-[9px]" style={{ color: doubleRoll ? '#fbbf24' : 'rgba(255,255,255,0.5)' }}>+🎲 2×</span>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Stage clear reward — centered bottom popup, shown for both WILD and DICE */}
+            {stageWinning && stageClearData && (
+                <div className="absolute bottom-4 left-0 right-0 z-50 flex justify-center pointer-events-none">
+                    <div className="animate-pop-in flex items-center gap-4 rounded-2xl px-6 py-3 pointer-events-auto"
+                        style={{ background: 'linear-gradient(180deg,#1e3a8a,#0f172a)', boxShadow: 'inset 0 1px 0 rgba(100,180,255,0.3), 0 6px 24px rgba(0,0,0,0.9)', minWidth: 280 }}>
+                        <div className="flex-1 flex items-center gap-3">
+                            <span className="text-white font-black text-2xl font-mono leading-none">+{formatCommaNumber(stageClearData.coins)}</span>
+                            {stageClearData.gems > 0 && <span className="text-white font-black text-xl font-mono leading-none">+{stageClearData.gems} 💎</span>}
+                        </div>
+                        <button onClick={handleNextStage}
+                            className="btn-3d px-5 py-2.5 rounded-xl font-black text-sm uppercase text-white tracking-wide shrink-0"
+                            style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 3px 0 #0a4a23' }}>
+                            Next →
                         </button>
                     </div>
                 </div>
