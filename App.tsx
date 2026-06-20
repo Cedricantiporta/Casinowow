@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_WEEKLY_MISSIONS, GENERATE_MONTHLY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK } from './constants';
 import { Reel } from './components/Reel';
 import { WinPopup } from './components/WinPopup';
 import { LeftSidebar } from './components/LeftSidebar';
@@ -318,7 +318,7 @@ const App: React.FC = () => {
       }
     } catch {}
     const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; })();
-    return { lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(1), ...GENERATE_WEEKLY_MISSIONS(1), ...GENERATE_MONTHLY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 100, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
+    return { lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 100, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
   });
   const [decks, setDecks] = useState<Deck[]>(GENERATE_DECKS());
 
@@ -1075,7 +1075,7 @@ const App: React.FC = () => {
       if (player.level < 10) return; 
       setMissionState(prev => {
           const visibleIds = new Set<string>();
-          const frequencies = ['DAILY', 'WEEKLY', 'MONTHLY'];
+          const frequencies = ['DAILY'];
           frequencies.forEach(freq => {
               const visibleForFreq = prev.activeMissions.filter(m => m.frequency === freq && !m.claimed).slice(0, 4);
               visibleForFreq.forEach(m => visibleIds.add(m.id));

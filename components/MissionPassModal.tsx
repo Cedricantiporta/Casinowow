@@ -170,76 +170,51 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
             <div className="w-full h-full flex flex-col relative overflow-hidden">
 
                 {/* ===== TOPBAR ===== */}
-                {view === 'MISSIONS' ? (
-                    /* MISSIONS topbar: [XP pill + pass btn] | centered title | [boost?] [gems] [X] */
-                    <div className={topbarBase} style={topbarStyle}>
-                        <div className="relative flex items-center gap-1.5 px-3 h-[40px]">
-                            <span className="absolute left-0 right-0 text-center font-tanker text-white text-sm pointer-events-none">Daily Missions</span>
-                            {/* Left: pass XP pill + shortcut */}
-                            <div className="flex items-center gap-1 z-10 shrink-0">
-                                <div className="rtrack" style={{ flex: 'none', width: 90 }}>
-                                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18 }}>
-                                        <div className="rfill" style={{ width: `${Math.min(100, (missionState.passXP / missionState.passXpToNext) * 100)}%` }} />
-                                    </div>
-                                    <span className="rnum" style={{ fontSize: 9 }}>Lv.{missionState.passLevel} {missionState.passXP}/{missionState.passXpToNext}</span>
-                                </div>
-                                <button onClick={() => setView('PASS')} className="round-btn shrink-0" style={{ cursor: 'pointer' }}>
-                                    <i className="ti ti-trophy" />
-                                </button>
-                            </div>
-                            <div className="flex-1" />
-                            {/* Right: boost badge + gems + close */}
-                            {missionState.passBoostMultiplier > 1 && missionState.passBoostEndTime > Date.now() && (
-                                <span className="font-black text-[10px] px-2 py-0.5 rounded-full z-10 shrink-0 flex items-center gap-1"
-                                    style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24' }}>
-                                    <i className="ti ti-bolt" style={{ fontSize: '0.75rem' }} />
-                                    {missionState.passBoostMultiplier}x XP
-                                </span>
-                            )}
-                            <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0 z-10" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
-                                <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                                <span className="font-black text-[10px] text-white">{diamonds.toLocaleString('en-US')}</span>
-                                {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '1px 6px', fontSize: '8px' }}>Buy</div></button>}
-                            </div>
-                            <div className="round-btn shrink-0 z-10" onClick={onClose}>
-                                <i className="ti ti-x"></i>
-                            </div>
+                <div className="shrink-0 flex flex-col gap-1 px-3 pt-2 pb-1">
+                    {/* Tab switcher pill */}
+                    <div className="flex items-center justify-center">
+                        <div className="flex rounded-full p-0.5 gap-0" style={{ background: 'rgba(0,0,0,0.35)' }}>
+                            <button
+                                onClick={() => setView('MISSIONS')}
+                                className="rounded-full font-black text-[11px] transition-all px-4 py-1"
+                                style={{ background: view === 'MISSIONS' ? 'rgba(255,255,255,0.22)' : 'transparent', color: view === 'MISSIONS' ? '#fff' : 'rgba(255,255,255,0.45)' }}>
+                                Daily Missions
+                            </button>
+                            <button
+                                onClick={() => setView('PASS')}
+                                className="rounded-full font-black text-[11px] transition-all px-4 py-1 flex items-center gap-1"
+                                style={{ background: view === 'PASS' ? 'rgba(255,255,255,0.22)' : 'transparent', color: view === 'PASS' ? '#fff' : 'rgba(255,255,255,0.45)' }}>
+                                Mission Pass
+                                {rewardsToClaimCount > 0 && <span className="w-4 h-4 bg-red-500 rounded-full text-white text-[9px] font-black flex items-center justify-center leading-none">{rewardsToClaimCount}</span>}
+                            </button>
                         </div>
                     </div>
-                ) : (
-                    /* PASS topbar: [XP pill + missions btn] | centered title | [coins] [gems] [X] */
-                    <div className={topbarBase} style={topbarStyle}>
-                        <div className="relative flex items-center gap-1.5 px-3 h-[40px]">
-                            <span className="absolute left-0 right-0 text-center font-tanker text-white text-sm pointer-events-none">Mission Pass</span>
-                            {/* Left: XP pill + missions shortcut */}
-                            <div className="flex items-center gap-1 z-10 shrink-0">
-                                <div className="rtrack" style={{ flex: 'none', width: 90 }}>
-                                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18 }}>
-                                        <div className="rfill" style={{ width: `${Math.min(100, (missionState.passXP / missionState.passXpToNext) * 100)}%` }} />
-                                    </div>
-                                    <span className="rnum" style={{ fontSize: 9 }}>Lv.{missionState.passLevel} {missionState.passXP}/{missionState.passXpToNext}</span>
-                                </div>
-                                <button onClick={() => setView('MISSIONS')} className="round-btn shrink-0" style={{ cursor: 'pointer' }}>
-                                    <i className="ti ti-list-check" />
-                                </button>
+                    {/* Info row: XP pill + boost + gems + close */}
+                    <div className="flex items-center gap-1.5">
+                        <div className="rtrack" style={{ flex: 'none', width: 90 }}>
+                            <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18 }}>
+                                <div className="rfill" style={{ width: `${Math.min(100, (missionState.passXP / missionState.passXpToNext) * 100)}%` }} />
                             </div>
-                            <div className="flex-1" />
-                            {/* Right: currency pills + close */}
-                            <div className="currency-pill flex items-center gap-1 shrink-0" style={{ fontSize: '10px' }}>
-                                <img src="/symbols/coin.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain' }} />
-                                <span className="num" style={{ fontSize: '10px' }}>{balance.toLocaleString('en-US')}</span>
-                            </div>
-                            <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
-                                <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-                                <span className="font-black text-[10px] text-white">{diamonds.toLocaleString('en-US')}</span>
-                                {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '1px 6px', fontSize: '8px' }}>Buy</div></button>}
-                            </div>
-                            <div className="round-btn shrink-0" onClick={onClose}>
-                                <i className="ti ti-x"></i>
-                            </div>
+                            <span className="rnum" style={{ fontSize: 9 }}>Lv.{missionState.passLevel} {missionState.passXP}/{missionState.passXpToNext}</span>
+                        </div>
+                        {missionState.passBoostMultiplier > 1 && missionState.passBoostEndTime > Date.now() && (
+                            <span className="font-black text-[10px] px-2 py-0.5 rounded-full shrink-0 flex items-center gap-1"
+                                style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24' }}>
+                                <i className="ti ti-bolt" style={{ fontSize: '0.75rem' }} />
+                                {missionState.passBoostMultiplier}x XP
+                            </span>
+                        )}
+                        <div className="flex-1" />
+                        <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
+                            <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+                            <span className="font-black text-[10px] text-white">{diamonds.toLocaleString('en-US')}</span>
+                            {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '1px 6px', fontSize: '8px' }}>Buy</div></button>}
+                        </div>
+                        <div className="round-btn shrink-0" onClick={onClose}>
+                            <i className="ti ti-x"></i>
                         </div>
                     </div>
-                )}
+                </div>
 
                 {/* ===== CONTENT ===== */}
 
@@ -261,7 +236,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
                                     <div className="flex items-center justify-start relative z-10 -mb-1">
                                         <div className="flex gap-0.5 items-center">
-                                            {Array.from({ length: 2 }).map((_, idx) => {
+                                            {Array.from({ length: mission.isGolden ? 1 : 2 }).map((_, idx) => {
                                                 const filled = mission.isGolden ? 1 : (mission.stacks || 0);
                                                 return (
                                                     <div key={idx} className="w-2 h-2 rounded-full" style={{ background: idx < filled ? (mission.isGolden ? '#fbbf24' : '#a855f7') : 'rgba(255,255,255,0.15)' }} />
