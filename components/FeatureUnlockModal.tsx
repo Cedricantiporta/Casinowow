@@ -25,7 +25,7 @@ export const FeatureUnlockModal: React.FC<FeatureUnlockModalProps> = ({ isOpen, 
     };
 
     return (
-        <div className="absolute inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-pop-in">
+        <div className="absolute inset-0 z-[300] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in">
             <div
                 className="w-full max-w-xs flex flex-col rounded-3xl overflow-hidden"
                 style={{

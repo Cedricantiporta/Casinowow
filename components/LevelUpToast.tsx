@@ -16,14 +16,15 @@ export const LevelUpToast: React.FC<LevelUpToastProps> = ({ level, reward, maxBe
     }, [onClose]);
 
     return (
-        <div className="fixed top-[40px] right-2 z-[200] animate-pop-in pointer-events-none"
-            style={{ background: 'linear-gradient(160deg,#2a0d52,#3b0764)', border: '1px solid rgba(150,90,255,0.3)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 6px 20px rgba(0,0,0,0.7)' }}>
-            <div className="flex items-center gap-2">
-                <img src="/ui/star.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
-                <div>
-                    <div className="font-black text-white text-xs uppercase tracking-widest">Level {level}!</div>
-                    {reward > 0 && <div className="text-purple-300 text-[9px] font-bold">+{formatNumber(reward)} coins</div>}
-                    {maxBetIncreased && <div className="text-yellow-300 text-[9px] font-bold">Max Bet ↑ {formatNumber(newMaxBet)}</div>}
+        <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/10 backdrop-blur-md pointer-events-none animate-pop-in">
+            <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', padding: '24px 36px' }}>
+                <div className="flex flex-col items-center gap-3 text-center">
+                    <img src="/ui/star.png" alt="" style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
+                    <div>
+                        <div className="font-tanker text-white tracking-widest" style={{ fontSize: '1.4rem' }}>Level {level}!</div>
+                        {reward > 0 && <div className="text-purple-300 text-sm font-bold mt-1">+{formatNumber(reward)} coins</div>}
+                        {maxBetIncreased && <div className="text-yellow-300 text-sm font-bold">Max Bet ↑ {formatNumber(newMaxBet)}</div>}
+                    </div>
                 </div>
             </div>
         </div>

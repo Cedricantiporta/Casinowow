@@ -231,7 +231,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     };
 
     return (
-        <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'url(/album_background.jpg) center/cover no-repeat' }}>
+        <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in" style={{ background: 'linear-gradient(rgba(0,0,0,0.45),rgba(0,0,0,0.45)),url(/album_background.jpg) center/cover no-repeat' }}>
             {/* Duplicate Exchange — centered modal */}
             {showExchangePanel && (
                 <div className="absolute inset-0 z-[175] flex items-center justify-center bg-black/10 backdrop-blur-md animate-pop-in"

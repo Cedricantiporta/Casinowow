@@ -3789,9 +3789,9 @@ const App: React.FC = () => {
                         className="shrink-0 active:scale-90 transition-transform" />
 
                     {/* Events pill */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2 h-5 md:h-[23px]"
-                        style={{ background: 'rgba(0,0,0,0.75)', border: '1px solid rgba(255,255,255,0.12)' }}>
-                        <span className="font-black text-white tracking-widest" style={{ fontSize: 13 }}>EVENTS</span>
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-7 md:h-8"
+                        style={{ background: 'linear-gradient(180deg,#ffe066,#f59e0b,#b45309)', boxShadow: '0 2px 0 #7a3800, 0 3px 10px rgba(245,158,11,0.4)', border: '1px solid rgba(255,255,255,0.25)' }}>
+                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 14, lineHeight: 1 }}>Events</span>
                     </button>
 
                     {/* Level Pill + Multiplier + XP popup */}
@@ -4030,32 +4030,12 @@ const App: React.FC = () => {
 
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
                     {(() => {
-                        const REEL_BORDER: Record<string, { cls: string; shadow: string }> = {
-                            DRAGON:     { cls: 'rounded-none border-[3px] border-orange-600',   shadow: '0 0 22px rgba(234,88,12,0.55),inset 0 0 10px rgba(180,40,0,0.2)' },
-                            EGYPT:      { cls: 'rounded-none border-[3px] border-yellow-500',   shadow: '0 0 20px rgba(234,179,8,0.5),inset 0 0 8px rgba(160,110,0,0.15)' },
-                            NEON:       { cls: 'rounded-none border-[2px] border-fuchsia-500',  shadow: '0 0 24px rgba(217,70,239,0.65),inset 0 0 12px rgba(160,0,220,0.2)' },
-                            CANDY:      { cls: 'rounded-none border-[3px] border-pink-300',     shadow: '0 0 20px rgba(249,168,212,0.6),inset 0 0 8px rgba(219,39,119,0.15)' },
-                            PIRATE:     { cls: 'rounded-none border-[4px] border-amber-700',    shadow: '0 0 14px rgba(180,83,9,0.45)' },
-                            PIGGY:      { cls: 'rounded-none border-[3px] border-pink-400',     shadow: '0 0 18px rgba(244,114,182,0.5)' },
-                            ARCTIC:     { cls: 'rounded-none border-[2px] border-cyan-300',     shadow: '0 0 22px rgba(103,232,249,0.5),inset 0 0 10px rgba(0,200,240,0.1)' },
-                            WESTERN:    { cls: 'rounded-none border-[4px] border-amber-800',    shadow: '0 0 12px rgba(120,50,0,0.45)' },
-                            SPACE:      { cls: 'rounded-none border-[2px] border-cyan-400',     shadow: '0 0 26px rgba(34,211,238,0.65),inset 0 0 12px rgba(0,200,255,0.15)' },
-                            JUNGLE:     { cls: 'rounded-none border-[3px] border-green-500',    shadow: '0 0 16px rgba(34,197,94,0.5)' },
-                            UNDERWATER: { cls: 'rounded-none border-[2px] border-blue-400',     shadow: '0 0 22px rgba(96,165,250,0.5),inset 0 0 10px rgba(0,80,200,0.1)' },
-                            SAMURAI:    { cls: 'rounded-none border-[3px] border-red-800',      shadow: '0 0 16px rgba(185,28,28,0.55)' },
-                            LEPRECHAUN: { cls: 'rounded-none border-[3px] border-emerald-400',  shadow: '0 0 18px rgba(52,211,153,0.5)' },
-                            GOLDEN_POT: { cls: 'rounded-none border-[3px] border-yellow-400',   shadow: '0 0 22px rgba(250,204,21,0.55),inset 0 0 10px rgba(180,130,0,0.1)' },
-                            PETS:       { cls: 'rounded-none border-[3px] border-fuchsia-400',  shadow: '0 0 22px rgba(232,121,249,0.6),inset 0 0 10px rgba(168,85,247,0.18)' },
-                            MMORPG:     { cls: 'rounded-none border-[3px] border-sky-400',      shadow: '0 0 22px rgba(56,189,248,0.6),inset 0 0 10px rgba(30,64,175,0.2)' },
-                        };
-                        const reelBorder = REEL_BORDER[selectedGame.theme];
                         return (
                     <div
                         className={`relative z-10 h-full max-h-full overflow-hidden flex gap-0
-                            ${reelBorder?.cls ?? ''}
                             ${reelTransitioning === 'out' ? 'animate-reel-out' : reelTransitioning === 'in' ? 'animate-reel-in' : ''}
                         `}
-                        style={{ aspectRatio: selectedGame.theme === 'NEON' ? `${selectedGame.reels}/2` : `${selectedGame.reels}/${selectedGame.rows}`, boxShadow: reelBorder?.shadow }}
+                        style={{ aspectRatio: selectedGame.theme === 'NEON' ? `${selectedGame.reels}/2` : `${selectedGame.reels}/${selectedGame.rows}` }}
                     >
                         {(() => {
                             // Pre-compute which reel starts the anticipation window so ALL remaining reels
@@ -4815,30 +4795,31 @@ const App: React.FC = () => {
       )}
 
       {activeToast && (
-          <div className="fixed top-[40px] right-2 z-[201] animate-pop-in pointer-events-none"
-              style={{ background: 'linear-gradient(160deg,#2a0d52,#3b0764)', border: '1px solid rgba(150,90,255,0.3)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 6px 20px rgba(0,0,0,0.7)' }}>
-              <div className="flex items-center gap-2">
-                  {activeToast.type === 'LEVEL_UP'
-                      ? <img src="/ui/star.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
-                      : <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🃏</span>}
-                  <div>
-                      {activeToast.type === 'LEVEL_UP' ? (
-                          <>
-                              <div className="font-black text-white text-xs uppercase tracking-widest">Level {activeToast.level}!</div>
-                              {activeToast.reward > 0 && <div className="text-purple-300 text-[9px] font-bold">+{formatCommaNumber(activeToast.reward)} coins</div>}
-                              {activeToast.maxBetIncreased && <div className="text-yellow-300 text-[9px] font-bold">Max Bet ↑ {formatCommaNumber(activeToast.newMaxBet)}</div>}
-                          </>
-                      ) : activeToast.type === 'CARD' ? (
-                          <>
-                              <div className="font-black text-xs uppercase tracking-widest" style={{ color: activeToast.rarity === 'RARE' ? '#fbbf24' : '#e2e8f0' }}>{activeToast.rarity === 'RARE' ? 'Rare' : 'Common'} Card!</div>
-                              <div className="text-purple-300 text-[9px] font-bold">{activeToast.cardName}</div>
-                          </>
-                      ) : (
-                          <>
-                              <div className="font-black text-white text-xs uppercase tracking-widest">+1 Card Pack!</div>
-                              <div className="text-purple-300 text-[9px] font-bold">Added to your stash</div>
-                          </>
-                      )}
+          <div className="absolute inset-0 z-[201] flex items-center justify-center bg-black/10 backdrop-blur-md pointer-events-none animate-pop-in">
+              <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', padding: '24px 36px' }}>
+                  <div className="flex flex-col items-center gap-3 text-center">
+                      {activeToast.type === 'LEVEL_UP'
+                          ? <img src="/ui/star.png" alt="" style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
+                          : <span style={{ fontSize: '3rem', lineHeight: 1 }}>🃏</span>}
+                      <div>
+                          {activeToast.type === 'LEVEL_UP' ? (
+                              <>
+                                  <div className="font-tanker text-white tracking-widest" style={{ fontSize: '1.4rem' }}>Level {activeToast.level}!</div>
+                                  {activeToast.reward > 0 && <div className="text-purple-300 text-sm font-bold mt-1">+{formatCommaNumber(activeToast.reward)} coins</div>}
+                                  {activeToast.maxBetIncreased && <div className="text-yellow-300 text-sm font-bold">Max Bet ↑ {formatCommaNumber(activeToast.newMaxBet)}</div>}
+                              </>
+                          ) : activeToast.type === 'CARD' ? (
+                              <>
+                                  <div className="font-tanker tracking-widest" style={{ fontSize: '1.4rem', color: activeToast.rarity === 'RARE' ? '#fbbf24' : '#e2e8f0' }}>{activeToast.rarity === 'RARE' ? 'Rare' : 'Common'} Card!</div>
+                                  <div className="text-purple-300 text-sm font-bold mt-1">{activeToast.cardName}</div>
+                              </>
+                          ) : (
+                              <>
+                                  <div className="font-tanker text-white tracking-widest" style={{ fontSize: '1.4rem' }}>+1 Card Pack!</div>
+                                  <div className="text-purple-300 text-sm font-bold mt-1">Added to your stash</div>
+                              </>
+                          )}
+                      </div>
                   </div>
               </div>
           </div>

@@ -9,7 +9,7 @@ interface SimpleCelebrationModalProps {
 export const SimpleCelebrationModal: React.FC<SimpleCelebrationModalProps> = ({ isOpen, message, onClose }) => {
     useEffect(() => {
         if (isOpen) {
-            const timer = setTimeout(onClose, 1800);
+            const timer = setTimeout(onClose, 1500);
             return () => clearTimeout(timer);
         }
     }, [isOpen, message, onClose]);
