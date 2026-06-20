@@ -91,6 +91,19 @@ class AudioService {
   playLobbyMusic() { this.playMusic('/sfx/lobby_music.mp3'); }
   playHighLimitMusic() { this.playMusic('/sfx/highlimit_music.mp3'); }
 
+  playSlotMusic(theme: string) {
+    const map: Record<string, string> = {
+      'ARCTIC':  '/sfx/arctic_music.mp3',
+      'NEON':    '/sfx/neon_music.mp3',
+      'PIGGY':   '/sfx/piggy_music.mp3',
+      'PIRATE':  '/sfx/pirate_music.mp3',
+      'CANDY':   '/sfx/sugar_music.mp3',
+    };
+    const src = map[theme];
+    if (src) this.playMusic(src, 0.28);
+    else this.stopMusic();
+  }
+
   // ── Win tier SFX ────────────────────────────────────────────────────────────
   playWinTier(tier: string) {
     const map: Record<string, string> = {

@@ -352,8 +352,9 @@ const App: React.FC = () => {
   useEffect(() => {
     if (currentView === 'LOBBY') audioService.playLobbyMusic();
     else if (currentView === 'HIGH_LIMIT') audioService.playHighLimitMusic();
+    else if (currentView === 'GAME') audioService.playSlotMusic(selectedGame.theme);
     else audioService.stopMusic();
-  }, [currentView]);
+  }, [currentView, selectedGame.theme]);
   useEffect(() => { autoSpinRemainingRef.current = autoSpinRemaining; }, [autoSpinRemaining]);
   useEffect(() => { targetGridRef.current = targetGrid; }, [targetGrid]);
   const [showWinPopup, setShowWinPopup] = useState(false);
@@ -3324,6 +3325,8 @@ const App: React.FC = () => {
       setSavedGameStates(prev => ({ ...prev, [selectedGame.id]: currentState }));
 
       // Show loading screen immediately, then set up the game
+      // Preload slot music during the loading screen so it's ready when the game opens
+      audioService.playSlotMusic(game.theme);
       setGameLoadingConfig(game);
       setTimeout(() => {
           setSelectedGame(game);
