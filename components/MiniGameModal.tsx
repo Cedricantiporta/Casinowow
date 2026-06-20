@@ -505,7 +505,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
-            style={{ background: 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
+            style={{ background: activeGame === 'WILD' ? 'url(/coinmine_bg.jpg) center/cover no-repeat' : 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
 
             {/* Topbar */}
             <div className="relative shrink-0 flex items-center px-3 h-[38px] z-20"
@@ -551,7 +551,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     {stagePending && (
                         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center pointer-events-auto" style={{ background: 'rgba(0,0,0,0.72)' }}>
                             <div style={{ lineHeight: 1, filter: 'drop-shadow(0 0 32px rgba(96,165,250,1))' }} className="animate-vibrate">
-                                <img src="/ui/stage_gem.png" alt="" style={{ width: '72px', height: '72px', objectFit: 'contain', display: 'block' }} />
+                                <img src="/coinmine_stageclearicon.png" alt="" style={{ width: '72px', height: '72px', objectFit: 'contain', display: 'block' }} />
                             </div>
                             <div className="mt-3 font-black text-white text-xl uppercase tracking-widest animate-pulse" style={{ textShadow: '0 0 20px rgba(96,165,250,0.9)' }}>Stage Clear!</div>
                         </div>
@@ -586,9 +586,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isBomb = cell.content === 'BOMB';
                                     const tileSize = currentGridSize >= 6 ? 56 : currentGridSize >= 5 ? 64 : currentGridSize >= 4 ? 72 : 84;
                                     const gemPrize = Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage));
-                                    const icon: React.ReactNode = isGem ? <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : isReward
-                                        ? (cell.reward?.type === 'COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : cell.reward?.type === 'PICKS' ? <img src="/ui/pick.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : <img src="/symbols/diamond.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} />)
-                                        : revealed && isBomb ? '💥' : null;
+                                    const icon: React.ReactNode = isGem ? <img src="/coinmine_gemicon.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : isReward
+                                        ? (cell.reward?.type === 'COINS' ? <img src="/coinmine_coinicon.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : cell.reward?.type === 'PICKS' ? <img src="/ui/pick.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : <img src="/coinmine_gemicon.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} />)
+                                        : revealed && isBomb ? <img src="/coinmine_bombicon.png" alt="" style={{ width: tileSize * 0.62, height: tileSize * 0.62, objectFit: 'contain', display: 'inline-block' }} /> : null;
                                     const tileBg = revealed
                                         ? (isGem ? 'linear-gradient(180deg,#1d4ed8,#1e3a8a)' : isBomb ? 'linear-gradient(180deg,#b45309,#78350f)' : 'linear-gradient(180deg,#1f1f2e,#12121e)')
                                         : 'linear-gradient(180deg,#4c1d95,#2e1065)';
@@ -614,7 +614,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                     </>
                                                 ) : null
                                             ) : (
-                                                <img src="/ui/rock.png" alt="" style={{ width: tileSize * 0.75, height: tileSize * 0.75, objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }} />
+                                                <img src="/coinmine_rockicon.png" alt="" style={{ width: tileSize * 0.75, height: tileSize * 0.75, objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.6))' }} />
                                             )}
                                         </button>
                                     );
