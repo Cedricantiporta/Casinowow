@@ -162,7 +162,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-orange-700 via-amber-800 to-yellow-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #b45309 0%, #451a03 100%)',
     reelBg: REEL_BGS.WESTERN,
-    coverImage: '/slots/gold_covernew.png',
+    coverImage: '/slots/gold_covernew2.jpg',
   },
   {
     id: 'samurai-honor',
@@ -224,6 +224,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-violet-500 via-fuchsia-600 to-purple-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #a855f7 0%, #2e1065 100%)',
     reelBg: REEL_BGS.PETS,
+    coverImage: '/slots/mystic_covernew.png',
   },
   {
     id: 'dungeon-raid',

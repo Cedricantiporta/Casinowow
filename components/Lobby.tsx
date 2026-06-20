@@ -286,7 +286,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         </div>
                                         <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 14 }}></div>
                                         {game.coverImage && (
-                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1, borderRadius: 14, objectPosition: 'center bottom' }} />
+                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1, borderRadius: 14, objectPosition: 'center' }} />
                                         )}
                                         <div className="absolute inset-0 overflow-hidden z-10 select-none" style={{ borderRadius: 14 }}>
                                             {!game.coverImage && (
@@ -298,14 +298,13 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                     )}
                                                 </div>
                                             )}
-                                            {!game.coverImage && (
-                                                <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
-                                                    <h3 className={`text-[13px] md:text-[16px] font-black tracking-wide leading-tight line-clamp-2 ${getFontClass(game.theme)} ${titleStyle}`}
-                                                        style={{ WebkitTextStroke:'1.5px rgba(0,0,0,0.95)', paintOrder:'stroke fill' }}>
-                                                        {game.name}
-                                                    </h3>
-                                                </div>
-                                            )}
+                                            {/* Bottom gradient + name — always shown */}
+                                            <div className="absolute bottom-0 left-0 right-0" style={{ borderBottomLeftRadius: 14, borderBottomRightRadius: 14, background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.45) 60%, transparent 100%)', paddingBottom: 4, paddingTop: 14 }}>
+                                                <h3 className={`text-[10px] font-black tracking-wide leading-tight text-center px-0.5 line-clamp-2 ${getFontClass(game.theme)}`}
+                                                    style={{ color: '#fff', WebkitTextStroke: '0.8px rgba(0,0,0,0.9)', paintOrder: 'stroke fill', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                                                    {game.name}
+                                                </h3>
+                                            </div>
                                         </div>
                                         <div className="absolute inset-0 overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: 14 }}></div>
                                     </button>

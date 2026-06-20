@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Deck, Card, CardRarity } from '../types';
-import { formatNumber, PACK_COSTS, formatCommaNumber } from '../constants';
+import { formatNumber, PACK_COSTS, formatCommaNumber, GAMES_CONFIG } from '../constants';
 import { audioService } from '../services/audioService';
 
 interface CardCollectionModalProps {
@@ -434,10 +434,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 style={{ height: 120, background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                                                 <div className="w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0"
                                                     style={{ background: getDeckThemeBg(deck.theme) }}>
-                                                    <div className="text-[3.5rem] drop-shadow-2xl leading-none">
-                                                        {getDeckThemeEmoji(deck.theme)}
-                                                    </div>
-                                                    {isComplete && <div className="absolute top-0.5 right-0.5 text-xs">✅</div>}
+                                                    {(() => {
+                                                        const gameConf = GAMES_CONFIG.find(g => g.id === deck.gameId);
+                                                        return gameConf?.coverImage
+                                                            ? <img src={gameConf.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                                                            : <div className="text-[3.5rem] drop-shadow-2xl leading-none">{getDeckThemeEmoji(deck.theme)}</div>;
+                                                    })()}
+                                                    {isComplete && <div className="absolute top-0.5 right-0.5 text-xs z-10">✅</div>}
                                                 </div>
                                                 <div className="mt-1 text-center w-full">
                                                     <h3 className="text-white font-black font-display text-[11px] truncate leading-none">{deck.gameName}</h3>

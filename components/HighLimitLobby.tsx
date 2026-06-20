@@ -128,7 +128,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                         className="grid gap-x-4 gap-y-3 auto-cols-max pt-6 px-3 overflow-x-auto no-scrollbar snap-x items-start"
                         style={{ gridTemplateRows: 'repeat(2, auto)', gridAutoFlow: 'column' }}
                     >
-                        {[...GAMES_CONFIG, GAMES_CONFIG[0]].map((game, idx) => {
+                        {[...GAMES_CONFIG, GAMES_CONFIG[0], GAMES_CONFIG[1]].map((game, idx) => {
                             const icon = getIcon(game.theme);
                             const fontClass = getFontClass(game.theme);
                             const titleStyle = getTitleStyle(game.theme);
@@ -144,7 +144,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                                 >
                                     {/* Gold jackpot pill — protrudes above card */}
                                     {!isLocked && (
-                                        <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none flex items-center justify-center" style={{ transform: 'translateY(-100%)' }}>
+                                        <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none flex items-center justify-center" style={{ transform: 'translateY(-115%)' }}>
                                             <span style={{ fontSize: '13px', fontWeight: 900, color: '#fde68a', whiteSpace: 'nowrap', lineHeight: 1, background: 'rgba(20,10,0,0.92)', border: '2px solid #d97706', borderRadius: '999px', padding: '3px 8px' }}>
                                                 {formatK(jackpotTotals[idx] ?? 0)}
                                             </span>
