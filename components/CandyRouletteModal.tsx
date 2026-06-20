@@ -105,7 +105,7 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
         ctx.save();
         ctx.translate(R * 0.68, 0);
         ctx.rotate(Math.PI / 2);
-        ctx.font = `900 38px 'Titan One', cursive`;
+        ctx.font = `900 30px 'Titan One', cursive`;
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -114,7 +114,7 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
         ctx.strokeText(SEGMENTS[i].label, 0, -10);
         ctx.fillText(SEGMENTS[i].label, 0, -10);
         // Sub text
-        ctx.font = `900 20px sans-serif`;
+        ctx.font = `900 15px sans-serif`;
         ctx.strokeStyle = '#1c0c30';
         ctx.lineWidth = 5;
         ctx.strokeText(SEGMENTS[i].sub, 0, 14);
@@ -308,11 +308,11 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
 
             {/* Wheel zone */}
             {phase !== 'prompt' && (
-                <div className="absolute" style={{ left: '50%', top: 18, transform: 'translateX(-50%)', width: 280, height: 330 }}>
+                <div className="absolute" style={{ left: '50%', top: 38, transform: 'translateX(-50%)', width: 300, height: 350 }}>
 
                     {/* Ticker arrow — sits just at the rim */}
                     <div ref={tickerRef} className="absolute z-20"
-                        style={{ top: 24, left: '50%', transform: 'translateX(-50%)', transformOrigin: '50% 15%', width: 28, height: 44 }}>
+                        style={{ top: 27, left: '50%', transform: 'translateX(-50%)', transformOrigin: '50% 15%', width: 28, height: 44 }}>
                         <svg width={28} height={44} viewBox="0 0 40 62" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M20 2C10 2 2 10 2 20C2 30 12 56 20 60C28 56 38 30 38 20C38 10 30 2 20 2Z"
                                 fill="url(#ctgrad)" stroke="#111827" strokeWidth="2.5"/>
@@ -330,14 +330,14 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
 
                     {/* Canvas */}
                     <canvas ref={canvasRef} width={CS} height={CS}
-                        style={{ position: 'absolute', top: 30, left: 0, width: 280, height: 280, filter: 'drop-shadow(0 10px 24px rgba(0,0,0,0.8))' }} />
+                        style={{ position: 'absolute', top: 30, left: 0, width: 300, height: 300, filter: 'drop-shadow(0 10px 24px rgba(0,0,0,0.8))' }} />
 
                     {/* Center SPIN button */}
                     {phase === 'ready' && (
                         <button onClick={() => doSpinRef.current()}
                             className="absolute flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
                             style={{
-                                top: 30 + 140 - 34, left: 140 - 34, width: 68, height: 68, borderRadius: '50%',
+                                top: 30 + 150 - 34, left: 150 - 34, width: 68, height: 68, borderRadius: '50%',
                                 background: '#fdf5e2', border: '3px solid #25283d', zIndex: 30,
                                 boxShadow: '0 6px 14px rgba(0,0,0,0.6), inset 0 -5px 0 #edd8af, inset 0 5px 0 #ffffff',
                             }}>

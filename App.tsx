@@ -2949,7 +2949,7 @@ const App: React.FC = () => {
                   if (slotUnlock) {
                        setFeatureUnlockData({ 
                            name: slotUnlock.name, 
-                           icon: slotUnlock.icon, 
+                           icon: GAMES_CONFIG.find(g => g.id === slotUnlock.id)?.coverImage || slotUnlock.icon,
                            description: 'New Game Unlocked! Play Now.', 
                            action: () => { 
                                // Find fresh config from constant to avoid closure issues

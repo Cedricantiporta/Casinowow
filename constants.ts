@@ -109,7 +109,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #0f172a 100%)',
     reelBg: REEL_BGS.PIRATE,
     slotBg: '/slots/pirate_bg.jpg',
-    coverImage: '/slots/pirate_covernew2.jpg',
+    coverImage: '/slots/pirate_covernew.png',
   },
   {
     id: 'cosmic-cash',
@@ -149,7 +149,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-cyan-500 via-blue-600 to-blue-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #1e3a8a 100%)',
     reelBg: REEL_BGS.UNDERWATER,
-    coverImage: '/slots/deep_covernew2.jpg',
+    coverImage: '/slots/deep_covernew.png',
   },
   {
     id: 'wild-west',
@@ -162,7 +162,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-orange-700 via-amber-800 to-yellow-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #b45309 0%, #451a03 100%)',
     reelBg: REEL_BGS.WESTERN,
-    coverImage: '/slots/gold_covernew2.jpg',
+    coverImage: '/slots/gold_covernew.png',
   },
   {
     id: 'samurai-honor',

@@ -54,7 +54,7 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
         <div className="absolute inset-0 z-[400] flex items-center justify-center select-none"
             style={{ background: 'rgba(0,0,0,0.75)' }}
             onClick={guardedClose}>
-            <div className="animate-pop-in flex flex-col items-center gap-3 p-6 rounded-3xl"
+            <div className="animate-pop-in flex flex-col items-center gap-2 p-4 rounded-3xl"
                 style={{
                     background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)',
                     boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
