@@ -145,7 +145,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
-                <span className="absolute left-0 right-0 text-center text-white font-black text-base drop-shadow pointer-events-none">Settings</span>
+                <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Settings</span>
                 <div className="flex items-center gap-2 ml-auto z-10">
                     <span className="text-purple-300/30 text-[9px] font-bold tracking-widest">v1.0.0</span>
                     <button className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></button>

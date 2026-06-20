@@ -240,7 +240,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         style={{ width: 680, maxWidth: '94%', height: 440, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                     <div className="shrink-0 flex items-center gap-2 px-3 py-2">
-                        <span className="font-black text-white text-xs uppercase tracking-widest flex-1">Exchange Duplicates</span>
+                        <span className="font-tanker text-white text-sm flex-1">Exchange Duplicates</span>
                         <button onClick={() => { setShowExchangePanel(false); setSelectedDuplicateIds(new Set()); }}
                             className="round-btn shrink-0"><i className="ti ti-x" /></button>
                     </div>
@@ -550,7 +550,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         onClick={e => e.stopPropagation()}>
                         {/* Seamless topbar */}
                         <div className="shrink-0 flex items-center gap-2 px-3 py-2">
-                            <span className="text-white font-black text-xs tracking-widest flex-1">Draw Cards</span>
+                            <span className="text-white font-tanker text-sm flex-1">Draw Cards</span>
                             <div className="flex items-center gap-1.5 text-[10px]">
                                 <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
                                     <div className="gem"></div>
@@ -631,7 +631,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         onClick={e => e.stopPropagation()}>
                         {/* Seamless topbar */}
                         <div className="shrink-0 flex items-center gap-2 px-3 py-2 relative">
-                            <span className="absolute left-0 right-0 text-center text-white font-black text-sm pointer-events-none">Buy Packs</span>
+                            <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">Buy Packs</span>
                             <div className="flex items-center gap-1.5 ml-auto z-10">
                                 <div className="currency-pill flex items-center gap-1.5" style={{ background: 'rgba(0,0,0,0.55)' }}>
                                     <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />

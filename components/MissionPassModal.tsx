@@ -174,7 +174,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     /* MISSIONS topbar: counter | centered title | level + gems + X */
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="relative flex items-center gap-2 px-3 h-[40px]">
-                            <span className="absolute left-0 right-0 text-center font-black text-white text-xs tracking-widest pointer-events-none">Daily Missions</span>
+                            <span className="absolute left-0 right-0 text-center font-tanker text-white text-sm pointer-events-none">Daily Missions</span>
                             {missionState.passBoostMultiplier > 1 && missionState.passBoostEndTime > Date.now() && (
                                 <span className="font-black text-[10px] px-2 py-0.5 rounded-full z-10 shrink-0 flex items-center gap-1"
                                     style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24' }}>
@@ -205,7 +205,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className={topbarBase} style={topbarStyle}>
                         <div className="relative flex items-center gap-2 px-3 h-[40px]">
                             {/* Title — absolutely centered */}
-                            <span className="absolute left-0 right-0 text-center font-black text-white text-xs tracking-widest pointer-events-none">Mission Pass</span>
+                            <span className="absolute left-0 right-0 text-center font-tanker text-white text-sm pointer-events-none">Mission Pass</span>
                             <div className="flex-1"></div>
                             {/* Currency pills */}
                             <div className="currency-pill flex items-center gap-1 shrink-0" style={{ fontSize: '10px' }}>

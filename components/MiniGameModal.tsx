@@ -505,7 +505,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
-            style={{ background: activeGame === 'WILD' ? 'url(/coinmine_bg.jpg) center/cover no-repeat' : activeGame === 'DICE' ? 'url(/dice_background.jpg) center/cover no-repeat' : 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
+            style={{ background: activeGame === 'WILD' ? 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url(/coinmine_bg.jpg) center/cover no-repeat' : activeGame === 'DICE' ? 'linear-gradient(rgba(0,0,0,0.4),rgba(0,0,0,0.4)),url(/dice_background.jpg) center/cover no-repeat' : 'linear-gradient(160deg,#8028c8 0%,#6018a8 50%,#4a1090 100%)' }}>
 
             {/* Topbar */}
             <div className="relative shrink-0 flex items-center px-3 h-[38px] z-20"
@@ -527,7 +527,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     </div>
                 </div>
                 {/* CENTER — title absolutely centered */}
-                <span className="absolute left-0 right-0 text-center font-black text-white text-xs tracking-wide drop-shadow pointer-events-none">{questTitle}</span>
+                <span className="absolute left-0 right-0 text-center font-tanker text-white text-sm drop-shadow pointer-events-none">{questTitle}</span>
                 {/* RIGHT — stage prize + X */}
                 {activeGame !== 'NONE' && (
                     <span className="font-black text-white font-mono text-sm ml-auto mr-2 z-10 leading-none">
@@ -558,7 +558,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     {/* Rock grid */}
                     <div className="flex-1 flex items-center justify-center p-3">
                         <div className="relative p-2">
-                            <div className="grid" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))`, gap: 1 }}>
+                            <div className="grid" style={{ gridTemplateColumns: `repeat(${currentGridSize}, minmax(0, 1fr))`, gap: 0 }}>
                                 {grid.map((cell, i) => {
                                     const revealed = cell.revealed;
                                     const isExploding = explodingCells.has(i);
@@ -587,6 +587,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 border: 'none',
                                                 boxShadow: 'none',
                                                 cursor: revealed || wildCredits <= 0 || stageWinning ? 'default' : 'pointer',
+                                                margin: '-4px',
                                             }}>
                                             {isExploding ? (
                                                 <span style={{ fontSize: tileSize * 0.9, lineHeight: 1 }}>💥</span>
@@ -670,8 +671,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 transform: isHere ? 'scale(1.18)' : 'scale(1)',
                                             }}>
                                             {isHere && (
-                                                <div className="absolute left-1/2 -translate-x-1/2 z-10" style={{ top: '-90%', animation: 'diceBounce 1s ease-in-out infinite' }}>
-                                                    <img src="/dice_avatar.png" alt="" style={{ width: 'clamp(36px,6vw,52px)', height: 'clamp(36px,6vw,52px)', objectFit: 'contain' }} />
+                                                <div className="absolute inset-0 flex items-center justify-center z-20" style={{ animation: 'diceBounce 1s ease-in-out infinite' }}>
+                                                    <img src="/dice_avatar.png" alt="" style={{ width: '160%', height: '160%', objectFit: 'contain', pointerEvents: 'none' }} />
                                                 </div>
                                             )}
                                             <div className="relative flex items-center justify-center w-full h-full">
@@ -689,12 +690,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     return (
                                         <div key={si} style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 0 }}>
                                             {bridge && (
-                                                <div style={{ gridColumn: isEven ? 8 : 1, gridRow: 1, minWidth: 0 }}>
+                                                <div style={{ gridColumn: isEven ? 8 : 1, gridRow: 1, minWidth: 0, margin: '-4px' }}>
                                                     {renderCell(bridge)}
                                                 </div>
                                             )}
                                             {main.map((step, idx) => (
-                                                <div key={step.index} style={{ gridColumn: isEven ? 1 + idx : 8 - idx, gridRow: bridge ? 2 : 1, minWidth: 0 }}>
+                                                <div key={step.index} style={{ gridColumn: isEven ? 1 + idx : 8 - idx, gridRow: bridge ? 2 : 1, minWidth: 0, margin: '-4px' }}>
                                                     {renderCell(step)}
                                                 </div>
                                             ))}

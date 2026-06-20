@@ -61,7 +61,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
 
                 {/* Header */}
                 <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">
-                    <span className="font-black text-white text-sm flex-1">VIP Lounge</span>
+                    <span className="font-tanker text-white text-base flex-1">VIP Lounge</span>
                     {isVip && currentTier ? (
                         <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] tracking-widest shrink-0"
                             style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' }}>

@@ -28,7 +28,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
 
             {/* Header */}
             <div className="shrink-0 flex items-center px-4 py-2.5 relative">
-                <span className="absolute left-0 right-0 text-center text-white font-black text-base pointer-events-none">Golden Treasury</span>
+                <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">Golden Treasury</span>
                 <div className="ml-auto round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
 

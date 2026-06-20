@@ -94,7 +94,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
             >
                 {/* Header */}
                 <div className="shrink-0 px-4 pt-3 pb-1 text-center">
-                    <h2 className="font-black text-white text-sm">Daily Login Bonus</h2>
+                    <h2 className="font-tanker text-white text-base">Daily Login Bonus</h2>
                     <p className="text-purple-300/70 text-[10px] mt-0.5">Come back every day for bigger rewards!</p>
                 </div>
 

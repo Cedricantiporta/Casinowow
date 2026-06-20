@@ -34,7 +34,7 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
             style={{ height: 'min(80%, 520px)', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
             {/* Header */}
             <div className="shrink-0 flex items-center px-4 pt-3 pb-2 relative">
-                <h2 className="absolute left-0 right-0 text-center font-black text-white text-sm tracking-widest pointer-events-none">Inbox</h2>
+                <h2 className="absolute left-0 right-0 text-center font-tanker text-white text-base pointer-events-none">Inbox</h2>
                 <div className="ml-auto round-btn cursor-pointer z-10" onClick={onClose}><i className="ti ti-x" /></div>
             </div>
             {/* Message list */}
