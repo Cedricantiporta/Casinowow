@@ -141,7 +141,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none">
         <div className="w-full max-w-[600px] flex flex-col rounded-3xl overflow-hidden"
-            style={{ height: 'min(88%, 680px)', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+            style={{ height: 'min(88%, 680px)', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
             {/* Header */}
             <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
@@ -166,7 +166,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Account</div>
                         <div className="rounded-xl p-3 flex flex-col gap-2"
-                            style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                            style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                             <p className="text-purple-200/50 text-[9px] leading-snug">Reset all progress including coins, gems, level, and history. This cannot be undone.</p>
                             <button
                                 onClick={() => setShowResetConfirm(true)}
@@ -184,7 +184,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Redeem Code</div>
                         <div className="rounded-xl p-3 flex flex-col gap-2"
-                            style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                            style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                             <p className="text-purple-200/50 text-[9px] leading-snug">Enter a code to claim special rewards.</p>
                             <div className="flex gap-2">
                                 <input
@@ -211,7 +211,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                         <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">About</div>
                         <div className="rounded-xl p-3 flex flex-col gap-1.5"
-                            style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                            style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">🎰</span>
                                 <div>

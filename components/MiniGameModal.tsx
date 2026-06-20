@@ -711,7 +711,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
                     {/* Right sidebar — stage, dice counter, buy, dice face, roll button */}
                     <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
-                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 90, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
+                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 90, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
                         <div className="flex flex-col items-center leading-none">
                             <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
                             <span className="font-black text-white text-2xl leading-none">{diceStage}</span>
@@ -770,7 +770,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {stageWinning && stageClearData && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="animate-pop-in rounded-2xl flex flex-col items-center gap-4 px-8 py-6 pointer-events-auto"
-                        style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', minWidth: 240 }}>
+                        style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', minWidth: 240 }}>
                         <div className="font-black text-yellow-300 uppercase tracking-widest" style={{ fontSize: '1.3rem', textShadow: '0 0 16px rgba(250,220,80,0.7)' }}>Stage Clear!</div>
                         <div className="flex flex-col items-center gap-1.5">
                             <span className="text-white font-black font-mono leading-none" style={{ fontSize: '1.8rem' }}>+{formatCommaNumber(stageClearData.coins)}</span>
@@ -789,7 +789,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {showBuyPopup && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-md"
                     onClick={() => setShowBuyPopup(null)}>
-                    <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ width: 300, background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
+                    <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ width: 300, background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                         {/* Header */}
                         <div className="px-4 pt-3 pb-2 flex items-center gap-2">
@@ -826,7 +826,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                 return (
                                     <div key={opt.label}
                                         className="flex-1 rounded-2xl flex flex-col items-center p-3 gap-1.5"
-                                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)', opacity: canAfford ? 1 : 0.5 }}>
+                                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)', opacity: canAfford ? 1 : 0.5 }}>
                                         <div className="text-white font-black text-sm">{opt.label}</div>
                                         <div className="w-full flex flex-col gap-1 my-1">
                                             <div className="flex items-center gap-1.5 text-white text-xs font-bold">

@@ -75,7 +75,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
 
     const containerBg = vip
         ? 'linear-gradient(180deg,#c9901a 0%,#9a6800 18%,#5a3800 100%)'
-        : 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)';
+        : 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)';
     const containerShadow = vip
         ? 'inset 0 1px 0 rgba(255,220,100,0.5), 0 8px 32px rgba(0,0,0,0.8)'
         : 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)';

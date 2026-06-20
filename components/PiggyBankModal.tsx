@@ -40,7 +40,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
         <div className="w-full max-w-[440px] flex flex-col rounded-3xl overflow-hidden"
-            style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxHeight: 'min(92%, 520px)' }}>
+            style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxHeight: 'min(92%, 520px)' }}>
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
                 <div className="flex items-center gap-2">

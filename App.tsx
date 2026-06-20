@@ -3789,7 +3789,7 @@ const App: React.FC = () => {
                         className="shrink-0 active:scale-90 transition-transform" />
 
                     {/* Events pill */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-7 md:h-8"
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-6"
                         style={{ background: 'linear-gradient(180deg,#ffe066,#f59e0b,#b45309)', boxShadow: '0 2px 0 #7a3800, 0 3px 10px rgba(245,158,11,0.4)', border: '1px solid rgba(255,255,255,0.25)' }}>
                         <span className="font-tanker text-white tracking-widest" style={{ fontSize: 14, lineHeight: 1 }}>Events</span>
                     </button>
@@ -4796,7 +4796,7 @@ const App: React.FC = () => {
 
       {activeToast && (
           <div className="absolute inset-0 z-[201] flex items-center justify-center bg-black/10 backdrop-blur-md pointer-events-none animate-pop-in">
-              <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', padding: '24px 36px' }}>
+              <div className="rounded-3xl overflow-hidden" style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', padding: '24px 36px' }}>
                   <div className="flex flex-col items-center gap-3 text-center">
                       {activeToast.type === 'LEVEL_UP'
                           ? <img src="/ui/star.png" alt="" style={{ width: '3rem', height: '3rem', objectFit: 'contain' }} />
@@ -4860,11 +4860,11 @@ const App: React.FC = () => {
       {showWelcomeGift && (
         <div className="absolute inset-0 z-[500] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
           <div className="animate-pop-in flex flex-col items-center gap-3 rounded-3xl p-6 mx-4 text-center"
-            style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxWidth: 300, width: '100%' }}>
+            style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxWidth: 300, width: '100%' }}>
             <div className="font-black text-white text-lg tracking-wide">Welcome Gift</div>
             <div className="text-purple-200 text-xs font-bold">A special gift to start your journey</div>
             <div className="flex flex-col items-center gap-1 rounded-2xl px-5 py-3 w-full"
-              style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4)' }}>
+              style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4)' }}>
               <img src="/symbols/coin.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
               <div className="font-black text-yellow-300 text-2xl" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {giftDisplayAmount.toLocaleString('en-US')}
@@ -4912,7 +4912,7 @@ const App: React.FC = () => {
       {showEventsPopup && (
           <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none" onClick={() => setShowEventsPopup(false)}>
               <div className="w-full max-w-sm rounded-3xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}
-                  style={{ background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
                   {/* Header */}
                   <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
                       <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Events</span>

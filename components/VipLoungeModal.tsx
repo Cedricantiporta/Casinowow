@@ -57,7 +57,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
             <div className="w-full max-w-[480px] flex flex-col rounded-3xl overflow-hidden"
-                style={{ height: 'min(90%, 400px)', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+                style={{ height: 'min(90%, 400px)', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
                 {/* Header */}
                 <div className="shrink-0 flex items-center gap-3 px-4 py-2.5">
@@ -105,7 +105,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
 
                     {/* LEFT — Lounge Benefits */}
                     <div className="flex-[3] flex flex-col rounded-2xl overflow-hidden"
-                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
 
                         <div className="shrink-0 px-3 pt-3 pb-1 text-center">
                             <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>Lounge Benefits</span>
@@ -139,7 +139,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
 
                     {/* RIGHT — High Limit */}
                     <div className="flex-[2] flex flex-col rounded-2xl overflow-hidden"
-                        style={{ background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
+                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
 
                         <div className="shrink-0 px-3 pt-3 pb-1 text-center">
                             <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>High Limit</span>

@@ -237,7 +237,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 <div className="absolute inset-0 z-[175] flex items-center justify-center bg-black/10 backdrop-blur-md animate-pop-in"
                     onClick={() => { setShowExchangePanel(false); setSelectedDuplicateIds(new Set()); }}>
                     <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
-                        style={{ width: 680, maxWidth: '94%', height: 440, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
+                        style={{ width: 680, maxWidth: '94%', height: 440, maxHeight: '88%', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                     <div className="shrink-0 flex items-center gap-2 px-3 py-2">
                         <span className="font-tanker text-white text-sm flex-1">Exchange Duplicates</span>
@@ -546,7 +546,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 <div className="absolute inset-0 z-[165] flex items-center justify-center bg-black/10 backdrop-blur-md animate-pop-in"
                     onClick={() => setShowDrawPopup(false)}>
                     <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
-                        style={{ width: 680, maxWidth: '94%', height: 320, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
+                        style={{ width: 680, maxWidth: '94%', height: 320, maxHeight: '88%', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                         {/* Seamless topbar */}
                         <div className="shrink-0 flex items-center gap-2 px-3 py-2">
@@ -579,7 +579,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                         <div key={pack.id} className="flex flex-col rounded-2xl overflow-hidden"
                                             style={{
                                                 width: 160,
-                                                background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(10,0,50,0.75) 100%)',
+                                                background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(10,0,50,0.75) 100%)',
                                                 boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
                                                 padding: '14px 12px 12px',
                                             }}>
@@ -627,7 +627,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 <div className="absolute inset-0 z-[175] flex items-center justify-center bg-black/10 backdrop-blur-md"
                     onClick={() => setShowPackBuyPopup(null)}>
                     <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
-                        style={{ width: 680, maxWidth: '94%', height: 250, maxHeight: '88%', background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
+                        style={{ width: 680, maxWidth: '94%', height: 250, maxHeight: '88%', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                         {/* Seamless topbar */}
                         <div className="shrink-0 flex items-center gap-2 px-3 py-2 relative">

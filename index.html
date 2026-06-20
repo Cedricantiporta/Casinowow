@@ -401,12 +401,16 @@
         box-shadow: 0 0px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.2) !important;
       }
 
-      .buyB, .saleB{z-index:1; border-radius: 10px !important; padding-bottom:2px !important;}
-      .buyB .face, .saleB .face{padding:7px 8px; display:flex; align-items:center; justify-content:center; border-radius: 9px !important; min-width:46px;}
-      .buyB .face::before, .saleB .face::before{left:3px;right:3px;border-radius:9px 9px 50% 50%;background:linear-gradient(180deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%);}
+      .buyB{z-index:1; border-radius: 0 0 0 28px !important; padding-bottom:2px !important;}
+      .saleB{z-index:1; border-radius: 0 0 28px 0 !important; padding-bottom:2px !important;}
+      .buyB .face{padding:5px 8px; display:flex; align-items:center; justify-content:center; border-radius: 0 0 0 26px !important; min-width:46px;}
+      .saleB .face{padding:5px 8px; display:flex; align-items:center; justify-content:center; border-radius: 0 0 26px 0 !important; min-width:46px;}
+      .buyB .face::before{left:3px;right:3px;border-radius:0 0 0 22px;background:linear-gradient(180deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%);}
+      .saleB .face::before{left:3px;right:3px;border-radius:0 0 22px 0;background:linear-gradient(180deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%);}
       .buyB .lbl, .saleB .lbl{font-size:11px; font-family:'Nunito',sans-serif !important;}
       @media (min-width: 768px) {
-        .buyB .face, .saleB .face { padding: 9px 16px; min-width: 62px; }
+        .buyB .face { padding: 7px 16px; min-width: 62px; }
+        .saleB .face { padding: 7px 16px; min-width: 62px; }
         .buyB .lbl, .saleB .lbl { font-size: 15px; }
       }
       .reward{flex:1;display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.3);border:1px solid #38106e;border-radius:18px;z-index:1;

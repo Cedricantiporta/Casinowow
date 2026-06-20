@@ -14,7 +14,7 @@ export const BankruptcyModal: React.FC<BankruptcyModalProps> = ({ isOpen, onColl
             <div
                 className="w-full max-w-xs flex flex-col rounded-3xl overflow-hidden"
                 style={{
-                    background: 'linear-gradient(180deg,#9030d8 0%,#6018a8 18%,#380870 100%)',
+                    background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)',
                     boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
                 }}
             >
@@ -33,7 +33,7 @@ export const BankruptcyModal: React.FC<BankruptcyModalProps> = ({ isOpen, onColl
                     <div
                         className="rounded-2xl p-3 flex flex-col items-center"
                         style={{
-                            background: 'linear-gradient(180deg,rgba(160,60,255,0.3) 0%,rgba(160,60,255,0.3) 10%,rgba(10,0,50,0.75) 100%)',
+                            background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)',
                             boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
                         }}
                     >
