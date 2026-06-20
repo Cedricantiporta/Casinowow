@@ -118,8 +118,8 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     const pct = Math.min((progress / 250) * 100, 100);
     const full = pct >= 100;
     return (
-        <div className="flex items-center justify-center py-1.5 px-3">
-            <div className="relative flex items-center" style={{ width: '70%', height: 20, borderRadius: 10, background: 'rgba(0,0,0,0.35)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.5)' }}>
+        <div className="flex items-center justify-center py-1 px-0">
+            <div className="relative flex items-center" style={{ width: '100%', height: 22, borderRadius: 11, background: 'rgba(10,0,40,0.82)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.7)' }}>
                 {/* Fill */}
                 <div className="absolute inset-y-0 left-0 transition-all duration-500" style={{
                     width: `${pct}%`,
@@ -3768,7 +3768,7 @@ const App: React.FC = () => {
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
               { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' } :
-              { background:'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' }}>
+              { background:'linear-gradient(180deg,#380870 0%,#6018a8 30%,#8028c8 55%,#a018d4 82%,#c510e0 100%)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
             <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
 
@@ -3816,9 +3816,9 @@ const App: React.FC = () => {
                         className="shrink-0 active:scale-90 transition-transform" />
 
                     {/* Events pill */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-6"
-                        style={{ background: 'linear-gradient(180deg,#ffe066,#f59e0b,#b45309)', border: '1px solid rgba(0,0,0,0.5)' }}>
-                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 14, lineHeight: 1 }}>Events</span>
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3"
+                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid rgba(0,0,0,0.5)', height: 26 }}>
+                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 16, lineHeight: 1 }}>Events</span>
                     </button>
 
                     {/* Level Pill + Multiplier + XP popup */}
@@ -4694,6 +4694,8 @@ const App: React.FC = () => {
           maxBet={MAX_BET_BY_LEVEL(player.level) * (isHighLimit ? 10 : 1)}
           onOpenGemShop={() => { setActiveModal('NONE'); setTimeout(() => openShop('DIAMONDS'), 50); }}
           onOpenPremium={() => { setActiveModal('NONE'); setTimeout(() => setShowPremiumModal(true), 50); }}
+          jackpotRouletteLastTime={player.jackpotRouletteLastTime ?? 0}
+          onJackpotRouletteClaim={(amount) => setPlayer(p => ({ ...p, balance: p.balance + amount, jackpotRouletteLastTime: Date.now() }))}
       />}
 
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus} />
