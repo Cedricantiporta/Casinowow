@@ -239,7 +239,7 @@
       .bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:45%;pointer-events:none;z-index:2;
         background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.38));}
       /* Bright top-edge highlight = 3D thickness illusion — game bar only */
-      .barA,.barB{background:linear-gradient(180deg,#c060ff,#8020e0);border:none;}
+      .barA,.barB{background:linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%);border:none;}
       .barA{box-shadow:inset 0 2px 0 rgba(255,255,255,0.55);}
       .barB{box-shadow:inset 0 -1px 3px rgba(0,0,0,0.4);}
 
@@ -279,7 +279,7 @@
       .t-gold .jp-amt{border-color:#f0b020;}
 
       .barA{display:flex;align-items:stretch;gap:4px;border-radius:0px;padding:5px;height:50px;}
-      .icon-btn{background:linear-gradient(180deg,#9b6ce0,#5022a8);border:1px solid #38106e;border-radius:7px;
+      .icon-btn{background:linear-gradient(180deg,#9b6ce0,#5022a8);border:1px solid #38106e;border-radius:14px;
         display:flex;flex-direction:column;align-items:center;justify-content:flex-end;color:#fff;cursor:pointer;z-index:1;
         box-shadow:inset 0 1px 2px rgba(255,255,255,0.5),inset 0 -2px 2px rgba(0,0,0,0.3);min-width:44px;padding:2px 0 3px;gap:1px;}
       .icon-btn i{font-size:18px;}
@@ -401,12 +401,12 @@
         box-shadow: 0 0px 0 rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.2) !important;
       }
 
-      .buyB{z-index:1; border-radius: 0 0 0 28px !important; padding-bottom:2px !important;}
-      .saleB{z-index:1; border-radius: 0 0 28px 0 !important; padding-bottom:2px !important;}
-      .buyB .face{padding:5px 8px; display:flex; align-items:center; justify-content:center; border-radius: 0 0 0 26px !important; min-width:46px;}
-      .saleB .face{padding:5px 8px; display:flex; align-items:center; justify-content:center; border-radius: 0 0 26px 0 !important; min-width:46px;}
-      .buyB .face::before{left:3px;right:3px;border-radius:0 0 0 22px;background:linear-gradient(180deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%);}
-      .saleB .face::before{left:3px;right:3px;border-radius:0 0 22px 0;background:linear-gradient(180deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%);}
+      .buyB{z-index:1; border-radius: 4px 4px 0 28px !important; padding-bottom:2px !important;}
+      .saleB{z-index:1; border-radius: 4px 4px 28px 0 !important; padding-bottom:2px !important;}
+      .buyB .face{padding:5px 8px; display:flex; align-items:center; justify-content:center; border-radius: 3px 3px 0 26px !important; min-width:46px;}
+      .saleB .face{padding:5px 8px; display:flex; align-items:center; justify-content:center; border-radius: 3px 3px 26px 0 !important; min-width:46px;}
+      .buyB .face::before{left:3px;right:3px;border-radius:2px 2px 0 22px;background:linear-gradient(180deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%);}
+      .saleB .face::before{left:3px;right:3px;border-radius:2px 2px 22px 0;background:linear-gradient(180deg,rgba(255,255,255,0.55) 0%,rgba(255,255,255,0) 100%);}
       .buyB .lbl, .saleB .lbl{font-size:11px; font-family:'Nunito',sans-serif !important;}
       @media (min-width: 768px) {
         .buyB .face { padding: 7px 16px; min-width: 62px; }

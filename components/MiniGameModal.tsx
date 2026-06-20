@@ -401,8 +401,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const landedStep = board.find(s => s.index === endPos);
 
         if (!isFinish && landedStep?.reward?.type === 'BACK') {
-            // Move backward by the same roll value
-            const backPos = Math.max(0, endPos - rollValue);
+            // Move back one spot (just before the BACK tile)
+            const backPos = Math.max(0, endPos - 1);
             await new Promise(r => setTimeout(r, 300));
             for (let i = endPos - 1; i >= backPos; i--) {
                 setVisualPosition(i);

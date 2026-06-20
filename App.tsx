@@ -3792,8 +3792,8 @@ const App: React.FC = () => {
 
                     {/* Events pill */}
                     <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-6"
-                        style={{ background: 'linear-gradient(180deg,#ffe066,#f59e0b,#b45309)' }}>
-                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 14, lineHeight: 1 }}>Events</span>
+                        style={{ background: 'linear-gradient(180deg,#ffe066,#f59e0b,#b45309)', border: '1px solid rgba(0,0,0,0.5)' }}>
+                        <span className="font-tanker tracking-widest" style={{ fontSize: 14, lineHeight: 1, color: '#000', textShadow: 'none' }}>Events</span>
                     </button>
 
                     {/* Level Pill + Multiplier + XP popup */}
@@ -3951,7 +3951,7 @@ const App: React.FC = () => {
                     const isPassLocked = player.level < 10;
                     return (
                         <div className="absolute left-1 top-1/2 -translate-y-1/2 z-40 flex flex-col gap-1 items-center select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px' }}>
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'6px 6px 16px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px' }}>
                             {/* Mine */}
                             <button
                                 onClick={!isQuestLocked ? handleWildQuestClaim : undefined}

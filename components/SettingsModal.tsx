@@ -78,7 +78,7 @@ const Toggle: React.FC<{ on: boolean; onToggle: () => void; label: string; sub?:
             <span style={{ fontSize: '1.3rem', lineHeight: 1 }}>{icon}</span>
             <div>
                 <div className="text-white font-black text-xs">{label}</div>
-                {sub && <div className="text-purple-300/50 text-[9px] mt-0.5">{sub}</div>}
+                {sub && <div className="text-white/60 text-[9px] mt-0.5">{sub}</div>}
             </div>
         </div>
         <button
@@ -149,7 +149,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
                 <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Settings</span>
                 <div className="flex items-center gap-2 ml-auto z-10">
-                    <span className="text-purple-300/30 text-[9px] font-bold tracking-widest">v1.0.0</span>
+                    <span className="text-white/40 text-[9px] font-bold tracking-widest">v1.0.0</span>
                     <button className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></button>
                 </div>
             </div>
@@ -161,7 +161,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-3 flex flex-col gap-3">
 
                     <div>
-                        <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Audio</div>
+                        <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Audio</div>
                         <div className="flex flex-col gap-1.5">
                             <Toggle on={!isMuted} onToggle={onToggleMute} icon="🔊" label="Sound Effects" sub="Button clicks, wins, SFX" />
                             <Toggle on={!isMusicMuted} onToggle={onToggleMusic} icon="🎵" label="Music" sub="Background music" />
@@ -169,13 +169,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </div>
 
                     <div>
-                        <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Account</div>
+                        <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Account</div>
                         <div className="rounded-xl p-3 flex flex-col gap-2"
                             style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
-                            <p className="text-purple-200/50 text-[9px] leading-snug">Reset all progress including coins, gems, level, and history. This cannot be undone.</p>
+                            <p className="text-white/70 text-[9px] leading-snug">Reset all progress including coins, gems, level, and history. This cannot be undone.</p>
                             <button
                                 onClick={() => setShowResetConfirm(true)}
-                                className="w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-white/80 transition-all active:scale-95"
+                                className="w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-white transition-all active:scale-95"
                                 style={{ background: 'rgba(220,38,38,0.25)', border: '1px solid rgba(220,38,38,0.4)' }}>
                                 Reset Account
                             </button>
@@ -187,10 +187,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {/* RIGHT — Redeem */}
                 <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-3 flex flex-col gap-3">
                     <div>
-                        <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">Redeem Code</div>
+                        <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Redeem Code</div>
                         <div className="rounded-xl p-3 flex flex-col gap-2"
                             style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
-                            <p className="text-purple-200/50 text-[9px] leading-snug">Enter a code to claim special rewards.</p>
+                            <p className="text-white/70 text-[9px] leading-snug">Enter a code to claim special rewards.</p>
                             <div className="flex gap-2">
                                 <input
                                     type="text"
@@ -214,17 +214,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     {/* About */}
                     <div>
-                        <div className="text-purple-400/60 text-[8px] font-black mb-1.5 px-0.5">About</div>
+                        <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">About</div>
                         <div className="rounded-xl p-3 flex flex-col gap-1.5"
                             style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)' }}>
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">🎰</span>
                                 <div>
                                     <div className="text-white font-black text-xs">CasinoWow</div>
-                                    <div className="text-purple-300/40 text-[9px]">For entertainment only · No real money</div>
+                                    <div className="text-white/60 text-[9px]">For entertainment only · No real money</div>
                                 </div>
                             </div>
-                            <div className="text-purple-300/30 text-[8px] leading-relaxed">
+                            <div className="text-white/50 text-[8px] leading-relaxed">
                                 All coins and gems are virtual and have no real-world value. This game does not offer real-money gambling.
                             </div>
                         </div>
@@ -273,7 +273,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <div className="px-5 py-5 flex flex-col items-center gap-3">
                             <div className="text-center">
                                 <div className="text-white font-black text-base uppercase tracking-widest">{codeInfo.title}</div>
-                                <div className="text-purple-300/70 text-[10px] mt-0.5 leading-snug">{codeInfo.description}</div>
+                                <div className="text-white/70 text-[10px] mt-0.5 leading-snug">{codeInfo.description}</div>
                             </div>
 
                             {/* Rewards list */}
