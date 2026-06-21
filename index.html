@@ -238,10 +238,10 @@
       .flat-in{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:0.95;height:100%;}
 
       .bar{position:relative;overflow:hidden;}
-      .bar::before{content:"";position:absolute;left:0;right:0;top:0;height:50%;pointer-events:none;z-index:2;
-        background:linear-gradient(180deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.1) 40%,rgba(255,255,255,0) 100%);}
-      .bar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:45%;pointer-events:none;z-index:2;
-        background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,0.38));}
+      .bar::before{content:"";position:absolute;left:0;right:0;bottom:0;height:50%;pointer-events:none;z-index:2;
+        background:linear-gradient(0deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.1) 40%,rgba(255,255,255,0) 100%);}
+      .bar::after{content:"";position:absolute;left:0;right:0;top:0;height:45%;pointer-events:none;z-index:2;
+        background:linear-gradient(180deg,rgba(0,0,0,0.38),rgba(0,0,0,0));}
       /* Bright top-edge highlight = 3D thickness illusion — game bar only */
       .barA,.barB{background:linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%);border:none;}
       .barA{box-shadow:inset 0 2px 0 rgba(255,255,255,0.55);}

@@ -3790,17 +3790,11 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* RIGHT ZONE — Piggy + Level + XP + Settings */}
+                {/* RIGHT ZONE — Piggy + Level + XP + Settings + Events */}
                 <div className="flex items-center gap-1 flex-1 min-w-0">
                     <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
                         style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
                         className="shrink-0 active:scale-90 transition-transform" />
-
-                    {/* Events pill */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3"
-                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid rgba(0,0,0,0.5)', height: 26 }}>
-                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 16, lineHeight: 1 }}>Events</span>
-                    </button>
 
                     {/* Level Pill + Multiplier + XP popup */}
                     <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 95 }}>
@@ -3912,6 +3906,12 @@ const App: React.FC = () => {
                     >
                         <i className="ti ti-settings"></i>
                     </div>
+
+                    {/* Events pill */}
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3"
+                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid rgba(0,0,0,0.5)', height: 26 }}>
+                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 16, lineHeight: 1 }}>Events</span>
+                    </button>
                 </div>
             </div>
       </header>
@@ -4025,7 +4025,7 @@ const App: React.FC = () => {
                                             {albumReady}
                                         </div>
                                     )}
-                                    <img src="/ui/cards_new.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                    <img src="/card_normal.png" alt="" style={{ width: 44, height: 56, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                     <div style={pillStyle}>Check</div>
                                 </button>
                             </>)}
@@ -4839,7 +4839,7 @@ const App: React.FC = () => {
           <div className="fixed top-[40px] right-2 z-[200] animate-pop-in pointer-events-none"
               style={{ background: 'linear-gradient(160deg,#2a0d52,#3b0764)', border: '1px solid rgba(150,90,255,0.3)', borderRadius: 14, padding: '10px 14px', boxShadow: '0 6px 20px rgba(0,0,0,0.7)' }}>
               <div className="flex items-center gap-2">
-                  <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>🃏</span>
+                  <img src="/card_normal.png" alt="" style={{ width: '1.8rem', height: '2.2rem', objectFit: 'contain', flexShrink: 0 }} />
                   <div>
                       <div className="font-black text-white text-xs uppercase tracking-widest">+1 Card Pack!</div>
                       <div className="text-purple-300 text-[9px] font-bold">Added to your stash</div>
@@ -4853,7 +4853,7 @@ const App: React.FC = () => {
               <div className="rounded-2xl overflow-hidden flex items-center gap-2.5" style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 6px 20px rgba(0,0,0,0.8)', padding: '9px 13px' }}>
                   {activeToast.type === 'LEVEL_UP'
                       ? <img src="/ui/star.png" alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain', flexShrink: 0 }} />
-                      : <span style={{ fontSize: '1.4rem', lineHeight: 1, flexShrink: 0 }}>🃏</span>}
+                      : <img src="/card_normal.png" alt="" style={{ width: '1.4rem', height: '1.8rem', objectFit: 'contain', flexShrink: 0 }} />}
                   <div>
                       {activeToast.type === 'LEVEL_UP' ? (
                           <>

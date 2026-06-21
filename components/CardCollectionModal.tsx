@@ -113,42 +113,37 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     };
 
     const CARD_TIER: Record<CardRarity, {
-        frame: string; inner: string; innerLocked: string; badgeText: string;
+        bg: string; bgLocked: string; shadow: string;
+        badge: string; badgeText: string; nameBg: string; nameText: string;
     }> = {
         COMMON: {
-            frame: 'linear-gradient(145deg,#d0d8e4 0%,#7a8a9c 30%,#c8d4e0 55%,#9aaabb 80%,#d0d8e4 100%)',
-            inner: 'linear-gradient(180deg,#9aa6b6 0%,#6b7888 12%,#54606e 28%,#3a434e 55%,#181d24 100%)',
-            innerLocked: 'linear-gradient(180deg,#2a313c 0%,#1a1f26 40%,#0c0f14 100%)',
-            badgeText: '#e0ecf8',
+            bg: 'linear-gradient(180deg,rgba(180,190,215,0.5) 0%,rgba(100,115,145,0.32) 22%,rgba(12,14,24,0.92) 100%)',
+            bgLocked: 'linear-gradient(180deg,rgba(40,44,58,0.55) 0%,rgba(10,12,18,0.92) 100%)',
+            shadow: 'inset 0 1px 0 rgba(200,210,240,0.45), 0 3px 12px rgba(0,0,0,0.55)',
+            badge: 'rgba(160,172,200,0.55)', badgeText: '#dde6f8',
+            nameBg: 'rgba(130,145,180,0.35)', nameText: '#ccd6f0',
         },
         RARE: {
-            frame: 'linear-gradient(145deg,#88c0f8 0%,#1a5abf 30%,#88c0f8 55%,#4488e0 80%,#88c0f8 100%)',
-            inner: 'linear-gradient(180deg,#4f9bf5 0%,#2f6fe0 12%,#1f50c0 28%,#163a90 55%,#081230 100%)',
-            innerLocked: 'linear-gradient(180deg,#1a2740 0%,#0f1a30 40%,#060c18 100%)',
-            badgeText: '#dceaff',
+            bg: 'linear-gradient(180deg,rgba(40,115,245,0.58) 0%,rgba(18,62,185,0.42) 22%,rgba(4,10,42,0.93) 100%)',
+            bgLocked: 'linear-gradient(180deg,rgba(12,22,55,0.6) 0%,rgba(4,8,24,0.92) 100%)',
+            shadow: 'inset 0 1px 0 rgba(120,180,255,0.5), 0 3px 12px rgba(0,0,0,0.55)',
+            badge: 'rgba(35,100,230,0.6)', badgeText: '#c0dcff',
+            nameBg: 'rgba(25,75,195,0.5)', nameText: '#c0dcff',
         },
         EPIC: {
-            frame: 'linear-gradient(145deg,#f09090 0%,#a01020 30%,#f09090 55%,#cc3040 80%,#f09090 100%)',
-            inner: 'linear-gradient(180deg,#f05858 0%,#d62e2e 12%,#b01c1c 28%,#7a1414 55%,#2c0606 100%)',
-            innerLocked: 'linear-gradient(180deg,#2c1414 0%,#1c0c0c 40%,#100404 100%)',
-            badgeText: '#ffdde0',
+            bg: 'linear-gradient(180deg,rgba(200,30,52,0.58) 0%,rgba(140,14,28,0.42) 22%,rgba(18,4,8,0.93) 100%)',
+            bgLocked: 'linear-gradient(180deg,rgba(40,8,14,0.6) 0%,rgba(14,4,6,0.92) 100%)',
+            shadow: 'inset 0 1px 0 rgba(255,120,132,0.5), 0 3px 12px rgba(0,0,0,0.55)',
+            badge: 'rgba(175,20,40,0.6)', badgeText: '#ffd0d8',
+            nameBg: 'rgba(145,14,30,0.5)', nameText: '#ffd0d8',
         },
         LEGENDARY: {
-            frame: 'linear-gradient(145deg,#ffe060 0%,#c08010 30%,#ffe060 55%,#e09828 80%,#ffe060 100%)',
-            inner: 'linear-gradient(180deg,#fbbf24 0%,#e09010 12%,#c07408 28%,#8a4f06 55%,#2e1902 100%)',
-            innerLocked: 'linear-gradient(180deg,#2c2008 0%,#1c1404 40%,#100a00 100%)',
-            badgeText: '#fff3c4',
+            bg: 'linear-gradient(180deg,rgba(242,172,20,0.62) 0%,rgba(182,112,10,0.46) 22%,rgba(26,10,0,0.93) 100%)',
+            bgLocked: 'linear-gradient(180deg,rgba(45,18,0,0.6) 0%,rgba(16,6,0,0.92) 100%)',
+            shadow: 'inset 0 1px 0 rgba(255,222,80,0.55), 0 0 18px rgba(255,190,30,0.25), 0 3px 12px rgba(0,0,0,0.55)',
+            badge: 'rgba(195,128,10,0.65)', badgeText: '#fff0a0',
+            nameBg: 'rgba(160,100,8,0.55)', nameText: '#ffe070',
         },
-    };
-
-    // Keep for the tiny duplicate exchange cards
-    const getCardBorder = (rarity: CardRarity): string => {
-        switch(rarity) {
-            case 'LEGENDARY': return '#fde68a';
-            case 'EPIC': return '#f09090';
-            case 'RARE': return '#88c0f8';
-            default: return '#94a3b8';
-        }
     };
 
     const rarityOrder: Record<CardRarity, number> = {
@@ -266,7 +261,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 {allDuplicates.map((dup) => {
                                     const key = `${dup.deckId}-${dup.cardIdx}`;
                                     const sel = selectedDuplicateIds.has(key);
-                                    const borderColor = getCardBorder(dup.card.rarity);
                                     return (
                                         <button key={key} onClick={() => {
                                             setSelectedDuplicateIds(prev => {
@@ -275,25 +269,24 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 return next;
                                             });
                                         }} className="relative transition-all active:scale-95"
-                                            style={{ aspectRatio: '2/3', borderRadius: 8, background: sel ? '#fde68a' : CARD_TIER[dup.card.rarity].frame, padding: 2, boxShadow: sel ? '0 0 10px #fde68aaa' : 'none' }}>
-                                            {sel && <div className="absolute inset-0 z-10 rounded-lg" style={{ background: 'rgba(255,220,80,0.25)', borderRadius: 8 }} />}
-                                            <div style={{ width: '100%', height: '100%', borderRadius: 6, background: CARD_TIER[dup.card.rarity].inner, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                                                <div style={{ padding: '2px 2px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                                    <span style={{ fontSize: 6, fontWeight: 900, textTransform: 'uppercase', background: CARD_TIER[dup.card.rarity].frame, color: CARD_TIER[dup.card.rarity].badgeText, padding: '1px 3px', borderRadius: 9999, lineHeight: 1.4 }}>{dup.card.rarity[0]}</span>
-                                                    {dup.extraCount > 1 && (
-                                                        <span style={{ fontSize: 6, fontWeight: 900, color: '#fde047', background: 'rgba(0,0,0,0.6)', padding: '1px 2px', borderRadius: 2, lineHeight: 1.4 }}>×{dup.extraCount}</span>
-                                                    )}
-                                                </div>
-                                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    {dup.card.icon.startsWith('/') ? (
-                                                        <img src={dup.card.icon} alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain' }} />
-                                                    ) : (
-                                                        <span style={{ fontSize: '1.4rem', lineHeight: 1 }}>{dup.card.icon}</span>
-                                                    )}
-                                                </div>
-                                                <div style={{ padding: '0 1px 2px', textAlign: 'center' }}>
-                                                    <div style={{ fontSize: 6, fontWeight: 700, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dup.card.name}</div>
-                                                </div>
+                                            style={{ aspectRatio: '2/3', borderRadius: 8, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+                                                     background: sel ? 'linear-gradient(180deg,rgba(255,230,80,0.7) 0%,rgba(200,160,10,0.55) 22%,rgba(30,20,0,0.95) 100%)' : CARD_TIER[dup.card.rarity].bg,
+                                                     boxShadow: sel ? '0 0 10px rgba(255,220,40,0.6)' : CARD_TIER[dup.card.rarity].shadow }}>
+                                            <div style={{ padding: '2px 2px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                <span style={{ fontSize: 6, fontWeight: 900, textTransform: 'uppercase', background: sel ? 'rgba(255,220,40,0.6)' : CARD_TIER[dup.card.rarity].badge, color: sel ? '#1a1000' : CARD_TIER[dup.card.rarity].badgeText, padding: '1px 3px', borderRadius: 9999, lineHeight: 1.4 }}>{dup.card.rarity[0]}</span>
+                                                {dup.extraCount > 1 && (
+                                                    <span style={{ fontSize: 6, fontWeight: 900, color: '#fde047', background: 'rgba(0,0,0,0.6)', padding: '1px 2px', borderRadius: 2, lineHeight: 1.4 }}>×{dup.extraCount}</span>
+                                                )}
+                                            </div>
+                                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                {dup.card.icon.startsWith('/') ? (
+                                                    <img src={dup.card.icon} alt="" style={{ width: '2rem', height: '2rem', objectFit: 'contain' }} />
+                                                ) : (
+                                                    <span style={{ fontSize: '2rem', lineHeight: 1 }}>{dup.card.icon}</span>
+                                                )}
+                                            </div>
+                                            <div style={{ padding: '0 1px 2px', textAlign: 'center' }}>
+                                                <div style={{ fontSize: 6, fontWeight: 700, color: 'rgba(255,255,255,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{dup.card.name}</div>
                                             </div>
                                         </button>
                                     );
@@ -329,7 +322,10 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
             {isOpeningPack && (
                 <div className="absolute inset-0 z-[160] bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-3">
                     {packStage === 'SHAKING' && (
-                        <div className="text-6xl animate-bounce drop-shadow-[0_0_30px_rgba(255,255,255,0.4)] pointer-events-none">{lastPackId === 'ultra' ? '🎴' : '🃏'}</div>
+                        <div className="animate-bounce pointer-events-none" style={{ filter: 'drop-shadow(0 0 24px rgba(255,255,255,0.35))' }}>
+                            <img src={lastPackId === 'ultra' ? '/card_premium.png' : '/card_normal.png'} alt=""
+                                style={{ width: 90, height: 120, objectFit: 'contain' }} />
+                        </div>
                     )}
                     {packStage === 'BURST' && (
                         <div className="text-6xl scale-125 transition-transform duration-300 opacity-0 pointer-events-none">💥</div>
@@ -337,39 +333,29 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     {packStage === 'REVEAL' && (
                         <div className="w-full h-full flex flex-col items-center justify-center animate-pop-in relative py-4">
                             <div className="flex-1 w-full max-w-2xl px-2 overflow-y-auto grid grid-cols-5 gap-2 content-center justify-items-center">
-                                {openedCards.filter(card => { const st = String(card.symbolType); return !['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && card.icon !== '🪙'; }).map((card, i) => {
-                                    const borderColor = getCardBorder(card.rarity);
-                                    return (
-                                    <div
-                                        key={i}
-                                        className="relative w-full max-w-[80px] animate-pop-in"
-                                        style={{ animationDelay: `${i * 30}ms`, aspectRatio: '2/3', borderRadius: 12 }}
-                                    >
-                                        {/* Metallic frame */}
-                                        <div style={{ position: 'absolute', inset: 0, borderRadius: 12, background: CARD_TIER[card.rarity].frame, padding: 3 }}>
-                                            <div style={{ width: '100%', height: '100%', borderRadius: 9, background: CARD_TIER[card.rarity].inner, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-                                                <div style={{ padding: '4px 4px 0', display: 'flex', justifyContent: 'center' }}>
-                                                    <span style={{ fontSize: 6, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', background: CARD_TIER[card.rarity].frame, color: CARD_TIER[card.rarity].badgeText, padding: '1px 5px', borderRadius: 9999, lineHeight: 1.5 }}>
-                                                        {card.rarity}
-                                                    </span>
-                                                </div>
-                                                {card.isNew && <div className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[6px] font-black px-0.5 rounded z-20">NEW</div>}
-                                                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    {card.icon.startsWith('/') ? (
-                                                        <img src={card.icon} alt="" style={{ width: '2.8rem', height: '2.8rem', objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.8))' }} />
-                                                    ) : (
-                                                        <span style={{ fontSize: '2.8rem', lineHeight: 1 }}>{card.icon}</span>
-                                                    )}
-                                                </div>
-                                                <div style={{ padding: '0 3px 4px' }}>
-                                                    <div style={{ background: CARD_TIER[card.rarity].frame, borderRadius: 4, padding: '2px 4px', textAlign: 'center', fontSize: 7, fontWeight: 900, color: CARD_TIER[card.rarity].badgeText, letterSpacing: '0.04em', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{card.name}</div>
-                                                    {card.isDuplicate && <div style={{ textAlign: 'center', color: '#fde047', fontSize: 6, fontWeight: 900, textTransform: 'uppercase', marginTop: 1 }}>Dup</div>}
-                                                </div>
-                                            </div>
+                                {openedCards.filter(card => { const st = String(card.symbolType); return !['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && card.icon !== '🪙'; }).map((card, i) => (
+                                    <div key={i} className="relative w-full max-w-[80px] animate-pop-in"
+                                        style={{ animationDelay: `${i * 30}ms`, aspectRatio: '2/3', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+                                                 background: CARD_TIER[card.rarity].bg, boxShadow: CARD_TIER[card.rarity].shadow }}>
+                                        <div style={{ padding: '4px 4px 0', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+                                            <span style={{ fontSize: 6, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', background: CARD_TIER[card.rarity].badge, color: CARD_TIER[card.rarity].badgeText, padding: '1px 5px', borderRadius: 9999, lineHeight: 1.5 }}>
+                                                {card.rarity}
+                                            </span>
+                                            {card.isNew && <div className="absolute top-0 right-0 bg-red-600 text-white text-[6px] font-black px-0.5 rounded">NEW</div>}
+                                        </div>
+                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                            {card.icon.startsWith('/') ? (
+                                                <img src={card.icon} alt="" style={{ width: '2.8rem', height: '2.8rem', objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.8))' }} />
+                                            ) : (
+                                                <span style={{ fontSize: '2.8rem', lineHeight: 1 }}>{card.icon}</span>
+                                            )}
+                                        </div>
+                                        <div style={{ padding: '0 3px 4px' }}>
+                                            <div style={{ background: CARD_TIER[card.rarity].nameBg, borderRadius: 4, padding: '2px 4px', textAlign: 'center', fontSize: 7, fontWeight: 900, color: CARD_TIER[card.rarity].nameText, textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{card.name}</div>
+                                            {card.isDuplicate && <div style={{ textAlign: 'center', color: '#fde047', fontSize: 6, fontWeight: 900, textTransform: 'uppercase', marginTop: 1 }}>Dup</div>}
                                         </div>
                                     </div>
-                                    );
-                                })}
+                                ))}
                             </div>
                             <div className="shrink-0 mt-4 flex flex-col sm:flex-row gap-2 z-50 items-center bg-black/70 p-2.5 rounded-xl">
                                 <button onClick={closePack} className="pill-green">
@@ -424,11 +410,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         </button>
                     </div>
                     <div className="currency-pill flex items-center gap-1 shrink-0">
-                        <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>🃏</span>
+                        <img src="/card_normal.png" alt="" style={{ width: 18, height: 22, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num">{packCredits}</span>
                     </div>
                     <div className="currency-pill flex items-center gap-1 shrink-0">
-                        <span style={{ fontSize: '14px', lineHeight: 1, flexShrink: 0 }}>🎴</span>
+                        <img src="/card_premium.png" alt="" style={{ width: 18, height: 22, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num">{premiumPackCredits}</span>
                     </div>
                 </div>
@@ -524,40 +510,35 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                         return true;
                                     })
                                     .map((card, i) => {
-                                    const borderColor = getCardBorder(card.rarity);
                                     const isLocked = card.count === 0;
                                     return (
-                                        <div key={i}
-                                            className="flex-none relative"
-                                            style={{ width: 140, height: 220, borderRadius: 16, flexShrink: 0 }}>
-                                            {/* Metallic frame border */}
-                                            <div style={{ position: 'absolute', inset: 0, borderRadius: 16, background: isLocked ? 'linear-gradient(145deg,#3a4050,#252c38)' : CARD_TIER[card.rarity].frame, padding: 4 }}>
-                                                <div style={{ width: '100%', height: '100%', borderRadius: 12, background: isLocked ? CARD_TIER[card.rarity].innerLocked : CARD_TIER[card.rarity].inner, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-                                                    {/* Top: tier badge + count */}
-                                                    <div style={{ padding: '8px 10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                        <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', background: isLocked ? 'rgba(255,255,255,0.08)' : CARD_TIER[card.rarity].frame, color: isLocked ? 'rgba(255,255,255,0.25)' : CARD_TIER[card.rarity].badgeText, padding: '2px 7px', borderRadius: 9999, lineHeight: 1.5 }}>
-                                                            {card.rarity}
-                                                        </span>
-                                                        {card.count > 0 && (
-                                                            <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.65)', background: 'rgba(0,0,0,0.5)', padding: '1px 5px', borderRadius: 4 }}>×{card.count}</span>
-                                                        )}
-                                                    </div>
-                                                    {/* Middle: symbol */}
-                                                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                        {isLocked ? (
-                                                            <img src="/ui/lock.png" alt="" style={{ width: '4rem', height: '4rem', objectFit: 'contain', opacity: 0.3 }} />
-                                                        ) : card.icon.startsWith('/') ? (
-                                                            <img src={card.icon} alt="" style={{ width: '4.9rem', height: '4.9rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.9))' }} />
-                                                        ) : (
-                                                            <span style={{ fontSize: '4.9rem', lineHeight: 1 }}>{card.icon}</span>
-                                                        )}
-                                                    </div>
-                                                    {/* Bottom: name plate */}
-                                                    <div style={{ padding: '0 8px 10px' }}>
-                                                        <div style={{ background: isLocked ? 'rgba(255,255,255,0.04)' : CARD_TIER[card.rarity].frame, borderRadius: 7, padding: '5px 8px', textAlign: 'center', fontSize: 11, fontWeight: 900, color: isLocked ? 'rgba(255,255,255,0.18)' : CARD_TIER[card.rarity].badgeText, letterSpacing: '0.05em', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                            {card.name}
-                                                        </div>
-                                                    </div>
+                                        <div key={i} className="flex-none"
+                                            style={{ width: 140, height: 220, borderRadius: 16, flexShrink: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column',
+                                                     background: isLocked ? CARD_TIER[card.rarity].bgLocked : CARD_TIER[card.rarity].bg,
+                                                     boxShadow: isLocked ? '0 3px 12px rgba(0,0,0,0.5)' : CARD_TIER[card.rarity].shadow }}>
+                                            {/* Top: tier badge + count */}
+                                            <div style={{ padding: '8px 10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', background: isLocked ? 'rgba(255,255,255,0.08)' : CARD_TIER[card.rarity].badge, color: isLocked ? 'rgba(255,255,255,0.25)' : CARD_TIER[card.rarity].badgeText, padding: '2px 7px', borderRadius: 9999, lineHeight: 1.5 }}>
+                                                    {card.rarity}
+                                                </span>
+                                                {card.count > 0 && (
+                                                    <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.65)', background: 'rgba(0,0,0,0.5)', padding: '1px 5px', borderRadius: 4 }}>×{card.count}</span>
+                                                )}
+                                            </div>
+                                            {/* Middle: symbol */}
+                                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                {isLocked ? (
+                                                    <img src="/ui/lock.png" alt="" style={{ width: '4rem', height: '4rem', objectFit: 'contain', opacity: 0.3 }} />
+                                                ) : card.icon.startsWith('/') ? (
+                                                    <img src={card.icon} alt="" style={{ width: '5rem', height: '5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.9))' }} />
+                                                ) : (
+                                                    <span style={{ fontSize: '5rem', lineHeight: 1 }}>{card.icon}</span>
+                                                )}
+                                            </div>
+                                            {/* Bottom: name plate */}
+                                            <div style={{ padding: '0 8px 10px' }}>
+                                                <div style={{ background: isLocked ? 'rgba(255,255,255,0.04)' : CARD_TIER[card.rarity].nameBg, borderRadius: 7, padding: '5px 8px', textAlign: 'center', fontSize: 11, fontWeight: 900, color: isLocked ? 'rgba(255,255,255,0.18)' : CARD_TIER[card.rarity].nameText, letterSpacing: '0.05em', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {card.name}
                                                 </div>
                                             </div>
                                         </div>
@@ -585,11 +566,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     <span className="num">{formatNumber(diamonds)}</span>
                                 </div>
                                 <div className="currency-pill flex items-center gap-1 shrink-0">
-                                    <span style={{ fontSize: '14px', lineHeight: 1 }}>🃏</span>
+                                    <img src="/card_normal.png" alt="" style={{ width: 16, height: 20, objectFit: 'contain', flexShrink: 0 }} />
                                     <span className="num">{packCredits}</span>
                                 </div>
                                 <div className="currency-pill flex items-center gap-1 shrink-0">
-                                    <span style={{ fontSize: '14px', lineHeight: 1 }}>🎴</span>
+                                    <img src="/card_premium.png" alt="" style={{ width: 16, height: 20, objectFit: 'contain', flexShrink: 0 }} />
                                     <span className="num">{premiumPackCredits}</span>
                                 </div>
                             </div>
