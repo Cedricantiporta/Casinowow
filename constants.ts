@@ -309,7 +309,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   SAMURAI: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/samurai_green.png', [SymbolType.BELL]: '/samurai_blue.png', [SymbolType.BAR]: '/samurai_purple.png', [SymbolType.CHERRY]: '/samurai_red.png', [SymbolType.SEVEN]: '/samurai_red.png',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '🌸', ...JP_ICONS
+    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/samurai_scatter.png', ...JP_ICONS
   },
   PIGGY: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -324,7 +324,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   LEPRECHAUN: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/lucky_green.png', [SymbolType.BELL]: '/lucky_blue.png', [SymbolType.BAR]: '/lucky_purple.png', [SymbolType.CHERRY]: '/lucky_red.png', [SymbolType.SEVEN]: '/lucky_red.png',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '🌟', ...JP_ICONS, [SymbolType.COIN]: '🍀'
+    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/lucky_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🍀'
   },
   ARCTIC: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
