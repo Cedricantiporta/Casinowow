@@ -7,23 +7,25 @@ export const SPIN_DURATION = 1000;
 export const REEL_DELAY = 150; 
 
 // --- Visual Styles ---
+// All reel backgrounds are solid black so themed symbols pop and the
+// per-game slot background image (slotBg) frames the reels.
 const REEL_BGS: Record<GameTheme, string> = {
-    NEON: 'bg-gradient-to-b from-[#0f0518] via-[#1a0b2e] to-[#0f0518]', 
-    EGYPT: 'bg-gradient-to-b from-[#1a0f00] via-[#291500] to-[#1a0f00]', 
-    DRAGON: 'bg-gradient-to-b from-[#1a0000] via-[#2b0505] to-[#1a0000]', 
-    PIRATE: 'bg-gradient-to-b from-[#081c24] via-[#0e2a35] to-[#081c24]',
-    SPACE: 'bg-gradient-to-b from-[#00001a] via-[#0d0d33] to-[#00001a]',
-    CANDY: 'bg-gradient-to-b from-[#2e0b1a] via-[#451228] to-[#2e0b1a]',
-    JUNGLE: 'bg-gradient-to-b from-[#052e16] via-[#064e3b] to-[#022c22]',
-    UNDERWATER: 'bg-gradient-to-b from-[#0c4a6e] via-[#0369a1] to-[#082f49]',
-    WESTERN: 'bg-gradient-to-b from-[#451a03] via-[#78350f] to-[#2e1005]',
-    SAMURAI: 'bg-gradient-to-b from-[#300505] via-[#500a0a] to-[#1a0000]',
-    PIGGY: 'bg-gradient-to-b from-[#500724] via-[#831843] to-[#500724]',
-    GOLDEN_POT: 'bg-gradient-to-b from-[#2d1200] via-[#4a1e00] to-[#1a0a00]',
-    LEPRECHAUN: 'bg-gradient-to-b from-[#011a05] via-[#013a0c] to-[#011505]',
-    ARCTIC:     'bg-gradient-to-b from-[#001428] via-[#001e3a] to-[#000e1e]',
-    PETS:       'bg-gradient-to-b from-[#2a0b3d] via-[#3d1259] to-[#1a0626]',
-    MMORPG:     'bg-gradient-to-b from-[#0a1626] via-[#13243d] to-[#060d18]',
+    NEON: 'bg-black',
+    EGYPT: 'bg-black',
+    DRAGON: 'bg-black',
+    PIRATE: 'bg-black',
+    SPACE: 'bg-black',
+    CANDY: 'bg-black',
+    JUNGLE: 'bg-black',
+    UNDERWATER: 'bg-black',
+    WESTERN: 'bg-black',
+    SAMURAI: 'bg-black',
+    PIGGY: 'bg-black',
+    GOLDEN_POT: 'bg-black',
+    LEPRECHAUN: 'bg-black',
+    ARCTIC: 'bg-black',
+    PETS: 'bg-black',
+    MMORPG: 'bg-black',
 };
 
 // --- Games Configuration ---
@@ -108,7 +110,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-blue-600 via-blue-800 to-slate-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #0f172a 100%)',
     reelBg: REEL_BGS.PIRATE,
-    slotBg: '/slots/pirate_bg.jpg',
+    slotBg: '/pirate_bg.png',
     coverImage: '/slots/pirate_covernew.png',
   },
   {
@@ -122,6 +124,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-indigo-500 via-violet-700 to-purple-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #6366f1 0%, #1e1b4b 100%)',
     reelBg: REEL_BGS.SPACE,
+    slotBg: '/cosmic_bg.png',
     coverImage: '/slots/cosmic_covernew.png',
   },
   {
@@ -149,6 +152,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-cyan-500 via-blue-600 to-blue-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #1e3a8a 100%)',
     reelBg: REEL_BGS.UNDERWATER,
+    slotBg: '/deep_bg.png',
     coverImage: '/slots/deep_covernew.jpg',
   },
   {
@@ -162,6 +166,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-orange-700 via-amber-800 to-yellow-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #b45309 0%, #451a03 100%)',
     reelBg: REEL_BGS.WESTERN,
+    slotBg: '/gold_bg.png',
     coverImage: '/slots/gold_covernew.png',
   },
   {
@@ -175,6 +180,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-red-700 via-red-900 to-black',
     bgImage: 'radial-gradient(circle at 50% 0%, #991b1b 0%, #450a0a 100%)',
     reelBg: REEL_BGS.SAMURAI,
+    slotBg: '/samurai_bg.png',
     coverImage: '/slots/samurai_covernew.jpg',
   },
   {
@@ -201,6 +207,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-green-500 via-emerald-600 to-green-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #16a34a 0%, #052e16 100%)',
     reelBg: REEL_BGS.LEPRECHAUN,
+    slotBg: '/leprechaun_bg.png',
     coverImage: '/slots/lucky_covernew.png',
   },
   {
@@ -227,6 +234,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-violet-500 via-fuchsia-600 to-purple-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #a855f7 0%, #2e1065 100%)',
     reelBg: REEL_BGS.PETS,
+    slotBg: '/mystic_bg.png',
     coverImage: '/slots/mystic_covernew.png',
   },
   {
@@ -240,6 +248,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-sky-600 via-indigo-800 to-slate-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #0f172a 100%)',
     reelBg: REEL_BGS.MMORPG,
+    slotBg: '/dungeon_bg.png',
     coverImage: '/slots/fantasy_covernew.jpg',
   },
 ];
@@ -269,13 +278,13 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   },
   PIRATE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '/pirate/bomb.png', [SymbolType.BELL]: '/pirate/compass.png', [SymbolType.BAR]: '/pirate/flag.png', [SymbolType.CHERRY]: '/pirate/parrot.png', [SymbolType.SEVEN]: '/pirate/anchor.png',
-    [SymbolType.WILD]: '/pirate_wild.png', [SymbolType.SCATTER]: '/pirate/skull.png', ...JP_ICONS
+    [SymbolType.GRAPE]: '/pirate_green.png', [SymbolType.BELL]: '/pirate_blue.png', [SymbolType.BAR]: '/pirate_purple.png', [SymbolType.CHERRY]: '/pirate_red.png', [SymbolType.SEVEN]: '/pirate_red.png',
+    [SymbolType.WILD]: '/pirate_wild.png', [SymbolType.SCATTER]: '/pirate_scatter.png', ...JP_ICONS
   },
   SPACE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '☄️', [SymbolType.BELL]: '🛰️', [SymbolType.BAR]: '🪐', [SymbolType.CHERRY]: '👾', [SymbolType.SEVEN]: '🌞',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '🚀', ...JP_ICONS
+    [SymbolType.GRAPE]: '/cosmic_green.png', [SymbolType.BELL]: '/cosmic_blue.png', [SymbolType.BAR]: '/cosmic_purple.png', [SymbolType.CHERRY]: '/cosmic_red.png', [SymbolType.SEVEN]: '/cosmic_red.png',
+    [SymbolType.WILD]: '/cosmic_wild.png', [SymbolType.SCATTER]: '/cosmic_scatter.png', ...JP_ICONS
   },
   CANDY: {
     [SymbolType.TEN]: '/candy/sugar2.png', [SymbolType.JACK]: '/candy/sugar3.png', [SymbolType.QUEEN]: '/candy/sugar4.png', [SymbolType.KING]: '/candy/sugar5.png', [SymbolType.ACE]: '/candy/sugar6.png',
@@ -284,28 +293,28 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   },
   JUNGLE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🍌', [SymbolType.BELL]: '🦜', [SymbolType.BAR]: '🐍', [SymbolType.CHERRY]: '🦍', [SymbolType.SEVEN]: '🐆',
+    [SymbolType.GRAPE]: '/jungle_green.png', [SymbolType.BELL]: '/jungle_blue.png', [SymbolType.BAR]: '/jungle_purple.png', [SymbolType.CHERRY]: '/jungle_red.png', [SymbolType.SEVEN]: '/jungle_red.png',
     [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '🗿', ...JP_ICONS
   },
   UNDERWATER: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🐚', [SymbolType.BELL]: '🦞', [SymbolType.BAR]: '🐠', [SymbolType.CHERRY]: '🦈', [SymbolType.SEVEN]: '🔱',
+    [SymbolType.GRAPE]: '/deep_green.png', [SymbolType.BELL]: '/deep_blue.png', [SymbolType.BAR]: '/deep_purple.png', [SymbolType.CHERRY]: '/deep_red.png', [SymbolType.SEVEN]: '/deep_red.png',
     [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '🐡', ...JP_ICONS
   },
   WESTERN: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🌵', [SymbolType.BELL]: '👢', [SymbolType.BAR]: '🔫', [SymbolType.CHERRY]: '🤠', [SymbolType.SEVEN]: '💰',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '⭐', ...JP_ICONS
+    [SymbolType.GRAPE]: '/gold_green.png', [SymbolType.BELL]: '/gold_blue.png', [SymbolType.BAR]: '/gold_purple.png', [SymbolType.CHERRY]: '/gold_red.png', [SymbolType.SEVEN]: '/gold_red.png',
+    [SymbolType.WILD]: '/gold_wild.png', [SymbolType.SCATTER]: '/gold_scatter.png', ...JP_ICONS
   },
   SAMURAI: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🏮', [SymbolType.BELL]: '🍶', [SymbolType.BAR]: '⚔️', [SymbolType.CHERRY]: '👹', [SymbolType.SEVEN]: '🏯',
+    [SymbolType.GRAPE]: '/samurai_green.png', [SymbolType.BELL]: '/samurai_blue.png', [SymbolType.BAR]: '/samurai_purple.png', [SymbolType.CHERRY]: '/samurai_red.png', [SymbolType.SEVEN]: '/samurai_red.png',
     [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '🌸', ...JP_ICONS
   },
   PIGGY: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '/piggy/cash.png', [SymbolType.BELL]: '/piggy/bell.png', [SymbolType.BAR]: '/piggy/bank.png', [SymbolType.CHERRY]: '/piggy/hammer.png', [SymbolType.SEVEN]: '/piggy/pig.png',
-    [SymbolType.WILD]: '/piggy_wild.png', [SymbolType.SCATTER]: '/piggy/pig.png', ...JP_ICONS, [SymbolType.COIN]: '/piggy/coin.png'
+    [SymbolType.GRAPE]: '/piggy_green.png', [SymbolType.BELL]: '/piggy_blue.png', [SymbolType.BAR]: '/piggy_purple.png', [SymbolType.CHERRY]: '/piggy_red.png', [SymbolType.SEVEN]: '/piggy_red.png',
+    [SymbolType.WILD]: '/piggy_wild.png', [SymbolType.SCATTER]: '/piggy_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '/piggy/coin.png'
   },
   GOLDEN_POT: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -314,7 +323,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   },
   LEPRECHAUN: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🌿', [SymbolType.BELL]: '🪄', [SymbolType.BAR]: '🌈', [SymbolType.CHERRY]: '🍀', [SymbolType.SEVEN]: '💰',
+    [SymbolType.GRAPE]: '/lucky_green.png', [SymbolType.BELL]: '/lucky_blue.png', [SymbolType.BAR]: '/lucky_purple.png', [SymbolType.CHERRY]: '/lucky_red.png', [SymbolType.SEVEN]: '/lucky_red.png',
     [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '🌟', ...JP_ICONS, [SymbolType.COIN]: '🍀'
   },
   ARCTIC: {
@@ -324,12 +333,12 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   },
   PETS: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '/pets/green.png', [SymbolType.BELL]: '/pets/blue.png', [SymbolType.BAR]: '/pets/purple.png', [SymbolType.CHERRY]: '/pets/red.png', [SymbolType.SEVEN]: '/pets/yellow.png',
+    [SymbolType.GRAPE]: '/mystic_green.png', [SymbolType.BELL]: '/mystic_blue.png', [SymbolType.BAR]: '/mystic_purple.png', [SymbolType.CHERRY]: '/mystic_red.png', [SymbolType.SEVEN]: '/mystic_red.png',
     [SymbolType.WILD]: '/pets/wild.png', [SymbolType.SCATTER]: '/pets/scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🦴'
   },
   MMORPG: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '🛡️', [SymbolType.BELL]: '🏹', [SymbolType.BAR]: '🪄', [SymbolType.CHERRY]: '🧙', [SymbolType.SEVEN]: '🐉',
+    [SymbolType.GRAPE]: '/fantasy_green.png', [SymbolType.BELL]: '/fantasy_blue.png', [SymbolType.BAR]: '/fantasy_purple.png', [SymbolType.CHERRY]: '/fantasy_red.png', [SymbolType.SEVEN]: '/fantasy_red.png',
     [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '💎', ...JP_ICONS, [SymbolType.COIN]: '🪙'
   },
 };
@@ -444,7 +453,7 @@ export const WEIGHTS = [
   { type: SymbolType.BELL, weight: 8 },
   { type: SymbolType.BAR, weight: 5 },
   { type: SymbolType.CHERRY, weight: 3.5 },
-  { type: SymbolType.SEVEN, weight: 2 },
+  { type: SymbolType.SEVEN, weight: 0 },
   { type: SymbolType.WILD, weight: 0.1 },
   { type: SymbolType.SCATTER, weight: 1.5 },
   { type: SymbolType.COIN, weight: 0 },
@@ -460,7 +469,7 @@ export const NEON_WEIGHTS = [
   { type: SymbolType.BELL,    weight: 8    },
   { type: SymbolType.BAR,     weight: 6    },
   { type: SymbolType.CHERRY,  weight: 4    },
-  { type: SymbolType.SEVEN,   weight: 2.5  },
+  { type: SymbolType.SEVEN,   weight: 0    },
   { type: SymbolType.WILD,    weight: 3    },
   { type: SymbolType.SCATTER, weight: 0.125 },
 ];
@@ -475,7 +484,7 @@ export const FREE_SPIN_WEIGHTS = [
   { type: SymbolType.BELL, weight: 8 },
   { type: SymbolType.BAR, weight: 5 },
   { type: SymbolType.CHERRY, weight: 3.5 },
-  { type: SymbolType.SEVEN, weight: 2 },
+  { type: SymbolType.SEVEN, weight: 0 },
   { type: SymbolType.WILD, weight: 0.1 },
   { type: SymbolType.SCATTER, weight: 1.5 },
   { type: SymbolType.COIN, weight: 0 },
