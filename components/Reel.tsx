@@ -291,7 +291,7 @@ const ReelCell: React.FC<{
     return (
         <div
             className={`
-                w-full flex items-center justify-center relative
+                w-full flex items-center justify-center relative bg-black
                 ${blur ? 'blur-[2px] opacity-80' : ''}
                 ${isNewCell ? 'animate-drop-in' : ''}
                 ${highlight && dissolving ? 'animate-dissolve-out' : ''}
@@ -368,7 +368,7 @@ const ReelCell: React.FC<{
                             style={{
                                 width:    `${85 * cellScale * (config.imageScale ?? 1)}%`,
                                 height:   `${85 * cellScale * (config.imageScale ?? 1)}%`,
-                                ...(theme === 'UNDERWATER' ? { position: 'absolute', width: '115%', height: '115%', left: '-7.5%', top: '-7.5%' } : {}),
+                                ...(theme === 'UNDERWATER' ? { position: 'absolute', width: '120%', height: '120%', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' } : {}),
                             }}
                         />
                     ) : (
