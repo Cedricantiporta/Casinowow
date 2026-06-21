@@ -4061,7 +4061,7 @@ const App: React.FC = () => {
                         <div className="w-full z-10 p-0 m-0">
                             {featureThemeOf(selectedGame.theme) === 'ARCTIC' ? (
                                 showArcticPickModal
-                                    ? <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={false} />
+                                    ? <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={false} theme={selectedGame.theme} />
                                     : freeSpinsRemaining > 0
                                         ? <ArcticMultiplierBar
                                             mults={[2, 3, 4, 5, 10]}
@@ -4070,7 +4070,7 @@ const App: React.FC = () => {
                                           />
                                         : <ArcticProgressBar progress={arcticSpinProgress} />
                             ) : (
-                                <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} />
+                                <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} theme={selectedGame.theme} />
                             )}
                         </div>
                     );
