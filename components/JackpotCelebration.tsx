@@ -14,6 +14,14 @@ const TIER_STYLES: Record<string, { border: string; textColor: string; shadow: s
     GRAND: { border: '#fbbf24', textColor: '#fde68a', shadow: 'rgba(251,191,36,0.6)' },
 };
 
+const TIER_IMAGES: Record<string, string> = {
+    MINI:  '/mini.png',
+    MINOR: '/minor.png',
+    MAJOR: '/major.png',
+    MEGA:  '/mega.png',
+    GRAND: '/grand.png',
+};
+
 export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, onClose }) => {
     const [displayAmount, setDisplayAmount] = useState(0);
     const [secondsLeft, setSecondsLeft] = useState(5);
@@ -62,10 +70,15 @@ export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, on
                 }}
                 onClick={e => e.stopPropagation()}>
 
-                {/* Tier name — color coded */}
-                <div style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Tanker', cursive", textTransform: 'uppercase', color: style.textColor }}>
-                    {tier.name} Jackpot!
-                </div>
+                {/* Tier name — image art */}
+                {TIER_IMAGES[tier.name] ? (
+                    <img src={TIER_IMAGES[tier.name]} alt={tier.name} className="select-none pointer-events-none"
+                        style={{ width: 'clamp(180px, 60vw, 320px)', height: 'auto', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.6))' }} />
+                ) : (
+                    <div style={{ fontSize: '2rem', lineHeight: 1, fontFamily: "'Tanker', cursive", textTransform: 'uppercase', color: style.textColor }}>
+                        {tier.name} Jackpot!
+                    </div>
+                )}
 
                 {/* Amount — color coded */}
                 <div className="flex items-center justify-center rounded-2xl px-6 py-2.5"

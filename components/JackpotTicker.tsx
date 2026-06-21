@@ -6,11 +6,11 @@ import { formatK } from '../constants';
 const JP_MULTIPLIERS = [10, 20, 30, 50, 100];
 
 const TIER_META = [
-    { name: 'MINI',  tierClass: 't-green'  },
-    { name: 'MINOR', tierClass: 't-cyan'   },
-    { name: 'MAJOR', tierClass: 't-purple' },
-    { name: 'MEGA',  tierClass: 't-red'    },
-    { name: 'GRAND', tierClass: 't-gold'   },
+    { name: 'MINI',  tierClass: 't-green',  img: '/mini.png'  },
+    { name: 'MINOR', tierClass: 't-cyan',   img: '/minor.png' },
+    { name: 'MAJOR', tierClass: 't-purple', img: '/major.png' },
+    { name: 'MEGA',  tierClass: 't-red',    img: '/mega.png'  },
+    { name: 'GRAND', tierClass: 't-gold',   img: '/grand.png' },
 ];
 
 interface JackpotTickerProps {
@@ -42,7 +42,9 @@ export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet, isSpin
         <div className="jackpot font-nunito w-full select-none">
             {TIER_META.map((tier, idx) => (
                 <div key={tier.name} className={`jp ${tier.tierClass}`}>
-                    <div className="jp-tier">{tier.name}</div>
+                    <div className="jp-tier flex items-center justify-center">
+                        <img src={tier.img} alt={tier.name} className="select-none pointer-events-none" style={{ height: '1.5em', width: 'auto', objectFit: 'contain' }} />
+                    </div>
                     <div className="jp-amt">{formatK(amounts[idx] ?? 0)}</div>
                 </div>
             ))}

@@ -16,6 +16,15 @@ const WIN_STYLES: Record<string, { textColor: string; shadow: string }> = {
     'BIG WIN':      { textColor: '#86efac', shadow: 'rgba(34,197,94,0.7)'  },
 };
 
+// Image art per win tier
+const WIN_IMAGES: Record<string, string> = {
+    'ULTIMATE WIN': '/ultimatewin.png',
+    'MEGA WIN':     '/megawin.png',
+    'EPIC WIN':     '/epicwin.png',
+    'GREAT WIN':    '/greatwin.png',
+    'BIG WIN':      '/bigwin.png',
+};
+
 const NUNITO_3D = (color: string): React.CSSProperties => ({
     fontFamily: "'Tanker', cursive",
     fontWeight: 400,
@@ -79,10 +88,15 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
             style={{ background: 'rgba(0,0,0,0.45)' }}>
 
             <div className="flex flex-col items-center gap-4 p-6">
-                {/* Win type */}
-                <div style={{ fontSize: 'clamp(40px,11vw,88px)', lineHeight: 1, ...NUNITO_3D(s.textColor) }}>
-                    {type}
-                </div>
+                {/* Win type — image art */}
+                {WIN_IMAGES[type] ? (
+                    <img src={WIN_IMAGES[type]} alt={type} className="select-none pointer-events-none"
+                        style={{ width: 'clamp(220px, 70vw, 520px)', height: 'auto', filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))' }} />
+                ) : (
+                    <div style={{ fontSize: 'clamp(40px,11vw,88px)', lineHeight: 1, ...NUNITO_3D(s.textColor) }}>
+                        {type}
+                    </div>
+                )}
 
                 {/* Amount — no container, just the text */}
                 <span style={{ fontSize: 'clamp(28px,7vw,56px)', lineHeight: 1, ...AMOUNT_STYLE }}>

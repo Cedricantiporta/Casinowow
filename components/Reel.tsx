@@ -368,7 +368,7 @@ const ReelCell: React.FC<{
                             style={{
                                 width:    `${85 * cellScale * (config.imageScale ?? 1)}%`,
                                 height:   `${85 * cellScale * (config.imageScale ?? 1)}%`,
-                                ...(theme === 'UNDERWATER' ? { position: 'absolute', width: '120%', height: '120%', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' } : {}),
+                                ...(theme === 'UNDERWATER' ? { position: 'absolute', width: `${85 * cellScale * (config.imageScale ?? 1)}%`, height: `${85 * cellScale * (config.imageScale ?? 1)}%`, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' } : {}),
                             }}
                         />
                     ) : (
