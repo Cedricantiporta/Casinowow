@@ -356,6 +356,7 @@ const App: React.FC = () => {
   const [showXpTimer, setShowXpTimer] = useState(false);
   const [showXpPct, setShowXpPct] = useState(false);
   const [showXpPopup, setShowXpPopup] = useState(false);
+  const [showCollectPopup, setShowCollectPopup] = useState(false);
   const xpPctTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const [activeModal, setActiveModal] = useState<'NONE' | 'SHOP' | 'COLLECTION' | 'MINIGAME' | 'MISSIONS' | 'TIME_BONUS' | 'LOGIN_BONUS' | 'PIGGY' | 'FEATURE_UNLOCK'>('NONE');
@@ -3773,7 +3774,7 @@ const App: React.FC = () => {
       className="bg-[#0a0015] flex items-center justify-center overflow-hidden"
       style={{ position: 'fixed', inset: 0 }}
     >
-      <div className="relative overflow-hidden rounded-none shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" onClick={() => showXpPopup && setShowXpPopup(false)} style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
+      <div className="relative overflow-hidden rounded-none shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" onClick={() => { if (showXpPopup) setShowXpPopup(false); if (showCollectPopup) setShowCollectPopup(false); }} style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
@@ -3842,22 +3843,49 @@ const App: React.FC = () => {
                             </span>
                         </div>
 
-                        {/* Active Multiplier indicator */}
-                        <div className="relative shrink-0 flex items-center justify-center" onClick={() => setShowXpPopup(v => !v)} style={{ width: 42, height: 42, cursor: 'pointer' }}>
+                        {/* Collect multiplier indicator */}
+                        <div className="relative shrink-0 flex items-center justify-center" onClick={() => setShowCollectPopup(v => !v)} style={{ width: 42, height: 42, cursor: 'pointer' }}>
                             <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
                             <span style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-3px' }}>
-                                {(() => {
-                                    const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                                    if (boostActive && showXpTimer) {
-                                        const rem = Math.max(0, (player.xpBoostEndTime || 0) - Date.now());
-                                        const h = Math.floor(rem / 3600000);
-                                        const m = Math.floor((rem % 3600000) / 60000);
-                                        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-                                    }
-                                    return `x${player.xpMultiplier}`;
-                                })()}
+                                {treasuryMultiplier}X
                             </span>
                         </div>
+
+                        {/* Collect multiplier popup */}
+                        {showCollectPopup && (() => {
+                            const curIdx = TREASURY_MULT_TIERS.reduce((acc, t, i) => (treasuryMultProgress >= t.at ? i : acc), 0);
+                            const nextTier = TREASURY_MULT_TIERS[curIdx + 1];
+                            const tierStart = TREASURY_MULT_TIERS[curIdx].at;
+                            const tierProgress = nextTier ? Math.min(1, (treasuryMultProgress - tierStart) / (nextTier.at - tierStart)) : 1;
+                            const done = Math.floor(treasuryMultProgress - tierStart);
+                            const need = nextTier ? nextTier.at - tierStart : 0;
+                            return (
+                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 220, zIndex: 200, background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderRadius: 14, boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 24px rgba(0,0,0,0.8)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
+                                    onClick={e => e.stopPropagation()}>
+                                    <div className="flex items-center justify-between">
+                                        <span style={{ color: '#fcd34d', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em' }}>Collect Boost</span>
+                                        <span style={{ color: '#ffe066', fontSize: 14, fontWeight: 900 }}>{treasuryMultiplier}X</span>
+                                    </div>
+                                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 9, lineHeight: 1.35 }}>
+                                        All Golden Treasury collect amounts are multiplied by {treasuryMultiplier}X.
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <span style={{ color: '#a78bfa', fontSize: 9, fontWeight: 900, letterSpacing: '0.05em' }}>{nextTier ? `Next ${nextTier.mult}X` : 'Max tier'}</span>
+                                            <span style={{ color: 'white', fontSize: 9, fontWeight: 700 }}>{nextTier ? `${done} / ${need}` : 'Maxed'}</span>
+                                        </div>
+                                        <div style={{ height: 6, borderRadius: 6, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                                            <div style={{ height: '100%', width: `${tierProgress * 100}%`, borderRadius: 6, background: 'linear-gradient(90deg,#ffe066,#e8a800)', transition: 'width 0.4s ease' }} />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between" style={{ gap: 3 }}>
+                                        {TREASURY_MULT_TIERS.map((t, i) => (
+                                            <span key={t.mult} style={{ flex: 1, textAlign: 'center', fontSize: 9, fontWeight: 900, padding: '2px 0', borderRadius: 5, background: i <= curIdx ? 'linear-gradient(180deg,#ffe066,#e8a800)' : 'rgba(255,255,255,0.08)', color: i <= curIdx ? '#5a2e00' : 'rgba(255,255,255,0.45)' }}>{t.mult}X</span>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {/* XP details popup */}
                         {showXpPopup && (() => {

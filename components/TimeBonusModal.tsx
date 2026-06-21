@@ -60,18 +60,12 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
 
             {/* Header */}
             <div className="shrink-0 flex items-center px-4 py-2.5 relative">
-                {/* Collect multiplier badge — left side */}
-                <div className="flex items-center gap-1.5 z-10 shrink-0">
-                    <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 34, height: 34, background: 'radial-gradient(circle at 50% 35%,#ffe88a,#f0b000 55%,#a05c00)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 2px 6px rgba(0,0,0,0.5)' }}>
-                        <span className="font-black leading-none" style={{ fontSize: 13, color: '#5a2e00', textShadow: '0 1px 0 rgba(255,255,255,0.4)' }}>{collectMultiplier}×</span>
-                    </div>
-                    <div className="flex flex-col gap-0.5" style={{ width: 70 }}>
-                        <span className="text-[8px] font-black text-yellow-100/90 leading-none tracking-wider">Collect Boost</span>
-                        <div className="rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,0.4)' }}>
-                            <div style={{ height: '100%', width: `${tierProgress * 100}%`, borderRadius: 9999, background: 'linear-gradient(90deg,#ffe066,#f0b000)', transition: 'width 0.3s ease' }} />
-                        </div>
-                        <span className="text-[7px] font-bold text-white/60 leading-none">{nextTier ? `Next ${nextTier.mult}× soon` : 'Maxed'}</span>
-                    </div>
+                {/* Collect multiplier progress bar — topbar EXP-style pill */}
+                <div className="relative flex items-center z-10 shrink-0" style={{ width: 110, height: 24, borderRadius: 18, background: 'rgba(10,0,40,0.55)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.6)', overflow: 'hidden', paddingLeft: 10, paddingRight: 8 }}>
+                    {/* Fill */}
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${tierProgress * 100}%`, borderRadius: 18, background: 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />
+                    {/* Multiplier number */}
+                    <span className="relative font-black leading-none" style={{ fontSize: 17, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)', letterSpacing: '0.02em' }}>{collectMultiplier}X</span>
                 </div>
                 <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">Golden Treasury</span>
                 <div className="ml-auto round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x"></i></div>
