@@ -194,6 +194,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-yellow-500 via-amber-700 to-red-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #7f1d1d 100%)',
     reelBg: REEL_BGS.GOLDEN_POT,
+    slotBg: '/goldenpot_bg.png',
     coverImage: '/slots/golden_covernew.jpg',
   },
   {
@@ -320,7 +321,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   GOLDEN_POT: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '🎋', [SymbolType.BELL]: '🏮', [SymbolType.BAR]: '🀄', [SymbolType.CHERRY]: '🐲', [SymbolType.SEVEN]: '🪷',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '🏺', ...JP_ICONS
+    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/goldenpot_scatter.png', ...JP_ICONS
   },
   LEPRECHAUN: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -329,7 +330,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   },
   ARCTIC: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '/arctic/ice.png', [SymbolType.BELL]: '/arctic/fish.png', [SymbolType.BAR]: '/arctic/wave.png', [SymbolType.CHERRY]: '/arctic/seal.png', [SymbolType.SEVEN]: '/arctic/penguin.png',
+    [SymbolType.GRAPE]: '/arctic_green.png', [SymbolType.BELL]: '/arctic_blue.png', [SymbolType.BAR]: '/arctic_purple.png', [SymbolType.CHERRY]: '/arctic_red.png', [SymbolType.SEVEN]: '/arctic/penguin.png',
     [SymbolType.WILD]: '/arctic_wild.png', [SymbolType.SCATTER]: '/arctic/snow.png', ...JP_ICONS
   },
   PETS: {
