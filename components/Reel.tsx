@@ -210,20 +210,6 @@ const getCellSeparatorStyle = (_theme: GameTheme, _isLastCell: boolean): React.C
     return {};
 };
 
-const LETTER_DARK_BG: Partial<Record<GameTheme, string>> = {
-    NEON:       '#0a0315',
-    EGYPT:      '#150b00',
-    DRAGON:     '#150000',
-    PIRATE:     '#060f18',
-    SPACE:      '#000010',
-    CANDY:      '#250816',
-    JUNGLE:     '#03200e',
-    UNDERWATER: '#083248',
-    WESTERN:    '#351402',
-    SAMURAI:    '#1e0303',
-    PIGGY:      '#3b0519',
-};
-
 // 3D text-shadow per letter tier
 const getLetter3DShadow = (symbol: SymbolType, theme?: GameTheme): string => {
     if (theme === 'EGYPT') {
@@ -275,23 +261,11 @@ const ReelCell: React.FC<{
     const isLetter = !isImageIcon && theme !== 'NEON' && [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
 
 
-    const JP_LABELS: Partial<Record<SymbolType, string>> = {
-        [SymbolType.JACKPOT_MINI]:  'MINI',
-        [SymbolType.JACKPOT_MINOR]: 'MINOR',
-        [SymbolType.JACKPOT_MAJOR]: 'MAJOR',
-        [SymbolType.JACKPOT_MEGA]:  'MEGA',
-        [SymbolType.JACKPOT_GRAND]: 'GRAND',
-    };
-    const JP_BG_STYLES: Partial<Record<SymbolType, { border: string; glow: string; text: string; solidBg: string; darkColor: string }>> = {
-        [SymbolType.JACKPOT_MINI]:  { border: '#16a34a', glow: 'rgba(34,197,94,0.8)',  text: 'white', solidBg: '#16a34a', darkColor: '#063d1a' },
-        [SymbolType.JACKPOT_MINOR]: { border: '#0891b2', glow: 'rgba(6,182,212,0.8)',  text: 'white', solidBg: '#0891b2', darkColor: '#034d62' },
-        [SymbolType.JACKPOT_MAJOR]: { border: '#7c3aed', glow: 'rgba(124,58,237,0.8)', text: 'white', solidBg: '#7c3aed', darkColor: '#3b0e8a' },
-        [SymbolType.JACKPOT_MEGA]:  { border: '#dc2626', glow: 'rgba(220,38,38,0.8)',  text: 'white', solidBg: '#dc2626', darkColor: '#7a0d0d' },
-        [SymbolType.JACKPOT_GRAND]: { border: '#d97706', glow: 'rgba(217,119,6,0.8)',  text: 'white', solidBg: '#d97706', darkColor: '#7a3e00' },
-    };
-    const isJackpot = symbol in JP_LABELS;
-    const jpLabel = JP_LABELS[symbol];
-    const jpStyle = isJackpot ? JP_BG_STYLES[symbol] : undefined;
+    const JP_TYPES = new Set<SymbolType>([
+        SymbolType.JACKPOT_MINI, SymbolType.JACKPOT_MINOR, SymbolType.JACKPOT_MAJOR,
+        SymbolType.JACKPOT_MEGA, SymbolType.JACKPOT_GRAND,
+    ]);
+    const isJackpot = JP_TYPES.has(symbol);
 
     // All cells use black bg; highlight/showcase add glow on top
     let bgClasses = 'bg-black';
@@ -300,9 +274,6 @@ const ReelCell: React.FC<{
         bgClasses = 'bg-black shadow-[0_0_14px_rgba(255,229,0,0.55)] z-20';
     } else if (isScatter && isScatterShowcase) {
         bgClasses = 'bg-black border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
-    }
-    if (isJackpot && !highlight) {
-        bgClasses = '';
     }
 
     const activeBounce = highlight || isScatterShowcase;
@@ -337,14 +308,7 @@ const ReelCell: React.FC<{
                 transition-all duration-300 overflow-visible
                 ${bgClasses}
             `}
-            style={
-                isJackpot && !highlight && jpStyle
-                    ? (JACKPOT_ICONS[theme] || GENERIC_JACKPOT_ICONS[symbol]
-                        ? { background: `${jpStyle.darkColor}cc` }
-                        : { background: jpStyle.solidBg })
-                : isLetter && !highlight ? { background: LETTER_DARK_BG[theme] ?? '#0a0a1a' }
-                : undefined
-            }
+            style={undefined}
             >
                 {highlight && (() => {
                     const wc = WIN_BORDER_COLORS[theme] ?? '#ffe500';
@@ -389,38 +353,13 @@ const ReelCell: React.FC<{
                     ${activeBounce ? 'animate-bounce-sm' : ''}
                 `}>
                     {isJackpot ? (
-                        <>
-                            {(JACKPOT_ICONS[theme] || GENERIC_JACKPOT_ICONS[symbol]) && (
-                                <img
-                                    src={JACKPOT_ICONS[theme] ?? GENERIC_JACKPOT_ICONS[symbol]}
-                                    alt=""
-                                    className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
-                                    style={{ opacity: 0.85 }}
-                                />
-                            )}
-                            {(() => {
-                                const isEgypt = theme === 'EGYPT';
-                                const isDragonOrPiggy = theme === 'DRAGON' || theme === 'PIGGY';
-                                // Egypt: black stroke on both free + normal spins. Dragon/Piggy: free spins only.
-                                const wantStroke = isEgypt || (isDragonOrPiggy && inFreeSpins);
-                                const bigText = isEgypt;
-                                return (
-                                    <span
-                                        className="font-tanker font-black tracking-widest select-none leading-none text-center px-1 relative z-10"
-                                        style={{
-                                            fontSize: bigText
-                                                ? `clamp(0.65rem, ${(2.8 * cellScale).toFixed(2)}vw, ${(1.4 * cellScale).toFixed(3)}rem)`
-                                                : `clamp(0.5rem, ${(2.2 * cellScale).toFixed(2)}vw, ${(1.15 * cellScale).toFixed(3)}rem)`,
-                                            color: jpStyle?.border ?? '#fff',
-                                            textShadow: `0 0 6px ${jpStyle?.glow ?? 'rgba(255,255,255,0.8)'}, 0 1px 3px rgba(0,0,0,0.9)`,
-                                            ...(wantStroke ? { WebkitTextStroke: '1.5px #000', paintOrder: 'stroke fill' } : { WebkitTextStroke: `1px ${jpStyle?.border ?? '#fff'}` }),
-                                        }}
-                                    >
-                                        {jpLabel}
-                                    </span>
-                                );
-                            })()}
-                        </>
+                        (GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]) ? (
+                            <img
+                                src={GENERIC_JACKPOT_ICONS[symbol] ?? JACKPOT_ICONS[theme]}
+                                alt=""
+                                className="w-full h-full object-contain pointer-events-none select-none"
+                            />
+                        ) : null
                     ) : isImageIcon ? (
                         <img
                             src={config.icon}
@@ -463,15 +402,6 @@ const ReelCell: React.FC<{
                                 WILD
                             </span>
                         </div>
-                    )}
-                    {isJackpot && !blur && (
-                        <div
-                            className="absolute inset-0 rounded-none pointer-events-none z-20"
-                            style={{
-                                border: `4px solid ${jpStyle?.border || '#f59e0b'}`,
-                                boxShadow: `inset 0 0 14px ${jpStyle?.glow || 'rgba(245,158,11,0.5)'}, 0 0 10px ${jpStyle?.glow || 'rgba(245,158,11,0.5)'}`,
-                            }}
-                        />
                     )}
                 </div>
             </div>

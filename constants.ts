@@ -374,9 +374,22 @@ const getThemeFont = (theme: GameTheme) => {
     }
 }
 
+// Letter (10/J/Q/K/A) image "font" style per theme. Themes whose low symbols
+// are already custom images (NEON fruits, DRAGON, CANDY) are intentionally omitted.
+const REEL_FONT: Partial<Record<GameTheme, 'beveled' | 'carved' | 'cartoon'>> = {
+  EGYPT: 'carved', PIRATE: 'carved', JUNGLE: 'carved', WESTERN: 'carved', SAMURAI: 'carved', MMORPG: 'carved',
+  SPACE: 'beveled', UNDERWATER: 'beveled', GOLDEN_POT: 'beveled', ARCTIC: 'beveled',
+  PIGGY: 'cartoon', LEPRECHAUN: 'cartoon', PETS: 'cartoon',
+};
+const LETTER_FILE: Record<string, string> = {
+  [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+};
+
 export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> => {
   const icons = SYMBOL_MAP[theme];
   const themeFont = getThemeFont(theme);
+  const reelFont = REEL_FONT[theme];
+  const letterIcon = (t: SymbolType, fallback: string) => reelFont ? `/${reelFont}_${LETTER_FILE[t]}.png` : fallback;
 
   // Letter/number cells: 3D text effect, transparent bg. Three tiers:
   //  10, J = plain white 3D  |  Q, K = purple 3D  |  A = amber/gold 3D (color-coded)
@@ -413,11 +426,11 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
   // All themes use image symbols now → always transparent tile bg
   const imgTheme = true;
   return {
-    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: icons.TEN,   value: 0.5,  ...LTR.TEN,  ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...(isCandy && { imageScale: 1.3 }) },
-    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: icons.JACK,  value: 0.75, ...LTR.JACK, ...egyptLtr, ...(isCandy && { imageScale: 1.3 }) },
-    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: icons.QUEEN, value: 1,    ...LTR.QUEEN, ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...(isCandy && { imageScale: 1.3 }) },
-    [SymbolType.KING]:  { type: SymbolType.KING,  icon: icons.KING,  value: 1.5,  ...LTR.KING, ...egyptLtr, ...(isCandy && { imageScale: 1.3 }) },
-    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: icons.ACE,   value: 2,    ...LTR.ACE,  ...egyptLtr, ...(isCandy && { imageScale: 1.3 }) },
+    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: letterIcon(SymbolType.TEN, icons.TEN),     value: 0.5,  ...LTR.TEN,  ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...(isCandy && { imageScale: 1.3 }), ...(reelFont && { imageScale: 1.2 }) },
+    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: letterIcon(SymbolType.JACK, icons.JACK),   value: 0.75, ...LTR.JACK, ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...(reelFont && { imageScale: 1.2 }) },
+    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: letterIcon(SymbolType.QUEEN, icons.QUEEN), value: 1,    ...LTR.QUEEN, ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...(isCandy && { imageScale: 1.3 }), ...(reelFont && { imageScale: 1.2 }) },
+    [SymbolType.KING]:  { type: SymbolType.KING,  icon: letterIcon(SymbolType.KING, icons.KING),   value: 1.5,  ...LTR.KING, ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...(reelFont && { imageScale: 1.2 }) },
+    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: letterIcon(SymbolType.ACE, icons.ACE),     value: 2,    ...LTR.ACE,  ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...(reelFont && { imageScale: 1.2 }) },
     [SymbolType.GRAPE]:   { type: SymbolType.GRAPE,   icon: icons.GRAPE, value: 2.5,  style: 'text-emerald-100 drop-shadow-md', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
     [SymbolType.BELL]:    { type: SymbolType.BELL,    icon: icons.BELL, value: 4.5,  style: 'text-blue-100 drop-shadow-[0_0_5px_#3b82f6]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
     [SymbolType.BAR]:     { type: SymbolType.BAR,     icon: icons.BAR, value: 7.5,  style: 'text-purple-100 drop-shadow-[0_0_5px_#a855f7]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
