@@ -3,18 +3,22 @@ import { GameConfig } from '../types';
 import { getGameAssets } from '../constants';
 
 const THEME_IMG_ICON: Partial<Record<string, string>> = {
-    DRAGON: '/dragon/dragon-1.png',
-    EGYPT:  '/egypt/scatter.png',
-    NEON:   '/ui/games.png',
-    CANDY:  '/candy/sugar1.png',
-    PIRATE: '/pirate/skull.png',
-    PIGGY:  '/piggy/pig.png',
-    ARCTIC: '/arctic/penguin.png',
-};
-
-const THEME_EMOJI_ICON: Partial<Record<string, string>> = {
-    SPACE: '👽', JUNGLE: '🦍', UNDERWATER: '🦈', WESTERN: '🤠',
-    SAMURAI: '⚔️', LEPRECHAUN: '🍀', GOLDEN_POT: '🏮',
+    DRAGON:     '/dragon/dragon-1.png',
+    EGYPT:      '/pharaoh_scatter.png',
+    NEON:       '/symbols/neon_bonus.png',
+    CANDY:      '/candy_scatter.png',
+    PIRATE:     '/pirate_scatter.png',
+    PIGGY:      '/piggy/pig.png',
+    ARCTIC:     '/arctic/snow.png',
+    SPACE:      '/cosmic_scatter.png',
+    JUNGLE:     '/jungle_scatter.png',
+    UNDERWATER: '/deep_scatter.png',
+    WESTERN:    '/gold_scatter.png',
+    SAMURAI:    '/samurai_scatter.png',
+    LEPRECHAUN: '/lucky_scatter.png',
+    GOLDEN_POT: '/goldenpot_scatter.png',
+    PETS:       '/pets_scatter.png',
+    MMORPG:     '/fantasy_scatter.png',
 };
 
 function getImagesToPreload(game: GameConfig): string[] {
@@ -85,7 +89,7 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
                     {imgIcon ? (
                         <img src={imgIcon} alt="" style={{ width: 80, height: 80, objectFit: 'contain' }} />
                     ) : (
-                        <span style={{ fontSize: '5rem' }}>{THEME_EMOJI_ICON[game.theme] ?? '🎰'}</span>
+                        <span style={{ fontSize: '5rem' }}>🎰</span>
                     )}
                 </div>
 

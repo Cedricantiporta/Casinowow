@@ -102,6 +102,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
             if (reward.claimed && reward.claimedValue !== undefined) return formatKShort(reward.claimedValue);
             return formatKShort(SCALE_COIN_REWARD(reward.value, playerLevel, maxBet));
         }
+        if (reward.type === 'CREDIT_BACK') return `+${reward.value} Cards`;
         return reward.label;
     };
 
@@ -232,7 +233,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
                                 {/* Icon */}
                                 <div className="flex-1 flex items-center justify-center shrink-0 mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(2.5rem, 7vw, 4rem)' }}>
-                                    {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : mission.type === 'BET_COINS' ? <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : mission.type === 'BIG_WIN_COUNT' ? '🏆' : mission.type === 'LEVEL_UP' ? '⬆️' : mission.type === 'MAX_BET_SPIN' ? <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> : <img src="/ui/star.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />}
+                                    {(() => {
+                                        const sz = { width: '1em', height: '1em', objectFit: 'contain' as const, display: 'inline-block' };
+                                        if (mission.type === 'LEVEL_UP') return <img src="/mission-levelup.png" alt="" style={sz} />;
+                                        if (mission.type === 'SPIN_COUNT' || mission.type === 'MAX_BET_SPIN') return <img src="/mission-spin.png" alt="" style={sz} />;
+                                        if (mission.type === 'WIN_COINS' || mission.type === 'BET_COINS' || mission.type === 'BIG_WIN_COUNT') return <img src="/mission-wincoin.png" alt="" style={sz} />;
+                                        return <img src="/ui/star.png" alt="" style={sz} />;
+                                    })()}
                                 </div>
 
                                 {/* Description */}
@@ -319,9 +326,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     const s = '2.5rem';
                                     if (reward.type === 'COINS') return <img src="/symbols/coin.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
                                     if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
-                                    if (reward.type === 'PICKS') return <span style={{ fontSize: s, lineHeight: 1 }}>⛏️</span>;
-                                    if (reward.type === 'DICE_CREDITS') return <span style={{ fontSize: s, lineHeight: 1 }}>🎲</span>;
-                                    if (reward.type === 'CREDIT_BACK') return <span style={{ fontSize: s, lineHeight: 1 }}>🃏</span>;
+                                    if (reward.type === 'PICKS' || reward.type === 'DICE_CREDITS') return <img src="/pass-picksdice.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
+                                    if (reward.type === 'CREDIT_BACK') return <img src={reward.label.toLowerCase().includes('premium') ? '/card_premium.png' : '/card_normal.png'} alt="" style={{ width: '2rem', height: '2.5rem', objectFit: 'contain' }} />;
                                     return <img src="/ui/star.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
                                 };
 
