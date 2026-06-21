@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameConfig } from '../types';
-import { GET_SYMBOLS } from '../constants';
+import { getGameAssets } from '../constants';
 
 const THEME_IMG_ICON: Partial<Record<string, string>> = {
     DRAGON: '/dragon/dragon-1.png',
@@ -18,26 +18,18 @@ const THEME_EMOJI_ICON: Partial<Record<string, string>> = {
 };
 
 function getImagesToPreload(game: GameConfig): string[] {
-    const imgs: string[] = [];
+    const imgs = new Set<string>();
 
-    // Slot background
-    if (game.slotBg) imgs.push(game.slotBg);
-
-    // Theme icon
+    // Theme loading icon
     const icon = THEME_IMG_ICON[game.theme];
-    if (icon) imgs.push(icon);
+    if (icon) imgs.add(icon);
 
-    // All PNG/image symbols for this theme
+    // Full game asset set: background, symbols, scatter/wild, jackpot tile art
     try {
-        const symbols = GET_SYMBOLS(game.theme);
-        Object.values(symbols).forEach(cfg => {
-            if (cfg.icon && typeof cfg.icon === 'string' && cfg.icon.startsWith('/')) {
-                if (!imgs.includes(cfg.icon)) imgs.push(cfg.icon);
-            }
-        });
+        getGameAssets(game).forEach(src => imgs.add(src));
     } catch {}
 
-    return imgs;
+    return [...imgs];
 }
 
 interface Props {

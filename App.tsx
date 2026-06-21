@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALL_GAME_ASSETS } from './constants';
 import { Reel } from './components/Reel';
 import { WinPopup } from './components/WinPopup';
 import { LeftSidebar } from './components/LeftSidebar';
@@ -151,63 +151,31 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     );
 };
 
-// Phase 1: critical assets needed before the lobby is shown
+// Phase 1: critical assets needed before the lobby is shown.
+// Lobby covers are derived from GAMES_CONFIG so new games are always covered.
 const PRELOAD_ASSETS = [
     // lobby backgrounds
     '/lobby-bg.jpg', '/lobby-bg-vip.jpg',
-    // slot cover images (shown in lobby cards)
-    '/slots/piggy_covernew.jpg', '/slots/pharaoh_covernew.jpg', '/slots/dragon_covernew.png',
-    '/slots/pirate_covernew2.jpg', '/slots/cosmic_covernew.png', '/slots/artic_covernew.png',
-    '/slots/vegas_covernew.png', '/slots/sugar_covernew.png', '/slots/deep_covernew2.jpg',
-    '/slots/gold_covernew2.jpg', '/slots/samurai_covernew.jpg', '/slots/golden_covernew.jpg',
-    '/slots/lucky_covernew.png', '/slots/jungle_covernew.png', '/slots/mystic_covernew.png',
-    '/slots/fantasy_covernew.jpg',
+    // slot cover images (shown in lobby cards) — data-driven
+    ...ALL_COVER_ASSETS,
     // bottom-bar + topbar UI icons
     '/ui/piggy.png', '/ui/missions.png', '/ui/collect.png', '/ui/cards.png',
     '/ui/pass.png', '/ui/games.png', '/ui/lobby.png', '/ui/exp_multiplier.png',
     '/ui/jackpot.png', '/ui/coinmine.png', '/ui/boost.png',
-    // key symbols visible on first spin
-    '/symbols/coin.png', '/symbols/seven.png', '/symbols/bar.png', '/symbols/bell.png',
-    '/symbols/cherry.png', '/symbols/diamond.png',
 ];
 
-// Phase 2: remaining assets preloaded while user browses the lobby
+// Phase 2: preload (almost) everything else in the background once the lobby
+// is visible — all slot backgrounds, every theme's symbols/scatter/wild,
+// jackpot tile art and win-tier celebration art, plus minigame/modal assets.
 const LOBBY_PRELOAD_ASSETS = [
-    // slot backgrounds
-    '/slots/piggy_bg.jpg', '/slots/egypt_bg.jpg', '/slots/arctic_bg.jpg',
-    '/slots/dragon_bg.jpg', '/slots/pirate_bg.jpg', '/slots/candy_bg.png',
-    // coinmine assets
+    // every game's full asset set (backgrounds, symbols, scatter/wild, jackpot art) + win art
+    ...ALL_GAME_ASSETS,
+    // minigame / feature backgrounds + icons
     '/coinmine_bg.jpg', '/coinmine_rockicon.png', '/coinmine_bombicon.png',
     '/coinmine_coinicon.png', '/coinmine_gemicon.png', '/coinmine_pickaxe.png',
-    '/coinmine_stageclearicon.png',
-    // dice & album backgrounds + dice tile icons
+    '/coinmine_stageclearicon.png', '/coinmine_2xblock.png', '/coinmine_3xblock.png',
     '/dice_background.jpg', '/album_background.jpg',
     '/dice_backicon.png', '/dice_staricon.png', '/dice_blankicon.png', '/dice_starticon.png', '/dice_avatar.png',
-    // piggy symbols
-    '/piggy/pig.png', '/piggy/bank.png', '/piggy/bell.png', '/piggy/cash.png', '/piggy/coin.png', '/piggy/hammer.png',
-    // egypt symbols
-    '/egypt/wild.png', '/egypt/bar.png', '/egypt/bell.png', '/egypt/cherry.png',
-    '/egypt/grape.png', '/egypt/scatter.png', '/egypt/seven.png',
-    // arctic symbols
-    '/arctic/penguin.png', '/arctic/fish.png', '/arctic/ice.png',
-    '/arctic/seal.png', '/arctic/snow.png', '/arctic/wave.png',
-    // pirate symbols
-    '/pirate/skull.png', '/pirate/anchor.png', '/pirate/bomb.png',
-    '/pirate/compass.png', '/pirate/flag.png', '/pirate/parrot.png',
-    // dragon symbols
-    '/dragon/dragon-1.png', '/dragon/dragon-2.png', '/dragon/dragon-3.png',
-    '/dragon/dragon-4.png', '/dragon/dragon-5.png', '/dragon/dragon-6.png',
-    '/dragon/dragon-7.png', '/dragon/dragon-8.png', '/dragon/dragon-9.png',
-    '/dragon/dragon-10.png', '/dragon/dragon-11.png',
-    // candy symbols
-    '/candy/sugar1.png', '/candy/sugar2.png', '/candy/sugar3.png',
-    '/candy/sugar4.png', '/candy/sugar5.png', '/candy/sugar6.png',
-    '/candy/sugar7.png', '/candy/sugar8.png', '/candy/sugar9.png',
-    '/candy/sugar10.png', '/candy/sugar11.png',
-    // remaining symbols
-    '/symbols/apple.png', '/symbols/clover.png', '/symbols/die.png',
-    '/symbols/grapefruit.png', '/symbols/heart.png', '/symbols/horseshoe.png',
-    '/symbols/lemon.png', '/symbols/orange.png', '/symbols/plum.png', '/symbols/watermelon.png',
     // modal / UI assets
     '/ui/VIP.png', '/ui/bigbag.png', '/ui/dice.png', '/ui/double.png',
     '/ui/dragon_vase.png', '/ui/gems500.png', '/ui/gems5000.png',

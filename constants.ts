@@ -476,6 +476,41 @@ export const THEME_JACKPOT_ICONS: Partial<Record<GameTheme, Partial<Record<Symbo
   },
 };
 
+// Win / jackpot celebration popup art (rendered by WinPopup, JackpotCelebration, JackpotTicker)
+export const WIN_TIER_IMAGES = [
+  '/bigwin.png', '/greatwin.png', '/epicwin.png', '/megawin.png', '/ultimatewin.png',
+  '/mini.png', '/minor.png', '/major.png', '/mega.png', '/grand.png',
+];
+
+const isImagePath = (s: unknown): s is string => typeof s === 'string' && s.startsWith('/');
+
+// All image assets a single game needs: its bg + every image symbol + jackpot tile art.
+export const getGameAssets = (game: GameConfig): string[] => {
+  const set = new Set<string>();
+  if (game.slotBg) set.add(game.slotBg);
+  // Symbol icons (includes letter-font images, scatter, wild)
+  const symbols = GET_SYMBOLS(game.theme);
+  Object.values(symbols).forEach(cfg => { if (isImagePath(cfg.icon)) set.add(cfg.icon); });
+  // Jackpot tile art (rendered in Reel.tsx, not part of SYMBOL_MAP)
+  Object.values(GENERIC_JACKPOT_ICONS).forEach(v => { if (isImagePath(v)) set.add(v); });
+  const themeJp = THEME_JACKPOT_ICONS[game.theme];
+  if (themeJp) Object.values(themeJp).forEach(v => { if (isImagePath(v)) set.add(v); });
+  const jp = JACKPOT_ICONS[game.theme];
+  if (isImagePath(jp)) set.add(jp);
+  return [...set];
+};
+
+// Every lobby cover image (small thumbnails shown in the game grid).
+export const ALL_COVER_ASSETS: string[] = [...new Set(
+  GAMES_CONFIG.map(g => g.coverImage).filter(isImagePath)
+)];
+
+// Every game asset across all themes — used for full background preload.
+export const ALL_GAME_ASSETS: string[] = [...new Set([
+  ...GAMES_CONFIG.flatMap(getGameAssets),
+  ...WIN_TIER_IMAGES,
+])];
+
 export const WEIGHTS = [
   { type: SymbolType.TEN, weight: 35 },
   { type: SymbolType.JACK, weight: 30 },
