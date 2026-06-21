@@ -214,7 +214,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden" style={{ background: 'transparent' }}>
                         {currentMissions.map((mission) => (
                             <div key={mission.id}
-                                className={`${mission.isGolden ? 'tcard-gold' : 'tcard'} flex-1 flex flex-col gap-2 p-3 relative overflow-hidden`}>
+                                className={`${mission.isGolden ? 'tcard-gold' : 'tcard'} flex-1 flex flex-col gap-2 p-3 pb-2 relative overflow-hidden`}>
 
                                 {/* Stacks badges */}
                                 {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
@@ -339,7 +339,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             background: 'linear-gradient(180deg,#3b82f6,#1d4ed8)',
                                             ...freeBorder,
                                             borderRadius: '12px',
-                                            padding: '10px 4px',
+                                            padding: '10px 4px 4px',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
                                             opacity: freeReward?.claimed ? 0.55 : 1,
                                         }}>
@@ -364,10 +364,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px' }}>Claim</div>
                                                 </button>
                                             ) : (
-                                                <button disabled
-                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
-                                                    style={{ background: 'rgba(255,255,255,0.06)', color: '#fff' }}>
-                                                    Locked
+                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
+                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Locked</div>
                                                 </button>
                                             )}
                                         </div>
@@ -395,7 +393,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             background: 'linear-gradient(180deg,#eab308,#a16207)',
                                             ...premBorder,
                                             borderRadius: '12px',
-                                            padding: '14px 4px',
+                                            padding: '14px 4px 4px',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
                                             opacity: premReward?.claimed ? 0.55 : 1,
                                         }}>
@@ -421,20 +419,16 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     ✓
                                                 </button>
                                             ) : !missionState.isPremium ? (
-                                                <button disabled
-                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
-                                                    style={{ background: 'rgba(255,255,255,0.06)', color: '#fff' }}>
-                                                    Locked
+                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
+                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Locked</div>
                                                 </button>
                                             ) : isUnlocked ? (
                                                 <button onClick={() => premReward && onClaimReward(premReward)} className="pill-green w-full">
                                                     <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px' }}>Claim</div>
                                                 </button>
                                             ) : (
-                                                <button disabled
-                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
-                                                    style={{ background: 'rgba(255,255,255,0.06)', color: '#fff' }}>
-                                                    Locked
+                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
+                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Locked</div>
                                                 </button>
                                             )}
                                         </div>
