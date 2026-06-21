@@ -293,12 +293,13 @@ const ReelCell: React.FC<{
     const jpLabel = JP_LABELS[symbol];
     const jpStyle = isJackpot ? JP_BG_STYLES[symbol] : undefined;
 
-    let bgClasses = isImageIcon ? 'bg-transparent' : (config?.bg || 'bg-transparent');
+    // All cells use black bg; highlight/showcase add glow on top
+    let bgClasses = 'bg-black';
 
     if (highlight) {
-        bgClasses = `${config?.bg || 'bg-transparent'} shadow-[0_0_14px_rgba(255,229,0,0.55)] z-20`;
+        bgClasses = 'bg-black shadow-[0_0_14px_rgba(255,229,0,0.55)] z-20';
     } else if (isScatter && isScatterShowcase) {
-        bgClasses = 'border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
+        bgClasses = 'bg-black border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
     }
     if (isJackpot && !highlight) {
         bgClasses = '';
@@ -425,7 +426,11 @@ const ReelCell: React.FC<{
                             src={config.icon}
                             alt=""
                             className={`select-none object-contain pointer-events-none${highlight && theme === 'PIGGY' ? ' animate-pulse' : ''}`}
-                            style={{ width: `${85 * cellScale * (config.imageScale ?? 1)}%`, height: `${85 * cellScale * (config.imageScale ?? 1)}%` }}
+                            style={{
+                                width:    `${85 * cellScale * (config.imageScale ?? 1)}%`,
+                                height:   `${85 * cellScale * (config.imageScale ?? 1)}%`,
+                                ...(theme === 'UNDERWATER' ? { position: 'absolute', width: '115%', height: '115%', left: '-7.5%', top: '-7.5%' } : {}),
+                            }}
                         />
                     ) : (
                         <div
@@ -439,17 +444,17 @@ const ReelCell: React.FC<{
                         </div>
                     )}
 
-                    {isScatter && !blur && (theme === 'NEON' || theme === 'PIRATE' || theme === 'CANDY' || theme === 'ARCTIC' || theme === 'PETS') && (
+                    {isScatter && !blur && !isImageIcon && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
                             <span
                                 className="block font-titan font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
                                 style={{ fontSize: scatterLabelFs, textShadow: '0 0 4px black, 0 0 8px black' }}
                             >
-                                {(theme === 'PIRATE' || theme === 'ARCTIC' || theme === 'PETS') ? 'SCATTER' : 'BONUS'}
+                                BONUS
                             </span>
                         </div>
                     )}
-                    {isWild && !blur && isImageIcon && (theme === 'PETS' || theme === 'CANDY') && (
+                    {isWild && !blur && !isImageIcon && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
                             <span
                                 className="block font-titan font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
