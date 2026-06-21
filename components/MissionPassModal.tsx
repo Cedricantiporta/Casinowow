@@ -354,10 +354,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                 </span>
                                             </div>
                                             {freeReward?.claimed ? (
-                                                <button disabled
-                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
-                                                    style={{ background: 'rgba(74,222,128,0.15)', color: '#4ade80' }}>
-                                                    ✓
+                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
+                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Collected</div>
                                                 </button>
                                             ) : isUnlocked ? (
                                                 <button onClick={() => freeReward && onClaimReward(freeReward)} className="pill-green w-full">
@@ -413,10 +411,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                 </span>
                                             </div>
                                             {premReward?.claimed ? (
-                                                <button disabled
-                                                    className="w-full py-0.5 text-[8px] font-black rounded-lg cursor-not-allowed"
-                                                    style={{ background: 'rgba(253,224,71,0.15)', color: '#fde047' }}>
-                                                    ✓
+                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
+                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Collected</div>
                                                 </button>
                                             ) : !missionState.isPremium ? (
                                                 <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
