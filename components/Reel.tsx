@@ -152,7 +152,11 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
         className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} min-w-0`}
         style={{
             aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}`,
-            ...(anticipation ? { boxShadow: '0 0 0 2px #fbbf24, 0 0 18px rgba(251,191,36,0.7)', transition: 'box-shadow 0.2s' } : {}),
+            ...(anticipation ? (() => {
+            const ANTICIP_COLORS = ['#00e8ff','#ff00cc','#aaff00','#ff6600','#cc00ff'];
+            const c = ANTICIP_COLORS[id % ANTICIP_COLORS.length];
+            return { boxShadow: `0 0 0 2px ${c}, 0 0 10px ${c}bb`, transition: 'box-shadow 0.15s' };
+        })() : {}),
         }}
     >
        {/* Scroll Wrapper - Static Position Adjustments */}
@@ -320,30 +324,30 @@ const ReelCell: React.FC<{
                             preserveAspectRatio="none"
                             style={{ zIndex: 25, overflow: 'visible' }}
                         >
-                            {/* Outer broad glow — pulsing halo */}
-                            <rect x="-1" y="-1" width="102" height="102" fill="none"
-                                stroke={wc} strokeWidth="7" strokeOpacity="0.18"
-                                style={{ filter: 'blur(5px)' }} />
+                            {/* Outer compact glow halo */}
+                            <rect x="0.5" y="0.5" width="99" height="99" fill="none"
+                                stroke={wc} strokeWidth="4" strokeOpacity="0.22"
+                                style={{ filter: 'blur(3px)' }} />
                             {/* Main animated dash — long streaks (almost touching), butt caps for sharp pointy ends */}
                             <rect x="1.5" y="1.5" width="97" height="97" fill="none"
                                 stroke={wc} strokeWidth="3" strokeLinecap="butt"
                                 strokeDasharray="190 10"
                                 style={{
                                     filter: `drop-shadow(0 0 5px ${wc}) drop-shadow(0 0 10px ${wcFade})`,
-                                    animation: 'snakeBorder 1.3s linear infinite',
+                                    animation: 'snakeBorder 0.45s linear infinite',
                                 }} />
                             {/* Bright white highlight — shorter dashes offset to ride the "head" of each streak */}
                             <rect x="1.5" y="1.5" width="97" height="97" fill="none"
                                 stroke="rgba(255,255,255,0.88)" strokeWidth="1.2" strokeLinecap="butt"
                                 strokeDasharray="80 120"
                                 strokeDashoffset="-20"
-                                style={{ animation: 'snakeBorder 1.3s linear infinite' }} />
+                                style={{ animation: 'snakeBorder 0.45s linear infinite' }} />
                             {/* Dim trailing fade — rides the "tail" of each streak */}
                             <rect x="1.5" y="1.5" width="97" height="97" fill="none"
                                 stroke={wc} strokeWidth="2" strokeLinecap="butt" strokeOpacity="0.45"
                                 strokeDasharray="50 150"
                                 strokeDashoffset="160"
-                                style={{ animation: 'snakeBorder 1.3s linear infinite' }} />
+                                style={{ animation: 'snakeBorder 0.45s linear infinite' }} />
                         </svg>
                     );
                 })()}
