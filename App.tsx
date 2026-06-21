@@ -4176,9 +4176,7 @@ const App: React.FC = () => {
                                                     {locked ? (
                                                         <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                             {jpTier ? (
-                                                                <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: isCounting ? '#ffffff' : JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, letterSpacing: '0.04em' }}>
-                                                                    {jpTier}
-                                                                </span>
+                                                                <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(24px,4.5vw,40px)', height: 'auto', objectFit: 'contain', filter: isCounting ? 'brightness(1.4)' : undefined }} />
                                                             ) : val ? (
                                                                 <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
                                                                     {formatKShort(val)}
@@ -4217,9 +4215,7 @@ const App: React.FC = () => {
                                                     } : { borderRadius: 3 }}>
                                                     <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                         {jpTier ? (
-                                                            <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, letterSpacing: '0.04em' }}>
-                                                                {jpTier}
-                                                            </span>
+                                                            <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(24px,4.5vw,40px)', height: 'auto', objectFit: 'contain' }} />
                                                         ) : (
                                                             <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
                                                                 {formatKShort(val)}
