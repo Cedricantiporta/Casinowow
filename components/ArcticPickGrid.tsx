@@ -19,6 +19,9 @@ const TIER_COLOR: Record<Tier, string> = {
     MEGA:  '#fda4af',
     GRAND: '#fde68a',
 };
+const TIER_IMG: Record<Tier, string> = {
+    MINI: '/mini.png', MINOR: '/minor.png', MAJOR: '/major.png', MEGA: '/mega.png', GRAND: '/grand.png',
+};
 const BET_MULTS: Record<Tier, number> = { MINI: 10, MINOR: 20, MAJOR: 40, MEGA: 60, GRAND: 100 };
 
 const WINNING_WEIGHTS = [
@@ -144,7 +147,7 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
                             }}>
                             {revealed ? (
                                 <>
-                                    <span style={{ fontSize: 'clamp(16px,3.2vw,26px)', lineHeight: 1 }}>🧊</span>
+                                    <img src={TIER_IMG[cell.tier]} alt="" style={{ width: 'clamp(16px,3.2vw,26px)', height: 'clamp(16px,3.2vw,26px)', objectFit: 'contain', display: 'block' }} />
                                     <span style={{
                                         fontSize: 'clamp(7px,1.4vw,11px)',
                                         color,

@@ -18,6 +18,9 @@ const TIER_COLOR: Record<Tier, string> = {
     MEGA:  '#fda4af',
     GRAND: '#fde68a',
 };
+const TIER_IMG: Record<Tier, string> = {
+    MINI: '/mini.png', MINOR: '/minor.png', MAJOR: '/major.png', MEGA: '/mega.png', GRAND: '/grand.png',
+};
 const BET_MULTS: Record<Tier, number> = { MINI: 10, MINOR: 20, MAJOR: 40, MEGA: 60, GRAND: 100 };
 
 const WINNING_WEIGHTS = [
@@ -148,7 +151,7 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
                             }}>
                             {revealed ? (
                                 <>
-                                    <img src="/symbols/coin.png" alt="" style={{ width: 'clamp(16px,3.2vw,26px)', height: 'clamp(16px,3.2vw,26px)', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+                                    <img src={TIER_IMG[cell.tier]} alt="" style={{ width: 'clamp(16px,3.2vw,26px)', height: 'clamp(16px,3.2vw,26px)', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                     <span style={{
                                         fontSize: 'clamp(7px,1.4vw,11px)',
                                         color,
