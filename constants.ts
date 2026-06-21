@@ -221,6 +221,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-green-600 via-emerald-700 to-green-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #059669 0%, #064e3b 100%)',
     reelBg: REEL_BGS.JUNGLE,
+    slotBg: '/jungle_bg.png',
     coverImage: '/slots/jungle_covernew.png',
   },
   {
@@ -299,7 +300,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   UNDERWATER: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/deep_green.png', [SymbolType.BELL]: '/deep_blue.png', [SymbolType.BAR]: '/deep_purple.png', [SymbolType.CHERRY]: '/deep_red.png', [SymbolType.SEVEN]: '/deep_red.png',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/deep_scatter.png', ...JP_ICONS
+    [SymbolType.WILD]: '/deep_wild.png', [SymbolType.SCATTER]: '/deep_scatter.png', ...JP_ICONS
   },
   WESTERN: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -324,7 +325,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   LEPRECHAUN: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/lucky_green.png', [SymbolType.BELL]: '/lucky_blue.png', [SymbolType.BAR]: '/lucky_purple.png', [SymbolType.CHERRY]: '/lucky_red.png', [SymbolType.SEVEN]: '/lucky_red.png',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/lucky_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🍀'
+    [SymbolType.WILD]: '/lucky_wild.png', [SymbolType.SCATTER]: '/lucky_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🍀'
   },
   ARCTIC: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -339,7 +340,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   MMORPG: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/fantasy_green.png', [SymbolType.BELL]: '/fantasy_blue.png', [SymbolType.BAR]: '/fantasy_purple.png', [SymbolType.CHERRY]: '/fantasy_red.png', [SymbolType.SEVEN]: '/fantasy_red.png',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/fantasy_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🪙'
+    [SymbolType.WILD]: '/fantasy_wild.png', [SymbolType.SCATTER]: '/fantasy_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🪙'
   },
 };
 
@@ -461,6 +462,17 @@ export const GENERIC_JACKPOT_ICONS: Partial<Record<SymbolType, string>> = {
   [SymbolType.JACKPOT_MAJOR]: '/major_jackpot.png',
   [SymbolType.JACKPOT_MEGA]:  '/mega_jackpot.png',
   [SymbolType.JACKPOT_GRAND]: '/grand_jackpot.png',
+};
+
+// Per-theme jackpot icon overrides (take priority over GENERIC_JACKPOT_ICONS)
+export const THEME_JACKPOT_ICONS: Partial<Record<GameTheme, Partial<Record<SymbolType, string>>>> = {
+  GOLDEN_POT: {
+    [SymbolType.JACKPOT_MINI]:  '/asian_mini.png',
+    [SymbolType.JACKPOT_MINOR]: '/asian_minor.png',
+    [SymbolType.JACKPOT_MAJOR]: '/asian_major.png',
+    [SymbolType.JACKPOT_MEGA]:  '/asian_mega.png',
+    [SymbolType.JACKPOT_GRAND]: '/asian_grand.png',
+  },
 };
 
 export const WEIGHTS = [
