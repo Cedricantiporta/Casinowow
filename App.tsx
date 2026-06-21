@@ -3898,7 +3898,13 @@ const App: React.FC = () => {
                             );
                         })()}</div>
 
-                    {/* Settings button */}
+                    {/* Events pill */}
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3"
+                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid rgba(0,0,0,0.5)', height: 26 }}>
+                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 16, lineHeight: 1 }}>Events</span>
+                    </button>
+
+                    {/* Settings button — far right */}
                     <div
                         onClick={() => showNeonRoulette ? handleNeonRouletteClose() : setShowSettings(true)}
                         className="round-btn shrink-0 cursor-pointer"
@@ -3906,12 +3912,6 @@ const App: React.FC = () => {
                     >
                         <i className="ti ti-settings"></i>
                     </div>
-
-                    {/* Events pill */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3"
-                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid rgba(0,0,0,0.5)', height: 26 }}>
-                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 16, lineHeight: 1 }}>Events</span>
-                    </button>
                 </div>
             </div>
       </header>
