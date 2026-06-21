@@ -3986,7 +3986,7 @@ const App: React.FC = () => {
                     const pillStyle = { width:'100%', textAlign:'center' as const, fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)', marginTop:'-6px' };
                     return (
                         <div className="absolute left-1 z-40 flex flex-col gap-1 items-center select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,#c9901a,#7a5000)' : 'linear-gradient(180deg,#7c3fb5,#4a1880)', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,rgba(201,144,26,0.4),rgba(122,80,0,0.4))' : 'linear-gradient(180deg,rgba(124,63,181,0.4),rgba(74,24,128,0.4))', backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
                             {sidebarPage === 0 ? (<>
                                 {/* Mine */}
                                 <button
@@ -4205,14 +4205,16 @@ const App: React.FC = () => {
                                             const jpTier = egyptCoinMeta.jpGrid[c]?.[r];
                                             const JP_COLORS: Record<string, string> = { MINI: '#4ade80', MINOR: '#67e8f9', MAJOR: '#d8b4fe', MEGA: '#fda4af', GRAND: '#fde68a' };
                                             if (val === null || val === undefined) return <div key={r} className="flex-1" />;
+                                            // Golden border/glow only during free spins; normal spins show the amount only.
+                                            const showBorder = freeSpinsRemaining > 0;
                                             return (
                                                 <div key={r} className="flex-1 relative flex items-center justify-center"
-                                                    style={{
+                                                    style={showBorder ? {
                                                         border: `2px solid ${jpTier ? JP_COLORS[jpTier] : '#fbbf24'}`,
                                                         boxShadow: `0 0 8px ${jpTier ? JP_COLORS[jpTier] + 'aa' : 'rgba(251,191,36,0.6)'}`,
                                                         background: jpTier ? JP_COLORS[jpTier] + '15' : 'rgba(251,191,36,0.06)',
                                                         borderRadius: 3,
-                                                    }}>
+                                                    } : { borderRadius: 3 }}>
                                                     <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                         {jpTier ? (
                                                             <span style={{ fontSize: 'clamp(9px,2vw,13px)', fontWeight: 900, color: JP_COLORS[jpTier], textShadow: '0 0 6px rgba(0,0,0,1)', lineHeight: 1, letterSpacing: '0.04em' }}>

@@ -311,7 +311,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   SAMURAI: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/samurai_green.png', [SymbolType.BELL]: '/samurai_blue.png', [SymbolType.BAR]: '/samurai_purple.png', [SymbolType.CHERRY]: '/samurai_red.png', [SymbolType.SEVEN]: '/samurai_red.png',
-    [SymbolType.WILD]: '/samurai_wild.png', [SymbolType.SCATTER]: '/samurai_scatter.png', ...JP_ICONS
+    [SymbolType.WILD]: '/samurai_wild.png', [SymbolType.SCATTER]: '/samurai_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '/samurai_scatter.png'
   },
   PIGGY: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -341,7 +341,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   MMORPG: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/fantasy_green.png', [SymbolType.BELL]: '/fantasy_blue.png', [SymbolType.BAR]: '/fantasy_purple.png', [SymbolType.CHERRY]: '/fantasy_red.png', [SymbolType.SEVEN]: '/fantasy_red.png',
-    [SymbolType.WILD]: '/fantasy_wild.png', [SymbolType.SCATTER]: '/fantasy_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🪙'
+    [SymbolType.WILD]: '/fantasy_wild.png', [SymbolType.SCATTER]: '/fantasy_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '/fantasy_scatter.png'
   },
 };
 
