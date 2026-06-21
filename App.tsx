@@ -1980,6 +1980,7 @@ const App: React.FC = () => {
       // that re-roll their positions each free spin. Single wilds = N wild cells; column wilds = N full WILD reels.
       if (ft === 'CANDY') {
           candyPendingColsRef.current = [];
+          candySingleWildsRef.current = [];
           if (isFreeSpin && candyWildConfigRef.current && Math.random() < 0.5) {
               const cfg = candyWildConfigRef.current;
               if (cfg.mode === 'column') {
@@ -4025,7 +4026,7 @@ const App: React.FC = () => {
                                             {albumReady}
                                         </div>
                                     )}
-                                    <img src="/card_normal.png" alt="" style={{ width: 44, height: 56, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                    <img src="/ui/cards_new.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                     <div style={pillStyle}>Check</div>
                                 </button>
                             </>)}

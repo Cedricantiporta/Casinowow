@@ -225,8 +225,14 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                     const discountedPeso = (showVipDiscount && originalPeso !== null)
                                         ? Math.floor(originalPeso * (1 - discount / 100))
                                         : null;
+                                    const cardBg = showVipDiscount
+                                        ? 'linear-gradient(180deg,rgba(200,140,30,0.65) 0%,rgba(90,40,5,0.97) 100%)'
+                                        : 'linear-gradient(180deg,rgba(130,55,230,0.65) 0%,rgba(50,12,110,0.97) 100%)';
+                                    const cardShadow = showVipDiscount
+                                        ? 'inset 0 1px 0 rgba(255,210,90,0.5), 0 4px 16px rgba(0,0,0,0.6)'
+                                        : 'inset 0 1px 0 rgba(190,140,255,0.5), 0 4px 16px rgba(0,0,0,0.6)';
                                     return (
-                                        <div key={i} className={`flex-shrink-0 w-[140px] flex flex-col items-center justify-between rounded-2xl overflow-hidden px-3 pt-3 pb-2 transition-all relative`} style={{ background: 'linear-gradient(180deg,rgba(60,100,200,0.55) 0%,rgba(20,30,100,0.95) 100%)', boxShadow: 'inset 0 1px 0 rgba(130,180,255,0.5), 0 4px 16px rgba(0,0,0,0.6)' }}>
+                                        <div key={i} className={`flex-shrink-0 w-[140px] flex flex-col items-center justify-between rounded-2xl overflow-hidden px-3 pt-3 pb-2 transition-all relative`} style={{ background: cardBg, boxShadow: cardShadow }}>
                                             {showVipDiscount && (
                                                 <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-full text-[9px] font-black leading-none"
                                                     style={{ background: 'linear-gradient(135deg,#f59e0b,#b45309)', color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
