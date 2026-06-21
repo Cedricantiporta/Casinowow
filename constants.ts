@@ -294,7 +294,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   JUNGLE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/jungle_green.png', [SymbolType.BELL]: '/jungle_blue.png', [SymbolType.BAR]: '/jungle_purple.png', [SymbolType.CHERRY]: '/jungle_red.png', [SymbolType.SEVEN]: '/jungle_red.png',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '🗿', ...JP_ICONS
+    [SymbolType.WILD]: '/jungle_wild.png', [SymbolType.SCATTER]: '/jungle_scatter.png', ...JP_ICONS
   },
   UNDERWATER: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -309,7 +309,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   SAMURAI: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/samurai_green.png', [SymbolType.BELL]: '/samurai_blue.png', [SymbolType.BAR]: '/samurai_purple.png', [SymbolType.CHERRY]: '/samurai_red.png', [SymbolType.SEVEN]: '/samurai_red.png',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/samurai_scatter.png', ...JP_ICONS
+    [SymbolType.WILD]: '/samurai_wild.png', [SymbolType.SCATTER]: '/samurai_scatter.png', ...JP_ICONS
   },
   PIGGY: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -334,12 +334,12 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   PETS: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/mystic_green.png', [SymbolType.BELL]: '/mystic_blue.png', [SymbolType.BAR]: '/mystic_purple.png', [SymbolType.CHERRY]: '/mystic_red.png', [SymbolType.SEVEN]: '/mystic_red.png',
-    [SymbolType.WILD]: '/pets/wild.png', [SymbolType.SCATTER]: '/pets/scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🦴'
+    [SymbolType.WILD]: '/pets_wild.png', [SymbolType.SCATTER]: '/pets_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🦴'
   },
   MMORPG: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/fantasy_green.png', [SymbolType.BELL]: '/fantasy_blue.png', [SymbolType.BAR]: '/fantasy_purple.png', [SymbolType.CHERRY]: '/fantasy_red.png', [SymbolType.SEVEN]: '/fantasy_red.png',
-    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '💎', ...JP_ICONS, [SymbolType.COIN]: '🪙'
+    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/fantasy_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🪙'
   },
 };
 

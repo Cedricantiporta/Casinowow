@@ -43,7 +43,7 @@ export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet, isSpin
             {TIER_META.map((tier, idx) => (
                 <div key={tier.name} className={`jp ${tier.tierClass}`}>
                     <div className="jp-tier flex items-center justify-center">
-                        <img src={tier.img} alt={tier.name} className="select-none pointer-events-none" style={{ height: '1.5em', width: 'auto', objectFit: 'contain' }} />
+                        <img src={tier.img} alt={tier.name} className="select-none pointer-events-none" style={{ height: '1.1em', width: 'auto', objectFit: 'contain' }} />
                     </div>
                     <div className="jp-amt">{formatK(amounts[idx] ?? 0)}</div>
                 </div>
