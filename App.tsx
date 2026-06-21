@@ -2424,20 +2424,23 @@ const App: React.FC = () => {
                 });
                 holdWinRef.current = { active: false, lockedGrid, coinValues, jpGrid, respins: 3 };
                 setTimeout(() => {
-                    audioService.playBonusTrigger();
+                    audioService.playScatterTrigger();
                     setSpinsWithoutBonus(0);
                     setStatus(GameStatus.SCATTER_SHOWCASE);
-                    setShowEgyptHoldWinPopup(true);
                     setTimeout(() => {
-                        setShowEgyptHoldWinPopup(false);
-                        setReelTransitioning('out');
+                        audioService.playBonusTrigger();
+                        setShowEgyptHoldWinPopup(true);
                         setTimeout(() => {
-                            holdWinRef.current.active = true;
-                            setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
-                            setReelTransitioning('in');
-                            setTimeout(() => { setReelTransitioning(false); setStatus(GameStatus.IDLE); }, 1100);
-                        }, 900);
-                    }, 2500);
+                            setShowEgyptHoldWinPopup(false);
+                            setReelTransitioning('out');
+                            setTimeout(() => {
+                                holdWinRef.current.active = true;
+                                setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
+                                setReelTransitioning('in');
+                                setTimeout(() => { setReelTransitioning(false); setStatus(GameStatus.IDLE); }, 1100);
+                            }, 900);
+                        }, 1800);
+                    }, 900);
                 }, 0);
                 return next;
             }
@@ -2556,6 +2559,7 @@ const App: React.FC = () => {
                     audioService.playFreeSpinTrigger();
                 } else {
                     setStatus(GameStatus.SCATTER_SHOWCASE);
+                    audioService.playScatterTrigger();
                     setSpinsWithoutBonus(0);
                     setTimeout(() => { audioService.playFreeSpinTrigger(); setShowFreeSpinsPopup(true); }, 2000);
                     return next;
@@ -4176,7 +4180,7 @@ const App: React.FC = () => {
                                                     {locked ? (
                                                         <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                             {jpTier ? (
-                                                                <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(24px,4.5vw,40px)', height: 'auto', objectFit: 'contain', filter: isCounting ? 'brightness(1.4)' : undefined }} />
+                                                                <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain', filter: isCounting ? 'brightness(1.4)' : undefined }} />
                                                             ) : val ? (
                                                                 <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
                                                                     {formatKShort(val)}
@@ -4215,7 +4219,7 @@ const App: React.FC = () => {
                                                     } : { borderRadius: 3 }}>
                                                     <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                         {jpTier ? (
-                                                            <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(24px,4.5vw,40px)', height: 'auto', objectFit: 'contain' }} />
+                                                            <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain' }} />
                                                         ) : (
                                                             <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
                                                                 {formatKShort(val)}
