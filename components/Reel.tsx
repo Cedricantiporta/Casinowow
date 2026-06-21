@@ -383,7 +383,7 @@ const ReelCell: React.FC<{
                         </div>
                     )}
 
-                    {isScatter && !blur && !isImageIcon && (
+                    {isScatter && !blur && (!isImageIcon || theme === 'NEON' || theme === 'CANDY') && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
                             <span
                                 className="block font-titan font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
