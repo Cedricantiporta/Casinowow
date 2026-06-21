@@ -157,11 +157,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 <div className="text-yellow-100 font-black text-base leading-none">₱ 0.00</div>
                             </div>
                         </div>
-                        <button onClick={handlePremiumPurchase}
-                            className="btn-3d px-8 py-2.5 rounded-xl font-black text-sm tracking-widest text-black relative overflow-hidden"
-                            style={{ background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', boxShadow: '0 4px 0 #7a5000,0 6px 16px rgba(0,0,0,0.5)' }}>
-                            <span className="relative z-10">Unlock Premium</span>
-                            <div className="absolute inset-0 bg-gradient-to-b from-white/30 to-transparent pointer-events-none"></div>
+                        <button onClick={handlePremiumPurchase} className="pill-green">
+                            <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px', background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', color: '#1c1917', textShadow: 'none' }}>Unlock Premium</div>
                         </button>
                     </div>
 
