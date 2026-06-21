@@ -113,36 +113,31 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     };
 
     const CARD_TIER: Record<CardRarity, {
-        frame: string; inner: string; innerLocked: string;
-        gem: string; badgeText: string; glow: string; legendary: boolean;
+        frame: string; inner: string; innerLocked: string; badgeText: string;
     }> = {
         COMMON: {
             frame: 'linear-gradient(145deg,#d0d8e4 0%,#7a8a9c 30%,#c8d4e0 55%,#9aaabb 80%,#d0d8e4 100%)',
-            inner: 'linear-gradient(160deg,#222a36 0%,#131b26 100%)',
-            innerLocked: 'linear-gradient(160deg,#0e1218 0%,#080c10 100%)',
-            gem: '#aabbc8', badgeText: '#e0ecf8',
-            glow: 'none', legendary: false,
+            inner: 'linear-gradient(180deg,#9aa6b6 0%,#6b7888 12%,#54606e 28%,#3a434e 55%,#181d24 100%)',
+            innerLocked: 'linear-gradient(180deg,#2a313c 0%,#1a1f26 40%,#0c0f14 100%)',
+            badgeText: '#e0ecf8',
         },
         RARE: {
             frame: 'linear-gradient(145deg,#88c0f8 0%,#1a5abf 30%,#88c0f8 55%,#4488e0 80%,#88c0f8 100%)',
-            inner: 'linear-gradient(160deg,#08122a 0%,#040c1e 100%)',
-            innerLocked: 'linear-gradient(160deg,#050b16 0%,#020608 100%)',
-            gem: '#3388ee', badgeText: '#c0dcff',
-            glow: '0 0 14px rgba(80,140,255,0.6)', legendary: false,
+            inner: 'linear-gradient(180deg,#4f9bf5 0%,#2f6fe0 12%,#1f50c0 28%,#163a90 55%,#081230 100%)',
+            innerLocked: 'linear-gradient(180deg,#1a2740 0%,#0f1a30 40%,#060c18 100%)',
+            badgeText: '#dceaff',
         },
         EPIC: {
             frame: 'linear-gradient(145deg,#f09090 0%,#a01020 30%,#f09090 55%,#cc3040 80%,#f09090 100%)',
-            inner: 'linear-gradient(160deg,#200808 0%,#140404 100%)',
-            innerLocked: 'linear-gradient(160deg,#100404 0%,#080202 100%)',
-            gem: '#ee2233', badgeText: '#ffd0d8',
-            glow: '0 0 18px rgba(220,40,60,0.7)', legendary: false,
+            inner: 'linear-gradient(180deg,#f05858 0%,#d62e2e 12%,#b01c1c 28%,#7a1414 55%,#2c0606 100%)',
+            innerLocked: 'linear-gradient(180deg,#2c1414 0%,#1c0c0c 40%,#100404 100%)',
+            badgeText: '#ffdde0',
         },
         LEGENDARY: {
             frame: 'linear-gradient(145deg,#ffe060 0%,#c08010 30%,#ffe060 55%,#e09828 80%,#ffe060 100%)',
-            inner: 'linear-gradient(160deg,#241000 0%,#160a00 100%)',
-            innerLocked: 'linear-gradient(160deg,#100800 0%,#080400 100%)',
-            gem: '#ff3020', badgeText: '#fff0a0',
-            glow: '0 0 24px rgba(255,200,50,0.8)', legendary: true,
+            inner: 'linear-gradient(180deg,#fbbf24 0%,#e09010 12%,#c07408 28%,#8a4f06 55%,#2e1902 100%)',
+            innerLocked: 'linear-gradient(180deg,#2c2008 0%,#1c1404 40%,#100a00 100%)',
+            badgeText: '#fff3c4',
         },
     };
 
@@ -280,7 +275,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 return next;
                                             });
                                         }} className="relative transition-all active:scale-95"
-                                            style={{ aspectRatio: '2/3', borderRadius: 8, background: sel ? '#fde68a' : CARD_TIER[dup.card.rarity].frame, padding: 2, boxShadow: sel ? '0 0 10px #fde68aaa' : CARD_TIER[dup.card.rarity].glow }}>
+                                            style={{ aspectRatio: '2/3', borderRadius: 8, background: sel ? '#fde68a' : CARD_TIER[dup.card.rarity].frame, padding: 2, boxShadow: sel ? '0 0 10px #fde68aaa' : 'none' }}>
                                             {sel && <div className="absolute inset-0 z-10 rounded-lg" style={{ background: 'rgba(255,220,80,0.25)', borderRadius: 8 }} />}
                                             <div style={{ width: '100%', height: '100%', borderRadius: 6, background: CARD_TIER[dup.card.rarity].inner, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                                                 <div style={{ padding: '2px 2px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -347,8 +342,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     return (
                                     <div
                                         key={i}
-                                        className={`relative w-full max-w-[80px] animate-pop-in${CARD_TIER[card.rarity].legendary ? ' card-legendary-glow' : ''}`}
-                                        style={{ animationDelay: `${i * 30}ms`, aspectRatio: '2/3', borderRadius: 12, boxShadow: CARD_TIER[card.rarity].glow }}
+                                        className="relative w-full max-w-[80px] animate-pop-in"
+                                        style={{ animationDelay: `${i * 30}ms`, aspectRatio: '2/3', borderRadius: 12 }}
                                     >
                                         {/* Metallic frame */}
                                         <div style={{ position: 'absolute', inset: 0, borderRadius: 12, background: CARD_TIER[card.rarity].frame, padding: 3 }}>
@@ -361,9 +356,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 {card.isNew && <div className="absolute top-0.5 right-0.5 bg-red-600 text-white text-[6px] font-black px-0.5 rounded z-20">NEW</div>}
                                                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                     {card.icon.startsWith('/') ? (
-                                                        <img src={card.icon} alt="" style={{ width: '2rem', height: '2rem', objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.8))' }} />
+                                                        <img src={card.icon} alt="" style={{ width: '2.8rem', height: '2.8rem', objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.8))' }} />
                                                     ) : (
-                                                        <span style={{ fontSize: '2rem', lineHeight: 1 }}>{card.icon}</span>
+                                                        <span style={{ fontSize: '2.8rem', lineHeight: 1 }}>{card.icon}</span>
                                                     )}
                                                 </div>
                                                 <div style={{ padding: '0 3px 4px' }}>
@@ -372,10 +367,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 </div>
                                             </div>
                                         </div>
-                                        {/* Corner gems */}
-                                        {[['top','left'],['top','right'],['bottom','left'],['bottom','right']].map(([v,h]) => (
-                                            <div key={v+h} style={{ position: 'absolute', [v]: -3, [h]: -3, width: 7, height: 7, background: CARD_TIER[card.rarity].gem, transform: 'rotate(45deg)', boxShadow: `0 0 4px ${CARD_TIER[card.rarity].gem}`, zIndex: 10 }} />
-                                        ))}
                                     </div>
                                     );
                                 })}
@@ -537,8 +528,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     const isLocked = card.count === 0;
                                     return (
                                         <div key={i}
-                                            className={`flex-none relative${!isLocked && CARD_TIER[card.rarity].legendary ? ' card-legendary-glow' : ''}`}
-                                            style={{ width: 140, height: 220, borderRadius: 16, flexShrink: 0, boxShadow: isLocked ? 'none' : CARD_TIER[card.rarity].glow }}>
+                                            className="flex-none relative"
+                                            style={{ width: 140, height: 220, borderRadius: 16, flexShrink: 0 }}>
                                             {/* Metallic frame border */}
                                             <div style={{ position: 'absolute', inset: 0, borderRadius: 16, background: isLocked ? 'linear-gradient(145deg,#3a4050,#252c38)' : CARD_TIER[card.rarity].frame, padding: 4 }}>
                                                 <div style={{ width: '100%', height: '100%', borderRadius: 12, background: isLocked ? CARD_TIER[card.rarity].innerLocked : CARD_TIER[card.rarity].inner, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
@@ -554,11 +545,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                     {/* Middle: symbol */}
                                                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                         {isLocked ? (
-                                                            <img src="/ui/lock.png" alt="" style={{ width: '3.5rem', height: '3.5rem', objectFit: 'contain', opacity: 0.3 }} />
+                                                            <img src="/ui/lock.png" alt="" style={{ width: '4rem', height: '4rem', objectFit: 'contain', opacity: 0.3 }} />
                                                         ) : card.icon.startsWith('/') ? (
-                                                            <img src={card.icon} alt="" style={{ width: '3.5rem', height: '3.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.9))' }} />
+                                                            <img src={card.icon} alt="" style={{ width: '4.9rem', height: '4.9rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.9))' }} />
                                                         ) : (
-                                                            <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>{card.icon}</span>
+                                                            <span style={{ fontSize: '4.9rem', lineHeight: 1 }}>{card.icon}</span>
                                                         )}
                                                     </div>
                                                     {/* Bottom: name plate */}
@@ -569,10 +560,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                     </div>
                                                 </div>
                                             </div>
-                                            {/* Corner gems */}
-                                            {!isLocked && [['top','left'],['top','right'],['bottom','left'],['bottom','right']].map(([v,h]) => (
-                                                <div key={v+h} style={{ position: 'absolute', [v]: -5, [h]: -5, width: 11, height: 11, background: CARD_TIER[card.rarity].gem, transform: 'rotate(45deg)', boxShadow: `0 0 6px ${CARD_TIER[card.rarity].gem}88`, zIndex: 10 }} />
-                                            ))}
                                         </div>
                                     );
                                 })}
