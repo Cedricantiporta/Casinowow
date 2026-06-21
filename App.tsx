@@ -2084,9 +2084,8 @@ const App: React.FC = () => {
               for (let r = 0; r < rows; r++) newGrid[ship2Col][r] = SymbolType.WILD;
           }
 
-          // Ghost Ship jackpot: 8% chance per walk-spin to embed a jackpot symbol
-          // inside the ship's wild column, replacing one wild cell.
-          if (Math.random() < 0.08) {
+          // Ghost Ship jackpot: only during free spins, 8% chance per walk-spin.
+          if (freeSpinsRemaining > 0 && Math.random() < 0.08) {
               const JP_PIRATE = [
                   { sym: SymbolType.JACKPOT_MINI,  w: 60 },
                   { sym: SymbolType.JACKPOT_MINOR, w: 25 },
@@ -3072,8 +3071,8 @@ const App: React.FC = () => {
 
   const handleWinPopupComplete = () => {
       setShowWinPopup(false);
-      // If free spins just ended, show summary immediately rather than going through IDLE
-      if (freeSpinsWon > 0 && freeSpinsRemaining === 0) {
+      // If free spins just ended (no retrigger pending), show summary
+      if (freeSpinsWon > 0 && freeSpinsRemaining === 0 && !showFreeSpinsPopup) {
           setShowFreeSpinSummary(true);
       } else {
           setStatus(GameStatus.IDLE);
@@ -3489,7 +3488,7 @@ const App: React.FC = () => {
       setShowFreeSpinSummary(false);
       const currentBet = availableBets[betIndex];
       const latestTotalWin = freeSpinTotalWinRef.current;
-      const tier = latestTotalWin > 0 ? getWinTier(latestTotalWin, currentBet) : null;
+      const tier = latestTotalWin > 0 ? (getWinTier(latestTotalWin, currentBet) || 'BIG WIN') : null;
 
       // Stop auto spin after free spins — player must re-enable manually
       setPlayer(p => ({ ...p, autoSpin: false }));

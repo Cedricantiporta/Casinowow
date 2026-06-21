@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { SymbolType, SymbolConfig, GameTheme } from '../types';
-import { WEIGHTS, NEON_WEIGHTS, GET_SYMBOLS, JACKPOT_ICONS } from '../constants';
+import { WEIGHTS, NEON_WEIGHTS, GET_SYMBOLS, JACKPOT_ICONS, GENERIC_JACKPOT_ICONS } from '../constants';
 import { GameConfig } from '../types';
 
 interface ReelProps {
@@ -338,7 +338,7 @@ const ReelCell: React.FC<{
             `}
             style={
                 isJackpot && !highlight && jpStyle
-                    ? (JACKPOT_ICONS[theme]
+                    ? (JACKPOT_ICONS[theme] || GENERIC_JACKPOT_ICONS[symbol]
                         ? { background: `${jpStyle.darkColor}cc` }
                         : { background: jpStyle.solidBg })
                 : isLetter && !highlight ? { background: LETTER_DARK_BG[theme] ?? '#0a0a1a' }
@@ -389,9 +389,9 @@ const ReelCell: React.FC<{
                 `}>
                     {isJackpot ? (
                         <>
-                            {JACKPOT_ICONS[theme] && (
+                            {(JACKPOT_ICONS[theme] || GENERIC_JACKPOT_ICONS[symbol]) && (
                                 <img
-                                    src={JACKPOT_ICONS[theme]}
+                                    src={JACKPOT_ICONS[theme] ?? GENERIC_JACKPOT_ICONS[symbol]}
                                     alt=""
                                     className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none"
                                     style={{ opacity: 0.85 }}

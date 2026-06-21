@@ -273,21 +273,15 @@ export const JackpotRouletteModal: React.FC<Props> = ({ isOpen, baseAmount, onCl
 
     return (
         <div className="absolute inset-0 z-[210] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-pop-in select-none">
-            <div className="rounded-3xl overflow-hidden flex flex-col items-center gap-3 px-5 py-4 relative"
-                style={{ width: 'min(94%, 340px)', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+            <div className="rounded-3xl overflow-hidden flex flex-row items-center gap-0 relative"
+                style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
-                {/* Header */}
-                <div className="shrink-0 flex items-center w-full relative">
-                    <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">Jackpot</span>
-                    {phase !== 'spinning' && <div className="ml-auto round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x"></i></div>}
-                </div>
-
-                {/* Wheel zone */}
-                <div className="relative" style={{ width: 280, height: 300 }}>
+                {/* Left — Wheel */}
+                <div className="relative shrink-0" style={{ width: 220, height: 240 }}>
                     {/* Ticker arrow */}
                     <div ref={tickerRef} className="absolute z-20"
-                        style={{ top: 8, left: '50%', transform: 'translateX(-50%)', transformOrigin: '50% 15%', width: 26, height: 40 }}>
-                        <svg width={26} height={40} viewBox="0 0 40 62" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        style={{ top: 6, left: '50%', transform: 'translateX(-50%)', transformOrigin: '50% 15%', width: 22, height: 34 }}>
+                        <svg width={22} height={34} viewBox="0 0 40 62" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M20 2C10 2 2 10 2 20C2 30 12 56 20 60C28 56 38 30 38 20C38 10 30 2 20 2Z"
                                 fill="url(#jtgrad)" stroke="#2a0c40" strokeWidth="2.5"/>
                             <circle cx="20" cy="20" r="12" fill="#fbbf24"/>
@@ -301,33 +295,41 @@ export const JackpotRouletteModal: React.FC<Props> = ({ isOpen, baseAmount, onCl
                             </defs>
                         </svg>
                     </div>
-
                     {/* Canvas */}
                     <canvas ref={canvasRef} width={CS} height={CS}
-                        style={{ position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)', width: 280, height: 280, filter: 'drop-shadow(0 10px 24px rgba(0,0,0,0.8))' }} />
+                        style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', width: 218, height: 218, filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.8))' }} />
                 </div>
 
-                {/* Base amount */}
-                <div className="text-center -mt-1">
-                    <div className="text-yellow-300/70 text-[9px] font-black uppercase tracking-widest">Base Amount</div>
-                    <div className="font-mono font-black text-white" style={{ fontSize: '1.05rem' }}>{formatCommaNumber(baseAmount)}</div>
-                </div>
+                {/* Right — Title, amount, action */}
+                <div className="flex flex-col gap-3 pr-4 py-4" style={{ minWidth: 130 }}>
+                    {/* Title + close */}
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-white font-tanker text-base leading-none">Jackpot</span>
+                        {phase !== 'spinning' && <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>}
+                    </div>
 
-                {/* Action */}
-                <div className="w-full">
-                    {phase === 'done' && wonMult !== null ? (
-                        <div className="flex flex-col items-center gap-2 w-full">
-                            <div className="text-center">
-                                <div className="font-tanker text-yellow-300" style={{ fontSize: '1.4rem' }}>{wonMult}× Win!</div>
-                                <div className="font-mono font-black text-white" style={{ fontSize: '1.1rem' }}>+{formatCommaNumber(baseAmount * wonMult)}</div>
-                            </div>
-                            <button onClick={() => onClaim(baseAmount * wonMult)} className="pill-green w-full">
-                                <div className="pill-face" style={{ padding: '6px 12px', fontSize: '11px' }}>Claim</div>
-                            </button>
+                    {/* Base amount */}
+                    <div>
+                        <div className="text-yellow-300/70 text-[9px] font-black uppercase tracking-widest">Base Amount</div>
+                        <div className="font-mono font-black text-white" style={{ fontSize: '0.95rem' }}>{formatCommaNumber(baseAmount)}</div>
+                    </div>
+
+                    {/* Win result (done phase) */}
+                    {phase === 'done' && wonMult !== null && (
+                        <div>
+                            <div className="font-tanker text-yellow-300" style={{ fontSize: '1.3rem', lineHeight: 1 }}>{wonMult}× Win!</div>
+                            <div className="font-mono font-black text-white text-xs">+{formatCommaNumber(baseAmount * wonMult)}</div>
                         </div>
+                    )}
+
+                    {/* Action button */}
+                    {phase === 'done' && wonMult !== null ? (
+                        <button onClick={() => onClaim(baseAmount * wonMult)} className="pill-green w-full">
+                            <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>Claim</div>
+                        </button>
                     ) : (
                         <button onClick={doSpin} disabled={phase === 'spinning'} className={`pill-green w-full${phase === 'spinning' ? ' opacity-60' : ''}`}>
-                            <div className="pill-face" style={{ padding: '6px 12px', fontSize: '11px' }}>{phase === 'spinning' ? 'Spinning…' : 'Spin'}</div>
+                            <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>{phase === 'spinning' ? 'Spinning…' : 'Spin'}</div>
                         </button>
                     )}
                 </div>
