@@ -142,19 +142,15 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 cells[i] = { revealed: false, content: 'BOMB' };
             }
         }
-        // Add block tiles: early relative stages (1-2 in cycle) get BLOCK_2X, later get BLOCK_3X
-        const relStage = ((wildStage - 1) % 5) + 1;
-        const isEarlyStage = relStage <= 2;
-        const blockType = isEarlyStage ? 'BLOCK_2X' : 'BLOCK_3X';
-        const maxBlocks = isEarlyStage ? 2 : 3;
-        const blockCount = Math.floor(Math.random() * maxBlocks) + 1;
+        // Add block tiles: always BLOCK_2X (shown with 3x icon, takes 2 hits)
+        const blockCount = Math.floor(Math.random() * 2) + 1;
         const candidates = cells.map((c, i) => (c.content === 'BLANK' || c.content === 'REWARD') ? i : -1).filter(i => i !== -1);
         for (let b = 0; b < Math.min(blockCount, candidates.length); b++) {
             const randIdx = Math.floor(Math.random() * candidates.length);
             const ci = candidates.splice(randIdx, 1)[0];
             const base: 'BLANK' | 'REWARD' = cells[ci].content === 'REWARD' ? 'REWARD' : 'BLANK';
             const baseReward = cells[ci].reward;
-            cells[ci] = { revealed: false, content: blockType as 'BLOCK_2X' | 'BLOCK_3X', blockBase: base, reward: baseReward };
+            cells[ci] = { revealed: false, content: 'BLOCK_2X', blockBase: base, reward: baseReward };
         }
         setGrid(cells);
         if (onGridUpdate) onGridUpdate(cells);
@@ -323,15 +319,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const cell = grid[index];
         const newGrid = [...grid.map(c => ({ ...c }))];
 
-        // Handle multi-hit blocks
-        if (cell.content === 'BLOCK_3X') {
-            audioService.playStoneBreak();
-            newGrid[index] = { ...cell, content: 'BLOCK_2X' };
-            setGrid(newGrid);
-            if (onGridUpdate) onGridUpdate(newGrid);
-            onPickTile(false, null);
-            return;
-        }
+        // Handle block tile: takes 2 hits to clear
         if (cell.content === 'BLOCK_2X') {
             audioService.playStoneBreak();
             newGrid[index] = { revealed: false, content: cell.blockBase ?? 'BLANK', reward: cell.reward };
@@ -614,14 +602,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isReward = revealed && cell.content === 'REWARD';
                                     const isBomb = cell.content === 'BOMB';
                                     const isBlock2x = cell.content === 'BLOCK_2X';
-                                    const isBlock3x = cell.content === 'BLOCK_3X';
                                     const maxDim = Math.max(gridCols, gridRows);
                                     const tileSize = maxDim >= 6 ? 78 : maxDim >= 5 ? 88 : maxDim >= 4 ? 100 : 114;
                                     const gemPrize = Math.floor((maxBet || 10000) * (3 + 0.1 * wildStage));
 
                                     const iconSrc = isExploding ? null
-                                        : isBlock3x ? '/coinmine_3xblock.png'
-                                        : isBlock2x ? '/coinmine_2xblock.png'
+                                        : isBlock2x ? '/coinmine_3xblock.png'
                                         : !revealed ? '/coinmine_rockicon.png'
                                         : isGem ? '/coinmine_stageclearicon.png'
                                         : isBomb ? '/coinmine_bombicon.png'
