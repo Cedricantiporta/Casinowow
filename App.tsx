@@ -497,7 +497,30 @@ const App: React.FC = () => {
   useEffect(() => { freeSpinTotalWinRef.current = freeSpinTotalWin; }, [freeSpinTotalWin]);
   const [showFreeSpinSummary, setShowFreeSpinSummary] = useState(false);
   const [spinsWithoutBonus, setSpinsWithoutBonus] = useState(0);
-  
+
+  // Golden Treasury collect multiplier — builds with qualifying spins.
+  // 50 qualifying spins per tier: 1x → 2x(50) → 3x(100) → 4x(150) → 5x(200) → 10x(250).
+  // A spin counts fully when bet ≥ 50% of max bet; otherwise it counts as half.
+  const [treasuryMultProgress, setTreasuryMultProgress] = useState<number>(() => {
+      try { return parseFloat(localStorage.getItem('cw_treasury_mult') || '0') || 0; } catch { return 0; }
+  });
+  useEffect(() => {
+      try { localStorage.setItem('cw_treasury_mult', String(treasuryMultProgress)); } catch {}
+  }, [treasuryMultProgress]);
+  const TREASURY_MULT_TIERS = [
+      { mult: 1,  at: 0   },
+      { mult: 2,  at: 50  },
+      { mult: 3,  at: 100 },
+      { mult: 4,  at: 150 },
+      { mult: 5,  at: 200 },
+      { mult: 10, at: 250 },
+  ];
+  const treasuryMultiplier = (() => {
+      let m = 1;
+      for (const t of TREASURY_MULT_TIERS) if (treasuryMultProgress >= t.at) m = t.mult;
+      return m;
+  })();
+
   const [loginState, setLoginState] = useState<DailyLoginState>(() => {
       try {
           const saved = localStorage.getItem('cw_login');
@@ -879,22 +902,23 @@ const App: React.FC = () => {
       const multipliers = [5.0, 25.0, 100.0];
       const base = CALCULATE_TIME_BONUS(player.level);
 
-      const scaledReward = Math.floor(base * multipliers[id]);
+      const baseReward = Math.floor(base * multipliers[id]);
+      const awardedReward = Math.floor(baseReward * treasuryMultiplier);
 
       setBonusTimers(prev => prev.map(t => {
           if (t.id === id) {
               let nextWait = 300000; // 5m (Quick)
               if (id === 1) nextWait = 900000; // 15m (Super)
               if (id === 2) nextWait = 3600000; // 1H (Mega)
-              return { ...t, endTime: now + nextWait, reward: scaledReward }; // Keep reward updated
+              return { ...t, endTime: now + nextWait, reward: baseReward }; // Store base; multiplier applied at claim
           }
           return t;
       }));
-      
-      setPlayer(p => ({ ...p, balance: p.balance + scaledReward }));
-      triggerCoinAnim(scaledReward);
+
+      setPlayer(p => ({ ...p, balance: p.balance + awardedReward }));
+      triggerCoinAnim(awardedReward);
       audioService.playWinBig();
-      setCelebrationMsg(`+${formatCommaNumber(scaledReward)} Coins`);
+      setCelebrationMsg(`+${formatCommaNumber(awardedReward)} Coins`);
   };
   
   const handleCloseCelebration = useCallback(() => {
@@ -2192,6 +2216,12 @@ const App: React.FC = () => {
       }
       
       setSpinsWithoutBonus(prev => prev + 1);
+      // Golden Treasury multiplier progress: full credit when bet ≥ 50% of max bet, else half.
+      {
+          const maxBetNow = MAX_BET_BY_LEVEL(player.level) * (isHighLimit ? 10 : 1);
+          const qualifies = currentBet >= maxBetNow * 0.5;
+          setTreasuryMultProgress(prev => prev + (qualifies ? 1 : 0.5));
+      }
       updateMissions(MissionType.SPIN_COUNT, 1);
       updateMissions(MissionType.BET_COINS, currentBet);
       if (betIndex === availableBets.length - 1) updateMissions(MissionType.MAX_BET_SPIN, 1);
@@ -4675,6 +4705,8 @@ const App: React.FC = () => {
       />}
 
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus}
+          collectMultiplier={treasuryMultiplier}
+          multProgress={treasuryMultProgress}
           jackpotLastTime={player.jackpotRouletteLastTime ?? 0}
           jackpotBaseAmount={MAX_BET_BY_LEVEL(player.level) * 7}
           onJackpotClaim={(amount) => {

@@ -8,6 +8,8 @@ interface TimeBonusModalProps {
     onClose: () => void;
     timers: { id: number; endTime: number; reward: number; label: string }[];
     onClaim: (id: number, reward: number) => void;
+    collectMultiplier?: number;
+    multProgress?: number;
     jackpotLastTime?: number;
     jackpotBaseAmount?: number;
     onJackpotClaim?: (amount: number) => void;
@@ -15,7 +17,17 @@ interface TimeBonusModalProps {
 
 const JACKPOT_COOLDOWN = 3 * 60 * 60 * 1000; // 3 hours
 
-export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose, timers, onClaim, jackpotLastTime = 0, jackpotBaseAmount = 0, onJackpotClaim }) => {
+// Multiplier tiers — 50 qualifying spins per step
+const MULT_TIERS = [
+    { mult: 1,  at: 0   },
+    { mult: 2,  at: 50  },
+    { mult: 3,  at: 100 },
+    { mult: 4,  at: 150 },
+    { mult: 5,  at: 200 },
+    { mult: 10, at: 250 },
+];
+
+export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose, timers, onClaim, collectMultiplier = 1, multProgress = 0, jackpotLastTime = 0, jackpotBaseAmount = 0, onJackpotClaim }) => {
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [showRoulette, setShowRoulette] = useState(false);
 
@@ -33,6 +45,14 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
     const jackpotRemaining = Math.max(0, JACKPOT_COOLDOWN - (currentTime - jackpotLastTime));
     const jackpotReady = jackpotRemaining === 0;
 
+    // Current and next multiplier tier — for the header progress indicator
+    const curIdx = MULT_TIERS.reduce((acc, t, i) => (multProgress >= t.at ? i : acc), 0);
+    const nextTier = MULT_TIERS[curIdx + 1];
+    const tierStart = MULT_TIERS[curIdx].at;
+    const tierProgress = nextTier
+        ? Math.min(1, (multProgress - tierStart) / (nextTier.at - tierStart))
+        : 1;
+
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none">
         <div className="w-full max-w-[560px] flex flex-col rounded-3xl overflow-hidden relative"
@@ -40,6 +60,19 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
 
             {/* Header */}
             <div className="shrink-0 flex items-center px-4 py-2.5 relative">
+                {/* Collect multiplier badge — left side */}
+                <div className="flex items-center gap-1.5 z-10 shrink-0">
+                    <div className="flex items-center justify-center rounded-full shrink-0" style={{ width: 34, height: 34, background: 'radial-gradient(circle at 50% 35%,#ffe88a,#f0b000 55%,#a05c00)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6), 0 2px 6px rgba(0,0,0,0.5)' }}>
+                        <span className="font-black leading-none" style={{ fontSize: 13, color: '#5a2e00', textShadow: '0 1px 0 rgba(255,255,255,0.4)' }}>{collectMultiplier}×</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5" style={{ width: 70 }}>
+                        <span className="text-[8px] font-black text-yellow-100/90 leading-none tracking-wider">Collect Boost</span>
+                        <div className="rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,0.4)' }}>
+                            <div style={{ height: '100%', width: `${tierProgress * 100}%`, borderRadius: 9999, background: 'linear-gradient(90deg,#ffe066,#f0b000)', transition: 'width 0.3s ease' }} />
+                        </div>
+                        <span className="text-[7px] font-bold text-white/60 leading-none">{nextTier ? `Next ${nextTier.mult}× soon` : 'Maxed'}</span>
+                    </div>
+                </div>
                 <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">Golden Treasury</span>
                 <div className="ml-auto round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
@@ -60,7 +93,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                                 />
                             </div>
                             <div className="text-[10px] font-black text-white/80 tracking-wider text-center">{timer.label}</div>
-                            <div className="text-sm font-black text-white text-center drop-shadow-md">{formatCommaNumber(timer.reward)}</div>
+                            <div className="text-sm font-black text-white text-center drop-shadow-md">{formatCommaNumber(Math.floor(timer.reward * collectMultiplier))}</div>
                             <button
                                 onClick={() => isReady ? onClaim(timer.id, timer.reward) : undefined}
                                 disabled={!isReady}

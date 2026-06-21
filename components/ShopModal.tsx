@@ -100,10 +100,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         : 0;
 
     const gemPacks = [
-        { icon: '/gem_1.png', label: '100 Gems',    sub: '100',    pesosLabel: '99',   color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)   },
-        { icon: '/gem_2.png', label: '500 Gems',    sub: '500',    pesosLabel: '399',  color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)   },
-        { icon: '/gem_3.png', label: '5,000 Gems',  sub: '5,000',  pesosLabel: '999',  color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000)  },
-        { icon: '/gem_3.png', label: '50,000 Gems', sub: '50,000', pesosLabel: '4990', color: 'from-yellow-400 to-amber-600',   action: () => onBuy('DIAMOND', 50000) },
+        { icon: '/gem_1.png', label: '100 Gems',   sub: '100',   pesosLabel: '99',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
+        { icon: '/gem_2.png', label: '500 Gems',   sub: '500',   pesosLabel: '399', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
+        { icon: '/gem_3.png', label: '5,000 Gems', sub: '5,000', pesosLabel: '999', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
     ];
 
     const boostPacks = [
