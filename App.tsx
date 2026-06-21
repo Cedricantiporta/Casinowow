@@ -3716,12 +3716,7 @@ const App: React.FC = () => {
               {/* Dark scrim so text pops */}
               <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
               <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-                  <div style={{ fontFamily: "'Titan One', cursive", fontWeight: 900, fontSize: 52, lineHeight: 1,
-                      background: 'linear-gradient(180deg,#fff8c0 0%,#ffd700 45%,#e08800 100%)',
-                      WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
-                      textShadow: 'none', letterSpacing: 2, filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.8))' }}>
-                      Casino Slop
-                  </div>
+                  <img src="/casinoslop_logo.webp" alt="Casino Slop" style={{ width: 280, objectFit: 'contain', filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.8))' }} />
                   {/* Purple XP-bar style progress — matches the topbar rtrack */}
                   <div style={{ width: 240, height: 22, borderRadius: 18, background: 'linear-gradient(180deg,#2a0d52,#1a0838)',
                       border: '1px solid #38106e', boxShadow: 'inset 0 2px 3px rgba(0,0,0,0.6)', position: 'relative', overflow: 'hidden' }}>

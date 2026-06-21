@@ -326,7 +326,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   LEPRECHAUN: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/leprechaun_green.png', [SymbolType.BELL]: '/leprechaun_blue.png', [SymbolType.BAR]: '/leprechaun_purple.png', [SymbolType.CHERRY]: '/leprechaun_red.png', [SymbolType.SEVEN]: '/leprechaun_red.png',
-    [SymbolType.WILD]: '/lucky_wild.png', [SymbolType.SCATTER]: '/lucky_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🍀'
+    [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/leprechaun_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🍀'
   },
   ARCTIC: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
