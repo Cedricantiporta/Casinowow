@@ -660,15 +660,15 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     </div>
                                 </div>
                                 {[
-                                    { name: 'Starter', emoji: '🃏', gemCost: 80, packs: 10, contents: ['10 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 25))} Coins`], bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)', accent: '#3b82f6', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
-                                    { name: 'Pro Bundle', emoji: '🃏', gemCost: 280, packs: 30, contents: ['30 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 100))} Coins`], bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)', accent: '#60a5fa', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                    { name: 'Starter', img: '/card_normal.png', gemCost: 80, packs: 10, contents: ['10 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 25))} Coins`], bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)', accent: '#3b82f6', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                    { name: 'Pro Bundle', img: '/card_normal.png', gemCost: 280, packs: 30, contents: ['30 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 100))} Coins`], bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)', accent: '#60a5fa', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
                                 ].map(opt => {
                                     const canAfford = diamonds >= opt.gemCost;
                                     return (
                                         <div key={opt.name} className="flex-none flex flex-col rounded-2xl overflow-hidden shrink-0"
                                             style={{ width: 140, background: opt.bg, opacity: canAfford ? 1 : 0.55 }}>
                                             <div className="px-3 pt-3 pb-1 flex items-start gap-2 flex-1">
-                                                <span style={{ fontSize: '2rem', lineHeight: 1, flexShrink: 0 }}>{opt.emoji}</span>
+                                                <img src={opt.img} alt="" style={{ width: '2rem', height: '2.5rem', objectFit: 'contain', flexShrink: 0 }} />
                                                 <div className="flex-1 min-w-0">
                                                     <div className="font-black text-white text-[10px] uppercase tracking-wide leading-none">{opt.name}</div>
                                                     <div className="mt-1.5 flex flex-col gap-0.5">
@@ -701,8 +701,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     </div>
                                 </div>
                                 {[
-                                    { name: 'Starter', emoji: '🎴', gemCost: 320, packs: 10, contents: ['10 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 50))} Coins`], bg: 'linear-gradient(160deg,#2e1065,#5b21b6)', accent: '#a855f7', shadowClr: '#2e1065', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
-                                    { name: 'Pro Bundle', emoji: '🎴', gemCost: 1100, packs: 30, contents: ['30 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 200))} Coins`], bg: 'linear-gradient(160deg,#3b0764,#6d28d9)', accent: '#c084fc', shadowClr: '#3b0764', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                    { name: 'Starter', img: '/card_premium.png', gemCost: 320, packs: 10, contents: ['10 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 50))} Coins`], bg: 'linear-gradient(160deg,#2e1065,#5b21b6)', accent: '#a855f7', shadowClr: '#2e1065', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                    { name: 'Pro Bundle', img: '/card_premium.png', gemCost: 1100, packs: 30, contents: ['30 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 200))} Coins`], bg: 'linear-gradient(160deg,#3b0764,#6d28d9)', accent: '#c084fc', shadowClr: '#3b0764', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
                                 ].map(opt => {
                                     const canAfford = diamonds >= opt.gemCost;
                                     const buyFn = onBuyPremiumCredits;
@@ -710,7 +710,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                         <div key={opt.name} className="flex-none flex flex-col rounded-2xl overflow-hidden shrink-0"
                                             style={{ width: 140, background: opt.bg, opacity: canAfford ? 1 : 0.55 }}>
                                             <div className="px-3 pt-3 pb-1 flex items-start gap-2 flex-1">
-                                                <span style={{ fontSize: '2rem', lineHeight: 1, flexShrink: 0 }}>{opt.emoji}</span>
+                                                <img src={opt.img} alt="" style={{ width: '2rem', height: '2.5rem', objectFit: 'contain', flexShrink: 0 }} />
                                                 <div className="flex-1 min-w-0">
                                                     <div className="font-black text-white text-[10px] uppercase tracking-wide leading-none">{opt.name}</div>
                                                     <div className="mt-1.5 flex flex-col gap-0.5">

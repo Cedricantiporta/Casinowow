@@ -246,7 +246,10 @@
       .barA{background:linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%);border:none;}
       .barB{background:linear-gradient(180deg,#380870 0%,#6018a8 30%,#8028c8 55%,#a018d4 82%,#c510e0 100%);border:none;}
       .barA{box-shadow:inset 0 2px 0 rgba(255,255,255,0.55);}
-      .barB{box-shadow:inset 0 -1px 3px rgba(0,0,0,0.4);}
+      /* Topbar = a clean vertical mirror of the bottombar bulge: light catches the BOTTOM edge */
+      .barB{box-shadow:inset 0 -2px 0 rgba(255,255,255,0.5), inset 0 2px 3px rgba(0,0,0,0.3);}
+      .barB::before{top:auto;bottom:0;background:linear-gradient(0deg,rgba(255,255,255,0.28) 0%,rgba(255,255,255,0.1) 40%,rgba(255,255,255,0) 100%);}
+      .barB::after{bottom:auto;top:0;background:linear-gradient(180deg,rgba(0,0,0,0.38),rgba(0,0,0,0));}
 
       /* ===== JACKPOT BAR (5 tiers, square bordered boxes) ===== */
       .jackpot{display:flex;align-items:stretch;gap:2px;padding:2px 8px;background:none;border:none;box-shadow:none;}
@@ -366,11 +369,10 @@
       @media (min-width: 768px) {
         .coin { width: 24px; height: 24px; font-size: 17px; }
       }
-      .gem{width:14px;height:10px;flex-shrink:0;
-        background:linear-gradient(180deg,#7fe0ff,#1d9ae0);clip-path:polygon(20% 0,80% 0,100% 40%,50% 100%,0 40%);
-        box-shadow:inset 0 1px 2px rgba(255,255,255,0.6);}
+      .gem{width:16px;height:16px;flex-shrink:0;
+        background:url(/symbols/diamond.png) center/contain no-repeat;}
       @media (min-width: 768px) {
-        .gem { width: 20px; height: 16px; }
+        .gem { width: 20px; height: 20px; }
       }
       .num{font-size:10px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
       .num-sm{font-size:9px;}
