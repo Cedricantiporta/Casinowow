@@ -75,10 +75,7 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
     return (
         <div
             className="absolute inset-0 z-[500] flex flex-col items-center justify-center select-none"
-            style={game.slotBg
-                ? { backgroundImage: `url(${game.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                : { background: game.bgImage ?? 'linear-gradient(180deg,#0a0015,#1a0035)' }
-            }
+            style={{ backgroundImage: 'url(/slot_loading_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
             <div className="absolute inset-0 bg-black/50 pointer-events-none" />
 

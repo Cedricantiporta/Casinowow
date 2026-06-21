@@ -189,8 +189,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     };
 
     const packOptions = [
-        { id: 'super', name: 'Standard', credits: packCredits, emoji: '🃏', color: 'from-blue-700 to-blue-900', gemRate: 4.5 },
-        { id: 'ultra', name: 'Premium',  credits: premiumPackCredits, emoji: '🎴', color: 'from-yellow-600 to-yellow-800', gemRate: 18 },
+        { id: 'super', name: 'Standard', credits: packCredits, emoji: '🃏', img: '/card_normal.png', color: 'from-blue-700 to-blue-900', gemRate: 4.5 },
+        { id: 'ultra', name: 'Premium',  credits: premiumPackCredits, emoji: '🎴', img: '/card_premium.png', color: 'from-yellow-600 to-yellow-800', gemRate: 18 },
     ];
 
     const abbrev18 = (n: number): string => {
@@ -617,13 +617,17 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     const canDrawOne = pack.credits >= 1;
                                     const canDrawTen = pack.credits >= 9;
                                     return (
-                                        <div key={pack.id} className="tcard flex flex-col overflow-hidden"
-                                            style={{ width: 160, padding: '14px 12px 12px' }}>
-                                            <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                                                <div className="font-black text-white text-sm tracking-widest text-center leading-none">{pack.name}</div>
-                                                <div className="font-bold text-white/50 text-[11px]">{pack.credits} packs</div>
+                                        <div key={pack.id} className="flex flex-col items-center justify-between" style={{ width: 160 }}>
+                                            {/* Card image as the pack container */}
+                                            <div className="flex-1 min-h-0 flex items-center justify-center w-full relative">
+                                                <img src={pack.img} alt={pack.name}
+                                                    style={{ height: '100%', maxHeight: 160, width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.55))' }} />
                                             </div>
-                                            <div className="flex flex-col gap-1.5 mt-2">
+                                            <div className="text-center mt-1 shrink-0">
+                                                <div className="font-black text-white text-sm tracking-wide leading-none">{pack.name}</div>
+                                                <div className="font-bold text-white/50 text-[11px] mt-0.5">{pack.credits} packs</div>
+                                            </div>
+                                            <div className="flex flex-col gap-1.5 mt-2 w-full shrink-0">
                                                 <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
                                                     className={`pill-green w-full${!canDrawOne ? ' opacity-40' : ''}`}>
                                                     <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>Draw 1×</div>

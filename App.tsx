@@ -156,6 +156,8 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
 const PRELOAD_ASSETS = [
     // lobby backgrounds
     '/lobby-bg.jpg', '/lobby-bg-vip.jpg',
+    // slot loading screen background (shown while a game loads in)
+    '/slot_loading_bg.png',
     // slot cover images (shown in lobby cards) — data-driven
     ...ALL_COVER_ASSETS,
     // bottom-bar + topbar UI icons
@@ -176,6 +178,8 @@ const LOBBY_PRELOAD_ASSETS = [
     '/coinmine_stageclearicon.png', '/coinmine_2xblock.png', '/coinmine_3xblock.png',
     '/dice_background.jpg', '/album_background.jpg',
     '/dice_backicon.png', '/dice_staricon.png', '/dice_blankicon.png', '/dice_starticon.png', '/dice_avatar.png',
+    // card pack art (Draw Cards containers)
+    '/card_normal.png', '/card_premium.png',
     // modal / UI assets
     '/ui/VIP.png', '/ui/bigbag.png', '/ui/dice.png', '/ui/double.png',
     '/ui/dragon_vase.png', '/ui/gems500.png', '/ui/gems5000.png',
