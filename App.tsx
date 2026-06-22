@@ -352,7 +352,7 @@ const App: React.FC = () => {
   useEffect(() => { autoSpinRemainingRef.current = autoSpinRemaining; }, [autoSpinRemaining]);
   useEffect(() => { targetGridRef.current = targetGrid; }, [targetGrid]);
   const [showWinPopup, setShowWinPopup] = useState(false);
-  const [lastWinAmount, setLastWinAmount] = useState<number>(0);
+  const [lastWinAmount, setLastWinAmount] = useState<number | null>(null);
   const [holdWinSummary, setHoldWinSummary] = useState<{ total: number; bet: number } | null>(null);
   const pendingHoldWinSummaryRef = useRef<{ total: number; bet: number } | null>(null);
   const [gemsClaimedPopup, setGemsClaimedPopup] = useState<number | null>(null);
@@ -3425,6 +3425,7 @@ const App: React.FC = () => {
           setCurrentView('GAME');
           setActiveModal('NONE');
           setStatus(GameStatus.IDLE);
+          setLastWinAmount(null); // fresh slot → show "LET'S SPIN!" until first spin
           // Always stop auto spin on slot change
           setPlayer(p => ({ ...p, autoSpin: false }));
           setAutoSpinRemaining(-1);
@@ -3927,67 +3928,59 @@ const App: React.FC = () => {
                         {/* XP details popup */}
                         {showXpPopup && (() => {
                             const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                            const vipMult = player.isVip ? 1 + (player.vipLevel || 1) * 0.1 : 1;
-                            const totalMult = (player.xpMultiplier || 1) * vipMult;
                             const rem = boostActive ? Math.max(0, (player.xpBoostEndTime || 0) - Date.now()) : 0;
                             const remH = Math.floor(rem / 3600000);
                             const remM = Math.floor((rem % 3600000) / 60000);
-                            const xpPct = Math.min(100, Math.round((player.xp / player.xpToNextLevel) * 100));
+                            const vipBonusPct = player.isVip ? Math.round((player.vipLevel || 1) * 10) : 0;
+                            const nextLevel = player.level + 1;
+                            const nextReward = Math.floor(MAX_BET_BY_LEVEL(nextLevel) * (nextLevel % 5 === 0 ? 0.2 : 0.05));
                             return (
-                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 200, background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderRadius: 14, boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 24px rgba(0,0,0,0.8)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
+                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 200, background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderRadius: 14, boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 24px rgba(0,0,0,0.8)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 7 }}
                                     onClick={e => e.stopPropagation()}>
-                                    {/* XP bar */}
-                                    <div>
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span style={{ color: '#a78bfa', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em' }}>XP Progress</span>
-                                            <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>{player.xp.toLocaleString()} / {player.xpToNextLevel.toLocaleString()}</span>
-                                        </div>
-                                        <div style={{ height: 6, borderRadius: 6, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                                            <div style={{ height: '100%', width: `${xpPct}%`, borderRadius: 6, background: boostActive ? 'linear-gradient(90deg,#ffe066,#e8a800)' : 'linear-gradient(90deg,#7fd0ff,#2b8fe8)', transition: 'width 0.4s ease' }} />
-                                        </div>
-                                        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9, textAlign: 'right', marginTop: 2 }}>{xpPct}%</div>
+                                    {/* Header — current level + XP numbers (no bar / % ) */}
+                                    <div className="flex items-center justify-between">
+                                        <span style={{ color: 'white', fontSize: 12, fontWeight: 900, letterSpacing: '0.04em' }}>Level {player.level}</span>
+                                        <span style={{ color: '#d6b8ff', fontSize: 10, fontWeight: 700 }}>{player.xp.toLocaleString()} / {player.xpToNextLevel.toLocaleString()} XP</span>
                                     </div>
-                                    {/* Divider */}
-                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginLeft: 2, marginRight: 2 }} />
-                                    {/* Multipliers */}
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                        <span style={{ color: '#a78bfa', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em' }}>Multipliers</span>
-                                        <div className="flex items-center justify-between">
-                                            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 10 }}>Base</span>
-                                            <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>×1</span>
-                                        </div>
-                                        {boostActive && (
-                                            <div className="flex items-center justify-between">
-                                                <span style={{ color: '#fbbf24', fontSize: 10 }}>XP Boost <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 9 }}>({String(remH).padStart(2,'0')}:{String(remM).padStart(2,'0')} left)</span></span>
-                                                <span style={{ color: '#fbbf24', fontSize: 10, fontWeight: 700 }}>×{player.xpMultiplier}</span>
-                                            </div>
-                                        )}
-                                        {player.isVip && (
-                                            <div className="flex items-center justify-between">
-                                                <span style={{ color: '#fcd34d', fontSize: 10 }}>VIP Lv.{player.vipLevel || 1}</span>
-                                                <span style={{ color: '#fcd34d', fontSize: 10, fontWeight: 700 }}>×{vipMult.toFixed(1)}</span>
-                                            </div>
-                                        )}
-                                        <div style={{ height: 1, background: 'rgba(255,255,255,0.08)' }} />
-                                        <div className="flex items-center justify-between">
-                                            <span style={{ color: 'white', fontSize: 11, fontWeight: 900 }}>Total</span>
-                                            <span style={{ color: '#7fd0ff', fontSize: 11, fontWeight: 900 }}>×{totalMult % 1 === 0 ? totalMult : totalMult.toFixed(1)}</span>
-                                        </div>
+
+                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', marginLeft: 2, marginRight: 2 }} />
+
+                                    {/* Next level reward */}
+                                    <div className="flex items-center justify-between">
+                                        <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 10, fontWeight: 700 }}>Next Reward · Lv.{nextLevel}</span>
+                                        <span className="flex items-center gap-1" style={{ color: '#ffe066', fontSize: 11, fontWeight: 900 }}>
+                                            <img src="/symbols/coin.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+                                            {formatK(nextReward)}
+                                        </span>
                                     </div>
-                                    {/* VIP XP bar */}
+
+                                    {/* 2X EXP boost with timer */}
+                                    {boostActive && (
+                                        <div className="flex items-center justify-between">
+                                            <span style={{ color: '#86efac', fontSize: 10, fontWeight: 700 }}>
+                                                {player.xpMultiplier}X EXP Boost
+                                                <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 9, marginLeft: 4 }}>{String(remH).padStart(2,'0')}:{String(remM).padStart(2,'0')} left</span>
+                                            </span>
+                                            <span style={{ color: '#86efac', fontSize: 11, fontWeight: 900 }}>×{player.xpMultiplier}</span>
+                                        </div>
+                                    )}
+
+                                    {/* VIP EXP boost percentage */}
                                     {player.isVip && (
-                                        <>
-                                            <div style={{ height: 1, background: 'rgba(255,255,255,0.08)', marginLeft: 2, marginRight: 2 }} />
-                                            <div>
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <span style={{ color: '#fcd34d', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em' }}>VIP XP</span>
-                                                    <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>{(player.vipXp || 0).toLocaleString()} / {(player.vipXpToNext || 500).toLocaleString()}</span>
-                                                </div>
-                                                <div style={{ height: 6, borderRadius: 6, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                                                    <div style={{ height: '100%', width: `${Math.min(100, Math.round(((player.vipXp||0)/(player.vipXpToNext||500))*100))}%`, borderRadius: 6, background: 'linear-gradient(90deg,#fcd34d,#d97706)' }} />
-                                                </div>
-                                            </div>
-                                        </>
+                                        <div className="flex items-center justify-between">
+                                            <span style={{ color: '#fcd34d', fontSize: 10, fontWeight: 700 }}>VIP Lv.{player.vipLevel || 1} EXP Boost</span>
+                                            <span style={{ color: '#fcd34d', fontSize: 11, fontWeight: 900 }}>+{vipBonusPct}%</span>
+                                        </div>
+                                    )}
+
+                                    {/* Speed-up CTA when no boost is running */}
+                                    {!boostActive && (
+                                        <button onClick={() => { setShowXpPopup(false); setShowVipLounge(true); }}
+                                            className="w-full flex flex-col items-center justify-center rounded-xl py-1.5 mt-0.5 cursor-pointer active:scale-95 transition-transform"
+                                            style={{ background: 'linear-gradient(180deg,#34d058,#1f9e3e)', boxShadow: '0 3px 0 #0d5e22, inset 0 1px 0 rgba(255,255,255,0.3)' }}>
+                                            <span style={{ color: '#fff', fontSize: 9, fontWeight: 800, lineHeight: 1.1 }}>Level up 2× faster!</span>
+                                            <span style={{ color: '#fff', fontSize: 12, fontWeight: 900, lineHeight: 1.2 }}>Speed Up</span>
+                                        </button>
                                     )}
                                 </div>
                             );
@@ -4223,7 +4216,7 @@ const App: React.FC = () => {
 
                         {/* Winning-cell viper borders — drawn in a top overlay so they're
                             never clipped/covered by neighbouring reels (shows on every side). */}
-                        {winData && winData.winningCells.length > 0 && !holdWinActive && !fastSpin &&
+                        {winData && winData.winningCells.length > 0 && !holdWinActive &&
                          status !== GameStatus.SPINNING && status !== GameStatus.STOPPING && (
                             <div className="absolute inset-0 z-30 pointer-events-none flex gap-0">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
@@ -4619,8 +4612,11 @@ const App: React.FC = () => {
                               neonRouletteTotal > 0 ? formatK(neonRouletteTotal) : '—'
                           ) : freeSpinsRemaining > 0 ? (
                               formatK(freeSpinTotalWin)
+                          ) : lastWinAmount === null ? (
+                              // Fresh slot, no spin yet.
+                              "LET'S SPIN!"
                           ) : (
-                              // Base game: always show the last win (or 0) — no "spinning" text.
+                              // Base game: show the last win (or 0) — no "spinning" text.
                               formatK(lastWinAmount)
                           )}
                       </span>

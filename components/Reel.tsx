@@ -265,7 +265,7 @@ const ReelCell: React.FC<{
     let bgClasses = 'bg-black';
 
     if (highlight) {
-        bgClasses = 'bg-black shadow-[0_0_14px_rgba(255,229,0,0.55)] z-20';
+        bgClasses = 'bg-black z-20';
     } else if (isScatter && isScatterShowcase) {
         bgClasses = 'bg-black border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
     }
