@@ -531,6 +531,9 @@ const App: React.FC = () => {
       { mult: 10, at: 750 },  // 250 more
   ];
   const collectBoostActive = (player.collectBoostEndTime || 0) > Date.now();
+  // Active event boosts (always on while events are running)
+  const EVENT_EXP_BOOST = 0.20;   // +20% XP
+  const EVENT_PIGGY_BOOST = 0.20; // +20% piggybank cap
   const treasuryMultiplier = (() => {
       let m = 1;
       for (const t of TREASURY_MULT_TIERS) if (treasuryMultProgress >= t.at) m = t.mult;
@@ -2234,7 +2237,7 @@ const App: React.FC = () => {
       // Piggy Bank Logic: 5% of Bet (10% if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
           const savings = currentBet * (player.isVip ? 0.10 : 0.05);
-          const cap = MAX_BET_BY_LEVEL(player.level) * 5;
+          const cap = Math.floor(MAX_BET_BY_LEVEL(player.level) * 5 * (1 + EVENT_PIGGY_BOOST));
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
@@ -2950,7 +2953,7 @@ const App: React.FC = () => {
 
   const addXp = (amount: number) => {
       setPlayer(prev => {
-          let newXp = prev.xp + amount;
+          let newXp = prev.xp + Math.floor(amount * (1 + EVENT_EXP_BOOST));
           let newLevel = prev.level;
           let newReq = prev.xpToNextLevel;
           let leveledUp = false;
@@ -5136,12 +5139,32 @@ const App: React.FC = () => {
                       <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Events</span>
                       <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={() => setShowEventsPopup(false)}><i className="ti ti-x"></i></button>
                   </div>
-                  {/* Empty state */}
-                  <div className="flex flex-col items-center justify-center gap-3 py-12 px-6">
-                      <i className="ti ti-calendar-off" style={{ fontSize: '2.5rem', color: 'rgba(200,150,255,0.4)' }} />
-                      <div className="text-center">
-                          <div className="text-white font-black text-sm">No current events</div>
-                          <div className="text-purple-300/50 text-xs mt-1">Check back soon for limited-time events and rewards.</div>
+                  {/* Event banners — horizontally scrollable */}
+                  <div className="flex overflow-x-auto gap-3 px-4 pb-3" style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
+                      {['/event_1.png', '/event_2.png'].map((src, i) => (
+                          <img key={i} src={src} alt={`Event ${i + 1}`}
+                              className="shrink-0 rounded-2xl object-cover"
+                              style={{ width: 260, height: 140, scrollSnapAlign: 'start' }} />
+                      ))}
+                  </div>
+                  {/* Active boosts from events */}
+                  <div className="flex flex-col gap-1.5 px-4 pb-4 pt-1">
+                      <div className="text-purple-200/60 text-[10px] font-black uppercase tracking-widest mb-0.5">Active Event Boosts</div>
+                      <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.25)' }}>
+                          <i className="ti ti-bolt" style={{ fontSize: 16, color: '#facc15' }} />
+                          <div className="flex-1">
+                              <div className="text-white text-xs font-black">+20% XP</div>
+                              <div className="text-purple-200/50 text-[10px]">All spins earn 20% more experience</div>
+                          </div>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(250,204,21,0.2)', color: '#facc15' }}>Active</span>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.25)' }}>
+                          <i className="ti ti-pig" style={{ fontSize: 16, color: '#f9a8d4' }} />
+                          <div className="flex-1">
+                              <div className="text-white text-xs font-black">+20% Piggy Bank</div>
+                              <div className="text-purple-200/50 text-[10px]">Piggy bank capacity increased by 20%</div>
+                          </div>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(249,168,212,0.2)', color: '#f9a8d4' }}>Active</span>
                       </div>
                   </div>
               </div>
