@@ -131,7 +131,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     </div>
                     <div className="shrink-0 px-4 pb-3 pt-1 flex flex-col items-center gap-2">
                         <button onClick={(e) => { e.stopPropagation(); onBuyPass(); setShowPremiumInfo(false); }} className="pill-gold">
-                            <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px', background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', color: '#1c1917', textShadow: 'none' }}>Unlock Premium</div>
+                            <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px' }}>Unlock Premium</div>
                         </button>
                     </div>
                 </div>
@@ -404,7 +404,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             </button>
                             {!missionState.isPremium ? (
                                 <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-gold">
-                                    <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px', background: 'linear-gradient(180deg,#ffd700 0%,#e6a500 50%,#cc8800 100%)', color: '#3a1a00', textShadow: '0 1px 2px rgba(100,60,0,0.4)' }}>Unlock Premium</div>
+                                    <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px' }}>Unlock Premium</div>
                                 </button>
                             ) : (
                                 <div className="flex items-center gap-1 px-6 py-3 rounded-full font-black text-[13px]"

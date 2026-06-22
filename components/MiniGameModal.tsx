@@ -791,18 +791,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             onTouchStart={handleRollMouseDown}
                             onTouchEnd={handleRollMouseUp}
                             disabled={diceCredits <= 0}
-                            className={`pill-green w-full${diceCredits <= 0 ? ' opacity-40' : ''}`}>
-                            <div className="pill-face" style={{
-                                padding: '7px 8px', fontSize: '10px',
-                                ...(autoRoll
-                                    ? { background: 'linear-gradient(180deg,#ef4444,#b91c1c)' }
-                                    : diceCredits <= 0
-                                    ? { background: 'linear-gradient(180deg,#555,#333)' }
-                                    : { background: 'linear-gradient(180deg,#fbbf24,#d97706)' })
-                            }}>
-                                <span style={{ color: autoRoll ? '#fff' : diceCredits <= 0 ? '#888' : '#1c1917' }}>
-                                    {autoRoll ? 'Stop' : 'Roll'}
-                                </span>
+                            className={`${autoRoll ? 'pill-red' : diceCredits <= 0 ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
+                            <div className="pill-face" style={{ padding: '7px 8px', fontSize: '10px' }}>
+                                {autoRoll ? 'Stop' : 'Roll'}
                             </div>
                         </button>
                         {/* Double Dice toggle */}
