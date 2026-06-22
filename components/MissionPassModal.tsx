@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mission, MissionState, PassReward, MissionFrequency } from '../types';
 import { formatNumber, formatCommaNumber, formatK, formatKShort, SCALE_COIN_REWARD } from '../constants';
+import { ViperBorder } from './ViperBorder';
 
 interface MissionPassModalProps {
     isOpen: boolean;
@@ -45,11 +46,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const rewardsContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (isOpen) {
-            setView(initialView);
-        } else {
-            setShowPremiumInfo(false);
-        }
+        if (isOpen) setView(initialView);
+        else setShowPremiumInfo(false);
     }, [isOpen, initialView]);
 
     useEffect(() => {
@@ -63,10 +61,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
     if (!isOpen) return null;
 
-    const currentMissions = missionState.activeMissions
-        .filter(m => m.frequency === 'DAILY')
-        .slice(0, 4);
-
+    const currentMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
     const levels = Array.from(new Set(missionState.passRewards.map(r => r.level))).sort((a: number, b: number) => a - b);
     const premiumLevelBonus = missionState.isPremium ? 10 : 0;
     const rewardsToClaimCount = missionState.passRewards.filter(r =>
@@ -79,22 +74,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const isXpBoosted = missionState.passBoostMultiplier > 1;
 
     const handleScroll = (direction: 'LEFT' | 'RIGHT') => {
-        if (rewardsContainerRef.current) {
-            rewardsContainerRef.current.scrollBy({ left: direction === 'LEFT' ? -200 : 200, behavior: 'smooth' });
-        }
-    };
-
-    const jumpToCurrentLevel = () => {
-        if (rewardsContainerRef.current) {
-            const targetIndex = Math.max(0, missionState.passLevel - 2);
-            rewardsContainerRef.current.scrollTo({ left: targetIndex * 160, behavior: 'smooth' });
-        }
-    };
-
-    const handlePremiumPurchase = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onBuyPass();
-        setShowPremiumInfo(false);
+        rewardsContainerRef.current?.scrollBy({ left: direction === 'LEFT' ? -200 : 200, behavior: 'smooth' });
     };
 
     const getDisplayValue = (reward: PassReward) => {
@@ -106,19 +86,24 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
         return reward.label;
     };
 
-    const fmt = (n: number) => n.toLocaleString('en-US');
-
-    const topbarBase = "font-nunito w-full flex flex-col shrink-0 select-none";
-    const topbarStyle = { background: 'transparent' };
+    const renderIcon = (reward: PassReward | undefined, sz = '2.8rem') => {
+        if (!reward) return null;
+        const style = { width: sz, height: sz, objectFit: 'contain' as const };
+        if (reward.type === 'COINS') return <img src="/symbols/coin.png" alt="" style={style} />;
+        if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={style} />;
+        if (reward.type === 'PICKS' || reward.type === 'DICE_CREDITS') return <img src="/pass-picksdice.png" alt="" style={style} />;
+        if (reward.type === 'CREDIT_BACK') return <img src={reward.label.toLowerCase().includes('premium') ? '/card_premium.png' : '/card_normal.png'} alt="" style={{ width: '2rem', height: sz, objectFit: 'contain' as const }} />;
+        return <img src="/ui/star.png" alt="" style={style} />;
+    };
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-3">
         <div className="w-full max-w-[720px] flex flex-col rounded-3xl overflow-hidden relative"
-            style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', height: 'min(96%, 380px)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+            style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', height: 'min(96%, 400px)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+
             {showPremiumInfo && (
                 <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
                     style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
-                    {/* Header row */}
                     <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
                         <div className="flex-1">
                             <h2 className="font-black text-base tracking-widest leading-none"
@@ -129,8 +114,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         </div>
                         <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
                     </div>
-
-                    {/* Perks grid — 2×2 */}
                     <div className="flex-1 grid grid-cols-2 gap-2.5 px-4 py-3 content-center">
                         {[
                             { icon: '🎁', title: 'Double Rewards',   desc: 'FREE + PREMIUM on every level' },
@@ -138,8 +121,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             { icon: '💎', title: 'Exclusive Gems',    desc: 'Extra gems on premium reward tiers' },
                             { icon: '⛏️', title: 'Quest Picks',       desc: 'Bonus picks for Wild & Dice quests' },
                         ].map(p => (
-                            <div key={p.title} className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5"
-                                style={{ background: 'rgba(255,200,0,0.08)' }}>
+                            <div key={p.title} className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5" style={{ background: 'rgba(255,200,0,0.08)' }}>
                                 <span style={{ fontSize: '24px', lineHeight: 1, flexShrink: 0 }}>{p.icon}</span>
                                 <div className="min-w-0">
                                     <div className="text-yellow-200 font-black text-[10px] tracking-wide leading-none">{p.title}</div>
@@ -148,35 +130,23 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             </div>
                         ))}
                     </div>
-
-                    {/* Price + CTA — centered, constrained */}
                     <div className="shrink-0 px-4 pb-3 pt-1 flex flex-col items-center gap-2">
-                        <div className="flex items-center justify-between w-full max-w-xs rounded-xl px-3 py-2"
-                            style={{ background: 'rgba(255,200,0,0.12)' }}>
-                            <div>
-                                <div className="text-yellow-100 font-black text-base leading-none">₱ 0.00</div>
-                            </div>
-                        </div>
-                        <button onClick={handlePremiumPurchase} className="pill-green">
+                        <button onClick={(e) => { e.stopPropagation(); onBuyPass(); setShowPremiumInfo(false); }} className="pill-green">
                             <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px', background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', color: '#1c1917', textShadow: 'none' }}>Unlock Premium</div>
                         </button>
                     </div>
-
                 </div>
             )}
 
             <div className="w-full h-full flex flex-col relative overflow-hidden">
-
-                {/* ===== TOPBAR ===== */}
+                {/* TOPBAR */}
                 <div className="shrink-0 flex items-center gap-1.5 px-3 pt-2 pb-1.5 relative">
-                    {/* XP progress pill */}
                     <div className="rtrack" style={{ flex: 'none', width: 80 }}>
                         <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18 }}>
                             <div className="rfill" style={{ width: `${Math.min(100, (missionState.passXP / missionState.passXpToNext) * 100)}%` }} />
                         </div>
                         <span className="rnum" style={{ fontSize: 8 }}>Lv.{missionState.passLevel} {missionState.passXP}/{missionState.passXpToNext}</span>
                     </div>
-                    {/* Single switcher — shortcut to the other page */}
                     <button onClick={() => setView(view === 'MISSIONS' ? 'PASS' : 'MISSIONS')} className="pill-green relative shrink-0">
                         <div className="pill-face" style={{ padding: '3px 10px', fontSize: '9px' }}>{view === 'MISSIONS' ? 'Mission Pass' : 'Daily Missions'}</div>
                         {view === 'MISSIONS' && rewardsToClaimCount > 0 && (
@@ -190,59 +160,44 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             {missionState.passBoostMultiplier}x XP
                         </span>
                     )}
-                    {/* Centered title */}
                     <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">
                         {view === 'MISSIONS' ? 'Daily Missions' : 'Mission Pass'}
                     </span>
                     <div className="flex-1" />
-                    {/* Gems pill */}
                     <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
-                        <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+                        <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain' }} />
                         <span className="font-black text-[10px] text-white">{diamonds.toLocaleString('en-US')}</span>
                         {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '1px 6px', fontSize: '8px' }}>Buy</div></button>}
                     </div>
-                    <div className="round-btn shrink-0" onClick={onClose}>
-                        <i className="ti ti-x"></i>
-                    </div>
+                    <div className="round-btn shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
                 </div>
 
-                {/* ===== CONTENT ===== */}
-
+                {/* MISSIONS VIEW */}
                 {view === 'MISSIONS' && (
-                    <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden" style={{ background: 'transparent' }}>
+                    <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden">
                         {currentMissions.map((mission) => (
                             <div key={mission.id}
                                 className={`${mission.isGolden ? 'tcard-gold' : 'tcard'} flex-1 flex flex-col gap-2 p-3 pb-2 relative overflow-hidden`}>
-
-                                {/* Stacks badges */}
                                 {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
                                     <div className="flex items-center justify-start relative z-10 -mb-1">
                                         <div className="flex gap-0.5 items-center">
                                             {Array.from({ length: mission.isGolden ? 1 : 2 }).map((_, idx) => {
                                                 const filled = mission.isGolden ? 1 : (mission.stacks || 0);
-                                                return (
-                                                    <div key={idx} className="w-2 h-2 rounded-full" style={{ background: idx < filled ? (mission.isGolden ? '#fbbf24' : '#a855f7') : 'rgba(255,255,255,0.15)' }} />
-                                                );
+                                                return <div key={idx} className="w-2 h-2 rounded-full" style={{ background: idx < filled ? (mission.isGolden ? '#fbbf24' : '#a855f7') : 'rgba(255,255,255,0.15)' }} />;
                                             })}
                                         </div>
                                     </div>
                                 )}
-
-                                {/* Icon */}
                                 <div className="flex-1 flex items-center justify-center shrink-0 mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(2.5rem, 7vw, 4rem)' }}>
                                     {(() => {
-                                        const sz = { width: '1em', height: '1em', objectFit: 'contain' as const, display: 'inline-block' };
+                                        const sz = { width: '1em', height: '1em', objectFit: 'contain' as const, display: 'inline-block' as const };
                                         if (mission.type === 'LEVEL_UP') return <img src="/mission-levelup.png" alt="" style={sz} />;
                                         if (mission.type === 'SPIN_COUNT' || mission.type === 'MAX_BET_SPIN') return <img src="/mission-spin.png" alt="" style={sz} />;
                                         if (mission.type === 'WIN_COINS' || mission.type === 'BET_COINS' || mission.type === 'BIG_WIN_COUNT') return <img src="/mission-wincoin.png" alt="" style={sz} />;
                                         return <img src="/ui/star.png" alt="" style={sz} />;
                                     })()}
                                 </div>
-
-                                {/* Description */}
                                 <div className="text-white font-black text-[12px] leading-snug text-center flex-1 relative z-10">{mission.description}</div>
-
-                                {/* Progress */}
                                 <div className="relative z-10">
                                     <div className="relative h-5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.5)' }}>
                                         <div className="absolute inset-y-0 left-0 rounded-full transition-all"
@@ -254,8 +209,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Rewards */}
                                 <div className="flex flex-col gap-0.5 relative z-10">
                                     <div className="text-center">
                                         <span className={`font-mono text-[11px] font-black ${isXpBoosted || mission.isGolden ? 'text-yellow-300' : 'text-blue-300'}`}>
@@ -266,12 +219,10 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         <span className="text-yellow-300 font-mono text-[11px] font-black">+{formatNumber(mission.coinReward)} Coins</span>
                                     </div>
                                 </div>
-
-                                {/* Action */}
                                 <div className="relative z-10">
                                     {mission.claimed ? (
                                         <button disabled className="pill-green w-full">
-                                            <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px', background: 'linear-gradient(180deg,#3a3a3a,#222,#111)' }}>DONE</div>
+                                            <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px', background: 'linear-gradient(180deg,#3a3a3a,#222,#111)' }}>Done</div>
                                         </button>
                                     ) : mission.completed ? (
                                         <button onClick={() => onClaimMissionReward(mission)} className="pill-green w-full">
@@ -288,7 +239,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 </div>
                             </div>
                         ))}
-
                         {currentMissions.length === 0 && (
                             <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 text-center p-4">
                                 <span className="text-4xl">🎉</span>
@@ -298,160 +248,178 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     </div>
                 )}
 
+                {/* PASS VIEW */}
                 {view === 'PASS' && (
-                    <div className="flex-1 flex flex-col relative" style={{ background: 'transparent' }}>
-                        {/* Rewards horizontal scroll */}
-                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar snap-x" style={{ background: 'transparent', alignItems: 'flex-start' }}>
-                            {/* Leading row labels — Free / Premium */}
-                            <div className="flex-none flex flex-col gap-0 sticky left-0 z-20" style={{ width: '26px' }}>
-                                <div className="flex items-center justify-center" style={{ height: 80 }}>
-                                    <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: 900, fontSize: '16px', letterSpacing: '1px', color: '#93c5fd', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Free</span>
-                                </div>
-                                <div style={{ height: 56 }} />
+                    <div className="flex-1 flex flex-col relative overflow-hidden">
+                        <div className="flex flex-1 overflow-hidden">
+                            {/* Left labels — Free / Premium */}
+                            <div className="flex-none flex flex-col shrink-0 justify-around py-1" style={{ width: 32 }}>
+                                {/* Free label */}
                                 <div className="flex items-center justify-center" style={{ height: 88 }}>
-                                    <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: 900, fontSize: '16px', letterSpacing: '1px', color: '#fcd34d', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Premium</span>
+                                    <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#93c5fd', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Free</span>
+                                </div>
+                                {/* Gap for level line */}
+                                <div style={{ height: 44 }} />
+                                {/* Premium label */}
+                                <div className="flex items-center justify-center" style={{ height: 88 }}>
+                                    <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#fcd34d', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Premium</span>
                                 </div>
                             </div>
-                            {levels.map((lvl) => {
-                                const rewards = missionState.passRewards.filter(r => r.level === lvl);
-                                const freeReward = rewards.find(r => r.tier === 'FREE');
-                                const premReward = rewards.find(r => r.tier === 'PREMIUM');
-                                const isUnlocked = missionState.passLevel + premiumLevelBonus >= lvl;
 
-                                const renderIcon = (reward: typeof freeReward) => {
-                                    if (!reward) return null;
-                                    const s = '2.5rem';
-                                    if (reward.type === 'COINS') return <img src="/symbols/coin.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
-                                    if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
-                                    if (reward.type === 'PICKS' || reward.type === 'DICE_CREDITS') return <img src="/pass-picksdice.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
-                                    if (reward.type === 'CREDIT_BACK') return <img src={reward.label.toLowerCase().includes('premium') ? '/card_premium.png' : '/card_normal.png'} alt="" style={{ width: '2rem', height: '2.5rem', objectFit: 'contain' }} />;
-                                    return <img src="/ui/star.png" alt="" style={{ width: s, height: s, objectFit: 'contain' }} />;
-                                };
+                            {/* Scrollable rewards */}
+                            <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto no-scrollbar" style={{ scrollBehavior: 'smooth' }}>
+                                <div className="flex h-full" style={{ paddingLeft: 6, paddingRight: 12, gap: 6, alignItems: 'stretch' }}>
+                                    {levels.map((lvl) => {
+                                        const rewards = missionState.passRewards.filter(r => r.level === lvl);
+                                        const freeReward = rewards.find(r => r.tier === 'FREE');
+                                        const premReward = rewards.find(r => r.tier === 'PREMIUM');
+                                        const unlocked = missionState.passLevel + premiumLevelBonus >= lvl;
+                                        const isNextBuyable = lvl === missionState.passLevel + 1;
 
-                                const freeBorder = {
-                                    boxShadow: 'inset 0 1px 0 rgba(150,200,255,0.4), 0 4px 10px rgba(0,0,0,0.5)',
-                                };
-                                const premBorder = {
-                                    boxShadow: 'inset 0 1px 0 rgba(255,240,120,0.4), 0 4px 10px rgba(0,0,0,0.5)',
-                                };
+                                        const freeClaimable = !!(freeReward && !freeReward.claimed && unlocked);
+                                        const freeClaimed = !!(freeReward?.claimed);
+                                        const premClaimable = !!(premReward && !premReward.claimed && unlocked && missionState.isPremium);
+                                        const premClaimed = !!(premReward?.claimed);
 
-                                return (
-                                    <div key={lvl} className="flex-none flex flex-col gap-0 relative snap-center" style={{ width: '92px' }}>
-                                        {/* FREE card — bright blue */}
-                                        <div style={{
-                                            background: 'linear-gradient(180deg,#3b82f6,#1d4ed8)',
-                                            ...freeBorder,
-                                            borderRadius: '12px',
-                                            padding: '10px 4px 4px',
-                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                                            opacity: freeReward?.claimed ? 0.55 : 1,
-                                        }}>
-                                            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                {renderIcon(freeReward)}
-                                                <span style={{
-                                                    position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                                                    fontSize: '10px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', lineHeight: 1.3,
-                                                    textShadow: '0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.9)',
-                                                }}>
-                                                    {freeReward ? getDisplayValue(freeReward) : ''}
-                                                </span>
-                                            </div>
-                                            {freeReward?.claimed ? (
-                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
-                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Collected</div>
-                                                </button>
-                                            ) : isUnlocked ? (
-                                                <button onClick={() => freeReward && onClaimReward(freeReward)} className="pill-green w-full">
-                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px' }}>Claim</div>
-                                                </button>
-                                            ) : (
-                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
-                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Locked</div>
-                                                </button>
-                                            )}
-                                        </div>
+                                        return (
+                                            <div key={lvl} className="flex-none flex flex-col" style={{ width: 88, gap: 0 }}>
 
-                                        {/* Level node */}
-                                        <div className="flex items-center justify-center shrink-0 relative" style={{ height: 56 }}>
-                                            {/* Continuous line — always full width, color changes for unlocked */}
-                                            <div className="absolute left-0 right-0" style={{ top: '50%', height: 2, transform: 'translateY(-50%)', background: isUnlocked ? 'linear-gradient(90deg,#a855f7,#c084fc)' : 'rgba(255,255,255,0.18)' }} />
-                                            {lvl === missionState.passLevel + 1 ? (
-                                                <button onClick={onBuyLevel} className="pill-green relative z-10">
-                                                    <div className="pill-face flex items-center gap-1" style={{ padding: '4px 10px', fontSize: '8px' }}>
-                                                        <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} /> 100
+                                                {/* FREE card */}
+                                                <div
+                                                    onClick={freeClaimable ? () => freeReward && onClaimReward(freeReward) : undefined}
+                                                    className="relative overflow-hidden"
+                                                    style={{
+                                                        height: 88,
+                                                        borderRadius: 12,
+                                                        background: freeClaimed
+                                                            ? 'linear-gradient(160deg,#1e3a6e,#132654)'
+                                                            : 'linear-gradient(160deg,#3b82f6 0%,#2563eb 50%,#1e40af 100%)',
+                                                        cursor: freeClaimable ? 'pointer' : 'default',
+                                                        opacity: freeClaimed ? 0.6 : 1,
+                                                        boxShadow: freeClaimable
+                                                            ? 'inset 0 1px 0 rgba(150,200,255,0.5), 0 4px 12px rgba(37,99,235,0.4)'
+                                                            : 'inset 0 1px 0 rgba(150,200,255,0.25)',
+                                                    }}>
+                                                    {/* Top gloss */}
+                                                    <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '45%', background: 'linear-gradient(180deg,rgba(255,255,255,0.18) 0%,rgba(255,255,255,0) 100%)', borderRadius: '12px 12px 50% 50%', pointerEvents: 'none' }} />
+                                                    {/* Icon */}
+                                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 14 }}>
+                                                        {renderIcon(freeReward)}
                                                     </div>
-                                                </button>
-                                            ) : (
-                                                <div className="relative z-10 flex items-center justify-center font-black text-[9px] rounded-full"
-                                                    style={{ width: 24, height: 24, background: isUnlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827', border: `2px solid ${isUnlocked ? '#e879f9' : 'rgba(255,255,255,0.25)'}`, boxShadow: isUnlocked ? '0 2px 8px rgba(168,85,247,0.6)' : 'none', color: 'white', flexShrink: 0 }}>
-                                                    {lvl}
+                                                    {/* Value label */}
+                                                    <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>
+                                                        {freeReward ? getDisplayValue(freeReward) : ''}
+                                                    </div>
+                                                    {/* Lock overlay */}
+                                                    {!freeClaimed && !freeClaimable && (
+                                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', borderRadius: 12 }}>
+                                                            <img src="/ui/lock.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
+                                                        </div>
+                                                    )}
+                                                    {/* Claimed check */}
+                                                    {freeClaimed && (
+                                                        <div style={{ position: 'absolute', top: 5, right: 6, background: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            <i className="ti ti-check" style={{ fontSize: 10, color: '#86efac' }} />
+                                                        </div>
+                                                    )}
+                                                    {/* ViperBorder when claimable */}
+                                                    {freeClaimable && <ViperBorder theme="gold" animate />}
                                                 </div>
-                                            )}
-                                        </div>
 
-                                        {/* PREMIUM card — yellow */}
-                                        <div style={{
-                                            background: 'linear-gradient(180deg,#eab308,#a16207)',
-                                            ...premBorder,
-                                            borderRadius: '12px',
-                                            padding: '14px 4px 4px',
-                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px',
-                                            opacity: premReward?.claimed ? 0.55 : 1,
-                                        }}>
-                                            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                {renderIcon(premReward)}
-                                                {!missionState.isPremium && (
-                                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px' }}>
-                                                        <img src="/ui/lock.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
+                                                {/* Level line */}
+                                                <div className="flex items-center justify-center relative shrink-0" style={{ height: 44 }}>
+                                                    {/* Track line */}
+                                                    <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: 2, transform: 'translateY(-50%)', background: unlocked ? 'linear-gradient(90deg,#9333ea,#c084fc)' : 'rgba(255,255,255,0.15)' }} />
+                                                    {/* Bubble / buy pill */}
+                                                    {isNextBuyable ? (
+                                                        <button onClick={onBuyLevel} className="relative z-10 flex items-center gap-1 rounded-full font-black"
+                                                            style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 2px 0 #14532d', padding: '3px 8px', fontSize: 8, color: '#fff', border: 'none', cursor: 'pointer' }}>
+                                                            <img src="/symbols/diamond.png" alt="" style={{ width: 9, height: 9, objectFit: 'contain' }} /> 100
+                                                        </button>
+                                                    ) : (
+                                                        <div className="relative z-10 flex items-center justify-center font-black rounded-full"
+                                                            style={{
+                                                                width: 24, height: 24, fontSize: 9,
+                                                                background: unlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827',
+                                                                border: `2px solid ${unlocked ? '#e879f9' : 'rgba(255,255,255,0.25)'}`,
+                                                                boxShadow: unlocked ? '0 2px 8px rgba(168,85,247,0.6)' : 'none',
+                                                                color: 'white', flexShrink: 0,
+                                                            }}>
+                                                            {lvl}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* PREMIUM card */}
+                                                <div
+                                                    onClick={premClaimable ? () => premReward && onClaimReward(premReward) : undefined}
+                                                    className="relative overflow-hidden"
+                                                    style={{
+                                                        height: 88,
+                                                        borderRadius: 12,
+                                                        background: premClaimed
+                                                            ? 'linear-gradient(160deg,#5a3800,#3a2000)'
+                                                            : 'linear-gradient(160deg,#d97706 0%,#b45309 50%,#92400e 100%)',
+                                                        cursor: premClaimable ? 'pointer' : 'default',
+                                                        opacity: premClaimed ? 0.6 : 1,
+                                                        boxShadow: premClaimable
+                                                            ? 'inset 0 1px 0 rgba(255,240,120,0.5), 0 4px 12px rgba(217,119,6,0.4)'
+                                                            : 'inset 0 1px 0 rgba(255,240,120,0.2)',
+                                                    }}>
+                                                    {/* Top gloss */}
+                                                    <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '45%', background: 'linear-gradient(180deg,rgba(255,255,255,0.22) 0%,rgba(255,255,255,0) 100%)', borderRadius: '12px 12px 50% 50%', pointerEvents: 'none' }} />
+                                                    {/* Icon */}
+                                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 14 }}>
+                                                        {renderIcon(premReward)}
                                                     </div>
-                                                )}
-                                                <span style={{
-                                                    position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-                                                    fontSize: '10px', fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', lineHeight: 1.3,
-                                                    textShadow: '0 1px 4px rgba(0,0,0,1), 0 0 8px rgba(0,0,0,0.9)',
-                                                }}>
-                                                    {premReward ? getDisplayValue(premReward) : ''}
-                                                </span>
+                                                    {/* Value label */}
+                                                    <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>
+                                                        {premReward ? getDisplayValue(premReward) : ''}
+                                                    </div>
+                                                    {/* Lock overlay — no premium pass */}
+                                                    {!missionState.isPremium && !premClaimed && (
+                                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.55)', borderRadius: 12 }}>
+                                                            <img src="/ui/lock.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(255,190,0,0.5))' }} />
+                                                        </div>
+                                                    )}
+                                                    {/* Lock overlay — level not reached */}
+                                                    {missionState.isPremium && !premClaimed && !premClaimable && (
+                                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', borderRadius: 12 }}>
+                                                            <img src="/ui/lock.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
+                                                        </div>
+                                                    )}
+                                                    {/* Claimed check */}
+                                                    {premClaimed && (
+                                                        <div style={{ position: 'absolute', top: 5, right: 6, background: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            <i className="ti ti-check" style={{ fontSize: 10, color: '#fcd34d' }} />
+                                                        </div>
+                                                    )}
+                                                    {/* ViperBorder when claimable */}
+                                                    {premClaimable && <ViperBorder theme="gold" animate />}
+                                                </div>
+
                                             </div>
-                                            {premReward?.claimed ? (
-                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
-                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Collected</div>
-                                                </button>
-                                            ) : !missionState.isPremium ? (
-                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
-                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Locked</div>
-                                                </button>
-                                            ) : isUnlocked ? (
-                                                <button onClick={() => premReward && onClaimReward(premReward)} className="pill-green w-full">
-                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px' }}>Claim</div>
-                                                </button>
-                                            ) : (
-                                                <button disabled className="pill-green w-full opacity-50 cursor-not-allowed">
-                                                    <div className="pill-face" style={{ padding: '3px 8px', fontSize: '8px', background: 'linear-gradient(180deg,#4a4a4a,#2e2e2e,#1a1a1a)' }}>Locked</div>
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            <div className="w-6 shrink-0"></div>
+                                        );
+                                    })}
+                                    <div style={{ width: 8, flexShrink: 0 }} />
+                                </div>
+                            </div>
                         </div>
 
-                        {/* Bottom bar — Claim All + Unlock Premium */}
-                        <div className="shrink-0 flex items-center justify-center gap-3 px-4 pt-1 pb-4">
+                        {/* Bottom bar */}
+                        <div className="shrink-0 flex items-center justify-center gap-3 px-4 pt-1 pb-3">
                             <button
                                 onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
                                 disabled={rewardsToClaimCount === 0}
                                 className="pill-green"
-                                style={{ opacity: rewardsToClaimCount === 0 ? 0.4 : 1 }}
-                            >
-                                <div className="pill-face" style={{ padding: '11px 32px', fontSize: '13px' }}>
+                                style={{ opacity: rewardsToClaimCount === 0 ? 0.4 : 1 }}>
+                                <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px' }}>
                                     Claim All {rewardsToClaimCount > 0 ? `(${rewardsToClaimCount})` : ''}
                                 </div>
                             </button>
                             {!missionState.isPremium ? (
                                 <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-green">
-                                    <div className="pill-face" style={{ padding: '11px 32px', fontSize: '13px', background: 'linear-gradient(180deg,#ffd700 0%,#e6a500 50%,#cc8800 100%)', color: '#3a1a00', textShadow: '0 1px 2px rgba(100,60,0,0.4)' }}>Unlock Premium</div>
+                                    <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px', background: 'linear-gradient(180deg,#ffd700 0%,#e6a500 50%,#cc8800 100%)', color: '#3a1a00', textShadow: '0 1px 2px rgba(100,60,0,0.4)' }}>Unlock Premium</div>
                                 </button>
                             ) : (
                                 <div className="flex items-center gap-1 px-6 py-3 rounded-full font-black text-[13px]"
