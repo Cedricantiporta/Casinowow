@@ -4238,26 +4238,27 @@ const App: React.FC = () => {
                             // they stay visually "stuck" instead of spinning during respins.
                             const coinIcon = GET_SYMBOLS(selectedGame.theme)[SymbolType.COIN]?.icon;
                             return (
-                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
+                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
-                                    <div key={c} className="flex-1 flex flex-col gap-0.5">
+                                    <div key={c} className="flex-1 flex flex-col gap-0">
                                         {Array(selectedGame.rows).fill(null).map((_, r) => {
                                             const locked = holdWinLockedGrid[c]?.[r];
                                             const val = holdWinCoinValues[c]?.[r];
                                             const jpTier = holdWinJpGrid[c]?.[r];
                                             const JP_COLORS: Record<string, string> = { MINI: '#4ade80', MINOR: '#67e8f9', MAJOR: '#d8b4fe', MEGA: '#fda4af', GRAND: '#fde68a' };
                                             const isCounting = hwCountingCell?.c === c && hwCountingCell?.r === r;
-                                            const borderColor = isCounting ? '#ffffff' : (locked ? (jpTier ? JP_COLORS[jpTier] : '#fbbf24') : 'transparent');
-                                            const glowColor = isCounting ? 'rgba(255,255,255,0.9)' : (locked ? (jpTier ? JP_COLORS[jpTier] + 'cc' : 'rgba(251,191,36,0.8)') : 'transparent');
+                                            const GOLD = '#ffe600';
+                                            const borderColor = isCounting ? '#ffffff' : (locked ? (jpTier ? JP_COLORS[jpTier] : GOLD) : 'transparent');
+                                            const glowColor = isCounting ? 'rgba(255,255,255,0.9)' : (locked ? (jpTier ? JP_COLORS[jpTier] + 'cc' : 'rgba(255,230,0,0.85)') : 'transparent');
                                             return (
                                                 <div key={r} className={`flex-1 relative flex items-center justify-center overflow-hidden ${isCounting ? 'animate-bounce-sm' : ''}`}
                                                     style={{
                                                         border: `2px solid ${borderColor}`,
-                                                        boxShadow: locked ? `0 0 ${isCounting ? 18 : 10}px ${glowColor}, inset 0 0 8px ${jpTier ? JP_COLORS[jpTier] + '44' : 'rgba(251,191,36,0.25)'}` : 'none',
+                                                        boxShadow: locked ? `0 0 ${isCounting ? 18 : 10}px ${glowColor}, inset 0 0 8px ${jpTier ? JP_COLORS[jpTier] + '44' : 'rgba(255,230,0,0.2)'}` : 'none',
                                                         background: locked && jpTier
                                                             ? `radial-gradient(circle at 50% 40%,${JP_COLORS[jpTier]}44,#140d02)`
                                                             : 'transparent',
-                                                        borderRadius: 3,
+                                                        borderRadius: 0,
                                                     }}>
                                                     {locked ? (
                                                         <>
@@ -4289,9 +4290,9 @@ const App: React.FC = () => {
                         {/* Egypt coin meta overlay — show values on COIN cells during normal/free spins */}
                         {!holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && egyptCoinMeta &&
                          status !== GameStatus.SPINNING && (
-                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
+                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
-                                    <div key={c} className="flex-1 flex flex-col gap-0.5">
+                                    <div key={c} className="flex-1 flex flex-col gap-0">
                                         {Array(selectedGame.rows).fill(null).map((_, r) => {
                                             const val = egyptCoinMeta.values[c]?.[r];
                                             const jpTier = egyptCoinMeta.jpGrid[c]?.[r];
@@ -4302,9 +4303,9 @@ const App: React.FC = () => {
                                             return (
                                                 <div key={r} className="flex-1 relative flex items-center justify-center"
                                                     style={showBorder ? {
-                                                        background: jpTier ? JP_COLORS[jpTier] + '15' : 'rgba(251,191,36,0.06)',
-                                                        borderRadius: 3,
-                                                    } : { borderRadius: 3 }}>
+                                                        background: jpTier ? JP_COLORS[jpTier] + '15' : 'rgba(255,230,0,0.06)',
+                                                        borderRadius: 0,
+                                                    } : { borderRadius: 0 }}>
                                                     {showBorder && <ViperBorder theme="gold" animate={false} />}
                                                     <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                         {jpTier ? (
