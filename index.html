@@ -253,23 +253,23 @@
 
       /* Shiny green pill button */
       /* Shared pill structure — extended by color variants below */
-      .pill-green,.pill-gold,.pill-purple,.pill-blue,.pill-red,.pill-pink{cursor:pointer;flex-shrink:0;border-radius:9999px;padding-bottom:2px;display:inline-flex;align-items:stretch;box-shadow:0 4px 10px rgba(0,0,0,0.55);}
+      .pill-green,.pill-gold,.pill-purple,.pill-blue,.pill-red,.pill-pink{cursor:pointer;flex-shrink:0;border-radius:9999px;padding-bottom:1px;display:inline-flex;align-items:stretch;box-shadow:0 4px 10px rgba(0,0,0,0.55);}
       .pill-green:active,.pill-gold:active,.pill-purple:active,.pill-blue:active,.pill-red:active,.pill-pink:active{transform:translateY(1px);box-shadow:0 2px 4px rgba(0,0,0,0.4);}
       .pill-green:disabled,.pill-green[disabled],.pill-gold:disabled,.pill-gold[disabled],.pill-purple:disabled,.pill-purple[disabled],.pill-blue:disabled,.pill-blue[disabled],.pill-red:disabled,.pill-red[disabled],.pill-pink:disabled,.pill-pink[disabled]{opacity:0.4;cursor:not-allowed;transform:none;}
       /* Per-color base + border */
       .pill-green{background:linear-gradient(180deg,#1a7000,#0e4000);border:1.5px solid rgba(0,40,0,0.8);}
       .pill-gold{background:linear-gradient(180deg,#7a5000,#4a2c00);border:1.5px solid rgba(100,55,0,0.85);}
       .pill-purple{background:linear-gradient(180deg,#3a0870,#200448);border:1.5px solid rgba(60,10,120,0.85);}
-      .pill-blue{background:linear-gradient(180deg,#013168,#011c40);border:1.5px solid rgba(0,30,100,0.85);}
+      .pill-blue{background:linear-gradient(180deg,#01316a,#011c42);border:1.5px solid rgba(0,30,100,0.85);}
       .pill-red{background:linear-gradient(180deg,#700000,#400000);border:1.5px solid rgba(80,0,0,0.85);}
       .pill-pink{background:linear-gradient(180deg,#7a0050,#480030);border:1.5px solid rgba(100,0,60,0.85);}
-      /* Per-color text stroke override (face inherits structure from base .pill-face rule) */
+      /* Per-color face gradient + text stroke overrides */
       .pill-gold .pill-face{-webkit-text-stroke:2.5px #5a3000;}
       .pill-purple .pill-face{-webkit-text-stroke:2.5px #1e0050;}
-      .pill-blue .pill-face{-webkit-text-stroke:2.5px #001848;}
+      .pill-blue .pill-face{background:linear-gradient(180deg,#54c0ff 0%,#1a80f0 45%,#0c57d7 100%);-webkit-text-stroke:2.5px #001848;}
       .pill-red .pill-face{-webkit-text-stroke:2.5px #400000;}
       .pill-pink .pill-face{-webkit-text-stroke:2.5px #500030;}
-      .pill-face{flex:1;position:relative;border-radius:9999px;overflow:hidden;background:linear-gradient(180deg,#7ae830 0%,#5fd729 55%,#4ab820 100%);padding:9px 18px;min-height:22px;display:flex;align-items:center;justify-content:center;gap:4px;font-weight:900;color:#ffffff;-webkit-text-stroke:2.5px #1a5000;text-shadow:0 1px 2px rgba(0,0,0,0.5);paint-order:stroke fill;line-height:1;font-size:14px;}
+      .pill-face{flex:1;position:relative;border-radius:9999px;overflow:hidden;background:linear-gradient(180deg,#5fd729 0%,#5fd729 60%,#50c020 100%);padding:9px 18px;min-height:22px;display:flex;align-items:center;justify-content:center;gap:4px;font-weight:900;color:#ffffff;-webkit-text-stroke:2.5px #1a5000;text-shadow:0 1px 2px rgba(0,0,0,0.5);paint-order:stroke fill;line-height:1;font-size:14px;}
       .pill-face::before{content:"";position:absolute;left:5px;right:5px;top:0;height:50%;border-radius:9999px 9999px 50% 50%;background:linear-gradient(180deg,rgba(255,255,255,0.85) 0%,rgba(255,255,255,0.3) 50%,rgba(255,255,255,0) 100%);pointer-events:none;}
 
       /* Unified card container (purple) + golden variant */
