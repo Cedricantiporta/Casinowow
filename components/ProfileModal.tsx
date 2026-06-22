@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { GameConfig } from '../types';
 import { formatK } from '../constants';
@@ -34,7 +35,8 @@ interface ProfileModalProps {
     albumsTotal?: number;
 }
 
-const PROFILE_EMOJIS = ['🎭', '🦁', '🐲', '🦅', '🐺', '👾', '🤖'];
+// Profile pics 1-12
+const PROFILE_PICS = Array.from({ length: 12 }, (_, i) => `/Profile_pic (${i + 1}).png`);
 
 const THEME_ICONS: Record<string, string> = {
     PIGGY: '🐷', NEON: '🎰', EGYPT: '🦂', DRAGON: '🐉', PIRATE: '🏴‍☠️',
@@ -60,7 +62,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     albumsCompleted = 0, albumsTotal = 0,
 }) => {
     const [playerName] = useState(() => localStorage.getItem('playerName') || 'Player');
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [showPicPicker, setShowPicPicker] = useState(false);
 
     if (!isOpen) return null;
 
@@ -84,6 +86,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
         : 'linear-gradient(180deg,#2a0d52,#1a0838)';
     const xpBarBorder = vip ? '#8b5e00' : '#38106e';
 
+    // profileEmoji now stores either a pic path or empty
+    const isPic = profileEmoji.startsWith('/Profile_pic');
+
     return (
         <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
         <div className="w-full max-w-[560px] flex flex-col rounded-3xl overflow-hidden font-nunito"
@@ -95,28 +100,33 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 {/* Avatar */}
                 <div className="relative shrink-0">
                     <button
-                        onClick={() => setShowEmojiPicker(v => !v)}
-                        className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center text-3xl leading-none shrink-0 cursor-pointer transition-transform active:scale-95"
+                        onClick={() => setShowPicPicker(v => !v)}
+                        className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 cursor-pointer transition-transform active:scale-95"
                         style={vip
                             ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.5), inset 0 -2px 3px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4)' }
                             : { background: 'linear-gradient(180deg,#9b6ce0,#5022a8)', border: '1px solid #38106e', boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.5), inset 0 -2px 3px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4)' }
                         }>
-                        {profileEmoji ? profileEmoji : <i className="ti ti-user" style={{ fontSize: '1.6rem' }} />}
+                        {isPic
+                            ? <img src={profileEmoji} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            : <i className="ti ti-user" style={{ fontSize: '1.6rem', color: 'rgba(255,255,255,0.7)' }} />
+                        }
                     </button>
-                    {showEmojiPicker && (
+                    {showPicPicker && (
                         <div className="absolute top-14 left-0 z-50 rounded-2xl p-2 shadow-2xl flex flex-wrap gap-1.5"
-                            style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 160 }}>
+                            style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 188 }}>
+                            {/* Default (no pic) */}
                             <button
-                                onClick={() => { onSetProfileEmoji?.(''); setShowEmojiPicker(false); }}
-                                className="w-9 h-9 rounded-xl flex items-center justify-center transition-transform active:scale-90 hover:brightness-125"
-                                style={{ background: (!profileEmoji) ? (vip ? 'rgba(251,191,36,0.3)' : 'rgba(168,85,247,0.3)') : 'rgba(255,255,255,0.07)' }}>
+                                onClick={() => { onSetProfileEmoji?.(''); setShowPicPicker(false); }}
+                                className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform active:scale-90 hover:brightness-125"
+                                style={{ background: !isPic ? (vip ? 'rgba(251,191,36,0.3)' : 'rgba(168,85,247,0.3)') : 'rgba(255,255,255,0.07)' }}>
                                 <i className="ti ti-user" style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.6)' }} />
                             </button>
-                            {PROFILE_EMOJIS.map(e => (
-                                <button key={e} onClick={() => { onSetProfileEmoji?.(e); setShowEmojiPicker(false); }}
-                                    className="w-9 h-9 rounded-xl flex items-center justify-center text-2xl transition-transform active:scale-90 hover:brightness-125"
-                                    style={{ background: (profileEmoji && e === profileEmoji) ? (vip ? 'rgba(251,191,36,0.3)' : 'rgba(168,85,247,0.3)') : 'rgba(255,255,255,0.07)' }}>
-                                    {e}
+                            {PROFILE_PICS.map(pic => (
+                                <button key={pic}
+                                    onClick={() => { onSetProfileEmoji?.(pic); setShowPicPicker(false); }}
+                                    className="w-10 h-10 rounded-xl overflow-hidden transition-transform active:scale-90 hover:brightness-125"
+                                    style={{ border: profileEmoji === pic ? `2px solid ${vip ? '#fbbf24' : '#a855f7'}` : '2px solid transparent' }}>
+                                    <img src={pic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 </button>
                             ))}
                         </div>
@@ -147,14 +157,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     </div>
                 </div>
 
-                <div className="round-btn cursor-pointer shrink-0" onClick={() => { setShowEmojiPicker(false); onClose(); }}
+                <div className="round-btn cursor-pointer shrink-0" onClick={() => { setShowPicPicker(false); onClose(); }}
                     style={vip ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}>
                     <i className="ti ti-x" />
                 </div>
             </div>
 
             {/* Two-column body */}
-            <div className="flex-1 flex min-h-0" onClick={() => showEmojiPicker && setShowEmojiPicker(false)}>
+            <div className="flex-1 flex min-h-0" onClick={() => showPicPicker && setShowPicPicker(false)}>
 
                 {/* LEFT — Stats */}
                 <div className="flex-1 px-3 py-2 flex flex-col overflow-y-auto no-scrollbar">
