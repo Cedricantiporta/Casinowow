@@ -514,11 +514,11 @@ const App: React.FC = () => {
   }, [treasuryMultProgress]);
   const TREASURY_MULT_TIERS = [
       { mult: 1,  at: 0   },
-      { mult: 2,  at: 50  },
-      { mult: 3,  at: 100 },
-      { mult: 4,  at: 150 },
-      { mult: 5,  at: 200 },
-      { mult: 10, at: 250 },
+      { mult: 2,  at: 50  },  // 50 to reach
+      { mult: 3,  at: 150 },  // 100 more
+      { mult: 4,  at: 300 },  // 150 more
+      { mult: 5,  at: 500 },  // 200 more
+      { mult: 10, at: 750 },  // 250 more
   ];
   const treasuryMultiplier = (() => {
       let m = 1;
@@ -4248,21 +4248,15 @@ const App: React.FC = () => {
                                             const JP_COLORS: Record<string, string> = { MINI: '#4ade80', MINOR: '#67e8f9', MAJOR: '#d8b4fe', MEGA: '#fda4af', GRAND: '#fde68a' };
                                             const isCounting = hwCountingCell?.c === c && hwCountingCell?.r === r;
                                             const GOLD = '#ffe600';
-                                            const borderColor = isCounting ? '#ffffff' : (locked ? (jpTier ? JP_COLORS[jpTier] : GOLD) : 'transparent');
                                             const glowColor = isCounting ? 'rgba(255,255,255,0.9)' : (locked ? (jpTier ? JP_COLORS[jpTier] + 'cc' : 'rgba(255,230,0,0.85)') : 'transparent');
                                             return (
                                                 <div key={r} className={`flex-1 relative flex items-center justify-center overflow-hidden ${isCounting ? 'animate-bounce-sm' : ''}`}
                                                     style={{
-                                                        border: `2px solid ${borderColor}`,
-                                                        boxShadow: locked ? `0 0 ${isCounting ? 18 : 10}px ${glowColor}, inset 0 0 8px ${jpTier ? JP_COLORS[jpTier] + '44' : 'rgba(255,230,0,0.2)'}` : 'none',
-                                                        background: locked && jpTier
-                                                            ? `radial-gradient(circle at 50% 40%,${JP_COLORS[jpTier]}44,#140d02)`
-                                                            : 'transparent',
-                                                        borderRadius: 0,
+                                                        boxShadow: locked ? `0 0 ${isCounting ? 18 : 12}px ${glowColor}` : 'none',
                                                     }}>
                                                     {locked ? (
                                                         <>
-                                                            {/* Full-size coin covers the spinning reel — looks frozen in place */}
+                                                            {/* Full-size coin — no border/background, same footprint as the reel symbol */}
                                                             {!jpTier && coinIcon && (
                                                                 <img src={coinIcon} alt="" className="absolute inset-0 pointer-events-none select-none"
                                                                     style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }} />
