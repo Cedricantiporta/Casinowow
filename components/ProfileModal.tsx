@@ -47,17 +47,20 @@ const THEME_ICONS: Record<string, string> = {
     SAMURAI: '⚔️',
 };
 
-const StatRow: React.FC<{ icon: string; label: string; value: string }> = ({ icon, label, value }) => (
-    <div className="flex items-center gap-2.5 py-1.5">
-        <span className="text-xl leading-none w-7 text-center flex items-center justify-center">
-            {icon.startsWith('/') ? (
-                <img src={icon} alt="" style={{ width: '1.25rem', height: '1.25rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
-            ) : icon}
-        </span>
-        <span className="text-xs flex-1 font-bold text-white font-nunito">{label}</span>
-        <span className="font-black text-sm font-nunito text-white">{value}</span>
-    </div>
-);
+const StatRow: React.FC<{ icon: string; label: string; value: string; pos: 'top' | 'mid' | 'bot' | 'only' }> = ({ icon, label, value, pos }) => {
+    const radius = pos === 'top' ? '12px 12px 0 0' : pos === 'bot' ? '0 0 12px 12px' : pos === 'only' ? '12px' : '0';
+    return (
+        <div style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)', borderRadius: radius, padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ width: 22, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {icon.startsWith('/') ? (
+                    <img src={icon} alt="" style={{ width: '1.1rem', height: '1.1rem', objectFit: 'contain' }} />
+                ) : <span style={{ fontSize: '1rem', lineHeight: 1 }}>{icon}</span>}
+            </span>
+            <span className="flex-1 font-bold text-white font-nunito" style={{ fontSize: 11 }}>{label}</span>
+            <span className="font-black text-white font-nunito" style={{ fontSize: 12 }}>{value}</span>
+        </div>
+    );
+};
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
     isOpen, onClose, player, isPremium, passBoostMultiplier = 1, passBoostEndTime = 0,
@@ -163,14 +166,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             <div className="flex-1 flex min-h-0" onClick={() => showPicPicker && setShowPicPicker(false)}>
 
                 {/* LEFT — Stats */}
-                <div className="flex-1 px-3 py-2 flex flex-col overflow-y-auto no-scrollbar">
-                    <div className="text-[9px] font-black mb-1 text-white font-nunito">Stats</div>
-                    <StatRow icon="/symbols/coin.png" label="Balance" value={formatK(player.balance)} />
-                    <StatRow icon="/symbols/diamond.png" label="Gems" value={formatK(player.diamonds)} />
-                    <StatRow icon="🎰" label="Total Spins" value={formatK(stats.totalSpins)} />
-                    <StatRow icon="🏆" label="Max Win" value={formatK(stats.maxSingleWin)} />
-                    <StatRow icon="/symbols/coin.png" label="Total Won" value={formatK(stats.totalCoinsWon)} />
-                    <StatRow icon="🎯" label="Max Jackpot" value={formatK(stats.maxJackpotWin)} />
+                <div className="flex-1 px-3 py-2 flex flex-col overflow-y-auto no-scrollbar gap-0">
+                    <div className="text-[9px] font-black mb-1.5 text-white font-nunito">Stats</div>
+                    <div className="flex flex-col">
+                        <StatRow pos="top" icon="/symbols/coin.png" label="Balance" value={formatK(player.balance)} />
+                        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
+                        <StatRow pos="mid" icon="/symbols/diamond.png" label="Gems" value={formatK(player.diamonds)} />
+                        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
+                        <StatRow pos="mid" icon="🎰" label="Total Spins" value={formatK(stats.totalSpins)} />
+                        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
+                        <StatRow pos="mid" icon="🏆" label="Max Win" value={formatK(stats.maxSingleWin)} />
+                        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
+                        <StatRow pos="mid" icon="/symbols/coin.png" label="Total Won" value={formatK(stats.totalCoinsWon)} />
+                        <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
+                        <StatRow pos="bot" icon="🎯" label="Max Jackpot" value={formatK(stats.maxJackpotWin)} />
+                    </div>
                 </div>
 
                 {/* RIGHT — Recent Slots */}
