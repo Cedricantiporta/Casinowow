@@ -26,10 +26,15 @@ const MSG_ICONS: Record<string, string> = {
     VIP_CASHBACK: '/symbols/coin.png',
 };
 
+function daysLeft(expiresAt?: number): number | null {
+    if (!expiresAt) return null;
+    return Math.max(0, Math.ceil((expiresAt - Date.now()) / 86400000));
+}
+
 export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, messages, onClaim }) => {
     if (!isOpen) return null;
     return (
-        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in">
+        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none">
         <div className="w-full max-w-[420px] flex flex-col rounded-3xl overflow-hidden"
             style={{ height: 'min(80%, 520px)', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
             {/* Header */}
@@ -38,26 +43,53 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
                 <div className="ml-auto round-btn cursor-pointer z-10" onClick={onClose}><i className="ti ti-x" /></div>
             </div>
             {/* Message list */}
-            <div className="flex-1 overflow-y-auto no-scrollbar p-3 flex flex-col gap-2">
+            <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-3 flex flex-col gap-0">
                 {messages.length === 0 && (
-                    <div className="flex-1 flex items-center justify-center text-white/30 text-sm font-bold uppercase">No messages</div>
+                    <div className="flex-1 flex items-center justify-center text-white/30 text-sm font-bold">No messages</div>
                 )}
-                {messages.map(msg => (
-                    <div key={msg.id} className="tcard p-3 flex items-center gap-3">
-                        <img src={MSG_ICONS[msg.type] ?? '/ui/gift_mail.png'} alt="" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.5))' }} />
-                        <div className="flex-1 min-w-0">
-                            <div className="font-black text-white text-xs tracking-wide leading-none">{msg.title}</div>
-                            <div className="text-purple-300/80 text-xs mt-0.5 leading-tight">{msg.body}</div>
-                        </div>
-                        {msg.claimed ? (
-                            <span className="text-white/40 text-xs font-black shrink-0">Claimed</span>
-                        ) : (
-                            <button onClick={() => onClaim(msg.id)} className="pill-green shrink-0">
-                                <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px' }}>Claim</div>
-                            </button>
-                        )}
-                    </div>
-                ))}
+                {messages.map((msg, i) => {
+                    const days = daysLeft(msg.expiresAt);
+                    return (
+                        <React.Fragment key={msg.id}>
+                            {i > 0 && (
+                                <div style={{ height: 1, marginLeft: 16, marginRight: 16, background: 'rgba(255,255,255,0.08)' }} />
+                            )}
+                            <div className="flex items-center gap-3 px-3 py-3"
+                                style={{
+                                    background: 'rgba(0,0,0,0.22)',
+                                    boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)',
+                                    borderRadius: i === 0 && messages.length === 1 ? 16
+                                        : i === 0 ? '16px 16px 0 0'
+                                        : i === messages.length - 1 ? '0 0 16px 16px'
+                                        : 0,
+                                }}>
+                                <img
+                                    src={MSG_ICONS[msg.type] ?? '/ui/gift_mail.png'}
+                                    alt=""
+                                    style={{ width: 52, height: 52, objectFit: 'contain', flexShrink: 0, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.6))' }}
+                                />
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-black text-white text-sm leading-none">{msg.title}</div>
+                                    <div className="text-yellow-300/90 text-xs mt-1 leading-tight font-bold">{msg.body}</div>
+                                </div>
+                                <div className="flex flex-col items-center gap-1 shrink-0">
+                                    {msg.claimed ? (
+                                        <span className="text-white/40 text-xs font-black">Claimed</span>
+                                    ) : (
+                                        <>
+                                            <button onClick={() => onClaim(msg.id)} className="pill-green">
+                                                <div className="pill-face" style={{ padding: '6px 16px', fontSize: '12px' }}>Collect</div>
+                                            </button>
+                                            {days !== null && (
+                                                <span className="text-white/50 font-black" style={{ fontSize: 9 }}>{days} day{days !== 1 ? 's' : ''}</span>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        </React.Fragment>
+                    );
+                })}
             </div>
         </div>
         </div>

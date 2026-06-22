@@ -4041,7 +4041,7 @@ const App: React.FC = () => {
                         })()}</div>
 
                     {/* Events pill — matches topbar currency pills; shine kept, glow removed */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-[23px] relative animate-event-pulse"
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-[23px] relative"
                         style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid #38106e' }}>
                         <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none" style={{ zIndex: 1 }}>
                             <div className="absolute inset-y-0 w-4 bg-white/25 skew-x-[-20deg] animate-event-shine pointer-events-none" />
