@@ -7,7 +7,7 @@ import { ViperBorder, ViperTheme } from './ViperBorder';
 
 // Border theme per slot — cool themes glow blue, warm themes glow gold.
 const BLUE_BORDER_THEMES = new Set<GameTheme>(['NEON', 'PIRATE', 'ARCTIC', 'UNDERWATER', 'MMORPG', 'SPACE'] as GameTheme[]);
-const borderThemeFor = (theme: GameTheme): ViperTheme => (BLUE_BORDER_THEMES.has(theme) ? 'blue' : 'gold');
+export const borderThemeFor = (theme: GameTheme): ViperTheme => (BLUE_BORDER_THEMES.has(theme) ? 'blue' : 'gold');
 
 interface ReelProps {
   id: number;
@@ -304,7 +304,6 @@ const ReelCell: React.FC<{
             `}
             style={undefined}
             >
-                {highlight && <ViperBorder theme={borderThemeFor(theme)} animate />}
                 {/* Content wrapper */}
                 <div className={`
                     relative flex flex-col items-center justify-center z-10 w-full h-full

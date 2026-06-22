@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
 import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALL_GAME_ASSETS } from './constants';
-import { Reel } from './components/Reel';
+import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
 import { WinTotalPopup } from './components/WinTotalPopup';
@@ -4198,6 +4198,26 @@ const App: React.FC = () => {
                             />
                             ));
                         })()}
+
+                        {/* Winning-cell viper borders — drawn in a top overlay so they're
+                            never clipped/covered by neighbouring reels (shows on every side). */}
+                        {winData && winData.winningCells.length > 0 && !holdWinActive &&
+                         (status === GameStatus.WIN_ANIMATION || status === GameStatus.CASCADE) && (
+                            <div className="absolute inset-0 z-30 pointer-events-none flex gap-0">
+                                {Array(selectedGame.reels).fill(null).map((_, c) => (
+                                    <div key={c} className="flex-1 flex flex-col">
+                                        {Array(selectedGame.rows).fill(null).map((_, r) => {
+                                            const isWin = winData.winningCells.some(w => w.col === c && w.row === r);
+                                            return (
+                                                <div key={r} className="flex-1 relative">
+                                                    {isWin && <ViperBorder theme={borderThemeFor(selectedGame.theme)} animate />}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Hold and Win locked-cell overlay */}
                         {holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && (() => {
