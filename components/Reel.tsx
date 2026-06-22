@@ -3,6 +3,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import { SymbolType, SymbolConfig, GameTheme } from '../types';
 import { WEIGHTS, NEON_WEIGHTS, GET_SYMBOLS, JACKPOT_ICONS, GENERIC_JACKPOT_ICONS, THEME_JACKPOT_ICONS } from '../constants';
 import { GameConfig } from '../types';
+import { ViperBorder, ViperTheme } from './ViperBorder';
+
+// Border theme per slot — cool themes glow blue, warm themes glow gold.
+const BLUE_BORDER_THEMES = new Set<GameTheme>(['NEON', 'PIRATE', 'ARCTIC', 'UNDERWATER', 'MMORPG', 'SPACE'] as GameTheme[]);
+const borderThemeFor = (theme: GameTheme): ViperTheme => (BLUE_BORDER_THEMES.has(theme) ? 'blue' : 'gold');
 
 interface ReelProps {
   id: number;
@@ -147,55 +152,13 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
       );
   }
 
-  const anticColor = ANTICIP_THEME_COLORS[gameConfig.theme] ?? '#00e8ff';
-
   return (
     <div
         className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} min-w-0`}
         style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}` }}
     >
-       {/* Anticipation snake border overlay — two snakes, concentrated glow */}
-       {anticipation && (() => {
-           const aDUR = '0.65s';
-           const aHALF = '-0.325s'; // half-duration → snake 2 starts halfway around
-           const aHead = 146; const aBody = 69; const aTail = 35; const aSpark = 23;
-           const aSnake = (delay: string) => (
-               <>
-                   <rect x="2" y="2" width="96" height="96" fill="none"
-                       stroke={anticColor} strokeWidth="5.5" strokeLinecap="butt"
-                       strokeDasharray={`${aHead} ${384 - aHead}`}
-                       style={{
-                           filter: `drop-shadow(0 0 3px ${anticColor}) drop-shadow(0 0 8px ${anticColor}bb)`,
-                           animation: `snakeBorder ${aDUR} ${delay} linear infinite`,
-                       }} />
-                   <rect x="2" y="2" width="96" height="96" fill="none"
-                       stroke="rgba(255,255,255,0.92)" strokeWidth="2" strokeLinecap="butt"
-                       strokeDasharray={`${aSpark} ${384 - aSpark}`}
-                       strokeDashoffset={`${-Math.round(aHead * 0.86)}`}
-                       style={{ animation: `snakeBorder ${aDUR} ${delay} linear infinite` }} />
-                   <rect x="2" y="2" width="96" height="96" fill="none"
-                       stroke={anticColor} strokeWidth="3.5" strokeLinecap="butt" strokeOpacity="0.55"
-                       strokeDasharray={`${aBody} ${384 - aBody}`}
-                       strokeDashoffset={`${Math.round(aHead * 0.75)}`}
-                       style={{ animation: `snakeBorder ${aDUR} ${delay} linear infinite` }} />
-                   <rect x="2" y="2" width="96" height="96" fill="none"
-                       stroke={anticColor} strokeWidth="1.5" strokeLinecap="butt" strokeOpacity="0.25"
-                       strokeDasharray={`${aTail} ${384 - aTail}`}
-                       strokeDashoffset={`${Math.round(aHead * 0.55 + aBody * 0.7)}`}
-                       style={{ animation: `snakeBorder ${aDUR} ${delay} linear infinite` }} />
-               </>
-           );
-           return (
-           <svg className="absolute pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none"
-               style={{ inset: '-4px', width: 'calc(100% + 8px)', height: 'calc(100% + 8px)', position: 'absolute', zIndex: 30, overflow: 'visible' }}>
-               <rect x="2" y="2" width="96" height="96" fill="none"
-                   stroke={anticColor} strokeWidth="7" strokeOpacity="0.2"
-                   style={{ filter: 'blur(3px)' }} />
-               {aSnake('0s')}
-               {aSnake(aHALF)}
-           </svg>
-           );
-       })()}
+       {/* Anticipation viper border — animated two-snake glow */}
+       {anticipation && <ViperBorder theme={borderThemeFor(gameConfig.theme)} animate />}
        {/* Scroll Wrapper - Static Position Adjustments */}
        <div 
             className="w-full absolute top-0 left-0 will-change-transform transition-transform duration-300 ease-out"
@@ -270,32 +233,6 @@ const getLetter3DShadow = (symbol: SymbolType, theme?: GameTheme): string => {
 };
 
 
-// Per-theme anticipation border color
-const ANTICIP_THEME_COLORS: Partial<Record<GameTheme, string>> = {
-    NEON:       '#38bdf8',
-    PIRATE:     '#38bdf8',
-    ARCTIC:     '#38bdf8',
-    UNDERWATER: '#38bdf8',
-    MMORPG:     '#38bdf8',
-    SPACE:      '#a855f7',
-    DRAGON:     '#ef4444',
-    SAMURAI:    '#ef4444',
-    EGYPT:      '#fbbf24',
-    WESTERN:    '#f97316',
-    JUNGLE:     '#4ade80',
-    CANDY:      '#f472b6',
-    LEPRECHAUN: '#4ade80',
-    PIGGY:      '#f472b6',
-};
-const WIN_BORDER_COLORS: Partial<Record<GameTheme, string>> = {
-    NEON:       '#38bdf8',
-    PIRATE:     '#38bdf8',
-    ARCTIC:     '#38bdf8',
-    UNDERWATER: '#38bdf8',
-    SPACE:      '#7c3aed',
-    MMORPG:     '#38bdf8',
-};
-
 const ReelCell: React.FC<{
     symbol: SymbolType,
     blur?: boolean,
@@ -367,54 +304,7 @@ const ReelCell: React.FC<{
             `}
             style={undefined}
             >
-                {highlight && (() => {
-                    const wc = WIN_BORDER_COLORS[theme] ?? '#ffe500';
-                    const DUR = '0.5s';
-                    const HALF = '-0.25s'; // half-duration delay = snake starts halfway around
-                    const headLen = 146; // ~38% of 384
-                    const bodyLen = 69;  // ~18%
-                    const tailLen = 35;  // ~9%
-                    const sparkLen = 23; // ~6%
-                    // Snake: delay='' for snake1, delay=HALF for snake2
-                    const snake = (delay: string) => (
-                        <>
-                            <rect x="2" y="2" width="96" height="96" fill="none"
-                                stroke={wc} strokeWidth="4.5" strokeLinecap="butt"
-                                strokeDasharray={`${headLen} ${384 - headLen}`}
-                                style={{
-                                    filter: `drop-shadow(0 0 3px ${wc}) drop-shadow(0 0 7px ${wc}bb)`,
-                                    animation: `snakeBorder ${DUR} ${delay} linear infinite`,
-                                }} />
-                            <rect x="2" y="2" width="96" height="96" fill="none"
-                                stroke="rgba(255,255,255,0.92)" strokeWidth="2" strokeLinecap="butt"
-                                strokeDasharray={`${sparkLen} ${384 - sparkLen}`}
-                                strokeDashoffset={`${-Math.round(headLen * 0.86)}`}
-                                style={{ animation: `snakeBorder ${DUR} ${delay} linear infinite` }} />
-                            <rect x="2" y="2" width="96" height="96" fill="none"
-                                stroke={wc} strokeWidth="3" strokeLinecap="butt" strokeOpacity="0.55"
-                                strokeDasharray={`${bodyLen} ${384 - bodyLen}`}
-                                strokeDashoffset={`${Math.round(headLen * 0.75)}`}
-                                style={{ animation: `snakeBorder ${DUR} ${delay} linear infinite` }} />
-                            <rect x="2" y="2" width="96" height="96" fill="none"
-                                stroke={wc} strokeWidth="1.5" strokeLinecap="butt" strokeOpacity="0.25"
-                                strokeDasharray={`${tailLen} ${384 - tailLen}`}
-                                strokeDashoffset={`${Math.round(headLen * 0.55 + bodyLen * 0.7)}`}
-                                style={{ animation: `snakeBorder ${DUR} ${delay} linear infinite` }} />
-                        </>
-                    );
-                    return (
-                        <svg className="absolute pointer-events-none"
-                            viewBox="0 0 100 100" preserveAspectRatio="none"
-                            style={{ inset: '-3px', width: 'calc(100% + 6px)', height: 'calc(100% + 6px)', zIndex: 25, overflow: 'visible', position: 'absolute' }}
-                        >
-                            <rect x="2" y="2" width="96" height="96" fill="none"
-                                stroke={wc} strokeWidth="6" strokeOpacity="0.2"
-                                style={{ filter: 'blur(2.5px)' }} />
-                            {snake('0s')}
-                            {snake(HALF)}
-                        </svg>
-                    );
-                })()}
+                {highlight && <ViperBorder theme={borderThemeFor(theme)} animate />}
                 {/* Content wrapper */}
                 <div className={`
                     relative flex flex-col items-center justify-center z-10 w-full h-full

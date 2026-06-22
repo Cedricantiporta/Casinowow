@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
 import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALL_GAME_ASSETS } from './constants';
 import { Reel } from './components/Reel';
+import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
 import { LeftSidebar } from './components/LeftSidebar';
 import { ShopModal } from './components/ShopModal';
@@ -4187,7 +4188,11 @@ const App: React.FC = () => {
                         })()}
 
                         {/* Hold and Win locked-cell overlay */}
-                        {holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && (
+                        {holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && (() => {
+                            // Coin icon for the active theme — drawn opaquely on locked cells so
+                            // they stay visually "stuck" instead of spinning during respins.
+                            const coinIcon = GET_SYMBOLS(selectedGame.theme)[SymbolType.COIN]?.icon;
+                            return (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0.5 p-1">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
                                     <div key={c} className="flex-1 flex flex-col gap-0.5">
@@ -4200,23 +4205,35 @@ const App: React.FC = () => {
                                             const borderColor = isCounting ? '#ffffff' : (locked ? (jpTier ? JP_COLORS[jpTier] : '#fbbf24') : 'transparent');
                                             const glowColor = isCounting ? 'rgba(255,255,255,0.9)' : (locked ? (jpTier ? JP_COLORS[jpTier] + 'cc' : 'rgba(251,191,36,0.8)') : 'transparent');
                                             return (
-                                                <div key={r} className={`flex-1 relative flex items-center justify-center ${isCounting ? 'animate-bounce-sm' : ''}`}
+                                                <div key={r} className={`flex-1 relative flex items-center justify-center overflow-hidden ${isCounting ? 'animate-bounce-sm' : ''}`}
                                                     style={{
                                                         border: `2px solid ${borderColor}`,
                                                         boxShadow: locked ? `0 0 ${isCounting ? 18 : 10}px ${glowColor}, inset 0 0 8px ${jpTier ? JP_COLORS[jpTier] + '44' : 'rgba(251,191,36,0.25)'}` : 'none',
-                                                        background: locked ? (isCounting ? 'rgba(255,255,255,0.12)' : (jpTier ? JP_COLORS[jpTier] + '18' : 'rgba(251,191,36,0.08)')) : 'transparent',
+                                                        // Opaque base on locked cells hides the spinning reel → sticky look
+                                                        background: locked
+                                                            ? (isCounting
+                                                                ? 'radial-gradient(circle at 50% 40%,#5a4a18,#1a1206)'
+                                                                : (jpTier ? `radial-gradient(circle at 50% 40%,${JP_COLORS[jpTier]}44,#140d02)` : 'radial-gradient(circle at 50% 40%,#3a2a08,#140a01)'))
+                                                            : 'transparent',
                                                         borderRadius: 3,
                                                     }}>
                                                     {locked ? (
-                                                        <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
-                                                            {jpTier ? (
-                                                                <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain', filter: isCounting ? 'brightness(1.4)' : undefined }} />
-                                                            ) : val ? (
-                                                                <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
-                                                                    {formatKShort(val)}
-                                                                </span>
-                                                            ) : null}
-                                                        </div>
+                                                        <>
+                                                            {/* Sticky coin art behind the value */}
+                                                            {!jpTier && coinIcon && (
+                                                                <img src={coinIcon} alt="" className="absolute pointer-events-none select-none"
+                                                                    style={{ width: '78%', height: '78%', objectFit: 'contain', opacity: 0.95 }} />
+                                                            )}
+                                                            <div className="relative flex flex-col items-center justify-center gap-0.5 w-full h-full">
+                                                                {jpTier ? (
+                                                                    <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain', filter: isCounting ? 'brightness(1.4)' : undefined }} />
+                                                                ) : val ? (
+                                                                    <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
+                                                                        {formatKShort(val)}
+                                                                    </span>
+                                                                ) : null}
+                                                            </div>
+                                                        </>
                                                     ) : null}
                                                 </div>
                                             );
@@ -4224,7 +4241,8 @@ const App: React.FC = () => {
                                     </div>
                                 ))}
                             </div>
-                        )}
+                            );
+                        })()}
 
                         {/* Egypt coin meta overlay — show values on COIN cells during normal/free spins */}
                         {!holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && egyptCoinMeta &&
@@ -4242,11 +4260,10 @@ const App: React.FC = () => {
                                             return (
                                                 <div key={r} className="flex-1 relative flex items-center justify-center"
                                                     style={showBorder ? {
-                                                        border: `2px solid ${jpTier ? JP_COLORS[jpTier] : '#fbbf24'}`,
-                                                        boxShadow: `0 0 8px ${jpTier ? JP_COLORS[jpTier] + 'aa' : 'rgba(251,191,36,0.6)'}`,
                                                         background: jpTier ? JP_COLORS[jpTier] + '15' : 'rgba(251,191,36,0.06)',
                                                         borderRadius: 3,
                                                     } : { borderRadius: 3 }}>
+                                                    {showBorder && <ViperBorder theme="gold" animate={false} />}
                                                     <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                         {jpTier ? (
                                                             <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain' }} />
