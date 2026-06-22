@@ -4057,15 +4057,6 @@ const App: React.FC = () => {
       </header>
 
       <main className="relative pt-0 w-full flex-1 flex flex-col overflow-hidden min-h-0">
-        {/* Blur-fade at top of content, blending from topbar */}
-        <div className="absolute left-0 right-0 top-0 pointer-events-none" style={{
-            height: 20, zIndex: 99,
-            background: showGoldHeader
-                ? 'linear-gradient(180deg,rgba(90,50,0,0.6) 0%,transparent 100%)'
-                : 'linear-gradient(180deg,rgba(30,4,70,0.65) 0%,transparent 100%)',
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-        }} />
         {(currentView === 'LOBBY' || currentView === 'HIGH_LIMIT') ? (
             <Lobby
                 onSelectGame={handleGameSelect}
