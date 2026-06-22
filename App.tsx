@@ -4054,6 +4054,15 @@ const App: React.FC = () => {
                     </div>
                 </div>
             </div>
+            {/* Blur-fade bleed below topbar */}
+            <div className="absolute left-0 right-0 pointer-events-none" style={{
+                top: '100%', height: 22, zIndex: 50,
+                background: showGoldHeader
+                    ? 'linear-gradient(180deg,rgba(90,50,0,0.55) 0%,transparent 100%)'
+                    : 'linear-gradient(180deg,rgba(30,4,70,0.6) 0%,transparent 100%)',
+                backdropFilter: 'blur(6px)',
+                WebkitBackdropFilter: 'blur(6px)',
+            }} />
       </header>
 
       <main className="relative pt-0 w-full flex-1 flex flex-col overflow-hidden min-h-0">
