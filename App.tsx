@@ -507,10 +507,19 @@ const App: React.FC = () => {
   // 50 qualifying spins per tier: 1x → 2x(50) → 3x(100) → 4x(150) → 5x(200) → 10x(250).
   // A spin counts fully when bet ≥ 50% of max bet; otherwise it counts as half.
   const [treasuryMultProgress, setTreasuryMultProgress] = useState<number>(() => {
-      try { return parseFloat(localStorage.getItem('cw_treasury_mult') || '0') || 0; } catch { return 0; }
+      try {
+          const today = new Date().toDateString();
+          const saved = localStorage.getItem('cw_treasury_mult');
+          const date  = localStorage.getItem('cw_treasury_mult_date');
+          if (date !== today) return 0;
+          return parseFloat(saved || '0') || 0;
+      } catch { return 0; }
   });
   useEffect(() => {
-      try { localStorage.setItem('cw_treasury_mult', String(treasuryMultProgress)); } catch {}
+      try {
+          localStorage.setItem('cw_treasury_mult', String(treasuryMultProgress));
+          localStorage.setItem('cw_treasury_mult_date', new Date().toDateString());
+      } catch {}
   }, [treasuryMultProgress]);
   const TREASURY_MULT_TIERS = [
       { mult: 1,  at: 0   },
