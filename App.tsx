@@ -5140,39 +5140,19 @@ const App: React.FC = () => {
       {showEventsPopup && (
           <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none" onClick={() => setShowEventsPopup(false)}>
               <div className="w-full max-w-sm rounded-3xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}
-                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxHeight: '80vh' }}>
                   {/* Header */}
                   <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
                       <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Events</span>
                       <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={() => setShowEventsPopup(false)}><i className="ti ti-x"></i></button>
                   </div>
-                  {/* Event banners — horizontally scrollable */}
-                  <div className="flex overflow-x-auto gap-3 px-4 pb-3" style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}>
+                  {/* Event banners — vertically scrollable, one per row */}
+                  <div className="flex flex-col overflow-y-auto gap-3 px-4 pb-4" style={{ scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch' }}>
                       {['/event_1.png', '/event_2.png'].map((src, i) => (
-                          <img key={i} src={src} alt={`Event ${i + 1}`}
-                              className="shrink-0 rounded-2xl object-cover"
-                              style={{ width: 260, height: 140, scrollSnapAlign: 'start' }} />
+                          <img key={i} src={src} alt=""
+                              className="tcard-gold w-full rounded-2xl object-cover"
+                              style={{ width: '100%', height: 160, scrollSnapAlign: 'start', display: 'block' }} />
                       ))}
-                  </div>
-                  {/* Active boosts from events */}
-                  <div className="flex flex-col gap-1.5 px-4 pb-4 pt-1">
-                      <div className="text-purple-200/60 text-[10px] font-black uppercase tracking-widest mb-0.5">Active Event Boosts</div>
-                      <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.25)' }}>
-                          <i className="ti ti-bolt" style={{ fontSize: 16, color: '#facc15' }} />
-                          <div className="flex-1">
-                              <div className="text-white text-xs font-black">+20% XP</div>
-                              <div className="text-purple-200/50 text-[10px]">All spins earn 20% more experience</div>
-                          </div>
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(250,204,21,0.2)', color: '#facc15' }}>Active</span>
-                      </div>
-                      <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.25)' }}>
-                          <i className="ti ti-pig" style={{ fontSize: 16, color: '#f9a8d4' }} />
-                          <div className="flex-1">
-                              <div className="text-white text-xs font-black">+20% Piggy Bank</div>
-                              <div className="text-purple-200/50 text-[10px]">Piggy bank capacity increased by 20%</div>
-                          </div>
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full" style={{ background: 'rgba(249,168,212,0.2)', color: '#f9a8d4' }}>Active</span>
-                      </div>
                   </div>
               </div>
           </div>
