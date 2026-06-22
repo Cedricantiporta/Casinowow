@@ -147,18 +147,53 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
       );
   }
 
+  const anticColor = ANTICIP_THEME_COLORS[gameConfig.theme] ?? '#00e8ff';
+
   return (
     <div
         className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} min-w-0`}
-        style={{
-            aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}`,
-            ...(anticipation ? (() => {
-            const ANTICIP_COLORS = ['#00e8ff','#ff00cc','#aaff00','#ff6600','#cc00ff'];
-            const c = ANTICIP_COLORS[id % ANTICIP_COLORS.length];
-            return { boxShadow: `0 0 0 2px ${c}, 0 0 10px ${c}bb`, transition: 'box-shadow 0.15s' };
-        })() : {}),
-        }}
+        style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}` }}
     >
+       {/* Anticipation snake border overlay */}
+       {anticipation && (
+           <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none"
+               style={{ zIndex: 30, overflow: 'visible' }}>
+               {/* Outer smoky halo */}
+               <rect x="0" y="0" width="100" height="100" fill="none"
+                   stroke={anticColor} strokeWidth="8" strokeOpacity="0.18"
+                   style={{ filter: 'blur(5px)' }} />
+               {/* Mid glow ring */}
+               <rect x="0.5" y="0.5" width="99" height="99" fill="none"
+                   stroke={anticColor} strokeWidth="5" strokeOpacity="0.35"
+                   style={{ filter: 'blur(2px)' }} />
+               {/* Main tapered snake — thick head, thin tail */}
+               <rect x="1.5" y="1.5" width="97" height="97" fill="none"
+                   stroke={anticColor} strokeWidth="5" strokeLinecap="butt"
+                   strokeDasharray="130 70"
+                   style={{
+                       filter: `drop-shadow(0 0 6px ${anticColor}) drop-shadow(0 0 14px ${anticColor}88)`,
+                       animation: 'snakeBorder 0.65s linear infinite',
+                   }} />
+               {/* Bright white head highlight */}
+               <rect x="1.5" y="1.5" width="97" height="97" fill="none"
+                   stroke="rgba(255,255,255,0.95)" strokeWidth="2" strokeLinecap="butt"
+                   strokeDasharray="40 160"
+                   strokeDashoffset="-10"
+                   style={{ animation: 'snakeBorder 0.65s linear infinite' }} />
+               {/* Mid body — medium opacity */}
+               <rect x="1.5" y="1.5" width="97" height="97" fill="none"
+                   stroke={anticColor} strokeWidth="3.5" strokeLinecap="butt" strokeOpacity="0.7"
+                   strokeDasharray="70 130"
+                   strokeDashoffset="-5"
+                   style={{ animation: 'snakeBorder 0.65s linear infinite' }} />
+               {/* Thin fading tail */}
+               <rect x="1.5" y="1.5" width="97" height="97" fill="none"
+                   stroke={anticColor} strokeWidth="1.5" strokeLinecap="butt" strokeOpacity="0.35"
+                   strokeDasharray="50 150"
+                   strokeDashoffset="105"
+                   style={{ animation: 'snakeBorder 0.65s linear infinite' }} />
+           </svg>
+       )}
        {/* Scroll Wrapper - Static Position Adjustments */}
        <div 
             className="w-full absolute top-0 left-0 will-change-transform transition-transform duration-300 ease-out"
@@ -233,7 +268,23 @@ const getLetter3DShadow = (symbol: SymbolType, theme?: GameTheme): string => {
 };
 
 
-// Per-theme win-cell border color — blue for cool/ocean themes, yellow for warm themes
+// Per-theme anticipation border color
+const ANTICIP_THEME_COLORS: Partial<Record<GameTheme, string>> = {
+    NEON:       '#38bdf8',
+    PIRATE:     '#38bdf8',
+    ARCTIC:     '#38bdf8',
+    UNDERWATER: '#38bdf8',
+    MMORPG:     '#38bdf8',
+    SPACE:      '#a855f7',
+    DRAGON:     '#ef4444',
+    SAMURAI:    '#ef4444',
+    EGYPT:      '#fbbf24',
+    WESTERN:    '#f97316',
+    JUNGLE:     '#4ade80',
+    CANDY:      '#f472b6',
+    LEPRECHAUN: '#4ade80',
+    PIGGY:      '#f472b6',
+};
 const WIN_BORDER_COLORS: Partial<Record<GameTheme, string>> = {
     NEON:       '#38bdf8',
     PIRATE:     '#38bdf8',
