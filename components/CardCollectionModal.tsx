@@ -117,29 +117,29 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         badge: string; badgeText: string; nameBg: string; nameText: string;
     }> = {
         COMMON: {
-            bg: 'linear-gradient(180deg,rgba(180,190,215,0.5) 0%,rgba(100,115,145,0.32) 22%,rgba(12,14,24,0.92) 100%)',
-            bgLocked: 'linear-gradient(180deg,rgba(40,44,58,0.55) 0%,rgba(10,12,18,0.92) 100%)',
+            bg: 'linear-gradient(180deg,rgba(180,190,215,0.92) 0%,rgba(100,115,145,0.85) 22%,rgba(12,14,24,0.98) 100%)',
+            bgLocked: 'linear-gradient(180deg,rgba(40,44,58,0.92) 0%,rgba(10,12,18,0.98) 100%)',
             shadow: 'inset 0 1px 0 rgba(200,210,240,0.45), 0 3px 12px rgba(0,0,0,0.55)',
             badge: 'rgba(160,172,200,0.55)', badgeText: '#dde6f8',
             nameBg: 'rgba(130,145,180,0.35)', nameText: '#ccd6f0',
         },
         RARE: {
-            bg: 'linear-gradient(180deg,rgba(40,115,245,0.58) 0%,rgba(18,62,185,0.42) 22%,rgba(4,10,42,0.93) 100%)',
-            bgLocked: 'linear-gradient(180deg,rgba(12,22,55,0.6) 0%,rgba(4,8,24,0.92) 100%)',
+            bg: 'linear-gradient(180deg,rgba(40,115,245,0.9) 0%,rgba(18,62,185,0.82) 22%,rgba(4,10,42,0.98) 100%)',
+            bgLocked: 'linear-gradient(180deg,rgba(12,22,55,0.92) 0%,rgba(4,8,24,0.98) 100%)',
             shadow: 'inset 0 1px 0 rgba(120,180,255,0.5), 0 3px 12px rgba(0,0,0,0.55)',
             badge: 'rgba(35,100,230,0.6)', badgeText: '#c0dcff',
             nameBg: 'rgba(25,75,195,0.5)', nameText: '#c0dcff',
         },
         EPIC: {
-            bg: 'linear-gradient(180deg,rgba(200,30,52,0.58) 0%,rgba(140,14,28,0.42) 22%,rgba(18,4,8,0.93) 100%)',
-            bgLocked: 'linear-gradient(180deg,rgba(40,8,14,0.6) 0%,rgba(14,4,6,0.92) 100%)',
+            bg: 'linear-gradient(180deg,rgba(200,30,52,0.9) 0%,rgba(140,14,28,0.82) 22%,rgba(18,4,8,0.98) 100%)',
+            bgLocked: 'linear-gradient(180deg,rgba(40,8,14,0.92) 0%,rgba(14,4,6,0.98) 100%)',
             shadow: 'inset 0 1px 0 rgba(255,120,132,0.5), 0 3px 12px rgba(0,0,0,0.55)',
             badge: 'rgba(175,20,40,0.6)', badgeText: '#ffd0d8',
             nameBg: 'rgba(145,14,30,0.5)', nameText: '#ffd0d8',
         },
         LEGENDARY: {
-            bg: 'linear-gradient(180deg,rgba(242,172,20,0.62) 0%,rgba(182,112,10,0.46) 22%,rgba(26,10,0,0.93) 100%)',
-            bgLocked: 'linear-gradient(180deg,rgba(45,18,0,0.6) 0%,rgba(16,6,0,0.92) 100%)',
+            bg: 'linear-gradient(180deg,rgba(242,172,20,0.92) 0%,rgba(182,112,10,0.84) 22%,rgba(26,10,0,0.98) 100%)',
+            bgLocked: 'linear-gradient(180deg,rgba(45,18,0,0.92) 0%,rgba(16,6,0,0.98) 100%)',
             shadow: 'inset 0 1px 0 rgba(255,222,80,0.55), 0 0 18px rgba(255,190,30,0.25), 0 3px 12px rgba(0,0,0,0.55)',
             badge: 'rgba(195,128,10,0.65)', badgeText: '#fff0a0',
             nameBg: 'rgba(160,100,8,0.55)', nameText: '#ffe070',
@@ -534,11 +534,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             {/* Middle: symbol */}
                                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                 {isLocked ? (
-                                                    <img src="/ui/lock.png" alt="" style={{ width: '4rem', height: '4rem', objectFit: 'contain', opacity: 0.3 }} />
+                                                    <img src="/ui/lock.png" alt="" style={{ width: '5.5rem', height: '5.5rem', objectFit: 'contain', opacity: 0.3 }} />
                                                 ) : card.icon.startsWith('/') ? (
-                                                    <img src={card.icon} alt="" style={{ width: '5rem', height: '5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.9))' }} />
+                                                    <img src={card.icon} alt="" style={{ width: '7rem', height: '7rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.9))' }} />
                                                 ) : (
-                                                    <span style={{ fontSize: '5rem', lineHeight: 1 }}>{card.icon}</span>
+                                                    <span style={{ fontSize: '7rem', lineHeight: 1 }}>{card.icon}</span>
                                                 )}
                                             </div>
                                             {/* Bottom: name plate */}
