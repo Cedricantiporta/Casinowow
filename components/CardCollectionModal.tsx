@@ -398,11 +398,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 <div className="flex-1"></div>
 
                 <div className="flex items-center gap-1.5 text-[10px]">
-                    <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                    <div className="currency-pill flex items-center gap-1 shrink-0">
                         <div className="coin">$</div>
                         <span className="num">{formatNumber(balance)}</span>
                     </div>
-                    <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                    <div className="currency-pill flex items-center gap-1 shrink-0">
                         <div className="gem"></div>
                         <span className="num">{formatNumber(diamonds)}</span>
                         <button onClick={() => onOpenShop('DIAMONDS')} className="pill-green" style={{ fontSize: '9px' }}>
@@ -567,7 +567,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <div className="shrink-0 flex items-center gap-2 px-3 py-2">
                             <span className="text-white font-tanker text-sm flex-1">Draw Cards</span>
                             <div className="flex items-center gap-1.5 text-[10px]">
-                                <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                                <div className="currency-pill flex items-center gap-1 shrink-0">
                                     <div className="gem"></div>
                                     <span className="num">{formatNumber(diamonds)}</span>
                                 </div>
@@ -647,7 +647,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <div className="shrink-0 flex items-center gap-2 px-3 py-2 relative">
                             <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">Buy Packs</span>
                             <div className="flex items-center gap-1.5 ml-auto z-10">
-                                <div className="currency-pill flex items-center gap-1.5" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                                <div className="currency-pill flex items-center gap-1.5">
                                     <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                     <span className="text-white font-black text-sm">{formatNumber(diamonds)}</span>
                                     <button onClick={() => { setShowPackBuyPopup(null); onOpenShop('DIAMONDS'); }} className="pill-green" style={{ fontSize: '9px' }}>

@@ -3942,7 +3942,10 @@ const App: React.FC = () => {
                                     {/* Header */}
                                     <div className="flex items-center justify-between">
                                         <span style={{ color: 'white', fontSize: 12, fontWeight: 900 }}>Collect Boost</span>
-                                        <span style={{ color: '#ffe066', fontSize: 15, fontWeight: 900 }}>{treasuryMultiplier}X</span>
+                                        <div className="relative flex items-center justify-center shrink-0" style={{ width: 34, height: 34 }}>
+                                            <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                                            <span style={{ position: 'relative', zIndex: 1, fontSize: 11, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-2px' }}>{treasuryMultiplier}X</span>
+                                        </div>
                                     </div>
                                     {(player.isVip || collectBoostActive) && <div style={{ height: 1, background: 'rgba(255,255,255,0.12)' }} />}
                                     {/* VIP boost row — only when VIP */}
@@ -4029,10 +4032,12 @@ const App: React.FC = () => {
                         })()}</div>
 
                     {/* Events pill — matches topbar currency pills; shine kept, glow removed */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-[23px] relative overflow-hidden"
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-[23px] relative animate-event-pulse"
                         style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid #38106e' }}>
-                        <div className="absolute inset-y-0 w-4 bg-white/25 skew-x-[-20deg] animate-event-shine pointer-events-none" style={{ zIndex: 1 }} />
-                        <span className="font-tanker tracking-wide animate-event-pulse relative" style={{ fontSize: 12, lineHeight: 1, color: '#ffffff', zIndex: 2 }}>Events</span>
+                        <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none" style={{ zIndex: 1 }}>
+                            <div className="absolute inset-y-0 w-4 bg-white/25 skew-x-[-20deg] animate-event-shine pointer-events-none" />
+                        </div>
+                        <span className="font-tanker tracking-wide relative" style={{ fontSize: 12, lineHeight: 1, color: '#ffffff', zIndex: 2 }}>Events</span>
                     </button>
 
                     {/* Settings button — far right */}

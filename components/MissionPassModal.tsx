@@ -252,14 +252,14 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className="flex-1 flex flex-col relative overflow-hidden">
                         <div className="flex flex-1 overflow-hidden">
                             {/* Left labels — Free / Premium */}
-                            <div className="flex-none flex flex-col shrink-0 justify-around py-1" style={{ width: 32 }}>
-                                {/* Free label */}
+                            <div className="flex-none flex flex-col shrink-0" style={{ width: 32 }}>
+                                {/* Free label — height matches free card */}
                                 <div className="flex items-center justify-center" style={{ height: 88 }}>
                                     <span style={{ writingMode: 'vertical-rl', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#93c5fd', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Free</span>
                                 </div>
                                 {/* Gap for level line */}
                                 <div style={{ height: 44 }} />
-                                {/* Premium label */}
+                                {/* Premium label — height matches premium card */}
                                 <div className="flex items-center justify-center" style={{ height: 88 }}>
                                     <span style={{ writingMode: 'vertical-rl', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#fcd34d', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Premium</span>
                                 </div>
