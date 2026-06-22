@@ -4254,26 +4254,23 @@ const App: React.FC = () => {
                                                     style={{
                                                         border: `2px solid ${borderColor}`,
                                                         boxShadow: locked ? `0 0 ${isCounting ? 18 : 10}px ${glowColor}, inset 0 0 8px ${jpTier ? JP_COLORS[jpTier] + '44' : 'rgba(251,191,36,0.25)'}` : 'none',
-                                                        // Opaque base on locked cells hides the spinning reel → sticky look
-                                                        background: locked
-                                                            ? (isCounting
-                                                                ? 'radial-gradient(circle at 50% 40%,#5a4a18,#1a1206)'
-                                                                : (jpTier ? `radial-gradient(circle at 50% 40%,${JP_COLORS[jpTier]}44,#140d02)` : 'radial-gradient(circle at 50% 40%,#3a2a08,#140a01)'))
+                                                        background: locked && jpTier
+                                                            ? `radial-gradient(circle at 50% 40%,${JP_COLORS[jpTier]}44,#140d02)`
                                                             : 'transparent',
                                                         borderRadius: 3,
                                                     }}>
                                                     {locked ? (
                                                         <>
-                                                            {/* Sticky coin art behind the value */}
+                                                            {/* Full-size coin covers the spinning reel — looks frozen in place */}
                                                             {!jpTier && coinIcon && (
-                                                                <img src={coinIcon} alt="" className="absolute pointer-events-none select-none"
-                                                                    style={{ width: '78%', height: '78%', objectFit: 'contain', opacity: 0.95 }} />
+                                                                <img src={coinIcon} alt="" className="absolute inset-0 pointer-events-none select-none"
+                                                                    style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }} />
                                                             )}
                                                             <div className="relative flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                                 {jpTier ? (
                                                                     <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain', filter: isCounting ? 'brightness(1.4)' : undefined }} />
                                                                 ) : val ? (
-                                                                    <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
+                                                                    <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 6px rgba(0,0,0,1), 0 0 3px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
                                                                         {formatKShort(val)}
                                                                     </span>
                                                                 ) : null}
