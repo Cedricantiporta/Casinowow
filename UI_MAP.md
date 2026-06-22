@@ -174,11 +174,25 @@ Only used in a few legacy spots. Replace with `.pill-green` wherever possible.
 
 ---
 
-## 4. Progress Bars
+## 4. Progress Bars — THERE IS ONLY ONE
 
-### XP / Level bar — `.rtrack`
+⚠️ **There is exactly ONE progress bar design in this app: the `.rtrack` bar.**
+Every progress/fill indicator — topbar EXP/level bar, Golden Treasury
+collect-multiplier bar, card-album completion bar, and any future one —
+MUST use this same design. Do **not** invent a new progress bar style.
 
-The topbar XP progress pill. Overflow-visible so the star icon can extend outside.
+**The single design:**
+
+- **Track** (`.rtrack`): dark purple pill, thin border, inset shadow.
+- **Fill**: a `borderRadius:12` div, absolutely positioned, width = `${pct}%`,
+  wrapped in an `overflow:hidden` `inset-0` clip layer.
+  - **Blue** = normal: `linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)`
+  - **Gold** = boosted / complete: `linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)`
+  - Highlight: `boxShadow: inset 0 1px 1px rgba(255,255,255,0.6)`
+  - `transition: width 0.4s ease`
+- **Label** (optional): centered `position:relative` span on top, white,
+  `textShadow: 0 1px 2px rgba(0,0,0,0.9)`.
+- Optional shine sweep: `animate-xp-bar-shine` div inside the fill.
 
 ```css
 .rtrack { flex:1; height:20px; border-radius:18px; background: linear-gradient(180deg,#2a0d52,#1a0838);
@@ -186,43 +200,41 @@ The topbar XP progress pill. Overflow-visible so the star icon can extend outsid
   position:relative; display:flex; align-items:center; justify-content:center; }
 ```
 
-Fill bar (child, absolute positioned):
+**Canonical usage (copy this everywhere a progress bar is needed):**
 ```tsx
-<div style={{
-  position: 'absolute', left: 0, top: 0, bottom: 0,
-  width: `${pct}%`,
-  borderRadius: 12,
-  background: boosted
-    ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'  // gold (boosted)
-    : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', // blue (normal)
-  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
-  transition: 'width 0.4s ease',
-  overflow: 'hidden',
-}}>
-  {/* optional shine sweep */}
-  <div className="absolute inset-y-0 w-5 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+<div className="rtrack" style={{ height: 15, minWidth: 0, padding: '0 6px' }}>
+  {/* clip layer */}
+  <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+    <div style={{
+      position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12,
+      width: `${pct}%`,
+      background: complete
+        ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'  // gold = complete/boosted
+        : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', // blue = normal
+      boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
+      transition: 'width 0.4s ease',
+    }}>
+      {/* optional shine */}
+      <div className="absolute inset-y-0 w-5 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+    </div>
+  </div>
+  {/* optional centered label */}
+  <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{value}/{max}</span>
 </div>
 ```
 
-### Collect multiplier bar (in Golden Treasury header)
+The height (`.rtrack` default 20/23px) can be overridden per context (e.g.
+15px in the album), but the track, fill gradients, highlight, and label
+treatment never change.
 
-```tsx
-<div style={{ width: 110, height: 24, borderRadius: 18,
-  background: 'rgba(10,0,40,0.55)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.6)',
-  overflow: 'hidden', position: 'relative' }}>
-  <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0,
-    width: `${tierProgress * 100}%`, borderRadius: 18,
-    background: 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)',
-    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
-    transition: 'width 0.4s ease' }} />
-  <span style={{ position: 'relative', fontWeight: 900, fontSize: 17, color: '#fff',
-    textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{mult}X</span>
-</div>
-```
+### Confirmed places that use this one bar
+- Topbar EXP / level bar (`App.tsx`)
+- Golden Treasury collect-multiplier bar (`TimeBonusModal.tsx`)
+- Card album completion `x/7` bar (`CardCollectionModal.tsx`)
 
-### `.bar` — generic game bar gloss wrapper
-
-Adds top highlight + bottom shadow gloss. Use `.barA` (bottom bar) or `.barB` (top bar) for the main game chrome.
+### `.bar` — NOT a progress bar
+`.bar` / `.barA` / `.barB` are gloss wrappers for the main game chrome
+(top/bottom bars), not progress indicators. Do not confuse with `.rtrack`.
 
 ---
 
