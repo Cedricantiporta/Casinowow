@@ -47,11 +47,14 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
         let cw = 0, ch = 0, dpr = 1;
 
         const resize = () => {
-            const rect = parent.getBoundingClientRect();
-            if (rect.width === 0) return;
+            // offsetWidth/Height give the layout size in the parent's own coordinate
+            // space — unaffected by the ancestor `transform: scale(mobileScale)` that
+            // getBoundingClientRect would otherwise bake in (which mis-sizes the canvas).
+            const pw = parent.offsetWidth, ph = parent.offsetHeight;
+            if (pw === 0) return;
             dpr = Math.min(2, window.devicePixelRatio || 1);
-            cw = rect.width + EXT * 2;
-            ch = rect.height + EXT * 2;
+            cw = pw + EXT * 2;
+            ch = ph + EXT * 2;
             canvas.width = Math.max(1, Math.round(cw * dpr));
             canvas.height = Math.max(1, Math.round(ch * dpr));
             canvas.style.width = `${cw}px`;
