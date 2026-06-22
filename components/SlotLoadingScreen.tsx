@@ -100,19 +100,11 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-52 h-[5px] rounded-full overflow-hidden bg-white/15">
-                    <div
-                        className="h-full rounded-full transition-all duration-100"
-                        style={{
-                            width: `${progress * 100}%`,
-                            background: 'linear-gradient(90deg,rgba(255,255,255,0.4),rgba(255,255,255,0.9))',
-                            boxShadow: '0 0 8px rgba(255,255,255,0.6)',
-                        }}
-                    />
-                </div>
-
-                <div className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-bold">
-                    Loading
+                <div className="rtrack" style={{ width: 220, height: 20, padding: 0 }}>
+                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${progress * 100}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.15s ease' }} />
+                    </div>
+                    <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{Math.round(progress * 100)}%</span>
                 </div>
             </div>
         </div>
