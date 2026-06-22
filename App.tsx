@@ -4,6 +4,7 @@ import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_B
 import { Reel } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
+import { WinTotalPopup } from './components/WinTotalPopup';
 import { LeftSidebar } from './components/LeftSidebar';
 import { ShopModal } from './components/ShopModal';
 import { MiniGameModal } from './components/MiniGameModal';
@@ -352,6 +353,7 @@ const App: React.FC = () => {
   useEffect(() => { autoSpinRemainingRef.current = autoSpinRemaining; }, [autoSpinRemaining]);
   useEffect(() => { targetGridRef.current = targetGrid; }, [targetGrid]);
   const [showWinPopup, setShowWinPopup] = useState(false);
+  const [smallWinAmount, setSmallWinAmount] = useState<number | null>(null);
   const [gemsClaimedPopup, setGemsClaimedPopup] = useState<number | null>(null);
   const [piggyGlow, setPiggyGlow] = useState(false);
   const [showXpTimer, setShowXpTimer] = useState(false);
@@ -1596,6 +1598,9 @@ const App: React.FC = () => {
                   setStatus(GameStatus.WIN_ANIMATION);
               } else if (accWin > 0) {
                   audioService.playWinSmall();
+                  if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
+                      setSmallWinAmount(accWin);
+                  }
                   setStatus(GameStatus.WIN_ANIMATION);
                   setTimeout(() => setStatus(GameStatus.IDLE), 500);
               } else {
@@ -2265,6 +2270,7 @@ const App: React.FC = () => {
     setCascadeDissolving(false);
     setStatus(GameStatus.SPINNING);
     setWinData(null);
+    setSmallWinAmount(null);
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
@@ -2894,6 +2900,12 @@ const App: React.FC = () => {
            setStatus(GameStatus.WIN_ANIMATION);
        } else {
            audioService.playWinSmall();
+           // Show a quick win-total badge on regular base-game wins (free spins
+           // accumulate in their own panel / summary, hold-win & ghost ship have
+           // their own counters — skip those so it stays consistent).
+           if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
+               setSmallWinAmount(totalPayout);
+           }
            setStatus(GameStatus.WIN_ANIMATION);
            const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
            setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 150 : 500);
@@ -4859,6 +4871,11 @@ const App: React.FC = () => {
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
+
+      {/* Regular win-total badge (below big-win tier) */}
+      {smallWinAmount !== null && smallWinAmount > 0 && !showWinPopup && (
+          <WinTotalPopup amount={smallWinAmount} onComplete={() => setSmallWinAmount(null)} />
+      )}
 
       {/* Gems claimed popup */}
       {gemsClaimedPopup !== null && (
