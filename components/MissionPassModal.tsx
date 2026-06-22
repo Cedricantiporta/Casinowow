@@ -255,13 +255,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                             <div className="flex-none flex flex-col shrink-0 justify-around py-1" style={{ width: 32 }}>
                                 {/* Free label */}
                                 <div className="flex items-center justify-center" style={{ height: 88 }}>
-                                    <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#93c5fd', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Free</span>
+                                    <span style={{ writingMode: 'vertical-rl', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#93c5fd', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Free</span>
                                 </div>
                                 {/* Gap for level line */}
                                 <div style={{ height: 44 }} />
                                 {/* Premium label */}
                                 <div className="flex items-center justify-center" style={{ height: 88 }}>
-                                    <span style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#fcd34d', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Premium</span>
+                                    <span style={{ writingMode: 'vertical-rl', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#fcd34d', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Premium</span>
                                 </div>
                             </div>
 
@@ -309,11 +309,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>
                                                         {freeReward ? getDisplayValue(freeReward) : ''}
                                                     </div>
-                                                    {/* Lock icon — top-right */}
+                                                    {/* Lock icon — top-right, no container */}
                                                     {!freeClaimed && !freeClaimable && (
-                                                        <div style={{ position: 'absolute', top: 5, right: 5, width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', borderRadius: '50%' }}>
-                                                            <img src="/ui/lock.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.9))' }} />
-                                                        </div>
+                                                        <img src="/ui/lock.png" alt="" style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
                                                     )}
                                                     {/* Claimed check */}
                                                     {freeClaimed && (
@@ -373,11 +371,9 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>
                                                         {premReward ? getDisplayValue(premReward) : ''}
                                                     </div>
-                                                    {/* Lock icon — top-right */}
+                                                    {/* Lock icon — top-right, no container */}
                                                     {!premClaimed && !premClaimable && (
-                                                        <div style={{ position: 'absolute', top: 5, right: 5, width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', borderRadius: '50%' }}>
-                                                            <img src="/ui/lock.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.9))' }} />
-                                                        </div>
+                                                        <img src="/ui/lock.png" alt="" style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
                                                     )}
                                                     {/* Claimed check */}
                                                     {premClaimed && (

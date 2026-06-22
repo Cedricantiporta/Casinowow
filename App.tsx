@@ -3853,7 +3853,7 @@ const App: React.FC = () => {
                         className="round-btn shrink-0 cursor-pointer"
                         style={{
                             ...(currentView === 'LOBBY' && profileEmoji?.startsWith('/Profile_pic')
-                                ? { width: 34, height: 34, fontSize: 20, padding: 0, overflow: 'hidden' }
+                                ? { width: 32, height: 32, padding: 0, overflow: 'hidden' }
                                 : {}),
                             ...(showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}),
                         }}
@@ -4049,11 +4049,11 @@ const App: React.FC = () => {
                             );
                         })()}</div>
 
-                    {/* Events pill */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2.5 animate-event-glow relative overflow-hidden"
-                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1.5px solid #ffe066', height: 20, boxShadow: '0 0 5px rgba(255,220,0,0.4)' }}>
+                    {/* Events pill — matches topbar currency pills; shine kept, glow removed */}
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-[23px] relative overflow-hidden"
+                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid #38106e' }}>
                         <div className="absolute inset-y-0 w-4 bg-white/25 skew-x-[-20deg] animate-event-shine pointer-events-none" style={{ zIndex: 1 }} />
-                        <span className="font-tanker tracking-widest animate-event-pulse relative" style={{ fontSize: 11, lineHeight: 1, color: '#ffe066', zIndex: 2 }}>Events</span>
+                        <span className="font-tanker tracking-wide animate-event-pulse relative" style={{ fontSize: 12, lineHeight: 1, color: '#ffe066', zIndex: 2 }}>Events</span>
                     </button>
 
                     {/* Settings button — far right */}
@@ -5145,18 +5145,18 @@ const App: React.FC = () => {
       {showEventsPopup && (
           <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none" onClick={() => setShowEventsPopup(false)}>
               <div className="w-full max-w-sm rounded-3xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}
-                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxHeight: '80vh' }}>
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', height: 420 }}>
                   {/* Header */}
                   <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
                       <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Events</span>
                       <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={() => setShowEventsPopup(false)}><i className="ti ti-x"></i></button>
                   </div>
-                  {/* Event banners — vertically scrollable, one per row */}
-                  <div className="flex flex-col overflow-y-auto gap-3 px-4 pb-4" style={{ scrollSnapType: 'y mandatory', WebkitOverflowScrolling: 'touch' }}>
-                      {['/event_1.png', '/event_2.png'].map((src, i) => (
+                  {/* Event banners — vertically scrollable inside the fixed-size modal, no extra container */}
+                  <div className="flex-1 flex flex-col overflow-y-auto gap-3 px-4 pb-4 min-h-0">
+                      {['/event (1).png', '/event (2).png'].map((src, i) => (
                           <img key={i} src={src} alt=""
-                              className="tcard-gold w-full rounded-2xl object-cover"
-                              style={{ width: '100%', height: 160, scrollSnapAlign: 'start', display: 'block' }} />
+                              className="w-full rounded-2xl object-contain shrink-0"
+                              style={{ display: 'block' }} />
                       ))}
                   </div>
               </div>
