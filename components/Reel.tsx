@@ -155,45 +155,52 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
         style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}` }}
     >
        {/* Anticipation snake border overlay */}
-       {anticipation && (
-           <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none"
-               style={{ zIndex: 30, overflow: 'visible' }}>
-               {/* Outer smoky halo */}
-               <rect x="0" y="0" width="100" height="100" fill="none"
-                   stroke={anticColor} strokeWidth="8" strokeOpacity="0.18"
-                   style={{ filter: 'blur(5px)' }} />
+       {anticipation && (() => {
+           // Reel rect perimeter: x=2,y=2,w=96,h=96 → (96+96)*2=384
+           const AP = 384;
+           const aHead = Math.round(AP * 0.55);
+           const aBody = Math.round(AP * 0.25);
+           const aTail = Math.round(AP * 0.12);
+           return (
+           <svg className="absolute pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none"
+               style={{ inset: '-5px', width: 'calc(100% + 10px)', height: 'calc(100% + 10px)', position: 'absolute', zIndex: 30, overflow: 'visible' }}>
+               {/* Wide smoky outer halo */}
+               <rect x="2" y="2" width="96" height="96" fill="none"
+                   stroke={anticColor} strokeWidth="16" strokeOpacity="0.14"
+                   style={{ filter: 'blur(8px)' }} />
                {/* Mid glow ring */}
-               <rect x="0.5" y="0.5" width="99" height="99" fill="none"
-                   stroke={anticColor} strokeWidth="5" strokeOpacity="0.35"
-                   style={{ filter: 'blur(2px)' }} />
-               {/* Main tapered snake — thick head, thin tail */}
-               <rect x="1.5" y="1.5" width="97" height="97" fill="none"
-                   stroke={anticColor} strokeWidth="5" strokeLinecap="butt"
-                   strokeDasharray="130 70"
+               <rect x="2" y="2" width="96" height="96" fill="none"
+                   stroke={anticColor} strokeWidth="8" strokeOpacity="0.3"
+                   style={{ filter: 'blur(3px)' }} />
+               {/* Head — thick bright snake */}
+               <rect x="2" y="2" width="96" height="96" fill="none"
+                   stroke={anticColor} strokeWidth="6" strokeLinecap="butt"
+                   strokeDasharray={`${aHead} ${AP - aHead}`}
                    style={{
-                       filter: `drop-shadow(0 0 6px ${anticColor}) drop-shadow(0 0 14px ${anticColor}88)`,
+                       filter: `drop-shadow(0 0 6px ${anticColor}) drop-shadow(0 0 14px ${anticColor}99)`,
                        animation: 'snakeBorder 0.65s linear infinite',
                    }} />
-               {/* Bright white head highlight */}
-               <rect x="1.5" y="1.5" width="97" height="97" fill="none"
-                   stroke="rgba(255,255,255,0.95)" strokeWidth="2" strokeLinecap="butt"
-                   strokeDasharray="40 160"
-                   strokeDashoffset="-10"
+               {/* Bright white spark at tip */}
+               <rect x="2" y="2" width="96" height="96" fill="none"
+                   stroke="rgba(255,255,255,0.95)" strokeWidth="2.5" strokeLinecap="butt"
+                   strokeDasharray={`${Math.round(AP * 0.08)} ${AP - Math.round(AP * 0.08)}`}
+                   strokeDashoffset={`-${Math.round(aHead * 0.88)}`}
                    style={{ animation: 'snakeBorder 0.65s linear infinite' }} />
-               {/* Mid body — medium opacity */}
-               <rect x="1.5" y="1.5" width="97" height="97" fill="none"
-                   stroke={anticColor} strokeWidth="3.5" strokeLinecap="butt" strokeOpacity="0.7"
-                   strokeDasharray="70 130"
-                   strokeDashoffset="-5"
+               {/* Mid body */}
+               <rect x="2" y="2" width="96" height="96" fill="none"
+                   stroke={anticColor} strokeWidth="4" strokeLinecap="butt" strokeOpacity="0.65"
+                   strokeDasharray={`${aBody} ${AP - aBody}`}
+                   strokeDashoffset={`${Math.round(aHead * 0.7)}`}
                    style={{ animation: 'snakeBorder 0.65s linear infinite' }} />
                {/* Thin fading tail */}
-               <rect x="1.5" y="1.5" width="97" height="97" fill="none"
-                   stroke={anticColor} strokeWidth="1.5" strokeLinecap="butt" strokeOpacity="0.35"
-                   strokeDasharray="50 150"
-                   strokeDashoffset="105"
+               <rect x="2" y="2" width="96" height="96" fill="none"
+                   stroke={anticColor} strokeWidth="2" strokeLinecap="butt" strokeOpacity="0.3"
+                   strokeDasharray={`${aTail} ${AP - aTail}`}
+                   strokeDashoffset={`${Math.round(aHead * 0.5 + aBody * 0.6)}`}
                    style={{ animation: 'snakeBorder 0.65s linear infinite' }} />
            </svg>
-       )}
+           );
+       })()}
        {/* Scroll Wrapper - Static Position Adjustments */}
        <div 
             className="w-full absolute top-0 left-0 will-change-transform transition-transform duration-300 ease-out"
@@ -367,37 +374,52 @@ const ReelCell: React.FC<{
             >
                 {highlight && (() => {
                     const wc = WIN_BORDER_COLORS[theme] ?? '#ffe500';
-                    const wcFade = wc === '#ffe500' ? 'rgba(255,229,0,0.3)' : 'rgba(56,189,248,0.3)';
+                    // perimeter of the rect at x=2,y=2 w=96 h=96 = (96+96)*2 = 384
+                    const P = 384;
+                    const headLen = Math.round(P * 0.55);   // 55% bright head
+                    const bodyLen = Math.round(P * 0.25);   // 25% mid body
+                    const tailLen = Math.round(P * 0.12);   // 12% fading tail
+                    const gap     = P - headLen;
+                    const bodyGap = P - bodyLen;
+                    const tailGap = P - tailLen;
                     return (
-                        <svg
-                            className="absolute inset-0 w-full h-full pointer-events-none"
-                            viewBox="0 0 100 100"
-                            preserveAspectRatio="none"
-                            style={{ zIndex: 25, overflow: 'visible' }}
+                        <svg className="absolute pointer-events-none"
+                            viewBox="0 0 100 100" preserveAspectRatio="none"
+                            style={{ inset: '-4px', width: 'calc(100% + 8px)', height: 'calc(100% + 8px)', zIndex: 25, overflow: 'visible', position: 'absolute' }}
                         >
-                            {/* Outer compact glow halo */}
-                            <rect x="0.5" y="0.5" width="99" height="99" fill="none"
-                                stroke={wc} strokeWidth="4" strokeOpacity="0.22"
+                            {/* Wide smoky outer halo — blurred wide ring */}
+                            <rect x="2" y="2" width="96" height="96" fill="none"
+                                stroke={wc} strokeWidth="14" strokeOpacity="0.12"
+                                style={{ filter: 'blur(6px)' }} />
+                            {/* Mid glow ring */}
+                            <rect x="2" y="2" width="96" height="96" fill="none"
+                                stroke={wc} strokeWidth="7" strokeOpacity="0.28"
                                 style={{ filter: 'blur(3px)' }} />
-                            {/* Main animated dash — long streaks (almost touching), butt caps for sharp pointy ends */}
-                            <rect x="1.5" y="1.5" width="97" height="97" fill="none"
-                                stroke={wc} strokeWidth="3" strokeLinecap="butt"
-                                strokeDasharray="190 10"
+                            {/* Head — thick bright snake body */}
+                            <rect x="2" y="2" width="96" height="96" fill="none"
+                                stroke={wc} strokeWidth="5" strokeLinecap="butt"
+                                strokeDasharray={`${headLen} ${gap}`}
                                 style={{
-                                    filter: `drop-shadow(0 0 5px ${wc}) drop-shadow(0 0 10px ${wcFade})`,
+                                    filter: `drop-shadow(0 0 5px ${wc}) drop-shadow(0 0 12px ${wc}99)`,
                                     animation: 'snakeBorder 0.45s linear infinite',
                                 }} />
-                            {/* Bright white highlight — shorter dashes offset to ride the "head" of each streak */}
-                            <rect x="1.5" y="1.5" width="97" height="97" fill="none"
-                                stroke="rgba(255,255,255,0.88)" strokeWidth="1.2" strokeLinecap="butt"
-                                strokeDasharray="80 120"
-                                strokeDashoffset="-20"
+                            {/* Bright white spark at the very tip of the head */}
+                            <rect x="2" y="2" width="96" height="96" fill="none"
+                                stroke="rgba(255,255,255,0.95)" strokeWidth="2.5" strokeLinecap="butt"
+                                strokeDasharray={`${Math.round(P * 0.08)} ${P - Math.round(P * 0.08)}`}
+                                strokeDashoffset={`-${Math.round(headLen * 0.88)}`}
                                 style={{ animation: 'snakeBorder 0.45s linear infinite' }} />
-                            {/* Dim trailing fade — rides the "tail" of each streak */}
-                            <rect x="1.5" y="1.5" width="97" height="97" fill="none"
-                                stroke={wc} strokeWidth="2" strokeLinecap="butt" strokeOpacity="0.45"
-                                strokeDasharray="50 150"
-                                strokeDashoffset="160"
+                            {/* Mid body — medium thickness, slightly behind head */}
+                            <rect x="2" y="2" width="96" height="96" fill="none"
+                                stroke={wc} strokeWidth="3.5" strokeLinecap="butt" strokeOpacity="0.65"
+                                strokeDasharray={`${bodyLen} ${bodyGap}`}
+                                strokeDashoffset={`${Math.round(headLen * 0.7)}`}
+                                style={{ animation: 'snakeBorder 0.45s linear infinite' }} />
+                            {/* Thin fading tail */}
+                            <rect x="2" y="2" width="96" height="96" fill="none"
+                                stroke={wc} strokeWidth="1.5" strokeLinecap="butt" strokeOpacity="0.3"
+                                strokeDasharray={`${tailLen} ${tailGap}`}
+                                strokeDashoffset={`${Math.round(headLen * 0.5 + bodyLen * 0.6)}`}
                                 style={{ animation: 'snakeBorder 0.45s linear infinite' }} />
                         </svg>
                     );
