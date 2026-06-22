@@ -83,7 +83,7 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
             const cellW = cw - EXT * 2, cellH = ch - EXT * 2;
             // Inset the border inside the cell so adjacent winning cells stay
             // visually separate (the grid has no gap between cells).
-            const inset = Math.max(2, Math.min(cellW, cellH) * 0.07);
+            const inset = Math.max(1.5, Math.min(cellW, cellH) * 0.03);
             const x0 = EXT + inset, y0 = EXT + inset;
             const w = cellW - inset * 2, h = cellH - inset * 2;
             // Cap scale so the glow/line stays tight on large cells (no bleeding
