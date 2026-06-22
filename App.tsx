@@ -3975,11 +3975,9 @@ const App: React.FC = () => {
 
                                     {/* Speed-up CTA when no boost is running */}
                                     {!boostActive && (
-                                        <button onClick={() => { setShowXpPopup(false); setShowVipLounge(true); }}
-                                            className="w-full flex flex-col items-center justify-center rounded-xl py-1.5 mt-0.5 cursor-pointer active:scale-95 transition-transform"
-                                            style={{ background: 'linear-gradient(180deg,#34d058,#1f9e3e)', boxShadow: '0 3px 0 #0d5e22, inset 0 1px 0 rgba(255,255,255,0.3)' }}>
-                                            <span style={{ color: '#fff', fontSize: 9, fontWeight: 800, lineHeight: 1.1 }}>Level up 2× faster!</span>
-                                            <span style={{ color: '#fff', fontSize: 12, fontWeight: 900, lineHeight: 1.2 }}>Speed Up</span>
+                                        <button onClick={() => { setShowXpPopup(false); openShop('BOOSTS'); }}
+                                            className="pill-green w-full mt-0.5">
+                                            <div className="pill-face" style={{ padding: '7px 12px', fontSize: '11px' }}>Speed Up</div>
                                         </button>
                                     )}
                                 </div>

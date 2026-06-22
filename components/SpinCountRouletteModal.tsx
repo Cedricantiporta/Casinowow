@@ -273,14 +273,6 @@ export const SpinCountRouletteModal: React.FC<Props> = ({ isOpen, onComplete }) 
         <div className="absolute inset-0 z-[200] animate-pop-in select-none">
             <div className="absolute inset-0 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-1">
-                    {/* Title */}
-                    <div className="mb-1 text-center">
-                        <div className="font-black text-white text-base uppercase tracking-widest" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.7)' }}>
-                            Free Spins Bonus
-                        </div>
-                        <div className="text-pink-200/70 text-[10px] font-black uppercase tracking-[0.2em]">Spin to pick your free spins</div>
-                    </div>
-
                     {/* Wheel zone */}
                     <div className="relative" style={{ width: 300, height: 350 }}>
                         {/* Ticker arrow */}
