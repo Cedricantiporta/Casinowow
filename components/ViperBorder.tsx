@@ -14,7 +14,7 @@ const THEMES: Record<ViperTheme, { core: string; mid: string; outer: string }> =
 let clockT = 0;
 let rafId: number | null = null;
 const drawers = new Set<() => void>();
-const SPEED = 0.045; // phase advanced per frame (matches reference engine)
+const SPEED = 0.024; // phase advanced per frame (lower = slower spin)
 
 function tick() {
     clockT = (clockT + SPEED) % 1;
@@ -92,7 +92,7 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
             const snakeLen = 0.46;             // each snake covers ~46% of the perimeter
             const tNow = animate ? clockT : 0;
             const heads = [tNow, (tNow + 0.5) % 1]; // two snakes, exactly opposite
-            const steps = 22;
+            const steps = 40; // dense → smooth continuous line (no visible dots)
 
             for (const head of heads) {
                 // Precompute the tapered ribbon points (tail → head).
@@ -104,54 +104,53 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
                     pts.push({ x: pp.x, y: pp.y, p: pc });
                 }
 
-                // PASS 1 — wide atmospheric outer haze (only pass that uses shadowBlur,
-                // which is the expensive op; keeping it to one pass keeps this cheap).
+                // PASS 1 — soft outer glow halo (the only pass using shadowBlur / lighter).
                 ctx.save();
                 ctx.globalCompositeOperation = 'lighter';
-                ctx.lineCap = 'square';
-                ctx.lineJoin = 'miter';
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
                 ctx.strokeStyle = colors.outer;
                 ctx.shadowColor = colors.outer;
-                ctx.shadowBlur = 11 * scale;
+                ctx.shadowBlur = 10 * scale;
                 for (let i = 1; i < pts.length; i++) {
                     const a = pts[i - 1], b = pts[i];
                     ctx.beginPath();
-                    ctx.lineWidth = Math.max(0.5, 5.5 * scale * b.p);
-                    ctx.globalAlpha = Math.pow(b.p, 1.8) * 0.7;
+                    ctx.lineWidth = Math.max(0.5, 4.5 * scale * b.p);
+                    ctx.globalAlpha = Math.pow(b.p, 1.8) * 0.55;
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(b.x, b.y);
                     ctx.stroke();
                 }
                 ctx.restore();
 
-                // PASS 2 — saturated mid flame (crisp, no shadow)
+                // PASS 2 — saturated colour body. Drawn normally (source-over) with round
+                // caps/joins so overlapping segments fuse into one smooth tapering line
+                // instead of dots brightening at each joint.
                 ctx.save();
-                ctx.globalCompositeOperation = 'lighter';
-                ctx.lineCap = 'square';
-                ctx.lineJoin = 'miter';
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
                 ctx.strokeStyle = colors.mid;
                 for (let i = 1; i < pts.length; i++) {
                     const a = pts[i - 1], b = pts[i];
                     ctx.beginPath();
-                    ctx.lineWidth = Math.max(0.4, 3.6 * scale * b.p);
-                    ctx.globalAlpha = Math.pow(b.p, 1.2) * 0.95;
+                    ctx.lineWidth = Math.max(0.4, 3.2 * scale * b.p);
+                    ctx.globalAlpha = Math.pow(b.p, 1.1);
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(b.x, b.y);
                     ctx.stroke();
                 }
                 ctx.restore();
 
-                // PASS 3 — bright white laser core (crisp, no shadow)
+                // PASS 3 — bright white core line, thinner, riding on top.
                 ctx.save();
-                ctx.globalCompositeOperation = 'lighter';
-                ctx.lineCap = 'square';
-                ctx.lineJoin = 'miter';
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
                 ctx.strokeStyle = colors.core;
                 for (let i = 1; i < pts.length; i++) {
                     const a = pts[i - 1], b = pts[i];
                     ctx.beginPath();
-                    ctx.lineWidth = Math.max(0.3, 1.7 * scale * b.p);
-                    ctx.globalAlpha = Math.pow(b.p, 0.6);
+                    ctx.lineWidth = Math.max(0.3, 1.4 * scale * b.p);
+                    ctx.globalAlpha = Math.pow(b.p, 0.7);
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(b.x, b.y);
                     ctx.stroke();
