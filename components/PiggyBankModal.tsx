@@ -83,10 +83,10 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 <button
                     onClick={handleBreak}
                     disabled={breaking || amount <= 0 || diamonds < GEM_BREAK_COST}
-                    className="pill-red px-10"
+                    className="pill-green"
                     style={{ opacity: (breaking || amount <= 0 || diamonds < GEM_BREAK_COST) ? 0.4 : 1 }}
                 >
-                    <div className="pill-face" style={{ padding: '10px 24px', fontSize: '13px', flexDirection: 'column', gap: '2px' }}>
+                    <div className="pill-face" style={{ padding: '10px 44px', fontSize: '13px', flexDirection: 'column', gap: '2px' }}>
                         <span>Break Piggy Bank</span>
                         <span style={{ fontSize: '9px', opacity: 0.8, WebkitTextStroke: 0 }}>
                             <img src="/symbols/diamond.png" alt="" style={{ width: '0.9em', height: '0.9em', objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle' }} /> {GEM_BREAK_COST} Gems
