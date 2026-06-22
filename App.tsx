@@ -4202,7 +4202,7 @@ const App: React.FC = () => {
                         {/* Winning-cell viper borders — drawn in a top overlay so they're
                             never clipped/covered by neighbouring reels (shows on every side). */}
                         {winData && winData.winningCells.length > 0 && !holdWinActive &&
-                         (status === GameStatus.WIN_ANIMATION || status === GameStatus.CASCADE) && (
+                         status !== GameStatus.SPINNING && status !== GameStatus.STOPPING && (
                             <div className="absolute inset-0 z-30 pointer-events-none flex gap-0">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
                                     <div key={c} className="flex-1 flex flex-col">
