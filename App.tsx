@@ -206,9 +206,9 @@ const App: React.FC = () => {
   const [player, setPlayer] = useState<PlayerState>(() => {
     try {
       const saved = localStorage.getItem('cw_player');
-      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, premiumPackCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [], vipXp: 0, vipLevel: 1, vipXpToNext: 500 }, ...JSON.parse(saved) };
+      if (saved) return { ...{ balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, premiumPackCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, collectBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [], vipXp: 0, vipLevel: 1, vipXpToNext: 500 }, ...JSON.parse(saved) };
     } catch {}
-    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, premiumPackCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [], vipXp: 0, vipLevel: 1, vipXpToNext: 500 };
+    return { balance: INITIAL_BALANCE, diamonds: INITIAL_GEMS, tokens: 0, packCredits: 0, premiumPackCredits: 0, piggyBank: 0, level: 1, xp: 0, xpToNextLevel: XP_BASE_REQ, autoSpin: false, xpMultiplier: 1, xpBoostEndTime: 0, collectBoostEndTime: 0, freeStashClaimedTime: 0, shopClaimedItems: [], vipXp: 0, vipLevel: 1, vipXpToNext: 500 };
   });
   
   // Ref to track player state to avoid stale closures in callbacks (like feature unlocks)
@@ -357,6 +357,7 @@ const App: React.FC = () => {
   const pendingHoldWinSummaryRef = useRef<{ total: number; bet: number } | null>(null);
   const [gemsClaimedPopup, setGemsClaimedPopup] = useState<number | null>(null);
   const [piggyGlow, setPiggyGlow] = useState(false);
+  const [piggyShaking, setPiggyShaking] = useState(false);
   const [showXpTimer, setShowXpTimer] = useState(false);
   const [showXpPct, setShowXpPct] = useState(false);
   const [showXpPopup, setShowXpPopup] = useState(false);
@@ -529,9 +530,12 @@ const App: React.FC = () => {
       { mult: 5,  at: 500 },  // 200 more
       { mult: 10, at: 750 },  // 250 more
   ];
+  const collectBoostActive = (player.collectBoostEndTime || 0) > Date.now();
   const treasuryMultiplier = (() => {
       let m = 1;
       for (const t of TREASURY_MULT_TIERS) if (treasuryMultProgress >= t.at) m = t.mult;
+      if (player.isVip) m = Math.round(m * 1.5 * 10) / 10;
+      if (collectBoostActive) m = Math.round(m * 2 * 10) / 10;
       return m;
   })();
 
@@ -1488,6 +1492,14 @@ const App: React.FC = () => {
               return { ...deck, cards: newCards, isCompleted: newCards.every(c => c.count > 0) };
           });
       });
+  }, []);
+
+  useEffect(() => {
+      const interval = setInterval(() => {
+          setPiggyShaking(true);
+          setTimeout(() => setPiggyShaking(false), 800);
+      }, 30000);
+      return () => clearInterval(interval);
   }, []);
 
   const getHoldWinCoinValue = (bet: number): number => {
@@ -3698,13 +3710,14 @@ const App: React.FC = () => {
     }
   };
   
-  const handleShopBuy = (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT', amount: number, duration?: number, cost?: number) => {
+  const handleShopBuy = (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST', amount: number, duration?: number, cost?: number) => {
       if (cost) {
-          if (type === 'BOOST' || type === 'PASS_XP' || type === 'PACK_CREDIT') {
+          if (type === 'BOOST' || type === 'PASS_XP' || type === 'PACK_CREDIT' || type === 'COLLECT_BOOST') {
              if (player.diamonds >= cost) {
                  setPlayer(p => ({...p, diamonds: p.diamonds - cost}));
                  if (type === 'BOOST') setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + (duration || 0) }));
                  if (type === 'PASS_XP') setMissionState(prev => ({ ...prev, passBoostMultiplier: amount, passBoostEndTime: Date.now() + (duration || 0) }));
+                 if (type === 'COLLECT_BOOST') setPlayer(p => ({ ...p, collectBoostEndTime: Math.max(Date.now(), p.collectBoostEndTime || 0) + (duration || 0) }));
                  if (type === 'PACK_CREDIT') {
                      setPlayer(p => ({ ...p, packCredits: p.packCredits + amount }));
                      setCelebrationMsg(`+${amount} Pack Credits`);
@@ -3861,18 +3874,24 @@ const App: React.FC = () => {
                 {/* CENTER ZONE — Buy & Sale (persistent margins via header gap) */}
                 <div className="flex items-center gap-1 shrink-0 z-10">
                     <div onClick={() => openShop('COINS')} className="btn green buyB shrink-0">
-                        <div className="face text-center"><span className="lbl">BUY</span></div>
+                        <div className="face text-center" style={{ overflow: 'hidden' }}>
+                            <div className="absolute inset-y-0 w-8 bg-white/25 skew-x-[-20deg] animate-btn-shine pointer-events-none" style={{ zIndex: 2 }} />
+                            <span className="lbl">BUY</span>
+                        </div>
                     </div>
                     <div onClick={() => setShowPremiumModal(true)} className="btn pink saleB shrink-0">
-                        <div className="face text-center"><span className="lbl">SALE</span></div>
+                        <div className="face text-center" style={{ overflow: 'hidden' }}>
+                            <div className="absolute inset-y-0 w-8 bg-white/25 skew-x-[-20deg] animate-btn-shine pointer-events-none" style={{ zIndex: 2, animationDelay: '1.5s' }} />
+                            <span className="lbl">SALE</span>
+                        </div>
                     </div>
                 </div>
 
                 {/* RIGHT ZONE — Piggy + Level + XP + Settings + Events */}
                 <div className="flex items-center gap-1 flex-1 min-w-0">
                     <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
-                        style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer', flexShrink: 0, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }}
-                        className="shrink-0 active:scale-90 transition-transform" />
+                        style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer', flexShrink: 0 }}
+                        className={`shrink-0 active:scale-90 transition-transform ${piggyShaking ? 'animate-piggy-shake' : ''}`} />
 
                     {/* Level Pill + Multiplier + XP popup */}
                     <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 95 }}>
@@ -3906,29 +3925,52 @@ const App: React.FC = () => {
                             const tierProgress = nextTier ? Math.min(1, (treasuryMultProgress - tierStart) / (nextTier.at - tierStart)) : 1;
                             const done = Math.floor(treasuryMultProgress - tierStart);
                             const need = nextTier ? nextTier.at - tierStart : 0;
+                            const cbRemMs = Math.max(0, (player.collectBoostEndTime || 0) - Date.now());
+                            const cbH = Math.floor(cbRemMs / 3600000);
+                            const cbM = Math.floor((cbRemMs % 3600000) / 60000);
                             return (
-                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 220, zIndex: 200, background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderRadius: 14, boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 24px rgba(0,0,0,0.8)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
+                                <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 240, zIndex: 200, background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderRadius: 14, boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 24px rgba(0,0,0,0.8)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
                                     onClick={e => e.stopPropagation()}>
+                                    {/* Header */}
                                     <div className="flex items-center justify-between">
-                                        <span style={{ color: '#fcd34d', fontSize: 10, fontWeight: 900, letterSpacing: '0.05em' }}>Collect Boost</span>
-                                        <span style={{ color: '#ffe066', fontSize: 14, fontWeight: 900 }}>{treasuryMultiplier}X</span>
+                                        <span style={{ color: 'white', fontSize: 12, fontWeight: 900 }}>Collect Boost</span>
+                                        <span style={{ color: '#ffe066', fontSize: 15, fontWeight: 900 }}>{treasuryMultiplier}X</span>
                                     </div>
-                                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 9, lineHeight: 1.35 }}>
-                                        All Golden Treasury collect amounts are multiplied by {treasuryMultiplier}X.
-                                    </div>
+                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.12)' }} />
+                                    {/* Progress row */}
                                     <div>
                                         <div className="flex items-center justify-between mb-1">
-                                            <span style={{ color: '#a78bfa', fontSize: 9, fontWeight: 900, letterSpacing: '0.05em' }}>{nextTier ? `Next ${nextTier.mult}X` : 'Max tier'}</span>
+                                            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 9, fontWeight: 700 }}>{nextTier ? `Next ${nextTier.mult}X` : 'Max tier'}</span>
                                             <span style={{ color: 'white', fontSize: 9, fontWeight: 700 }}>{nextTier ? `${done} / ${need}` : 'Maxed'}</span>
                                         </div>
                                         <div style={{ height: 6, borderRadius: 6, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
                                             <div style={{ height: '100%', width: `${tierProgress * 100}%`, borderRadius: 6, background: 'linear-gradient(90deg,#ffe066,#e8a800)', transition: 'width 0.4s ease' }} />
                                         </div>
                                     </div>
+                                    {/* Tier pills */}
                                     <div className="flex items-center justify-between" style={{ gap: 3 }}>
                                         {TREASURY_MULT_TIERS.map((t, i) => (
                                             <span key={t.mult} style={{ flex: 1, textAlign: 'center', fontSize: 9, fontWeight: 900, padding: '2px 0', borderRadius: 5, background: i <= curIdx ? 'linear-gradient(180deg,#ffe066,#e8a800)' : 'rgba(255,255,255,0.08)', color: i <= curIdx ? '#5a2e00' : 'rgba(255,255,255,0.45)' }}>{t.mult}X</span>
                                         ))}
+                                    </div>
+                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.12)' }} />
+                                    {/* VIP boost row */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5">
+                                            <i className="ti ti-crown" style={{ fontSize: 11, color: player.isVip ? '#ffe066' : 'rgba(255,255,255,0.3)' }} />
+                                            <span style={{ color: player.isVip ? 'white' : 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 700 }}>VIP Boost</span>
+                                        </div>
+                                        <span style={{ color: player.isVip ? '#ffe066' : 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 900 }}>+50%</span>
+                                    </div>
+                                    {/* Store collect boost row */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5">
+                                            <i className="ti ti-bolt" style={{ fontSize: 11, color: collectBoostActive ? '#a78bfa' : 'rgba(255,255,255,0.3)' }} />
+                                            <span style={{ color: collectBoostActive ? 'white' : 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 700 }}>Collect Boost</span>
+                                        </div>
+                                        <span style={{ color: collectBoostActive ? '#a78bfa' : 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 900 }}>
+                                            {collectBoostActive ? `2X · ${cbH}h ${cbM}m` : '2X'}
+                                        </span>
                                     </div>
                                 </div>
                             );
@@ -3994,9 +4036,10 @@ const App: React.FC = () => {
                         })()}</div>
 
                     {/* Events pill */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3"
-                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid rgba(0,0,0,0.5)', height: 26 }}>
-                        <span className="font-tanker text-white tracking-widest" style={{ fontSize: 16, lineHeight: 1 }}>Events</span>
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 animate-event-glow relative overflow-hidden"
+                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '2px solid #ffe066', height: 26, boxShadow: '0 0 6px rgba(255,220,0,0.5)' }}>
+                        <div className="absolute inset-y-0 w-6 bg-white/20 skew-x-[-20deg] animate-event-shine pointer-events-none" style={{ zIndex: 1 }} />
+                        <span className="font-tanker tracking-widest animate-event-pulse relative" style={{ fontSize: 16, lineHeight: 1, color: '#ffe066', zIndex: 2 }}>Events</span>
                     </button>
 
                     {/* Settings button — far right */}
@@ -4653,7 +4696,8 @@ const App: React.FC = () => {
                       onTouchEnd={(e) => { e.preventDefault(); handleSpinMouseUp(); }}
                       className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showSpinCountRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup || showEgyptHoldWinPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
-                      <div className="flat-face">
+                      <div className="flat-face" style={{ overflow: 'hidden' }}>
+                          <div className="absolute inset-y-0 w-8 bg-white/20 skew-x-[-20deg] animate-btn-shine pointer-events-none" style={{ zIndex: 2, animationDelay: '2.5s' }} />
                           <div className="flat-in h-full">
                               <span className="lbl">
                                   {player.autoSpin ? 'STOP' : (status === GameStatus.SPINNING || status === GameStatus.STOPPING) ? 'STOP' : (freeSpinsRemaining > 0 ? 'AUTO' : 'SPIN')}

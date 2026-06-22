@@ -71,6 +71,7 @@ export interface PlayerState {
   autoSpin: boolean;
   xpMultiplier: number;
   xpBoostEndTime: number;
+  collectBoostEndTime?: number;
   freeStashClaimed: boolean;
   isVip?: boolean;
   freeStashClaimedTime?: number;

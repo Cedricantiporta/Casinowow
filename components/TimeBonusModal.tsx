@@ -21,10 +21,10 @@ const JACKPOT_COOLDOWN = 3 * 60 * 60 * 1000; // 3 hours
 const MULT_TIERS = [
     { mult: 1,  at: 0   },
     { mult: 2,  at: 50  },
-    { mult: 3,  at: 100 },
-    { mult: 4,  at: 150 },
-    { mult: 5,  at: 200 },
-    { mult: 10, at: 250 },
+    { mult: 3,  at: 150 },
+    { mult: 4,  at: 300 },
+    { mult: 5,  at: 500 },
+    { mult: 10, at: 750 },
 ];
 
 export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose, timers, onClaim, collectMultiplier = 1, multProgress = 0, jackpotLastTime = 0, jackpotBaseAmount = 0, onJackpotClaim }) => {
@@ -59,16 +59,26 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
             style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
             {/* Header */}
-            <div className="shrink-0 flex items-center px-4 py-2.5 relative">
+            <div className="shrink-0 flex items-center px-4 py-2.5 relative gap-2">
                 {/* Collect multiplier progress bar — topbar EXP-style pill */}
                 <div className="relative flex items-center z-10 shrink-0" style={{ width: 110, height: 24, borderRadius: 18, background: 'rgba(10,0,40,0.55)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.6)', overflow: 'hidden', paddingLeft: 10, paddingRight: 8 }}>
-                    {/* Fill */}
                     <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${tierProgress * 100}%`, borderRadius: 18, background: 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />
-                    {/* Multiplier number */}
                     <span className="relative font-black leading-none" style={{ fontSize: 17, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)', letterSpacing: '0.02em' }}>{collectMultiplier}X</span>
                 </div>
                 <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">Golden Treasury</span>
-                <div className="ml-auto round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x"></i></div>
+                {/* Reset timer — right of close button */}
+                {(() => {
+                    const midnight = new Date(); midnight.setHours(24, 0, 0, 0);
+                    const resetMs = Math.max(0, midnight.getTime() - currentTime);
+                    const rH = Math.floor(resetMs / 3600000);
+                    const rM = Math.floor((resetMs % 3600000) / 60000);
+                    return (
+                        <div className="ml-auto flex items-center gap-1 shrink-0 z-10">
+                            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 8, fontWeight: 700, whiteSpace: 'nowrap' }}>Resets {rH}h {rM}m</span>
+                            <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
+                        </div>
+                    );
+                })()}
             </div>
 
             {/* Body */}
@@ -102,7 +112,8 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                 })}
 
                 {/* Jackpot roulette tile — playable every 3 hours */}
-                <div className="tcard flex flex-col items-center flex-1 gap-2 p-3">
+                <div className="tcard flex flex-col items-center flex-1 gap-2 p-3"
+                    style={{ background: jackpotReady ? 'linear-gradient(160deg,#3d2800,#1e1000)' : undefined, border: jackpotReady ? '1px solid rgba(255,200,0,0.4)' : undefined, boxShadow: jackpotReady ? '0 0 16px rgba(255,180,0,0.25), inset 0 1px 0 rgba(255,220,100,0.2)' : undefined }}>
                     <div className={`transition-all duration-300 flex items-center justify-center ${jackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
                         <img src="/symbols/neon_bonus.png" alt=""
                             style={{ width: 72, height: 72, objectFit: 'contain', filter: jackpotReady ? 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' : undefined }} />
