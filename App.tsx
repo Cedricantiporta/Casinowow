@@ -567,7 +567,7 @@ const App: React.FC = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
   const [showNopay, setShowNopay] = useState(false);
-  const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '');
+  const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '/Profile_pic (3).png');
   const [showInbox, setShowInbox] = useState(false);
   const [gameLoadingConfig, setGameLoadingConfig] = useState<GameConfig | null>(null);
   const [inbox, setInbox] = useState<InboxMessage[]>(() => {
@@ -3851,7 +3851,7 @@ const App: React.FC = () => {
                     <div
                         onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
                         className="round-btn shrink-0 cursor-pointer"
-                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                        style={{ width: 38, height: 38, fontSize: 22, ...(showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}) }}
                     >
                         {currentView !== 'LOBBY'
                             ? <i className="ti ti-arrow-left"></i>
@@ -3903,7 +3903,13 @@ const App: React.FC = () => {
                             <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
                                 {(() => {
                                     const xpBoostOn = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-                                    return <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${Math.min(100, (player.xp / player.xpToNextLevel) * 100)}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />;
+                                    const pct = Math.min(100, (player.xp / player.xpToNextLevel) * 100);
+                                    return <>
+                                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${pct}%`, background: xpBoostOn ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease', overflow: 'hidden' }}>
+                                            {/* Shine sweep */}
+                                            <div className="absolute inset-y-0 w-5 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+                                        </div>
+                                    </>;
                                 })()}
                             </div>
                             <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
@@ -4040,9 +4046,9 @@ const App: React.FC = () => {
 
                     {/* Events pill */}
                     <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 animate-event-glow relative overflow-hidden"
-                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '2px solid #ffe066', height: 26, boxShadow: '0 0 6px rgba(255,220,0,0.5)' }}>
-                        <div className="absolute inset-y-0 w-6 bg-white/20 skew-x-[-20deg] animate-event-shine pointer-events-none" style={{ zIndex: 1 }} />
-                        <span className="font-tanker tracking-widest animate-event-pulse relative" style={{ fontSize: 16, lineHeight: 1, color: '#ffe066', zIndex: 2 }}>Events</span>
+                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '2px solid #ffe066', height: 30, boxShadow: '0 0 6px rgba(255,220,0,0.5)' }}>
+                        <div className="absolute inset-y-0 w-6 bg-white/30 skew-x-[-20deg] animate-event-shine pointer-events-none" style={{ zIndex: 1 }} />
+                        <span className="font-tanker tracking-widest animate-event-pulse relative" style={{ fontSize: 20, lineHeight: 1, color: '#ffe066', zIndex: 2 }}>Events</span>
                     </button>
 
                     {/* Settings button — far right */}
@@ -4085,6 +4091,7 @@ const App: React.FC = () => {
                 piggyMaxBet={MAX_BET_BY_LEVEL(player.level)}
                 packCredits={player.packCredits}
                 premiumPackCredits={player.premiumPackCredits ?? 0}
+                isJackpotReady={(Date.now() - (player.jackpotRouletteLastTime ?? 0)) >= 3 * 60 * 60 * 1000}
             />
         ) : (
             <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">

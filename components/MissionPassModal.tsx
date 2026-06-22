@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mission, MissionState, PassReward, MissionFrequency } from '../types';
 import { formatNumber, formatCommaNumber, formatK, formatKShort, SCALE_COIN_REWARD } from '../constants';
-import { ViperBorder } from './ViperBorder';
 
 interface MissionPassModalProps {
     isOpen: boolean;
@@ -310,10 +309,10 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>
                                                         {freeReward ? getDisplayValue(freeReward) : ''}
                                                     </div>
-                                                    {/* Lock overlay */}
+                                                    {/* Lock icon — top-right */}
                                                     {!freeClaimed && !freeClaimable && (
-                                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', borderRadius: 12 }}>
-                                                            <img src="/ui/lock.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
+                                                        <div style={{ position: 'absolute', top: 5, right: 5, width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', borderRadius: '50%' }}>
+                                                            <img src="/ui/lock.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.9))' }} />
                                                         </div>
                                                     )}
                                                     {/* Claimed check */}
@@ -322,8 +321,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                             <i className="ti ti-check" style={{ fontSize: 10, color: '#86efac' }} />
                                                         </div>
                                                     )}
-                                                    {/* ViperBorder when claimable */}
-                                                    {freeClaimable && <ViperBorder theme="gold" animate />}
                                                 </div>
 
                                                 {/* Level line */}
@@ -376,16 +373,10 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>
                                                         {premReward ? getDisplayValue(premReward) : ''}
                                                     </div>
-                                                    {/* Lock overlay — no premium pass */}
-                                                    {!missionState.isPremium && !premClaimed && (
-                                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.55)', borderRadius: 12 }}>
-                                                            <img src="/ui/lock.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 0 6px rgba(255,190,0,0.5))' }} />
-                                                        </div>
-                                                    )}
-                                                    {/* Lock overlay — level not reached */}
-                                                    {missionState.isPremium && !premClaimed && !premClaimable && (
-                                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', borderRadius: 12 }}>
-                                                            <img src="/ui/lock.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
+                                                    {/* Lock icon — top-right */}
+                                                    {!premClaimed && !premClaimable && (
+                                                        <div style={{ position: 'absolute', top: 5, right: 5, width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', borderRadius: '50%' }}>
+                                                            <img src="/ui/lock.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.9))' }} />
                                                         </div>
                                                     )}
                                                     {/* Claimed check */}
@@ -394,8 +385,6 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                             <i className="ti ti-check" style={{ fontSize: 10, color: '#fcd34d' }} />
                                                         </div>
                                                     )}
-                                                    {/* ViperBorder when claimable */}
-                                                    {premClaimable && <ViperBorder theme="gold" animate />}
                                                 </div>
 
                                             </div>

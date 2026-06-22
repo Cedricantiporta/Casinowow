@@ -36,7 +36,10 @@ interface ProfileModalProps {
 }
 
 // Profile pics 1-12
-const PROFILE_PICS = Array.from({ length: 12 }, (_, i) => `/Profile_pic (${i + 1}).png`);
+const PROFILE_PICS = [
+    '/Profile_pic (3).png', // penguin — first/default
+    ...Array.from({ length: 12 }, (_, i) => `/Profile_pic (${i + 1}).png`).filter(p => p !== '/Profile_pic (3).png'),
+];
 
 const THEME_ICONS: Record<string, string> = {
     PIGGY: '🐷', NEON: '🎰', EGYPT: '🦂', DRAGON: '🐉', PIRATE: '🏴‍☠️',
@@ -114,13 +117,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     {showPicPicker && (
                         <div className="absolute top-14 left-0 z-50 rounded-2xl p-2 shadow-2xl flex flex-wrap gap-1.5"
                             style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 188 }}>
-                            {/* Default (no pic) */}
-                            <button
-                                onClick={() => { onSetProfileEmoji?.(''); setShowPicPicker(false); }}
-                                className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform active:scale-90 hover:brightness-125"
-                                style={{ background: !isPic ? (vip ? 'rgba(251,191,36,0.3)' : 'rgba(168,85,247,0.3)') : 'rgba(255,255,255,0.07)' }}>
-                                <i className="ti ti-user" style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.6)' }} />
-                            </button>
                             {PROFILE_PICS.map(pic => (
                                 <button key={pic}
                                     onClick={() => { onSetProfileEmoji?.(pic); setShowPicPicker(false); }}
