@@ -4046,7 +4046,7 @@ const App: React.FC = () => {
                         <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none" style={{ zIndex: 1 }}>
                             <div className="absolute inset-y-0 w-4 bg-white/25 skew-x-[-20deg] animate-event-shine pointer-events-none" />
                         </div>
-                        <span className="font-tanker tracking-wide relative" style={{ fontSize: 12, lineHeight: 1, color: '#ffffff', zIndex: 2 }}>Events</span>
+                        <span className="font-tanker tracking-wide relative" style={{ fontSize: 14, lineHeight: 1, color: '#ffffff', zIndex: 2 }}>Events</span>
                     </button>
 
                     {/* Settings button — far right */}
