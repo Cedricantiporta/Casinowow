@@ -77,9 +77,15 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
             ctx.clearRect(0, 0, cw, ch);
 
             const colors = THEMES[themeRef.current];
-            const x0 = EXT, y0 = EXT;
-            const w = cw - EXT * 2, h = ch - EXT * 2;
-            const scale = Math.min(w, h) / 120; // ~120px baseline cell
+            const cellW = cw - EXT * 2, cellH = ch - EXT * 2;
+            // Inset the border inside the cell so adjacent winning cells stay
+            // visually separate (the grid has no gap between cells).
+            const inset = Math.max(2, Math.min(cellW, cellH) * 0.07);
+            const x0 = EXT + inset, y0 = EXT + inset;
+            const w = cellW - inset * 2, h = cellH - inset * 2;
+            // Cap scale so the glow/line stays tight on large cells (no bleeding
+            // across into neighbouring cells).
+            const scale = Math.min(1.0, Math.min(w, h) / 130);
             const snakeLen = 0.46;             // each snake covers ~46% of the perimeter
             const tNow = animate ? clockT : 0;
             const heads = [tNow, (tNow + 0.5) % 1]; // two snakes, exactly opposite
@@ -103,11 +109,11 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
                 ctx.lineJoin = 'miter';
                 ctx.strokeStyle = colors.outer;
                 ctx.shadowColor = colors.outer;
-                ctx.shadowBlur = 22 * scale;
+                ctx.shadowBlur = 11 * scale;
                 for (let i = 1; i < pts.length; i++) {
                     const a = pts[i - 1], b = pts[i];
                     ctx.beginPath();
-                    ctx.lineWidth = Math.max(0.5, 7 * scale * b.p);
+                    ctx.lineWidth = Math.max(0.5, 5.5 * scale * b.p);
                     ctx.globalAlpha = Math.pow(b.p, 1.8) * 0.7;
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(b.x, b.y);
