@@ -172,11 +172,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Account</div>
                         <div className="p-3 flex flex-col gap-2 rounded-2xl" style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
                             <p className="text-white/70 text-[9px] leading-snug">Reset all progress including coins, gems, level, and history. This cannot be undone.</p>
-                            <button
-                                onClick={() => setShowResetConfirm(true)}
-                                className="w-full py-2 rounded-xl text-[10px] font-black uppercase tracking-wider text-white transition-all active:scale-95"
-                                style={{ background: 'rgba(220,38,38,0.25)', border: '1px solid rgba(220,38,38,0.4)' }}>
-                                Reset Account
+                            <button onClick={() => setShowResetConfirm(true)} className="pill-red w-full">
+                                <div className="pill-face" style={{ padding: '7px 14px', fontSize: '10px' }}>Reset Account</div>
                             </button>
                         </div>
                     </div>
