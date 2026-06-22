@@ -323,7 +323,7 @@ export const SpinCountRouletteModal: React.FC<Props> = ({ isOpen, onComplete }) 
                             <span className="font-black text-white" style={{ fontSize: '3.5rem', lineHeight: 1, textShadow: '0 3px 10px rgba(0,0,0,0.55)' }}>{wonSeg.label}</span>
                             <div className="font-black text-white text-sm uppercase tracking-[0.2em]">Free Spins</div>
                         </div>
-                        <button onClick={() => onComplete(wonSeg.count)} className="pill-green w-full mt-1">
+                        <button onClick={() => onComplete(wonSeg.count)} className="pill-pink w-full mt-1">
                             <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#f9a8d4,#db2777)' }}>Next: Wild Wheel →</div>
                         </button>
                     </div>

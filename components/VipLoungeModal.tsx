@@ -68,7 +68,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                             {currentTier.icon.startsWith('/') ? <img src={currentTier.icon} alt="" style={{ width: 12, height: 12, display: 'inline', objectFit: 'contain' }} /> : currentTier.icon} {currentTier.name}
                         </div>
                     ) : (
-                        <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-green shrink-0">
+                        <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-gold shrink-0">
                             <div className="pill-face" style={{ fontSize: '10px', padding: '5px 12px', background: 'linear-gradient(180deg,#ffd700 0%,#e6a500 50%,#cc8800 100%)', color: '#3a1a00', textShadow: '0 1px 2px rgba(100,60,0,0.4)' }}>Unlock VIP</div>
                         </button>
                     )}

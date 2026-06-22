@@ -3813,17 +3813,12 @@ const App: React.FC = () => {
               <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
               <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
                   <img src="/casinoslop_logo.webp" alt="Casino Slop" style={{ width: 280, objectFit: 'contain', filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.8))' }} />
-                  {/* Purple XP-bar style progress — matches the topbar rtrack */}
-                  <div style={{ width: 240, height: 22, borderRadius: 18, background: 'linear-gradient(180deg,#2a0d52,#1a0838)',
-                      border: '1px solid #38106e', boxShadow: 'inset 0 2px 3px rgba(0,0,0,0.6)', position: 'relative', overflow: 'hidden' }}>
-                      <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${loadProgress}%`, borderRadius: 18,
-                          background: 'linear-gradient(180deg,#c060ff,#8020e0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)',
-                          transition: 'width 0.2s ease' }} />
-                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span style={{ fontSize: 10, fontWeight: 900, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)', letterSpacing: 1 }}>
-                              {loadProgress}%
-                          </span>
+                  {/* Load progress — standard rtrack design */}
+                  <div className="rtrack" style={{ width: 240, height: 20, padding: 0 }}>
+                      <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.2s ease' }} />
                       </div>
+                      <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{loadProgress}%</span>
                   </div>
               </div>
           </div>
@@ -5073,7 +5068,7 @@ const App: React.FC = () => {
                           </div>
                       ))}
                   </div>
-                  <button onClick={() => setShowPurchaseModal(null)} className="pill-green w-full">
+                  <button onClick={() => setShowPurchaseModal(null)} className="pill-purple w-full">
                       <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#c084fc,#a855f7,#6d28d9)' }}>Confirm</div>
                   </button>
               </div>
@@ -5294,7 +5289,7 @@ const App: React.FC = () => {
                   <i className="ti ti-shopping-cart-off" style={{ fontSize: '2.5rem', color: '#a855f7' }} />
                   <div className="font-black text-white text-base uppercase tracking-widest">Purchase Unavailable</div>
                   <div className="text-purple-300/80 text-xs leading-relaxed">Real money purchases are not available at this time.</div>
-                  <button onClick={() => setShowNopay(false)} className="pill-green mt-1">
+                  <button onClick={() => setShowNopay(false)} className="pill-purple mt-1">
                       <div className="pill-face" style={{ padding: '8px 24px', fontSize: '11px', background: 'linear-gradient(180deg,#c084fc,#7c3aed,#4c1d95)' }}>Ok</div>
                   </button>
               </div>
@@ -5339,7 +5334,7 @@ const App: React.FC = () => {
                       ))}
                   </div>
                   <div className="px-4 pb-4">
-                      <button onClick={() => setPurchaseConfirm(null)} className="pill-green w-full">
+                      <button onClick={() => setPurchaseConfirm(null)} className={`${purchaseConfirm === 'VIP' ? 'pill-gold' : 'pill-purple'} w-full`}>
                           <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', ...(purchaseConfirm === 'VIP' ? { background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' } : { background: 'linear-gradient(180deg,#c084fc,#a855f7,#6d28d9)' }) }}>Let's Go! 🎉</div>
                       </button>
                   </div>

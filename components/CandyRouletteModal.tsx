@@ -297,7 +297,7 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
                             Wild Wheel Bonus
                         </div>
                         <div className="text-pink-100/80 text-[11px] font-black uppercase tracking-[0.2em]">{freeSpins} Free Spins</div>
-                        <button onClick={() => setPhase('ready')} className="pill-green w-full mt-1">
+                        <button onClick={() => setPhase('ready')} className="pill-pink w-full mt-1">
                             <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#f9a8d4,#db2777)' }}>Spin Now!</div>
                         </button>
                     </div>
@@ -355,7 +355,7 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
                             <span className="font-black text-white" style={{ fontSize: '3.5rem', lineHeight: 1, textShadow: '0 3px 10px rgba(0,0,0,0.55)' }}>{wonSeg.label}</span>
                             <div className="font-black text-white text-sm uppercase tracking-[0.2em]">{wonSeg.sub}</div>
                         </div>
-                        <button onClick={() => onComplete(wonSeg.cfg)} className="pill-green w-full mt-1">
+                        <button onClick={() => onComplete(wonSeg.cfg)} className="pill-pink w-full mt-1">
                             <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#f9a8d4,#db2777)' }}>Start Free Spins!</div>
                         </button>
                     </div>

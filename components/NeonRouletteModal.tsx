@@ -327,7 +327,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                             Roulette Bonus
                         </div>
                         <div className="text-sky-100/80 text-[11px] font-black uppercase tracking-[0.2em]">Bonus Round</div>
-                        <button onClick={() => setPhase('ready')} className="pill-green w-full mt-1">
+                        <button onClick={() => setPhase('ready')} className="pill-blue w-full mt-1">
                             <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>Spin Now!</div>
                         </button>
                     </div>
@@ -415,7 +415,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                                 <span className="font-black text-yellow-300 text-base font-mono">+{formatCommaNumber(summaryTotal)}</span>
                             </div>
                         </div>
-                        <button onClick={() => onComplete(prize)} className="pill-green w-full mt-1">
+                        <button onClick={() => onComplete(prize)} className="pill-gold w-full mt-1">
                             <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#fbbf24,#f59e0b)', color: '#1c0a00' }}>Claim All</div>
                         </button>
                     </div>

@@ -73,7 +73,7 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
 
 const Toggle: React.FC<{ on: boolean; onToggle: () => void; label: string; sub?: string; icon: string }> = ({ on, onToggle, label, sub, icon }) => (
     <div className="flex items-center justify-between px-3 py-2.5 rounded-xl"
-        style={{ background: 'rgba(255,255,255,0.05)' }}>
+        style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
         <div className="flex items-center gap-2.5">
             <span style={{ fontSize: '1.3rem', lineHeight: 1 }}>{icon}</span>
             <div>

@@ -130,7 +130,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         ))}
                     </div>
                     <div className="shrink-0 px-4 pb-3 pt-1 flex flex-col items-center gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); onBuyPass(); setShowPremiumInfo(false); }} className="pill-green">
+                        <button onClick={(e) => { e.stopPropagation(); onBuyPass(); setShowPremiumInfo(false); }} className="pill-gold">
                             <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px', background: 'linear-gradient(180deg,#fff8a0,#f0c000 40%,#c08000)', color: '#1c1917', textShadow: 'none' }}>Unlock Premium</div>
                         </button>
                     </div>
@@ -228,7 +228,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px' }}>Claim Reward</div>
                                         </button>
                                     ) : (
-                                        <button onClick={() => onFinishMission(mission)} className="pill-green w-full">
+                                        <button onClick={() => onFinishMission(mission)} className="pill-blue w-full">
                                             <div className="pill-face" style={{ padding: '5px 12px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
                                                 <img src="/symbols/diamond.png" alt="" style={{ width: '0.85em', height: '0.85em', objectFit: 'contain' }} />
                                                 Skip {diamondCostToSkip(mission.xpReward)}
@@ -403,7 +403,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 </div>
                             </button>
                             {!missionState.isPremium ? (
-                                <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-green">
+                                <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-gold">
                                     <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px', background: 'linear-gradient(180deg,#ffd700 0%,#e6a500 50%,#cc8800 100%)', color: '#3a1a00', textShadow: '0 1px 2px rgba(100,60,0,0.4)' }}>Unlock Premium</div>
                                 </button>
                             ) : (

@@ -66,7 +66,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 <div className={`relative flex items-center justify-center transition-transform duration-300 ${breaking ? 'scale-110' : ''}`}>
                     <img src="/ui/piggy.png" alt="" style={{ width: '7rem', height: '7rem', objectFit: 'contain', filter: 'drop-shadow(0 4px 24px rgba(255,150,200,0.5))' }} />
                     {amount >= cap && cap > 0 && (
-                        <div className="absolute -top-1 -right-2 pill-green pointer-events-none">
+                        <div className="absolute -top-1 -right-2 pill-red pointer-events-none">
                             <div className="pill-face" style={{ padding: '3px 8px', fontSize: '9px', background: 'linear-gradient(180deg,#ef4444 0%,#b91c1c 50%,#991b1b 100%)' }}>Full</div>
                         </div>
                     )}
@@ -83,12 +83,12 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 <button
                     onClick={handleBreak}
                     disabled={breaking || amount <= 0 || diamonds < GEM_BREAK_COST}
-                    className="pill-green px-10"
+                    className="pill-red px-10"
                     style={{ opacity: (breaking || amount <= 0 || diamonds < GEM_BREAK_COST) ? 0.4 : 1 }}
                 >
                     <div className="pill-face" style={{ padding: '10px 24px', fontSize: '13px', flexDirection: 'column', gap: '2px' }}>
                         <span>Break Piggy Bank</span>
-                        <span style={{ fontSize: '9px', opacity: 0.8 }}>
+                        <span style={{ fontSize: '9px', opacity: 0.8, WebkitTextStroke: 0 }}>
                             <img src="/symbols/diamond.png" alt="" style={{ width: '0.9em', height: '0.9em', objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle' }} /> {GEM_BREAK_COST} Gems
                         </span>
                     </div>
