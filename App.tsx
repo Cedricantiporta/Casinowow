@@ -3851,7 +3851,12 @@ const App: React.FC = () => {
                     <div
                         onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
                         className="round-btn shrink-0 cursor-pointer"
-                        style={{ width: 38, height: 38, fontSize: 22, ...(showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}) }}
+                        style={{
+                            ...(currentView === 'LOBBY' && profileEmoji?.startsWith('/Profile_pic')
+                                ? { width: 34, height: 34, fontSize: 20, padding: 0, overflow: 'hidden' }
+                                : {}),
+                            ...(showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}),
+                        }}
                     >
                         {currentView !== 'LOBBY'
                             ? <i className="ti ti-arrow-left"></i>
@@ -4045,10 +4050,10 @@ const App: React.FC = () => {
                         })()}</div>
 
                     {/* Events pill */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 animate-event-glow relative overflow-hidden"
-                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '2px solid #ffe066', height: 30, boxShadow: '0 0 6px rgba(255,220,0,0.5)' }}>
-                        <div className="absolute inset-y-0 w-6 bg-white/30 skew-x-[-20deg] animate-event-shine pointer-events-none" style={{ zIndex: 1 }} />
-                        <span className="font-tanker tracking-widest animate-event-pulse relative" style={{ fontSize: 20, lineHeight: 1, color: '#ffe066', zIndex: 2 }}>Events</span>
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-2.5 animate-event-glow relative overflow-hidden"
+                        style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1.5px solid #ffe066', height: 20, boxShadow: '0 0 5px rgba(255,220,0,0.4)' }}>
+                        <div className="absolute inset-y-0 w-4 bg-white/25 skew-x-[-20deg] animate-event-shine pointer-events-none" style={{ zIndex: 1 }} />
+                        <span className="font-tanker tracking-widest animate-event-pulse relative" style={{ fontSize: 11, lineHeight: 1, color: '#ffe066', zIndex: 2 }}>Events</span>
                     </button>
 
                     {/* Settings button — far right */}
