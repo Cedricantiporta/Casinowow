@@ -12,14 +12,15 @@ interface PiggyBankModalProps {
     maxBet?: number;
     balance?: number;
     onOpenGemShop?: () => void;
+    eventPiggyBoost?: number;
 }
 
-export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet = 0, balance = 0, onOpenGemShop }) => {
+export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet = 0, balance = 0, onOpenGemShop, eventPiggyBoost = 0 }) => {
     const [breaking, setBreaking] = useState(false);
 
     if (!isOpen) return null;
 
-    const cap = maxBet * 5;
+    const cap = Math.floor(maxBet * 5 * (1 + eventPiggyBoost));
 
     const GEM_BREAK_COST = 50;
 
@@ -44,11 +45,11 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
                 <div className="flex items-center gap-2">
-                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
                         <img src="/symbols/coin.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{formatK(Math.floor(balance || 0))}</span>
                     </div>
-                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
                         <img src="/symbols/diamond.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
                         <span className="num font-mono">{diamonds}</span>
                         {onOpenGemShop && <button onClick={onOpenGemShop} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '2px 8px', fontSize: '9px' }}>Buy</div></button>}
@@ -96,6 +97,12 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 <p className="text-white/30 text-[9px] text-center max-w-xs">
                     Gains 5% of each bet (10% with VIP) · Max {formatK(Math.floor(cap))} coins
                 </p>
+                {eventPiggyBoost > 0 && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                        <i className="ti ti-calendar" style={{ fontSize: 11, color: '#f87171' }} />
+                        <span style={{ color: '#f87171', fontSize: 10, fontWeight: 700 }}>Events: +{Math.round(eventPiggyBoost * 100)}% higher cap</span>
+                    </div>
+                )}
             </div>
         </div>
         </div>

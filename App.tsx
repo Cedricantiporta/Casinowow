@@ -537,10 +537,10 @@ const App: React.FC = () => {
   const treasuryMultiplier = (() => {
       let m = 1;
       for (const t of TREASURY_MULT_TIERS) if (treasuryMultProgress >= t.at) m = t.mult;
-      if (player.isVip) m = Math.round(m * 1.5 * 10) / 10;
-      if (collectBoostActive) m = Math.round(m * 2 * 10) / 10;
       return m;
   })();
+  // Effective spin progress rate: VIP adds +50%, store 2x boost adds +100% (additive)
+  const treasuryProgressRate = 1 + (player.isVip ? 0.5 : 0) + (collectBoostActive ? 1 : 0);
 
   const [loginState, setLoginState] = useState<DailyLoginState>(() => {
       try {
@@ -1501,7 +1501,7 @@ const App: React.FC = () => {
       const interval = setInterval(() => {
           setPiggyShaking(true);
           setTimeout(() => setPiggyShaking(false), 800);
-      }, 30000);
+      }, 40000);
       return () => clearInterval(interval);
   }, []);
 
@@ -2255,7 +2255,7 @@ const App: React.FC = () => {
       {
           const maxBetNow = MAX_BET_BY_LEVEL(player.level) * (isHighLimit ? 10 : 1);
           const qualifies = currentBet >= maxBetNow * 0.5;
-          setTreasuryMultProgress(prev => prev + (qualifies ? 1 : 0.5));
+          setTreasuryMultProgress(prev => prev + (qualifies ? 1 : 0.5) * treasuryProgressRate);
       }
       updateMissions(MissionType.SPIN_COUNT, 1);
       updateMissions(MissionType.BET_COINS, currentBet);
@@ -3953,9 +3953,9 @@ const App: React.FC = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1.5">
                                                 <i className="ti ti-crown" style={{ fontSize: 11, color: '#ffe066' }} />
-                                                <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>VIP Boost</span>
+                                                <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>VIP · faster progress</span>
                                             </div>
-                                            <span style={{ color: '#ffe066', fontSize: 10, fontWeight: 900 }}>+50%</span>
+                                            <span style={{ color: '#ffe066', fontSize: 10, fontWeight: 900 }}>1.5× spins</span>
                                         </div>
                                     )}
                                     {/* Store collect boost row — only when active */}
@@ -3963,9 +3963,9 @@ const App: React.FC = () => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-1.5">
                                                 <i className="ti ti-bolt" style={{ fontSize: 11, color: '#a78bfa' }} />
-                                                <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>Collect Boost</span>
+                                                <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>Store Boost · {cbH}h {cbM}m</span>
                                             </div>
-                                            <span style={{ color: '#a78bfa', fontSize: 10, fontWeight: 900 }}>2X · {cbH}h {cbM}m</span>
+                                            <span style={{ color: '#a78bfa', fontSize: 10, fontWeight: 900 }}>+1× spins</span>
                                         </div>
                                     )}
                                 </div>
@@ -4019,6 +4019,15 @@ const App: React.FC = () => {
                                             <span style={{ color: '#fcd34d', fontSize: 11, fontWeight: 900 }}>+{vipBonusPct}%</span>
                                         </div>
                                     )}
+
+                                    {/* Event EXP boost — always-on */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5">
+                                            <i className="ti ti-calendar" style={{ fontSize: 11, color: '#f87171' }} />
+                                            <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 10, fontWeight: 700 }}>Events Boost</span>
+                                        </div>
+                                        <span style={{ color: '#f87171', fontSize: 11, fontWeight: 900 }}>+20%</span>
+                                    </div>
 
                                     {/* Speed-up CTA when no boost is running */}
                                     {!boostActive && (
@@ -4856,7 +4865,7 @@ const App: React.FC = () => {
       
       <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} />
       
-    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} onOpenGemShop={() => openShop('DIAMONDS')} />
+    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} onOpenGemShop={() => openShop('DIAMONDS')} eventPiggyBoost={EVENT_PIGGY_BOOST} />
 
       <FeatureUnlockModal 
         isOpen={activeModal === 'FEATURE_UNLOCK'} 
