@@ -3933,12 +3933,6 @@ const App: React.FC = () => {
 
                         {/* Collect multiplier popup */}
                         {showCollectPopup && (() => {
-                            const curIdx = TREASURY_MULT_TIERS.reduce((acc, t, i) => (treasuryMultProgress >= t.at ? i : acc), 0);
-                            const nextTier = TREASURY_MULT_TIERS[curIdx + 1];
-                            const tierStart = TREASURY_MULT_TIERS[curIdx].at;
-                            const tierProgress = nextTier ? Math.min(1, (treasuryMultProgress - tierStart) / (nextTier.at - tierStart)) : 1;
-                            const done = Math.floor(treasuryMultProgress - tierStart);
-                            const need = nextTier ? nextTier.at - tierStart : 0;
                             const cbRemMs = Math.max(0, (player.collectBoostEndTime || 0) - Date.now());
                             const cbH = Math.floor(cbRemMs / 3600000);
                             const cbM = Math.floor((cbRemMs % 3600000) / 60000);
@@ -3950,42 +3944,27 @@ const App: React.FC = () => {
                                         <span style={{ color: 'white', fontSize: 12, fontWeight: 900 }}>Collect Boost</span>
                                         <span style={{ color: '#ffe066', fontSize: 15, fontWeight: 900 }}>{treasuryMultiplier}X</span>
                                     </div>
-                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.12)' }} />
-                                    {/* Progress row */}
-                                    <div>
-                                        <div className="flex items-center justify-between mb-1">
-                                            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 9, fontWeight: 700 }}>{nextTier ? `Next ${nextTier.mult}X` : 'Max tier'}</span>
-                                            <span style={{ color: 'white', fontSize: 9, fontWeight: 700 }}>{nextTier ? `${done} / ${need}` : 'Maxed'}</span>
+                                    {(player.isVip || collectBoostActive) && <div style={{ height: 1, background: 'rgba(255,255,255,0.12)' }} />}
+                                    {/* VIP boost row — only when VIP */}
+                                    {player.isVip && (
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <i className="ti ti-crown" style={{ fontSize: 11, color: '#ffe066' }} />
+                                                <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>VIP Boost</span>
+                                            </div>
+                                            <span style={{ color: '#ffe066', fontSize: 10, fontWeight: 900 }}>+50%</span>
                                         </div>
-                                        <div style={{ height: 6, borderRadius: 6, background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                                            <div style={{ height: '100%', width: `${tierProgress * 100}%`, borderRadius: 6, background: 'linear-gradient(90deg,#ffe066,#e8a800)', transition: 'width 0.4s ease' }} />
+                                    )}
+                                    {/* Store collect boost row — only when active */}
+                                    {collectBoostActive && (
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <i className="ti ti-bolt" style={{ fontSize: 11, color: '#a78bfa' }} />
+                                                <span style={{ color: 'white', fontSize: 10, fontWeight: 700 }}>Collect Boost</span>
+                                            </div>
+                                            <span style={{ color: '#a78bfa', fontSize: 10, fontWeight: 900 }}>2X · {cbH}h {cbM}m</span>
                                         </div>
-                                    </div>
-                                    {/* Tier pills */}
-                                    <div className="flex items-center justify-between" style={{ gap: 3 }}>
-                                        {TREASURY_MULT_TIERS.map((t, i) => (
-                                            <span key={t.mult} style={{ flex: 1, textAlign: 'center', fontSize: 9, fontWeight: 900, padding: '2px 0', borderRadius: 5, background: i <= curIdx ? 'linear-gradient(180deg,#ffe066,#e8a800)' : 'rgba(255,255,255,0.08)', color: i <= curIdx ? '#5a2e00' : 'rgba(255,255,255,0.45)' }}>{t.mult}X</span>
-                                        ))}
-                                    </div>
-                                    <div style={{ height: 1, background: 'rgba(255,255,255,0.12)' }} />
-                                    {/* VIP boost row */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-1.5">
-                                            <i className="ti ti-crown" style={{ fontSize: 11, color: player.isVip ? '#ffe066' : 'rgba(255,255,255,0.3)' }} />
-                                            <span style={{ color: player.isVip ? 'white' : 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 700 }}>VIP Boost</span>
-                                        </div>
-                                        <span style={{ color: player.isVip ? '#ffe066' : 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 900 }}>+50%</span>
-                                    </div>
-                                    {/* Store collect boost row */}
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-1.5">
-                                            <i className="ti ti-bolt" style={{ fontSize: 11, color: collectBoostActive ? '#a78bfa' : 'rgba(255,255,255,0.3)' }} />
-                                            <span style={{ color: collectBoostActive ? 'white' : 'rgba(255,255,255,0.4)', fontSize: 10, fontWeight: 700 }}>Collect Boost</span>
-                                        </div>
-                                        <span style={{ color: collectBoostActive ? '#a78bfa' : 'rgba(255,255,255,0.3)', fontSize: 10, fontWeight: 900 }}>
-                                            {collectBoostActive ? `2X · ${cbH}h ${cbM}m` : '2X'}
-                                        </span>
-                                    </div>
+                                    )}
                                 </div>
                             );
                         })()}
@@ -4053,7 +4032,7 @@ const App: React.FC = () => {
                     <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-[23px] relative overflow-hidden"
                         style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid #38106e' }}>
                         <div className="absolute inset-y-0 w-4 bg-white/25 skew-x-[-20deg] animate-event-shine pointer-events-none" style={{ zIndex: 1 }} />
-                        <span className="font-tanker tracking-wide animate-event-pulse relative" style={{ fontSize: 12, lineHeight: 1, color: '#ffe066', zIndex: 2 }}>Events</span>
+                        <span className="font-tanker tracking-wide animate-event-pulse relative" style={{ fontSize: 12, lineHeight: 1, color: '#ffffff', zIndex: 2 }}>Events</span>
                     </button>
 
                     {/* Settings button — far right */}
@@ -5145,14 +5124,14 @@ const App: React.FC = () => {
       {showEventsPopup && (
           <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none" onClick={() => setShowEventsPopup(false)}>
               <div className="w-full max-w-sm rounded-3xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}
-                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', height: 420 }}>
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', height: 280 }}>
                   {/* Header */}
                   <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
                       <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Events</span>
                       <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={() => setShowEventsPopup(false)}><i className="ti ti-x"></i></button>
                   </div>
-                  {/* Event banners — vertically scrollable inside the fixed-size modal, no extra container */}
-                  <div className="flex-1 flex flex-col overflow-y-auto gap-3 px-4 pb-4 min-h-0">
+                  {/* Event banners — vertically scrollable, ~1 banner tall, scrollbar hidden, no extra container */}
+                  <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar gap-3 px-4 pb-4 min-h-0">
                       {['/event (1).png', '/event (2).png'].map((src, i) => (
                           <img key={i} src={src} alt=""
                               className="w-full rounded-2xl object-contain shrink-0"
