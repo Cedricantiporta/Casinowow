@@ -52,7 +52,7 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
             // getBoundingClientRect would otherwise bake in (which mis-sizes the canvas).
             const pw = parent.offsetWidth, ph = parent.offsetHeight;
             if (pw === 0) return;
-            dpr = Math.min(2, window.devicePixelRatio || 1);
+            dpr = Math.min(1.5, window.devicePixelRatio || 1);
             cw = pw + EXT * 2;
             ch = ph + EXT * 2;
             canvas.width = Math.max(1, Math.round(cw * dpr));
@@ -92,7 +92,7 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
             const snakeLen = 0.46;             // each snake covers ~46% of the perimeter
             const tNow = animate ? clockT : 0;
             const heads = [tNow, (tNow + 0.5) % 1]; // two snakes, exactly opposite
-            const steps = 40; // dense → smooth continuous line (no visible dots)
+            const steps = 30; // dense enough for a smooth line, light enough to stay cheap
 
             for (const head of heads) {
                 // Precompute the tapered ribbon points (tail → head).

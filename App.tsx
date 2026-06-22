@@ -4,7 +4,6 @@ import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_B
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
-import { WinTotalPopup } from './components/WinTotalPopup';
 import { LeftSidebar } from './components/LeftSidebar';
 import { ShopModal } from './components/ShopModal';
 import { MiniGameModal } from './components/MiniGameModal';
@@ -353,7 +352,9 @@ const App: React.FC = () => {
   useEffect(() => { autoSpinRemainingRef.current = autoSpinRemaining; }, [autoSpinRemaining]);
   useEffect(() => { targetGridRef.current = targetGrid; }, [targetGrid]);
   const [showWinPopup, setShowWinPopup] = useState(false);
-  const [smallWinAmount, setSmallWinAmount] = useState<number | null>(null);
+  const [lastWinAmount, setLastWinAmount] = useState<number>(0);
+  const [holdWinSummary, setHoldWinSummary] = useState<{ total: number; bet: number } | null>(null);
+  const pendingHoldWinSummaryRef = useRef<{ total: number; bet: number } | null>(null);
   const [gemsClaimedPopup, setGemsClaimedPopup] = useState<number | null>(null);
   const [piggyGlow, setPiggyGlow] = useState(false);
   const [showXpTimer, setShowXpTimer] = useState(false);
@@ -1591,6 +1592,9 @@ const App: React.FC = () => {
           setWinData({ payout: accWin, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
           setCascadeMultiplier(1);
           setCascadeTotalWin(0);
+          if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
+              setLastWinAmount(accWin);
+          }
           setTimeout(() => {
               if (winTier) {
                   audioService.playWinTier(winTier);
@@ -1599,7 +1603,7 @@ const App: React.FC = () => {
               } else if (accWin > 0) {
                   audioService.playWinSmall();
                   if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
-                      setSmallWinAmount(accWin);
+                      setLastWinAmount(accWin);
                   }
                   setStatus(GameStatus.WIN_ANIMATION);
                   setTimeout(() => setStatus(GameStatus.IDLE), 500);
@@ -2270,7 +2274,6 @@ const App: React.FC = () => {
     setCascadeDissolving(false);
     setStatus(GameStatus.SPINNING);
     setWinData(null);
-    setSmallWinAmount(null);
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
@@ -2888,6 +2891,11 @@ const App: React.FC = () => {
        updateMissions(MissionType.WIN_COINS, totalPayout);
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
 
+       // Base-game win amount shown in the bottom bar (persists until next spin).
+       if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
+           setLastWinAmount(totalPayout);
+       }
+
        if (winTier) {
            if (jackpotWon) {
                // Store tier; fire sound + popup when jackpot celebration closes
@@ -2900,17 +2908,14 @@ const App: React.FC = () => {
            setStatus(GameStatus.WIN_ANIMATION);
        } else {
            audioService.playWinSmall();
-           // Show a quick win-total badge on regular base-game wins (free spins
-           // accumulate in their own panel / summary, hold-win & ghost ship have
-           // their own counters — skip those so it stays consistent).
-           if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
-               setSmallWinAmount(totalPayout);
-           }
            setStatus(GameStatus.WIN_ANIMATION);
            const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
            setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 150 : 500);
        }
     } else {
+       if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
+           setLastWinAmount(0);
+       }
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
        const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
        const betFractionLoss = currentBet / MAX_BET_BY_LEVEL(player.level);
@@ -3092,6 +3097,12 @@ const App: React.FC = () => {
 
   const handleWinPopupComplete = () => {
       setShowWinPopup(false);
+      // Hold & Win just finished — show its collect summary after the celebration.
+      if (pendingHoldWinSummaryRef.current) {
+          setHoldWinSummary(pendingHoldWinSummaryRef.current);
+          pendingHoldWinSummaryRef.current = null;
+          return;
+      }
       // If free spins just ended (no retrigger pending), show summary
       if (freeSpinsWon > 0 && freeSpinsRemaining === 0 && !showFreeSpinsPopup) {
           setShowFreeSpinSummary(true);
@@ -3119,9 +3130,20 @@ const App: React.FC = () => {
           setPlayer(p => ({ ...p, balance: p.balance + total }));
           const winTier = getWinTier(total, currentBet);
           setWinData({ payout: total, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
-          if (winTier) { audioService.playWinTier(winTier); setShowWinPopup(true); setStatus(GameStatus.WIN_ANIMATION); }
-          else if (total > 0) { audioService.playWinSmall(); setStatus(GameStatus.WIN_ANIMATION); setTimeout(() => setStatus(GameStatus.IDLE), 500); }
-          else setStatus(GameStatus.IDLE);
+          if (total > 0) {
+              setStatus(GameStatus.WIN_ANIMATION);
+              if (winTier) {
+                  // Big-win celebration first, then the collect summary (deferred until it closes).
+                  audioService.playWinTier(winTier);
+                  pendingHoldWinSummaryRef.current = { total, bet: currentBet };
+                  setShowWinPopup(true);
+              } else {
+                  audioService.playWinSmall();
+                  setHoldWinSummary({ total, bet: currentBet });
+              }
+          } else {
+              setStatus(GameStatus.IDLE);
+          }
       };
 
       const beginCounting = () => {
@@ -4201,7 +4223,7 @@ const App: React.FC = () => {
 
                         {/* Winning-cell viper borders — drawn in a top overlay so they're
                             never clipped/covered by neighbouring reels (shows on every side). */}
-                        {winData && winData.winningCells.length > 0 && !holdWinActive &&
+                        {winData && winData.winningCells.length > 0 && !holdWinActive && !fastSpin &&
                          status !== GameStatus.SPINNING && status !== GameStatus.STOPPING && (
                             <div className="absolute inset-0 z-30 pointer-events-none flex gap-0">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
@@ -4597,12 +4619,9 @@ const App: React.FC = () => {
                               neonRouletteTotal > 0 ? formatK(neonRouletteTotal) : '—'
                           ) : freeSpinsRemaining > 0 ? (
                               formatK(freeSpinTotalWin)
-                          ) : status === GameStatus.SPINNING || status === GameStatus.STOPPING ? (
-                              'SPINNING...'
-                          ) : winData?.payout && winData.payout > 0 ? (
-                              formatK(winData.payout)
                           ) : (
-                              "LET'S SPIN!"
+                              // Base game: always show the last win (or 0) — no "spinning" text.
+                              formatK(lastWinAmount)
                           )}
                       </span>
                       <span className="total-win">
@@ -4892,11 +4911,6 @@ const App: React.FC = () => {
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
 
-      {/* Regular win-total badge (below big-win tier) */}
-      {smallWinAmount !== null && smallWinAmount > 0 && !showWinPopup && (
-          <WinTotalPopup amount={smallWinAmount} onComplete={() => setSmallWinAmount(null)} />
-      )}
-
       {/* Gems claimed popup */}
       {gemsClaimedPopup !== null && (
           <div className="absolute inset-0 z-[300] flex items-center justify-center animate-pop-in backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }} onClick={() => setGemsClaimedPopup(null)}>
@@ -5020,6 +5034,7 @@ const App: React.FC = () => {
       )}
 
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
+      {holdWinSummary && <FreeSpinSummary isOpen={true} totalWin={holdWinSummary.total} bet={holdWinSummary.bet} label="Hold & Win Complete" onClose={() => { setHoldWinSummary(null); setStatus(GameStatus.IDLE); }} />}
       
       {showWelcomeGift && (
         <div className="absolute inset-0 z-[500] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>

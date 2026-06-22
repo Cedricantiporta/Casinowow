@@ -6,9 +6,10 @@ interface FreeSpinSummaryProps {
     totalWin: number;
     bet: number;
     onClose: () => void;
+    label?: string;
 }
 
-export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalWin, bet, onClose }) => {
+export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalWin, bet, onClose, label = 'Free Spins Complete' }) => {
 
     useEffect(() => {
         if (isOpen) {
@@ -38,7 +39,7 @@ export const FreeSpinSummary: React.FC<FreeSpinSummaryProps> = ({ isOpen, totalW
                     }}>
                     <div className="absolute top-0 left-0 right-0 h-1/3 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.12),transparent)' }}></div>
 
-                    <div className="text-[8px] font-black text-purple-200 uppercase tracking-[0.2em] mb-1 relative z-10">Free Spins Complete</div>
+                    <div className="text-[8px] font-black text-purple-200 uppercase tracking-[0.2em] mb-1 relative z-10">{label}</div>
                     <h2 className="text-lg font-black font-display mb-2 tracking-wider text-white drop-shadow relative z-10">TOTAL WIN</h2>
 
                     <div className="rounded-xl px-4 py-3 mb-4 w-full shadow-inner relative z-10 flex items-center justify-center"
