@@ -4557,7 +4557,7 @@ const App: React.FC = () => {
                                         src="/ui/dragon_vase.png"
                                         alt=""
                                         className={dragonPotShaking ? 'animate-vibrate' : ''}
-                                        style={{ width: 'clamp(52px,10vw,80px)', height: 'clamp(52px,10vw,80px)', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 2px 8px rgba(255,140,0,0.6))' }}
+                                        style={{ width: 'clamp(68px,13vw,100px)', height: 'clamp(68px,13vw,100px)', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 2px 8px rgba(255,140,0,0.6))' }}
                                     />
                                 </div>
                                 <div className="flex flex-row items-center gap-1">

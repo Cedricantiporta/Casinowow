@@ -274,7 +274,7 @@
 
       /* Unified card container (purple) + golden variant */
       .tcard{border-radius:16px;background:linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%);box-shadow:inset 0 1px 0 rgba(200,120,255,0.4),0 3px 10px rgba(0,0,0,0.5);}
-      .tcard-gold{border-radius:16px;background:linear-gradient(180deg,rgba(251,191,36,0.32) 0%,rgba(217,119,6,0.24) 20%,rgba(40,20,0,0.78) 100%);box-shadow:inset 0 1px 0 rgba(255,220,120,0.45),0 3px 10px rgba(0,0,0,0.5);}
+      .tcard-gold{border-radius:16px;background:linear-gradient(180deg,#c9901a 0%,#9a6800 35%,#5a3800 100%);box-shadow:inset 0 1px 0 rgba(255,220,120,0.5),0 3px 10px rgba(0,0,0,0.6);}
 
       .flat{cursor:pointer;flex-shrink:0;z-index:1;border-radius:20px;padding-bottom:5px;box-shadow:0 5px 8px rgba(0,0,0,0.5);}
       .flat.green{background:linear-gradient(180deg,#1a6000,#0e3a00);}
@@ -370,15 +370,14 @@
       }
 
       .winpanel{flex:grow;position:relative;z-index:1;border-radius:8px;overflow:hidden;min-width:100px;
-        background:radial-gradient(ellipse at 50% 40%,#3a1a6e,#1c0a44 90%);
-        border:1.5px solid #2a0d55;box-shadow:inset 0 3px 6px rgba(0,0,0,0.7),inset 0 -2px 4px rgba(120,80,200,0.3);
+        background:rgba(0,0,0,0.28);box-shadow:inset 0 2px 6px rgba(0,0,0,0.55),inset 0 -1px 3px rgba(180,100,255,0.15);
         display:flex;flex-direction:column;align-items:center;justify-content:center;}
       .lets-spin{font-size:16px;font-weight:900;color:#fff;letter-spacing:0.5px;white-space:nowrap;
-        -webkit-text-stroke:2px #122c5c;paint-order:stroke fill;text-shadow:0 2px 4px rgba(0,0,0,0.7);transform:scaleY(1.15);}
-      .total-win{font-size:7px;font-weight:900;color:#b8d8ff;letter-spacing:1px;margin-top:2px;}
+        text-shadow:0 0 10px rgba(200,120,255,0.6),0 2px 4px rgba(0,0,0,0.8);transform:scaleY(1.15);}
+      .total-win{font-size:7px;font-weight:900;color:#c8a8ff;letter-spacing:1px;margin-top:2px;}
       @media (min-width: 768px) {
         .winpanel { min-width: 140px; }
-        .lets-spin { font-size: 22px; -webkit-text-stroke: 3px #122c5c; letter-spacing: 1px; }
+        .lets-spin { font-size: 22px; letter-spacing: 1px; }
         .total-win { font-size: 8px; letter-spacing: 2px; margin-top: 3px; }
       }
 
