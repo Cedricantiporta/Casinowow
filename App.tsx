@@ -2382,7 +2382,7 @@ const App: React.FC = () => {
           if (scattersSoFar >= stt && scatterAnticipationRef.current) {
               scatterAnticipationRef.current = false;
               setScatterAnticipation(false);
-          } else if (scattersSoFar >= stt - 1 && scattersSoFar < stt && !scatterAnticipationRef.current) {
+          } else if (scattersSoFar >= 2 && scattersSoFar < stt && !scatterAnticipationRef.current) {
               scatterAnticipationRef.current = true;
               setScatterAnticipation(true);
           }
@@ -4252,7 +4252,7 @@ const App: React.FC = () => {
                                 for (let c = 0; c < targetGrid.length - 1; c++) {
                                     if (targetGrid[c]?.some(s => s === SymbolType.SCATTER)) {
                                         sc++;
-                                        if (sc >= _stt - 1) { anticipationStartReel = c + 1; break; }
+                                        if (sc >= 2) { anticipationStartReel = c + 1; break; }
                                     }
                                 }
                             }
