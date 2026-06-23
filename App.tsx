@@ -208,6 +208,8 @@ const STARTUP_ASSETS = [
     '/gem_1.png', '/gem_2.png', '/gem_3.png',
     // shop bonus wheel item icon
     '/bonus wheel shop.png',
+    // events modal banners
+    '/event (1).png', '/event (2).png',
 ];
 
 const App: React.FC = () => {
@@ -2935,7 +2937,8 @@ const App: React.FC = () => {
                // Store tier; fire sound + popup when jackpot celebration closes
                pendingWinTierRef.current = winTier;
                setPendingBigWin(true);
-           } else {
+           } else if (!pirateWalkRef.current.active) {
+               // Suppress win popup during Ghost Ship — total shown at end of feature
                audioService.playWinTier(winTier);
                setShowWinPopup(true);
            }
@@ -3819,7 +3822,7 @@ const App: React.FC = () => {
       return (
           <div style={{ position: 'fixed', inset: 0, backgroundImage: 'url(/initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
               <div style={{ position: 'absolute', bottom: '12%', left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
-                  <div className="rtrack" style={{ width: 130, height: 20, padding: 0 }}>
+                  <div className="rtrack" style={{ width: 65, height: 20, padding: 0 }}>
                       <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
                           <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.2s ease' }} />
                       </div>
