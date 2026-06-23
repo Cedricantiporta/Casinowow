@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameConfig } from '../types';
-import { getGameAssets } from '../constants';
+import { getGameAssets, WIN_TIER_IMAGES } from '../constants';
 
 const THEME_IMG_ICON: Partial<Record<string, string>> = {
     DRAGON:     '/dragon/dragon-1.png',
@@ -32,6 +32,9 @@ function getImagesToPreload(game: GameConfig): string[] {
     try {
         getGameAssets(game).forEach(src => imgs.add(src));
     } catch {}
+
+    // Win tier celebration art
+    WIN_TIER_IMAGES.forEach(src => imgs.add(src));
 
     return [...imgs];
 }

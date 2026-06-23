@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALL_GAME_ASSETS } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -152,9 +152,9 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     );
 };
 
-// Phase 1: critical assets needed before the lobby is shown.
-// Lobby covers are derived from GAMES_CONFIG so new games are always covered.
-const PRELOAD_ASSETS = [
+// Startup assets: everything needed before and shortly after the lobby is shown.
+// Slots load their own assets on demand via SlotLoadingScreen.
+const STARTUP_ASSETS = [
     // lobby backgrounds
     '/lobby-bg.jpg', '/lobby-bg-vip.jpg',
     // slot loading screen background (shown while a game loads in)
@@ -165,14 +165,6 @@ const PRELOAD_ASSETS = [
     '/ui/piggy.png', '/ui/missions.png', '/ui/collect.png', '/ui/cards.png',
     '/ui/pass.png', '/ui/games.png', '/ui/lobby.png', '/ui/exp_multiplier.png',
     '/ui/jackpot.png', '/ui/coinmine.png', '/ui/boost.png',
-];
-
-// Phase 2: preload (almost) everything else in the background once the lobby
-// is visible — all slot backgrounds, every theme's symbols/scatter/wild,
-// jackpot tile art and win-tier celebration art, plus minigame/modal assets.
-const LOBBY_PRELOAD_ASSETS = [
-    // every game's full asset set (backgrounds, symbols, scatter/wild, jackpot art) + win art
-    ...ALL_GAME_ASSETS,
     // minigame / feature backgrounds + icons
     '/coinmine_bg.jpg', '/coinmine_rockicon.png', '/coinmine_bombicon.png',
     '/coinmine_coinicon.png', '/coinmine_gemicon.png', '/coinmine_pickaxe.png',
@@ -195,6 +187,8 @@ const App: React.FC = () => {
   const toastCountRef = useRef(0);
   const [appReady, setAppReady] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
+  const [splashDone, setSplashDone] = useState(false);
+  const [splashOpacity, setSplashOpacity] = useState(0);
   const spinButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
@@ -238,14 +232,14 @@ const App: React.FC = () => {
   // Phase 1: preload critical assets, then mark app as ready
   useEffect(() => {
       let loaded = 0;
-      const total = PRELOAD_ASSETS.length;
+      const total = STARTUP_ASSETS.length;
       if (total === 0) { setAppReady(true); return; }
       const done = () => {
           loaded++;
           setLoadProgress(Math.round((loaded / total) * 100));
           if (loaded >= total) setAppReady(true);
       };
-      PRELOAD_ASSETS.forEach(src => {
+      STARTUP_ASSETS.forEach(src => {
           const img = new Image();
           img.onload = done;
           img.onerror = done;
@@ -253,14 +247,13 @@ const App: React.FC = () => {
       });
   }, []);
 
-  // Phase 2: preload remaining assets in the background once lobby is visible
+  // Splash: fade in "Vibe The Game", hold, fade out, then start loading
   useEffect(() => {
-      if (!appReady) return;
-      LOBBY_PRELOAD_ASSETS.forEach(src => {
-          const img = new Image();
-          img.src = src;
-      });
-  }, [appReady]);
+      const t1 = setTimeout(() => setSplashOpacity(1), 50);          // fade in
+      const t2 = setTimeout(() => setSplashOpacity(0), 1500);        // fade out
+      const t3 = setTimeout(() => setSplashDone(true), 2400);        // done
+      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, []);
 
   // Toggle XP mult display between multiplier and countdown every 15s when boost active
   useEffect(() => {
@@ -3805,15 +3798,24 @@ const App: React.FC = () => {
   const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
   const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
+  if (!splashDone) {
+      return (
+          <div style={{ position: 'fixed', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ opacity: splashOpacity, transition: 'opacity 0.8s ease', textAlign: 'center' }}>
+                  <div style={{ fontFamily: 'sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '0.12em', textTransform: 'uppercase', textShadow: '0 0 40px rgba(200,100,255,0.8)' }}>Vibe The Game</div>
+                  <div style={{ marginTop: 8, fontFamily: 'sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>Entertainment</div>
+              </div>
+          </div>
+      );
+  }
+
   if (!appReady) {
       return (
           <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28,
               backgroundImage: 'url(/lobby-bg-vip.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-              {/* Dark scrim so text pops */}
               <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
               <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-                  <img src="/casinoslop_logo.webp" alt="Casino Slop" style={{ width: 280, objectFit: 'contain', filter: 'drop-shadow(0 4px 20px rgba(0,0,0,0.8))' }} />
-                  {/* Load progress — standard rtrack design */}
+                  {/* No logo — just progress bar */}
                   <div className="rtrack" style={{ width: 240, height: 20, padding: 0 }}>
                       <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
                           <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.2s ease' }} />
