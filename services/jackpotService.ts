@@ -27,10 +27,10 @@ class JackpotService {
                 const { g, t, b } = JSON.parse(raw);
                 if (Array.isArray(g) && g.length === 5) {
                     const elapsed = Date.now() - Number(t);
-                    const ticks = Math.min(Math.floor(elapsed / 60), 480_000);
+                    const ticks = Math.min(Math.floor(elapsed / 120), 240_000);
                     this.baseMaxBet = b || 10000;
                     this.growth = g.map((v: number, i: number) =>
-                        Math.floor(v + ticks * (40 + i * 30))
+                        Math.floor(v + ticks * (24 + i * 18))
                     );
                     return;
                 }
@@ -47,12 +47,13 @@ class JackpotService {
 
     private startTicker() {
         if (this.tickerHandle) return;
+        // Tick at 120ms (half the listener notifications) with ~0.6x increment → ~30% growth rate.
         this.tickerHandle = setInterval(() => {
             this.growth = this.growth.map((v, i) =>
-                v + Math.floor(Math.random() * (50 + i * 35) + 15)
+                v + Math.floor(Math.random() * (30 + i * 21) + 9)
             );
             this.listeners.forEach(fn => fn());
-        }, 60);
+        }, 120);
         this.saveHandle = setInterval(() => this.saveGrowth(), 8000);
     }
 

@@ -4286,7 +4286,7 @@ const App: React.FC = () => {
                                             const isWin = winData.winningCells.some(w => w.col === c && w.row === r);
                                             return (
                                                 <div key={r} className="flex-1 relative">
-                                                    {isWin && <ViperBorder theme={borderThemeFor(selectedGame.theme)} animate />}
+                                                    {isWin && <ViperBorder theme={borderThemeFor(selectedGame.theme)} animate={!(fastSpin && freeSpinsRemaining === 0)} />}
                                                 </div>
                                             );
                                         })}

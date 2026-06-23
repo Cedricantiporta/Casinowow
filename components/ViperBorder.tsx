@@ -104,7 +104,7 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
             const snakeLen = 0.50;  // fills half the perimeter — no gap between two snakes
             const tNow = animate ? clockT : 0;
             const heads = [tNow, (tNow + 0.5) % 1];
-            const steps = 36; // slightly more steps for smooth color gradient
+            const steps = 20; // fewer segments — shadowBlur removed so glow comes from wide soft stroke
 
             for (const head of heads) {
                 const pts: { x: number; y: number; p: number }[] = [];
@@ -115,29 +115,24 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
                     pts.push({ x: pp.x, y: pp.y, p: pc });
                 }
 
-                // PASS 1 — soft outer glow halo (lighter blend, color-graded tail→head)
+                // PASS 1 — soft outer glow halo: wide, low-alpha stroke with 'lighter' blend.
+                // No shadowBlur (extremely expensive per-segment) — the width + additive blend fakes the halo.
                 ctx.save();
                 ctx.globalCompositeOperation = 'lighter';
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
-                ctx.shadowColor = colors.shadowHead;
-                ctx.shadowBlur = 12 * scale;
                 for (let i = 1; i < pts.length; i++) {
                     const a = pts[i - 1], b = pts[i];
                     ctx.beginPath();
                     ctx.strokeStyle = lerpColor(colors.glowTail, colors.glowHead, b.p);
-                    ctx.lineWidth = Math.max(0.5, 6 * scale * b.p);
-                    ctx.globalAlpha = Math.pow(b.p, 1.5) * 0.6;
+                    ctx.lineWidth = Math.max(1, 11 * scale * b.p);
+                    ctx.globalAlpha = Math.pow(b.p, 1.5) * 0.35;
                     ctx.moveTo(a.x, a.y);
                     ctx.lineTo(b.x, b.y);
                     ctx.stroke();
                 }
-                ctx.restore();
 
-                // PASS 2 — saturated colour body, color-graded tail→head
-                ctx.save();
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
+                // PASS 2 — saturated colour body, color-graded tail→head (same save/blend scope)
                 for (let i = 1; i < pts.length; i++) {
                     const a = pts[i - 1], b = pts[i];
                     ctx.beginPath();
@@ -148,12 +143,8 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
                     ctx.lineTo(b.x, b.y);
                     ctx.stroke();
                 }
-                ctx.restore();
 
                 // PASS 3 — bright core line riding on top, thinner, color-graded tail→head
-                ctx.save();
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
                 for (let i = 1; i < pts.length; i++) {
                     const a = pts[i - 1], b = pts[i];
                     ctx.beginPath();

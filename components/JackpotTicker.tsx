@@ -27,11 +27,12 @@ export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet, isSpin
     }, [currentBet]);
 
     useEffect(() => {
+        // Tick at 120ms (half the re-renders) with ~0.6x increment → ~30% of the old growth rate.
         const id = setInterval(() => {
             setGrowth(prev => prev.map((v) =>
-                v + Math.floor(Math.random() * currentBet * 0.002 + currentBet * 0.001)
+                v + Math.floor(Math.random() * currentBet * 0.0012 + currentBet * 0.0006)
             ));
-        }, 60);
+        }, 120);
         return () => clearInterval(id);
     }, [currentBet]);
 

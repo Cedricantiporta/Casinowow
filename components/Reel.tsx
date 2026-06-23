@@ -167,10 +167,11 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                 transform: (!landing && spinning) ? 'none' : `translateY(${translateY})`, // Static scroll to result
             }}
        >
-            {/* Animation Wrapper - Jiggle/Spin Effects */}
+            {/* Animation Wrapper - Jiggle/Spin Effects.
+                Blur is applied ONCE here during spin (cheap) instead of per-cell. */}
             <div className={`
                 w-full h-full flex flex-col
-                ${(!landing && spinning) ? 'animate-spin-blur' : ''} 
+                ${(!landing && spinning) ? 'animate-spin-blur blur-[2px] opacity-80' : ''}
                 ${(landing) ? 'animate-bounce-land' : ''}
             `}>
                 {renderStrip.map((s, i) => {
@@ -286,10 +287,9 @@ const ReelCell: React.FC<{
         <div
             className={`
                 w-full flex items-center justify-center relative bg-black
-                ${blur ? 'blur-[2px] opacity-80' : ''}
                 ${isNewCell ? 'animate-drop-in' : ''}
                 ${highlight && dissolving ? 'animate-dissolve-out' : ''}
-                ${!isNewCell && !(highlight && dissolving) ? 'transition-all duration-300' : ''}
+                ${!isNewCell && !(highlight && dissolving) ? 'transition-transform duration-300' : ''}
             `}
             style={{
                 height: `${heightPercent}%`,
@@ -299,7 +299,7 @@ const ReelCell: React.FC<{
             <div className={`
                 relative h-full w-full max-w-full rounded-none
                 flex items-center justify-center
-                transition-all duration-300 overflow-visible
+                overflow-visible
                 ${bgClasses}
             `}
             style={undefined}
