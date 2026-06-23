@@ -183,6 +183,31 @@ const STARTUP_ASSETS = [
     '/ui/missions_new.png', '/ui/pick.png', '/ui/piggy_red.png',
     '/ui/rock.png', '/ui/roller.png', '/ui/stage_gem.png', '/ui/star.png',
     '/ui/cards_new.png',
+    // currency symbols (used across many modals)
+    '/symbols/coin.png', '/symbols/diamond.png',
+    // card collection modal background
+    '/cards_bg.png',
+    // mission pass icons
+    '/mission-levelup.png', '/mission-spin.png', '/mission-wincoin.png',
+    '/pass-picksdice.png',
+    // win celebration art (WinPopup, JackpotCelebration)
+    '/bigwin.png', '/greatwin.png', '/epicwin.png', '/megawin.png', '/ultimatewin.png',
+    // jackpot tier badges (pick-grid modals, JackpotCelebration)
+    '/mini.png', '/minor.png', '/major.png', '/mega.png', '/grand.png',
+    // jackpot tile overlays in reels (generic)
+    '/mini_jackpot.png', '/minor_jackpot.png', '/major_jackpot.png', '/mega_jackpot.png', '/grand_jackpot.png',
+    // jackpot tile overlays in reels (Asian / Golden Pot theme)
+    '/asian_mini.png', '/asian_minor.png', '/asian_major.png', '/asian_mega.png', '/asian_grand.png',
+    // jackpot ticker bar labels (shown above reels for all themes)
+    '/topbar_mini.png', '/topbar_minor.png', '/topbar_major.png', '/topbar_mega.png', '/topbar_grand.png',
+    '/asian_topbar_mini.png', '/asian_topbar_minor.png', '/asian_topbar_major.png', '/asian_topbar_mega.png', '/asian_topbar_grand.png',
+    // profile pictures (player avatar selection)
+    ...Array.from({ length: 12 }, (_, i) => `/Profile_pic (${i + 1}).png`),
+    // shop coin / gem bundle icons
+    '/coin_1.png', '/coin_2.png', '/coin_3.png', '/coin_4.png', '/coin_5.png',
+    '/gem_1.png', '/gem_2.png', '/gem_3.png',
+    // shop bonus wheel item icon
+    '/bonus wheel shop.png',
 ];
 
 const App: React.FC = () => {
