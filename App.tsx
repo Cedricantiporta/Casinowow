@@ -188,10 +188,7 @@ const STARTUP_ASSETS = [
 const App: React.FC = () => {
   const toastCountRef = useRef(0);
   const [appReady, setAppReady] = useState(false);
-  const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
-  const [splashDone, setSplashDone] = useState(false);
-  const [splashOpacity, setSplashOpacity] = useState(0);
   const spinButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 
@@ -232,15 +229,15 @@ const App: React.FC = () => {
       jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
   }, [player.level]);
 
-  // Preload all startup assets — sets assetsLoaded when done
+  // Preload all startup assets
   useEffect(() => {
       let loaded = 0;
       const total = STARTUP_ASSETS.length;
-      if (total === 0) { setAssetsLoaded(true); return; }
+      if (total === 0) { setAppReady(true); return; }
       const done = () => {
           loaded++;
           setLoadProgress(Math.round((loaded / total) * 100));
-          if (loaded >= total) setAssetsLoaded(true);
+          if (loaded >= total) setAppReady(true);
       };
       STARTUP_ASSETS.forEach(src => {
           const img = new Image();
@@ -249,19 +246,6 @@ const App: React.FC = () => {
           img.src = src;
       });
   }, []);
-
-  // Splash: fast fade in/out — 800ms total
-  useEffect(() => {
-      const t1 = setTimeout(() => setSplashOpacity(1), 30);
-      const t2 = setTimeout(() => setSplashOpacity(0), 500);
-      const t3 = setTimeout(() => setSplashDone(true), 800);
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
-  }, []);
-
-  // App is ready only when both splash is done AND assets are loaded
-  useEffect(() => {
-      if (splashDone && assetsLoaded) setAppReady(true);
-  }, [splashDone, assetsLoaded]);
 
   // Toggle XP mult display between multiplier and countdown every 15s when boost active
   useEffect(() => {
@@ -3806,22 +3790,11 @@ const App: React.FC = () => {
   const freeCoinsAvailable = (Date.now() - (player.freeStashClaimedTime || 0)) > 86400000;
   const freeCoinsAmount = Math.floor(MAX_BET_BY_LEVEL(player.level) * 0.3);
 
-  if (!splashDone) {
-      return (
-          <div style={{ position: 'fixed', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ opacity: splashOpacity, transition: 'opacity 0.4s ease', textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '0.12em', textTransform: 'uppercase', textShadow: '0 0 40px rgba(200,100,255,0.8)' }}>Vibe The Game</div>
-              </div>
-          </div>
-      );
-  }
-
   if (!appReady) {
       return (
           <div style={{ position: 'fixed', inset: 0, backgroundImage: 'url(/initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-              {/* Progress bar pinned near the bottom */}
               <div style={{ position: 'absolute', bottom: '12%', left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
-                  <div className="rtrack" style={{ width: 260, height: 20, padding: 0 }}>
+                  <div className="rtrack" style={{ width: 130, height: 20, padding: 0 }}>
                       <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
                           <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.2s ease' }} />
                       </div>
