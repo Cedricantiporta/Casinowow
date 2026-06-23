@@ -3771,9 +3771,9 @@ const App: React.FC = () => {
       setPlayer(p => ({ ...p, shopClaimedItems: [...(p.shopClaimedItems || []), label] }));
   };
 
-  const handleSpinMouseDown = () => {
+  const handleSpinPointerDown = (e: React.PointerEvent) => {
+      e.preventDefault(); // prevent scroll / synthetic mouse events on touch
       if (pirateWalkRef.current.active) return;
-      // During free spins, don't register long-press for autospin menu
       if (freeSpinsRemaining > 0) return;
       isLongPressRef.current = false;
       spinButtonTimeoutRef.current = setTimeout(() => {
@@ -3782,15 +3782,14 @@ const App: React.FC = () => {
           setShowAutoSpinPopup(true);
       }, 800);
   };
-
-  const handleSpinMouseUp = () => {
+  const handleSpinPointerUp = (e: React.PointerEvent) => {
+      e.preventDefault();
       if (spinButtonTimeoutRef.current) {
           clearTimeout(spinButtonTimeoutRef.current);
           spinButtonTimeoutRef.current = null;
       }
       if (isLongPressRef.current) return;
       if (pirateWalkRef.current.active) return;
-      // During free spins: allow tap to instant-stop the current spin animation
       if (freeSpinsRemaining > 0) {
           if (status === GameStatus.SPINNING) {
               setInstantStop(true);
@@ -3812,6 +3811,7 @@ const App: React.FC = () => {
           }
       }
   };
+
 
   const getDeckReward = (deckId: string, level: number) => {
       const idx = GAMES_CONFIG.findIndex(g => g.id === deckId);
@@ -4708,11 +4708,11 @@ const App: React.FC = () => {
                       const isStop = player.autoSpin || status === GameStatus.SPINNING || status === GameStatus.STOPPING;
                       return (
                   <div
-                      onMouseDown={handleSpinMouseDown}
-                      onMouseUp={handleSpinMouseUp}
-                      onTouchStart={(e) => { e.preventDefault(); handleSpinMouseDown(); }}
-                      onTouchEnd={(e) => { e.preventDefault(); handleSpinMouseUp(); }}
+                      onPointerDown={handleSpinPointerDown}
+                      onPointerUp={handleSpinPointerUp}
+                      onPointerLeave={() => { if (spinButtonTimeoutRef.current) { clearTimeout(spinButtonTimeoutRef.current); spinButtonTimeoutRef.current = null; isLongPressRef.current = false; } }}
                       className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showSpinCountRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup || showEgyptHoldWinPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      style={{ touchAction: 'none' }}
                   >
                       <div className="flat-face" style={{ overflow: 'hidden' }}>
                           <div className="absolute inset-y-0 w-8 bg-white/20 skew-x-[-20deg] animate-btn-shine pointer-events-none" style={{ zIndex: 2, animationDelay: '2.5s' }} />

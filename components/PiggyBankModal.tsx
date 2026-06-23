@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatK } from '../constants';
 import { audioService } from '../services/audioService';
 
@@ -17,6 +17,15 @@ interface PiggyBankModalProps {
 
 export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet = 0, balance = 0, onOpenGemShop, eventPiggyBoost = 0 }) => {
     const [breaking, setBreaking] = useState(false);
+    const [openShake, setOpenShake] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setOpenShake(true);
+            const t = setTimeout(() => setOpenShake(false), 900);
+            return () => clearTimeout(t);
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -64,7 +73,9 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
                 {/* Piggy icon */}
                 <div className={`relative flex items-center justify-center transition-transform duration-300 ${breaking ? 'scale-110' : ''}`}>
-                    <img src="/ui/piggy.png" alt="" style={{ width: '7rem', height: '7rem', objectFit: 'contain', filter: 'drop-shadow(0 4px 24px rgba(255,150,200,0.5))' }} />
+                    <img src="/ui/piggy.png" alt=""
+                        className={openShake ? 'animate-piggy-shake' : ''}
+                        style={{ width: '7rem', height: '7rem', objectFit: 'contain', filter: 'drop-shadow(0 4px 24px rgba(255,150,200,0.5))' }} />
                     {amount >= cap && cap > 0 && (
                         <div className="absolute -top-1 -right-2 pill-red pointer-events-none">
                             <div className="pill-face" style={{ padding: '3px 8px', fontSize: '9px', background: 'linear-gradient(180deg,#ef4444 0%,#b91c1c 50%,#991b1b 100%)' }}>Full</div>
