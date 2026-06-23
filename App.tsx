@@ -155,6 +155,8 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
 // Startup assets: everything needed before and shortly after the lobby is shown.
 // Slots load their own assets on demand via SlotLoadingScreen.
 const STARTUP_ASSETS = [
+    // initial load splash background
+    '/initialload_bg.png',
     // lobby backgrounds
     '/lobby-bg.jpg', '/lobby-bg-vip.jpg',
     // slot loading screen background (shown while a game loads in)
@@ -3816,12 +3818,10 @@ const App: React.FC = () => {
 
   if (!appReady) {
       return (
-          <div style={{ position: 'fixed', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 28,
-              backgroundImage: 'url(/lobby-bg-vip.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.55)' }} />
-              <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
-                  {/* No logo — just progress bar */}
-                  <div className="rtrack" style={{ width: 240, height: 20, padding: 0 }}>
+          <div style={{ position: 'fixed', inset: 0, backgroundImage: 'url(/initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              {/* Progress bar pinned near the bottom */}
+              <div style={{ position: 'absolute', bottom: '12%', left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                  <div className="rtrack" style={{ width: 260, height: 20, padding: 0 }}>
                       <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
                           <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.2s ease' }} />
                       </div>
