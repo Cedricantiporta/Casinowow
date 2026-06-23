@@ -103,9 +103,6 @@ export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) 
                     {formatK(displayAmount)}
                 </span>
 
-                <div style={{ fontFamily: "'Nunito', sans-serif", fontWeight: 900, fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.15em', marginTop: 4 }}>
-                    Tap to close
-                </div>
             </div>
         </div>
     );

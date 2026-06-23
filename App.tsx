@@ -5093,7 +5093,7 @@ const App: React.FC = () => {
       )}
 
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
-      {holdWinSummary && <FreeSpinSummary isOpen={true} totalWin={holdWinSummary.total} bet={holdWinSummary.bet} label="Hold & Win Complete" onClose={() => { setHoldWinSummary(null); setStatus(GameStatus.IDLE); }} />}
+      {holdWinSummary && <FreeSpinSummary isOpen={true} totalWin={holdWinSummary.total} bet={holdWinSummary.bet} label="Hold & Win Complete" onClose={() => { const total = holdWinSummary.total; setHoldWinSummary(null); setStatus(GameStatus.IDLE); if (total > 0) setCelebrationMsg('+' + formatK(total)); }} />}
       
       {showWelcomeGift && (
         <div className="absolute inset-0 z-[500] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>

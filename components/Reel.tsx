@@ -73,10 +73,11 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
         const timer = setTimeout(() => {
             setLanding(true);
 
-            // Set final strip: Random symbols on top + Final symbols at bottom
+            // Set final strip: Final symbols on top + Random symbols on bottom
+            // (spin animates top-to-bottom, so finals must be at the top)
             const finalStrip = [
+                ...symbols,
                 ...Array(VISIBLE_ROWS).fill(null).map(getRandSym),
-                ...symbols
             ];
             setStrip(finalStrip);
         }, stopDelay);
@@ -112,10 +113,8 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   let translateY = '0%';
   
   if (landing) {
-      const rowsToHide = totalItems - VISIBLE_ROWS;
-      const shiftPercent = (rowsToHide / totalItems) * 100;
-      translateY = `-${shiftPercent}%`;
-  } 
+      translateY = '0%'; // finals are at top of strip; show top rows
+  }
   
   // Cascade display mode: bypass animation, show symbols directly
   if (forcedSymbols && forcedSymbols.length > 0) {
