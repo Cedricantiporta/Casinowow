@@ -186,6 +186,7 @@ const STARTUP_ASSETS = [
 const App: React.FC = () => {
   const toastCountRef = useRef(0);
   const [appReady, setAppReady] = useState(false);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
   const [loadProgress, setLoadProgress] = useState(0);
   const [splashDone, setSplashDone] = useState(false);
   const [splashOpacity, setSplashOpacity] = useState(0);
@@ -229,15 +230,15 @@ const App: React.FC = () => {
       jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
   }, [player.level]);
 
-  // Phase 1: preload critical assets, then mark app as ready
+  // Preload all startup assets — sets assetsLoaded when done
   useEffect(() => {
       let loaded = 0;
       const total = STARTUP_ASSETS.length;
-      if (total === 0) { setAppReady(true); return; }
+      if (total === 0) { setAssetsLoaded(true); return; }
       const done = () => {
           loaded++;
           setLoadProgress(Math.round((loaded / total) * 100));
-          if (loaded >= total) setAppReady(true);
+          if (loaded >= total) setAssetsLoaded(true);
       };
       STARTUP_ASSETS.forEach(src => {
           const img = new Image();
@@ -247,13 +248,18 @@ const App: React.FC = () => {
       });
   }, []);
 
-  // Splash: fade in "Vibe The Game", hold, fade out, then start loading
+  // Splash: fast fade in/out — 800ms total
   useEffect(() => {
-      const t1 = setTimeout(() => setSplashOpacity(1), 50);          // fade in
-      const t2 = setTimeout(() => setSplashOpacity(0), 1500);        // fade out
-      const t3 = setTimeout(() => setSplashDone(true), 2400);        // done
+      const t1 = setTimeout(() => setSplashOpacity(1), 30);
+      const t2 = setTimeout(() => setSplashOpacity(0), 500);
+      const t3 = setTimeout(() => setSplashDone(true), 800);
       return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, []);
+
+  // App is ready only when both splash is done AND assets are loaded
+  useEffect(() => {
+      if (splashDone && assetsLoaded) setAppReady(true);
+  }, [splashDone, assetsLoaded]);
 
   // Toggle XP mult display between multiplier and countdown every 15s when boost active
   useEffect(() => {
@@ -3801,9 +3807,8 @@ const App: React.FC = () => {
   if (!splashDone) {
       return (
           <div style={{ position: 'fixed', inset: 0, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ opacity: splashOpacity, transition: 'opacity 0.8s ease', textAlign: 'center' }}>
+              <div style={{ opacity: splashOpacity, transition: 'opacity 0.4s ease', textAlign: 'center' }}>
                   <div style={{ fontFamily: 'sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#fff', letterSpacing: '0.12em', textTransform: 'uppercase', textShadow: '0 0 40px rgba(200,100,255,0.8)' }}>Vibe The Game</div>
-                  <div style={{ marginTop: 8, fontFamily: 'sans-serif', fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.3em', textTransform: 'uppercase' }}>Entertainment</div>
               </div>
           </div>
       );
