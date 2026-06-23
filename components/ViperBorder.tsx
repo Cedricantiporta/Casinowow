@@ -43,13 +43,6 @@ function removeDrawer(fn: () => void) {
     if (drawers.size === 0 && rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
 }
 
-// Linear RGB interpolation between two hex colors
-function lerpColor(a: string, b: string, t: number): string {
-    const ar = parseInt(a.slice(1, 3), 16), ag = parseInt(a.slice(3, 5), 16), ab2 = parseInt(a.slice(5, 7), 16);
-    const br = parseInt(b.slice(1, 3), 16), bg = parseInt(b.slice(3, 5), 16), bb2 = parseInt(b.slice(5, 7), 16);
-    return `rgb(${Math.round(ar + (br - ar) * t)},${Math.round(ag + (bg - ag) * t)},${Math.round(ab2 + (bb2 - ab2) * t)})`;
-}
-
 const EXT = 12;
 
 export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = ({ theme, animate = true }) => {
@@ -101,62 +94,52 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
             const x0 = EXT + inset, y0 = EXT + inset;
             const w = cellW - inset * 2, h = cellH - inset * 2;
             const scale = Math.min(1.0, Math.min(w, h) / 130);
-            const snakeLen = 0.50;  // fills half the perimeter — no gap between two snakes
+            const snakeLen = 0.40;  // < 0.5 leaves a gap between the two snakes so the rotation is visible
             const tNow = animate ? clockT : 0;
             const heads = [tNow, (tNow + 0.5) % 1];
-            const steps = 20; // fewer segments — shadowBlur removed so glow comes from wide soft stroke
+            const steps = 24; // points along each snake — stroked as ONE continuous line (no per-segment caps)
 
-            for (const head of heads) {
-                const pts: { x: number; y: number; p: number }[] = [];
+            // Trace a snake as a single continuous path, then stroke once per pass.
+            // Stroking the whole polyline (instead of per-segment) means round caps appear
+            // only at the two ends — no beaded "dots" along the line — and it's far cheaper.
+            const tracePath = (head: number) => {
+                ctx.beginPath();
                 for (let i = 0; i <= steps; i++) {
-                    const pc = i / steps;
-                    const ph = head - (1 - pc) * snakeLen;
+                    const ph = head - (1 - i / steps) * snakeLen;
                     const pp = pointOnRect(ph, x0, y0, w, h);
-                    pts.push({ x: pp.x, y: pp.y, p: pc });
+                    if (i === 0) ctx.moveTo(pp.x, pp.y);
+                    else ctx.lineTo(pp.x, pp.y);
                 }
+            };
 
-                // PASS 1 — soft outer glow halo: wide, low-alpha stroke with 'lighter' blend.
-                // No shadowBlur (extremely expensive per-segment) — the width + additive blend fakes the halo.
-                ctx.save();
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            for (const head of heads) {
+                // PASS 1 — soft outer glow halo (wide, low-alpha, additive blend fakes the bloom)
                 ctx.globalCompositeOperation = 'lighter';
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                for (let i = 1; i < pts.length; i++) {
-                    const a = pts[i - 1], b = pts[i];
-                    ctx.beginPath();
-                    ctx.strokeStyle = lerpColor(colors.glowTail, colors.glowHead, b.p);
-                    ctx.lineWidth = Math.max(1, 11 * scale * b.p);
-                    ctx.globalAlpha = Math.pow(b.p, 1.5) * 0.35;
-                    ctx.moveTo(a.x, a.y);
-                    ctx.lineTo(b.x, b.y);
-                    ctx.stroke();
-                }
+                ctx.strokeStyle = colors.glowHead;
+                ctx.lineWidth = Math.max(1.5, 10 * scale);
+                ctx.globalAlpha = 0.28;
+                tracePath(head);
+                ctx.stroke();
 
-                // PASS 2 — saturated colour body, color-graded tail→head (same save/blend scope)
-                for (let i = 1; i < pts.length; i++) {
-                    const a = pts[i - 1], b = pts[i];
-                    ctx.beginPath();
-                    ctx.strokeStyle = lerpColor(colors.bodyTail, colors.bodyHead, b.p);
-                    ctx.lineWidth = Math.max(0.4, 4.2 * scale * b.p);
-                    ctx.globalAlpha = Math.pow(b.p, 0.9);
-                    ctx.moveTo(a.x, a.y);
-                    ctx.lineTo(b.x, b.y);
-                    ctx.stroke();
-                }
+                // PASS 2 — saturated colour body
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = colors.bodyHead;
+                ctx.lineWidth = Math.max(0.8, 3.8 * scale);
+                ctx.globalAlpha = 0.95;
+                tracePath(head);
+                ctx.stroke();
 
-                // PASS 3 — bright core line riding on top, thinner, color-graded tail→head
-                for (let i = 1; i < pts.length; i++) {
-                    const a = pts[i - 1], b = pts[i];
-                    ctx.beginPath();
-                    ctx.strokeStyle = lerpColor(colors.coreTail, colors.coreHead, b.p);
-                    ctx.lineWidth = Math.max(0.3, 1.8 * scale * b.p);
-                    ctx.globalAlpha = Math.pow(b.p, 0.6);
-                    ctx.moveTo(a.x, a.y);
-                    ctx.lineTo(b.x, b.y);
-                    ctx.stroke();
-                }
-                ctx.restore();
+                // PASS 3 — bright core line riding on top
+                ctx.strokeStyle = colors.coreHead;
+                ctx.lineWidth = Math.max(0.5, 1.6 * scale);
+                ctx.globalAlpha = 1;
+                tracePath(head);
+                ctx.stroke();
             }
+            ctx.restore();
         };
 
         resize();

@@ -230,25 +230,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* Reset Confirmation Popup */}
             {showResetConfirm && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/75 backdrop-blur-sm animate-pop-in">
-                    <div className="relative w-64 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(220,38,38,0.3)]"
-                        style={{ background: 'linear-gradient(160deg,#4c1d95,#1e0438)' }}>
+                    <div className="relative w-64 rounded-2xl overflow-hidden"
+                        style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
                         <div className="px-5 py-5 flex flex-col items-center gap-3">
                             <div className="text-center">
-                                <div className="text-white font-black text-base uppercase tracking-widest">Reset Account?</div>
-                                <div className="text-red-300/70 text-[10px] mt-1 leading-snug">All coins, gems, level, and game history will be permanently deleted.</div>
+                                <div className="text-white font-black text-base tracking-wide">Reset Account?</div>
+                                <div className="text-red-200/80 text-[10px] mt-1 leading-snug">All coins, gems, level, and game history will be permanently deleted.</div>
                             </div>
                             <div className="flex gap-2 w-full mt-1">
-                                <button
-                                    onClick={() => setShowResetConfirm(false)}
-                                    className="flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide text-white/60 transition-all active:scale-95"
-                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                    Cancel
+                                <button onClick={() => setShowResetConfirm(false)} className="pill-purple flex-1">
+                                    <div className="pill-face" style={{ padding: '9px 12px', fontSize: '12px' }}>Cancel</div>
                                 </button>
-                                <button
-                                    onClick={() => { setShowResetConfirm(false); onReset(); }}
-                                    className="flex-[2] py-2.5 rounded-xl text-xs font-black uppercase tracking-wide text-white transition-all active:scale-95"
-                                    style={{ background: 'linear-gradient(180deg,#ef4444,#b91c1c)', boxShadow: '0 3px 0 #7f1d1d' }}>
-                                    Yes, Reset
+                                <button onClick={() => { setShowResetConfirm(false); onReset(); }} className="pill-red flex-[2]">
+                                    <div className="pill-face" style={{ padding: '9px 12px', fontSize: '12px' }}>Yes, Reset</div>
                                 </button>
                             </div>
                         </div>
@@ -259,14 +253,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* Reward Preview Popup */}
             {codeInfo && (
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/75 backdrop-blur-sm animate-pop-in">
-                    <div className="relative w-64 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(168,85,247,0.4)]"
-                        style={{ background: 'linear-gradient(160deg,#4c1d95,#1e0438)' }}>
-
-                        {/* Shimmer top */}
+                    <div className="relative w-64 rounded-2xl overflow-hidden"
+                        style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
                         <div className="px-5 py-5 flex flex-col items-center gap-3">
                             <div className="text-center">
-                                <div className="text-white font-black text-base uppercase tracking-widest">{codeInfo.title}</div>
+                                <div className="text-white font-black text-base tracking-wide">{codeInfo.title}</div>
                                 <div className="text-white/70 text-[10px] mt-0.5 leading-snug">{codeInfo.description}</div>
                             </div>
 
@@ -286,14 +278,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             </div>
 
                             <div className="flex gap-2 w-full mt-1">
-                                <button
-                                    onClick={() => setPendingCode(null)}
-                                    className="flex-1 py-2.5 rounded-xl text-xs font-black uppercase tracking-wide text-white/60 transition-all active:scale-95"
-                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                    Cancel
+                                <button onClick={() => setPendingCode(null)} className="pill-purple flex-1">
+                                    <div className="pill-face" style={{ padding: '10px 12px', fontSize: '12px' }}>Cancel</div>
                                 </button>
                                 <button onClick={handleClaim} className="pill-green flex-[2]">
-                                    <div className="pill-face" style={{ padding: '10px 12px' }}>Claim Reward</div>
+                                    <div className="pill-face" style={{ padding: '10px 12px', fontSize: '12px' }}>Claim Reward</div>
                                 </button>
                             </div>
                         </div>
