@@ -21,7 +21,7 @@ interface MiniGameModalProps {
     onBuyQuestBundle?: (type: 'PICKS' | 'DICE', picks: number, dice: number, coins: number, gemCost: number, bonusGems: number) => void;
     onPickTile: (isGem: boolean, reward: MiniGameReward | null) => void;
     onBatchPick: (picksUsed: number, rewards: MiniGameReward[]) => void;
-    onStageComplete: (bonusCoins: number, bonusDiamonds: number) => void;
+    onStageComplete: (bonusCoins: number, bonusDiamonds: number, autoAdvance?: boolean) => void;
     onGridUpdate?: (grid: WildGridCell[]) => void;
     onDiceRoll: (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean, cost?: number) => void;
     onClose: () => void;
@@ -284,7 +284,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     useEffect(() => {
         if (autoRoll && stageWinning && stageClearData) {
             const t = setTimeout(() => {
-                onStageComplete(stageClearData.coins, stageClearData.gems);
+                onStageComplete(stageClearData.coins, stageClearData.gems, true);
                 setStageClearData(null);
                 setStageWinning(false);
             }, 1500);

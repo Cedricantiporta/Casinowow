@@ -569,7 +569,7 @@ const App: React.FC = () => {
   });
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
-  const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE'; stage: number; coins: number; diamonds: number } | null>(null);
+  const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE'; stage: number; coins: number; diamonds: number; autoAdvance?: boolean } | null>(null);
   const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
   const [pendingBigWin, setPendingBigWin] = useState(false);
   type ActiveToast = { type: 'LEVEL_UP'; level: number; reward: number; maxBetIncreased: boolean; newMaxBet: number } | { type: 'PACK' } | { type: 'CARD'; rarity: 'COMMON' | 'RARE'; cardName: string } | null;
@@ -2161,7 +2161,7 @@ const App: React.FC = () => {
         setQuest(q => ({ ...q, activeGame: mode }));
   };
 
-  const handleStageComplete = (gameType: 'WILD' | 'DICE', bonusCoins: number, bonusDiamonds: number) => {
+  const handleStageComplete = (gameType: 'WILD' | 'DICE', bonusCoins: number, bonusDiamonds: number, autoAdvance?: boolean) => {
       setPlayer(p => ({ ...p, balance: p.balance + bonusCoins, diamonds: p.diamonds + bonusDiamonds }));
 
       if (gameType === 'WILD') {
@@ -3822,13 +3822,15 @@ const App: React.FC = () => {
 
   if (!appReady) {
       return (
-          <div style={{ position: 'fixed', inset: 0, backgroundImage: 'url(/initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-              <div style={{ position: 'absolute', bottom: '12%', left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
-                  <div className="rtrack" style={{ width: 65, height: 20, padding: 0 }}>
-                      <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
-                          <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.2s ease' }} />
+          <div className="bg-[#0a0015] flex items-center justify-center overflow-hidden" style={{ position: 'fixed', inset: 0 }}>
+              <div style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                  <div style={{ position: 'absolute', bottom: '12%', left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                      <div className="rtrack" style={{ width: 65, height: 20, padding: 0 }}>
+                          <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.2s ease' }} />
+                          </div>
+                          <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{loadProgress}%</span>
                       </div>
-                      <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{loadProgress}%</span>
                   </div>
               </div>
           </div>
@@ -4046,12 +4048,12 @@ const App: React.FC = () => {
                         })()}</div>
 
                     {/* Events pill — matches topbar currency pills; shine kept, glow removed */}
-                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-5 md:h-[23px] relative"
+                    <button onClick={() => setShowEventsPopup(true)} className="shrink-0 cursor-pointer active:scale-95 transition-transform flex items-center justify-center rounded-full px-3 h-6 md:h-7 relative"
                         style={{ background: 'linear-gradient(180deg,#b91c1c,#7f1d1d,#450a0a)', border: '1px solid #38106e' }}>
                         <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none" style={{ zIndex: 1 }}>
                             <div className="absolute inset-y-0 w-4 bg-white/25 skew-x-[-20deg] animate-event-shine pointer-events-none" />
                         </div>
-                        <span className="font-tanker tracking-wide relative" style={{ fontSize: 14, lineHeight: 1, color: '#ffffff', zIndex: 2 }}>Events</span>
+                        <span className="font-tanker tracking-wide relative" style={{ fontSize: 16, lineHeight: 1, color: '#ffffff', zIndex: 2 }}>Events</span>
                     </button>
 
                     {/* Settings button — far right */}
