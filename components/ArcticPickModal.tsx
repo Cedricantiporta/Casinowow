@@ -173,17 +173,17 @@ export const ArcticPickModal: React.FC<ArcticPickModalProps> = ({ isOpen, jackpo
     if (!isOpen) return null;
     return (
         <div className="absolute inset-0 z-[250] flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.92)' }}>
-            <div className="animate-pop-in rounded-2xl overflow-hidden shadow-[0_0_60px_rgba(34,211,238,0.4)]"
+            <div className="animate-pop-in rounded-2xl overflow-hidden"
                 style={{
                     background: 'linear-gradient(160deg,#001428,#00080f)',
-                    border: '2px solid rgba(34,211,238,0.4)',
+                    boxShadow: '0 0 60px rgba(34,211,238,0.4), inset 0 1px 0 rgba(150,230,255,0.4)',
                     width: 'min(92%,480px)',
                     height: 'min(75%,560px)',
                     display: 'flex', flexDirection: 'column',
                 }}>
                 {/* Header */}
                 <div className="flex-shrink-0 flex items-center justify-center gap-3 py-3 px-4"
-                    style={{ background: 'linear-gradient(180deg,#0284c7,#0c4a6e)', borderBottom: '1px solid rgba(34,211,238,0.2)' }}>
+                    style={{ background: 'linear-gradient(180deg,#0284c7,#0c4a6e)' }}>
                     <span style={{ fontSize: '1.8rem', lineHeight: 1 }}>&#x2744;&#xFE0F;</span>
                     <div className="text-center">
                         <div className="font-black text-white uppercase tracking-widest text-sm">Jackpot Pick!</div>

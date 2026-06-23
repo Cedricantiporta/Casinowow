@@ -303,7 +303,7 @@ export const SpinCountRouletteModal: React.FC<Props> = ({ isOpen, onComplete }) 
                                 className="absolute flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
                                 style={{
                                     top: 30 + 150 - 34, left: 150 - 34, width: 68, height: 68, borderRadius: '50%',
-                                    background: '#fdf5e2', border: '3px solid #25283d', zIndex: 30,
+                                    background: '#fdf5e2', border: '2px solid rgba(255,255,255,0.15)', zIndex: 30,
                                     boxShadow: '0 6px 14px rgba(0,0,0,0.6), inset 0 -5px 0 #edd8af, inset 0 5px 0 #ffffff',
                                 }}>
                                 <span className="font-black text-[#be185d] uppercase tracking-tight" style={{ fontSize: 18, fontFamily: 'Titan One, cursive', lineHeight: 1 }}>SPIN</span>

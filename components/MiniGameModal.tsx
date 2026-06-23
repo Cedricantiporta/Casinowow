@@ -78,7 +78,7 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 }) => (
     <button onClick={disabled ? undefined : onClick} disabled={disabled}
         className={`btn-3d font-black uppercase tracking-wide transition-all active:translate-y-[2px] ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
-        style={{ background: disabled ? '#333' : color, boxShadow: disabled ? 'none' : shadow, border: '1px solid rgba(255,255,255,0.2)', ...style }}>
+        style={{ background: disabled ? '#333' : color, boxShadow: disabled ? 'none' : `${shadow}, inset 0 1px 0 rgba(255,255,255,0.15)`, ...style }}>
         {children}
     </button>
 );
@@ -732,12 +732,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     return (
                                         <div key={si} style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: 0 }}>
                                             {bridge && (
-                                                <div style={{ gridColumn: isEven ? 8 : 1, gridRow: 1, minWidth: 0, margin: '-4px' }}>
+                                                <div style={{ gridColumn: isEven ? 8 : 1, gridRow: 1, minWidth: 0, margin: '-2px' }}>
                                                     {renderCell(bridge)}
                                                 </div>
                                             )}
                                             {main.map((step, idx) => (
-                                                <div key={step.index} style={{ gridColumn: isEven ? 1 + idx : 8 - idx, gridRow: bridge ? 2 : 1, minWidth: 0, margin: '-4px' }}>
+                                                <div key={step.index} style={{ gridColumn: isEven ? 1 + idx : 8 - idx, gridRow: bridge ? 2 : 1, minWidth: 0, margin: '-2px' }}>
                                                     {renderCell(step)}
                                                 </div>
                                             ))}

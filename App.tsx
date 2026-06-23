@@ -2919,7 +2919,8 @@ const App: React.FC = () => {
 
        const vipXpMult = player.isVip ? 1.2 : 1.0;
        const spinsAtMaxBet = Math.max(1, player.level * 1.1);
-       const betFraction = currentBet / MAX_BET_BY_LEVEL(player.level);
+       // XP is capped at the NORMAL lobby max bet — high-limit (bigger) bets grant no extra XP.
+       const betFraction = Math.min(1, currentBet / MAX_BET_BY_LEVEL(player.level));
        const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult * 2);
 
        addXp(xpGained);
@@ -2955,7 +2956,8 @@ const App: React.FC = () => {
        }
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
        const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
-       const betFractionLoss = currentBet / MAX_BET_BY_LEVEL(player.level);
+       // XP capped at the NORMAL lobby max bet — high-limit bets grant no extra XP.
+       const betFractionLoss = Math.min(1, currentBet / MAX_BET_BY_LEVEL(player.level));
        const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss * 2);
        addXp(lossXp);
        if (player.isVip) addVipXp(1);
@@ -4544,8 +4546,7 @@ const App: React.FC = () => {
                     {selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0 && (
                         <div className="flex flex-col items-center justify-center gap-2 absolute" style={{ right: 0, top: '50%', transform: 'translateY(-50%)' }}>
                             <div className="flex flex-col items-center gap-1.5">
-                                <div className="relative flex items-center justify-center rounded-xl p-2"
-                                    style={{ background: 'linear-gradient(160deg,#1a0800,#3a1200)', border: '1.5px solid rgba(251,191,36,0.4)', boxShadow: '0 4px 16px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,180,0,0.15)' }}>
+                                <div className="relative flex items-center justify-center tcard-gold p-2">
                                     {dragonCoinAbsorbing && (
                                         <span
                                             className="animate-coin-absorb"
@@ -4577,8 +4578,8 @@ const App: React.FC = () => {
 
                     {/* Egypt HW respin counter — absolute right so reel grid stays centered */}
                     {holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && (
-                        <div className="flex flex-col items-center gap-1 px-2 py-2 rounded-lg absolute"
-                            style={{ right: 0, top: '50%', transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.85)', border: '1px solid rgba(251,191,36,0.5)', boxShadow: '0 0 10px rgba(251,191,36,0.3)' }}>
+                        <div className="flex flex-col items-center gap-1 px-2 py-2 tcard-gold absolute"
+                            style={{ right: 0, top: '50%', transform: 'translateY(-50%)' }}>
                             <span style={{ fontSize: 'clamp(7px,1.3vw,10px)', color: '#fbbf24', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>RESPINS</span>
                             <span style={{ fontSize: 'clamp(14px,2.8vw,20px)', color: '#fde68a', fontWeight: 900, textShadow: '0 0 10px rgba(251,191,36,0.8)', lineHeight: 1 }}>
                                 {holdWinRespins}/3
@@ -4888,7 +4889,7 @@ const App: React.FC = () => {
       {showDragonTriggerPopup && (
           <div className="absolute inset-0 z-[250] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
-                  style={{ background: 'linear-gradient(160deg,#1a0000,#380000)', border: '2px solid #fbbf24', boxShadow: '0 0 40px rgba(251,191,36,0.5)', maxWidth: 300, textAlign: 'center' }}>
+                  style={{ background: 'linear-gradient(180deg,#c9901a 0%,#9a6800 18%,#5a3800 100%)', boxShadow: 'inset 0 1px 0 rgba(255,220,120,0.5), 0 8px 40px rgba(251,191,36,0.45)', maxWidth: 300, textAlign: 'center' }}>
                   <img src="/ui/dragon_vase.png" alt="" style={{ width: '3.5rem', height: '3.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(255,140,0,0.7))' }} />
                   <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: '0 0 12px rgba(251,191,36,0.8)' }}>
                       JACKPOT PICK<br />TRIGGERED!
@@ -4905,9 +4906,10 @@ const App: React.FC = () => {
                               }));
                           }, 900);
                       }}
-                      className="font-black uppercase tracking-widest rounded-xl px-6 py-2.5"
-                      style={{ background: 'linear-gradient(135deg,#fbbf24,#f59e0b)', color: '#1a0000', fontSize: 'clamp(12px,2.2vw,16px)', boxShadow: '0 4px 18px rgba(251,191,36,0.6)' }}
-                  >LET'S GO!</button>
+                      className="pill-gold"
+                  >
+                      <div className="pill-face" style={{ padding: '9px 26px', fontSize: 'clamp(12px,2.2vw,16px)' }}>Let's Go!</div>
+                  </button>
               </div>
           </div>
       )}
@@ -4915,7 +4917,7 @@ const App: React.FC = () => {
       {showEgyptHoldWinPopup && (
           <div className="absolute inset-0 z-[250] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
-                  style={{ background: 'linear-gradient(160deg,#2a1400,#4a2600)', border: '2px solid #f59e0b', boxShadow: '0 0 40px rgba(245,158,11,0.6)', maxWidth: 300, textAlign: 'center' }}>
+                  style={{ background: 'linear-gradient(180deg,#b5701a 0%,#7a4500 30%,#3a2000 100%)', boxShadow: 'inset 0 1px 0 rgba(255,210,130,0.5), 0 8px 40px rgba(245,158,11,0.5)', maxWidth: 300, textAlign: 'center' }}>
                   <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>🏺</span>
                   <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: '0 0 12px rgba(245,158,11,0.9)' }}>
                       Hold &amp; Win<br />Triggered!
@@ -4928,7 +4930,7 @@ const App: React.FC = () => {
       {showArcticTriggerPopup && (
           <div className="absolute inset-0 z-[250] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
-                  style={{ background: 'linear-gradient(160deg,#001428,#00080f)', border: '2px solid #22d3ee', boxShadow: '0 0 40px rgba(34,211,238,0.5)', maxWidth: 300, textAlign: 'center' }}>
+                  style={{ background: 'linear-gradient(180deg,#1a6a8c 0%,#0a3a5a 35%,#001828 100%)', boxShadow: 'inset 0 1px 0 rgba(150,230,255,0.5), 0 8px 40px rgba(34,211,238,0.45)', maxWidth: 300, textAlign: 'center' }}>
                   <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>❄️</span>
                   <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: '0 0 12px rgba(34,211,238,0.8)' }}>
                       JACKPOT PICK<br />TRIGGERED!
