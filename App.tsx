@@ -2371,17 +2371,18 @@ const App: React.FC = () => {
     setStoppedReels(prev => {
       const next = prev + 1;
       audioService.playReelStop();
-      // Arctic scatter anticipation: highlight remaining reels when 2 scatters found; clear when 3rd lands
-      if (!fastSpinRef.current && next < selectedGame.reels) {
+      // Scatter anticipation: highlight remaining reels when (scattersToTrigger - 1) scatters found
+      const stt = selectedGame.scattersToTrigger;
+      if (!fastSpinRef.current && next < selectedGame.reels && stt >= 2 && stt < 100) {
           const tGrid = targetGridRef.current;
           let scattersSoFar = 0;
           for (let c = 0; c < next; c++) {
               if (tGrid[c]?.some(s => s === SymbolType.SCATTER)) scattersSoFar++;
           }
-          if (scattersSoFar >= 3 && scatterAnticipationRef.current) {
+          if (scattersSoFar >= stt && scatterAnticipationRef.current) {
               scatterAnticipationRef.current = false;
               setScatterAnticipation(false);
-          } else if (scattersSoFar === 2 && !scatterAnticipationRef.current) {
+          } else if (scattersSoFar >= stt - 1 && scattersSoFar < stt && !scatterAnticipationRef.current) {
               scatterAnticipationRef.current = true;
               setScatterAnticipation(true);
           }
@@ -4245,12 +4246,13 @@ const App: React.FC = () => {
                             // Pre-compute which reel starts the anticipation window so ALL remaining reels
                             // get the same +900 ms extension (not just the last one).
                             let anticipationStartReel = -1;
-                            if (!fastSpin && targetGrid.length > 0) {
+                            const _stt = selectedGame.scattersToTrigger;
+                            if (!fastSpin && targetGrid.length > 0 && _stt >= 2 && _stt < 100) {
                                 let sc = 0;
                                 for (let c = 0; c < targetGrid.length - 1; c++) {
                                     if (targetGrid[c]?.some(s => s === SymbolType.SCATTER)) {
                                         sc++;
-                                        if (sc >= 2) { anticipationStartReel = c + 1; break; }
+                                        if (sc >= _stt - 1) { anticipationStartReel = c + 1; break; }
                                     }
                                 }
                             }

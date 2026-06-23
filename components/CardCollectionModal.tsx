@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Deck, Card, CardRarity } from '../types';
-import { formatNumber, PACK_COSTS, formatCommaNumber, GAMES_CONFIG } from '../constants';
+import { formatNumber, PACK_COSTS, formatCommaNumber, formatK, GAMES_CONFIG } from '../constants';
 import { audioService } from '../services/audioService';
 
 interface CardCollectionModalProps {
@@ -183,15 +183,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         { id: 'ultra', name: 'Premium',  credits: premiumPackCredits, emoji: '🎴', img: '/card_premium.png', color: 'from-yellow-600 to-yellow-800', gemRate: 18 },
     ];
 
-    const abbrev18 = (n: number): string => {
-        const s = formatCommaNumber(n);
-        if (s.length <= 15) return s;
-        const tiers: [number, string][] = [[1e15,'Q'],[1e12,'T'],[1e9,'B'],[1e6,'M'],[1e3,'K']];
-        for (const [div, sfx] of tiers) {
-            if (n >= div) return (n / div).toFixed(1).replace(/\.0$/, '') + sfx;
-        }
-        return s;
-    };
 
     if (!isOpen) return null;
 
@@ -462,7 +453,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             </button>
                                             {/* Per-album completion reward — outside the card container */}
                                             <div className="mt-1 text-center">
-                                                <div className="text-yellow-300 font-black text-[9px]">{abbrev18(getDeckReward(deck.gameId))}</div>
+                                                <div className="text-yellow-300 font-black text-[9px]">{formatK(getDeckReward(deck.gameId))}</div>
                                             </div>
                                         </div>
                                     );
@@ -474,7 +465,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <div className="shrink-0 relative flex items-center justify-center mt-4 px-2">
                             <div className="text-center">
                                 <div className="text-white font-black text-xs tracking-wide">Grand Reward</div>
-                                <div className="text-white font-black font-mono leading-tight" style={{ fontSize: '2.4rem' }}>{abbrev18(grandPrize)}</div>
+                                <div className="text-white font-black font-mono leading-tight" style={{ fontSize: '2.4rem' }}>{formatK(grandPrize)}</div>
                             </div>
                             <button onClick={() => setShowDrawPopup(true)} className="pill-green absolute right-2">
                                 <div className="pill-face" style={{ padding: '6px 14px', fontSize: '11px' }}>Draw Cards</div>
