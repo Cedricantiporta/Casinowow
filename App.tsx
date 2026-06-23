@@ -2169,6 +2169,10 @@ const App: React.FC = () => {
       } else {
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
       }
+
+      if (autoAdvance) {
+          setStageCompletePopup(prev => prev ? { ...prev, autoAdvance: true } : prev);
+      }
   };
 
   // Handler to update Wild Grid state from modal to maintain persistence
@@ -4829,7 +4833,7 @@ const App: React.FC = () => {
         onBuyQuestBundle={handleBuyQuestBundle}
         onPickTile={handleMiniGamePick}
         onBatchPick={handleBatchPick}
-        onStageComplete={(bonusCoins, bonusDiamonds) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds)}
+        onStageComplete={(bonusCoins, bonusDiamonds, autoAdvance) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds, autoAdvance)}
         onGridUpdate={handleWildGridUpdate}
         onDiceRoll={handleDiceRoll}
         onClose={() => setActiveModal('NONE')}
@@ -4990,6 +4994,7 @@ const App: React.FC = () => {
           stage={stageCompletePopup?.stage ?? 1}
           coins={stageCompletePopup?.coins ?? 0}
           diamonds={stageCompletePopup?.diamonds ?? 0}
+          autoAdvance={stageCompletePopup?.autoAdvance}
           onNext={() => setStageCompletePopup(null)}
       />
 
