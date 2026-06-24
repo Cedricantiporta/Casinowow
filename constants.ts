@@ -379,9 +379,9 @@ const getThemeFont = (theme: GameTheme) => {
 // Letter (10/J/Q/K/A) image "font" style per theme. Themes whose low symbols
 // are already custom images (NEON fruits, DRAGON, CANDY) are intentionally omitted.
 const REEL_FONT: Partial<Record<GameTheme, 'beveled' | 'carved' | 'cartoon'>> = {
-  EGYPT: 'carved', PIRATE: 'carved', JUNGLE: 'carved', WESTERN: 'carved', SAMURAI: 'carved', MMORPG: 'carved',
+  EGYPT: 'beveled', PIRATE: 'beveled', JUNGLE: 'beveled', WESTERN: 'beveled', SAMURAI: 'beveled', MMORPG: 'beveled',
   SPACE: 'beveled', UNDERWATER: 'beveled', GOLDEN_POT: 'beveled', ARCTIC: 'beveled',
-  PIGGY: 'cartoon', LEPRECHAUN: 'cartoon', PETS: 'cartoon',
+  PIGGY: 'beveled', LEPRECHAUN: 'beveled', PETS: 'beveled',
 };
 const LETTER_FILE: Record<string, string> = {
   [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
