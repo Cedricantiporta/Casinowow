@@ -139,6 +139,14 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
 
 // Startup assets: everything needed before and shortly after the lobby is shown.
 // Slots load their own assets on demand via SlotLoadingScreen.
+const SCATTER_JP_IMGS: Record<string, string> = {
+    MINI:  '/scatter_mini.png',
+    MINOR: '/scatter_minor.png',
+    MAJOR: '/scatter_major.png',
+    MEGA:  '/scatter_mega.png',
+    GRAND: '/scatter_grand.png',
+};
+
 const STARTUP_ASSETS = [
     // initial load splash background
     '/initialload_bg.png',
@@ -4296,7 +4304,7 @@ const App: React.FC = () => {
                                                             )}
                                                             <div className="relative flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                                 {jpTier ? (
-                                                                    <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain', filter: isCounting ? 'brightness(1.4)' : undefined }} />
+                                                                    <img src={SCATTER_JP_IMGS[jpTier] ?? `/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain', filter: isCounting ? 'brightness(1.4)' : undefined }} />
                                                                 ) : val ? (
                                                                     <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 6px rgba(0,0,0,1), 0 0 3px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
                                                                         {formatKShort(val)}
@@ -4336,7 +4344,7 @@ const App: React.FC = () => {
                                                     {showBorder && <ViperBorder theme="gold" animate={false} />}
                                                     <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                         {jpTier ? (
-                                                            <img src={`/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain' }} />
+                                                            <img src={SCATTER_JP_IMGS[jpTier] ?? `/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain' }} />
                                                         ) : (
                                                             <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
                                                                 {formatKShort(val)}
