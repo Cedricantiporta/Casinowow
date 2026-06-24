@@ -67,6 +67,17 @@ const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
 };
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
+// Mystery Symbol free-spins feature — shared by all four "creature" slots. During free
+// spins, mystery tiles drop onto the reels and, once they stop, all reveal the SAME
+// randomly-chosen symbol at once for big matching combos.
+const MYSTERY_FEATURE_THEMES = new Set<GameTheme>(['FARM', 'BEAST', 'ANGRYFLOCK', 'PRINCESS']);
+const MYSTERY_IMG: Partial<Record<GameTheme, string>> = {
+    FARM:       '/farm_mystery.png',
+    BEAST:      '/beast_mystery.png',
+    ANGRYFLOCK: '/angryflock_mystery.png',
+    PRINCESS:   '/princess_mystery.png',
+};
+
 const getRandomSymbol = (isFreeSpin: boolean, spinsWithoutBonus: number): SymbolType => {
   const weights = GET_DYNAMIC_WEIGHTS(isFreeSpin, spinsWithoutBonus);
   const totalWeight = weights.reduce((acc, w) => acc + w.weight, 0);
@@ -325,6 +336,10 @@ const App: React.FC = () => {
   const [status, setStatus] = useState<GameStatus>(GameStatus.IDLE);
     const [grid, setGrid] = useState<SymbolType[][]>(Array(GAMES_CONFIG[0].reels).fill(null).map(() => Array(GAMES_CONFIG[0].rows).fill(SymbolType.SEVEN)));
   const [targetGrid, setTargetGrid] = useState<SymbolType[][]>([]);
+  // Mystery Symbol feature: cells covered by a mystery tile + whether they've revealed yet.
+  const [mysteryCells, setMysteryCells] = useState<{ c: number; r: number }[]>([]);
+  const [mysteryRevealed, setMysteryRevealed] = useState(false);
+  const mysteryCellsRef = useRef<{ c: number; r: number }[]>([]);
   const [winData, setWinData] = useState<WinData | null>(null);
   const [stoppedReels, setStoppedReels] = useState(0);
   const [instantStop, setInstantStop] = useState(false);
@@ -2075,7 +2090,7 @@ const App: React.FC = () => {
 
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
-      if (freeSpinsRemaining > 0 && ft !== 'ARCTIC' && ft !== 'NEON') {
+      if (freeSpinsRemaining > 0 && ft !== 'ARCTIC' && ft !== 'NEON' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
           // CANDY gets 50% reduced jackpot spawn rates
           const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
@@ -2142,6 +2157,48 @@ const App: React.FC = () => {
                   pirateJpTierRef.current = jpTier;
               }
           }
+      }
+
+      // MYSTERY feature: during free spins, scatter mystery tiles across the grid that all
+      // reveal the SAME randomly-chosen symbol. We set the underlying cells to that symbol now
+      // (so win evaluation is automatic) and record which cells are masked by a mystery tile.
+      mysteryCellsRef.current = [];
+      if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && freeSpinsRemaining > 0) {
+          // Reveal symbol — weighted toward mid/high pays so reveals feel rewarding.
+          const REVEAL_POOL = [
+              { s: SymbolType.GRAPE, w: 24 },
+              { s: SymbolType.BELL,  w: 22 },
+              { s: SymbolType.ACE,   w: 16 },
+              { s: SymbolType.KING,  w: 14 },
+              { s: SymbolType.BAR,   w: 14 },
+              { s: SymbolType.CHERRY, w: 10 },
+          ];
+          const totW = REVEAL_POOL.reduce((a, p) => a + p.w, 0);
+          let rr = Math.random() * totW;
+          let revealSym = REVEAL_POOL[0].s;
+          for (const p of REVEAL_POOL) { rr -= p.w; if (rr <= 0) { revealSym = p.s; break; } }
+
+          // Eligible (plain) cells only — never overwrite scatter/wild/jackpot/coin.
+          const plain: { c: number; r: number }[] = [];
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  const s = newGrid[c][r];
+                  if (s !== SymbolType.SCATTER && s !== SymbolType.WILD && s !== SymbolType.COIN && !String(s).startsWith('JACKPOT')) {
+                      plain.push({ c, r });
+                  }
+              }
+          }
+          // Mystery count: usually 2-4, occasionally a big drop.
+          const roll = Math.random();
+          let count = roll < 0.42 ? 2 : roll < 0.74 ? 3 : roll < 0.90 ? 4 : roll < 0.98 ? 5 : 6;
+          count = Math.min(count, plain.length);
+          for (let i = plain.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [plain[i], plain[j]] = [plain[j], plain[i]];
+          }
+          const chosen = plain.slice(0, count);
+          chosen.forEach(({ c, r }) => { newGrid[c][r] = revealSym; });
+          mysteryCellsRef.current = chosen;
       }
 
       return newGrid;
@@ -2312,6 +2369,9 @@ const App: React.FC = () => {
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
       setTargetGrid(generateSmartGrid());
+      // MYSTERY: arm the tile overlay for this spin (cleared each spin; populated only in free spins).
+      setMysteryRevealed(false);
+      setMysteryCells(mysteryCellsRef.current);
       // CANDY: show wild containers immediately at spin start so borders appear before wilds land
       if (featureThemeOf(selectedGame.theme) === 'CANDY' && freeSpinsRemaining > 0) {
           setCandyCols(candyPendingColsRef.current);
@@ -2669,6 +2729,19 @@ const App: React.FC = () => {
                     }, 400);
                 }
             }
+        }
+
+        // MYSTERY reveal: hold on the mystery tiles briefly, then lift them to expose the
+        // shared symbol underneath before scoring the spin.
+        if (mysteryCellsRef.current.length > 0) {
+            audioService.playBonusTrigger();
+            const revealDelay = fastSpinRef.current ? 250 : 1050;
+            mysteryCellsRef.current = [];
+            setTimeout(() => {
+                setMysteryRevealed(true);
+                calculateWin(targetGrid);
+            }, revealDelay);
+            return next;
         }
 
         calculateWin(targetGrid);
@@ -3411,6 +3484,10 @@ const App: React.FC = () => {
       setGameLoadingConfig(game);
       setTimeout(() => {
           setSelectedGame(game);
+          // Reset Mystery feature overlay when switching games.
+          mysteryCellsRef.current = [];
+          setMysteryCells([]);
+          setMysteryRevealed(false);
           setPlayer(prev => {
               const newRecent = [game.id, ...((prev.stats?.recentSlots as string[]) || []).filter((id: string) => id !== game.id)].slice(0, 5);
               return { ...prev, stats: { ...(prev.stats || { maxSingleWin: 0, maxJackpotWin: 0, totalCoinsWon: 0, totalGemsEarned: 0, totalSpins: 0, recentSlots: [] }), recentSlots: newRecent } };
@@ -3816,10 +3893,10 @@ const App: React.FC = () => {
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
-              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' } :
+              { background:'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' } :
               { background:'linear-gradient(180deg,#380870 0%,#6018a8 30%,#8028c8 55%,#a018d4 82%,#c510e0 100%)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
-            <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}) }}>
+            <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', borderColor:'#8b6200' } : {}) }}>
 
                 {/* LEFT ZONE — Avatar + Coins + Gems */}
                 <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0">
@@ -3831,7 +3908,7 @@ const App: React.FC = () => {
                             ...(currentView === 'LOBBY' && profileEmoji?.startsWith('/Profile_pic')
                                 ? { width: 32, height: 32, padding: 0, overflow: 'hidden' }
                                 : {}),
-                            ...(showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}),
+                            ...(showGoldHeader ? { background:'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', boxShadow:'0 2px 0 #5a3800' } : {}),
                         }}
                     >
                         {currentView !== 'LOBBY'
@@ -4029,7 +4106,7 @@ const App: React.FC = () => {
                     <div
                         onClick={() => showNeonRoulette ? handleNeonRouletteClose() : setShowSettings(true)}
                         className="round-btn shrink-0 cursor-pointer"
-                        style={showGoldHeader ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                        style={showGoldHeader ? { background:'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', boxShadow:'0 2px 0 #5a3800' } : {}}
                     >
                         <i className="ti ti-settings"></i>
                     </div>
@@ -4251,6 +4328,31 @@ const App: React.FC = () => {
                         {/* Arctic pick bonus progress bar — absolute overlay at top of reel area */}
                         {featureThemeOf(selectedGame.theme) === 'ARCTIC' && freeSpinsRemaining === 0 && !showArcticPickModal && (
                             <ArcticProgressBar progress={arcticSpinProgress} />
+                        )}
+
+                        {/* Mystery tile overlay — covers the masked cells until they reveal. */}
+                        {MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && mysteryCells.length > 0 && !mysteryRevealed && (
+                            <div className="absolute inset-0 z-20 pointer-events-none flex gap-0">
+                                {Array(selectedGame.reels).fill(null).map((_, c) => (
+                                    <div key={c} className="flex-1 flex flex-col">
+                                        {Array(selectedGame.rows).fill(null).map((_, r) => {
+                                            const isM = mysteryCells.some(m => m.c === c && m.r === r);
+                                            return (
+                                                <div key={r} className="flex-1 relative flex items-center justify-center overflow-hidden">
+                                                    {isM && (
+                                                        <img
+                                                            src={MYSTERY_IMG[selectedGame.theme]}
+                                                            alt=""
+                                                            className="w-full h-full object-contain select-none animate-bounce-sm"
+                                                            style={{ filter: 'drop-shadow(0 0 10px rgba(255,215,80,0.7))' }}
+                                                        />
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+                            </div>
                         )}
 
                         {/* Winning-cell viper borders — drawn in a top overlay so they're
@@ -4572,18 +4674,18 @@ const App: React.FC = () => {
       {currentView === 'GAME' && (
           <div className="fixed bottom-0 w-full z-50 flex flex-col select-none"
             style={isHighLimit ?
-              { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderTop:'none' } :
+              { background:'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', borderTop:'none' } :
               { background:'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderTop:'none' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
-                style={isHighLimit ? { background:'linear-gradient(180deg,#c9901a,#7a5000)', borderColor:'#8b6200' } : {}}>
+                style={isHighLimit ? { background:'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', borderColor:'#8b6200' } : {}}>
                   {/* Missions Button */}
                   {(() => {
                       const visibleDaily = missionState.activeMissions.filter((m: any) => m.frequency === 'DAILY').slice(0, 4);
                       const missReady = visibleDaily.filter((m: any) => m.completed && !m.claimed).length;
                       return (
                           <div onClick={openMissionsModal} className="icon-btn shrink-0 flex flex-col items-center justify-end relative"
-                              style={isHighLimit ? { background:'linear-gradient(180deg,#e0a820,#9a6800)', borderColor:'#8b6200' } : {}}>
+                              style={isHighLimit ? { background:'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', borderColor:'#8b6200' } : {}}>
                               {missReady > 0 && (
                                   <div className="absolute top-0 right-0 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>{missReady}</div>
                               )}
@@ -4602,7 +4704,7 @@ const App: React.FC = () => {
                           }
                       }}
                       className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || player.autoSpin || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
+                      style={isHighLimit ? { background: 'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       −
                   </div>
@@ -4622,7 +4724,7 @@ const App: React.FC = () => {
                           }
                       }}
                       className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || player.autoSpin || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', color: '#fff' } : {}}
+                      style={isHighLimit ? { background: 'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       +
                   </div>
@@ -4865,7 +4967,7 @@ const App: React.FC = () => {
       {showDragonTriggerPopup && (
           <div className="absolute inset-0 z-[250] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
-                  style={{ background: 'linear-gradient(180deg,#c9901a 0%,#9a6800 18%,#5a3800 100%)', boxShadow: 'inset 0 1px 0 rgba(255,220,120,0.5), 0 8px 40px rgba(251,191,36,0.45)', maxWidth: 300, textAlign: 'center' }}>
+                  style={{ background: 'linear-gradient(180deg,#ffcf33 0%,#c9901a 18%,#9a6800 45%,#5a3800 100%)', boxShadow: 'inset 0 1px 0 rgba(255,220,120,0.5), 0 8px 40px rgba(251,191,36,0.45)', maxWidth: 300, textAlign: 'center' }}>
                   <img src="/ui/dragon_vase.png" alt="" style={{ width: '3.5rem', height: '3.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(255,140,0,0.7))' }} />
                   <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: '0 0 12px rgba(251,191,36,0.8)' }}>
                       JACKPOT PICK<br />TRIGGERED!

@@ -19,6 +19,10 @@ const THEME_IMG_ICON: Partial<Record<string, string>> = {
     GOLDEN_POT: '/goldenpot_scatter.png',
     PETS:       '/pets_scatter.png',
     MMORPG:     '/fantasy_scatter.png',
+    FARM:       '/farm_scatter.png',
+    BEAST:      '/beast_scatter.png',
+    ANGRYFLOCK: '/angryflock_scatter.png',
+    PRINCESS:   '/princess_scatter.png',
 };
 
 function getImagesToPreload(game: GameConfig): string[] {

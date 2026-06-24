@@ -26,6 +26,10 @@ const REEL_BGS: Record<GameTheme, string> = {
     ARCTIC: 'bg-black',
     PETS: 'bg-black',
     MMORPG: 'bg-black',
+    FARM: 'bg-black',
+    BEAST: 'bg-black',
+    ANGRYFLOCK: 'bg-black',
+    PRINCESS: 'bg-black',
 };
 
 // --- Games Configuration ---
@@ -255,6 +259,67 @@ export const GAMES_CONFIG: GameConfig[] = [
   },
 ];
 
+// Mystery-Symbol slots — interspersed into the lobby below via MYSTERY_SLOTS splice.
+const FARM_SLOT: GameConfig = {
+    id: 'barnyard-bonanza',
+    name: 'Barnyard Bonanza',
+    theme: 'FARM',
+    rows: 3,
+    reels: 5,
+    scattersToTrigger: 3,
+    description: 'Mystery Symbols! 3 scatters for free spins where mystery tiles all reveal the same symbol.',
+    color: 'from-lime-500 via-green-600 to-emerald-900',
+    bgImage: 'radial-gradient(circle at 50% 0%, #84cc16 0%, #14532d 100%)',
+    reelBg: REEL_BGS.FARM,
+    coverImage: '/farm.png',
+};
+const BEAST_SLOT: GameConfig = {
+    id: 'beast-rage',
+    name: 'Beast Rage',
+    theme: 'BEAST',
+    rows: 3,
+    reels: 5,
+    scattersToTrigger: 3,
+    description: 'Mystery Symbols! 3 scatters for free spins where mystery tiles all reveal the same symbol.',
+    color: 'from-amber-600 via-orange-800 to-stone-950',
+    bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #1c1917 100%)',
+    reelBg: REEL_BGS.BEAST,
+    coverImage: '/beast.png',
+};
+const ANGRYFLOCK_SLOT: GameConfig = {
+    id: 'angry-flock',
+    name: 'Angry Flock',
+    theme: 'ANGRYFLOCK',
+    rows: 3,
+    reels: 5,
+    scattersToTrigger: 3,
+    description: 'Mystery Symbols! 3 scatters for free spins where mystery tiles all reveal the same symbol.',
+    color: 'from-red-500 via-rose-600 to-red-950',
+    bgImage: 'radial-gradient(circle at 50% 0%, #ef4444 0%, #450a0a 100%)',
+    reelBg: REEL_BGS.ANGRYFLOCK,
+    coverImage: '/angryflock.png',
+};
+const PRINCESS_SLOT: GameConfig = {
+    id: 'princess-realm',
+    name: 'Princess Realm',
+    theme: 'PRINCESS',
+    rows: 3,
+    reels: 5,
+    scattersToTrigger: 3,
+    description: 'Mystery Symbols! 3 scatters for free spins where mystery tiles all reveal the same symbol.',
+    color: 'from-fuchsia-400 via-pink-500 to-purple-900',
+    bgImage: 'radial-gradient(circle at 50% 0%, #e879f9 0%, #4a044e 100%)',
+    reelBg: REEL_BGS.PRINCESS,
+    coverImage: '/princess.png',
+};
+
+// Sprinkle the four new slots across the lobby (not bunched at the end). Splice from the
+// highest index down so earlier insertions don't shift later target positions.
+GAMES_CONFIG.splice(13, 0, PRINCESS_SLOT);
+GAMES_CONFIG.splice(9, 0, ANGRYFLOCK_SLOT);
+GAMES_CONFIG.splice(5, 0, BEAST_SLOT);
+GAMES_CONFIG.splice(2, 0, FARM_SLOT);
+
 // --- Themed Symbol Maps ---
 const JP_ICONS = {
   [SymbolType.JACKPOT_MINI]: '🥉', [SymbolType.JACKPOT_MINOR]: '🥈',
@@ -343,6 +408,26 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
     [SymbolType.GRAPE]: '/fantasy_green.png', [SymbolType.BELL]: '/fantasy_blue.png', [SymbolType.BAR]: '/fantasy_purple.png', [SymbolType.CHERRY]: '/fantasy_red.png', [SymbolType.SEVEN]: '/fantasy_red.png',
     [SymbolType.WILD]: '/fantasy_wild.png', [SymbolType.SCATTER]: '/fantasy_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '/fantasy_scatter.png'
   },
+  FARM: {
+    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+    [SymbolType.GRAPE]: '/farm (1).png', [SymbolType.BELL]: '/farm (2).png', [SymbolType.BAR]: '/farm (3).png', [SymbolType.CHERRY]: '/farm (4).png', [SymbolType.SEVEN]: '/farm (4).png',
+    [SymbolType.WILD]: '/farm_wild.png', [SymbolType.SCATTER]: '/farm_scatter.png', ...JP_ICONS
+  },
+  BEAST: {
+    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+    [SymbolType.GRAPE]: '/beast (1).png', [SymbolType.BELL]: '/beast (2).png', [SymbolType.BAR]: '/beast (3).png', [SymbolType.CHERRY]: '/beast (4).png', [SymbolType.SEVEN]: '/beast (4).png',
+    [SymbolType.WILD]: '/beast_wild.png', [SymbolType.SCATTER]: '/beast_scatter.png', ...JP_ICONS
+  },
+  ANGRYFLOCK: {
+    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+    [SymbolType.GRAPE]: '/angryflock (1).png', [SymbolType.BELL]: '/angryflock (2).png', [SymbolType.BAR]: '/angryflock (3).png', [SymbolType.CHERRY]: '/angryflock (4).png', [SymbolType.SEVEN]: '/angryflock (4).png',
+    [SymbolType.WILD]: '/angryflock_wild.png', [SymbolType.SCATTER]: '/angryflock_scatter.png', ...JP_ICONS
+  },
+  PRINCESS: {
+    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
+    [SymbolType.GRAPE]: '/princess (1).png', [SymbolType.BELL]: '/princess (2).png', [SymbolType.BAR]: '/princess (3).png', [SymbolType.CHERRY]: '/princess (4).png', [SymbolType.SEVEN]: '/princess (4).png',
+    [SymbolType.WILD]: '/princess_wild.png', [SymbolType.SCATTER]: '/princess_scatter.png', ...JP_ICONS
+  },
 };
 
 const TILE_BGS = {
@@ -382,6 +467,7 @@ const REEL_FONT: Partial<Record<GameTheme, 'beveled' | 'carved' | 'cartoon'>> = 
   EGYPT: 'beveled', PIRATE: 'beveled', JUNGLE: 'beveled', WESTERN: 'beveled', SAMURAI: 'beveled', MMORPG: 'beveled',
   SPACE: 'beveled', UNDERWATER: 'beveled', GOLDEN_POT: 'beveled', ARCTIC: 'beveled',
   PIGGY: 'beveled', LEPRECHAUN: 'beveled', PETS: 'beveled',
+  FARM: 'beveled', BEAST: 'beveled', ANGRYFLOCK: 'beveled', PRINCESS: 'beveled',
 };
 const LETTER_FILE: Record<string, string> = {
   [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',

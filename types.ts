@@ -20,7 +20,7 @@ export enum SymbolType {
   COIN = 'COIN'
 }
 
-export type GameTheme = 'NEON' | 'EGYPT' | 'DRAGON' | 'PIRATE' | 'SPACE' | 'CANDY' | 'JUNGLE' | 'UNDERWATER' | 'WESTERN' | 'SAMURAI' | 'PIGGY' | 'GOLDEN_POT' | 'LEPRECHAUN' | 'ARCTIC' | 'PETS' | 'MMORPG';
+export type GameTheme = 'NEON' | 'EGYPT' | 'DRAGON' | 'PIRATE' | 'SPACE' | 'CANDY' | 'JUNGLE' | 'UNDERWATER' | 'WESTERN' | 'SAMURAI' | 'PIGGY' | 'GOLDEN_POT' | 'LEPRECHAUN' | 'ARCTIC' | 'PETS' | 'MMORPG' | 'FARM' | 'BEAST' | 'ANGRYFLOCK' | 'PRINCESS';
 
 export interface SymbolConfig {
   type: SymbolType;

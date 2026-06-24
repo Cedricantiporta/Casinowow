@@ -141,7 +141,7 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
                                         objectFit: 'contain',
                                         filter: isWinCell
                                             ? `drop-shadow(0 0 8px ${color})`
-                                            : 'brightness(0.35)',
+                                            : undefined,
                                     }}
                                 />
                             ) : (
