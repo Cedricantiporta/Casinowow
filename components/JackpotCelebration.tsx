@@ -15,11 +15,11 @@ const TIER_STYLES: Record<string, { border: string; textColor: string; shadow: s
 };
 
 const TIER_IMAGES: Record<string, string> = {
-    MINI:  '/freespinjackpot (1).png',
-    MINOR: '/freespinjackpot (2).png',
-    MAJOR: '/freespinjackpot (3).png',
-    MEGA:  '/freespinjackpot (4).png',
-    GRAND: '/freespinjackpot (5).png',
+    MINI:  '/scatter_mini.png',
+    MINOR: '/scatter_minor.png',
+    MAJOR: '/scatter_major.png',
+    MEGA:  '/scatter_mega.png',
+    GRAND: '/scatter_grand.png',
 };
 
 export const JackpotCelebration: React.FC<JackpotCelebrationProps> = ({ tier, onClose }) => {
