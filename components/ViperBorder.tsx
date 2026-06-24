@@ -113,8 +113,8 @@ export const ViperBorder: React.FC<{ theme: ViperTheme; animate?: boolean }> = (
             };
 
             ctx.save();
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
+            ctx.lineCap = 'square';
+            ctx.lineJoin = 'miter';
             for (const head of heads) {
                 // PASS 1 — soft outer glow halo (wide, low-alpha, additive blend fakes the bloom)
                 ctx.globalCompositeOperation = 'lighter';
