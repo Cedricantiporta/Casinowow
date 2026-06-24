@@ -153,7 +153,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
 
   return (
     <div
-        className={`relative flex-1 ${isScatterShowcase ? 'overflow-visible z-10' : 'overflow-hidden'} ${gameConfig.reelBg} min-w-0`}
+        className={`relative flex-1 overflow-hidden ${isScatterShowcase ? 'z-10' : ''} ${gameConfig.reelBg} min-w-0`}
         style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}` }}
     >
        {/* Anticipation viper border — animated two-snake glow */}
@@ -174,15 +174,13 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                 ${(landing) ? 'animate-bounce-land' : ''}
             `}>
                 {renderStrip.map((s, i) => {
-                    // Determine if this specific cell is a winner
-                    // Only relevant if landing. 
-                    // In landing strip of length N, the visible rows are indices [N-V, ..., N-1].
-                    // winningIndices are relative to the visible window (0..V-1).
-                    // So if i is the index in the full strip:
-                    // visibleRowIndex = i - (totalItems - VISIBLE_ROWS)
-                    const visibleRowIndex = i - (totalItems - VISIBLE_ROWS);
-                    const isWinner = landing && visibleRowIndex >= 0 && winningIndices.includes(visibleRowIndex);
-                    const isShowcase = landing && visibleRowIndex >= 0 && isScatterShowcase && s === SymbolType.SCATTER;
+                    // When landed, the final symbols occupy the TOP VISIBLE_ROWS rows of the
+                    // strip (Effect 2 places finals first), and translateY(0%) shows that top
+                    // window. So the on-screen row index is simply i, for i < VISIBLE_ROWS.
+                    const inVisibleWindow = landing && i < VISIBLE_ROWS;
+                    const visibleRowIndex = i;
+                    const isWinner = inVisibleWindow && winningIndices.includes(visibleRowIndex);
+                    const isShowcase = inVisibleWindow && isScatterShowcase && s === SymbolType.SCATTER;
 
                     return (
                         <ReelCell

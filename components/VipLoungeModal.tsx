@@ -8,6 +8,7 @@ interface VipLoungeModalProps {
     vipLevel?: number;
     vipXp?: number;
     vipXpToNext?: number;
+    vipExpiry?: number;
     onJoinVip: () => void;
     onOpenHighLimit?: () => void;
     onOpenPremium?: () => void;
@@ -46,11 +47,12 @@ const getCurrentTier = (vipLevel: number): VipTier | null => {
 };
 
 export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
-    isOpen, onClose, isVip, playerLevel, vipLevel = 1, vipXp = 0, vipXpToNext = 500, onJoinVip, onOpenHighLimit, onOpenPremium
+    isOpen, onClose, isVip, playerLevel, vipLevel = 1, vipXp = 0, vipXpToNext = 500, vipExpiry, onJoinVip, onOpenHighLimit, onOpenPremium
 }) => {
     if (!isOpen) return null;
 
     const currentTier = getCurrentTier(vipLevel);
+    const vipDaysLeft = vipExpiry ? Math.max(0, Math.ceil((vipExpiry - Date.now()) / (24 * 3600000))) : null;
     const xpPct = Math.min(100, (vipXp / vipXpToNext) * 100);
     const hlUnlocked = playerLevel >= 35 && isVip;
 
@@ -65,7 +67,7 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                     {isVip && currentTier ? (
                         <div className="px-2.5 py-0.5 rounded-full font-black text-[10px] tracking-widest shrink-0"
                             style={{ background: 'linear-gradient(180deg,#fbbf24,#d97706)', color: '#1c0a00' }}>
-                            {currentTier.icon.startsWith('/') ? <img src={currentTier.icon} alt="" style={{ width: 12, height: 12, display: 'inline', objectFit: 'contain' }} /> : currentTier.icon} {currentTier.name}
+                            {currentTier.name}{vipDaysLeft !== null ? ` · ${vipDaysLeft}d left` : ''}
                         </div>
                     ) : (
                         <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-gold shrink-0">

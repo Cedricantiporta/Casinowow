@@ -334,6 +334,30 @@ class AudioService {
   playCoin() { this.playTone(1318.5, 'triangle', 0.08, 0); this.playTone(1975.5, 'sine', 0.12, 0.04); }
   playCoinShower() { for (let i = 0; i < 12; i++) { const f = 1800 - i * 60 + (Math.random() * 120 - 60); this.playTone(f, 'triangle', 0.09, i * 0.045); } }
   playCascade() { this.playTone(300, 'sine', 0.06, 0); this.playTone(420, 'sine', 0.08, 0.05); }
+
+  // Ice-shattering crackle — used when cascade symbols dissolve.
+  playIceShatter() {
+    if (!this.ctx || !this.masterGain) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const t = this.ctx.currentTime;
+    // Short bright noise burst through a high-pass filter = the "shatter" crack.
+    const size = Math.floor(this.ctx.sampleRate * 0.22);
+    const buffer = this.ctx.createBuffer(1, size, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < size; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / size, 2);
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    const hp = this.ctx.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.setValueAtTime(2500, t);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.28, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    noise.connect(hp); hp.connect(g); g.connect(this.masterGain);
+    noise.start(t); noise.stop(t + 0.22);
+    // High glassy tinkles layered on top for the "icy crystal" character.
+    [3200, 4100, 5300, 6400].forEach((f, i) => this.playTone(f + Math.random() * 200, 'triangle', 0.12, i * 0.03));
+  }
   playHover() { this.playTone(2000, 'sine', 0.03, 0); }
 
   playPurchase() {

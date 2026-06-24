@@ -41,7 +41,7 @@ export const FeatureUnlockModal: React.FC<FeatureUnlockModalProps> = ({ isOpen, 
                 {/* Body */}
                 <div className="px-4 pb-4 flex flex-col items-center text-center gap-3">
                     {/* Icon */}
-                    <div className="drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] animate-pulse">
+                    <div className="drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
                         {icon.startsWith('/') ? (
                             <img src={icon} alt={featureName} className="w-16 h-16 object-contain" />
                         ) : (

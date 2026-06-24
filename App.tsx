@@ -1683,6 +1683,7 @@ const App: React.FC = () => {
           const nextMult = inFreeSpins ? mult + 1 : 1;
           setTimeout(() => {
               setCascadeDissolving(true);
+              audioService.playIceShatter();
               setTimeout(() => runCascadeRef.current!(newGrid, nextMult, newAccWin, result.winningCells), 350);
           }, 500);
       } else {
@@ -2918,7 +2919,7 @@ const App: React.FC = () => {
             setStatus(GameStatus.CASCADE);
             audioService.playWinSmall();
             // Dissolve winning cells at 400ms mark, then cascade runs at 700ms
-            setTimeout(() => setCascadeDissolving(true), 400);
+            setTimeout(() => { setCascadeDissolving(true); audioService.playIceShatter(); }, 400);
             setTimeout(() => runCascadeRef.current!(finalGrid, 2, totalPayout, winningCells), 700);
         } else {
             const effectiveFastSpin = fastSpin;
@@ -3756,7 +3757,7 @@ const App: React.FC = () => {
                   setPirateShip2Col(-1);
                   const won = pirateWalkTotalWinRef.current;
                   setTimeout(() => {
-                      setCelebrationMsg(won > 0 ? `Ghost Ship Bounty: +${formatCommaNumber(won)}!` : 'The Ghost Ship sailed away…');
+                      setCelebrationMsg(won > 0 ? `+${formatCommaNumber(won)}` : 'The Ghost Ship sailed away…');
                       if (won > 0) audioService.playWinBig();
                   }, 250);
                   // DO NOT call spin() here — the IDLE effect re-runs after pirateWalkActive flips false
@@ -4254,7 +4255,7 @@ const App: React.FC = () => {
                     const pillStyle = { width:'100%', textAlign:'center' as const, fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#a0f040,#4ab800)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.5),0 2px 0 #1a6000', color:'#0a3000', borderRadius:8, padding:'2px 0', textShadow:'0 1px 0 rgba(255,255,255,0.3)', marginTop:'-6px' };
                     return (
                         <div className="absolute left-1 z-40 flex flex-col gap-1 items-center select-none"
-                            style={{ background: isHighLimit ? 'linear-gradient(180deg,rgba(201,144,26,0.4),rgba(122,80,0,0.4))' : 'linear-gradient(180deg,rgba(124,63,181,0.4),rgba(74,24,128,0.4))', backdropFilter:'blur(8px)', WebkitBackdropFilter:'blur(8px)', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
+                            style={{ background: isHighLimit ? 'linear-gradient(180deg,rgba(201,144,26,0.92),rgba(122,80,0,0.92))' : 'linear-gradient(180deg,rgba(124,63,181,0.92),rgba(74,24,128,0.92))', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
                             {sidebarPage === 0 ? (<>
                                 {/* Mine */}
                                 <button
@@ -4862,7 +4863,7 @@ const App: React.FC = () => {
                               audioService.playClick();
                           }
                       }}
-                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE || betIndex === availableBets.length - 1 || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat blue maxbet shrink-0 ${status !== GameStatus.IDLE || betIndex === availableBets.length - 1 || freeSpinsRemaining > 0 || pirateWalkActive || player.autoSpin ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                   >
                       <div className="flat-face">
                           <div className="flat-in h-full">
@@ -5405,6 +5406,7 @@ const App: React.FC = () => {
           vipLevel={player.vipLevel ?? 1}
           vipXp={player.vipXp ?? 0}
           vipXpToNext={player.vipXpToNext ?? 500}
+          vipExpiry={player.vipExpiry}
           onJoinVip={handleJoinVip}
           onOpenHighLimit={() => { setShowVipLounge(false); setTimeout(handleOpenHighRoller, 50); }}
           onOpenPremium={() => { setShowVipLounge(false); setTimeout(() => setShowPremiumModal(true), 50); }}

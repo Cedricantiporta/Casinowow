@@ -70,7 +70,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
 
     useEffect(() => {
         if (!isOpen) return;
-        const prices = [49, 99, 199, 499, 2490];
+        const prices = [29, 49, 99, 249, 1249];
+        // Coin amounts stay tied to the original tiers so the lower prices are a better deal.
+        const coinBase = [49, 99, 199, 499, 2490];
         const labels = ['Pile', 'Double', 'Big Bag', 'Roller', 'Jackpot'];
         const icons = ['/coin_1.png', '/coin_2.png', '/coin_3.png', '/coin_4.png', '/coin_5.png'];
         const colors = [
@@ -81,7 +83,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             'from-yellow-500 to-amber-700',
         ];
         setDynamicPacks(prices.map((price, i) => {
-            const amount = Math.round((price / 50) * maxBet);
+            const amount = Math.round((coinBase[i] / 50) * maxBet);
             return {
                 icon: icons[i],
                 label: labels[i],
@@ -100,9 +102,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         : 0;
 
     const gemPacks = [
-        { icon: '/gem_1.png', label: '100 Gems',   sub: '100',   pesosLabel: '99',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
-        { icon: '/gem_2.png', label: '500 Gems',   sub: '500',   pesosLabel: '399', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
-        { icon: '/gem_3.png', label: '5,000 Gems', sub: '5,000', pesosLabel: '999', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
+        { icon: '/gem_1.png', label: '100 Gems',   sub: '100',   pesosLabel: '49',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
+        { icon: '/gem_2.png', label: '500 Gems',   sub: '500',   pesosLabel: '199', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
+        { icon: '/gem_3.png', label: '5,000 Gems', sub: '5,000', pesosLabel: '499', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
     ];
 
     const boostPacks = [
@@ -240,7 +242,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                                     VIP -{discount}%
                                                 </div>
                                             )}
-                                            <div className="text-xs font-black uppercase text-white tracking-widest leading-none text-center">{item.label}</div>
+                                            <div className={`text-xs font-black uppercase text-white tracking-widest leading-none w-full ${showVipDiscount ? 'text-left pr-12' : 'text-center'}`}>{item.label}</div>
                                             <div className="flex-1 flex items-center justify-center py-1">
                                                 {typeof item.icon === 'string' && item.icon.startsWith('/') ? (
                                                     <img src={item.icon} alt="" style={{ width: '6rem', height: '6rem', objectFit: 'contain', display: 'block' }} />
@@ -262,7 +264,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                                             ? '✓ Claimed'
                                                             : item.price.startsWith('GEM:')
                                                                 ? <><img src="/symbols/diamond.png" alt="" style={{ width: '0.85em', height: '0.85em', objectFit: 'contain', display: 'inline-block' }} /> {item.price.slice(4)}</>
-                                                                : item.price}
+                                                                : (showVipDiscount && discountedPeso !== null)
+                                                                    ? <span className="flex items-center gap-1 justify-center"><span style={{ opacity: 0.6, textDecoration: 'line-through' }}>₱ {originalPeso}</span><span>₱ {discountedPeso}</span></span>
+                                                                    : item.price}
                                                     </div>
                                                 </button>
                                             </div>
