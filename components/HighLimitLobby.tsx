@@ -190,7 +190,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                             onMouseDown={() => startScroll('LEFT')} onMouseUp={stopScroll} onMouseLeave={stopScroll}
                             onTouchStart={() => startScroll('LEFT')} onTouchEnd={stopScroll}
                             className="absolute left-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
-                            style={{ background: 'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', border: '1.5px solid #8b6200', borderRadius: '8px', boxShadow: '0 3px 0 #5a3000,0 4px 8px rgba(0,0,0,0.6)' }}
+                            style={{ background: 'linear-gradient(180deg,#ffe24d 0%,#ffb31a 50%,#f57c00 100%)', border: '1.5px solid #8b6200', borderRadius: '8px', boxShadow: '0 3px 0 #5a3000,0 4px 8px rgba(0,0,0,0.6)' }}
                         >◀</button>
                     )}
                     {canScroll && (
@@ -198,7 +198,7 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                             onMouseDown={() => startScroll('RIGHT')} onMouseUp={stopScroll} onMouseLeave={stopScroll}
                             onTouchStart={() => startScroll('RIGHT')} onTouchEnd={stopScroll}
                             className="absolute right-0 z-30 w-6 h-9 flex items-center justify-center text-white text-[10px] font-black active:translate-y-[2px] transition-transform select-none"
-                            style={{ background: 'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', border: '1.5px solid #8b6200', borderRadius: '8px', boxShadow: '0 3px 0 #5a3000,0 4px 8px rgba(0,0,0,0.6)' }}
+                            style={{ background: 'linear-gradient(180deg,#ffe24d 0%,#ffb31a 50%,#f57c00 100%)', border: '1.5px solid #8b6200', borderRadius: '8px', boxShadow: '0 3px 0 #5a3000,0 4px 8px rgba(0,0,0,0.6)' }}
                         >▶</button>
                     )}
                 </>

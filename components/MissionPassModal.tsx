@@ -176,7 +176,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden">
                         {currentMissions.map((mission) => (
                             <div key={mission.id}
-                                className={`${mission.isGolden ? 'tcard-gold' : 'tcard'} flex-1 flex flex-col gap-2 p-3 pb-2 relative overflow-hidden`}>
+                                className={`${mission.isGolden ? 'tcard-goldpurple' : 'tcard'} flex-1 flex flex-col gap-2 p-3 pb-2 relative overflow-hidden`}>
                                 {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
                                     <div className="flex items-center justify-start relative z-10 -mb-1">
                                         <div className="flex gap-0.5 items-center">

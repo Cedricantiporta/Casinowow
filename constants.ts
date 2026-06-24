@@ -46,7 +46,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #f472b6 0%, #831843 100%)',
     reelBg: REEL_BGS.PIGGY,
     slotBg: '/slots/piggy_bg.jpg',
-    coverImage: '/slots/piggy_covernew.jpg',
+    coverImage: '/newicon_piggy.png',
   },
   {
     id: 'neon-vegas',
@@ -59,7 +59,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-fuchsia-600 via-purple-600 to-indigo-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #7c3aed 0%, #2e1065 100%)',
     reelBg: REEL_BGS.NEON,
-    coverImage: '/slots/vegas_covernew.png',
+    coverImage: '/newicon_neon.png',
   },
   {
     id: 'pharaoh-tomb',
@@ -73,7 +73,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #451a03 100%)',
     reelBg: REEL_BGS.EGYPT,
     slotBg: '/slots/egypt_bg.jpg',
-    coverImage: '/slots/pharaoh_covernew.jpg',
+    coverImage: '/newicon_pharaoh.png',
   },
   {
     id: 'arctic-freeze',
@@ -101,7 +101,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     bgImage: 'radial-gradient(circle at 50% 0%, #ef4444 0%, #450a0a 100%)',
     reelBg: REEL_BGS.DRAGON,
     slotBg: '/slots/dragon_bg.jpg',
-    coverImage: '/Oxgoldpower_cover.png',
+    coverImage: '/newicon_dragon.png',
   },
   {
     id: 'pirate-bounty',

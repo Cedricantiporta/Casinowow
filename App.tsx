@@ -160,7 +160,7 @@ const SCATTER_JP_IMGS: Record<string, string> = {
 
 const STARTUP_ASSETS = [
     // initial load splash background
-    '/initialload_bg.png',
+    '/initialload_bg.jpg',
     // lobby backgrounds
     '/lobby-bg.jpg', '/lobby-bg-vip.jpg',
     // slot loading screen background (shown while a game loads in)
@@ -3878,7 +3878,7 @@ const App: React.FC = () => {
   if (!appReady) {
       return (
           <div className="bg-[#0a0015] flex items-center justify-center overflow-hidden" style={{ position: 'fixed', inset: 0 }}>
-              <div style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              <div style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/initialload_bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
                   <div style={{ position: 'absolute', bottom: '13%', left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
                       <div style={{ width: 220, height: 16, borderRadius: 9999, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden', position: 'relative' }}>
                           <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)', transition: 'width 0.2s ease', borderRadius: 9999 }} />
@@ -3902,10 +3902,10 @@ const App: React.FC = () => {
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
             style={showGoldHeader ?
-              { background:'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' } :
+              { background:'linear-gradient(180deg,#ffe24d 0%,#ffb31a 50%,#f57c00 100%)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' } :
               { background:'linear-gradient(180deg,#380870 0%,#6018a8 30%,#8028c8 55%,#a018d4 82%,#c510e0 100%)', borderBottom:'none', boxShadow:'inset 0 2px 6px rgba(0,0,0,0.6)' }}>
             {/* Bar B (Replicated from mockup - stats, lobby home, multipliers, mute) */}
-            <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', borderColor:'#8b6200' } : {}) }}>
+            <div className="barB bar font-nunito w-full h-full flex items-center gap-1 md:gap-1.5 rounded-none p-1.5 px-1.5 md:px-3 relative" style={{ borderTop:'none', ...(showGoldHeader ? { background:'linear-gradient(180deg,#ffe24d 0%,#ffb31a 50%,#f57c00 100%)', borderColor:'#8b6200' } : {}) }}>
 
                 {/* LEFT ZONE — Avatar + Coins + Gems */}
                 <div className="flex items-center gap-1 md:gap-1.5 flex-1 min-w-0">
@@ -3917,7 +3917,7 @@ const App: React.FC = () => {
                             ...(currentView === 'LOBBY' && profileEmoji?.startsWith('/Profile_pic')
                                 ? { width: 32, height: 32, padding: 0, overflow: 'hidden' }
                                 : {}),
-                            ...(showGoldHeader ? { background:'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', boxShadow:'0 2px 0 #5a3800' } : {}),
+                            ...(showGoldHeader ? { background:'linear-gradient(180deg,#ffec70 0%,#ffbe2a 50%,#ff8c12 100%)', boxShadow:'0 2px 0 #5a3800' } : {}),
                         }}
                     >
                         {currentView !== 'LOBBY'
@@ -4115,7 +4115,7 @@ const App: React.FC = () => {
                     <div
                         onClick={() => showNeonRoulette ? handleNeonRouletteClose() : setShowSettings(true)}
                         className="round-btn shrink-0 cursor-pointer"
-                        style={showGoldHeader ? { background:'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', boxShadow:'0 2px 0 #5a3800' } : {}}
+                        style={showGoldHeader ? { background:'linear-gradient(180deg,#ffec70 0%,#ffbe2a 50%,#ff8c12 100%)', boxShadow:'0 2px 0 #5a3800' } : {}}
                     >
                         <i className="ti ti-settings"></i>
                     </div>
@@ -4683,18 +4683,18 @@ const App: React.FC = () => {
       {currentView === 'GAME' && (
           <div className="fixed bottom-0 w-full z-50 flex flex-col select-none"
             style={isHighLimit ?
-              { background:'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', borderTop:'none' } :
+              { background:'linear-gradient(180deg,#ffe24d 0%,#ffb31a 50%,#f57c00 100%)', borderTop:'none' } :
               { background:'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderTop:'none' }}>
               {/* Bar A (Replicated from mockup - Bet details, Win panel, Spin trigger) */}
               <div className="barA bar font-nunito w-full flex items-stretch gap-1 md:gap-1.5 rounded-none p-1.5 px-3 md:px-6 h-[56px] md:h-[64px]"
-                style={isHighLimit ? { background:'linear-gradient(180deg,#ffcf33 0%,#c9901a 42%,#7a5000 100%)', borderColor:'#8b6200' } : {}}>
+                style={isHighLimit ? { background:'linear-gradient(180deg,#ffe24d 0%,#ffb31a 50%,#f57c00 100%)', borderColor:'#8b6200' } : {}}>
                   {/* Missions Button */}
                   {(() => {
                       const visibleDaily = missionState.activeMissions.filter((m: any) => m.frequency === 'DAILY').slice(0, 4);
                       const missReady = visibleDaily.filter((m: any) => m.completed && !m.claimed).length;
                       return (
                           <div onClick={openMissionsModal} className="icon-btn shrink-0 flex flex-col items-center justify-end relative"
-                              style={isHighLimit ? { background:'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', borderColor:'#8b6200' } : {}}>
+                              style={isHighLimit ? { background:'linear-gradient(180deg,#ffec70 0%,#ffbe2a 50%,#ff8c12 100%)', borderColor:'#8b6200' } : {}}>
                               {missReady > 0 && (
                                   <div className="absolute top-0 right-0 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>{missReady}</div>
                               )}
@@ -4713,7 +4713,7 @@ const App: React.FC = () => {
                           }
                       }}
                       className={`pm shrink-0 ${betIndex === 0 || status !== GameStatus.IDLE || player.autoSpin || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { background: 'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', border: '1px solid #8b6200', color: '#fff' } : {}}
+                      style={isHighLimit ? { background: 'linear-gradient(180deg,#ffec70 0%,#ffbe2a 50%,#ff8c12 100%)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       −
                   </div>
@@ -4733,7 +4733,7 @@ const App: React.FC = () => {
                           }
                       }}
                       className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || player.autoSpin || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
-                      style={isHighLimit ? { background: 'linear-gradient(180deg,#ffd84a 0%,#e0a820 42%,#9a6800 100%)', border: '1px solid #8b6200', color: '#fff' } : {}}
+                      style={isHighLimit ? { background: 'linear-gradient(180deg,#ffec70 0%,#ffbe2a 50%,#ff8c12 100%)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       +
                   </div>

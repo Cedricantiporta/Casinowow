@@ -112,7 +112,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
                 })}
 
                 {/* Jackpot roulette tile — playable every 3 hours. Uses the shared gold card design. */}
-                <div className={`${jackpotReady ? 'tcard-gold' : 'tcard'} flex flex-col items-center flex-1 gap-2 p-3`}>
+                <div className={`${jackpotReady ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center flex-1 gap-2 p-3`}>
                     <div className={`transition-all duration-300 flex items-center justify-center ${jackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
                         <img src="/symbols/neon_bonus.png" alt=""
                             style={{ width: 72, height: 72, objectFit: 'contain', filter: jackpotReady ? 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' : undefined }} />
