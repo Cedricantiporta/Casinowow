@@ -1,5 +1,6 @@
 
 import React, { useState, useRef } from 'react';
+import { formatNumber } from '../constants';
 
 interface ArcticPickGridProps {
     jackpotAmounts: number[];
@@ -55,7 +56,9 @@ interface Cell { id: number; tier: Tier; state: CellState; }
 
 export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWin, rows, cols }) => {
     const [winningTier] = useState<Tier>(rollWinningTier);
+    const totalCells = rows * cols;
 
+    // 11 winning + 1 per other tier = 15 cells; non-winning tiers cap at 1/2, never trigger win
     const [cells, setCells] = useState<Cell[]>(() => {
         const tierList: Tier[] = [
             ...Array(11).fill(winningTier),
@@ -64,108 +67,123 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
         return shuffle(tierList).map((tier, id) => ({ id, tier, state: 'hidden' as CellState }));
     });
 
-    const [tierCounts, setTierCounts] = useState<Partial<Record<Tier, number>>>({});
+    const [revealedCount, setRevealedCount] = useState(0);
     const [wonTier, setWonTier] = useState<Tier | null>(null);
+    const [winAmount, setWinAmount] = useState(0);
     const winFiredRef = useRef(false);
 
     const handlePick = (id: number) => {
         if (wonTier) return;
         setCells(prev => {
+            if (prev.find(c => c.id === id)?.state === 'revealed') return prev;
             const next = prev.map(c => c.id === id ? { ...c, state: 'revealed' as CellState } : c);
-            const counts: Partial<Record<Tier, number>> = {};
-            next.forEach(c => { if (c.state === 'revealed') counts[c.tier] = (counts[c.tier] || 0) + 1; });
-            setTierCounts(counts);
-            // Only winning tier has 11 cells — others cap at 1, so only winning tier can reach 2
-            if ((counts[winningTier] || 0) >= 2 && !winFiredRef.current) {
-                winFiredRef.current = true;
-                setWonTier(winningTier);
-                const amount = currentBet * BET_MULTS[winningTier];
-                setTimeout(() => onWin(winningTier, amount), 900);
+            const revealed = next.filter(c => c.state === 'revealed').length;
+            setRevealedCount(revealed);
+            if (!winFiredRef.current) {
+                const winCount = next.filter(c => c.state === 'revealed' && c.tier === winningTier).length;
+                if (winCount >= 2) {
+                    winFiredRef.current = true;
+                    const amount = currentBet * BET_MULTS[winningTier];
+                    setWinAmount(amount);
+                    setWonTier(winningTier);
+                }
             }
             return next;
         });
     };
 
-    // Always show 2 dots per tier — only winning tier has 11 cells so only it can reach 2
-    const dotsFor = (_t: Tier) => 2;
+    const handleClaim = () => {
+        onWin(wonTier!, winAmount);
+    };
+
+    const progress = totalCells > 0 ? revealedCount / totalCells : 0;
+    const winColor = wonTier ? TIER_COLOR[wonTier] : '#fde68a';
 
     return (
-        <div className="absolute inset-0 z-30 flex flex-col rounded-xl overflow-hidden"
-            style={{ background: 'linear-gradient(160deg,#001428,#00080f)' }}>
+        <div className="absolute inset-0 z-30 flex flex-col overflow-hidden"
+            style={{ background: '#000a14' }}>
 
-            {/* Progress dots row */}
-            <div className="flex justify-around px-3 pt-1.5 pb-1 flex-shrink-0">
-                {TIERS.map(tier => {
-                    const count = Math.min(tierCounts[tier] || 0, dotsFor(tier));
-                    const color = TIER_COLOR[tier];
-                    const isWon = wonTier === tier;
-                    return (
-                        <div key={tier} className="flex flex-col items-center gap-0.5">
-                            <div className="flex gap-1">
-                                {Array(dotsFor(tier)).fill(null).map((_, i) => (
-                                    <div key={i} className="transition-all duration-200" style={{
-                                        width: 7, height: 7, borderRadius: 2,
-                                        background: i < count ? color : 'rgba(255,255,255,0.12)',
-                                        boxShadow: i < count ? `0 0 5px ${color}` : 'none',
-                                    }} />
-                                ))}
-                            </div>
-                            {isWon && (
-                                <span className="animate-pop-in" style={{ fontSize: 'clamp(7px,1.2vw,9px)', color, fontWeight: 900, lineHeight: 1 }}>WIN!</span>
-                            )}
-                        </div>
-                    );
-                })}
+            {/* Progress bar — rectangle, golden gradient container, no text */}
+            <div style={{ width: '100%', height: 10, flexShrink: 0, position: 'relative', background: 'linear-gradient(90deg,#3d1700,#7c3800,#c87800,#ffd700,#c87800,#7c3800,#3d1700)' }}>
+                <div style={{
+                    position: 'absolute', left: 0, top: 0, bottom: 0,
+                    width: `${progress * 100}%`,
+                    background: 'linear-gradient(90deg,#ffe566,#fffba0,#ffe566)',
+                    boxShadow: '0 0 6px rgba(255,220,80,0.7)',
+                    transition: 'width 0.2s ease',
+                }} />
             </div>
 
             {/* Pick grid */}
-            <div className="flex-1 min-h-0 px-1.5 pb-1.5" style={{
+            <div className="flex-1 min-h-0 p-1" style={{
                 display: 'grid',
                 gridTemplateColumns: `repeat(${cols}, 1fr)`,
                 gridTemplateRows: `repeat(${rows}, 1fr)`,
-                gap: 5,
+                gap: 3,
             }}>
                 {cells.map(cell => {
                     const revealed = cell.state === 'revealed';
-                    const color = TIER_COLOR[cell.tier];
                     const isWinCell = wonTier === cell.tier && revealed;
+                    const color = TIER_COLOR[cell.tier];
                     return (
                         <button
                             key={cell.id}
-                            onClick={() => !revealed && !wonTier && handlePick(cell.id)}
+                            onClick={() => handlePick(cell.id)}
                             disabled={revealed || !!wonTier}
-                            className={isWinCell ? 'animate-bounce-sm' : ''}
                             style={{
-                                borderRadius: 10,
+                                borderRadius: 0,
                                 border: 'none',
-                                background: revealed ? 'rgba(255,255,255,0.04)' : 'radial-gradient(circle at 38% 30%, #003a5a, #00121e)',
-                                cursor: revealed || wonTier ? 'default' : 'pointer',
-                                display: 'flex', flexDirection: 'column',
-                                alignItems: 'center', justifyContent: 'center',
-                                gap: 2,
-                                transition: 'background 0.25s',
+                                background: '#000',
+                                cursor: revealed || !!wonTier ? 'default' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: 0,
                                 minHeight: 0,
-                                boxShadow: isWinCell ? `0 0 16px ${color}88` : 'none',
+                                boxShadow: isWinCell ? `0 0 14px ${color}` : undefined,
+                                transition: 'box-shadow 0.3s',
                             }}>
                             {revealed ? (
-                                <>
-                                    <img src={TIER_IMG[cell.tier]} alt="" style={{ width: 'clamp(16px,3.2vw,26px)', height: 'clamp(16px,3.2vw,26px)', objectFit: 'contain', display: 'block' }} />
-                                    <span style={{
-                                        fontSize: 'clamp(7px,1.4vw,11px)',
-                                        color,
-                                        fontWeight: 900,
-                                        letterSpacing: '0.05em',
-                                        lineHeight: 1,
-                                        textTransform: 'uppercase',
-                                    }}>{cell.tier}</span>
-                                </>
+                                <img
+                                    src={TIER_IMG[cell.tier]}
+                                    alt=""
+                                    style={{
+                                        width: '65%', height: '65%',
+                                        objectFit: 'contain',
+                                        filter: isWinCell
+                                            ? `drop-shadow(0 0 8px ${color})`
+                                            : 'brightness(0.4)',
+                                    }}
+                                />
                             ) : (
-                                <span style={{ fontSize: 'clamp(18px,3.5vw,30px)', lineHeight: 1 }}>🧊</span>
+                                <img
+                                    src="/arctic/snow.png"
+                                    alt=""
+                                    style={{ width: '55%', height: '55%', objectFit: 'contain', opacity: 0.55, filter: 'drop-shadow(0 1px 4px rgba(100,200,255,0.4))' }}
+                                />
                             )}
                         </button>
                     );
                 })}
             </div>
+
+            {/* Win overlay — shown after 2nd match; user clicks Claim to close */}
+            {wonTier && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 animate-pop-in"
+                    style={{ background: 'rgba(0,0,0,0.88)' }}>
+                    <img
+                        src={TIER_IMG[wonTier]}
+                        alt={wonTier}
+                        style={{ width: 'clamp(100px,35vw,180px)', height: 'auto', filter: `drop-shadow(0 0 20px ${winColor})` }}
+                    />
+                    <div style={{ fontSize: 'clamp(1.4rem,5vw,2.2rem)', fontFamily: "'Tanker', cursive", color: winColor, lineHeight: 1 }}>
+                        +{formatNumber(winAmount)}
+                    </div>
+                    <button onClick={handleClaim} className="pill-green" style={{ marginTop: 4 }}>
+                        <div className="pill-face" style={{ padding: '6px 22px', fontSize: '11px' }}>Claim</div>
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
