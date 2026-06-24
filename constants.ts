@@ -272,6 +272,7 @@ const FARM_SLOT: GameConfig = {
     bgImage: 'radial-gradient(circle at 50% 0%, #84cc16 0%, #14532d 100%)',
     reelBg: REEL_BGS.FARM,
     coverImage: '/farm.png',
+    slotBg: '/farm_bg.png',
 };
 const BEAST_SLOT: GameConfig = {
     id: 'beast-rage',
@@ -285,6 +286,7 @@ const BEAST_SLOT: GameConfig = {
     bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #1c1917 100%)',
     reelBg: REEL_BGS.BEAST,
     coverImage: '/beast.png',
+    slotBg: '/beast_bg.png',
 };
 const ANGRYFLOCK_SLOT: GameConfig = {
     id: 'angry-flock',
@@ -298,6 +300,7 @@ const ANGRYFLOCK_SLOT: GameConfig = {
     bgImage: 'radial-gradient(circle at 50% 0%, #ef4444 0%, #450a0a 100%)',
     reelBg: REEL_BGS.ANGRYFLOCK,
     coverImage: '/angryflock.png',
+    slotBg: '/angryflock_bg.png',
 };
 const PRINCESS_SLOT: GameConfig = {
     id: 'princess-realm',
@@ -311,6 +314,7 @@ const PRINCESS_SLOT: GameConfig = {
     bgImage: 'radial-gradient(circle at 50% 0%, #e879f9 0%, #4a044e 100%)',
     reelBg: REEL_BGS.PRINCESS,
     coverImage: '/princess.png',
+    slotBg: '/princess_bg.png',
 };
 
 // Sprinkle the four new slots across the lobby (not bunched at the end). Splice from the
@@ -505,6 +509,7 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
   const isLeprechaun = theme === 'LEPRECHAUN';
   const isGoldenPot  = theme === 'GOLDEN_POT';
   const isMmorpg    = theme === 'MMORPG';
+  const isMystery   = theme === 'FARM' || theme === 'BEAST' || theme === 'ANGRYFLOCK' || theme === 'PRINCESS';
   const T = TILE_BGS.TRANSPARENT;
   // Egypt: override letter symbols with golden 3D style
   const egyptLtr = isEgypt ? {
@@ -520,13 +525,13 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
     [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: letterIcon(SymbolType.QUEEN, icons.QUEEN), value: 1,    ...LTR.QUEEN, ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...(isCandy && { imageScale: 1.3 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
     [SymbolType.KING]:  { type: SymbolType.KING,  icon: letterIcon(SymbolType.KING, icons.KING),   value: 1.5,  ...LTR.KING, ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
     [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: letterIcon(SymbolType.ACE, icons.ACE),     value: 2,    ...LTR.ACE,  ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
-    [SymbolType.GRAPE]:   { type: SymbolType.GRAPE,   icon: icons.GRAPE, value: 2.5,  style: 'text-emerald-100 drop-shadow-md', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
-    [SymbolType.BELL]:    { type: SymbolType.BELL,    icon: icons.BELL, value: 4.5,  style: 'text-blue-100 drop-shadow-[0_0_5px_#3b82f6]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
-    [SymbolType.BAR]:     { type: SymbolType.BAR,     icon: icons.BAR, value: 7.5,  style: 'text-purple-100 drop-shadow-[0_0_5px_#a855f7]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
-    [SymbolType.CHERRY]:  { type: SymbolType.CHERRY,  icon: icons.CHERRY, value: 11, style: 'text-red-100 drop-shadow-[0_0_5px_#ef4444]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
-    [SymbolType.SEVEN]:   { type: SymbolType.SEVEN,   icon: icons.SEVEN, value: 15.625, style: 'text-yellow-100 drop-shadow-[0_0_10px_#eab308]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isPiggy ? { imageScale: 2.1 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : {}) },
-    [SymbolType.WILD]:    { type: SymbolType.WILD,    icon: icons.WILD, value: 15.625, style: `text-yellow-900 font-black tracking-tighter drop-shadow-[0_1px_0_rgba(255,255,255,0.5)] ${themeFont}`, bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,215,0,0.9)] border-yellow-300/60', ...((isDragon || isEgypt) && { imageScale: 1.2 }), ...((isPirate || isArctic) && { imageScale: 1.3 }), ...(isCandy && { imageScale: 1.45 }), ...(isPiggy && { imageScale: 1.74 }), ...((isWestern || isLeprechaun) && { imageScale: 1.45 }), ...((isJungle || isMmorpg) && { imageScale: 1.6 }), ...((isGoldenPot || isPets) && { imageScale: 1.7 }), ...(isUnderwater && { imageScale: 1.7 }) },
-    [SymbolType.SCATTER]: { type: SymbolType.SCATTER, icon: icons.SCATTER, value: 0, style: 'text-white drop-shadow-[0_0_15px_#3F51B5]', bg: T, ...(isNeon && { imageScale: 1.7 }), ...(isDragon && { imageScale: 1.2 }), ...(isPiggy ? { imageScale: 3.2 } : isGoldenPot ? { imageScale: 1.7 } : isPets ? { imageScale: 1.8 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isWestern || isUnderwater || isLeprechaun || isSamurai) ? { imageScale: 1.5 } : (isJungle || isMmorpg) ? { imageScale: 1.6 } : {}) },
+    [SymbolType.GRAPE]:   { type: SymbolType.GRAPE,   icon: icons.GRAPE, value: 2.5,  style: 'text-emerald-100 drop-shadow-md', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
+    [SymbolType.BELL]:    { type: SymbolType.BELL,    icon: icons.BELL, value: 4.5,  style: 'text-blue-100 drop-shadow-[0_0_5px_#3b82f6]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
+    [SymbolType.BAR]:     { type: SymbolType.BAR,     icon: icons.BAR, value: 7.5,  style: 'text-purple-100 drop-shadow-[0_0_5px_#a855f7]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
+    [SymbolType.CHERRY]:  { type: SymbolType.CHERRY,  icon: icons.CHERRY, value: 11, style: 'text-red-100 drop-shadow-[0_0_5px_#ef4444]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
+    [SymbolType.SEVEN]:   { type: SymbolType.SEVEN,   icon: icons.SEVEN, value: 15.625, style: 'text-yellow-100 drop-shadow-[0_0_10px_#eab308]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isPiggy ? { imageScale: 2.1 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg) ? { imageScale: 1.45 } : {}) },
+    [SymbolType.WILD]:    { type: SymbolType.WILD,    icon: icons.WILD, value: 15.625, style: `text-yellow-900 font-black tracking-tighter drop-shadow-[0_1px_0_rgba(255,255,255,0.5)] ${themeFont}`, bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,215,0,0.9)] border-yellow-300/60', ...((isDragon || isEgypt) && { imageScale: 1.2 }), ...((isPirate || isArctic) && { imageScale: 1.3 }), ...(isCandy && { imageScale: 1.45 }), ...(isPiggy && { imageScale: 1.74 }), ...((isWestern || isLeprechaun) && { imageScale: 1.45 }), ...((isJungle || isMmorpg) && { imageScale: 1.6 }), ...((isGoldenPot || isPets) && { imageScale: 1.7 }), ...(isUnderwater && { imageScale: 1.7 }), ...(isMystery && { imageScale: 1.8 }) },
+    [SymbolType.SCATTER]: { type: SymbolType.SCATTER, icon: icons.SCATTER, value: 0, style: 'text-white drop-shadow-[0_0_15px_#3F51B5]', bg: T, ...(isNeon && { imageScale: 1.7 }), ...(isDragon && { imageScale: 1.2 }), ...(isPiggy ? { imageScale: 3.2 } : isGoldenPot ? { imageScale: 1.7 } : isPets ? { imageScale: 1.8 } : isMystery ? { imageScale: 1.95 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isWestern || isUnderwater || isLeprechaun || isSamurai) ? { imageScale: 1.5 } : (isJungle || isMmorpg) ? { imageScale: 1.6 } : {}) },
     [SymbolType.JACKPOT_MINI]:  { type: SymbolType.JACKPOT_MINI,  icon: '🥉', value: 0, style: 'drop-shadow-[0_0_12px_rgba(205,127,50,1)]',   bg: 'bg-amber-900/40',  highlightClass: 'bg-amber-600/40  shadow-[0_0_50px_rgba(205,127,50,0.9)]  border-amber-400/50' },
     [SymbolType.JACKPOT_MINOR]: { type: SymbolType.JACKPOT_MINOR, icon: '🥈', value: 0, style: 'drop-shadow-[0_0_12px_rgba(192,192,192,1)]',  bg: 'bg-gray-600/40',   highlightClass: 'bg-gray-400/40   shadow-[0_0_50px_rgba(192,192,192,0.9)] border-gray-300/50' },
     [SymbolType.JACKPOT_MAJOR]: { type: SymbolType.JACKPOT_MAJOR, icon: '🥇', value: 0, style: 'drop-shadow-[0_0_12px_rgba(255,215,0,1)]',    bg: 'bg-yellow-700/40', highlightClass: 'bg-yellow-500/40 shadow-[0_0_50px_rgba(255,215,0,0.9)]   border-yellow-300/50' },

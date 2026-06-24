@@ -2177,14 +2177,15 @@ const App: React.FC = () => {
       // (so win evaluation is automatic) and record which cells are masked by a mystery tile.
       mysteryCellsRef.current = [];
       if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && freeSpinsRemaining > 0) {
-          // Reveal symbol — weighted toward mid/high pays so reveals feel rewarding.
+          // Reveal symbol — weighted toward mid/high pays; WILD is rarest outcome.
           const REVEAL_POOL = [
-              { s: SymbolType.GRAPE, w: 24 },
-              { s: SymbolType.BELL,  w: 22 },
-              { s: SymbolType.ACE,   w: 16 },
-              { s: SymbolType.KING,  w: 14 },
-              { s: SymbolType.BAR,   w: 14 },
+              { s: SymbolType.GRAPE,  w: 24 },
+              { s: SymbolType.BELL,   w: 22 },
+              { s: SymbolType.ACE,    w: 16 },
+              { s: SymbolType.KING,   w: 14 },
+              { s: SymbolType.BAR,    w: 14 },
               { s: SymbolType.CHERRY, w: 10 },
+              { s: SymbolType.WILD,   w: 2  },
           ];
           const totW = REVEAL_POOL.reduce((a, p) => a + p.w, 0);
           let rr = Math.random() * totW;
@@ -2201,9 +2202,12 @@ const App: React.FC = () => {
                   }
               }
           }
-          // Mystery count: usually 2-4, occasionally a big drop.
-          const roll = Math.random();
-          let count = roll < 0.42 ? 2 : roll < 0.74 ? 3 : roll < 0.90 ? 4 : roll < 0.98 ? 5 : 6;
+          // Mystery count: 1–15, weighted toward low end (15 = rarest).
+          const COUNT_WEIGHTS = [25, 22, 15, 12, 8, 5, 4, 3, 2.5, 1.5, 1, 0.7, 0.5, 0.4, 0.3];
+          const totalCW = COUNT_WEIGHTS.reduce((a, b) => a + b, 0);
+          let cr = Math.random() * totalCW;
+          let count = 1;
+          for (let i = 0; i < COUNT_WEIGHTS.length; i++) { cr -= COUNT_WEIGHTS[i]; if (cr <= 0) { count = i + 1; break; } }
           count = Math.min(count, plain.length);
           for (let i = plain.length - 1; i > 0; i--) {
               const j = Math.floor(Math.random() * (i + 1));

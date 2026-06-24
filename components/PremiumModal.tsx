@@ -32,74 +32,11 @@ const COLLECT_ITEM = { icon: IC.collect, label: '2× Collect Boost' };
 
 const getBundles = (maxBet: number) => [
     {
-        id: 'starter',
-        name: 'Starter Bundle',
-        tag: '50% OFF',
-        tagColor: '#dc2626',
-        bg: 'linear-gradient(160deg,#052e16,#166534,#052e16)',
-        items: [
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
-            { icon: IC.gem, label: '200 Gems' },
-            { icon: IC.cards, label: '5 Standard Packs' },
-            COLLECT_ITEM,
-        ],
-        origPrice: '₱ 200',
-        price: '₱ 99',
-    },
-    {
-        id: 'gem',
-        name: 'Gem Bundle',
-        tag: '60% OFF',
-        tagColor: '#dc2626',
-        bg: 'linear-gradient(160deg,#2e1065,#5b21b6,#2e1065)',
-        items: [
-            { icon: IC.gem, label: '2,000 Gems' },
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 100))} Coins` },
-            { icon: IC.boost, label: '2× XP Boost (1h)' },
-            COLLECT_ITEM,
-        ],
-        origPrice: '₱ 500',
-        price: '₱ 199',
-    },
-    {
-        id: 'quest',
-        name: 'Quest Bundle',
-        tag: '55% OFF',
-        tagColor: '#dc2626',
-        bg: 'linear-gradient(160deg,#0c1a5e,#1e3a8a,#0c1a5e)',
-        items: [
-            { icon: IC.pick, label: '+20 Picks' },
-            { icon: IC.dice, label: '+20 Dice' },
-            { icon: IC.gem, label: '500 Gems' },
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 25))} Coins` },
-            COLLECT_ITEM,
-        ],
-        origPrice: '₱ 350',
-        price: '₱ 159',
-    },
-    {
-        id: 'mega',
-        name: 'Mega Bundle',
-        tag: '70% OFF',
-        tagColor: '#dc2626',
-        bg: 'linear-gradient(160deg,#451a03,#92400e,#451a03)',
-        items: [
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
-            { icon: IC.gem, label: '5,000 Gems' },
-            { icon: IC.premium, label: '10 Premium Packs' },
-            { icon: IC.boost, label: '2× XP Boost (24h)' },
-            { icon: IC.pick, label: '+50 Picks' },
-            COLLECT_ITEM,
-        ],
-        origPrice: '₱ 1,499',
-        price: '₱ 449',
-    },
-    {
         id: 'vip-boost',
         name: 'VIP Boost Pack',
-        tag: '65% OFF',
+        tag: '50% OFF',
         tagColor: '#dc2626',
-        bg: 'linear-gradient(160deg,#4c0519,#9f1239,#4c0519)',
+        goldBg: true,
         items: [
             { icon: IC.vip, label: 'VIP Access (7 Days)' },
             { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 200))} Coins` },
@@ -109,14 +46,14 @@ const getBundles = (maxBet: number) => [
             COLLECT_ITEM,
         ],
         origPrice: '₱ 799',
-        price: '₱ 279',
+        price: '₱ 399',
     },
     {
         id: 'diamond',
         name: 'Diamond Pack',
-        tag: '75% OFF',
+        tag: '50% OFF',
         tagColor: '#dc2626',
-        bg: 'linear-gradient(160deg,#083344,#0e7490,#083344)',
+        goldBg: true,
         items: [
             { icon: IC.gem, label: '10,000 Gems' },
             { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 300))} Coins` },
@@ -127,7 +64,66 @@ const getBundles = (maxBet: number) => [
             COLLECT_ITEM,
         ],
         origPrice: '₱ 3,999',
-        price: '₱ 999',
+        price: '₱ 1,999',
+    },
+    {
+        id: 'starter',
+        name: 'Starter Bundle',
+        tag: '30% OFF',
+        tagColor: '#dc2626',
+        items: [
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
+            { icon: IC.gem, label: '200 Gems' },
+            { icon: IC.cards, label: '5 Standard Packs' },
+            COLLECT_ITEM,
+        ],
+        origPrice: '₱ 200',
+        price: '₱ 140',
+    },
+    {
+        id: 'gem',
+        name: 'Gem Bundle',
+        tag: '30% OFF',
+        tagColor: '#dc2626',
+        items: [
+            { icon: IC.gem, label: '2,000 Gems' },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 100))} Coins` },
+            { icon: IC.boost, label: '2× XP Boost (1h)' },
+            COLLECT_ITEM,
+        ],
+        origPrice: '₱ 500',
+        price: '₱ 350',
+    },
+    {
+        id: 'quest',
+        name: 'Quest Bundle',
+        tag: '30% OFF',
+        tagColor: '#dc2626',
+        items: [
+            { icon: IC.pick, label: '+20 Picks' },
+            { icon: IC.dice, label: '+20 Dice' },
+            { icon: IC.gem, label: '500 Gems' },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 25))} Coins` },
+            COLLECT_ITEM,
+        ],
+        origPrice: '₱ 350',
+        price: '₱ 245',
+    },
+    {
+        id: 'mega',
+        name: 'Mega Bundle',
+        tag: '30% OFF',
+        tagColor: '#dc2626',
+        items: [
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
+            { icon: IC.gem, label: '5,000 Gems' },
+            { icon: IC.premium, label: '10 Premium Packs' },
+            { icon: IC.boost, label: '2× XP Boost (24h)' },
+            { icon: IC.pick, label: '+50 Picks' },
+            COLLECT_ITEM,
+        ],
+        origPrice: '₱ 1,499',
+        price: '₱ 1,049',
     },
 ];
 
@@ -241,7 +237,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     {/* Bundle Cards */}
                     {visibleBundles.map(bundle => (
                         <div key={bundle.id} className="flex flex-col rounded-2xl overflow-hidden shrink-0"
-                            style={{ width: CARD_W, background: PURPLE_BG, boxShadow: PURPLE_BG_SHADOW }}>
+                            style={{ width: CARD_W, background: (bundle as any).goldBg ? PURPLE_GOLD_BG : PURPLE_BG, boxShadow: (bundle as any).goldBg ? PURPLE_GOLD_SHADOW : PURPLE_BG_SHADOW }}>
                             <div className="shrink-0 px-4 pt-4 pb-2">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
