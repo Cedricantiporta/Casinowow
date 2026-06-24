@@ -74,6 +74,7 @@ export interface PlayerState {
   collectBoostEndTime?: number;
   freeStashClaimed: boolean;
   isVip?: boolean;
+  freeVipClaimed?: boolean;
   freeStashClaimedTime?: number;
   shopClaimedItems?: string[];
   vipXp?: number;

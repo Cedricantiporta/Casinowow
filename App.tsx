@@ -355,6 +355,7 @@ const App: React.FC = () => {
   const [showEventsPopup, setShowEventsPopup] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showVipLounge, setShowVipLounge] = useState(false);
+  const [showFreeVipPopup, setShowFreeVipPopup] = useState(false);
   const [showMiniGamesHub, setShowMiniGamesHub] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const savedFastSpinRef = useRef<boolean>(false);
@@ -984,7 +985,19 @@ const App: React.FC = () => {
           if (reward.gems > 0) msg += ` & ${reward.gems} Gems`;
           setCelebrationMsg(msg);
           audioService.playWinBig();
+          // First-ever daily claim → gift 7 days of free VIP.
+          if (!player.freeVipClaimed) {
+              setTimeout(() => setShowFreeVipPopup(true), 700);
+          }
       }
+  };
+
+  const handleClaimFreeVip = () => {
+      const now = Date.now();
+      setPlayer(p => ({ ...p, isVip: true, vipExpiry: now + 7 * 24 * 3600000, freeVipClaimed: true }));
+      setShowFreeVipPopup(false);
+      audioService.playWinBig();
+      setTimeout(() => setShowVipLounge(true), 250);
   };
 
   useEffect(() => {
@@ -3055,22 +3068,14 @@ const App: React.FC = () => {
                   return false;
               };
 
-              // CHECK SLOT UNLOCKS — levels: idx*5+1 (6,11,16...) to avoid colliding with feature unlocks (5,10,20,30)
+              // CHECK SLOT UNLOCKS — derived from GAMES_CONFIG order so it always matches the
+              // lobby (getUnlockLevel = idx*5+1) and auto-covers newly added slots.
               const justUnlockedSlot = (level: number) => {
-                  if (level === 6  && !shownUnlocks.has(6))  return { id: 'neon-vegas',       name: 'Neon Vegas',         icon: '🎰', lvl: 6  };
-                  if (level === 11 && !shownUnlocks.has(11)) return { id: 'pharaoh-tomb',     name: "Pharaoh's Tomb",     icon: '🦂', lvl: 11 };
-                  if (level === 16 && !shownUnlocks.has(16)) return { id: 'arctic-freeze',    name: 'Arctic Freeze',      icon: '🐧', lvl: 16 };
-                  if (level === 21 && !shownUnlocks.has(21)) return { id: 'dragon-fortune',   name: "Dragon's Fortune",   icon: '🐉', lvl: 21 };
-                  if (level === 26 && !shownUnlocks.has(26)) return { id: 'pirate-bounty',    name: "Pirate's Bounty",    icon: '🏴‍☠️', lvl: 26 };
-                  if (level === 31 && !shownUnlocks.has(31)) return { id: 'cosmic-cash',      name: 'Cosmic Cash',        icon: '👽', lvl: 31 };
-                  if (level === 36 && !shownUnlocks.has(36)) return { id: 'sugar-rush',       name: 'Sugar Rush',         icon: '🧁', lvl: 36 };
-                  if (level === 41 && !shownUnlocks.has(41)) return { id: 'deep-blue',        name: 'Deep Blue',          icon: '🦈', lvl: 41 };
-                  if (level === 46 && !shownUnlocks.has(46)) return { id: 'wild-west',        name: 'Gold Rush',          icon: '🤠', lvl: 46 };
-                  if (level === 51 && !shownUnlocks.has(51)) return { id: 'samurai-honor',    name: 'Samurai Honor',      icon: '⚔️', lvl: 51 };
-                  if (level === 56 && !shownUnlocks.has(56)) return { id: 'golden-lucky-pot', name: 'Golden Lucky Pot',   icon: '🏮', lvl: 56 };
-                  if (level === 61 && !shownUnlocks.has(61)) return { id: 'lucky-leprechaun', name: 'Lucky Leprechaun',   icon: '🍀', lvl: 61 };
-                  if (level === 66 && !shownUnlocks.has(66)) return { id: 'jungle-rumble',    name: 'Jungle Rumble',      icon: '🦍', lvl: 66 };
-                  return null;
+                  if (shownUnlocks.has(level)) return null;
+                  const idx = GAMES_CONFIG.findIndex((_, i) => (i === 0 ? 0 : i * 5 + 1) === level);
+                  if (idx <= 0) return null;
+                  const g = GAMES_CONFIG[idx];
+                  return { id: g.id, name: g.name, icon: g.coverImage || '🎰', lvl: level };
               };
 
               setTimeout(() => {
@@ -5307,6 +5312,21 @@ const App: React.FC = () => {
           onOpenHighLimit={() => { setShowVipLounge(false); setTimeout(handleOpenHighRoller, 50); }}
           onOpenPremium={() => { setShowVipLounge(false); setTimeout(() => setShowPremiumModal(true), 50); }}
       />
+
+      {/* First-time welcome gift — 7 days of free VIP */}
+      {showFreeVipPopup && (
+          <div className="absolute inset-0 z-[420] flex items-center justify-center select-none" style={{ background: 'rgba(0,0,0,0.75)' }}>
+              <div className="animate-pop-in flex flex-col items-center gap-3 p-5 rounded-3xl text-center"
+                  style={{ background: 'linear-gradient(180deg,rgba(168,85,247,0.7) 0%,rgba(201,144,26,0.7) 46%,rgba(40,12,70,0.97) 100%)', boxShadow: 'inset 0 1px 0 rgba(255,225,150,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxWidth: 300 }}>
+                  <img src="/ui/VIP.png" alt="" style={{ width: 92, height: 92, objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.6))' }} />
+                  <div style={{ fontSize: '1.3rem', lineHeight: 1.1, fontFamily: "'Tanker', cursive", color: '#fde68a' }}>Welcome Gift!</div>
+                  <div className="text-yellow-100 text-sm font-black leading-tight">You've received<br />7 Days of FREE VIP</div>
+                  <button onClick={handleClaimFreeVip} className="pill-gold w-full" style={{ marginTop: 4 }}>
+                      <div className="pill-face" style={{ padding: '9px 18px', fontSize: '12px' }}>Claim VIP</div>
+                  </button>
+              </div>
+          </div>
+      )}
 
       <MiniGamesHub
           isOpen={showMiniGamesHub}

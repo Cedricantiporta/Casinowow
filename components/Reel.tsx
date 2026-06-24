@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { SymbolType, SymbolConfig, GameTheme } from '../types';
-import { WEIGHTS, NEON_WEIGHTS, GET_SYMBOLS, JACKPOT_ICONS, GENERIC_JACKPOT_ICONS, THEME_JACKPOT_ICONS } from '../constants';
+import { WEIGHTS, NEON_WEIGHTS, GET_SYMBOLS, JACKPOT_ICONS, GENERIC_JACKPOT_ICONS, THEME_JACKPOT_ICONS, FREESPIN_JACKPOT_ICONS } from '../constants';
 import { GameConfig } from '../types';
 import { ViperBorder, ViperTheme } from './ViperBorder';
 
@@ -310,9 +310,9 @@ const ReelCell: React.FC<{
                     ${activeScatterShake ? 'animate-scatter-shake' : activeBounce ? 'animate-bounce-sm' : ''}
                 `}>
                     {isJackpot ? (
-                        (THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]) ? (
+                        ((inFreeSpins && FREESPIN_JACKPOT_ICONS[symbol]) || THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]) ? (
                             <img
-                                src={THEME_JACKPOT_ICONS[theme]?.[symbol] ?? GENERIC_JACKPOT_ICONS[symbol] ?? JACKPOT_ICONS[theme]}
+                                src={(inFreeSpins && FREESPIN_JACKPOT_ICONS[symbol]) || THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]}
                                 alt=""
                                 className="w-full h-full object-contain pointer-events-none select-none"
                             />

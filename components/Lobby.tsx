@@ -235,6 +235,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                                                 )}
                                             </div>
                                             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: '16px' }}></div>
+                                            {isLocked && (
+                                                <img src="/ui/lock.png" alt="" className="absolute z-30 pointer-events-none select-none"
+                                                    style={{ top: 6, right: 6, width: 30, height: 30, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
+                                            )}
                                         </button>
                                     </div>
                                 );
@@ -311,6 +315,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             )}
                                         </div>
                                         <div className="absolute inset-0 overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: 14 }}></div>
+                                        {isLocked && (
+                                            <img src="/ui/lock.png" alt="" className="absolute z-30 pointer-events-none select-none"
+                                                style={{ top: 4, right: 4, width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
+                                        )}
                                     </button>
                                 );
                             })}

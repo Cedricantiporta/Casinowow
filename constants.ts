@@ -552,6 +552,15 @@ export const GENERIC_JACKPOT_ICONS: Partial<Record<SymbolType, string>> = {
   [SymbolType.JACKPOT_GRAND]: '/scatter_grand.png',
 };
 
+// Free-spin jackpot cell icons — the same art used on the pick-and-win reveals.
+export const FREESPIN_JACKPOT_ICONS: Partial<Record<SymbolType, string>> = {
+  [SymbolType.JACKPOT_MINI]:  '/freespinjackpot (1).png',
+  [SymbolType.JACKPOT_MINOR]: '/freespinjackpot (2).png',
+  [SymbolType.JACKPOT_MAJOR]: '/freespinjackpot (3).png',
+  [SymbolType.JACKPOT_MEGA]:  '/freespinjackpot (4).png',
+  [SymbolType.JACKPOT_GRAND]: '/freespinjackpot (5).png',
+};
+
 // Per-theme jackpot icon overrides (take priority over GENERIC_JACKPOT_ICONS)
 export const THEME_JACKPOT_ICONS: Partial<Record<GameTheme, Partial<Record<SymbolType, string>>>> = {
   GOLDEN_POT: {
