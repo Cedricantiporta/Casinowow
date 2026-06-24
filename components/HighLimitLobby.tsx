@@ -157,24 +157,25 @@ export const HighLimitLobby: React.FC<HighLimitLobbyProps> = ({ onBack, onSelect
                                     {/* Gold shimmer overlay */}
                                     <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-tr from-transparent via-yellow-400/8 to-yellow-300/5 pointer-events-none" />
 
-                                    {/* Icon + name */}
-                                    <div className="absolute inset-0 rounded-xl overflow-hidden z-10 select-none">
-                                        <div className="absolute inset-0 flex items-start justify-center pt-2">
-                                            <span className="text-[4rem] md:text-[4.5rem] drop-shadow-2xl filter leading-none">{icon}</span>
-                                        </div>
-                                        <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center">
-                                            <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${fontClass} ${titleStyle}`}
-                                                style={{ WebkitTextStroke: '1.5px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
-                                                {game.name}
-                                            </h3>
-                                        </div>
+                                    {/* Cover image or fallback bg */}
+                                    {game.coverImage ? (
+                                        <img src={game.coverImage} alt={game.name} className="absolute inset-0 w-full h-full object-cover rounded-xl z-0 select-none pointer-events-none" />
+                                    ) : (
+                                        <div className={`absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-br ${game.color}`} />
+                                    )}
+
+                                    {/* Game name */}
+                                    <div className="absolute bottom-0 left-0 right-0 pb-1 px-1 text-center z-10 select-none">
+                                        <h3 className={`text-[13px] md:text-[16px] font-black uppercase tracking-wide leading-tight line-clamp-2 ${fontClass} ${titleStyle}`}
+                                            style={{ WebkitTextStroke: '1.5px rgba(0,0,0,0.95)', paintOrder: 'stroke fill' }}>
+                                            {game.name}
+                                        </h3>
                                     </div>
 
-                                    {/* Lock overlay */}
+                                    {/* Lock overlay — icon only, no text */}
                                     {isLocked && (
-                                        <div className="absolute inset-0 rounded-xl overflow-hidden bg-black/55 z-20 flex flex-col items-center justify-center">
+                                        <div className="absolute inset-0 rounded-xl overflow-hidden bg-black/55 z-20 flex items-center justify-center">
                                             <img src="/ui/lock.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain', filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.8))' }} />
-                                            <span className="text-white/70 font-bold text-[9px] mt-1 uppercase">Lvl {unlockLevel}</span>
                                         </div>
                                     )}
                                     <div className="absolute inset-0 rounded-xl overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" />

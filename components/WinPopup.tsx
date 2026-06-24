@@ -18,11 +18,11 @@ const WIN_STYLES: Record<string, { textColor: string; shadow: string }> = {
 
 // Image art per win tier
 const WIN_IMAGES: Record<string, string> = {
-    'ULTIMATE WIN': '/ultimatewin.png',
-    'MEGA WIN':     '/megawin.png',
-    'EPIC WIN':     '/epicwin.png',
-    'GREAT WIN':    '/greatwin.png',
-    'BIG WIN':      '/bigwin.png',
+    'ULTIMATE WIN': '/new_ultimatewin.png',
+    'MEGA WIN':     '/new_megawin.png',
+    'EPIC WIN':     '/new_epicwin.png',
+    'GREAT WIN':    '/new_greatwin.png',
+    'BIG WIN':      '/new_bigwin.png',
 };
 
 const NUNITO_3D = (color: string): React.CSSProperties => ({

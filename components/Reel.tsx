@@ -153,7 +153,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
 
   return (
     <div
-        className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} min-w-0`}
+        className={`relative flex-1 ${isScatterShowcase ? 'overflow-visible z-10' : 'overflow-hidden'} ${gameConfig.reelBg} min-w-0`}
         style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}` }}
     >
        {/* Anticipation viper border — animated two-snake glow */}

@@ -214,6 +214,14 @@ const STARTUP_ASSETS = [
     '/bonus wheel shop.png',
     // events modal banners
     '/event (1).png', '/event (2).png',
+    // scatter icons for all slot themes (preload so first-open is instant)
+    '/symbols/neon_bonus.png', '/pharaoh_scatter.png', '/dragon/dragon-1.png', '/pirate_scatter.png',
+    '/cosmic_scatter.png', '/candy_scatter.png', '/jungle_scatter.png', '/deep_scatter.png',
+    '/gold_scatter.png', '/samurai_scatter.png', '/piggy/pig.png', '/goldenpot_scatter.png',
+    '/leprechaun_scatter.png', '/arctic/snow.png', '/pets_scatter.png', '/fantasy_scatter.png',
+    '/farm_scatter.png', '/beast_scatter.png', '/angryflock_scatter.png', '/princess_scatter.png',
+    // generic jackpot tier cell icons (hold-win / free-spin overlays)
+    '/scatter_mini.png', '/scatter_minor.png', '/scatter_major.png', '/scatter_mega.png', '/scatter_grand.png',
 ];
 
 const App: React.FC = () => {
@@ -340,6 +348,7 @@ const App: React.FC = () => {
   const [mysteryCells, setMysteryCells] = useState<{ c: number; r: number }[]>([]);
   const [mysteryRevealed, setMysteryRevealed] = useState(false);
   const mysteryCellsRef = useRef<{ c: number; r: number }[]>([]);
+  const mysteryCountRef = useRef<number>(0);
   const [winData, setWinData] = useState<WinData | null>(null);
   const [stoppedReels, setStoppedReels] = useState(0);
   const [instantStop, setInstantStop] = useState(false);
@@ -383,6 +392,8 @@ const App: React.FC = () => {
   const [showXpPct, setShowXpPct] = useState(false);
   const [showXpPopup, setShowXpPopup] = useState(false);
   const [showCollectPopup, setShowCollectPopup] = useState(false);
+  const [ripples, setRipples] = useState<{id:number;x:number;y:number;color:string}[]>([]);
+  const rippleIdRef = useRef(0);
   const xpPctTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const [activeModal, setActiveModal] = useState<'NONE' | 'SHOP' | 'COLLECTION' | 'MINIGAME' | 'MISSIONS' | 'TIME_BONUS' | 'LOGIN_BONUS' | 'PIGGY' | 'FEATURE_UNLOCK'>('NONE');
@@ -2070,7 +2081,7 @@ const App: React.FC = () => {
       if (ft === 'CANDY') {
           candyPendingColsRef.current = [];
           candySingleWildsRef.current = [];
-          if (isFreeSpin && candyWildConfigRef.current && Math.random() < 0.5) {
+          if (isFreeSpin && candyWildConfigRef.current) {
               const cfg = candyWildConfigRef.current;
               if (cfg.mode === 'column') {
                   const chosen = new Set<number>();
@@ -2176,7 +2187,7 @@ const App: React.FC = () => {
       // reveal the SAME randomly-chosen symbol. We set the underlying cells to that symbol now
       // (so win evaluation is automatic) and record which cells are masked by a mystery tile.
       mysteryCellsRef.current = [];
-      if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && freeSpinsRemaining > 0) {
+      if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && freeSpinsRemaining > 0 && Math.random() > 0.25) {
           // Reveal symbol — weighted toward mid/high pays; WILD is rarest outcome.
           const REVEAL_POOL = [
               { s: SymbolType.GRAPE,  w: 24 },
@@ -2216,6 +2227,7 @@ const App: React.FC = () => {
           const chosen = plain.slice(0, count);
           chosen.forEach(({ c, r }) => { newGrid[c][r] = revealSym; });
           mysteryCellsRef.current = chosen;
+          mysteryCountRef.current = chosen.length;
       }
 
       return newGrid;
@@ -2389,11 +2401,10 @@ const App: React.FC = () => {
       // MYSTERY: arm the tile overlay for this spin (cleared each spin; populated only in free spins).
       setMysteryRevealed(false);
       setMysteryCells(mysteryCellsRef.current);
-      // CANDY: show wild containers immediately at spin start so borders appear before wilds land
+      // CANDY: clear wild overlay at spin start; it's shown once reels stop (in the completion handler)
       if (featureThemeOf(selectedGame.theme) === 'CANDY' && freeSpinsRemaining > 0) {
-          setCandyCols(candyPendingColsRef.current);
-          setCandySingleWilds(candySingleWildsRef.current);
-          setCandyFsSpinKey(k => k + 1);
+          setCandyCols([]);
+          setCandySingleWilds([]);
       }
     }
   }, [status, targetGrid.length, generateSmartGrid, selectedGame.theme, freeSpinsRemaining]);
@@ -2582,7 +2593,7 @@ const App: React.FC = () => {
                 setPirateWalkActive(true);
                 setPirateShipCol(selectedGame.reels - 1);
                 setPirateShip2Col(-1); // ship 2 starts off-screen
-                audioService.playBonusTrigger();
+                audioService.playScatterTrigger();
                 setSpinsWithoutBonus(0);
                 calculateWin(targetGrid);
                 return next;
@@ -2751,12 +2762,25 @@ const App: React.FC = () => {
         // MYSTERY reveal: hold on the mystery tiles briefly, then lift them to expose the
         // shared symbol underneath before scoring the spin.
         if (mysteryCellsRef.current.length > 0) {
-            audioService.playBonusTrigger();
             const revealDelay = fastSpinRef.current ? 250 : 1050;
+            const mysteryCount = mysteryCountRef.current;
             mysteryCellsRef.current = [];
+            mysteryCountRef.current = 0;
             setTimeout(() => {
                 setMysteryRevealed(true);
-                calculateWin(targetGrid);
+                // Full grid (15 cells) mystery = mini jackpot bonus
+                if (mysteryCount >= 15) {
+                    const jpAmts = jackpotService.getAmounts();
+                    const jpAmount = jpAmts[0]; // MINI
+                    setPlayer(p => ({ ...p, balance: p.balance + jpAmount }));
+                    audioService.playJackpotSound('MINI');
+                    setWinData({ payout: jpAmount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: 'BIG WIN' });
+                    setPendingBigWin(true);
+                    pendingWinTierRef.current = 'BIG WIN';
+                    setJackpotWinTier({ name: 'MINI', color: '#4ade80', icon: '', amount: jpAmount });
+                } else {
+                    calculateWin(targetGrid);
+                }
             }, revealDelay);
             return next;
         }
@@ -3281,37 +3305,37 @@ const App: React.FC = () => {
   const handleArcticPickWin = (tier: string, amount: number) => {
       setShowArcticPickModal(false);
       setPlayer(p => ({ ...p, balance: p.balance + amount }));
-      const TIER_META: Record<string, { color: string; icon: string }> = {
-          MINI:  { color: '#4ade80', icon: '🥉' },
-          MINOR: { color: '#67e8f9', icon: '🥈' },
-          MAJOR: { color: '#d8b4fe', icon: '🥇' },
-          MEGA:  { color: '#fda4af', icon: '👑' },
-          GRAND: { color: '#fde68a', icon: '🏆' },
+      const TIER_META: Record<string, { color: string; winType: string }> = {
+          MINI:  { color: '#4ade80', winType: 'BIG WIN'      },
+          MINOR: { color: '#67e8f9', winType: 'GREAT WIN'    },
+          MAJOR: { color: '#d8b4fe', winType: 'EPIC WIN'     },
+          MEGA:  { color: '#fda4af', winType: 'MEGA WIN'     },
+          GRAND: { color: '#fde68a', winType: 'ULTIMATE WIN' },
       };
-      const meta = TIER_META[tier] || { color: '#fde68a', icon: '🏆' };
+      const meta = TIER_META[tier] || { color: '#fde68a', winType: 'MEGA WIN' };
       audioService.playJackpotSound(tier);
-      setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: 'MEGA_WIN' });
+      setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: meta.winType });
       setPendingBigWin(true);
-      pendingWinTierRef.current = 'MEGA_WIN';
-      setJackpotWinTier({ name: tier, color: meta.color, icon: meta.icon, amount });
+      pendingWinTierRef.current = meta.winType;
+      setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
   };
 
   const handleDragonPickWin = (tier: string, amount: number) => {
       setShowDragonPickModal(false);
       setPlayer(p => ({ ...p, balance: p.balance + amount }));
-      const TIER_META: Record<string, { color: string; icon: string }> = {
-          MINI:  { color: '#4ade80', icon: '🥉' },
-          MINOR: { color: '#67e8f9', icon: '🥈' },
-          MAJOR: { color: '#d8b4fe', icon: '🥇' },
-          MEGA:  { color: '#fda4af', icon: '👑' },
-          GRAND: { color: '#fde68a', icon: '🏆' },
+      const TIER_META: Record<string, { color: string; winType: string }> = {
+          MINI:  { color: '#4ade80', winType: 'BIG WIN'      },
+          MINOR: { color: '#67e8f9', winType: 'GREAT WIN'    },
+          MAJOR: { color: '#d8b4fe', winType: 'EPIC WIN'     },
+          MEGA:  { color: '#fda4af', winType: 'MEGA WIN'     },
+          GRAND: { color: '#fde68a', winType: 'ULTIMATE WIN' },
       };
-      const meta = TIER_META[tier] || { color: '#fde68a', icon: '🏆' };
+      const meta = TIER_META[tier] || { color: '#fde68a', winType: 'MEGA WIN' };
       audioService.playJackpotSound(tier);
-      setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: 'MEGA_WIN' });
+      setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: meta.winType });
       setPendingBigWin(true);
-      pendingWinTierRef.current = 'MEGA_WIN';
-      setJackpotWinTier({ name: tier, color: meta.color, icon: meta.icon, amount });
+      pendingWinTierRef.current = meta.winType;
+      setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
   };
 
   const handleNeonRouletteClose = () => {
@@ -3691,7 +3715,7 @@ const App: React.FC = () => {
                   setPirateShip2Col(-1);
                   const won = pirateWalkTotalWinRef.current;
                   setTimeout(() => {
-                      setCelebrationMsg(won > 0 ? `👻 Ghost Ship Bounty: +${formatCommaNumber(won)}!` : '👻 The Ghost Ship sailed away…');
+                      setCelebrationMsg(won > 0 ? `Ghost Ship Bounty: +${formatCommaNumber(won)}!` : 'The Ghost Ship sailed away…');
                       if (won > 0) audioService.playWinBig();
                   }, 250);
                   // DO NOT call spin() here — the IDLE effect re-runs after pirateWalkActive flips false
@@ -3704,11 +3728,11 @@ const App: React.FC = () => {
                   if (freeSpinsWon > 0) {
                       const jpAmts = jackpotService.getAmounts();
                       const JP_WALK = [
-                          { name: 'GRAND', chance: 0.0005, idx: 4, color: '#fde68a', icon: '🏆' },
-                          { name: 'MEGA',  chance: 0.0015, idx: 3, color: '#fda4af', icon: '👑' },
-                          { name: 'MAJOR', chance: 0.005,  idx: 2, color: '#d8b4fe', icon: '🥇' },
-                          { name: 'MINOR', chance: 0.015,  idx: 1, color: '#67e8f9', icon: '🥈' },
-                          { name: 'MINI',  chance: 0.03,   idx: 0, color: '#4ade80', icon: '🥉' },
+                          { name: 'GRAND', chance: 0.0005, idx: 4, color: '#fde68a', icon: '' },
+                          { name: 'MEGA',  chance: 0.0015, idx: 3, color: '#fda4af', icon: '' },
+                          { name: 'MAJOR', chance: 0.005,  idx: 2, color: '#d8b4fe', icon: '' },
+                          { name: 'MINOR', chance: 0.015,  idx: 1, color: '#67e8f9', icon: '' },
+                          { name: 'MINI',  chance: 0.03,   idx: 0, color: '#4ade80', icon: '' },
                       ] as const;
                       for (const tier of JP_WALK) {
                           if (Math.random() < tier.chance) {
@@ -3897,7 +3921,26 @@ const App: React.FC = () => {
       className="bg-[#0a0015] flex items-center justify-center overflow-hidden"
       style={{ position: 'fixed', inset: 0 }}
     >
-      <div className="relative overflow-hidden rounded-none shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]" onClick={() => { if (showXpPopup) setShowXpPopup(false); if (showCollectPopup) setShowCollectPopup(false); }} style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
+      <div className="relative overflow-hidden rounded-none shadow-[0_0_80px_rgba(0,0,0,0.52)] bg-[#120024]"
+        onClick={(e) => {
+          if (showXpPopup) setShowXpPopup(false);
+          if (showCollectPopup) setShowCollectPopup(false);
+          // Ripple on background clicks (not on buttons/interactive elements)
+          const tag = (e.target as HTMLElement).tagName;
+          if (tag !== 'BUTTON' && tag !== 'INPUT' && tag !== 'IMG') {
+            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+            const scale = rect.width / 844;
+            const x = (e.clientX - rect.left) / scale;
+            const y = (e.clientY - rect.top) / scale;
+            const colors = ['rgba(180,80,255,0.5)','rgba(255,200,60,0.5)'];
+            const color = colors[rippleIdRef.current % colors.length];
+            const id = ++rippleIdRef.current;
+            setRipples(r => [...r, {id,x,y,color}]);
+            audioService.playClick();
+            setTimeout(() => setRipples(r => r.filter(rp => rp.id !== id)), 560);
+          }
+        }}
+        style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
@@ -4417,7 +4460,7 @@ const App: React.FC = () => {
                                                                 {jpTier ? (
                                                                     <img src={SCATTER_JP_IMGS[jpTier] ?? `/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain', filter: isCounting ? 'brightness(1.4)' : undefined }} />
                                                                 ) : val ? (
-                                                                    <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 6px rgba(0,0,0,1), 0 0 3px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
+                                                                    <span style={{ fontSize: 'clamp(13px,3vw,19px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 8px rgba(0,0,0,1), 0 0 4px rgba(0,0,0,1), 0 2px 6px rgba(0,0,0,1), 0 0 16px rgba(0,0,0,0.9)', lineHeight: 1 }}>
                                                                         {formatKShort(val)}
                                                                     </span>
                                                                 ) : null}
@@ -4449,15 +4492,16 @@ const App: React.FC = () => {
                                             return (
                                                 <div key={r} className="flex-1 relative flex items-center justify-center"
                                                     style={showBorder ? {
-                                                        background: jpTier ? JP_COLORS[jpTier] + '15' : 'rgba(255,230,0,0.06)',
+                                                        background: jpTier ? JP_COLORS[jpTier] + '35' : 'rgba(255,230,0,0.06)',
                                                         borderRadius: 0,
+                                                        boxShadow: jpTier ? `inset 0 0 20px ${JP_COLORS[jpTier]}50, 0 0 14px ${JP_COLORS[jpTier]}60` : undefined,
                                                     } : { borderRadius: 0 }}>
                                                     {showBorder && <ViperBorder theme="gold" animate={false} />}
                                                     <div className="flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                         {jpTier ? (
-                                                            <img src={SCATTER_JP_IMGS[jpTier] ?? `/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(40px,8.5vw,72px)', height: 'auto', objectFit: 'contain' }} />
+                                                            <img src={SCATTER_JP_IMGS[jpTier] ?? `/${jpTier.toLowerCase()}.png`} alt={jpTier} style={{ width: 'clamp(48px,10vw,80px)', height: 'auto', objectFit: 'contain', filter: `drop-shadow(0 0 8px ${JP_COLORS[jpTier]})` }} />
                                                         ) : (
-                                                            <span style={{ fontSize: 'clamp(10px,2.2vw,14px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 4px rgba(0,0,0,1), 0 1px 3px rgba(0,0,0,0.9)', lineHeight: 1 }}>
+                                                            <span style={{ fontSize: 'clamp(13px,3vw,19px)', fontWeight: 900, color: '#ffffff', textShadow: '0 0 8px rgba(0,0,0,1), 0 0 4px rgba(0,0,0,1), 0 2px 6px rgba(0,0,0,1), 0 0 16px rgba(0,0,0,0.9)', lineHeight: 1 }}>
                                                                 {formatKShort(val)}
                                                             </span>
                                                         )}
@@ -5153,6 +5197,11 @@ const App: React.FC = () => {
               </div>
           </div>
       )}
+
+      {/* Side-click ripple effects */}
+      {ripples.map(rp => (
+          <div key={rp.id} className="ripple-fx" style={{ left: rp.x, top: rp.y, background: rp.color }} />
+      ))}
 
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
       {holdWinSummary && <FreeSpinSummary isOpen={true} totalWin={holdWinSummary.total} bet={holdWinSummary.bet} label="Hold & Win Complete" onClose={() => { const total = holdWinSummary.total; setHoldWinSummary(null); setStatus(GameStatus.IDLE); if (total > 0) setCelebrationMsg('+' + formatK(total)); }} />}
