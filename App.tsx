@@ -120,28 +120,31 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     const pct = Math.min((progress / 250) * 100, 100);
     const full = pct >= 100;
     return (
-        <div className="flex items-center justify-center py-1 px-0">
-            <div className="relative flex items-center" style={{ width: '50%', height: 22, borderRadius: 11, background: 'rgba(10,0,40,0.82)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.7)' }}>
+        <div style={{ width: '100%', padding: '2px 0', position: 'relative' }}>
+            {/* Track — gold gradient container, no border-radius */}
+            <div style={{ position: 'relative', width: '100%', height: 18, borderRadius: 0, background: 'linear-gradient(90deg,#3d1700,#7c3800,#c87800,#ffd700,#c87800,#7c3800,#3d1700)', overflow: 'hidden' }}>
                 {/* Fill */}
-                <div className="absolute inset-y-0 left-0 transition-all duration-500" style={{
+                <div style={{
+                    position: 'absolute', left: 0, top: 0, bottom: 0,
                     width: `${pct}%`,
-                    borderRadius: 10,
                     background: full
-                        ? 'linear-gradient(90deg,#a855f7,#d946ef,#a855f7)'
-                        : 'linear-gradient(90deg,#7c3aed,#a855f7)',
-                    boxShadow: full ? '0 0 8px rgba(192,132,252,0.9)' : '0 0 4px rgba(168,85,247,0.5)',
+                        ? 'linear-gradient(90deg,#ffe566,#fffba0,#ffe566)'
+                        : 'linear-gradient(90deg,#c87800,#f5a800,#c87800)',
+                    boxShadow: full ? '0 0 8px rgba(255,220,80,0.9)' : undefined,
+                    transition: 'width 0.5s ease',
                 }} />
                 {/* Shine */}
-                <div className="absolute inset-0 pointer-events-none" style={{ borderRadius: 10, background: 'linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 55%)' }} />
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(255,255,255,0.15) 0%,transparent 55%)', pointerEvents: 'none' }} />
                 {/* Label */}
-                <span className="relative z-10 pl-2 font-black text-white/70 leading-none" style={{ fontSize: 9, letterSpacing: '0.06em' }}>Pick Bonus</span>
-                {/* Inner pill at end */}
-                <div className="absolute right-1 flex items-center justify-center rounded-full font-black" style={{
-                    height: 14, paddingLeft: 6, paddingRight: 6,
-                    background: full ? 'linear-gradient(90deg,#d946ef,#a855f7)' : 'rgba(255,255,255,0.12)',
-                    boxShadow: full ? '0 0 6px rgba(217,70,239,0.8)' : 'none',
-                    fontSize: 8,
-                    color: full ? '#fff' : 'rgba(255,255,255,0.4)',
+                <span style={{ position: 'relative', zIndex: 1, paddingLeft: 6, fontWeight: 900, color: 'rgba(255,255,255,0.85)', fontSize: 9, letterSpacing: '0.06em', lineHeight: '18px' }}>Pick Bonus</span>
+                {/* Status badge */}
+                <div style={{
+                    position: 'absolute', right: 3, top: '50%', transform: 'translateY(-50%)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    height: 12, paddingLeft: 5, paddingRight: 5, borderRadius: 2,
+                    background: full ? 'rgba(255,220,80,0.35)' : 'rgba(0,0,0,0.35)',
+                    fontSize: 8, fontWeight: 900,
+                    color: full ? '#fff' : 'rgba(255,255,255,0.5)',
                     letterSpacing: '0.05em',
                     transition: 'all 0.5s',
                 }}>
@@ -2698,6 +2701,7 @@ const App: React.FC = () => {
             if (chance > 0 && Math.random() < chance) {
                 arcticJpPickTriggeredRef.current = true;
                 setPendingArcticFreePick(true);
+                setPlayer(p => ({ ...p, autoSpin: false }));
             }
         }
 
@@ -3678,7 +3682,7 @@ const App: React.FC = () => {
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 1080);
           } else if (freeSpinsRemaining > 0) {
               const delay = 1200;
-              if (activeModal === 'NONE' && !showFreeSpinsPopup && !showArcticPickModal) setTimeout(() => spin(), delay);
+              if (activeModal === 'NONE' && !showFreeSpinsPopup && !showArcticPickModal && !pendingArcticFreePick) setTimeout(() => spin(), delay);
           } else if (freeSpinsWon > 0 && !showFreeSpinsPopup && !showFreeSpinSummary) {
               setShowFreeSpinSummary(true);
           } else if (player.autoSpin && !showFreeSpinSummary && freeSpinsWon === 0) {
@@ -3696,7 +3700,7 @@ const App: React.FC = () => {
               }
           }
       }
-  }, [status, reelTransitioning, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary, jackpotWinTier]);
+  }, [status, reelTransitioning, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary, jackpotWinTier, pendingArcticFreePick, showArcticPickModal]);
 
   const handleHeaderBack = () => {
     if (showCandyRoulette || showSpinCountRoulette) {

@@ -55,8 +55,6 @@ interface Cell { id: number; tier: Tier; state: CellState; }
 
 export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWin, rows, cols }) => {
     const [winningTier] = useState<Tier>(rollWinningTier);
-    const totalCells = rows * cols;
-
     // 11 winning + 1 per other tier = 15 cells; non-winning tiers cap at 1/2, never trigger win
     const [cells, setCells] = useState<Cell[]>(() => {
         const tierList: Tier[] = [
@@ -66,7 +64,6 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
         return shuffle(tierList).map((tier, id) => ({ id, tier, state: 'hidden' as CellState }));
     });
 
-    const [revealedCount, setRevealedCount] = useState(0);
     const [wonTier, setWonTier] = useState<Tier | null>(null);
     const [winAmount, setWinAmount] = useState(0);
     const winFiredRef = useRef(false);
@@ -76,8 +73,6 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
         setCells(prev => {
             if (prev.find(c => c.id === id)?.state === 'revealed') return prev;
             const next = prev.map(c => c.id === id ? { ...c, state: 'revealed' as CellState } : c);
-            const revealed = next.filter(c => c.state === 'revealed').length;
-            setRevealedCount(revealed);
             if (!winFiredRef.current) {
                 const winCount = next.filter(c => c.state === 'revealed' && c.tier === winningTier).length;
                 if (winCount >= 2) {
@@ -95,23 +90,11 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
         onWin(wonTier!, winAmount);
     };
 
-    const progress = totalCells > 0 ? revealedCount / totalCells : 0;
     const winColor = wonTier ? TIER_COLOR[wonTier] : '#fde68a';
 
     return (
         <div className="absolute inset-0 z-30 flex flex-col overflow-hidden"
             style={{ background: '#0a0000' }}>
-
-            {/* Progress bar — rectangle, golden gradient container, no text */}
-            <div style={{ width: '100%', height: 10, flexShrink: 0, position: 'relative', background: 'linear-gradient(90deg,#3d1700,#7c3800,#c87800,#ffd700,#c87800,#7c3800,#3d1700)' }}>
-                <div style={{
-                    position: 'absolute', left: 0, top: 0, bottom: 0,
-                    width: `${progress * 100}%`,
-                    background: 'linear-gradient(90deg,#ffe566,#fffba0,#ffe566)',
-                    boxShadow: '0 0 6px rgba(255,220,80,0.7)',
-                    transition: 'width 0.2s ease',
-                }} />
-            </div>
 
             {/* Pick grid */}
             <div className="flex-1 min-h-0 p-1" style={{
