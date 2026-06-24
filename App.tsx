@@ -2333,7 +2333,7 @@ const App: React.FC = () => {
 
   // Arctic free-spin jackpot: show popup only once spin is fully idle
   useEffect(() => {
-    if (status === GameStatus.IDLE && pendingArcticFreePick && !showArcticPickModal) {
+    if (status === GameStatus.IDLE && pendingArcticFreePick && !showArcticPickModal && !reelTransitioning) {
         setPendingArcticFreePick(false);
         setPlayer(p => ({ ...p, autoSpin: false }));
         if (freeSpinsRemaining > 0) {
@@ -2356,7 +2356,7 @@ const App: React.FC = () => {
             }, 3000);
         }, 300);
     }
-  }, [status, pendingArcticFreePick, showArcticPickModal, freeSpinsRemaining]);
+  }, [status, pendingArcticFreePick, showArcticPickModal, freeSpinsRemaining, reelTransitioning]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length > 0) {
@@ -3682,7 +3682,7 @@ const App: React.FC = () => {
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 1080);
           } else if (freeSpinsRemaining > 0) {
               const delay = 1200;
-              if (activeModal === 'NONE' && !showFreeSpinsPopup && !showArcticPickModal && !pendingArcticFreePick) setTimeout(() => spin(), delay);
+              if (activeModal === 'NONE' && !showFreeSpinsPopup && !showArcticPickModal && !pendingArcticFreePick && !jackpotWinTier) setTimeout(() => spin(), delay);
           } else if (freeSpinsWon > 0 && !showFreeSpinsPopup && !showFreeSpinSummary) {
               setShowFreeSpinSummary(true);
           } else if (player.autoSpin && !showFreeSpinSummary && freeSpinsWon === 0) {
