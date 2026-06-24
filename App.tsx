@@ -3828,7 +3828,7 @@ const App: React.FC = () => {
   if (!appReady) {
       return (
           <div className="bg-[#0a0015] flex items-center justify-center overflow-hidden" style={{ position: 'fixed', inset: 0 }}>
-              <div style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center', imageRendering: 'pixelated', filter: 'brightness(0.75) saturate(0.8)' }}>
+              <div style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
                   <div style={{ position: 'absolute', bottom: '12%', left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
                       <div className="rtrack" style={{ width: 65, height: 20, padding: 0 }}>
                           <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
