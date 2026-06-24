@@ -17,7 +17,7 @@ const CARD_W = 200;
 
 // Sale-item icon set — image assets (no emojis).
 const IC = {
-    coin: '/symbols/coin.png',
+    coin: '/new_coinicon.png',
     gem: '/symbols/diamond.png',
     cards: '/ui/cards.png',
     premium: '/ui/cards_new.png',
@@ -260,7 +260,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             <div className="shrink-0 px-3 pb-3 pt-1">
                                 <button onClick={() => onBuyBundle?.()} className="pill-green w-full">
                                     <div className="pill-face" style={{ padding: '8px 12px', fontSize: '10px', gap: '6px' }}>
-                                        <span style={{ opacity: 0.6, textDecoration: 'line-through' }}>{isVip ? bundle.price : bundle.origPrice}</span>
+                                        <span style={{ opacity: 0.6, textDecoration: 'line-through' }}>{bundle.origPrice}</span>
                                         <span>{isVip ? vipDiscountedPrice(bundle.price) : bundle.price}</span>
                                     </div>
                                 </button>

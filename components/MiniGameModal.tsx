@@ -142,35 +142,58 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 cells[i] = { revealed: false, content: 'BOMB' };
             }
         }
-        // Add block tiles: always BLOCK_2X (shown with 3x icon, takes 2 hits)
-        const blockCount = Math.round((Math.floor(Math.random() * 2) + 1) * 1.6);
-        const candidates = cells.map((c, i) => (c.content === 'BLANK' || c.content === 'REWARD') ? i : -1).filter(i => i !== -1);
-        for (let b = 0; b < Math.min(blockCount, candidates.length); b++) {
-            const randIdx = Math.floor(Math.random() * candidates.length);
-            const ci = candidates.splice(randIdx, 1)[0];
-            const base: 'BLANK' | 'REWARD' = cells[ci].content === 'REWARD' ? 'REWARD' : 'BLANK';
-            const baseReward = cells[ci].reward;
-            cells[ci] = { revealed: false, content: 'BLOCK_2X', blockBase: base, reward: baseReward };
-        }
+        // Multiplier tiles: 2× always; 3× from stage 10; 4× from stage 15. Higher tiers are rarer.
+        // Each multiplier tile ALWAYS hides a reward (never empty) and multiplies it by its factor.
+        const num2x = Math.round((Math.floor(Math.random() * 2) + 1) * 1.6);          // 2–3 (most common)
+        const num3x = wildStage >= 10 ? (Math.random() < 0.6 ? 1 : 0) : 0;            // fewer than 2×
+        const num4x = wildStage >= 15 ? (Math.random() < 0.35 ? 1 : 0) : 0;           // fewest / rarest
+        const blockCandidates = cells.map((c, i) => (c.content === 'BLANK' || c.content === 'REWARD') ? i : -1).filter(i => i !== -1);
+        const relabel = (r: MiniGameReward, v: number): string =>
+            r.type === 'COINS' ? formatNumber(v)
+            : r.type === 'PICKS' ? `+${v} Pick${v > 1 ? 's' : ''}`
+            : r.type === 'DIAMONDS' ? `+${v} Gems`
+            : r.label;
+        const placeBlock = (mult: 2 | 3 | 4) => {
+            if (blockCandidates.length === 0) return;
+            const randIdx = Math.floor(Math.random() * blockCandidates.length);
+            const ci = blockCandidates.splice(randIdx, 1)[0];
+            // Guarantee a reward: reuse the existing one, otherwise mint a coin reward.
+            const baseReward: MiniGameReward = (cells[ci].content === 'REWARD' && cells[ci].reward)
+                ? cells[ci].reward!
+                : { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) };
+            const mv = baseReward.value * mult;
+            const multReward: MiniGameReward = { ...baseReward, value: mv, label: relabel(baseReward, mv) };
+            const content = mult === 2 ? 'BLOCK_2X' : mult === 3 ? 'BLOCK_3X' : 'BLOCK_4X';
+            cells[ci] = { revealed: false, content, blockBase: 'REWARD', reward: multReward, mult };
+        };
+        for (let b = 0; b < num4x; b++) placeBlock(4);
+        for (let b = 0; b < num3x; b++) placeBlock(3);
+        for (let b = 0; b < num2x; b++) placeBlock(2);
         setGrid(cells);
         if (onGridUpdate) onGridUpdate(cells);
     }, [wildStage, totalCells, maxBet, onGridUpdate]);
 
+    const isBlock = (c: WildGridCell) => c.content === 'BLOCK_2X' || c.content === 'BLOCK_3X' || c.content === 'BLOCK_4X';
+
+    // Stage prize (coins) reduced 40%; multiplied when the gem hides inside a multiplier tile
+    const stagePrizeCoins = (mult: number = 1) => Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage)) * mult;
+    const stagePrizeGems = () => Math.floor(3 + 0.1 * wildStage);
+
     // Place gem on a random unrevealed blank/reward tile once enough rocks have been opened
     const checkAndPlaceGem = useCallback((currentGrid: WildGridCell[]): WildGridCell[] => {
-        // Gem already placed (either as a GEM tile or hidden under a 2x block)
-        if (currentGrid.some(c => c.content === 'GEM' || (c.content === 'BLOCK_2X' && c.blockBase === 'GEM'))) return currentGrid;
+        // Gem already placed (either as a GEM tile or hidden inside a multiplier block)
+        if (currentGrid.some(c => c.content === 'GEM' || (isBlock(c) && c.blockBase === 'GEM'))) return currentGrid;
         const revealed = currentGrid.filter(c => c.revealed).length;
         if (revealed < getGemRequirement(wildStage)) return currentGrid;
-        // Candidates: unrevealed blank/reward tiles, plus 2x block tiles (gem can hide under a block)
+        // Candidates: unrevealed blank/reward tiles, plus multiplier block tiles (gem can hide under a block)
         const candidates = currentGrid
-            .map((c, i) => (!c.revealed && (c.content === 'BLANK' || c.content === 'REWARD' || c.content === 'BLOCK_2X')) ? i : -1)
+            .map((c, i) => (!c.revealed && (c.content === 'BLANK' || c.content === 'REWARD' || isBlock(c))) ? i : -1)
             .filter(i => i !== -1);
         if (candidates.length === 0) return currentGrid;
         const pick = candidates[Math.floor(Math.random() * candidates.length)];
         const next = [...currentGrid];
-        if (next[pick].content === 'BLOCK_2X') {
-            // Hide the gem under the block — breaking it (2 hits) reveals the next-stage tile
+        if (isBlock(next[pick])) {
+            // Hide the gem under the block — breaking it reveals the next-stage tile (prize ×mult)
             next[pick] = { ...next[pick], blockBase: 'GEM' };
         } else {
             next[pick] = { revealed: false, content: 'GEM' };
@@ -326,10 +349,11 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const cell = grid[index];
         const newGrid = [...grid.map(c => ({ ...c }))];
 
-        // Handle block tile: takes 2 hits to clear
-        if (cell.content === 'BLOCK_2X') {
+        // Handle multiplier block tile: takes 2 hits to clear. First hit cracks the block,
+        // revealing the underlying reward/gem (still unrevealed); mult + reward are preserved.
+        if (isBlock(cell)) {
             audioService.playStoneBreak();
-            newGrid[index] = { revealed: false, content: cell.blockBase ?? 'BLANK', reward: cell.reward };
+            newGrid[index] = { ...cell, revealed: false, content: cell.blockBase ?? 'REWARD' };
             setGrid(newGrid);
             if (onGridUpdate) onGridUpdate(newGrid);
             onPickTile(false, null);
@@ -369,15 +393,18 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 const finalGrid = newGrid.map(c => ({ ...c }));
                 const surroundingRewards: MiniGameReward[] = [];
                 let gemFoundFromBomb = false;
+                let bombGemMult = 1;
                 for (const ni of explodeTargets) {
                     const t = finalGrid[ni];
-                    if (t.content === 'BLOCK_2X') {
-                        // Bomb shatters the 2x block completely — reveal whatever is underneath
-                        const base = t.blockBase ?? 'BLANK';
+                    if (isBlock(t)) {
+                        // Bomb shatters the multiplier block completely — reveal whatever is underneath
+                        const base = t.blockBase ?? 'REWARD';
                         if (base === 'GEM') {
                             finalGrid[ni] = { ...t, content: 'GEM', revealed: true };
                             gemFoundFromBomb = true;
-                        } else if (base === 'REWARD' && t.reward) {
+                            bombGemMult = t.mult ?? 1;
+                        } else if (t.reward) {
+                            // reward is already multiplied at creation time
                             finalGrid[ni] = { ...t, content: 'REWARD', revealed: true };
                             surroundingRewards.push(t.reward);
                         } else {
@@ -394,7 +421,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 if (onGridUpdate) onGridUpdate(finalGridWithGem);
                 onBatchPick(1, surroundingRewards);
                 if (gemFoundFromBomb) {
-                    triggerStageClear(Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage)), Math.floor(3 + 0.1 * wildStage));
+                    triggerStageClear(stagePrizeCoins(bombGemMult), stagePrizeGems());
                 }
             }, 600);
             return;
@@ -405,7 +432,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (onGridUpdate) onGridUpdate(gridAfterGem);
         if (cell.content === 'GEM') {
             audioService.playGemFound();
-            triggerStageClear(Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage)), Math.floor(3 + 0.1 * wildStage));
+            triggerStageClear(stagePrizeCoins(cell.mult ?? 1), stagePrizeGems());
         } else if (cell.content === 'REWARD') {
             audioService.playWinSmall();
             onPickTile(false, cell.reward!);
@@ -426,10 +453,20 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const newGrid = [...grid];
         const rewards: MiniGameReward[] = [];
         let gemFound = false;
+        let autoGemMult = 1;
         let used = 0;
         for (const idx of unrevealed.slice(0, count)) {
             used++;
-            newGrid[idx] = { ...newGrid[idx], revealed: true };
+            const t = newGrid[idx];
+            if (isBlock(t)) {
+                // Auto-pick fully clears a multiplier block, revealing what's underneath
+                const base = t.blockBase ?? 'REWARD';
+                if (base === 'GEM') { newGrid[idx] = { ...t, content: 'GEM', revealed: true }; gemFound = true; autoGemMult = t.mult ?? 1; break; }
+                else if (t.reward) { newGrid[idx] = { ...t, content: 'REWARD', revealed: true }; rewards.push(t.reward); }
+                else { newGrid[idx] = { ...t, content: 'BLANK', revealed: true }; }
+                continue;
+            }
+            newGrid[idx] = { ...t, revealed: true };
             if (newGrid[idx].content === 'GEM') { gemFound = true; break; }
             else if (newGrid[idx].content === 'REWARD' && newGrid[idx].reward) rewards.push(newGrid[idx].reward!);
         }
@@ -439,7 +476,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         if (used > 0) { onBatchPick(used, rewards); audioService.playClick(); }
         if (gemFound) {
             audioService.playGemFound();
-            triggerStageClear(Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage)), Math.floor(3 + 0.1 * wildStage));
+            triggerStageClear(stagePrizeCoins(autoGemMult), stagePrizeGems());
         } else { if (rewards.length > 0) audioService.playWinSmall(); else audioService.playStoneBreak(); }
     };
 
@@ -623,13 +660,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isGem = revealed && cell.content === 'GEM';
                                     const isReward = revealed && cell.content === 'REWARD';
                                     const isBomb = cell.content === 'BOMB';
-                                    const isBlock2x = cell.content === 'BLOCK_2X';
                                     const maxDim = Math.max(gridCols, gridRows);
                                     const tileSize = maxDim >= 6 ? 78 : maxDim >= 5 ? 88 : maxDim >= 4 ? 100 : 114;
-                                    const gemPrize = Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage));
+                                    const gemPrize = Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage)) * (cell.mult ?? 1);
 
                                     const iconSrc = isExploding ? null
-                                        : isBlock2x ? '/coinmine_3xblock.png'
+                                        : cell.content === 'BLOCK_4X' ? '/coinmine_4xtile.png'
+                                        : cell.content === 'BLOCK_3X' ? '/coinmine_3xtile.png'
+                                        : cell.content === 'BLOCK_2X' ? '/coinmine_3xblock.png'
                                         : !revealed ? '/coinmine_rockicon.png'
                                         : isGem ? '/coinmine_stageclearicon.png'
                                         : isBomb ? '/coinmine_bombicon.png'
@@ -907,7 +945,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                                 <span>+{showBuyPopup === 'PICKS' ? opt.picks : opt.dice} {showBuyPopup === 'PICKS' ? 'Picks' : 'Dice'}</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 text-yellow-200 text-xs font-bold">
-                                                <img src="/symbols/coin.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+                                                <img src="/new_coinicon.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
                                                 <span>+{formatCommaNumber(opt.coins)}</span>
                                             </div>
                                         </div>

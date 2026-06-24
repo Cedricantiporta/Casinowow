@@ -109,9 +109,10 @@ export interface WinData {
 
 export interface WildGridCell {
     revealed: boolean;
-    content: 'GEM' | 'REWARD' | 'BLANK' | 'BOMB' | 'BLOCK_2X' | 'BLOCK_3X';
+    content: 'GEM' | 'REWARD' | 'BLANK' | 'BOMB' | 'BLOCK_2X' | 'BLOCK_3X' | 'BLOCK_4X';
     reward?: MiniGameReward;
     blockBase?: 'BLANK' | 'REWARD' | 'GEM';
+    mult?: number;
 }
 
 export interface QuestState {

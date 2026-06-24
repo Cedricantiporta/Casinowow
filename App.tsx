@@ -188,7 +188,8 @@ const STARTUP_ASSETS = [
     '/ui/rock.png', '/ui/roller.png', '/ui/stage_gem.png', '/ui/star.png',
     '/ui/cards_new.png',
     // currency symbols (used across many modals)
-    '/symbols/coin.png', '/symbols/diamond.png',
+    '/symbols/coin.png', '/symbols/diamond.png', '/new_coinicon.png', '/topbar_levelstar.png',
+    '/coinmine_3xtile.png', '/coinmine_4xtile.png',
     // card collection modal background
     '/cards_bg.png',
     // mission pass icons
@@ -3974,7 +3975,7 @@ const App: React.FC = () => {
                     {/* Coins + Gems pills */}
                     <div className="flex items-center gap-[3px] md:gap-1.5 min-w-0 flex-1">
                         <div className="currency-pill flex items-center gap-1 flex-1" style={{ overflow: 'visible', minWidth: '130px', maxWidth: 'none', ...(coinAnimating ? { boxShadow: '0 0 10px 2px rgba(255,220,0,0.6)', transition: 'box-shadow 0.2s' } : {}) }}>
-                            <img src="/symbols/coin.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
+                            <img src="/new_coinicon.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
                             <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                         </div>
                         <div className="currency-pill flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '72px', maxWidth: '110px' }}>
@@ -4022,7 +4023,7 @@ const App: React.FC = () => {
                                     </>;
                                 })()}
                             </div>
-                            <img src="/ui/star.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
+                            <img src="/topbar_levelstar.png" alt="" style={{ flexShrink: 0, width: 32, height: 32, objectFit: 'contain', position: 'relative', zIndex: 1, marginLeft: '-6px' }} />
                             <span className="rnum font-black" style={{ fontSize: '13px', letterSpacing: '0.02em', flex: 1, textAlign: 'center' }}>
                                 {showXpPct ? `${Math.floor((player.xp / player.xpToNextLevel) * 100)}%` : `LV.${player.level}`}
                             </span>
@@ -4101,7 +4102,7 @@ const App: React.FC = () => {
                                     <div className="flex items-center justify-between">
                                         <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 10, fontWeight: 700 }}>Next Reward · Lv.{nextLevel}</span>
                                         <span className="flex items-center gap-1" style={{ color: '#ffe066', fontSize: 11, fontWeight: 900 }}>
-                                            <img src="/symbols/coin.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+                                            <img src="/new_coinicon.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
                                             {formatK(nextReward)}
                                         </span>
                                     </div>
@@ -5145,7 +5146,7 @@ const App: React.FC = () => {
           <div className="absolute top-[38px] right-2 z-[201] animate-pop-in pointer-events-none">
               <div className="rounded-2xl overflow-hidden flex items-center gap-2.5" style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 6px 20px rgba(0,0,0,0.8)', padding: '9px 13px' }}>
                   {activeToast.type === 'LEVEL_UP'
-                      ? <img src="/ui/star.png" alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain', flexShrink: 0 }} />
+                      ? <img src="/topbar_levelstar.png" alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain', flexShrink: 0 }} />
                       : <img src="/card_normal.png" alt="" style={{ width: '1.4rem', height: '1.8rem', objectFit: 'contain', flexShrink: 0 }} />}
                   <div>
                       {activeToast.type === 'LEVEL_UP' ? (
@@ -5214,7 +5215,7 @@ const App: React.FC = () => {
             <div className="text-purple-200 text-xs font-bold">A special gift to start your journey</div>
             <div className="flex flex-col items-center gap-1 rounded-2xl px-5 py-3 w-full"
               style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4)' }}>
-              <img src="/symbols/coin.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+              <img src="/new_coinicon.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
               <div className="font-black text-yellow-300 text-2xl" style={{ fontVariantNumeric: 'tabular-nums' }}>
                 {giftDisplayAmount.toLocaleString('en-US')}
               </div>
@@ -5463,7 +5464,7 @@ const App: React.FC = () => {
                           { icon: '🎰', text: 'High Limit Room access' },
                           { icon: '💰', text: '5% Daily Cashback via Inbox' },
                           { icon: '💎', text: '+Weekly Gems' },
-                          { icon: '/ui/star.png', text: '+20% XP on all spins' },
+                          { icon: '/topbar_levelstar.png', text: '+20% XP on all spins' },
                       ] : [
                           { icon: '🎁', text: 'Double Rewards on every level' },
                           { icon: '⚡', text: '+20 Levels instant boost' },

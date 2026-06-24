@@ -18,17 +18,17 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
         description: 'Jumpstart your game with coins, gems and a level boost.',
         icon: '⚡',
         rewards: [
-            { icon: '/symbols/coin.png', label: '+100,000,000,000 Coins' },
+            { icon: '/new_coinicon.png', label: '+100,000,000,000 Coins' },
             { icon: '/symbols/diamond.png', label: '+10,000 Gems' },
-            { icon: '/ui/star.png', label: 'Level 40' },
+            { icon: '/topbar_levelstar.png', label: 'Level 40' },
         ],
     },
     dev999: {
         title: 'COIN FLOOD',
         description: 'A massive coin injection added to your current balance.',
-        icon: '/symbols/coin.png',
+        icon: '/new_coinicon.png',
         rewards: [
-            { icon: '/symbols/coin.png', label: '+100,000,000,000,000 Coins' },
+            { icon: '/new_coinicon.png', label: '+100,000,000,000,000 Coins' },
         ],
     },
     dev1: {
@@ -47,7 +47,7 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
         description: '10 Billion coins and 2,000 gems dropped straight to your wallet.',
         icon: '💥',
         rewards: [
-            { icon: '/symbols/coin.png', label: '+10,000,000,000 Coins' },
+            { icon: '/new_coinicon.png', label: '+10,000,000,000 Coins' },
             { icon: '/symbols/diamond.png', label: '+2,000 Gems' },
         ],
     },

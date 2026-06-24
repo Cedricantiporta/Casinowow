@@ -169,7 +169,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 <div className="flex-1 px-3 py-2 flex flex-col overflow-y-auto no-scrollbar gap-0">
                     <div className="text-[9px] font-black mb-1.5 text-white font-nunito">Stats</div>
                     <div className="flex flex-col">
-                        <StatRow pos="top" icon="/symbols/coin.png" label="Balance" value={formatK(player.balance)} />
+                        <StatRow pos="top" icon="/new_coinicon.png" label="Balance" value={formatK(player.balance)} />
                         <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
                         <StatRow pos="mid" icon="/symbols/diamond.png" label="Gems" value={formatK(player.diamonds)} />
                         <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
@@ -177,7 +177,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
                         <StatRow pos="mid" icon="🏆" label="Max Win" value={formatK(stats.maxSingleWin)} />
                         <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
-                        <StatRow pos="mid" icon="/symbols/coin.png" label="Total Won" value={formatK(stats.totalCoinsWon)} />
+                        <StatRow pos="mid" icon="/new_coinicon.png" label="Total Won" value={formatK(stats.totalCoinsWon)} />
                         <div style={{ height: 1, background: 'rgba(255,255,255,0.07)' }} />
                         <StatRow pos="bot" icon="🎯" label="Max Jackpot" value={formatK(stats.maxJackpotWin)} />
                     </div>

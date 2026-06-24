@@ -23,7 +23,7 @@ const MSG_ICONS: Record<string, string> = {
     WELCOME:      '/ui/gift_mail.png',
     DAILY_COINS:  '/ui/gift_mail.png',
     DAILY_PACK:   '/ui/gift_mail.png',
-    VIP_CASHBACK: '/symbols/coin.png',
+    VIP_CASHBACK: '/new_coinicon.png',
 };
 
 function daysLeft(expiresAt?: number): number | null {

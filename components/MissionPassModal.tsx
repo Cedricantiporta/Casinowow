@@ -88,11 +88,11 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const renderIcon = (reward: PassReward | undefined, sz = '2.8rem') => {
         if (!reward) return null;
         const style = { width: sz, height: sz, objectFit: 'contain' as const };
-        if (reward.type === 'COINS') return <img src="/symbols/coin.png" alt="" style={style} />;
+        if (reward.type === 'COINS') return <img src="/new_coinicon.png" alt="" style={style} />;
         if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={style} />;
         if (reward.type === 'PICKS' || reward.type === 'DICE_CREDITS') return <img src="/pass-picksdice.png" alt="" style={style} />;
         if (reward.type === 'CREDIT_BACK') return <img src={reward.label.toLowerCase().includes('premium') ? '/card_premium.png' : '/card_normal.png'} alt="" style={{ width: '2rem', height: sz, objectFit: 'contain' as const }} />;
-        return <img src="/ui/star.png" alt="" style={style} />;
+        return <img src="/topbar_levelstar.png" alt="" style={style} />;
     };
 
     return (
@@ -193,7 +193,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         if (mission.type === 'LEVEL_UP') return <img src="/mission-levelup.png" alt="" style={sz} />;
                                         if (mission.type === 'SPIN_COUNT' || mission.type === 'MAX_BET_SPIN') return <img src="/mission-spin.png" alt="" style={sz} />;
                                         if (mission.type === 'WIN_COINS' || mission.type === 'BET_COINS' || mission.type === 'BIG_WIN_COUNT') return <img src="/mission-wincoin.png" alt="" style={sz} />;
-                                        return <img src="/ui/star.png" alt="" style={sz} />;
+                                        return <img src="/topbar_levelstar.png" alt="" style={sz} />;
                                     })()}
                                 </div>
                                 <div className="text-white font-black text-[12px] leading-snug text-center flex-1 relative z-10">{mission.description}</div>
