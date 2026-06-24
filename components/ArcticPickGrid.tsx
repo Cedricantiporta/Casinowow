@@ -21,7 +21,11 @@ const TIER_COLOR: Record<Tier, string> = {
     GRAND: '#fde68a',
 };
 const TIER_IMG: Record<Tier, string> = {
-    MINI: '/mini.png', MINOR: '/minor.png', MAJOR: '/major.png', MEGA: '/mega.png', GRAND: '/grand.png',
+    MINI:  '/freespinjackpot (1).png',
+    MINOR: '/freespinjackpot (2).png',
+    MAJOR: '/freespinjackpot (3).png',
+    MEGA:  '/freespinjackpot (4).png',
+    GRAND: '/freespinjackpot (5).png',
 };
 const BET_MULTS: Record<Tier, number> = { MINI: 10, MINOR: 20, MAJOR: 40, MEGA: 60, GRAND: 100 };
 
@@ -56,7 +60,6 @@ interface Cell { id: number; tier: Tier; state: CellState; }
 
 export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWin, rows, cols }) => {
     const [winningTier] = useState<Tier>(rollWinningTier);
-    // 11 winning + 1 per other tier = 15 cells; non-winning tiers cap at 1/2, never trigger win
     const [cells, setCells] = useState<Cell[]>(() => {
         const tierList: Tier[] = [
             ...Array(11).fill(winningTier),
@@ -76,7 +79,7 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
             const next = prev.map(c => c.id === id ? { ...c, state: 'revealed' as CellState } : c);
             if (!winFiredRef.current) {
                 const winCount = next.filter(c => c.state === 'revealed' && c.tier === winningTier).length;
-                if (winCount >= 2) {
+                if (winCount >= 3) {
                     winFiredRef.current = true;
                     const amount = currentBet * BET_MULTS[winningTier];
                     setWinAmount(amount);
@@ -97,12 +100,14 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
         <div className="absolute inset-0 z-30 flex flex-col overflow-hidden"
             style={{ background: '#000a14' }}>
 
-            {/* Pick grid */}
-            <div className="flex-1 min-h-0 p-1" style={{
+            <div style={{
+                flex: 1,
+                minHeight: 0,
                 display: 'grid',
                 gridTemplateColumns: `repeat(${cols}, 1fr)`,
-                gridTemplateRows: `repeat(${rows}, 1fr)`,
+                gridAutoRows: '1fr',
                 gap: 3,
+                padding: 3,
             }}>
                 {cells.map(cell => {
                     const revealed = cell.state === 'revealed';
@@ -114,6 +119,7 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
                             onClick={() => handlePick(cell.id)}
                             disabled={revealed || !!wonTier}
                             style={{
+                                aspectRatio: '1 / 1',
                                 borderRadius: 0,
                                 border: 'none',
                                 background: '#000',
@@ -122,7 +128,7 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 padding: 0,
-                                minHeight: 0,
+                                overflow: 'hidden',
                                 boxShadow: isWinCell ? `0 0 14px ${color}` : undefined,
                                 transition: 'box-shadow 0.3s',
                             }}>
@@ -131,18 +137,18 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
                                     src={TIER_IMG[cell.tier]}
                                     alt=""
                                     style={{
-                                        width: '65%', height: '65%',
+                                        width: '100%', height: '100%',
                                         objectFit: 'contain',
                                         filter: isWinCell
                                             ? `drop-shadow(0 0 8px ${color})`
-                                            : 'brightness(0.4)',
+                                            : 'brightness(0.35)',
                                     }}
                                 />
                             ) : (
                                 <img
                                     src="/arctic/snow.png"
                                     alt=""
-                                    style={{ width: '55%', height: '55%', objectFit: 'contain', opacity: 0.55, filter: 'drop-shadow(0 1px 4px rgba(100,200,255,0.4))' }}
+                                    style={{ width: '70%', height: '70%', objectFit: 'contain', opacity: 0.55, filter: 'drop-shadow(0 1px 4px rgba(100,200,255,0.4))' }}
                                 />
                             )}
                         </button>
@@ -150,7 +156,6 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
                 })}
             </div>
 
-            {/* Win overlay — shown after 2nd match; user clicks Claim to close */}
             {wonTier && (
                 <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 animate-pop-in"
                     style={{ background: 'rgba(0,0,0,0.88)' }}>

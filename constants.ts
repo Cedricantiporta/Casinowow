@@ -459,11 +459,11 @@ export const JACKPOT_ICONS: Partial<Record<GameTheme, string>> = {
 
 // Generic per-tier jackpot icons used for themes without a custom background icon
 export const GENERIC_JACKPOT_ICONS: Partial<Record<SymbolType, string>> = {
-  [SymbolType.JACKPOT_MINI]:  '/mini_jackpot.png',
-  [SymbolType.JACKPOT_MINOR]: '/minor_jackpot.png',
-  [SymbolType.JACKPOT_MAJOR]: '/major_jackpot.png',
-  [SymbolType.JACKPOT_MEGA]:  '/mega_jackpot.png',
-  [SymbolType.JACKPOT_GRAND]: '/grand_jackpot.png',
+  [SymbolType.JACKPOT_MINI]:  '/scatter_mini.png',
+  [SymbolType.JACKPOT_MINOR]: '/scatter_minor.png',
+  [SymbolType.JACKPOT_MAJOR]: '/scatter_major.png',
+  [SymbolType.JACKPOT_MEGA]:  '/scatter_mega.png',
+  [SymbolType.JACKPOT_GRAND]: '/scatter_grand.png',
 };
 
 // Per-theme jackpot icon overrides (take priority over GENERIC_JACKPOT_ICONS)
@@ -481,6 +481,9 @@ export const THEME_JACKPOT_ICONS: Partial<Record<GameTheme, Partial<Record<Symbo
 export const WIN_TIER_IMAGES = [
   '/bigwin.png', '/greatwin.png', '/epicwin.png', '/megawin.png', '/ultimatewin.png',
   '/mini.png', '/minor.png', '/major.png', '/mega.png', '/grand.png',
+  '/scatter_mini.png', '/scatter_minor.png', '/scatter_major.png', '/scatter_mega.png', '/scatter_grand.png',
+  '/freespinjackpot (1).png', '/freespinjackpot (2).png', '/freespinjackpot (3).png', '/freespinjackpot (4).png', '/freespinjackpot (5).png',
+  '/topbarjackpot (1).png', '/topbarjackpot (2).png', '/topbarjackpot (3).png', '/topbarjackpot (4).png', '/topbarjackpot (5).png',
 ];
 
 const isImagePath = (s: unknown): s is string => typeof s === 'string' && s.startsWith('/');
