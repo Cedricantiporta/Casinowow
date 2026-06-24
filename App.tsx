@@ -3059,12 +3059,18 @@ const App: React.FC = () => {
                // Store tier; fire sound + popup when jackpot celebration closes
                pendingWinTierRef.current = winTier;
                setPendingBigWin(true);
+               setStatus(GameStatus.WIN_ANIMATION);
            } else if (!pirateWalkRef.current.active) {
                // Suppress win popup during Ghost Ship — total shown at end of feature
                audioService.playWinTier(winTier);
                setShowWinPopup(true);
+               setStatus(GameStatus.WIN_ANIMATION);
+           } else {
+               // Win during Ghost Ship walk — no popup, auto-return to IDLE so walk can continue
+               setStatus(GameStatus.WIN_ANIMATION);
+               const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
+               setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 150 : 500);
            }
-           setStatus(GameStatus.WIN_ANIMATION);
        } else {
            audioService.playWinSmall();
            setStatus(GameStatus.WIN_ANIMATION);
@@ -4011,7 +4017,7 @@ const App: React.FC = () => {
                     {/* Coins + Gems pills */}
                     <div className="flex items-center gap-[3px] md:gap-1.5 min-w-0 flex-1">
                         <div className="currency-pill flex items-center gap-1 flex-1" style={{ overflow: 'visible', minWidth: '130px', maxWidth: 'none', ...(coinAnimating ? { boxShadow: '0 0 10px 2px rgba(255,220,0,0.6)', transition: 'box-shadow 0.2s' } : {}) }}>
-                            <img src="/new_coinicon.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
+                            <img src="/new_coinicon.png" alt="" style={{ width: 30, height: 30, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
                             <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
                         </div>
                         <div className="currency-pill flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '72px', maxWidth: '110px' }}>

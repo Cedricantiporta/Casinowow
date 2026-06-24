@@ -55,8 +55,12 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                 </div>
 
                 <div className="flex-1 flex flex-col items-center justify-center w-full">
-                    <div className={`text-2xl md:text-3xl mb-0.5 drop-shadow-md ${isToday ? 'animate-bounce' : ''}`}>
-                        {reward.day === 7 ? '👑' : reward.gems > 0 ? '💎' : '💰'}
+                    <div className="mb-0.5 drop-shadow-md">
+                        <img
+                            src={reward.day === 7 ? '/ui/VIP.png' : '/ui/collect.png'}
+                            alt=""
+                            style={{ width: 36, height: 36, objectFit: 'contain' }}
+                        />
                     </div>
                     <div className={`font-black text-[10px] md:text-sm leading-tight ${isGoldenDay ? 'text-yellow-300' : isToday ? 'text-white' : 'text-indigo-100'}`}>
                         {formatKShort(coins)}
