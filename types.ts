@@ -111,7 +111,7 @@ export interface WildGridCell {
     revealed: boolean;
     content: 'GEM' | 'REWARD' | 'BLANK' | 'BOMB' | 'BLOCK_2X' | 'BLOCK_3X';
     reward?: MiniGameReward;
-    blockBase?: 'BLANK' | 'REWARD';
+    blockBase?: 'BLANK' | 'REWARD' | 'GEM';
 }
 
 export interface QuestState {
