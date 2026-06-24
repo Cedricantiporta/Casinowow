@@ -120,36 +120,18 @@ const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
     const pct = Math.min((progress / 250) * 100, 100);
     const full = pct >= 100;
     return (
-        <div style={{ width: '100%', padding: '2px 0', position: 'relative' }}>
-            {/* Track — gold gradient container, no border-radius */}
-            <div style={{ position: 'relative', width: '100%', height: 18, borderRadius: 0, background: 'linear-gradient(90deg,#3d1700,#7c3800,#c87800,#ffd700,#c87800,#7c3800,#3d1700)', overflow: 'hidden' }}>
-                {/* Fill */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50, pointerEvents: 'none' }}>
+            <div style={{ position: 'relative', width: '100%', height: 6, borderRadius: 0, background: '#2a1800', overflow: 'hidden' }}>
                 <div style={{
                     position: 'absolute', left: 0, top: 0, bottom: 0,
                     width: `${pct}%`,
                     background: full
                         ? 'linear-gradient(90deg,#ffe566,#fffba0,#ffe566)'
-                        : 'linear-gradient(90deg,#c87800,#f5a800,#c87800)',
-                    boxShadow: full ? '0 0 8px rgba(255,220,80,0.9)' : undefined,
+                        : 'linear-gradient(90deg,#e69000,#ffd000,#ffe566,#ffd000,#e69000)',
+                    boxShadow: full ? '0 0 6px rgba(255,230,80,0.95)' : '0 0 4px rgba(255,200,0,0.5)',
                     transition: 'width 0.5s ease',
                 }} />
-                {/* Shine */}
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(255,255,255,0.15) 0%,transparent 55%)', pointerEvents: 'none' }} />
-                {/* Label */}
-                <span style={{ position: 'relative', zIndex: 1, paddingLeft: 6, fontWeight: 900, color: 'rgba(255,255,255,0.85)', fontSize: 9, letterSpacing: '0.06em', lineHeight: '18px' }}>Pick Bonus</span>
-                {/* Status badge */}
-                <div style={{
-                    position: 'absolute', right: 3, top: '50%', transform: 'translateY(-50%)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    height: 12, paddingLeft: 5, paddingRight: 5, borderRadius: 2,
-                    background: full ? 'rgba(255,220,80,0.35)' : 'rgba(0,0,0,0.35)',
-                    fontSize: 8, fontWeight: 900,
-                    color: full ? '#fff' : 'rgba(255,255,255,0.5)',
-                    letterSpacing: '0.05em',
-                    transition: 'all 0.5s',
-                }}>
-                    {full ? '✓ Ready' : `${Math.round(pct)}%`}
-                </div>
+                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(255,255,255,0.18) 0%,transparent 60%)', pointerEvents: 'none' }} />
             </div>
         </div>
     );
@@ -2336,9 +2318,6 @@ const App: React.FC = () => {
     if (status === GameStatus.IDLE && pendingArcticFreePick && !showArcticPickModal && !reelTransitioning) {
         setPendingArcticFreePick(false);
         setPlayer(p => ({ ...p, autoSpin: false }));
-        if (freeSpinsRemaining > 0) {
-            arcticMidFreeSpinsRef.current = true;
-        }
         setTimeout(() => {
             setShowArcticTriggerPopup(true);
             setInstantStop(true);
@@ -2681,27 +2660,6 @@ const App: React.FC = () => {
                         }, 3000);
                     }, 400);
                 }
-            }
-        }
-
-        // Arctic free-spin JP pick chances:
-        //   Spin 1: 10%  |  Every 5th spin: 7%  |  After first trigger: flat 3% every spin
-        if (ft === 'ARCTIC' && freeSpinsRemaining > 0 && !showArcticPickModal && !pendingArcticFreePick) {
-            arcticFreeSpinCountRef.current++;
-            const spinNum = arcticFreeSpinCountRef.current;
-            const alreadyTriggered = arcticJpPickTriggeredRef.current;
-            let chance = 0;
-            if (alreadyTriggered) {
-                chance = 0.03;
-            } else if (spinNum === 1) {
-                chance = 0.10;
-            } else if (spinNum % 5 === 0) {
-                chance = 0.07;
-            }
-            if (chance > 0 && Math.random() < chance) {
-                arcticJpPickTriggeredRef.current = true;
-                setPendingArcticFreePick(true);
-                setPlayer(p => ({ ...p, autoSpin: false }));
             }
         }
 
@@ -3233,9 +3191,6 @@ const App: React.FC = () => {
   const handleArcticPickWin = (tier: string, amount: number) => {
       setShowArcticPickModal(false);
       setPlayer(p => ({ ...p, balance: p.balance + amount }));
-      if (arcticMidFreeSpinsRef.current) {
-          setFreeSpinTotalWin(p => p + amount);
-      }
       const TIER_META: Record<string, { color: string; icon: string }> = {
           MINI:  { color: '#4ade80', icon: '🥉' },
           MINOR: { color: '#67e8f9', icon: '🥈' },
@@ -3245,6 +3200,9 @@ const App: React.FC = () => {
       };
       const meta = TIER_META[tier] || { color: '#fde68a', icon: '🏆' };
       audioService.playJackpotSound(tier);
+      setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: 'MEGA_WIN' });
+      setPendingBigWin(true);
+      pendingWinTierRef.current = 'MEGA_WIN';
       setJackpotWinTier({ name: tier, color: meta.color, icon: meta.icon, amount });
   };
 
@@ -3260,6 +3218,9 @@ const App: React.FC = () => {
       };
       const meta = TIER_META[tier] || { color: '#fde68a', icon: '🏆' };
       audioService.playJackpotSound(tier);
+      setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: 'MEGA_WIN' });
+      setPendingBigWin(true);
+      pendingWinTierRef.current = 'MEGA_WIN';
       setJackpotWinTier({ name: tier, color: meta.color, icon: meta.icon, amount });
   };
 
@@ -3280,11 +3241,6 @@ const App: React.FC = () => {
 
   const handleJackpotClose = () => {
       setJackpotWinTier(null);
-      if (arcticMidFreeSpinsRef.current) {
-          arcticMidFreeSpinsRef.current = false;
-          setPlayer(p => ({ ...p, autoSpin: true }));
-          return;
-      }
       if (hwCountContinuationRef.current) {
           const cont = hwCountContinuationRef.current;
           hwCountContinuationRef.current = null;
@@ -4217,15 +4173,13 @@ const App: React.FC = () => {
                     return (
                         <div className="w-full z-10 p-0 m-0">
                             {featureThemeOf(selectedGame.theme) === 'ARCTIC' ? (
-                                showArcticPickModal
-                                    ? <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={false} theme={selectedGame.theme} />
-                                    : freeSpinsRemaining > 0
-                                        ? <ArcticMultiplierBar
-                                            mults={[2, 3, 4, 5, 10]}
-                                            stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
-                                            isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
-                                          />
-                                        : <ArcticProgressBar progress={arcticSpinProgress} />
+                                freeSpinsRemaining > 0
+                                    ? <ArcticMultiplierBar
+                                        mults={[2, 3, 4, 5, 10]}
+                                        stepIdx={Math.min(Math.max(cascadeMultiplier - 2, 0), 4)}
+                                        isActive={status === GameStatus.CASCADE && cascadeMultiplier >= 2}
+                                      />
+                                    : <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} theme={selectedGame.theme} />
                             ) : (
                                 <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} theme={selectedGame.theme} />
                             )}
@@ -4285,6 +4239,11 @@ const App: React.FC = () => {
                             />
                             ));
                         })()}
+
+                        {/* Arctic pick bonus progress bar — absolute overlay at top of reel area */}
+                        {featureThemeOf(selectedGame.theme) === 'ARCTIC' && freeSpinsRemaining === 0 && !showArcticPickModal && (
+                            <ArcticProgressBar progress={arcticSpinProgress} />
+                        )}
 
                         {/* Winning-cell viper borders — drawn in a top overlay so they're
                             never clipped/covered by neighbouring reels (shows on every side). */}
