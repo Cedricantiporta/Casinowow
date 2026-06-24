@@ -78,6 +78,31 @@ const MYSTERY_IMG: Partial<Record<GameTheme, string>> = {
     PRINCESS:   '/princess_mystery.png',
 };
 
+// Solid per-theme ripple colours for side-clicks on the slot background.
+const RIPPLE_COLORS: Partial<Record<GameTheme, string>> = {
+    NEON:       '#ff3df0',
+    EGYPT:      '#ffc83d',
+    DRAGON:     '#ff4d2e',
+    PIRATE:     '#38e8ff',
+    SPACE:      '#8b7dff',
+    CANDY:      '#ff7ad1',
+    JUNGLE:     '#54e36a',
+    UNDERWATER: '#3ad6ff',
+    WESTERN:    '#ffb52e',
+    SAMURAI:    '#ff5a7a',
+    PIGGY:      '#ff8ec4',
+    GOLDEN_POT: '#ffcf3d',
+    LEPRECHAUN: '#3ee389',
+    ARCTIC:     '#7fe9ff',
+    PETS:       '#ffa94d',
+    MMORPG:     '#a98bff',
+    FARM:       '#ffd23d',
+    BEAST:      '#ff7a3d',
+    ANGRYFLOCK: '#ff5e5e',
+    PRINCESS:   '#ff9ae0',
+};
+const rippleColorFor = (theme: GameTheme): string => RIPPLE_COLORS[theme] ?? '#b450ff';
+
 const getRandomSymbol = (isFreeSpin: boolean, spinsWithoutBonus: number): SymbolType => {
   const weights = GET_DYNAMIC_WEIGHTS(isFreeSpin, spinsWithoutBonus);
   const totalWeight = weights.reduce((acc, w) => acc + w.weight, 0);
@@ -197,6 +222,7 @@ const STARTUP_ASSETS = [
     '/pass-picksdice.png',
     // win celebration art (WinPopup, JackpotCelebration)
     '/bigwin.png', '/greatwin.png', '/epicwin.png', '/megawin.png', '/ultimatewin.png',
+    '/new_bigwin.png', '/new_greatwin.png', '/new_epicwin.png', '/new_megawin.png', '/new_ultimatewin.png',
     // jackpot tier badges (pick-grid modals, JackpotCelebration)
     '/mini.png', '/minor.png', '/major.png', '/mega.png', '/grand.png',
     // jackpot tile overlays in reels (generic)
@@ -389,6 +415,14 @@ const App: React.FC = () => {
   const [gemsClaimedPopup, setGemsClaimedPopup] = useState<number | null>(null);
   const [piggyGlow, setPiggyGlow] = useState(false);
   const [piggyShaking, setPiggyShaking] = useState(false);
+  // Topbar piggy bank icon does an attention-grab shake every 10 seconds.
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setPiggyShaking(true);
+      setTimeout(() => setPiggyShaking(false), 800);
+    }, 10000);
+    return () => clearInterval(iv);
+  }, []);
   const [showXpTimer, setShowXpTimer] = useState(false);
   const [showXpPct, setShowXpPct] = useState(false);
   const [showXpPopup, setShowXpPopup] = useState(false);
@@ -3926,15 +3960,17 @@ const App: React.FC = () => {
         onClick={(e) => {
           if (showXpPopup) setShowXpPopup(false);
           if (showCollectPopup) setShowCollectPopup(false);
-          // Ripple on background clicks (not on buttons/interactive elements)
-          const tag = (e.target as HTMLElement).tagName;
-          if (tag !== 'BUTTON' && tag !== 'INPUT' && tag !== 'IMG') {
+          // Ripple only when clicking the slot background (GAME view), never on interactive
+          // elements or the reels themselves. Colour is a solid per-theme tint.
+          const target = e.target as HTMLElement;
+          const tag = target.tagName;
+          const onSlotBg = currentView === 'GAME' && !!target.closest('[data-slot-bg="true"]') && !target.closest('[data-no-ripple="true"]');
+          if (onSlotBg && tag !== 'BUTTON' && tag !== 'INPUT' && tag !== 'IMG') {
             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
             const scale = rect.width / 844;
             const x = (e.clientX - rect.left) / scale;
             const y = (e.clientY - rect.top) / scale;
-            const colors = ['rgba(180,80,255,0.5)','rgba(255,200,60,0.5)'];
-            const color = colors[rippleIdRef.current % colors.length];
+            const color = rippleColorFor(selectedGame.theme);
             const id = ++rippleIdRef.current;
             setRipples(r => [...r, {id,x,y,color}]);
             audioService.playClick();
@@ -4198,7 +4234,7 @@ const App: React.FC = () => {
                 isJackpotReady={(Date.now() - (player.jackpotRouletteLastTime ?? 0)) >= 3 * 60 * 60 * 1000}
             />
         ) : (
-            <div className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
+            <div data-slot-bg="true" className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
 
                 {/* Quest + Pass vertical panel — always visible in game view */}
                 {(() => {
@@ -4329,6 +4365,7 @@ const App: React.FC = () => {
                     {(() => {
                         return (
                     <div
+                        data-no-ripple="true"
                         className={`relative z-10 h-full max-h-full overflow-hidden flex gap-0
                             ${reelTransitioning === 'out' ? 'animate-reel-out' : reelTransitioning === 'in' ? 'animate-reel-in' : ''}
                         `}

@@ -453,7 +453,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             </button>
                                             {/* Per-album completion reward — outside the card container */}
                                             <div className="mt-1 text-center">
-                                                <div className="text-yellow-300 font-black text-[9px]">{formatK(getDeckReward(deck.gameId))}</div>
+                                                <div className="text-white font-black text-[9px]">{formatK(getDeckReward(deck.gameId))}</div>
                                             </div>
                                         </div>
                                     );
