@@ -1024,7 +1024,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         if (i % 10 === 0) {
             typeFree = 'DIAMONDS'; valueFree = 20; labelFree = '20 💎';
         } else if (i % 2 === 1) {
-            const v = Math.round(maxBet * i * 0.8);
+            const v = Math.round(maxBet * i * 0.4);
             typeFree = 'COINS'; valueFree = v; labelFree = formatNumber(v);
         } else {
             const spec = freeSpecials[1 + ((i / 2 - 1) % (freeSpecials.length - 1))];
@@ -1041,7 +1041,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         if (i % 10 === 0) {
             typePrem = 'DIAMONDS'; valuePrem = 100; labelPrem = '100 💎';
         } else if (i % 3 === 0) {
-            const v = Math.round(maxBet * i * 4);
+            const v = Math.round(maxBet * i * 2);
             typePrem = 'COINS'; valuePrem = v; labelPrem = formatNumber(v);
         } else {
             const spec = premSpecials[1 + ((i - 1) % (premSpecials.length - 1))];
