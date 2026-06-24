@@ -25,6 +25,7 @@ interface ReelProps {
   dissolving?: boolean;
   anticipation?: boolean;
   inFreeSpins?: boolean;
+  instantStop?: boolean;
 }
 
 const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
@@ -43,7 +44,7 @@ const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean, excludeSeven?
   return neon ? SymbolType.TEN : SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins, instantStop }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
   const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
@@ -88,8 +89,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   // Effect 3: Handle Animation Completion (Signal Parent)
   useEffect(() => {
       if (stopping && landing) {
-          // Delay to allow bounce animation to play before notifying parent
-          const delay = duration > 800 ? 400 : 200; 
+          const delay = instantStop ? 0 : (duration > 800 ? 400 : 200);
           const timer = setTimeout(() => {
               onStop();
           }, delay);
