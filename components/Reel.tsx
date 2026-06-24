@@ -270,7 +270,8 @@ const ReelCell: React.FC<{
         bgClasses = 'bg-black border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
     }
 
-    const activeBounce = highlight || isScatterShowcase;
+    const activeBounce = highlight || (isScatterShowcase && !isScatter);
+    const activeScatterShake = isScatter && isScatterShowcase;
 
     // Scale icons proportionally — cells shrink when more rows or more reels fill the same container
     const cellScale = Math.min(1.0, 3.0 / gameRows, 6.0 / gameReels);
@@ -306,7 +307,7 @@ const ReelCell: React.FC<{
                 {/* Content wrapper */}
                 <div className={`
                     relative flex flex-col items-center justify-center z-10 w-full h-full
-                    ${activeBounce ? 'animate-bounce-sm' : ''}
+                    ${activeScatterShake ? 'animate-scatter-shake' : activeBounce ? 'animate-bounce-sm' : ''}
                 `}>
                     {isJackpot ? (
                         (THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]) ? (
