@@ -1204,7 +1204,7 @@ const App: React.FC = () => {
       if (reward.tier === 'PREMIUM' && !missionState.isPremium) return;
       let msg = "";
       if (reward.type === 'COINS') {
-          const scaledValue = SCALE_COIN_REWARD(reward.value, player.level, MAX_BET_BY_LEVEL(player.level));
+          const scaledValue = SCALE_COIN_REWARD(reward.value, player.level, currentBetRef.current);
           setMissionState(prev => ({ ...prev, passRewards: prev.passRewards.map(r => r.id === reward.id ? { ...r, claimed: true, claimedValue: scaledValue } : r) }));
           setPlayer(p => ({ ...p, balance: p.balance + scaledValue }));
           triggerCoinAnim(scaledValue);
@@ -1250,7 +1250,7 @@ const App: React.FC = () => {
       let xpBoostApplied = false;
 
       rewardsToClaim.forEach(r => {
-          if (r.type === 'COINS') totalCoins += SCALE_COIN_REWARD(r.value, player.level, MAX_BET_BY_LEVEL(player.level));
+          if (r.type === 'COINS') totalCoins += SCALE_COIN_REWARD(r.value, player.level, currentBetRef.current);
           else if (r.type === 'DIAMONDS') totalDiamonds += r.value;
           else if (r.type === 'CREDIT_BACK') totalPackCredits += r.value;
           else if (r.type === 'PICKS') totalPicks += r.value;
@@ -1276,7 +1276,7 @@ const App: React.FC = () => {
       
       const claimedMap = new Map(rewardsToClaim.map(r => [
           r.id,
-          r.type === 'COINS' ? SCALE_COIN_REWARD(r.value, player.level, MAX_BET_BY_LEVEL(player.level)) : undefined,
+          r.type === 'COINS' ? SCALE_COIN_REWARD(r.value, player.level, currentBetRef.current) : undefined,
       ]));
       setMissionState(prev => ({
           ...prev,
@@ -2995,7 +2995,7 @@ const App: React.FC = () => {
               updateMissions(MissionType.LEVEL_UP, 1);
               setMissionState(prev => ({
                   ...prev,
-                  passRewards: GENERATE_PASS_REWARDS(currentBetRef.current).map(r => {
+                  passRewards: GENERATE_PASS_REWARDS(10000).map(r => {
                       const existing = prev.passRewards.find((pr: any) => pr.id === r.id);
                       return existing ? { ...r, claimed: existing.claimed } : r;
                   })
@@ -4854,7 +4854,7 @@ const App: React.FC = () => {
           onBuyLevel={handleBuyPassLevel}
           onClaimAll={handleClaimAllMissions}
           playerLevel={player.level}
-          maxBet={MAX_BET_BY_LEVEL(player.level) * (isHighLimit ? 10 : 1)}
+          maxBet={currentBetRef.current}
           onOpenGemShop={() => { setActiveModal('NONE'); setTimeout(() => openShop('DIAMONDS'), 50); }}
           onOpenPremium={() => { setActiveModal('NONE'); setTimeout(() => setShowPremiumModal(true), 50); }}
       />}

@@ -20,6 +20,15 @@ class AudioService {
       }
     } catch (e) {}
     this.preloadSfx();
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.musicEl?.pause();
+        this.ctx?.suspend().catch(() => {});
+      } else {
+        if (!this.musicMuted) this.musicEl?.play().catch(() => {});
+        this.ctx?.resume().catch(() => {});
+      }
+    });
   }
 
   private preloadSfx() {
