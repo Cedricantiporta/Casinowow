@@ -909,12 +909,8 @@ const App: React.FC = () => {
           setCurrentView('LOBBY');
           setIsHighLimit(false);
       } else if (player.level >= 35) {
-          setShowHRLoading(true);
-          setTimeout(() => {
-              setShowHRLoading(false);
-              setIsHighLimit(true);
-              setCurrentView('HIGH_LIMIT');
-          }, 1800);
+          setIsHighLimit(true);
+          setCurrentView('HIGH_LIMIT');
       } else {
           setCelebrationMsg('High Roller unlocks at Level 35!');
       }
@@ -2997,10 +2993,9 @@ const App: React.FC = () => {
                   setTimeout(() => setShowLevelUp(false), 2000);
               }
               updateMissions(MissionType.LEVEL_UP, 1);
-              const newMaxBet2 = MAX_BET_BY_LEVEL(newLevel);
               setMissionState(prev => ({
                   ...prev,
-                  passRewards: GENERATE_PASS_REWARDS(newMaxBet2).map(r => {
+                  passRewards: GENERATE_PASS_REWARDS(currentBetRef.current).map(r => {
                       const existing = prev.passRewards.find((pr: any) => pr.id === r.id);
                       return existing ? { ...r, claimed: existing.claimed } : r;
                   })
@@ -3830,10 +3825,12 @@ const App: React.FC = () => {
           <div className="bg-[#0a0015] flex items-center justify-center overflow-hidden" style={{ position: 'fixed', inset: 0 }}>
               <div style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
                   <div style={{ position: 'absolute', bottom: '13%', left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
-                      <div style={{ width: 140, height: 8, borderRadius: 9999, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden', position: 'relative' }}>
+                      <div style={{ width: 220, height: 16, borderRadius: 9999, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden', position: 'relative' }}>
                           <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)', transition: 'width 0.2s ease', borderRadius: 9999 }} />
+                          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 2px rgba(0,0,0,0.9)', lineHeight: 1 }}>{loadProgress}%</span>
+                          </div>
                       </div>
-                      <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.6)', textShadow: '0 1px 2px rgba(0,0,0,0.9)', lineHeight: 1 }}>{loadProgress}%</span>
                   </div>
               </div>
           </div>
@@ -4999,25 +4996,6 @@ const App: React.FC = () => {
           onNext={() => setStageCompletePopup(null)}
       />
 
-      {showHRLoading && (
-          <div className="absolute inset-0 z-[400] flex flex-col items-center justify-center"
-              style={{ background: 'linear-gradient(160deg,#1c0a00,#3a1800,#0f0600)' }}>
-              <div className="animate-pop-in flex flex-col items-center gap-4">
-                  <span style={{ fontSize: '4rem', lineHeight: 1 }}>🎰</span>
-                  <div className="font-black text-2xl uppercase tracking-widest"
-                      style={{ background: 'linear-gradient(180deg,#fff8c0,#ffd700)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                      High Roller
-                  </div>
-                  <div className="text-yellow-200/60 text-[11px] font-bold uppercase tracking-widest">Entering VIP Floor...</div>
-                  <div className="flex gap-1 mt-2">
-                      {[0,1,2].map(i => (
-                          <div key={i} className="w-2 h-2 rounded-full animate-bounce"
-                              style={{ background: '#ffd700', animationDelay: `${i * 0.15}s` }} />
-                      ))}
-                  </div>
-              </div>
-          </div>
-      )}
 
       {showFreeSpinsPopup &&<FreeSpinsWonPopup isOpen={showFreeSpinsPopup} count={freeSpinsWon} onComplete={handleStartFreeSpins} />}
       
@@ -5360,10 +5338,6 @@ const App: React.FC = () => {
           </div>
       )}
 
-        {/* Coin animation click blocker */}
-        {coinAnimating && (
-            <div className="absolute inset-0 z-[9999] pointer-events-auto" style={{ cursor: 'default' }} />
-        )}
 
         </div>
       </div>

@@ -103,11 +103,11 @@ export const SlotLoadingScreen: React.FC<Props> = ({ game }) => {
                 </div>
 
                 {/* Progress bar */}
-                <div className="rtrack" style={{ width: 220, height: 20, padding: 0 }}>
-                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
-                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${progress * 100}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.15s ease' }} />
+                <div style={{ width: 220, height: 16, borderRadius: 9999, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden', position: 'relative' }}>
+                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${progress * 100}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)', transition: 'width 0.15s ease', borderRadius: 9999 }} />
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.9)', textShadow: '0 1px 2px rgba(0,0,0,0.9)', lineHeight: 1 }}>{Math.round(progress * 100)}%</span>
                     </div>
-                    <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{Math.round(progress * 100)}%</span>
                 </div>
             </div>
         </div>
