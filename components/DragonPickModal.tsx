@@ -55,13 +55,13 @@ interface Cell { id: number; tier: Tier; state: CellState; }
 export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWin, rows, cols }) => {
     const [winningTier] = useState<Tier>(rollWinningTier);
 
-    // Winning tier: 7 cells (player collects 3 of 7 to win)
-    // Other tiers: 2 cells each (max out at 2/3 — near-miss, can never win)
-    // Total: 7 + 4×2 = 15 cells = 3×5 grid
+    // Winning tier: 11 cells (player collects 2 of 11 to win)
+    // Other tiers: 1 cell each (max out at 1/2 — near-miss, can never win)
+    // Total: 11 + 4×1 = 15 cells = 3×5 grid
     const [cells, setCells] = useState<Cell[]>(() => {
         const tierList: Tier[] = [
-            ...Array(7).fill(winningTier),
-            ...TIERS.filter(t => t !== winningTier).flatMap(t => [t, t]),
+            ...Array(11).fill(winningTier),
+            ...TIERS.filter(t => t !== winningTier),
         ] as Tier[];
         return shuffle(tierList).map((tier, id) => ({ id, tier, state: 'hidden' as CellState }));
     });
@@ -77,8 +77,8 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
             const counts: Partial<Record<Tier, number>> = {};
             next.forEach(c => { if (c.state === 'revealed') counts[c.tier] = (counts[c.tier] || 0) + 1; });
             setTierCounts(counts);
-            // Only winning tier has 7 cells — others cap at 2, so only winning tier can reach 3
-            if ((counts[winningTier] || 0) >= 3 && !winFiredRef.current) {
+            // Only winning tier has 11 cells — others cap at 1, so only winning tier can reach 2
+            if ((counts[winningTier] || 0) >= 2 && !winFiredRef.current) {
                 winFiredRef.current = true;
                 setWonTier(winningTier);
                 const amount = currentBet * BET_MULTS[winningTier];
@@ -88,8 +88,8 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
         });
     };
 
-    // Always show 3 dots per tier — only winning tier has 7 cells so only it can reach 3
-    const dotsFor = (_t: Tier) => 3;
+    // Always show 2 dots per tier — only winning tier has 11 cells so only it can reach 2
+    const dotsFor = (_t: Tier) => 2;
 
     return (
         <div className="absolute inset-0 z-30 flex flex-col rounded-xl overflow-hidden"
@@ -105,8 +105,8 @@ export const DragonPickGrid: React.FC<DragonPickGridProps> = ({ currentBet, onWi
                         <div key={tier} className="flex flex-col items-center gap-0.5">
                             <div className="flex gap-1">
                                 {Array(dotsFor(tier)).fill(null).map((_, i) => (
-                                    <div key={i} className="rounded-full transition-all duration-200" style={{
-                                        width: 7, height: 7,
+                                    <div key={i} className="transition-all duration-200" style={{
+                                        width: 7, height: 7, borderRadius: 2,
                                         background: i < count ? color : 'rgba(255,255,255,0.12)',
                                         boxShadow: i < count ? `0 0 5px ${color}` : 'none',
                                     }} />

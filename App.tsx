@@ -1546,7 +1546,7 @@ const App: React.FC = () => {
           const newCount = col.length - remaining.length;
           const newSyms = Array(newCount).fill(null).map(() => {
               // Arctic: wild chance on falling cells (boosted in free spins)
-              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.24 : 0.17;
+              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.36 : 0.17;
               if (featureThemeOf(selectedGame.theme) === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < arcticCascadeWildChance) {
                   return SymbolType.WILD;
               }
@@ -1760,7 +1760,7 @@ const App: React.FC = () => {
            
            if (!eventTriggered) {
                let wildStackChance = 0.0;
-               const wildMult = isFreeSpin ? 1.20 : (isNeon ? 0.80 : 1.0);
+               const wildMult = isFreeSpin ? (isNeon ? 1.20 : 1.80) : (isNeon ? 0.80 : 1.0);
                if (cols >= 5) {
                     if (c === 2) wildStackChance = 0.084 * wildMult;
                     if (c === 3) wildStackChance = 0.112 * wildMult;
@@ -1784,8 +1784,9 @@ const App: React.FC = () => {
 
                // DRAGON: scatter individual single-cell wilds across all columns
                if (selectedGame.theme === 'DRAGON' && !eventTriggered) {
+                   const dragonWildChance = isFreeSpin ? 0.06 : 0.04;
                    for (let r = 0; r < rows; r++) {
-                       if (newGrid[c][r] !== SymbolType.WILD && Math.random() < 0.04) {
+                       if (newGrid[c][r] !== SymbolType.WILD && Math.random() < dragonWildChance) {
                            newGrid[c][r] = SymbolType.WILD;
                        }
                    }
