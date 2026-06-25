@@ -419,9 +419,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 {!selectedDeckId && (
                     <div className="flex flex-col h-full">
 
-                        {/* Grand Reward — fades on sides */}
+                        {/* Grand Reward amount — fades on sides, no label */}
                         <div className="shrink-0 py-2 text-center" style={{ background: 'linear-gradient(90deg,transparent 0%,rgba(130,0,220,0.5) 18%,rgba(100,0,200,0.35) 82%,transparent 100%)' }}>
-                            <div className="font-black text-[10px] tracking-widest" style={{ color: 'rgba(210,160,255,0.7)' }}>Grand Reward</div>
                             <div className="text-white font-black leading-tight" style={{ fontSize: '2rem' }}>{formatK(grandPrize)}</div>
                         </div>
 
@@ -436,13 +435,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     const isComplete = collected === 7;
                                     return (
                                         <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 118 }}>
-                                            {/* Completion reward — above the card image */}
-                                            <div className="shrink-0 text-center mb-0.5">
-                                                <span className="font-black text-white leading-none" style={{ fontSize: 9, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{formatK(getDeckReward(deck.gameId))}</span>
-                                            </div>
                                             <button onClick={() => setSelectedDeckId(deck.gameId)}
                                                 className="w-full flex flex-col items-center p-2 rounded-xl active:scale-95 transition-transform"
-                                                style={{ height: 138, background: 'linear-gradient(180deg,rgba(160,60,255,0.55) 0%,rgba(10,0,50,0.92) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.5), 0 3px 10px rgba(0,0,0,0.6)' }}>
+                                                style={{ height: 148, background: 'linear-gradient(180deg,rgba(160,60,255,0.55) 0%,rgba(10,0,50,0.92) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.5), 0 3px 10px rgba(0,0,0,0.6)' }}>
+                                                {/* Reward amount — inside card, above the cover image, like the name below */}
+                                                <div className="w-full shrink-0 text-center mb-1">
+                                                    <span className="font-black text-white leading-none" style={{ fontSize: 9, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{formatK(getDeckReward(deck.gameId))}</span>
+                                                </div>
                                                 <div className="w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0"
                                                     style={{ background: getDeckThemeBg(deck.theme) }}>
                                                     {(() => {
@@ -471,29 +470,48 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                         <div className="flex-1" />
 
-                        {/* Bottom lobby dock — purple, centered, shorter width like the main lobby bar */}
-                        <div className="shrink-0 flex justify-center mb-1">
-                            <div className="flex items-end gap-1 px-5 pt-2 pb-2 rounded-2xl"
-                                style={{ background: 'linear-gradient(180deg,#8020c8 0%,#5010a0 40%,#380870 100%)', boxShadow: 'inset 0 2px 0 rgba(200,130,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.4), 0 4px 20px rgba(0,0,0,0.7)' }}>
+                        {/* Bottom dock — exact replica of lobby bar style, purple, icons protrude */}
+                        <div className="shrink-0 flex items-end justify-center select-none font-nunito">
+                            <div className="relative flex items-end justify-center gap-0.5 overflow-visible"
+                                style={{ paddingLeft: 14, paddingRight: 14, paddingBottom: 4, paddingTop: 8 }}>
+                                {/* Bar bg — same gradient/border/glow as lobby bar */}
+                                <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
+                                    style={{ height: 52, borderRadius: '28px 28px 0 0', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', border: '1.5px solid #9030d0', borderBottom: 'none', boxShadow: 'inset 0 2px 0 rgba(220,170,255,0.95), 0 -16px 60px rgba(0,0,0,0.98), 0 -6px 24px rgba(0,0,0,0.95), 0 -2px 8px rgba(0,0,0,1)', zIndex: -1 }}>
+                                    <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height: '45%', borderRadius: '18px 18px 0 0', background: 'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }} />
+                                    <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: '35%', background: 'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }} />
+                                </div>
+
+                                {/* Draw Cards */}
                                 <button onClick={() => setShowDrawPopup(true)}
-                                    className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform px-4">
-                                    <img src="/album_draw.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.8))' }} />
-                                    <span className="font-black text-white text-[10px]">Draw Cards</span>
+                                    className="relative flex flex-col items-center gap-0.5 px-2.5 active:scale-95 transition-transform">
+                                    <img src="/Album_draw.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Draw Cards</span>
                                 </button>
+
+                                <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.18)', flexShrink: 0, alignSelf: 'flex-end', marginBottom: 14 }} />
+
+                                {/* Buy Packs */}
                                 <button onClick={() => setShowPackBuyPopup('standard')}
-                                    className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform px-4">
-                                    <img src="/album_store.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.8))' }} />
-                                    <span className="font-black text-white text-[10px]">Buy Packs</span>
+                                    className="relative flex flex-col items-center gap-0.5 px-2.5 active:scale-95 transition-transform">
+                                    <img src="/album_store.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Buy Packs</span>
                                 </button>
+
+                                <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.18)', flexShrink: 0, alignSelf: 'flex-end', marginBottom: 14 }} />
+
+                                {/* Exchange */}
                                 <button onClick={() => setShowExchangePanel(true)}
-                                    className="relative flex flex-col items-center gap-0.5 active:scale-90 transition-transform px-4">
-                                    <img src="/album_exchange.png" alt="" style={{ width: 64, height: 64, objectFit: 'contain', filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.8))' }} />
-                                    {allDuplicates.length > 0 && (
-                                        <div className="absolute top-0 right-4 min-w-[18px] h-[18px] bg-red-600 rounded-full flex items-center justify-center px-0.5 border-2 border-white">
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '7px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
-                                        </div>
-                                    )}
-                                    <span className="font-black text-white text-[10px]">Exchange</span>
+                                    className="relative flex flex-col items-center gap-0.5 px-2.5 active:scale-95 transition-transform">
+                                    <div className="relative leading-none">
+                                        <img src="/album_exchange.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                        {allDuplicates.length > 0 && (
+                                            <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
+                                                style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
+                                                <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Exchange</span>
                                 </button>
                             </div>
                         </div>
