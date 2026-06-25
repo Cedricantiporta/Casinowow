@@ -519,19 +519,22 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     <div className="flex flex-col h-full">
                         <div className="shrink-0 text-center mb-2">
                             <div className="text-yellow-400 text-[8px] font-black uppercase tracking-widest">Completion Reward</div>
-                            <div className="text-white font-black text-lg font-mono leading-none">{formatCommaNumber(getDeckReward(selectedDeckId))}</div>
+                            <div className="text-white font-black text-lg leading-none">{formatCommaNumber(getDeckReward(selectedDeckId))}</div>
                             <div className="mt-1">
-                                {decks.find(d => d.gameId === selectedDeckId)?.isCompleted ? (
-                                    decks.find(d => d.gameId === selectedDeckId)?.rewardClaimed ? (
-                                        <span className="text-gray-500 text-[9px] font-bold uppercase">Reward Claimed</span>
-                                    ) : (
-                                        <button onClick={() => onClaimDeckReward(selectedDeckId!, getDeckReward(selectedDeckId))} className="pill-green">
+                                {(() => {
+                                    const deck = decks.find(d => d.gameId === selectedDeckId);
+                                    if (deck?.rewardClaimed) {
+                                        return <span className="text-gray-500 text-[9px] font-bold uppercase">Reward Claimed</span>;
+                                    }
+                                    return (
+                                        <button
+                                            disabled={!deck?.isCompleted}
+                                            onClick={() => deck?.isCompleted && onClaimDeckReward(selectedDeckId!, getDeckReward(selectedDeckId))}
+                                            className={`pill-green${!deck?.isCompleted ? ' opacity-40' : ''}`}>
                                             <div className="pill-face" style={{ padding: '6px 20px', fontSize: '10px' }}>Claim Reward</div>
                                         </button>
-                                    )
-                                ) : (
-                                    <span className="text-gray-500 text-[8px] font-bold uppercase">Collect all cards to claim</span>
-                                )}
+                                    );
+                                })()}
                             </div>
                         </div>
                         <div ref={deckCardsScrollRef} className="flex-1 overflow-x-auto no-scrollbar">
@@ -562,9 +565,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                             </div>
                                             {/* Middle: symbol */}
                                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                {isLocked ? (
-                                                    <img src="/ui/lock.png" alt="" style={{ width: '5.5rem', height: '5.5rem', objectFit: 'contain', opacity: 0.3 }} />
-                                                ) : card.icon.startsWith('/') ? (
+                                                {isLocked ? null : card.icon.startsWith('/') ? (
                                                     <img src={card.icon} alt="" style={{ width: '7rem', height: '7rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.9))' }} />
                                                 ) : (
                                                     <span style={{ fontSize: '7rem', lineHeight: 1 }}>{card.icon}</span>
