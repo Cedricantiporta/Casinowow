@@ -30,6 +30,7 @@ interface LobbyProps {
     onClaimBonus: () => void;
     onOpenCollection: () => void;
     onOpenPiggyBank: () => void;
+    onOpenRanking: () => void;
     onOpenInbox?: () => void;
     inboxCount?: number;
     onOpenHighRoller: () => void;
@@ -59,6 +60,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     onClaimBonus,
     onOpenCollection,
     onOpenPiggyBank,
+    onOpenRanking,
     onOpenInbox,
     inboxCount,
     onOpenHighRoller,
@@ -380,17 +382,13 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {sep}
 
-                            {/* Piggy */}
-                            <button onClick={!isPiggyLocked ? onOpenPiggyBank : undefined} className={iconBtn(isPiggyLocked)}>
+                            {/* Ranking */}
+                            <button onClick={onOpenRanking} className={iconBtn(false)}>
 
                                 <div className="relative leading-none">
-                                    <img src="/ui/piggy.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                    {piggyFull && (
-                                        <div className="absolute top-1 right-1 text-white font-black text-[7px] px-1 py-0.5 rounded-full leading-none whitespace-nowrap"
-                                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>Full</div>
-                                    )}
+                                    <img src="/ui/high_roller.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                 </div>
-                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Piggy</span>
+                                <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Ranking</span>
                             </button>
 
                             {sep}

@@ -31,6 +31,7 @@ import { SlotLoadingScreen } from './components/SlotLoadingScreen';
 import { PremiumModal } from './components/PremiumModal';
 import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
+import { LeaderboardModal } from './components/LeaderboardModal';
 import { DragonPickGrid } from './components/DragonPickModal';
 import { NeonRouletteModal } from './components/NeonRouletteModal';
 import { CandyRouletteModal, CandyWildConfig } from './components/CandyRouletteModal';
@@ -663,6 +664,7 @@ const App: React.FC = () => {
   const [showNopay, setShowNopay] = useState(false);
   const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '/Profile_pic (3).png');
   const [showInbox, setShowInbox] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [gameLoadingConfig, setGameLoadingConfig] = useState<GameConfig | null>(null);
   const [inbox, setInbox] = useState<InboxMessage[]>(() => {
       try {
@@ -4254,6 +4256,7 @@ const App: React.FC = () => {
                 onClaimBonus={handleOpenTimeBonus}
                 onOpenCollection={() => openModal('COLLECTION')}
                 onOpenPiggyBank={handleOpenPiggyBank}
+                onOpenRanking={() => setShowLeaderboard(true)}
                 onOpenInbox={() => setShowInbox(true)}
                 inboxCount={inbox.filter((m: any) => !m.claimed).length}
                 onOpenHighRoller={handleOpenHighRoller}
@@ -5500,6 +5503,17 @@ const App: React.FC = () => {
           onClose={() => setShowInbox(false)}
           messages={inbox.filter((m: any) => !m.claimed)}
           onClaim={handleClaimInbox}
+      />
+
+      <LeaderboardModal
+          isOpen={showLeaderboard}
+          onClose={() => setShowLeaderboard(false)}
+          player={{
+              name: (typeof localStorage !== 'undefined' && localStorage.getItem('playerName')) || 'Player',
+              avatar: profileEmoji,
+              level: player.level,
+              score: player.balance,
+          }}
       />
 
       {/* Purchase Unavailable Popup */}
