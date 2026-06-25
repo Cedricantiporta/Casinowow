@@ -71,7 +71,6 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
     useEffect(() => {
         if (!isOpen) return;
         const prices = [29, 49, 99, 249, 1249];
-        // Coin amounts stay tied to the original tiers so the lower prices are a better deal.
         const coinBase = [49, 99, 199, 499, 2490];
         const labels = ['Pile', 'Double', 'Big Bag', 'Roller', 'Jackpot'];
         const icons = ['/coin_1.png', '/coin_2.png', '/coin_3.png', '/coin_4.png', '/coin_5.png'];
@@ -83,7 +82,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             'from-yellow-500 to-amber-700',
         ];
         setDynamicPacks(prices.map((price, i) => {
-            const amount = Math.round((coinBase[i] / 50) * maxBet);
+            const amount = Math.round((coinBase[i] / 100) * maxBet);
             return {
                 icon: icons[i],
                 label: labels[i],

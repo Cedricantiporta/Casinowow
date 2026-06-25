@@ -437,11 +437,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                         <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 118 }}>
                                             <button onClick={() => setSelectedDeckId(deck.gameId)}
                                                 className="w-full flex flex-col items-center p-2 rounded-xl active:scale-95 transition-transform"
-                                                style={{ height: 148, background: 'linear-gradient(180deg,rgba(160,60,255,0.55) 0%,rgba(10,0,50,0.92) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.5), 0 3px 10px rgba(0,0,0,0.6)' }}>
-                                                {/* Reward amount — inside card, above the cover image, like the name below */}
-                                                <div className="w-full shrink-0 text-center mb-1">
-                                                    <span className="font-black text-white leading-none" style={{ fontSize: 9, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{formatK(getDeckReward(deck.gameId))}</span>
-                                                </div>
+                                                style={{ height: 138, background: 'linear-gradient(180deg,rgba(160,60,255,0.55) 0%,rgba(10,0,50,0.92) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.5), 0 3px 10px rgba(0,0,0,0.6)' }}>
                                                 <div className="w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0"
                                                     style={{ background: getDeckThemeBg(deck.theme) }}>
                                                     {(() => {
@@ -470,8 +466,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                         <div className="flex-1" />
 
-                        {/* Bottom dock — exact replica of lobby bar style, purple, icons protrude */}
-                        <div className="shrink-0 flex items-end justify-center select-none font-nunito">
+                        {/* Bottom dock — flush to bottom edge, breaks out of p-3 padding */}
+                        <div className="shrink-0 flex items-end justify-center select-none font-nunito -mx-3 -mb-3">
                             <div className="relative flex items-end justify-center gap-0.5 overflow-visible"
                                 style={{ paddingLeft: 14, paddingRight: 14, paddingBottom: 4, paddingTop: 8 }}>
                                 {/* Bar bg — same gradient/border/glow as lobby bar */}
