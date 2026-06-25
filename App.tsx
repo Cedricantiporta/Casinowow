@@ -4051,7 +4051,7 @@ const App: React.FC = () => {
                         className={`shrink-0 active:scale-90 transition-transform ${piggyShaking ? 'animate-piggy-shake' : ''}`} />
 
                     {/* Level Pill + Multiplier + XP popup */}
-                    <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 160 }}>
+                    <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 95 }}>
                         {/* Level Pill */}
                         <div className="rtrack flex-1" onClick={() => setShowXpPopup(v => !v)} style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible', maxWidth: 'none', cursor: 'pointer' }}>
                             <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
@@ -4072,47 +4072,51 @@ const App: React.FC = () => {
                             </span>
                         </div>
 
-                        {/* Collect multiplier pill */}
-                        {(() => {
-                            const curIdx = TREASURY_MULT_TIERS.reduce((best, t, i) => treasuryMultProgress >= t.at ? i : best, 0);
-                            const curTier = TREASURY_MULT_TIERS[curIdx];
-                            const nextTier = TREASURY_MULT_TIERS[curIdx + 1];
-                            const collectPct = nextTier
-                                ? Math.min(100, ((treasuryMultProgress - curTier.at) / (nextTier.at - curTier.at)) * 100)
-                                : 100;
-                            const nextLabel = nextTier ? `${nextTier.mult}X` : 'MAX';
-                            const barColor = collectBoostActive
-                                ? 'linear-gradient(180deg,#fbbf24,#d97706 60%,#b45309)'
-                                : 'linear-gradient(180deg,#c084fc,#9333ea 60%,#6b21a8)';
-                            return (
-                                <div className="rtrack shrink-0" onClick={() => setShowCollectPopup(v => !v)}
-                                    style={{ overflow: 'visible', cursor: 'pointer', width: 82, justifyContent: 'space-between', paddingLeft: 5, paddingRight: 5 }}>
-                                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
-                                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${collectPct}%`, background: barColor, boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease', overflow: 'hidden' }}>
-                                            <div className="absolute inset-y-0 w-4 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
-                                        </div>
-                                    </div>
-                                    <span style={{ position: 'relative', zIndex: 1, fontSize: 9, fontWeight: 900, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.9)', lineHeight: 1 }}>{treasuryMultiplier}X</span>
-                                    <img src="/ui/exp_multiplier.png" alt="" style={{ flexShrink: 0, width: 28, height: 28, objectFit: 'contain', position: 'relative', zIndex: 1 }} />
-                                    <span style={{ position: 'relative', zIndex: 1, fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 2px rgba(0,0,0,0.9)', lineHeight: 1 }}>{nextLabel}</span>
-                                </div>
-                            );
-                        })()}
+                        {/* Collect multiplier indicator */}
+                        <div className="relative shrink-0 flex items-center justify-center" onClick={() => setShowCollectPopup(v => !v)} style={{ width: 42, height: 42, cursor: 'pointer' }}>
+                            <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                            <span style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-3px' }}>
+                                {treasuryMultiplier}X
+                            </span>
+                        </div>
 
                         {/* Collect multiplier popup */}
                         {showCollectPopup && (() => {
                             const cbRemMs = Math.max(0, (player.collectBoostEndTime || 0) - Date.now());
                             const cbH = Math.floor(cbRemMs / 3600000);
                             const cbM = Math.floor((cbRemMs % 3600000) / 60000);
+                            const curIdx = TREASURY_MULT_TIERS.reduce((best, t, i) => treasuryMultProgress >= t.at ? i : best, 0);
+                            const curTier = TREASURY_MULT_TIERS[curIdx];
+                            const nextTier = TREASURY_MULT_TIERS[curIdx + 1];
+                            const collectPct = nextTier
+                                ? Math.min(100, ((treasuryMultProgress - curTier.at) / (nextTier.at - curTier.at)) * 100)
+                                : 100;
+                            const nextMult = nextTier ? nextTier.mult : null;
+                            const barColor = collectBoostActive
+                                ? 'linear-gradient(180deg,#fbbf24,#d97706 60%,#b45309)'
+                                : 'linear-gradient(180deg,#c084fc,#9333ea 60%,#6b21a8)';
                             return (
                                 <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: 240, zIndex: 200, background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', borderRadius: 14, boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 24px rgba(0,0,0,0.8)', padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}
                                     onClick={e => e.stopPropagation()}>
-                                    {/* Header */}
-                                    <div className="flex items-center justify-between">
-                                        <span style={{ color: 'white', fontSize: 12, fontWeight: 900 }}>Collect Boost</span>
-                                        <div className="relative flex items-center justify-center shrink-0" style={{ width: 34, height: 34 }}>
+                                    {/* Title */}
+                                    <span style={{ color: 'white', fontSize: 12, fontWeight: 900 }}>Collect Boost</span>
+                                    {/* Progress pill — two icons flanking the bar */}
+                                    <div className="flex items-center gap-2">
+                                        {/* Current multiplier icon */}
+                                        <div className="relative flex items-center justify-center shrink-0" style={{ width: 36, height: 36 }}>
                                             <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
                                             <span style={{ position: 'relative', zIndex: 1, fontSize: 11, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-2px' }}>{treasuryMultiplier}X</span>
+                                        </div>
+                                        {/* Bar */}
+                                        <div className="flex-1 relative" style={{ height: 10, borderRadius: 8, background: 'rgba(0,0,0,0.35)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
+                                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${collectPct}%`, background: barColor, borderRadius: 8, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)', transition: 'width 0.4s ease', overflow: 'hidden' }}>
+                                                <div className="absolute inset-y-0 w-3 bg-white/40 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        {/* Next multiplier icon */}
+                                        <div className="relative flex items-center justify-center shrink-0" style={{ width: 36, height: 36, opacity: nextMult ? 1 : 0.5 }}>
+                                            <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.55 }} />
+                                            <span style={{ position: 'relative', zIndex: 1, fontSize: 11, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-2px' }}>{nextMult ? `${nextMult}X` : 'MAX'}</span>
                                         </div>
                                     </div>
                                     {(player.isVip || collectBoostActive) && <div style={{ height: 1, background: 'rgba(255,255,255,0.12)' }} />}

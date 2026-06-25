@@ -60,10 +60,24 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({ isOpen, onClose,
 
             {/* Header */}
             <div className="shrink-0 flex items-center px-4 py-2.5 relative gap-2">
-                {/* Collect multiplier progress bar — topbar EXP-style pill */}
-                <div className="relative flex items-center z-10 shrink-0" style={{ width: 110, height: 24, borderRadius: 18, background: 'rgba(10,0,40,0.55)', boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.6)', overflow: 'hidden', paddingLeft: 10, paddingRight: 8 }}>
-                    <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${tierProgress * 100}%`, borderRadius: 18, background: 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />
-                    <span className="relative font-black leading-none" style={{ fontSize: 17, color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.9)', letterSpacing: '0.02em' }}>{collectMultiplier}X</span>
+                {/* Collect multiplier progress — two icons flanking a bar */}
+                <div className="flex items-center gap-1.5 z-10 shrink-0">
+                    {/* Current multiplier icon */}
+                    <div className="relative flex items-center justify-center shrink-0" style={{ width: 34, height: 34 }}>
+                        <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
+                        <span style={{ position: 'relative', zIndex: 1, fontSize: 11, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-2px' }}>{collectMultiplier}X</span>
+                    </div>
+                    {/* Bar */}
+                    <div className="relative shrink-0" style={{ width: 56, height: 10, borderRadius: 8, background: 'rgba(0,0,0,0.4)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.5)', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${tierProgress * 100}%`, borderRadius: 8, background: 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.4)', transition: 'width 0.4s ease', overflow: 'hidden' }}>
+                            <div className="absolute inset-y-0 w-3 bg-white/40 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+                        </div>
+                    </div>
+                    {/* Next multiplier icon */}
+                    <div className="relative flex items-center justify-center shrink-0" style={{ width: 34, height: 34, opacity: nextTier ? 1 : 0.5 }}>
+                        <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', opacity: 0.5 }} />
+                        <span style={{ position: 'relative', zIndex: 1, fontSize: 11, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-2px' }}>{nextTier ? `${nextTier.mult}X` : 'MAX'}</span>
+                    </div>
                 </div>
                 <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">Golden Treasury</span>
                 {/* Reset timer — right of close button */}
