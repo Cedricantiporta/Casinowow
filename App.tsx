@@ -3100,8 +3100,8 @@ const App: React.FC = () => {
         { name: 'MEGA',  color: '#ff8c00', icon: '👑' },
         { name: 'GRAND', color: '#ff2244', icon: '🏆' },
     ];
-    // Jackpot amounts: 10/20/30/50/100× current bet
-    const JP_BET_MULTIPLIERS = [10, 20, 30, 50, 100];
+    // Jackpot amounts: 15/30/100/500/1000× current bet
+    const JP_BET_MULTIPLIERS = [15, 30, 100, 500, 1000];
     const jpAmounts = JP_BET_MULTIPLIERS.map(m => Math.floor(currentBet * m));
     let jackpotWon = false;
 

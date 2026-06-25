@@ -27,7 +27,7 @@ const TIER_IMG: Record<Tier, string> = {
     MEGA:  '/freespinjackpot (4).png',
     GRAND: '/freespinjackpot (5).png',
 };
-const BET_MULTS: Record<Tier, number> = { MINI: 10, MINOR: 20, MAJOR: 40, MEGA: 60, GRAND: 100 };
+const BET_MULTS: Record<Tier, number> = { MINI: 15, MINOR: 30, MAJOR: 100, MEGA: 500, GRAND: 1000 };
 
 const WINNING_WEIGHTS = [
     { tier: 'MINI'  as Tier, weight: 60 },
