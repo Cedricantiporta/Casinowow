@@ -6,12 +6,12 @@
 import { supabase } from './supabaseClient';
 
 // Ranking metrics the board can be sorted by.
-export type LeaderboardMetric = 'score' | 'totalWon' | 'maxJackpot' | 'maxWin';
+export type LeaderboardMetric = 'score' | 'level' | 'maxJackpot' | 'maxWin';
 
 // Maps a metric to its Supabase column.
 const METRIC_COLUMN: Record<LeaderboardMetric, string> = {
     score: 'score',
-    totalWon: 'total_won',
+    level: 'level',
     maxJackpot: 'max_jackpot',
     maxWin: 'max_win',
 };
@@ -69,8 +69,8 @@ const SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = [
 const LIMIT = 100;
 const TABLE = 'leaderboard';
 
-const metricValue = (e: { score: number; totalWon: number; maxJackpot: number; maxWin: number }, m: LeaderboardMetric) =>
-    m === 'totalWon' ? e.totalWon : m === 'maxJackpot' ? e.maxJackpot : m === 'maxWin' ? e.maxWin : e.score;
+const metricValue = (e: { score: number; level: number; maxJackpot: number; maxWin: number }, m: LeaderboardMetric) =>
+    m === 'level' ? e.level : m === 'maxJackpot' ? e.maxJackpot : m === 'maxWin' ? e.maxWin : e.score;
 
 // Stable anonymous identity for this device.
 function getDeviceId(): string {

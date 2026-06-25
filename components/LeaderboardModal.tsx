@@ -10,7 +10,7 @@ interface LeaderboardModalProps {
 
 const TABS: { key: LeaderboardMetric; label: string }[] = [
     { key: 'score',      label: 'Total Coins' },
-    { key: 'totalWon',   label: 'Total Won' },
+    { key: 'level',      label: 'Top Level' },
     { key: 'maxJackpot', label: 'Max Jackpot' },
     { key: 'maxWin',     label: 'Max Win' },
 ];
@@ -23,7 +23,7 @@ const formatScore = (n: number) => {
 };
 
 const metricOf = (e: LeaderboardEntry, m: LeaderboardMetric) =>
-    m === 'totalWon' ? e.totalWon : m === 'maxJackpot' ? e.maxJackpot : m === 'maxWin' ? e.maxWin : e.score;
+    m === 'level' ? e.level : m === 'maxJackpot' ? e.maxJackpot : m === 'maxWin' ? e.maxWin : e.score;
 
 // Medal treatment for the top three; soft chip for everyone else. No hard borders.
 const medal = (rank: number): { bg: string; color: string; glow?: string } => {
@@ -110,7 +110,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             if (alive) { setEntries(list); setLoading(false); }
         });
         return () => { alive = false; };
-    }, [isOpen, metric, player.score, player.totalWon, player.maxJackpot, player.maxWin, player.level, player.name, player.avatar]);
+    }, [isOpen, metric, player.score, player.level, player.maxJackpot, player.maxWin, player.name, player.avatar]);
 
     if (!isOpen) return null;
 
@@ -138,8 +138,10 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                     <div className="text-white/50 font-bold" style={{ fontSize: 9 }}>Level {e.level}</div>
                 </div>
                 <div className="shrink-0 flex items-center gap-1">
-                    <img src="/new_coinicon.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />
-                    <span className="font-black text-yellow-300" style={{ fontSize: 13 }}>{formatScore(metricOf(e, metric))}</span>
+                    {metric !== 'level' && <img src="/new_coinicon.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />}
+                    <span className="font-black text-yellow-300" style={{ fontSize: 13 }}>
+                        {metric === 'level' ? `Lv ${e.level}` : formatScore(metricOf(e, metric))}
+                    </span>
                 </div>
             </button>
         );
