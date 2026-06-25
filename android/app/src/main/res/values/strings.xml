@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CasinoWow</string>
+    <string name="title_activity_main">CasinoWow</string>
+    <string name="package_name">com.casinowow.app</string>
+    <string name="custom_url_scheme">com.casinowow.app</string>
+</resources>

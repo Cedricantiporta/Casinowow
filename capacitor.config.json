@@ -1,0 +1,8 @@
+{
+  "appId": "com.casinowow.app",
+  "appName": "CasinoWow",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#0a0015"
+  }
+}

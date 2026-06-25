@@ -1,0 +1,77 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - claude/kind-sagan-rKUPh
+    paths:
+      - '**.tsx'
+      - '**.ts'
+      - 'index.html'
+      - 'public/**'
+      - 'android/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web bundle
+        run: npm run build
+
+      - name: Sync Capacitor Android project
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: ./gradlew assembleDebug --no-daemon
+        working-directory: android
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk casinowow.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: casinowow-apk
+          path: casinowow.apk
+
+      - name: Publish to Releases (android-latest)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-latest
+          name: CasinoWow Android (latest)
+          body: |
+            Latest CasinoWow debug APK, built automatically from `${{ github.sha }}`.
+
+            Download `casinowow.apk` below, transfer it to your Android phone, and
+            install it (you may need to allow "Install from unknown sources").
+          files: casinowow.apk
+          prerelease: true

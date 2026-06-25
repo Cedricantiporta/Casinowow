@@ -471,18 +471,26 @@ const App: React.FC = () => {
   const [showPackToast, setShowPackToast] = useState(false);
   const [levelUpReward, setLevelUpReward] = useState(0);
   const [maxBetIncreased, setMaxBetIncreased] = useState(false);
-  const [mobileScale, setMobileScale] = useState(1);
+  // Independent X/Y scale so the 844×390 canvas fills the entire screen edge-to-edge
+  // (no letterbox side margins). Device aspect ratios are close enough to 844:390 that
+  // the resulting stretch is imperceptible.
+  const [mobileScale, setMobileScale] = useState<{ x: number; y: number }>({ x: 1, y: 1 });
 
   useEffect(() => {
     const updateScale = () => {
-      const widthScale = window.innerWidth / 844;
-      const heightScale = window.innerHeight / 390;
-      setMobileScale(Math.min(2, widthScale, heightScale));
+      setMobileScale({
+        x: window.innerWidth / 844,
+        y: window.innerHeight / 390,
+      });
     };
 
     updateScale();
     window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    window.addEventListener('orientationchange', updateScale);
+    return () => {
+      window.removeEventListener('resize', updateScale);
+      window.removeEventListener('orientationchange', updateScale);
+    };
   }, []);
 
   // Quest state initialized with separate stages, persisted to localStorage
@@ -3944,7 +3952,7 @@ const App: React.FC = () => {
   if (!appReady) {
       return (
           <div className="bg-[#0a0015] flex items-center justify-center overflow-hidden" style={{ position: 'fixed', inset: 0 }}>
-              <div style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/initialload_bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              <div style={{ width: 844, height: 390, transform: `scale(${mobileScale.x}, ${mobileScale.y})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/initialload_bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
                   <div style={{ position: 'absolute', bottom: '13%', left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
                       <div style={{ width: 220, height: 16, borderRadius: 9999, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden', position: 'relative' }}>
                           <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)', transition: 'width 0.2s ease', borderRadius: 9999 }} />
@@ -3974,9 +3982,10 @@ const App: React.FC = () => {
           const onSlotBg = currentView === 'GAME' && !!target.closest('[data-slot-bg="true"]') && !target.closest('[data-no-ripple="true"]');
           if (onSlotBg && tag !== 'BUTTON' && tag !== 'INPUT' && tag !== 'IMG') {
             const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-            const scale = rect.width / 844;
-            const x = (e.clientX - rect.left) / scale;
-            const y = (e.clientY - rect.top) / scale;
+            const scaleX = rect.width / 844;
+            const scaleY = rect.height / 390;
+            const x = (e.clientX - rect.left) / scaleX;
+            const y = (e.clientY - rect.top) / scaleY;
             const color = rippleColorFor(selectedGame.theme);
             const id = ++rippleIdRef.current;
             setRipples(r => [...r, {id,x,y,color}]);
@@ -3984,7 +3993,7 @@ const App: React.FC = () => {
             setTimeout(() => setRipples(r => r.filter(rp => rp.id !== id)), 560);
           }
         }}
-        style={{ width: 844, height: 390, transform: `scale(${mobileScale})`, transformOrigin: 'center center' }}>
+        style={{ width: 844, height: 390, transform: `scale(${mobileScale.x}, ${mobileScale.y})`, transformOrigin: 'center center' }}>
         <div className={`w-full h-full bg-casino-bg text-white font-body overflow-hidden flex flex-col ${selectedGame.bgImage}`}
           style={currentView === 'GAME' && selectedGame.slotBg ? { backgroundImage: `url(${selectedGame.slotBg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' } : undefined}>
           <header className="w-full z-[100] flex justify-between items-center h-[29px] md:h-[35px] select-none overflow-visible shrink-0"
