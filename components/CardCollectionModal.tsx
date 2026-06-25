@@ -418,10 +418,19 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 {/* ALBUM view */}
                 {!selectedDeckId && (
                     <div className="flex flex-col h-full">
+
+                        {/* Grand Reward — transparent purple banner, no container */}
+                        <div className="shrink-0 py-2.5 text-center" style={{ background: 'linear-gradient(180deg,rgba(150,0,240,0.45) 0%,rgba(90,0,180,0.2) 100%)' }}>
+                            <div className="font-black text-[11px] tracking-widest" style={{ color: 'rgba(210,160,255,0.75)' }}>Grand Reward</div>
+                            <div className="text-white font-black font-mono leading-tight" style={{ fontSize: '2.2rem' }}>{formatK(grandPrize)}</div>
+                        </div>
+
                         <div className="flex-1" />
-                        {/* Album scroll strip — fixed height (half the available area) */}
-                        <div ref={albumScrollRef} className="overflow-x-auto no-scrollbar shrink-0">
-                            <div className="flex gap-3" style={{ minWidth: 'max-content', paddingBottom: 2 }}>
+
+                        {/* Album scroll strip — perspective curve */}
+                        <div ref={albumScrollRef} className="overflow-x-auto no-scrollbar shrink-0"
+                            style={{ transform: 'perspective(700px) rotateX(6deg)', transformOrigin: 'center bottom' }}>
+                            <div className="flex gap-3" style={{ minWidth: 'max-content', paddingBottom: 14, paddingLeft: 16, paddingRight: 16 }}>
                                 {decks.map(deck => {
                                     const collected = deck.cards.filter(c => c.count > 0).length;
                                     const isComplete = collected === 7;
@@ -442,7 +451,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 </div>
                                                 <div className="mt-1 text-center w-full">
                                                     <h3 className="text-white font-black font-display text-[11px] truncate leading-none">{deck.gameName}</h3>
-                                                    {/* Progress bar — same design as topbar EXP bar (.rtrack) */}
                                                     <div className="rtrack mt-1" style={{ height: 15, minWidth: 0, padding: '0 6px' }}>
                                                         <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
                                                             <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${(collected / 7) * 100}%`, background: isComplete ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />
@@ -451,7 +459,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                     </div>
                                                 </div>
                                             </button>
-                                            {/* Per-album completion reward — outside the card container */}
                                             <div className="mt-1 text-center">
                                                 <div className="text-white font-black text-[9px]">{formatK(getDeckReward(deck.gameId))}</div>
                                             </div>
@@ -461,18 +468,31 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             </div>
                         </div>
 
-                        {/* Grand reward row — reward centered, draw switcher far right */}
-                        <div className="shrink-0 relative flex items-center justify-center mt-4 px-2">
-                            <div className="text-center">
-                                <div className="text-white font-black text-xs tracking-wide">Grand Reward</div>
-                                <div className="text-white font-black font-mono leading-tight" style={{ fontSize: '2.4rem' }}>{formatK(grandPrize)}</div>
-                            </div>
-                            <button onClick={() => setShowDrawPopup(true)} className="pill-green absolute right-2">
-                                <div className="pill-face" style={{ padding: '6px 14px', fontSize: '11px' }}>Draw Cards</div>
+                        <div className="flex-1" />
+
+                        {/* Bottom dock */}
+                        <div className="shrink-0 flex justify-center items-end gap-10 pb-3 pt-1">
+                            <button onClick={() => setShowDrawPopup(true)}
+                                className="flex flex-col items-center gap-1 active:scale-90 transition-transform">
+                                <img src="/album_draw.png" alt="" style={{ width: 58, height: 58, objectFit: 'contain', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.75))' }} />
+                                <span className="font-black text-[10px]" style={{ color: 'rgba(210,180,255,0.85)' }}>Draw Cards</span>
+                            </button>
+                            <button onClick={() => setShowPackBuyPopup('standard')}
+                                className="flex flex-col items-center gap-1 active:scale-90 transition-transform">
+                                <img src="/album_store.png" alt="" style={{ width: 58, height: 58, objectFit: 'contain', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.75))' }} />
+                                <span className="font-black text-[10px]" style={{ color: 'rgba(210,180,255,0.85)' }}>Buy Packs</span>
+                            </button>
+                            <button onClick={() => setShowExchangePanel(true)}
+                                className="relative flex flex-col items-center gap-1 active:scale-90 transition-transform">
+                                <img src="/album_exchange.png" alt="" style={{ width: 58, height: 58, objectFit: 'contain', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.75))' }} />
+                                {allDuplicates.length > 0 && (
+                                    <div className="absolute -top-1 right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full flex items-center justify-center px-0.5 border border-yellow-400">
+                                        <span className="font-black text-white leading-none" style={{ fontSize: '7px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
+                                    </div>
+                                )}
+                                <span className="font-black text-[10px]" style={{ color: 'rgba(210,180,255,0.85)' }}>Exchange</span>
                             </button>
                         </div>
-
-                        <div className="flex-1" />
                     </div>
                 )}
 
