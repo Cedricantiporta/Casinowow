@@ -690,6 +690,7 @@ const App: React.FC = () => {
       avatar: profileEmoji,
       level: player.level,
       score: player.balance,
+      gems: player.diamonds,
       totalWon: player.stats?.totalCoinsWon || 0,
       maxJackpot: player.stats?.maxJackpotWin || 0,
       maxWin: player.stats?.maxSingleWin || 0,
@@ -5453,11 +5454,28 @@ const App: React.FC = () => {
               }
               audioService.playWinBig();
           }}
-          onReset={() => {
+          onReset={async () => {
+              // Push the reset state to the leaderboard so it doesn't keep showing stale
+              // high scores, then clear local data. Device identity is preserved so the
+              // same leaderboard row is reused (no orphaned duplicate).
               try {
+                  await submitScore({
+                      name: playerName,
+                      avatar: profileEmoji,
+                      level: 1,
+                      score: INITIAL_BALANCE,
+                      gems: INITIAL_GEMS,
+                      totalWon: 0,
+                      maxJackpot: 0,
+                      maxWin: 0,
+                  });
+              } catch {}
+              try {
+                  const deviceId = localStorage.getItem('cw_device_id');
                   Object.keys(localStorage)
                       .filter(k => k.startsWith('cw_'))
                       .forEach(k => localStorage.removeItem(k));
+                  if (deviceId) localStorage.setItem('cw_device_id', deviceId);
               } catch {}
               window.location.reload();
           }}
@@ -5545,6 +5563,7 @@ const App: React.FC = () => {
               avatar: profileEmoji,
               level: player.level,
               score: player.balance,
+              gems: player.diamonds,
               totalWon: player.stats?.totalCoinsWon || 0,
               maxJackpot: player.stats?.maxJackpotWin || 0,
               maxWin: player.stats?.maxSingleWin || 0,

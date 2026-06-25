@@ -165,6 +165,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const isMissionsLocked = playerLevel < 10;
     const isCardsLocked = playerLevel < 30;
     const isHighRollerLocked = playerLevel < 35;
+    const isRankingLocked = playerLevel < 38;
 
     // Quest credit states
     const QUEST_MAX = 60;
@@ -383,7 +384,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {sep}
 
                             {/* Ranking */}
-                            <button onClick={onOpenRanking} className={iconBtn(false)}>
+                            <button onClick={!isRankingLocked ? onOpenRanking : undefined} className={iconBtn(isRankingLocked)}>
 
                                 <div className="relative leading-none">
                                     <img src="/ui/high_roller.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />

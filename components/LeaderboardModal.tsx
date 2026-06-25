@@ -40,8 +40,9 @@ const Avatar: React.FC<{ src: string; size: number; ring?: string }> = ({ src, s
 
 // Profile card for any player on the board (no recent slots — not available for others).
 const PlayerCard: React.FC<{ entry: LeaderboardEntry; rank: number; onClose: () => void }> = ({ entry, rank, onClose }) => {
+    const hero = { icon: '/new_coinicon.png', label: 'Total Coins', value: entry.score };
     const rows: { icon: string; label: string; value: number }[] = [
-        { icon: '/new_coinicon.png', label: 'Total Coins', value: entry.score },
+        { icon: '/symbols/diamond.png', label: 'Total Gems', value: entry.gems },
         { icon: '/new_coinicon.png', label: 'Total Won', value: entry.totalWon },
         { icon: '/ui/high_roller.png', label: 'Max Jackpot', value: entry.maxJackpot },
         { icon: '/ui/high_roller.png', label: 'Max Win', value: entry.maxWin },
@@ -69,18 +70,26 @@ const PlayerCard: React.FC<{ entry: LeaderboardEntry; rank: number; onClose: () 
                         </div>
                     </div>
                 </div>
-                {/* Stats grid — soft tiles, no borders */}
-                <div className="px-3 pb-4 grid grid-cols-2 gap-2">
-                    {rows.map((r, i) => (
-                        <div key={i} className="rounded-2xl px-3 py-2.5 flex flex-col gap-1"
-                            style={{ background: 'rgba(0,0,0,0.28)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                            <span className="font-bold text-white/55" style={{ fontSize: 9.5 }}>{r.label}</span>
-                            <div className="flex items-center gap-1.5">
-                                <img src={r.icon} alt="" style={{ width: 15, height: 15, objectFit: 'contain' }} />
-                                <span className="font-black text-yellow-300" style={{ fontSize: 14 }}>{formatScore(r.value)}</span>
+                {/* Stats — hero tile + 2×2 grid of soft tiles, no borders */}
+                <div className="px-3 pb-4 flex flex-col gap-2">
+                    <div className="rounded-2xl px-3 py-2.5 flex items-center gap-2"
+                        style={{ background: 'linear-gradient(90deg,rgba(255,205,70,0.20),rgba(255,150,40,0.06))', boxShadow: 'inset 0 1px 0 rgba(255,235,170,0.18)' }}>
+                        <img src={hero.icon} alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+                        <span className="flex-1 font-bold text-white/70" style={{ fontSize: 11 }}>{hero.label}</span>
+                        <span className="font-black text-yellow-300" style={{ fontSize: 17 }}>{formatScore(hero.value)}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        {rows.map((r, i) => (
+                            <div key={i} className="rounded-2xl px-3 py-2.5 flex flex-col gap-1"
+                                style={{ background: 'rgba(0,0,0,0.28)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
+                                <span className="font-bold text-white/55" style={{ fontSize: 9.5 }}>{r.label}</span>
+                                <div className="flex items-center gap-1.5">
+                                    <img src={r.icon} alt="" style={{ width: 15, height: 15, objectFit: 'contain' }} />
+                                    <span className="font-black text-yellow-300" style={{ fontSize: 14 }}>{formatScore(r.value)}</span>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

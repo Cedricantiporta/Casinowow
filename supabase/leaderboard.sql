@@ -7,6 +7,7 @@ create table if not exists public.leaderboard (
     avatar      text        not null default '',
     level       int         not null default 1,
     score       bigint      not null default 0,
+    gems        bigint      not null default 0,
     total_won   bigint      not null default 0,
     max_jackpot bigint      not null default 0,
     max_win     bigint      not null default 0,
@@ -14,6 +15,7 @@ create table if not exists public.leaderboard (
 );
 
 -- Migration for an existing table created before these columns existed.
+alter table public.leaderboard add column if not exists gems        bigint not null default 0;
 alter table public.leaderboard add column if not exists total_won   bigint not null default 0;
 alter table public.leaderboard add column if not exists max_jackpot bigint not null default 0;
 alter table public.leaderboard add column if not exists max_win     bigint not null default 0;

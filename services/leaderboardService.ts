@@ -22,6 +22,7 @@ export interface LeaderboardEntry {
     avatar: string; // path under /public, e.g. "/Profile_pic (3).png"
     level: number;
     score: number;       // total coins
+    gems: number;        // total gems
     totalWon: number;    // lifetime coins won
     maxJackpot: number;  // biggest jackpot
     maxWin: number;      // biggest single win
@@ -33,14 +34,16 @@ export interface LocalPlayer {
     avatar: string;
     level: number;
     score: number;
+    gems: number;
     totalWon: number;
     maxJackpot: number;
     maxWin: number;
 }
 
 // A fixed roster of high rollers. Values are large and static so the board feels
-// established; the local player is merged in each time it's read.
-const SEED: Omit<LeaderboardEntry, 'isYou'>[] = [
+// established; the local player is merged in each time it's read. Gems are derived
+// from score so the seed stays compact.
+const SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = [
     { id: 's1',  name: 'MidnightAce',  avatar: '/Profile_pic (1).png',  level: 142, score: 8_420_000_000, totalWon: 31_200_000_000, maxJackpot: 1_850_000_000, maxWin: 940_000_000 },
     { id: 's2',  name: 'GoldenTiger',  avatar: '/Profile_pic (5).png',  level: 137, score: 6_910_000_000, totalWon: 27_400_000_000, maxJackpot: 1_620_000_000, maxWin: 880_000_000 },
     { id: 's3',  name: 'LuckyNova',    avatar: '/Profile_pic (9).png',  level: 129, score: 5_730_000_000, totalWon: 23_900_000_000, maxJackpot: 1_410_000_000, maxWin: 760_000_000 },
@@ -85,8 +88,8 @@ function getDeviceId(): string {
 
 function seededBoard(you: LocalPlayer, metric: LeaderboardMetric): LeaderboardEntry[] {
     const merged: LeaderboardEntry[] = [
-        ...SEED.map(e => ({ ...e })),
-        { id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, score: you.score, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true },
+        ...SEED.map(e => ({ ...e, gems: Math.floor(e.score / 4000) })),
+        { id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true },
     ];
     merged.sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
     return merged.slice(0, LIMIT);
@@ -101,24 +104,32 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
     const deviceId = getDeviceId();
     try {
         await submitScore(you);
+        // select('*') survives schema drift — missing metric columns just read as 0
+        // instead of failing the whole query.
         const { data, error } = await supabase
             .from(TABLE)
-            .select('device_id,name,avatar,level,score,total_won,max_jackpot,max_win')
+            .select('*')
             .order(METRIC_COLUMN[metric], { ascending: false })
             .limit(LIMIT);
-        if (error || !data) return seededBoard(you, metric);
+        if (error) {
+            console.warn('[leaderboard] read failed — run supabase/leaderboard.sql?', error.message);
+            return seededBoard(you, metric);
+        }
+        if (!data || data.length === 0) return seededBoard(you, metric);
         return data.map(row => ({
             id: row.device_id,
             name: row.name || 'Player',
             avatar: row.avatar || '/Profile_pic (3).png',
             level: row.level ?? 1,
             score: Number(row.score) || 0,
+            gems: Number(row.gems) || 0,
             totalWon: Number(row.total_won) || 0,
             maxJackpot: Number(row.max_jackpot) || 0,
             maxWin: Number(row.max_win) || 0,
             isYou: row.device_id === deviceId,
         }));
-    } catch {
+    } catch (e) {
+        console.warn('[leaderboard] read exception:', e);
         return seededBoard(you, metric);
     }
 }
@@ -128,22 +139,32 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
  */
 export async function submitScore(you: LocalPlayer): Promise<void> {
     if (!supabase) return;
+    const deviceId = getDeviceId();
+    const core = {
+        device_id: deviceId,
+        name: you.name || 'Player',
+        avatar: you.avatar || '',
+        level: you.level,
+        score: Math.round(you.score),
+        updated_at: new Date().toISOString(),
+    };
+    const full = {
+        ...core,
+        gems: Math.round(you.gems),
+        total_won: Math.round(you.totalWon),
+        max_jackpot: Math.round(you.maxJackpot),
+        max_win: Math.round(you.maxWin),
+    };
     try {
-        await supabase.from(TABLE).upsert(
-            {
-                device_id: getDeviceId(),
-                name: you.name || 'Player',
-                avatar: you.avatar || '',
-                level: you.level,
-                score: Math.round(you.score),
-                total_won: Math.round(you.totalWon),
-                max_jackpot: Math.round(you.maxJackpot),
-                max_win: Math.round(you.maxWin),
-                updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'device_id' },
-        );
-    } catch {
-        // ignore — leaderboard is best-effort
+        const { error } = await supabase.from(TABLE).upsert(full, { onConflict: 'device_id' });
+        if (error) {
+            // Most likely the new columns aren't in the table yet — retry with the core
+            // columns so at least name/level/score still update, and surface the reason.
+            console.warn('[leaderboard] write failed — run supabase/leaderboard.sql?', error.message);
+            const { error: e2 } = await supabase.from(TABLE).upsert(core, { onConflict: 'device_id' });
+            if (e2) console.warn('[leaderboard] core write also failed:', e2.message);
+        }
+    } catch (e) {
+        console.warn('[leaderboard] write exception:', e);
     }
 }
