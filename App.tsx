@@ -1398,9 +1398,8 @@ const App: React.FC = () => {
   };
 
   const handleClaimAllMissions = () => {
-      const premBonus = missionState.isPremium ? 10 : 0;
       const rewardsToClaim = missionState.passRewards.filter(r =>
-          r.level <= missionState.passLevel + premBonus &&
+          r.level <= missionState.passLevel &&
           !r.claimed &&
           (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
       );
