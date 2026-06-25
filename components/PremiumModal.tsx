@@ -56,7 +56,7 @@ const getBundles = (maxBet: number) => [
         goldBg: true,
         items: [
             { icon: IC.gem, label: '10,000 Gems' },
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 300))} Coins` },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 900))} Coins` },
             { icon: IC.premium, label: '40 Premium Packs' },
             { icon: IC.pass, label: 'Monthly Pass (30d)' },
             { icon: IC.dice, label: '+50 Dice' },
@@ -72,8 +72,8 @@ const getBundles = (maxBet: number) => [
         tag: '30% OFF',
         tagColor: '#dc2626',
         items: [
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
-            { icon: IC.gem, label: '200 Gems' },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 25))} Coins` },
+            { icon: IC.gem, label: '100 Gems' },
             { icon: IC.cards, label: '5 Standard Packs' },
             COLLECT_ITEM,
         ],
@@ -86,8 +86,8 @@ const getBundles = (maxBet: number) => [
         tag: '30% OFF',
         tagColor: '#dc2626',
         items: [
-            { icon: IC.gem, label: '2,000 Gems' },
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 100))} Coins` },
+            { icon: IC.gem, label: '1,000 Gems' },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
             { icon: IC.boost, label: '2× XP Boost (1h)' },
             COLLECT_ITEM,
         ],
@@ -102,8 +102,8 @@ const getBundles = (maxBet: number) => [
         items: [
             { icon: IC.pick, label: '+20 Picks' },
             { icon: IC.dice, label: '+20 Dice' },
-            { icon: IC.gem, label: '500 Gems' },
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 25))} Coins` },
+            { icon: IC.gem, label: '250 Gems' },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 12.5))} Coins` },
             COLLECT_ITEM,
         ],
         origPrice: '₱ 350',
@@ -115,8 +115,8 @@ const getBundles = (maxBet: number) => [
         tag: '30% OFF',
         tagColor: '#dc2626',
         items: [
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
-            { icon: IC.gem, label: '5,000 Gems' },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 250))} Coins` },
+            { icon: IC.gem, label: '2,500 Gems' },
             { icon: IC.premium, label: '10 Premium Packs' },
             { icon: IC.boost, label: '2× XP Boost (24h)' },
             { icon: IC.pick, label: '+50 Picks' },
