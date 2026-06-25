@@ -30,6 +30,8 @@ interface ProfileModalProps {
     recentGames: GameConfig[];
     profileEmoji?: string;
     onSetProfileEmoji?: (emoji: string) => void;
+    playerName?: string;
+    onSetPlayerName?: (name: string) => void;
     onNavigateToGame?: (game: GameConfig) => void;
     albumsCompleted?: number;
     albumsTotal?: number;
@@ -64,11 +66,19 @@ const StatRow: React.FC<{ icon: string; label: string; value: string; pos: 'top'
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({
     isOpen, onClose, player, isPremium, passBoostMultiplier = 1, passBoostEndTime = 0,
-    recentGames, profileEmoji = '', onSetProfileEmoji, onNavigateToGame,
-    albumsCompleted = 0, albumsTotal = 0,
+    recentGames, profileEmoji = '', onSetProfileEmoji, playerName: playerNameProp,
+    onSetPlayerName, onNavigateToGame, albumsCompleted = 0, albumsTotal = 0,
 }) => {
-    const [playerName] = useState(() => localStorage.getItem('playerName') || 'Player');
+    const playerName = playerNameProp ?? (localStorage.getItem('playerName') || 'Player');
     const [showPicPicker, setShowPicPicker] = useState(false);
+    const [editingName, setEditingName] = useState(false);
+    const [nameDraft, setNameDraft] = useState(playerName);
+
+    const commitName = () => {
+        const next = nameDraft.trim().slice(0, 20);
+        if (next && next !== playerName) onSetPlayerName?.(next);
+        setEditingName(false);
+    };
 
     if (!isOpen) return null;
 
@@ -135,9 +145,26 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                 {/* Name + level + XP bar */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1.5">
-                        <span className="font-black text-white text-sm tracking-wider leading-none font-nunito">
-                            {playerName}
-                        </span>
+                        {editingName ? (
+                            <input
+                                autoFocus
+                                value={nameDraft}
+                                maxLength={20}
+                                onChange={e => setNameDraft(e.target.value)}
+                                onBlur={commitName}
+                                onKeyDown={e => { if (e.key === 'Enter') commitName(); if (e.key === 'Escape') { setNameDraft(playerName); setEditingName(false); } }}
+                                className="font-black text-white text-sm leading-none font-nunito bg-black/30 rounded-md px-2 py-1 outline-none"
+                                style={{ width: 150, border: '1px solid rgba(255,255,255,0.25)' }}
+                            />
+                        ) : (
+                            <button onClick={() => { setNameDraft(playerName); setEditingName(true); }}
+                                className="flex items-center gap-1.5 active:scale-95 transition-transform">
+                                <span className="font-black text-white text-sm tracking-wider leading-none font-nunito">
+                                    {playerName}
+                                </span>
+                                <i className="ti ti-pencil" style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }} />
+                            </button>
+                        )}
                         <span className="font-black text-[10px] leading-none text-white font-nunito">
                             Lv.{player.level}
                         </span>

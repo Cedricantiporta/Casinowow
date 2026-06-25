@@ -32,6 +32,7 @@ import { PremiumModal } from './components/PremiumModal';
 import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
 import { LeaderboardModal } from './components/LeaderboardModal';
+import { submitScore } from './services/leaderboardService';
 import { DragonPickGrid } from './components/DragonPickModal';
 import { NeonRouletteModal } from './components/NeonRouletteModal';
 import { CandyRouletteModal, CandyWildConfig } from './components/CandyRouletteModal';
@@ -663,8 +664,37 @@ const App: React.FC = () => {
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
   const [showNopay, setShowNopay] = useState(false);
   const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '/Profile_pic (3).png');
+  // Player display name. On first run we mint a unique default like "Player38217645"
+  // so the leaderboard isn't full of identical "Player" entries.
+  const [playerName, setPlayerNameState] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('playerName');
+      if (saved) return saved;
+      const generated = 'Player' + Math.floor(10000000 + Math.random() * 90000000);
+      localStorage.setItem('playerName', generated);
+      return generated;
+    } catch {
+      return 'Player';
+    }
+  });
   const [showInbox, setShowInbox] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+
+  // Persist a new display name locally and push it (with current stats) to the leaderboard.
+  const handleSetPlayerName = (name: string) => {
+    const trimmed = name.trim().slice(0, 20) || 'Player';
+    setPlayerNameState(trimmed);
+    try { localStorage.setItem('playerName', trimmed); } catch {}
+    submitScore({
+      name: trimmed,
+      avatar: profileEmoji,
+      level: player.level,
+      score: player.balance,
+      totalWon: player.stats?.totalCoinsWon || 0,
+      maxJackpot: player.stats?.maxJackpotWin || 0,
+      maxWin: player.stats?.maxSingleWin || 0,
+    });
+  };
   const [gameLoadingConfig, setGameLoadingConfig] = useState<GameConfig | null>(null);
   const [inbox, setInbox] = useState<InboxMessage[]>(() => {
       try {
@@ -5493,6 +5523,8 @@ const App: React.FC = () => {
           recentGames={GAMES_CONFIG.filter(g => (player.stats?.recentSlots || []).includes(g.id)).sort((a, b) => (player.stats?.recentSlots || []).indexOf(a.id) - (player.stats?.recentSlots || []).indexOf(b.id))}
           profileEmoji={profileEmoji}
           onSetProfileEmoji={(e) => { setProfileEmoji(e); try { localStorage.setItem('cw_profile_emoji', e); } catch {} }}
+          playerName={playerName}
+          onSetPlayerName={handleSetPlayerName}
           onNavigateToGame={(game) => { setShowProfile(false); handleGameSelect(game as GameConfig); }}
           albumsCompleted={decks.filter(d => d.isCompleted).length}
           albumsTotal={decks.length}
@@ -5509,10 +5541,13 @@ const App: React.FC = () => {
           isOpen={showLeaderboard}
           onClose={() => setShowLeaderboard(false)}
           player={{
-              name: (typeof localStorage !== 'undefined' && localStorage.getItem('playerName')) || 'Player',
+              name: playerName,
               avatar: profileEmoji,
               level: player.level,
               score: player.balance,
+              totalWon: player.stats?.totalCoinsWon || 0,
+              maxJackpot: player.stats?.maxJackpotWin || 0,
+              maxWin: player.stats?.maxSingleWin || 0,
           }}
       />
 
