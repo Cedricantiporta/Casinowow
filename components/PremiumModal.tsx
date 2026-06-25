@@ -45,8 +45,8 @@ const getBundles = (maxBet: number) => [
             { icon: IC.pick, label: '+10 Picks' },
             COLLECT_ITEM,
         ],
-        origPrice: '₱ 799',
-        price: '₱ 399',
+        origPrice: '₱ 399',
+        price: '₱ 199',
     },
     {
         id: 'diamond',
@@ -63,8 +63,8 @@ const getBundles = (maxBet: number) => [
             { icon: IC.pick, label: '+50 Pickaxes' },
             COLLECT_ITEM,
         ],
-        origPrice: '₱ 3,999',
-        price: '₱ 1,999',
+        origPrice: '₱ 1,999',
+        price: '₱ 999',
     },
     {
         id: 'starter',
@@ -77,8 +77,8 @@ const getBundles = (maxBet: number) => [
             { icon: IC.cards, label: '5 Standard Packs' },
             COLLECT_ITEM,
         ],
-        origPrice: '₱ 200',
-        price: '₱ 140',
+        origPrice: '₱ 99',
+        price: '₱ 69',
     },
     {
         id: 'gem',
@@ -91,8 +91,8 @@ const getBundles = (maxBet: number) => [
             { icon: IC.boost, label: '2× XP Boost (1h)' },
             COLLECT_ITEM,
         ],
-        origPrice: '₱ 500',
-        price: '₱ 350',
+        origPrice: '₱ 249',
+        price: '₱ 174',
     },
     {
         id: 'quest',
@@ -106,8 +106,8 @@ const getBundles = (maxBet: number) => [
             { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 12.5))} Coins` },
             COLLECT_ITEM,
         ],
-        origPrice: '₱ 350',
-        price: '₱ 245',
+        origPrice: '₱ 175',
+        price: '₱ 122',
     },
     {
         id: 'mega',
@@ -122,8 +122,8 @@ const getBundles = (maxBet: number) => [
             { icon: IC.pick, label: '+50 Picks' },
             COLLECT_ITEM,
         ],
-        origPrice: '₱ 1,499',
-        price: '₱ 1,049',
+        origPrice: '₱ 749',
+        price: '₱ 524',
     },
 ];
 
