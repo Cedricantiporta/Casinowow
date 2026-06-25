@@ -37,11 +37,12 @@ interface ProfileModalProps {
     albumsTotal?: number;
 }
 
-// Profile pics 1-12
+// Profile pics 1-12. Only the first four are unlocked; the rest are locked.
 const PROFILE_PICS = [
     '/Profile_pic (3).png', // penguin — first/default
     ...Array.from({ length: 12 }, (_, i) => `/Profile_pic (${i + 1}).png`).filter(p => p !== '/Profile_pic (3).png'),
 ];
+const UNLOCKED_PIC_COUNT = 4;
 
 const THEME_ICONS: Record<string, string> = {
     PIGGY: '🐷', NEON: '🎰', EGYPT: '🦂', DRAGON: '🐉', PIRATE: '🏴‍☠️',
@@ -130,14 +131,23 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     {showPicPicker && (
                         <div className="absolute top-14 left-0 z-50 rounded-2xl p-2 shadow-2xl flex flex-wrap gap-1.5"
                             style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 188 }}>
-                            {PROFILE_PICS.map(pic => (
-                                <button key={pic}
-                                    onClick={() => { onSetProfileEmoji?.(pic); setShowPicPicker(false); }}
-                                    className="w-10 h-10 rounded-xl overflow-hidden transition-transform active:scale-90 hover:brightness-125"
-                                    style={{ border: profileEmoji === pic ? `2px solid ${vip ? '#fbbf24' : '#a855f7'}` : '2px solid transparent' }}>
-                                    <img src={pic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                </button>
-                            ))}
+                            {PROFILE_PICS.map((pic, i) => {
+                                const locked = i >= UNLOCKED_PIC_COUNT;
+                                return (
+                                    <button key={pic}
+                                        onClick={() => { if (locked) return; onSetProfileEmoji?.(pic); setShowPicPicker(false); }}
+                                        disabled={locked}
+                                        className={`relative w-10 h-10 rounded-xl overflow-hidden transition-transform${locked ? '' : ' active:scale-90 hover:brightness-125'}`}
+                                        style={{ border: profileEmoji === pic ? `2px solid ${vip ? '#fbbf24' : '#a855f7'}` : '2px solid transparent', cursor: locked ? 'default' : 'pointer' }}>
+                                        <img src={pic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: locked ? 'grayscale(1) brightness(0.45)' : undefined }} />
+                                        {locked && (
+                                            <span className="absolute inset-0 flex items-center justify-center text-white/85" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
+                                                <i className="ti ti-lock text-sm"></i>
+                                            </span>
+                                        )}
+                                    </button>
+                                );
+                            })}
                         </div>
                     )}
                 </div>

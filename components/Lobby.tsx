@@ -165,7 +165,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const isMissionsLocked = playerLevel < 10;
     const isCardsLocked = playerLevel < 30;
     const isHighRollerLocked = playerLevel < 35;
-    const isRankingLocked = playerLevel < 38;
+    const isRankingLocked = playerLevel < 18;
 
     // Quest credit states
     const QUEST_MAX = 60;

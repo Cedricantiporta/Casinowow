@@ -454,6 +454,20 @@ const App: React.FC = () => {
   const [showMiniGamesHub, setShowMiniGamesHub] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const savedFastSpinRef = useRef<boolean>(false);
+  // Autospin state captured when free spins begin, so we can resume normal autospins
+  // once the free-spin round (and its summary) finishes.
+  const savedAutoSpinRef = useRef<{ active: boolean; remaining: number }>({ active: false, remaining: -1 });
+  // First-time-player onboarding: the 10th paid spin ever is guaranteed to trigger free
+  // spins. lifetimeSpinsRef counts real (paid) spins; the flag fires the guarantee once.
+  const lifetimeSpinsRef = useRef<number>(0);
+  const firstFreeSpinDoneRef = useRef<boolean>(false);
+  const forceFreeSpinRef = useRef<boolean>(false);
+  useEffect(() => {
+      try {
+          lifetimeSpinsRef.current = JSON.parse(localStorage.getItem('cw_player') || '{}')?.stats?.totalSpins || 0;
+          firstFreeSpinDoneRef.current = localStorage.getItem('cw_first_fs_done') === '1';
+      } catch {}
+  }, []);
   const [scatterAnticipation, setScatterAnticipation] = useState(false);
   const scatterAnticipationRef = useRef(false);
   const targetGridRef = useRef<SymbolType[][]>([]);
@@ -2349,6 +2363,25 @@ const App: React.FC = () => {
           mysteryCountRef.current = chosen.length;
       }
 
+      // First-time player guarantee: on the 10th paid spin, drop enough scatters (in
+      // distinct columns) to guarantee a free-spin trigger. Fires once, then never again.
+      if (forceFreeSpinRef.current && !isFreeSpin && selectedGame.theme !== 'EGYPT' && ft !== 'EGYPT') {
+          const need = Math.min(selectedGame.scattersToTrigger || 3, cols);
+          const colOrder = Array.from({ length: cols }, (_, i) => i);
+          for (let i = colOrder.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [colOrder[i], colOrder[j]] = [colOrder[j], colOrder[i]];
+          }
+          for (let k = 0; k < need; k++) {
+              const c = colOrder[k];
+              const r = Math.floor(Math.random() * rows);
+              newGrid[c][r] = SymbolType.SCATTER;
+          }
+          forceFreeSpinRef.current = false;
+          firstFreeSpinDoneRef.current = true;
+          try { localStorage.setItem('cw_first_fs_done', '1'); } catch {}
+      }
+
       return newGrid;
   }, [selectedGame, freeSpinsRemaining, freeSpinsWon, spinsWithoutBonus]);
 
@@ -2483,6 +2516,11 @@ const App: React.FC = () => {
               totalSpins: (prev.stats?.totalSpins || 0) + 1
           }
       }));
+      // First-time player: guarantee the 10th paid spin triggers free spins (once ever).
+      lifetimeSpinsRef.current += 1;
+      if (!firstFreeSpinDoneRef.current && lifetimeSpinsRef.current >= 10) {
+          forceFreeSpinRef.current = true;
+      }
     } else if (isHoldWinRespin || isPirateWalk) {
         // Hold and Win / Ghost Ship respin: free, no missions, no stats
     } else {
@@ -2551,11 +2589,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length > 0) {
-        const effectiveFastSpin = fastSpin && freeSpinsRemaining === 0;
+        // Fast spin only applies while autospin is running — manual spins always play
+        // at full speed.
+        const effectiveFastSpin = fastSpin && player.autoSpin && freeSpinsRemaining === 0;
         const timeout = setTimeout(() => setStatus(GameStatus.STOPPING), effectiveFastSpin ? 50 : 500);
         return () => clearTimeout(timeout);
     }
-  }, [status, targetGrid.length, fastSpin]); 
+  }, [status, targetGrid.length, fastSpin, player.autoSpin]);
 
   const handleReelStop = useCallback(() => {
     const ft = featureThemeOf(selectedGame.theme);
@@ -3737,6 +3777,7 @@ const App: React.FC = () => {
       arcticJpPickTriggeredRef.current = false;
       setSpaceMultiplier(1);
       setReelTransitioning('out');
+      savedAutoSpinRef.current = { active: player.autoSpin, remaining: autoSpinRemainingRef.current };
       setTimeout(() => {
           setFreeSpinsRemaining(prev => prev + freeSpinsWon);
           savedFastSpinRef.current = fastSpin;
@@ -3760,6 +3801,7 @@ const App: React.FC = () => {
       setCandyConfig(cfg);
       setShowCandyRoulette(false);
       // Normal → Free Spins transition (mirrors handleStartFreeSpins)
+      savedAutoSpinRef.current = { active: player.autoSpin, remaining: autoSpinRemainingRef.current };
       setReelTransitioning('out');
       setTimeout(() => {
           setFreeSpinsRemaining(prev => prev + freeSpinsWon);
@@ -3778,9 +3820,18 @@ const App: React.FC = () => {
       const latestTotalWin = freeSpinTotalWinRef.current;
       const tier = latestTotalWin > 0 ? (getWinTier(latestTotalWin, currentBet) || 'BIG WIN') : null;
 
-      // Stop auto spin after free spins — player must re-enable manually
-      setPlayer(p => ({ ...p, autoSpin: false }));
-      setAutoSpinRemaining(-1);
+      // Resume the normal-spin autospin that was running before free spins triggered,
+      // instead of forcing the player to re-enable it manually.
+      const resumeAuto = savedAutoSpinRef.current.active;
+      if (resumeAuto) {
+          autoSpinRemainingRef.current = savedAutoSpinRef.current.remaining;
+          setAutoSpinRemaining(savedAutoSpinRef.current.remaining);
+          setPlayer(p => ({ ...p, autoSpin: true }));
+      } else {
+          setPlayer(p => ({ ...p, autoSpin: false }));
+          setAutoSpinRemaining(-1);
+      }
+      savedAutoSpinRef.current = { active: false, remaining: -1 };
 
       // Reset all feature state immediately so the slot is clean on the way back
       setFreeSpinsWon(0);
@@ -4493,7 +4544,10 @@ const App: React.FC = () => {
                             // get the same +900 ms extension (not just the last one).
                             let anticipationStartReel = -1;
                             const _stt = selectedGame.scattersToTrigger;
-                            if (!fastSpin && targetGrid.length > 0 && _stt >= 2 && _stt < 100) {
+                            // Fast spin only takes effect during autospin; manual spins keep
+                            // full-speed reels and scatter anticipation.
+                            const reelFast = fastSpin && player.autoSpin && freeSpinsRemaining === 0;
+                            if (!reelFast && targetGrid.length > 0 && _stt >= 2 && _stt < 100) {
                                 let sc = 0;
                                 for (let c = 0; c < targetGrid.length - 1; c++) {
                                     if (targetGrid[c]?.some(s => s === SymbolType.SCATTER)) {
@@ -4511,13 +4565,13 @@ const App: React.FC = () => {
                                 spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING}
                                 stopping={status === GameStatus.STOPPING}
                                 stopDelay={instantStop ? 0 : (() => {
-                                    if (!fastSpin && anticipationStartReel !== -1 && i >= anticipationStartReel) {
+                                    if (!reelFast && anticipationStartReel !== -1 && i >= anticipationStartReel) {
                                         // Each anticipated reel gets its own sequential 900ms window
                                         return anticipationStartReel * REEL_DELAY + (i - anticipationStartReel + 1) * 900;
                                     }
-                                    return i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY);
+                                    return i * (reelFast ? 50 : REEL_DELAY);
                                 })()}
-                                duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION}
+                                duration={reelFast ? 200 : SPIN_DURATION}
                                 onStop={handleReelStop}
                                 winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []}
                                 gameConfig={selectedGame}
