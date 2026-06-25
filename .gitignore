@@ -3,3 +3,6 @@ dist
 .DS_Store
 .claude/
 .env
+
+# Capacitor icon-generator source images (cover lives in public/)
+/assets/

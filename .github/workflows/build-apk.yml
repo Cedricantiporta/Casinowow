@@ -74,4 +74,5 @@ jobs:
             Download `casinowow.apk` below, transfer it to your Android phone, and
             install it (you may need to allow "Install from unknown sources").
           files: casinowow.apk
-          prerelease: true
+          prerelease: false
+          make_latest: true
