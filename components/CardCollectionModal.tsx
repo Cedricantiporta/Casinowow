@@ -419,6 +419,12 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 {!selectedDeckId && (
                     <div className="flex flex-col h-full">
 
+                        {/* Grand Reward — fades on sides */}
+                        <div className="shrink-0 py-2 text-center" style={{ background: 'linear-gradient(90deg,transparent 0%,rgba(130,0,220,0.5) 18%,rgba(100,0,200,0.35) 82%,transparent 100%)' }}>
+                            <div className="font-black text-[10px] tracking-widest" style={{ color: 'rgba(210,160,255,0.7)' }}>Grand Reward</div>
+                            <div className="text-white font-black leading-tight" style={{ fontSize: '2rem' }}>{formatK(grandPrize)}</div>
+                        </div>
+
                         <div className="flex-1" />
 
                         {/* Album scroll strip — perspective curve */}
@@ -467,29 +473,31 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                         <div className="flex-1" />
 
-                        {/* Bottom lobby dock bar */}
-                        <div className="shrink-0 mx-4 mb-2 rounded-2xl flex justify-around items-center py-2.5 px-4"
-                            style={{ background: 'linear-gradient(180deg,rgba(80,0,160,0.75) 0%,rgba(40,0,100,0.9) 100%)', boxShadow: 'inset 0 1px 0 rgba(180,100,255,0.35), 0 4px 20px rgba(0,0,0,0.6)' }}>
-                            <button onClick={() => setShowDrawPopup(true)}
-                                className="flex flex-col items-center gap-1 active:scale-90 transition-transform">
-                                <img src="/album_draw.png" alt="" style={{ width: 52, height: 52, objectFit: 'contain', filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.7))' }} />
-                                <span className="font-black text-white text-[10px]">Draw Cards</span>
-                            </button>
-                            <button onClick={() => setShowPackBuyPopup('standard')}
-                                className="flex flex-col items-center gap-1 active:scale-90 transition-transform">
-                                <img src="/album_store.png" alt="" style={{ width: 52, height: 52, objectFit: 'contain', filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.7))' }} />
-                                <span className="font-black text-white text-[10px]">Buy Packs</span>
-                            </button>
-                            <button onClick={() => setShowExchangePanel(true)}
-                                className="relative flex flex-col items-center gap-1 active:scale-90 transition-transform">
-                                <img src="/album_exchange.png" alt="" style={{ width: 64, height: 64, objectFit: 'contain', filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.7))' }} />
-                                {allDuplicates.length > 0 && (
-                                    <div className="absolute -top-1 right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full flex items-center justify-center px-0.5 border border-yellow-400">
-                                        <span className="font-black text-white leading-none" style={{ fontSize: '7px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
-                                    </div>
-                                )}
-                                <span className="font-black text-white text-[10px]">Exchange</span>
-                            </button>
+                        {/* Bottom lobby dock — purple, centered, shorter width like the main lobby bar */}
+                        <div className="shrink-0 flex justify-center mb-1">
+                            <div className="flex items-end gap-1 px-5 pt-2 pb-2 rounded-2xl"
+                                style={{ background: 'linear-gradient(180deg,#8020c8 0%,#5010a0 40%,#380870 100%)', boxShadow: 'inset 0 2px 0 rgba(200,130,255,0.4), inset 0 -2px 0 rgba(0,0,0,0.4), 0 4px 20px rgba(0,0,0,0.7)' }}>
+                                <button onClick={() => setShowDrawPopup(true)}
+                                    className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform px-4">
+                                    <img src="/album_draw.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.8))' }} />
+                                    <span className="font-black text-white text-[10px]">Draw Cards</span>
+                                </button>
+                                <button onClick={() => setShowPackBuyPopup('standard')}
+                                    className="flex flex-col items-center gap-0.5 active:scale-90 transition-transform px-4">
+                                    <img src="/album_store.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.8))' }} />
+                                    <span className="font-black text-white text-[10px]">Buy Packs</span>
+                                </button>
+                                <button onClick={() => setShowExchangePanel(true)}
+                                    className="relative flex flex-col items-center gap-0.5 active:scale-90 transition-transform px-4">
+                                    <img src="/album_exchange.png" alt="" style={{ width: 64, height: 64, objectFit: 'contain', filter: 'drop-shadow(0 3px 8px rgba(0,0,0,0.8))' }} />
+                                    {allDuplicates.length > 0 && (
+                                        <div className="absolute top-0 right-4 min-w-[18px] h-[18px] bg-red-600 rounded-full flex items-center justify-center px-0.5 border-2 border-white">
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '7px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
+                                        </div>
+                                    )}
+                                    <span className="font-black text-white text-[10px]">Exchange</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
