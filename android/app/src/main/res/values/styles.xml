@@ -23,6 +23,13 @@
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <!-- Pre-Android-12: full-screen splash drawable (the cover). -->
         <item name="android:background">@drawable/splash</item>
+        <!-- Android 12+: the system splash ignores the background drawable and shows the
+             app icon (the cover) centered on this color — match the app's dark theme so it
+             isn't a white flash. -->
+        <item name="windowSplashScreenBackground">#0a0015</item>
+        <item name="android:windowSplashScreenBackground" tools:targetApi="s">#0a0015</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
 </resources>
