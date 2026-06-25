@@ -1,10 +1,9 @@
 // Leaderboard data layer.
 //
-// Right now this serves a deterministic, believable set of "top players" from the
-// device so the UI is fully functional with no backend. It is intentionally shaped
-// so that wiring a real backend (e.g. Supabase) later is a one-function change:
-// replace the body of `fetchTopPlayers` / `submitScore` with network calls and keep
-// the same return shapes.
+// When Supabase is configured (VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY) this
+// upserts the local device's score and reads the live top players. When it is not
+// configured, it falls back to a deterministic seeded board so the UI always works.
+import { supabase } from './supabaseClient';
 
 export interface LeaderboardEntry {
     id: string;
@@ -48,12 +47,23 @@ const SEED: Omit<LeaderboardEntry, 'isYou'>[] = [
 ];
 
 const LIMIT = 50;
+const TABLE = 'leaderboard';
 
-/**
- * Returns the ranked leaderboard with the local player merged in by score.
- * Async so a network-backed implementation can drop in without touching callers.
- */
-export async function fetchTopPlayers(you: LocalPlayer): Promise<LeaderboardEntry[]> {
+// Stable anonymous identity for this device.
+function getDeviceId(): string {
+    try {
+        let id = localStorage.getItem('cw_device_id');
+        if (!id) {
+            id = 'd_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+            localStorage.setItem('cw_device_id', id);
+        }
+        return id;
+    } catch {
+        return 'd_anon';
+    }
+}
+
+function seededBoard(you: LocalPlayer): LeaderboardEntry[] {
     const merged: LeaderboardEntry[] = [
         ...SEED.map(e => ({ ...e })),
         { id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, score: you.score, isYou: true },
@@ -63,9 +73,51 @@ export async function fetchTopPlayers(you: LocalPlayer): Promise<LeaderboardEntr
 }
 
 /**
- * Placeholder for pushing the local player's score to a backend.
- * No-op today; becomes an upsert when a backend is connected.
+ * Upserts this device's score, then returns the live ranked board. Falls back to
+ * the seeded board if Supabase is unconfigured or the request fails.
  */
-export async function submitScore(_you: LocalPlayer): Promise<void> {
-    return;
+export async function fetchTopPlayers(you: LocalPlayer): Promise<LeaderboardEntry[]> {
+    if (!supabase) return seededBoard(you);
+    const deviceId = getDeviceId();
+    try {
+        await submitScore(you);
+        const { data, error } = await supabase
+            .from(TABLE)
+            .select('device_id,name,avatar,level,score')
+            .order('score', { ascending: false })
+            .limit(LIMIT);
+        if (error || !data) return seededBoard(you);
+        return data.map(row => ({
+            id: row.device_id,
+            name: row.name || 'Player',
+            avatar: row.avatar || '/Profile_pic (3).png',
+            level: row.level ?? 1,
+            score: Number(row.score) || 0,
+            isYou: row.device_id === deviceId,
+        }));
+    } catch {
+        return seededBoard(you);
+    }
+}
+
+/**
+ * Pushes the local device's score to the backend (no-op when unconfigured).
+ */
+export async function submitScore(you: LocalPlayer): Promise<void> {
+    if (!supabase) return;
+    try {
+        await supabase.from(TABLE).upsert(
+            {
+                device_id: getDeviceId(),
+                name: you.name || 'Player',
+                avatar: you.avatar || '',
+                level: you.level,
+                score: Math.round(you.score),
+                updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'device_id' },
+        );
+    } catch {
+        // ignore — leaderboard is best-effort
+    }
 }
