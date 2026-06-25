@@ -482,7 +482,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             </button>
                             <button onClick={() => setShowExchangePanel(true)}
                                 className="relative flex flex-col items-center gap-1 active:scale-90 transition-transform">
-                                <img src="/album_exchange.png" alt="" style={{ width: 52, height: 52, objectFit: 'contain', filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.7))' }} />
+                                <img src="/album_exchange.png" alt="" style={{ width: 64, height: 64, objectFit: 'contain', filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.7))' }} />
                                 {allDuplicates.length > 0 && (
                                     <div className="absolute -top-1 right-1 min-w-[16px] h-[16px] bg-red-600 rounded-full flex items-center justify-center px-0.5 border border-yellow-400">
                                         <span className="font-black text-white leading-none" style={{ fontSize: '7px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
@@ -592,16 +592,14 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <button onClick={() => setShowDrawPopup(false)} className="round-btn shrink-0"><i className="ti ti-x" /></button>
                         </div>
 
-                        {/* Content — draw packs (left) + right-side actions (vertically centered) */}
-                        <div className="flex-1 min-h-0 flex p-3 gap-3 items-stretch">
-                            {/* Pack draw options */}
-                            <div className="flex-1 flex gap-3 justify-center items-stretch min-h-0">
-                                {packOptions.map(pack => {
+                        {/* Content — draw packs centered */}
+                        <div className="flex-1 min-h-0 flex p-3 gap-3 items-stretch justify-center">
+                            {packOptions.map(pack => {
                                     const canDrawOne = pack.credits >= 1;
                                     const canDrawTen = pack.credits >= 9;
                                     return (
                                         <div key={pack.id} className="flex flex-col items-center justify-between" style={{ width: 160 }}>
-                                            {/* Card image as the pack container */}
+                                            {/* Card image */}
                                             <div className="flex-1 min-h-0 flex items-center justify-center w-full relative">
                                                 <img src={pack.img} alt={pack.name}
                                                     style={{ height: '100%', maxHeight: 160, width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.55))' }} />
@@ -624,22 +622,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                         </div>
                                     );
                                 })}
-                            </div>
-
-                            {/* Right side — vertically centered actions */}
-                            <div className="shrink-0 flex flex-col justify-center gap-2" style={{ width: 140 }}>
-                                <button onClick={() => setShowPackBuyPopup('standard')} className="pill-green w-full">
-                                    <div className="pill-face" style={{ padding: '10px 8px', fontSize: '10px' }}>Buy Packs</div>
-                                </button>
-                                <button onClick={() => setShowExchangePanel(true)} className="pill-green w-full relative">
-                                    <div className="pill-face" style={{ padding: '10px 8px', fontSize: '10px' }}>Exchange Duplicates</div>
-                                    {allDuplicates.length > 0 && (
-                                        <div className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center px-0.5 z-10">
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{allDuplicates.length > 99 ? '99+' : allDuplicates.length}</span>
-                                        </div>
-                                    )}
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>
