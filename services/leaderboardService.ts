@@ -103,7 +103,6 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
     if (!supabase) return seededBoard(you, metric);
     const deviceId = getDeviceId();
     try {
-        await submitScore(you);
         // select('*') survives schema drift — missing metric columns just read as 0
         // instead of failing the whole query.
         const { data, error } = await supabase

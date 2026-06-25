@@ -291,10 +291,51 @@ const App: React.FC = () => {
   
   // Ref to track player state to avoid stale closures in callbacks (like feature unlocks)
   const playerRef = useRef(player);
+  const playerNameRef = useRef<string>('');
+  const profileEmojiRef = useRef<string>('');
   useEffect(() => {
       playerRef.current = player;
   }, [player]);
-  
+
+  // Background leaderboard sync — runs every 5 minutes so stats are always up to date
+  // without requiring the player to open the Ranking page.
+  useEffect(() => {
+      const buildPayload = () => {
+          const p = playerRef.current;
+          return {
+              name: playerNameRef.current,
+              avatar: profileEmojiRef.current,
+              level: p.level,
+              score: p.balance,
+              gems: p.diamonds,
+              totalWon: p.stats?.totalCoinsWon || 0,
+              maxJackpot: p.stats?.maxJackpotWin || 0,
+              maxWin: p.stats?.maxSingleWin || 0,
+          };
+      };
+      // Initial sync shortly after mount so new sessions register quickly.
+      const initialTimer = setTimeout(() => submitScore(buildPayload()), 10_000);
+      const interval = setInterval(() => submitScore(buildPayload()), 5 * 60_000);
+      return () => { clearTimeout(initialTimer); clearInterval(interval); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync immediately on level-up (meaningful ranking event).
+  useEffect(() => {
+      if (player.level <= 1) return;
+      submitScore({
+          name: playerNameRef.current,
+          avatar: profileEmojiRef.current,
+          level: player.level,
+          score: player.balance,
+          gems: player.diamonds,
+          totalWon: player.stats?.totalCoinsWon || 0,
+          maxJackpot: player.stats?.maxJackpotWin || 0,
+          maxWin: player.stats?.maxSingleWin || 0,
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [player.level]);
+
   const [bonusTimers, setBonusTimers] = useState<{ id: number; endTime: number; reward: number; label: string }[]>(() => {
       try {
           const saved = localStorage.getItem('cw_bonus_timers');
@@ -679,6 +720,9 @@ const App: React.FC = () => {
   });
   const [showInbox, setShowInbox] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  // Keep refs in sync so the background sync intervals don't hold stale closures.
+  useEffect(() => { playerNameRef.current = playerName; }, [playerName]);
+  useEffect(() => { profileEmojiRef.current = profileEmoji; }, [profileEmoji]);
 
   // Persist a new display name locally and push it (with current stats) to the leaderboard.
   const handleSetPlayerName = (name: string) => {
