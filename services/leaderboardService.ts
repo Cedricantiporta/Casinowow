@@ -66,7 +66,7 @@ const SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = [
     { id: 's20', name: 'CandyKing',    avatar: '/Profile_pic (8).png',  level: 35,  score: 78_000_000,    totalWon: 320_000_000,    maxJackpot: 44_000_000,    maxWin: 29_000_000 },
 ];
 
-const LIMIT = 50;
+const LIMIT = 100;
 const TABLE = 'leaderboard';
 
 const metricValue = (e: { score: number; totalWon: number; maxJackpot: number; maxWin: number }, m: LeaderboardMetric) =>
