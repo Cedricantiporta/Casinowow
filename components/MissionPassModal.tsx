@@ -62,9 +62,8 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
 
     const currentMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
     const levels = Array.from(new Set(missionState.passRewards.map(r => r.level))).sort((a: number, b: number) => a - b);
-    const premiumLevelBonus = missionState.isPremium ? 10 : 0;
     const rewardsToClaimCount = missionState.passRewards.filter(r =>
-        r.level <= missionState.passLevel + premiumLevelBonus &&
+        r.level <= missionState.passLevel &&
         !r.claimed &&
         (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
     ).length;
@@ -116,7 +115,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                     <div className="flex-1 grid grid-cols-2 gap-2.5 px-4 py-3 content-center">
                         {[
                             { icon: '🎁', title: 'Double Rewards',   desc: 'FREE + PREMIUM on every level' },
-                            { icon: '⚡', title: '+20 Levels',        desc: 'Instant level boost on purchase' },
+                            { icon: '⚡', title: '+10 Levels',        desc: 'Instant level boost on purchase' },
                             { icon: '💎', title: 'Exclusive Gems',    desc: 'Extra gems on premium reward tiers' },
                             { icon: '⛏️', title: 'Quest Picks',       desc: 'Bonus picks for Wild & Dice quests' },
                         ].map(p => (
@@ -130,9 +129,15 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                         ))}
                     </div>
                     <div className="shrink-0 px-4 pb-3 pt-1 flex flex-col items-center gap-2">
-                        <button onClick={(e) => { e.stopPropagation(); onBuyPass(); setShowPremiumInfo(false); }} className="pill-gold">
-                            <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px' }}>Unlock Premium</div>
-                        </button>
+                        {missionState.isPremium ? (
+                            <button onClick={() => setShowPremiumInfo(false)} className="pill-green">
+                                <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px' }}>Close</div>
+                            </button>
+                        ) : (
+                            <button onClick={(e) => { e.stopPropagation(); onBuyPass(); setShowPremiumInfo(false); }} className="pill-gold">
+                                <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px' }}>Unlock Premium</div>
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
@@ -272,7 +277,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                         const rewards = missionState.passRewards.filter(r => r.level === lvl);
                                         const freeReward = rewards.find(r => r.tier === 'FREE');
                                         const premReward = rewards.find(r => r.tier === 'PREMIUM');
-                                        const unlocked = missionState.passLevel + premiumLevelBonus >= lvl;
+                                        const unlocked = missionState.passLevel >= lvl;
                                         const isNextBuyable = lvl === missionState.passLevel + 1;
 
                                         const freeClaimable = !!(freeReward && !freeReward.claimed && unlocked);
@@ -407,10 +412,11 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                     <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px' }}>Unlock Premium</div>
                                 </button>
                             ) : (
-                                <div className="flex items-center gap-1 px-6 py-3 rounded-full font-black text-[13px]"
-                                    style={{ background: 'rgba(255,255,255,0.08)', color: '#86efac' }}>
-                                    ✓ Premium Active
-                                </div>
+                                <button onClick={() => setShowPremiumInfo(true)} className="pill-gold">
+                                    <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px' }}>
+                                        <i className="ti ti-check" style={{ marginRight: 4 }} />Premium Active
+                                    </div>
+                                </button>
                             )}
                         </div>
                     </div>

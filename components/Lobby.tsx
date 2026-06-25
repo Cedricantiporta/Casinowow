@@ -82,7 +82,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     
     const [timeLeft, setTimeLeft] = useState(0);
     const [jackpotTotals, setJackpotTotals] = useState<number[]>(() =>
-        GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1) * (isHighLimit ? 10 : 1)))
+        GAMES_CONFIG.map((_, idx) => jackpotService.getSlotTotal(idx) * (isHighLimit ? 10 : 1))
     );
     const scrollRef = useRef<HTMLDivElement>(null);
     const hlScrollRef = useRef<HTMLDivElement>(null);
@@ -113,14 +113,12 @@ export const Lobby: React.FC<LobbyProps> = ({
     }, [nextTimeBonus]);
 
     useEffect(() => {
-        setJackpotTotals(
-            GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1) * (isHighLimit ? 10 : 1)))
-        );
+        setJackpotTotals(GAMES_CONFIG.map((_, idx) => jackpotService.getSlotTotal(idx) * (isHighLimit ? 10 : 1)));
     }, [currentBet, isHighLimit]);
 
     useEffect(() => {
         return jackpotService.subscribe(() => {
-            setJackpotTotals(GAMES_CONFIG.map((_, idx) => Math.floor((currentBet ?? 0) * 100 * (SLOT_VARS[idx % SLOT_VARS.length] || 1) * (isHighLimit ? 10 : 1))));
+            setJackpotTotals(GAMES_CONFIG.map((_, idx) => jackpotService.getSlotTotal(idx) * (isHighLimit ? 10 : 1)));
         });
     }, [currentBet, isHighLimit]);
 

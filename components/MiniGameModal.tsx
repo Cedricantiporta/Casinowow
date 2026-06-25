@@ -100,6 +100,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [noPicksMsg, setNoPicksMsg] = useState(false);
     const [showBuyPopup, setShowBuyPopup] = useState<'PICKS' | 'DICE' | null>(null);
     const [explodingCells, setExplodingCells] = useState<Set<number>>(new Set());
+    const [shatteringCells, setShatteringCells] = useState<Set<number>>(new Set());
     const [starBuff, setStarBuff] = useState(false);
 
     const [isRolling, setIsRolling] = useState(false);
@@ -340,7 +341,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     }, []);
 
     const handleTileClick = (index: number) => {
-        if (grid[index].revealed || stageWinning || stagePending) return;
+        if (grid[index].revealed || stageWinning || stagePending || shatteringCells.has(index)) return;
         if (wildCredits <= 0) {
             setNoPicksMsg(true);
             setTimeout(() => setNoPicksMsg(false), 2000);
@@ -353,16 +354,19 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         // revealing the underlying reward/gem (still unrevealed); mult + reward are preserved.
         if (isBlock(cell)) {
             audioService.playStoneBreak();
-            newGrid[index] = { ...cell, revealed: false, content: cell.blockBase ?? 'REWARD' };
-            setGrid(newGrid);
-            if (onGridUpdate) onGridUpdate(newGrid);
-            onPickTile(false, null);
+            setShatteringCells(prev => new Set(prev).add(index));
+            setTimeout(() => {
+                setShatteringCells(prev => { const n = new Set(prev); n.delete(index); return n; });
+                newGrid[index] = { ...cell, revealed: false, content: cell.blockBase ?? 'REWARD' };
+                setGrid(newGrid);
+                if (onGridUpdate) onGridUpdate(newGrid);
+                onPickTile(false, null);
+            }, 350);
             return;
         }
 
-        newGrid[index] = { ...cell, revealed: true };
-
         if (cell.content === 'BOMB') {
+            newGrid[index] = { ...cell, revealed: true };
             // Collect up to 3 random unrevealed neighbors with explode animation
             const row = Math.floor(index / gridCols);
             const col = index % gridCols;
@@ -427,19 +431,26 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             return;
         }
 
-        const gridAfterGem = cell.content === 'GEM' ? newGrid : checkAndPlaceGem(newGrid);
-        setGrid(gridAfterGem);
-        if (onGridUpdate) onGridUpdate(gridAfterGem);
-        if (cell.content === 'GEM') {
-            audioService.playGemFound();
-            triggerStageClear(stagePrizeCoins(cell.mult ?? 1), stagePrizeGems());
-        } else if (cell.content === 'REWARD') {
-            audioService.playWinSmall();
-            onPickTile(false, cell.reward!);
-        } else {
-            audioService.playStoneBreak();
-            onPickTile(false, null);
-        }
+        // Non-bomb, non-block: play shatter animation then reveal
+        audioService.playStoneBreak();
+        setShatteringCells(prev => new Set(prev).add(index));
+        setTimeout(() => {
+            setShatteringCells(prev => { const n = new Set(prev); n.delete(index); return n; });
+            const latestGrid = [...grid.map(c => ({ ...c }))];
+            latestGrid[index] = { ...cell, revealed: true };
+            const gridAfterGem = cell.content === 'GEM' ? latestGrid : checkAndPlaceGem(latestGrid);
+            setGrid(gridAfterGem);
+            if (onGridUpdate) onGridUpdate(gridAfterGem);
+            if (cell.content === 'GEM') {
+                audioService.playGemFound();
+                triggerStageClear(stagePrizeCoins(cell.mult ?? 1), stagePrizeGems());
+            } else if (cell.content === 'REWARD') {
+                audioService.playWinSmall();
+                onPickTile(false, cell.reward!);
+            } else {
+                onPickTile(false, null);
+            }
+        }, 350);
     };
 
     const handleAutoPick = () => {
@@ -635,6 +646,20 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             {/* ── COINMINE (Wild Quest) ── */}
             {activeGame === 'WILD' && (
                 <div className="flex-1 flex overflow-hidden relative">
+                <style>{`
+                    @keyframes rockShatter{
+                        0%{transform:scale(1) rotate(0deg);opacity:1}
+                        20%{transform:scale(1.12) rotate(-4deg);opacity:1}
+                        40%{transform:scale(0.92) rotate(4deg);opacity:0.9}
+                        60%{transform:scale(1.06) rotate(-3deg);opacity:0.7}
+                        80%{transform:scale(0.7) rotate(6deg);opacity:0.35}
+                        100%{transform:scale(0.2) rotate(-10deg);opacity:0}
+                    }
+                    @keyframes shatterParticle{
+                        0%{transform:translate(0,0) scale(1);opacity:1}
+                        100%{transform:translate(var(--px),var(--py)) scale(0);opacity:0}
+                    }
+                `}</style>
                     {noPicksMsg && (
                         <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
                             <div className="animate-pop-in px-5 py-3 rounded-2xl font-black text-white text-base uppercase tracking-widest"
@@ -676,20 +701,32 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         : isReward ? '/coinmine_gemicon.png'
                                         : null;
 
+                                    const isShattering = shatteringCells.has(i);
                                     return (
                                         <button key={i} onClick={() => handleTileClick(i)}
-                                            disabled={revealed || wildCredits <= 0 || stageWinning || stagePending}
-                                            className={`relative flex flex-col items-center justify-center active:scale-95 transition-all${isExploding ? ' animate-bounce' : ''}`}
+                                            disabled={revealed || wildCredits <= 0 || stageWinning || stagePending || isShattering}
+                                            className={`relative flex flex-col items-center justify-center transition-all${isExploding ? ' animate-bounce' : ''}`}
                                             style={{
                                                 width: tileSize, height: tileSize,
                                                 background: 'none',
                                                 border: 'none',
                                                 boxShadow: 'none',
-                                                cursor: revealed || wildCredits <= 0 || stageWinning ? 'default' : 'pointer',
+                                                cursor: revealed || wildCredits <= 0 || stageWinning || isShattering ? 'default' : 'pointer',
                                                 margin: '-4px',
                                             }}>
                                             {isExploding ? (
                                                 <span style={{ fontSize: tileSize * 0.9, lineHeight: 1 }}>💥</span>
+                                            ) : isShattering ? (
+                                                <div className="relative" style={{ width: tileSize, height: tileSize }}>
+                                                    <img src="/coinmine_rockicon.png" alt="" style={{ width: tileSize, height: tileSize, objectFit: 'contain', animation: 'rockShatter 0.35s ease-in forwards' }} />
+                                                    {['#f97316','#fbbf24','#a3e635','#38bdf8'].map((color, pi) => {
+                                                        const angle = (pi / 4) * Math.PI * 2;
+                                                        const dist = tileSize * 0.45;
+                                                        const px = Math.round(Math.cos(angle) * dist) + 'px';
+                                                        const py = Math.round(Math.sin(angle) * dist) + 'px';
+                                                        return <div key={pi} style={{ position: 'absolute', top: '50%', left: '50%', width: 6, height: 6, borderRadius: '50%', background: color, '--px': px, '--py': py, animation: 'shatterParticle 0.35s ease-out forwards' } as React.CSSProperties} />;
+                                                    })}
+                                                </div>
                                             ) : iconSrc ? (
                                                 <div className="relative" style={{ width: tileSize, height: tileSize }}>
                                                     <img src={iconSrc} alt="" style={{ width: tileSize, height: tileSize, objectFit: 'contain' }} />

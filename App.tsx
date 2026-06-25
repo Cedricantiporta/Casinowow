@@ -5548,6 +5548,7 @@ const App: React.FC = () => {
                       premiumExpiry: now + 30 * 24 * 60 * 60 * 1000,
                       passBoostMultiplier: 3,
                       passBoostEndTime: now + 24 * 60 * 60 * 1000,
+                      passLevel: Math.min(50, (ms.passLevel || 1) + 10),
                   }));
                   setCelebrationMsg('👑 Full Premium Unlocked!');
               } else if (code === 'dev111') {
@@ -5568,6 +5569,7 @@ const App: React.FC = () => {
                       ...ms,
                       isPremium: true,
                       premiumExpiry: now + 365 * 24 * 60 * 60 * 1000,
+                      passLevel: Math.min(50, (ms.passLevel || 1) + 10),
                   }));
                   setCelebrationMsg('👑 GOD MODE! VIP + Premium Pass');
               } else if (code === 'cstester') {
@@ -5584,6 +5586,7 @@ const App: React.FC = () => {
                       ...ms,
                       isPremium: true,
                       premiumExpiry: now + 30 * 24 * 60 * 60 * 1000,
+                      passLevel: Math.min(50, (ms.passLevel || 1) + 10),
                   }));
                   setCelebrationMsg('🧪 Tester Pack! +30B Coins · +6K Gems · 30-day VIP');
               } else if (code === 'casinoslop') {
