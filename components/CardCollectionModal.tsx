@@ -436,10 +436,13 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     const isComplete = collected === 7;
                                     return (
                                         <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 118 }}>
+                                            {/* Completion reward — above the card image */}
+                                            <div className="shrink-0 text-center mb-0.5">
+                                                <span className="font-black text-white leading-none" style={{ fontSize: 9, textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>{formatK(getDeckReward(deck.gameId))}</span>
+                                            </div>
                                             <button onClick={() => setSelectedDeckId(deck.gameId)}
                                                 className="w-full flex flex-col items-center p-2 rounded-xl active:scale-95 transition-transform"
                                                 style={{ height: 138, background: 'linear-gradient(180deg,rgba(160,60,255,0.55) 0%,rgba(10,0,50,0.92) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.5), 0 3px 10px rgba(0,0,0,0.6)' }}>
-                                                {/* Cover image with reward overlay */}
                                                 <div className="w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0"
                                                     style={{ background: getDeckThemeBg(deck.theme) }}>
                                                     {(() => {
@@ -449,11 +452,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                             : <div className="text-[3.5rem] drop-shadow-2xl leading-none">{getDeckThemeEmoji(deck.theme)}</div>;
                                                     })()}
                                                     {isComplete && <div className="absolute top-0.5 right-0.5 text-xs z-10">✅</div>}
-                                                    {/* Completion reward overlaid at bottom of cover */}
-                                                    <div className="absolute bottom-0 left-0 right-0 z-10 flex items-end justify-center pb-0.5"
-                                                        style={{ background: 'linear-gradient(0deg,rgba(0,0,0,0.72) 0%,transparent 100%)', borderRadius: '0 0 6px 6px' }}>
-                                                        <span className="font-black text-white leading-none" style={{ fontSize: 8, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{formatK(getDeckReward(deck.gameId))}</span>
-                                                    </div>
                                                 </div>
                                                 <div className="mt-1 text-center w-full">
                                                     <h3 className="text-white font-black font-display text-[11px] truncate leading-none">{deck.gameName}</h3>
