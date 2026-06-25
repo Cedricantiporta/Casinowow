@@ -360,7 +360,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   CANDY: {
     [SymbolType.TEN]: '/candy/sugar2.png', [SymbolType.JACK]: '/candy/sugar3.png', [SymbolType.QUEEN]: '/candy/sugar4.png', [SymbolType.KING]: '/candy/sugar5.png', [SymbolType.ACE]: '/candy/sugar6.png',
     [SymbolType.GRAPE]: '/candy/sugar7.png', [SymbolType.BELL]: '/candy/sugar8.png', [SymbolType.BAR]: '/candy/sugar9.png', [SymbolType.CHERRY]: '/candy/sugar11.png', [SymbolType.SEVEN]: '/candy/sugar11.png',
-    [SymbolType.WILD]: '/candy_wild.png', [SymbolType.SCATTER]: '/candy_scatter.png', ...JP_ICONS
+    [SymbolType.WILD]: '/sugar_wildnew.png', [SymbolType.SCATTER]: '/candy_scatter.png', ...JP_ICONS
   },
   JUNGLE: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',

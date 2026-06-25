@@ -559,6 +559,9 @@ const App: React.FC = () => {
   const [candyCols, setCandyCols] = useState<{ col: number; seedRow: number }[]>([]);
   const [candySingleWilds, setCandySingleWilds] = useState<{ col: number; row: number }[]>([]);
   const [candyFsSpinKey, setCandyFsSpinKey] = useState(0);
+  // Counts wild-border commits in the current Sugar Rush free-spin session:
+  // first commit pops in, later commits slide from the previous position.
+  const candyCommitCountRef = useRef(0);
   const [candyConfig, setCandyConfig] = useState<CandyWildConfig | null>(null);
   const [candyShuffledCols, setCandyShuffledCols] = useState<{ col: number; seedRow: number }[] | null>(null);
   const [candyShuffledSingles, setCandyShuffledSingles] = useState<{ col: number; row: number }[] | null>(null);
@@ -654,33 +657,12 @@ const App: React.FC = () => {
       try { return JSON.parse(localStorage.getItem('cw_redeemed_codes') || '[]'); } catch { return []; }
   });
 
-  // CANDY: shuffle wild container positions once when spin starts for a "switching" animation
+  // CANDY: the wild borders persist between free spins and slide from their previous
+  // position to the next (handled by the CSS `left`/`top` transition on the overlay),
+  // so no shuffle preview is used.
   useEffect(() => {
-      if (status === GameStatus.SPINNING && featureThemeOf(selectedGame.theme) === 'CANDY' && totalFreeSpins > 0) {
-          const reels = selectedGame.reels;
-          const rows = selectedGame.rows;
-          const cols = candyPendingColsRef.current;
-          const singles = candySingleWildsRef.current;
-          if (cols.length > 0) {
-              const indices = Array.from({ length: reels }, (_, i) => i);
-              for (let j = indices.length - 1; j > 0; j--) {
-                  const k = Math.floor(Math.random() * (j + 1));
-                  [indices[j], indices[k]] = [indices[k], indices[j]];
-              }
-              setCandyShuffledCols(cols.map((c, i) => ({ col: indices[i % reels], seedRow: c.seedRow })));
-          }
-          if (singles.length > 0) {
-              const allPos = Array.from({ length: reels * rows }, (_, i) => ({ col: Math.floor(i / rows), row: i % rows }));
-              for (let j = allPos.length - 1; j > 0; j--) {
-                  const k = Math.floor(Math.random() * (j + 1));
-                  [allPos[j], allPos[k]] = [allPos[k], allPos[j]];
-              }
-              setCandyShuffledSingles(allPos.slice(0, singles.length));
-          }
-      } else {
-          setCandyShuffledCols(null);
-          setCandyShuffledSingles(null);
-      }
+      setCandyShuffledCols(null);
+      setCandyShuffledSingles(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, selectedGame.theme, selectedGame.reels, selectedGame.rows, totalFreeSpins]);
 
@@ -2437,11 +2419,8 @@ const App: React.FC = () => {
       // MYSTERY: arm the tile overlay for this spin (cleared each spin; populated only in free spins).
       setMysteryRevealed(false);
       setMysteryCells(mysteryCellsRef.current);
-      // CANDY: clear wild overlay at spin start; it's shown once reels stop (in the completion handler)
-      if (featureThemeOf(selectedGame.theme) === 'CANDY' && freeSpinsRemaining > 0) {
-          setCandyCols([]);
-          setCandySingleWilds([]);
-      }
+      // CANDY: keep the wild borders on screen at their previous position during the spin
+      // so they slide to the new position once the reels stop (set in the completion handler).
     }
   }, [status, targetGrid.length, generateSmartGrid, selectedGame.theme, freeSpinsRemaining]);
 
@@ -2502,8 +2481,10 @@ const App: React.FC = () => {
         setScatterAnticipation(false);
         scatterAnticipationRef.current = false;
 
-        // CANDY: sync the Wild Wheel overlay to the reels that just stopped (replays the expand animation)
+        // CANDY: sync the Wild Wheel overlay to the reels that just stopped. The first commit
+        // of a free-spin session pops in; later commits slide from the previous position.
         if (ft === 'CANDY') {
+            candyCommitCountRef.current += 1;
             setCandyCols(candyPendingColsRef.current);
             setCandySingleWilds(candySingleWildsRef.current);
             setCandyFsSpinKey(k => k + 1);
@@ -3612,6 +3593,7 @@ const App: React.FC = () => {
           candyWildConfigRef.current = null;
           candyPendingColsRef.current = [];
           candySingleWildsRef.current = [];
+          candyCommitCountRef.current = 0;
           setCandyCols([]);
           setCandySingleWilds([]);
           setCandyConfig(null);
@@ -3673,6 +3655,7 @@ const App: React.FC = () => {
 
   const handleCandyRouletteComplete = (cfg: CandyWildConfig) => {
       candyWildConfigRef.current = cfg;
+      candyCommitCountRef.current = 0;
       setCandyConfig(cfg);
       setShowCandyRoulette(false);
       // Normal → Free Spins transition (mirrors handleStartFreeSpins)
@@ -3710,6 +3693,7 @@ const App: React.FC = () => {
       candyWildConfigRef.current = null;
       candyPendingColsRef.current = [];
       candySingleWildsRef.current = [];
+      candyCommitCountRef.current = 0;
       setCandyCols([]);
       setCandySingleWilds([]);
       setCandyConfig(null);
@@ -4641,12 +4625,12 @@ const App: React.FC = () => {
                                         style={{
                                             left: `calc(${(colInfo.col / selectedGame.reels) * 100}% + 2px)`,
                                             width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
-                                            transition: 'left 0.25s cubic-bezier(0.4,0,0.2,1)',
+                                            transition: 'left 0.4s cubic-bezier(0.4,0,0.2,1)',
                                             border: '2.5px solid #f9a8d4',
                                             borderRadius: 5,
                                             boxShadow: '0 0 22px rgba(236,72,153,0.8), inset 0 0 26px rgba(236,72,153,0.3)',
                                             background: 'linear-gradient(180deg,rgba(236,72,153,0.20),rgba(168,85,247,0.08))',
-                                            animation: candyShuffledCols ? 'candyGlow 1.5s ease-in-out infinite' : 'candyExpand 0.55s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.55s infinite',
+                                            animation: candyCommitCountRef.current <= 1 ? 'candyExpand 0.55s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.55s infinite' : 'candyGlow 1.5s ease-in-out infinite',
                                         }} />
                                 ))}
                             </div>
@@ -4662,11 +4646,11 @@ const App: React.FC = () => {
                                             width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
                                             top: `calc(${(w.row / selectedGame.rows) * 100}% + 2px)`,
                                             height: `calc(${(1 / selectedGame.rows) * 100}% - 4px)`,
-                                            transition: 'left 0.25s cubic-bezier(0.4,0,0.2,1), top 0.25s cubic-bezier(0.4,0,0.2,1)',
+                                            transition: 'left 0.4s cubic-bezier(0.4,0,0.2,1), top 0.4s cubic-bezier(0.4,0,0.2,1)',
                                             border: '2px solid #f9a8d4',
                                             borderRadius: 4,
                                             background: 'rgba(236,72,153,0.12)',
-                                            animation: candyShuffledSingles ? 'candyGlow 1.5s ease-in-out infinite' : 'candyExpand 0.4s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.4s infinite',
+                                            animation: candyCommitCountRef.current <= 1 ? 'candyExpand 0.4s cubic-bezier(0.2,1.2,0.4,1) forwards, candyGlow 1.5s ease-in-out 0.4s infinite' : 'candyGlow 1.5s ease-in-out infinite',
                                         }} />
                                 ))}
                             </div>
