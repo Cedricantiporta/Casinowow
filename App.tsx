@@ -5570,6 +5570,41 @@ const App: React.FC = () => {
                       premiumExpiry: now + 365 * 24 * 60 * 60 * 1000,
                   }));
                   setCelebrationMsg('👑 GOD MODE! VIP + Premium Pass');
+              } else if (code === 'CSTESTER') {
+                  // dev111 × 3 + dev222: 30B coins, 6K gems, 30-day VIP, premium pass
+                  const now = Date.now();
+                  setPlayer(p => ({
+                      ...p,
+                      balance: p.balance + 30_000_000_000,
+                      diamonds: p.diamonds + 6_000,
+                      isVip: true,
+                      vipExpiry: Math.max(p.vipExpiry || 0, now) + 30 * 24 * 3600000,
+                  }));
+                  setMissionState(ms => ({
+                      ...ms,
+                      isPremium: true,
+                      premiumExpiry: now + 30 * 24 * 60 * 60 * 1000,
+                  }));
+                  setCelebrationMsg('🧪 Tester Pack! +30B Coins · +6K Gems · 30-day VIP');
+              } else if (code === 'CASINOSLOP') {
+                  const now = Date.now();
+                  setPlayer(p => ({
+                      ...p,
+                      balance: p.balance + 10_000_000_000,
+                      diamonds: p.diamonds + 1_000,
+                      isVip: true,
+                      vipExpiry: Math.max(p.vipExpiry || 0, now) + 3 * 24 * 3600000,
+                  }));
+                  setCelebrationMsg('🎰 +10B Coins · +1,000 Gems · 3-day VIP');
+              } else if (code === 'BETA1') {
+                  const now = Date.now();
+                  setPlayer(p => ({
+                      ...p,
+                      balance: p.balance + 50_000_000_000,
+                      diamonds: p.diamonds + 2_000,
+                      collectBoostEndTime: Math.max(p.collectBoostEndTime || 0, now) + 7 * 24 * 3600000,
+                  }));
+                  setCelebrationMsg('⚡ Beta Pack! +50B Coins · +2K Gems · 7-day Collect Boost');
               }
               audioService.playWinBig();
           }}
