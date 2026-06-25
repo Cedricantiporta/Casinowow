@@ -249,6 +249,22 @@ const STARTUP_ASSETS = [
     '/farm_scatter.png', '/beast_scatter.png', '/angryflock_scatter.png', '/princess_scatter.png',
     // generic jackpot tier cell icons (hold-win / free-spin overlays)
     '/scatter_mini.png', '/scatter_minor.png', '/scatter_major.png', '/scatter_mega.png', '/scatter_grand.png',
+    // album dock icons
+    '/album_draw.png', '/album_store.png', '/album_exchange.png',
+    // piggy bank modal assets
+    '/ui/piggy.png', '/ui/piggy_red.png',
+    // pass / mission pass modal assets
+    '/ui/pass.png', '/mission-levelup.png', '/mission-spin.png', '/mission-wincoin.png', '/pass-picksdice.png',
+    // collect / bonus tile modal assets
+    '/ui/collect.png', '/ui/boost.png',
+    // minigames modal assets
+    '/ui/minigames.png', '/ui/games.png', '/ui/dice.png', '/ui/double.png', '/ui/mine_new.png',
+    // inbox modal assets
+    '/ui/inbox.png', '/ui/gift_mail.png', '/ui/gift_store.png',
+    // settings / profile modal assets
+    '/ui/star.png', '/ui/bigbag.png',
+    // VIP & VIP lounge modal assets
+    '/ui/VIP.png', '/ui/high_roller.png', '/symbols/diamond.png',
 ];
 
 const App: React.FC = () => {
