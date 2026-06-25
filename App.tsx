@@ -2363,19 +2363,40 @@ const App: React.FC = () => {
           mysteryCountRef.current = chosen.length;
       }
 
-      // First-time player guarantee: on the 10th paid spin, drop enough scatters (in
-      // distinct columns) to guarantee a free-spin trigger. Fires once, then never again.
-      if (forceFreeSpinRef.current && !isFreeSpin && selectedGame.theme !== 'EGYPT' && ft !== 'EGYPT') {
-          const need = Math.min(selectedGame.scattersToTrigger || 3, cols);
-          const colOrder = Array.from({ length: cols }, (_, i) => i);
-          for (let i = colOrder.length - 1; i > 0; i--) {
-              const j = Math.floor(Math.random() * (i + 1));
-              [colOrder[i], colOrder[j]] = [colOrder[j], colOrder[i]];
-          }
-          for (let k = 0; k < need; k++) {
-              const c = colOrder[k];
-              const r = Math.floor(Math.random() * rows);
-              newGrid[c][r] = SymbolType.SCATTER;
+      // First-time player guarantee: on the 10th paid spin, force a free-spin trigger.
+      // PIGGY uses 6+ COIN cells to trigger (not SCATTER); all other slots use SCATTER.
+      if (forceFreeSpinRef.current && !isFreeSpin) {
+          if (selectedGame.theme === 'PIGGY') {
+              // Place 6 coins in random eligible (non-wild, non-scatter) cells.
+              const eligible: {c: number; r: number}[] = [];
+              for (let c = 0; c < cols; c++) {
+                  for (let r = 0; r < rows; r++) {
+                      const s = newGrid[c][r];
+                      if (s !== SymbolType.SCATTER && s !== SymbolType.WILD && !String(s).startsWith('JACKPOT')) {
+                          eligible.push({c, r});
+                      }
+                  }
+              }
+              for (let i = eligible.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+              }
+              for (let i = 0; i < Math.min(6, eligible.length); i++) {
+                  newGrid[eligible[i].c][eligible[i].r] = SymbolType.COIN;
+              }
+          } else if (ft !== 'EGYPT') {
+              // All non-Egypt, non-Piggy slots: drop enough scatters in distinct columns.
+              const need = Math.min(selectedGame.scattersToTrigger || 3, cols);
+              const colOrder = Array.from({ length: cols }, (_, i) => i);
+              for (let i = colOrder.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [colOrder[i], colOrder[j]] = [colOrder[j], colOrder[i]];
+              }
+              for (let k = 0; k < need; k++) {
+                  const c = colOrder[k];
+                  const r = Math.floor(Math.random() * rows);
+                  newGrid[c][r] = SymbolType.SCATTER;
+              }
           }
           forceFreeSpinRef.current = false;
           firstFreeSpinDoneRef.current = true;
