@@ -4051,7 +4051,7 @@ const App: React.FC = () => {
                         className={`shrink-0 active:scale-90 transition-transform ${piggyShaking ? 'animate-piggy-shake' : ''}`} />
 
                     {/* Level Pill + Multiplier + XP popup */}
-                    <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 95 }}>
+                    <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 160 }}>
                         {/* Level Pill */}
                         <div className="rtrack flex-1" onClick={() => setShowXpPopup(v => !v)} style={{ justifyContent: 'flex-start', gap: 4, paddingLeft: 2, paddingRight: 6, overflow: 'visible', maxWidth: 'none', cursor: 'pointer' }}>
                             <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
@@ -4072,13 +4072,32 @@ const App: React.FC = () => {
                             </span>
                         </div>
 
-                        {/* Collect multiplier indicator */}
-                        <div className="relative shrink-0 flex items-center justify-center" onClick={() => setShowCollectPopup(v => !v)} style={{ width: 42, height: 42, cursor: 'pointer' }}>
-                            <img src="/ui/exp_multiplier.png" alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain' }} />
-                            <span style={{ position: 'relative', zIndex: 1, fontSize: 13, fontWeight: 900, color: '#fff', lineHeight: 1, textShadow: '0 1px 3px rgba(0,0,0,1)', marginTop: '-3px' }}>
-                                {treasuryMultiplier}X
-                            </span>
-                        </div>
+                        {/* Collect multiplier pill */}
+                        {(() => {
+                            const curIdx = TREASURY_MULT_TIERS.reduce((best, t, i) => treasuryMultProgress >= t.at ? i : best, 0);
+                            const curTier = TREASURY_MULT_TIERS[curIdx];
+                            const nextTier = TREASURY_MULT_TIERS[curIdx + 1];
+                            const collectPct = nextTier
+                                ? Math.min(100, ((treasuryMultProgress - curTier.at) / (nextTier.at - curTier.at)) * 100)
+                                : 100;
+                            const nextLabel = nextTier ? `${nextTier.mult}X` : 'MAX';
+                            const barColor = collectBoostActive
+                                ? 'linear-gradient(180deg,#fbbf24,#d97706 60%,#b45309)'
+                                : 'linear-gradient(180deg,#c084fc,#9333ea 60%,#6b21a8)';
+                            return (
+                                <div className="rtrack shrink-0" onClick={() => setShowCollectPopup(v => !v)}
+                                    style={{ overflow: 'visible', cursor: 'pointer', width: 82, justifyContent: 'space-between', paddingLeft: 5, paddingRight: 5 }}>
+                                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                                        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${collectPct}%`, background: barColor, boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease', overflow: 'hidden' }}>
+                                            <div className="absolute inset-y-0 w-4 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+                                        </div>
+                                    </div>
+                                    <span style={{ position: 'relative', zIndex: 1, fontSize: 9, fontWeight: 900, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.9)', lineHeight: 1 }}>{treasuryMultiplier}X</span>
+                                    <img src="/ui/exp_multiplier.png" alt="" style={{ flexShrink: 0, width: 28, height: 28, objectFit: 'contain', position: 'relative', zIndex: 1 }} />
+                                    <span style={{ position: 'relative', zIndex: 1, fontSize: 9, fontWeight: 900, color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 2px rgba(0,0,0,0.9)', lineHeight: 1 }}>{nextLabel}</span>
+                                </div>
+                            );
+                        })()}
 
                         {/* Collect multiplier popup */}
                         {showCollectPopup && (() => {
