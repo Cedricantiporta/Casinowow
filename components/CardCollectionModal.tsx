@@ -472,7 +472,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 style={{ paddingLeft: 14, paddingRight: 14, paddingBottom: 4, paddingTop: 8 }}>
                                 {/* Bar bg — same gradient/border/glow as lobby bar */}
                                 <div className="absolute bottom-0 left-0 right-0 pointer-events-none"
-                                    style={{ height: 52, borderRadius: '28px 28px 0 0', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', border: '1.5px solid #9030d0', borderBottom: 'none', boxShadow: 'inset 0 2px 0 rgba(220,170,255,0.95), 0 -16px 60px rgba(0,0,0,0.98), 0 -6px 24px rgba(0,0,0,0.95), 0 -2px 8px rgba(0,0,0,1)', zIndex: -1 }}>
+                                    style={{ height: 52, borderRadius: '28px 28px 0 0', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', border: '1.5px solid #9030d0', borderBottom: 'none', boxShadow: 'inset 0 2px 0 rgba(220,170,255,0.95)', zIndex: -1 }}>
                                     <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height: '45%', borderRadius: '18px 18px 0 0', background: 'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }} />
                                     <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height: '35%', background: 'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }} />
                                 </div>
