@@ -100,44 +100,53 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
             style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', height: 'min(96%, 400px)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
             {showPremiumInfo && (
-                <div className="absolute inset-0 z-[10] flex flex-col animate-pop-in overflow-hidden rounded-2xl"
-                    style={{ background: 'linear-gradient(160deg,#1a0a00 0%,#3a1800 40%,#0a0000 100%)' }}>
-                    <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
-                        <div className="flex-1">
-                            <h2 className="font-black text-base tracking-widest leading-none"
-                                style={{ background: 'linear-gradient(180deg,#fff8c0,#f0c000)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                Mission Pass
-                            </h2>
-                            <p className="text-yellow-200/50 text-[9px] font-bold tracking-wider mt-0.5">Unlock exclusive rewards</p>
-                        </div>
-                        <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowPremiumInfo(false)}><i className="ti ti-x"></i></div>
-                    </div>
-                    <div className="flex-1 grid grid-cols-2 gap-2.5 px-4 py-3 content-center">
-                        {[
-                            { icon: '🎁', title: 'Double Rewards',   desc: 'FREE + PREMIUM on every level' },
-                            { icon: '⚡', title: '+10 Levels',        desc: 'Instant level boost on purchase' },
-                            { icon: '💎', title: 'Exclusive Gems',    desc: 'Extra gems on premium reward tiers' },
-                            { icon: '⛏️', title: 'Quest Picks',       desc: 'Bonus picks for Wild & Dice quests' },
-                        ].map(p => (
-                            <div key={p.title} className="flex items-center gap-2.5 rounded-2xl px-3 py-2.5" style={{ background: 'rgba(255,200,0,0.08)' }}>
-                                <span style={{ fontSize: '24px', lineHeight: 1, flexShrink: 0 }}>{p.icon}</span>
-                                <div className="min-w-0">
-                                    <div className="text-yellow-200 font-black text-[10px] tracking-wide leading-none">{p.title}</div>
-                                    <div className="text-yellow-200/50 text-[8px] mt-0.5 leading-snug">{p.desc}</div>
+                <div className="absolute inset-0 z-[10] flex items-center justify-center animate-pop-in"
+                    style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+                    onClick={() => setShowPremiumInfo(false)}>
+                    <div className="flex flex-col rounded-2xl overflow-hidden mx-4"
+                        style={{ background: 'linear-gradient(160deg,#1e0d00 0%,#140800 100%)', border: '1px solid rgba(251,191,36,0.2)', boxShadow: '0 8px 32px rgba(0,0,0,0.9)', width: '100%', maxWidth: 310 }}
+                        onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid rgba(251,191,36,0.1)' }}>
+                            <div>
+                                <div className="font-black text-[13px] leading-none" style={{ background: 'linear-gradient(180deg,#fff8c0,#f0c000)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                                    Mission Pass
                                 </div>
+                                <div className="text-yellow-200/40 text-[8px] mt-0.5">Premium benefits</div>
                             </div>
-                        ))}
-                    </div>
-                    <div className="shrink-0 px-4 pb-3 pt-1 flex flex-col items-center gap-2">
-                        {missionState.isPremium ? (
-                            <button onClick={() => setShowPremiumInfo(false)} className="pill-green">
-                                <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px' }}>Close</div>
+                            <button onClick={() => setShowPremiumInfo(false)}
+                                style={{ background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff', flexShrink: 0 }}>
+                                <i className="ti ti-x" style={{ fontSize: 11 }} />
                             </button>
-                        ) : (
-                            <button onClick={(e) => { e.stopPropagation(); onBuyPass(); setShowPremiumInfo(false); }} className="pill-gold">
-                                <div className="pill-face" style={{ padding: '8px 20px', fontSize: '12px' }}>Unlock Premium</div>
-                            </button>
-                        )}
+                        </div>
+                        <div className="flex flex-col px-3 py-2 gap-1">
+                            {[
+                                { icon: 'ti-gift',    color: '#86efac', title: 'Double Rewards',  desc: 'FREE + PREMIUM on every level' },
+                                { icon: 'ti-bolt',    color: '#fbbf24', title: '+20 Levels',       desc: 'Instant boost on activation' },
+                                { icon: 'ti-diamond', color: '#a78bfa', title: 'Exclusive Gems',   desc: 'Extra gem tiers in the pass' },
+                                { icon: 'ti-hammer',  color: '#67e8f9', title: 'Quest Picks',      desc: 'Bonus picks for Wild & Dice' },
+                            ].map(b => (
+                                <div key={b.title} className="flex items-center gap-2.5 rounded-xl px-2.5 py-1.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                                    <div className="shrink-0 flex items-center justify-center rounded-lg" style={{ width: 26, height: 26, background: `${b.color}1a` }}>
+                                        <i className={`ti ${b.icon}`} style={{ fontSize: 13, color: b.color }} />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="font-black text-[11px] leading-none text-white">{b.title}</div>
+                                        <div className="text-white/35 text-[8px] mt-0.5 leading-snug">{b.desc}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="px-3 pb-3 pt-1.5 flex justify-center">
+                            {missionState.isPremium ? (
+                                <button onClick={() => setShowPremiumInfo(false)} className="pill-green">
+                                    <div className="pill-face" style={{ padding: '5px 22px', fontSize: '11px' }}>Close</div>
+                                </button>
+                            ) : (
+                                <button onClick={(e) => { e.stopPropagation(); onBuyPass(); setShowPremiumInfo(false); }} className="pill-gold">
+                                    <div className="pill-face" style={{ padding: '5px 22px', fontSize: '11px' }}>Unlock Premium</div>
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
