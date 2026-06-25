@@ -5570,7 +5570,7 @@ const App: React.FC = () => {
                       premiumExpiry: now + 365 * 24 * 60 * 60 * 1000,
                   }));
                   setCelebrationMsg('👑 GOD MODE! VIP + Premium Pass');
-              } else if (code === 'CSTESTER') {
+              } else if (code === 'cstester') {
                   // dev111 × 3 + dev222: 30B coins, 6K gems, 30-day VIP, premium pass
                   const now = Date.now();
                   setPlayer(p => ({
@@ -5586,7 +5586,7 @@ const App: React.FC = () => {
                       premiumExpiry: now + 30 * 24 * 60 * 60 * 1000,
                   }));
                   setCelebrationMsg('🧪 Tester Pack! +30B Coins · +6K Gems · 30-day VIP');
-              } else if (code === 'CASINOSLOP') {
+              } else if (code === 'casinoslop') {
                   const now = Date.now();
                   setPlayer(p => ({
                       ...p,
@@ -5596,7 +5596,7 @@ const App: React.FC = () => {
                       vipExpiry: Math.max(p.vipExpiry || 0, now) + 3 * 24 * 3600000,
                   }));
                   setCelebrationMsg('🎰 +10B Coins · +1,000 Gems · 3-day VIP');
-              } else if (code === 'BETA1') {
+              } else if (code === 'beta1') {
                   const now = Date.now();
                   setPlayer(p => ({
                       ...p,

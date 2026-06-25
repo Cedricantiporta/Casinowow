@@ -60,6 +60,37 @@ const REDEEM_CODES: Record<string, { title: string; description: string; icon: s
             { icon: '🎫', label: 'Monthly Pass (Premium) — 1 Year' },
         ],
     },
+    cstester: {
+        title: 'Tester Pack',
+        description: 'A loaded tester bundle: coins, gems and a month of VIP + Premium Pass.',
+        icon: '🧪',
+        rewards: [
+            { icon: '/new_coinicon.png', label: '+30,000,000,000 Coins' },
+            { icon: '/symbols/diamond.png', label: '+6,000 Gems' },
+            { icon: '👑', label: 'VIP — 30 Days' },
+            { icon: '🎫', label: 'Premium Pass — 30 Days' },
+        ],
+    },
+    casinoslop: {
+        title: 'Casino Slop',
+        description: 'Coins, gems and a few days of VIP to get rolling.',
+        icon: '🎰',
+        rewards: [
+            { icon: '/new_coinicon.png', label: '+10,000,000,000 Coins' },
+            { icon: '/symbols/diamond.png', label: '+1,000 Gems' },
+            { icon: '👑', label: 'VIP — 3 Days' },
+        ],
+    },
+    beta1: {
+        title: 'Beta Pack',
+        description: 'A big coin drop, gems and a week of Collect Boost.',
+        icon: '⚡',
+        rewards: [
+            { icon: '/new_coinicon.png', label: '+50,000,000,000 Coins' },
+            { icon: '/symbols/diamond.png', label: '+2,000 Gems' },
+            { icon: '🎁', label: 'Collect Boost — 7 Days' },
+        ],
+    },
     reset: {
         title: 'Reset Progress',
         description: 'Wipes ALL progress — coins, level, gems, missions, everything. This cannot be undone. The app will reload.',
