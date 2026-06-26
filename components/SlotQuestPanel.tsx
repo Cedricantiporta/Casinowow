@@ -42,14 +42,13 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
                     ...PANEL_BG,
                     position: 'absolute', left: 74, top: 8,
                     zIndex: 45, width: 22, borderRadius: 11, overflow: 'hidden',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    padding: '8px 0 8px', gap: 6, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '6px 0', cursor: 'pointer',
                 }}
                 onClick={() => setMinimized(false)}
                 className="animate-pop-in"
             >
-                <img src="/questlobbyicon.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
-                <i className="ti ti-chevron-right text-white/70" style={{ fontSize: 12 }} />
+                <i className="ti ti-chevron-right text-white/70" style={{ fontSize: 14 }} />
             </div>
         );
     }

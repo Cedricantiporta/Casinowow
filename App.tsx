@@ -4583,84 +4583,81 @@ const App: React.FC = () => {
                     return (
                         <div className="absolute left-1 z-40 flex flex-col gap-1 items-center select-none"
                             style={{ background: isHighLimit ? 'linear-gradient(180deg,rgba(201,144,26,0.92),rgba(122,80,0,0.92))' : 'linear-gradient(180deg,rgba(124,63,181,0.92),rgba(74,24,128,0.92))', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
-                            {sidebarPage === 0 ? (<>
-                                {/* Quest — only when missions exist and NOT all completed */}
-                                {slotQuestState.missions.length > 0 && !slotQuestState.missions.every(m => m.current >= m.target) && (
+                            {(() => {
+                                const questInProgress = slotQuestState.missions.length > 0 && !slotQuestState.missions.every(m => m.current >= m.target);
+                                const passBtn = (
                                     <button
-                                        onClick={() => setShowQuestPath(true)}
-                                        className="relative flex flex-col items-center active:scale-95 transition-transform"
+                                        onClick={!isPassLocked ? openBattlePassModal : undefined}
+                                        className={`relative flex flex-col items-center transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                                     >
-                                        <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                        <div style={pillStyle}>Quest</div>
+                                        {totalNotifs > 0 && !isPassLocked && (
+                                            <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                {totalNotifs}
+                                            </div>
+                                        )}
+                                        <img src="/ui/pass.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0', marginTop:'-6px' }}>LV.{missionState.passLevel}</div>
                                     </button>
-                                )}
-                                {/* Pass */}
-                                <button
-                                    onClick={!isPassLocked ? openBattlePassModal : undefined}
-                                    className={`relative flex flex-col items-center transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                >
-                                    {totalNotifs > 0 && !isPassLocked && (
-                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                            {totalNotifs}
-                                        </div>
-                                    )}
-                                    <img src="/ui/pass.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                    <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0', marginTop:'-6px' }}>LV.{missionState.passLevel}</div>
-                                </button>
-                                {/* Mine */}
-                                <button
-                                    onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
-                                    className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                >
-                                    {quest.wildCredits > 0 && !isQuestLocked && (
-                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                            {quest.wildCredits}
-                                        </div>
-                                    )}
-                                    <img src="/ui/coinmine.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                    <div style={pillStyle}>Play</div>
-                                </button>
-                                {/* Dice */}
-                                <button
-                                    onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
-                                    className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                >
-                                    {quest.diceCredits > 0 && !isQuestLocked && (
-                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                            {quest.diceCredits}
-                                        </div>
-                                    )}
-                                    <img src="/ui/dice.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                    <div style={pillStyle}>Play</div>
-                                </button>
-                            </>) : (<>
-                                {/* Missions */}
-                                <button
-                                    onClick={openMissionsModal}
-                                    className="relative flex flex-col items-center active:scale-95 transition-transform"
-                                >
-                                    {missReady > 0 && (
-                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                            {missReady}
-                                        </div>
-                                    )}
-                                    <img src="/ui/missions_new.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                    <div style={pillStyle}>Check</div>
-                                </button>
-                                {/* Album */}
-                                <button
-                                    onClick={() => openModal('COLLECTION')}
-                                    className="relative flex flex-col items-center active:scale-95 transition-transform"
-                                >
-                                    {albumReady > 0 && (
-                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                            {albumReady}
-                                        </div>
-                                    )}
-                                    <img src="/ui/cards_new.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                    <div style={pillStyle}>Check</div>
-                                </button>
-                            </>)}
+                                );
+                                return sidebarPage === 0 ? (<>
+                                    {/* Slot 1: Quest when in progress, else Pass */}
+                                    {questInProgress ? (
+                                        <button onClick={() => setShowQuestPath(true)} className="relative flex flex-col items-center active:scale-95 transition-transform">
+                                            <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                            <div style={pillStyle}>Quest</div>
+                                        </button>
+                                    ) : passBtn}
+                                    {/* Mine */}
+                                    <button
+                                        onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
+                                        className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                    >
+                                        {quest.wildCredits > 0 && !isQuestLocked && (
+                                            <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                {quest.wildCredits}
+                                            </div>
+                                        )}
+                                        <img src="/ui/coinmine.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <div style={pillStyle}>Play</div>
+                                    </button>
+                                    {/* Dice */}
+                                    <button
+                                        onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
+                                        className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                    >
+                                        {quest.diceCredits > 0 && !isQuestLocked && (
+                                            <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                {quest.diceCredits}
+                                            </div>
+                                        )}
+                                        <img src="/ui/dice.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <div style={pillStyle}>Play</div>
+                                    </button>
+                                </>) : (<>
+                                    {/* Pass moves here when Quest is on page 0 */}
+                                    {questInProgress && passBtn}
+                                    {/* Missions */}
+                                    <button onClick={openMissionsModal} className="relative flex flex-col items-center active:scale-95 transition-transform">
+                                        {missReady > 0 && (
+                                            <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                {missReady}
+                                            </div>
+                                        )}
+                                        <img src="/ui/missions_new.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <div style={pillStyle}>Check</div>
+                                    </button>
+                                    {/* Album */}
+                                    <button onClick={() => openModal('COLLECTION')} className="relative flex flex-col items-center active:scale-95 transition-transform">
+                                        {albumReady > 0 && (
+                                            <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                {albumReady}
+                                            </div>
+                                        )}
+                                        <img src="/ui/cards_new.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <div style={pillStyle}>Check</div>
+                                    </button>
+                                </>);
+                            })()}
                             {/* Page toggle pill — compact */}
                             <button
                                 onClick={() => setSidebarPage(p => p === 0 ? 1 : 0)}
