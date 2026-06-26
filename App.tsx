@@ -4584,21 +4584,19 @@ const App: React.FC = () => {
                         <div className="absolute left-1 z-40 flex flex-col gap-1 items-center select-none"
                             style={{ background: isHighLimit ? 'linear-gradient(180deg,rgba(201,144,26,0.92),rgba(122,80,0,0.92))' : 'linear-gradient(180deg,rgba(124,63,181,0.92),rgba(74,24,128,0.92))', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
                             {sidebarPage === 0 ? (<>
-                                {/* Quest — clicking opens the quest path modal */}
-                                {slotQuestState.missions.length > 0 && (
-                                    <button
-                                        onClick={() => setShowQuestPath(true)}
-                                        className="relative flex flex-col items-center active:scale-95 transition-transform"
-                                    >
-                                        {slotQuestState.missions.every(m => m.current >= m.target) && (
-                                            <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                !
-                                            </div>
-                                        )}
-                                        <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                        <div style={pillStyle}>Quest</div>
-                                    </button>
-                                )}
+                                {/* Pass */}
+                                <button
+                                    onClick={!isPassLocked ? openBattlePassModal : undefined}
+                                    className={`relative flex flex-col items-center transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
+                                >
+                                    {totalNotifs > 0 && !isPassLocked && (
+                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                            {totalNotifs}
+                                        </div>
+                                    )}
+                                    <img src="/ui/pass.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                    <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0', marginTop:'-6px' }}>LV.{missionState.passLevel}</div>
+                                </button>
                                 {/* Mine */}
                                 <button
                                     onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
@@ -4626,19 +4624,6 @@ const App: React.FC = () => {
                                     <div style={pillStyle}>Play</div>
                                 </button>
                             </>) : (<>
-                                {/* Pass */}
-                                <button
-                                    onClick={!isPassLocked ? openBattlePassModal : undefined}
-                                    className={`relative flex flex-col items-center transition-transform ${isPassLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                >
-                                    {totalNotifs > 0 && !isPassLocked && (
-                                        <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                            {totalNotifs}
-                                        </div>
-                                    )}
-                                    <img src="/ui/pass.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                    <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0', marginTop:'-6px' }}>LV.{missionState.passLevel}</div>
-                                </button>
                                 {/* Missions */}
                                 <button
                                     onClick={openMissionsModal}
