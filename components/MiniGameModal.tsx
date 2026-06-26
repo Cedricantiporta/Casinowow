@@ -303,9 +303,16 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             if (active && container.offsetHeight > 0) {
                 const containerRect = container.getBoundingClientRect();
                 const activeRect = active.getBoundingClientRect();
-                const relativeTop = activeRect.top - containerRect.top + container.scrollTop;
-                const target = relativeTop - container.offsetHeight / 2 + active.offsetHeight / 2;
-                container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+                // Only scroll if the avatar is near/past the visible edge — keeps the
+                // board steady instead of recentering (and jittering) on every step.
+                const margin = active.offsetHeight * 1.1;
+                const aboveTop = activeRect.top < containerRect.top + margin;
+                const belowBottom = activeRect.bottom > containerRect.bottom - margin;
+                if (aboveTop || belowBottom) {
+                    const relativeTop = activeRect.top - containerRect.top + container.scrollTop;
+                    const target = relativeTop - container.offsetHeight / 2 + active.offsetHeight / 2;
+                    container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' });
+                }
             }
         }
     }, [visualPosition, activeGame, dicePosition]);

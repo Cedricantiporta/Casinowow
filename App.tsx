@@ -652,6 +652,7 @@ const App: React.FC = () => {
   });
   const [showQuestPath, setShowQuestPath] = useState(false);
   const [showQuestSidebar, setShowQuestSidebar] = useState(false);
+  const [grandPrizePopup, setGrandPrizePopup] = useState<number | null>(null);
 
   // Hold and Win state (Egypt / Pharaoh's Tomb)
   const [holdWinActive, setHoldWinActive] = useState(false);
@@ -1255,6 +1256,11 @@ const App: React.FC = () => {
           try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
           return next;
       });
+      // Completing the final stage → show the grand prize claim popup
+      if (isLastStage) {
+          setShowQuestPath(false);
+          setGrandPrizePopup(grandPrize);
+      }
   };
 
   useEffect(() => {
@@ -1938,7 +1944,7 @@ const App: React.FC = () => {
           const lockedGrid = holdWinRef.current.lockedGrid;
           // Base 50% chance any coins appear; decreases 15% for each non-productive respin (last slot ~1%)
           const respinsUsed = 3 - holdWinRef.current.respins; // 0 on first respin, 1 on second, etc.
-          const baseCoinChance = respinsUsed >= 2 ? 0.005 : Math.max(0, 0.50 - respinsUsed * 0.15);
+          let baseCoinChance = respinsUsed >= 2 ? 0.005 : Math.max(0, 0.50 - respinsUsed * 0.15);
 
           // Collect empty cell positions
           const emptyCells: {c: number, r: number}[] = [];
@@ -1947,6 +1953,10 @@ const App: React.FC = () => {
                   if (!lockedGrid[c]?.[r]) emptyCells.push({ c, r });
               }
           }
+
+          // Reduce the chance of completing the full grid (Grand) by ~50%:
+          // when the board is nearly full, halve the coin-fill chance.
+          if (emptyCells.length <= 2) baseCoinChance *= 0.5;
 
           // Determine how many new coins to place
           const coinCellKeys = new Set<number>();
@@ -3396,8 +3406,8 @@ const App: React.FC = () => {
 
               // CHECK FEATURE UNLOCKS
               const justUnlocked = (level: number) => {
-                  if (level === 5 && !shownUnlocks.has(5)) return true;
                   if (level === 10 && !shownUnlocks.has(10)) return true;
+                  if (level === 15 && !shownUnlocks.has(15)) return true;
                   if (level === 20 && !shownUnlocks.has(20)) return true;
                   if (level === 30 && !shownUnlocks.has(30)) return true;
                   if (level === 40 && !shownUnlocks.has(40)) return true;
@@ -3438,28 +3448,28 @@ const App: React.FC = () => {
                        setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 3000);
                   }
                   else if (justUnlocked(newLevel)) {
-                      if (newLevel === 5) {
-                          setFeatureUnlockData({ 
-                              name: 'Piggy Bank', 
-                              icon: '🐷', 
-                              description: 'Save coins with every spin!', 
-                              action: () => { 
+                      if (newLevel === 10) {
+                          setFeatureUnlockData({
+                              name: 'Piggy Bank',
+                              icon: '🐷',
+                              description: 'Save coins with every spin!',
+                              action: () => {
                                   setActiveModal('NONE');
                                   setTimeout(() => openModal('PIGGY'), 50);
-                              } 
-                          });
-                          setShownUnlocks(prev => new Set(prev).add(5));
-                      } else if (newLevel === 10) {
-                          setFeatureUnlockData({ 
-                              name: 'Missions', 
-                              icon: '📜', 
-                              description: 'Complete daily challenges!', 
-                              action: () => { 
-                                  setActiveModal('NONE');
-                                  setTimeout(() => openMissionsModal(), 50);
-                              } 
+                              }
                           });
                           setShownUnlocks(prev => new Set(prev).add(10));
+                      } else if (newLevel === 15) {
+                          setFeatureUnlockData({
+                              name: 'Missions',
+                              icon: '📜',
+                              description: 'Complete daily challenges!',
+                              action: () => {
+                                  setActiveModal('NONE');
+                                  setTimeout(() => openMissionsModal(), 50);
+                              }
+                          });
+                          setShownUnlocks(prev => new Set(prev).add(15));
                       } else if (newLevel === 20) {
                           setFeatureUnlockData({ 
                               name: 'Quest', 
@@ -5422,6 +5432,24 @@ const App: React.FC = () => {
           allMissionsDone={slotQuestState.missions.length > 0 && slotQuestState.missions.every(m => m.current >= m.target)}
           onClaim={handleSlotQuestClaim}
       />
+
+      {/* Grand Prize claim popup — shown after completing the final quest stage */}
+      {grandPrizePopup !== null && (
+          <div className="absolute inset-0 z-[210] flex items-center justify-center bg-black/30 backdrop-blur-md p-4 animate-pop-in select-none"
+              onClick={() => setGrandPrizePopup(null)}>
+              <div className="rounded-3xl overflow-hidden flex flex-col items-center px-7 py-6 mx-4"
+                  onClick={e => e.stopPropagation()}
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxWidth: 320 }}>
+                  <span className="font-tanker text-amber-300" style={{ fontSize: 22, lineHeight: 1, textShadow: '0 0 14px rgba(251,191,36,0.7)' }}>Quest Complete!</span>
+                  <span className="font-black text-white/70 mt-1" style={{ fontSize: 11 }}>Grand Prize claimed</span>
+                  <img src="/new_coinicon.png" alt="" style={{ width: 64, height: 64, objectFit: 'contain', margin: '12px 0', filter: 'drop-shadow(0 2px 10px rgba(251,191,36,0.8))' }} />
+                  <span className="font-tanker text-white" style={{ fontSize: 26, lineHeight: 1, textShadow: '0 0 12px rgba(251,191,36,0.6)' }}>+{formatK(grandPrizePopup)}</span>
+                  <button onClick={() => setGrandPrizePopup(null)} className="pill-green w-full mt-5">
+                      <div className="pill-face" style={{ padding: '8px 12px', fontSize: '12px' }}>Claim</div>
+                  </button>
+              </div>
+          </div>
+      )}
 
       {/* Dragon Trigger Popup */}
       {showDragonTriggerPopup && (
