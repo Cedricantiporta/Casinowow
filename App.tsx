@@ -15,6 +15,7 @@ import { BankruptcyModal } from './components/BankruptcyModal';
 import { MissionPassModal } from './components/MissionPassModal';
 import { CardCollectionModal } from './components/CardCollectionModal';
 import { SlotQuestPanel } from './components/SlotQuestPanel';
+import { QuestPathModal } from './components/QuestPathModal';
 import { SimpleCelebrationModal } from './components/SimpleCelebrationModal';
 import { TimeBonusModal } from './components/TimeBonusModal';
 import { LoginBonusModal } from './components/LoginBonusModal';
@@ -564,7 +565,17 @@ const App: React.FC = () => {
       return defaults;
   });
   // Slot quest state — quest path + active missions
-  const QUEST_PATH_IDS = GAMES_CONFIG.slice(0, 8).map(g => g.id);
+  // Handpicked order: variety of features (Hold&Win, respins, pick bonus, roulette, walking wilds, ice pick, cascade, expanding wilds)
+  const QUEST_PATH_IDS = [
+      'piggy-riches',   // Hold & Win + free spins
+      'pharaoh-tomb',   // Hold & Win respins (Egypt)
+      'dragon-fortune', // Pick and win bonus
+      'neon-vegas',     // Scatter roulette
+      'pirate-bounty',  // Walking wilds (7 reels)
+      'arctic-freeze',  // Ice pick bonus
+      'cosmic-cash',    // Supernova cascade
+      'sugar-rush',     // Expanding wild reels
+  ];
   const makeSlotMissions = (slotId: string, bet: number): SlotQuestMission[] => {
       const base = Math.max(bet, 1000);
       return [
@@ -580,6 +591,8 @@ const App: React.FC = () => {
       } catch {}
       return { pathSlotIds: QUEST_PATH_IDS, currentPathIndex: 0, missions: [] };
   });
+  const [showQuestPath, setShowQuestPath] = useState(false);
+  const [hasAutoStarted, setHasAutoStarted] = useState(() => !!localStorage.getItem('cw_has_auto_started'));
 
   // Hold and Win state (Egypt / Pharaoh's Tomb)
   const [holdWinActive, setHoldWinActive] = useState(false);
@@ -1171,7 +1184,24 @@ const App: React.FC = () => {
           try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
           return next;
       });
+      // After claiming, show the quest path so the player sees the next stage unlocked
+      setTimeout(() => setShowQuestPath(true), 400);
   };
+
+  // First-time player: auto-open Piggy Riches after startup modals settle
+  useEffect(() => {
+      if (hasAutoStarted) return;
+      const t = setTimeout(() => {
+          const piggy = GAMES_CONFIG.find(g => g.id === 'piggy-riches');
+          if (piggy) {
+              handleGameSelect(piggy, false);
+              localStorage.setItem('cw_has_auto_started', '1');
+              setHasAutoStarted(true);
+          }
+      }, 2000);
+      return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const maxAllowed = MAX_BET_BY_LEVEL(player.level);
@@ -4459,9 +4489,8 @@ const App: React.FC = () => {
         {(currentView === 'LOBBY' || currentView === 'HIGH_LIMIT') ? (
             <Lobby
                 onSelectGame={handleGameSelect}
-                onOpenWildQuest={handleWildQuestClaim}
-                onOpenDiceQuest={handleDiceQuestClaim}
                 onOpenMiniGames={() => setShowMiniGamesHub(true)}
+                onOpenQuestPath={() => setShowQuestPath(true)}
                 onOpenMissions={openMissionsModal}
                 onOpenBattlePass={openBattlePassModal}
                 onClaimBonus={handleOpenTimeBonus}
@@ -4485,7 +4514,6 @@ const App: React.FC = () => {
                 packCredits={player.packCredits}
                 premiumPackCredits={player.premiumPackCredits ?? 0}
                 isJackpotReady={(Date.now() - (player.jackpotRouletteLastTime ?? 0)) >= 3 * 60 * 60 * 1000}
-                questPathSlotIds={slotQuestState.pathSlotIds}
                 questPathCurrentIndex={slotQuestState.currentPathIndex}
             />
         ) : (
@@ -5298,7 +5326,7 @@ const App: React.FC = () => {
           collectMultiplier={treasuryMultiplier}
           multProgress={treasuryMultProgress}
           jackpotLastTime={player.jackpotRouletteLastTime ?? 0}
-          jackpotBaseAmount={MAX_BET_BY_LEVEL(player.level) * 7}
+          jackpotBaseAmount={MAX_BET_BY_LEVEL(player.level) * 7 * treasuryMultiplier}
           onJackpotClaim={(amount) => {
               setPlayer(p => ({ ...p, balance: p.balance + amount, jackpotRouletteLastTime: Date.now() }));
               triggerCoinAnim(amount);
@@ -5323,6 +5351,19 @@ const App: React.FC = () => {
       />
 
       {gameLoadingConfig && <SlotLoadingScreen game={gameLoadingConfig} />}
+
+      {/* Quest Path page */}
+      <QuestPathModal
+          isOpen={showQuestPath}
+          onClose={() => setShowQuestPath(false)}
+          pathSlotIds={slotQuestState.pathSlotIds}
+          currentPathIndex={slotQuestState.currentPathIndex}
+          onPlaySlot={(slotId) => {
+              const game = GAMES_CONFIG.find(g => g.id === slotId);
+              if (game) handleGameSelect(game, false);
+          }}
+          rewardCoins={currentBetRef.current * 20}
+      />
 
       {/* Dragon Trigger Popup */}
       {showDragonTriggerPopup && (
