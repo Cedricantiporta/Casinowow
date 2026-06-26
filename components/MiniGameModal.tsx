@@ -117,6 +117,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const isLongPressRef = useRef(false);
     const mouseIsDownRef = useRef(false);
 
+    // Stage prizes locked at stage-start; not recalculated when maxBet changes mid-stage
+    const [lockedWildPrize, setLockedWildPrize] = useState(() => Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage)));
+    const [lockedDicePrize, setLockedDicePrize] = useState(() => Math.floor((maxBet || 10000) * (1.8 + 0.06 * diceStage)));
+    useEffect(() => { setLockedWildPrize(Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage))); }, [wildStage]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => { setLockedDicePrize(Math.floor((maxBet || 10000) * (1.8 + 0.06 * diceStage))); }, [diceStage]); // eslint-disable-line react-hooks/exhaustive-deps
+
     const boardLength = Math.round((10 + ((diceStage - 1) * 5)) * 1.4);
     const boardContainerRef = useRef<HTMLDivElement>(null);
 
@@ -176,8 +182,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const isBlock = (c: WildGridCell) => c.content === 'BLOCK_2X' || c.content === 'BLOCK_3X' || c.content === 'BLOCK_4X';
 
-    // Stage prize (coins) reduced 40%; multiplied when the gem hides inside a multiplier tile
-    const stagePrizeCoins = (mult: number = 1) => Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage)) * mult;
+    // Stage prize uses locked value (set at stage start, not recalculated when maxBet changes)
+    const stagePrizeCoins = (mult: number = 1) => lockedWildPrize * mult;
     const stagePrizeGems = () => Math.floor(3 + 0.1 * wildStage);
 
     // Place gem on a random unrevealed blank/reward tile once enough rocks have been opened
@@ -644,7 +650,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 {/* RIGHT — stage prize + X */}
                 {activeGame !== 'NONE' && (
                     <span className="font-black text-white font-mono text-sm ml-auto mr-2 z-10 leading-none">
-                        {formatCommaNumber(Math.floor((maxBet || 10000) * (1.8 + 0.06 * (activeGame === 'WILD' ? wildStage : diceStage))))}
+                        {formatCommaNumber(activeGame === 'WILD' ? lockedWildPrize : lockedDicePrize)}
                     </span>
                 )}
                 <div className="round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x"></i></div>
@@ -694,7 +700,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isBomb = cell.content === 'BOMB';
                                     const maxDim = Math.max(gridCols, gridRows);
                                     const tileSize = maxDim >= 6 ? 78 : maxDim >= 5 ? 88 : maxDim >= 4 ? 100 : 114;
-                                    const gemPrize = Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage)) * (cell.mult ?? 1);
+                                    const gemPrize = lockedWildPrize * (cell.mult ?? 1);
 
                                     const iconSrc = isExploding ? null
                                         : cell.content === 'BLOCK_4X' ? '/coinmine_4xtile.png'
