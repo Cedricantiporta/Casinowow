@@ -302,45 +302,49 @@ export const JackpotRouletteModal: React.FC<Props> = ({ isOpen, baseAmount, coll
                 </div>
 
                 {/* Right — Title, amount, action */}
-                <div className="flex flex-col gap-3 pr-4 py-4" style={{ minWidth: 130 }}>
-                    {/* Title + close */}
-                    <div className="flex items-center justify-between gap-2">
-                        <span className="text-white font-tanker text-base leading-none">Jackpot</span>
-                        {phase !== 'spinning' && <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>}
+                <div className="flex flex-col gap-2.5 pr-4 py-4" style={{ minWidth: 138 }}>
+                    {/* Title only — no close button */}
+                    <span className="text-white font-tanker text-base leading-none">Jackpot</span>
+
+                    {/* Base amount number — prominent */}
+                    <div className="font-mono font-black text-white" style={{ fontSize: '1.05rem', lineHeight: 1 }}>
+                        {formatCommaNumber(baseAmount)}
                     </div>
 
-                    {/* Base amount */}
-                    <div>
-                        <div className="flex items-center gap-1.5">
-                            <span className="text-yellow-300/70 text-[10px] font-black">Base amount</span>
-                            {collectMultiplier > 1 && (
-                                <span className="flex items-center gap-0.5 font-black text-amber-300" style={{ fontSize: 10 }}>
-                                    <img src="/ui/exp_multiplier.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />
-                                    Collect {collectMultiplier}×
-                                </span>
-                            )}
-                        </div>
-                        <div className="font-mono font-black text-white" style={{ fontSize: '0.95rem' }}>{formatCommaNumber(baseAmount)}</div>
+                    {/* Base amount label + collect multiplier row — always shown */}
+                    <div className="flex items-center gap-1 flex-wrap" style={{ marginTop: -4 }}>
+                        <span className="text-yellow-300/70 font-black" style={{ fontSize: 9 }}>Base amount</span>
+                        <span className="flex items-center gap-0.5 font-black text-amber-300" style={{ fontSize: 9 }}>
+                            <img src="/ui/exp_multiplier.png" alt="" style={{ width: 11, height: 11, objectFit: 'contain' }} />
+                            Collect {collectMultiplier}×
+                        </span>
+                    </div>
+
+                    {/* Multiplied total — always shown */}
+                    <div className="font-mono font-black text-amber-300" style={{ fontSize: '0.85rem', lineHeight: 1 }}>
+                        = {formatCommaNumber(baseAmount * collectMultiplier)}
                     </div>
 
                     {/* Win result (done phase) */}
                     {phase === 'done' && wonMult !== null && (
-                        <div>
-                            <div className="font-tanker text-yellow-300" style={{ fontSize: '1.3rem', lineHeight: 1 }}>{wonMult}× Win!</div>
-                            <div className="font-mono font-black text-white text-xs">+{formatCommaNumber(baseAmount * wonMult)}</div>
+                        <div style={{ marginTop: 2 }}>
+                            <div className="font-tanker text-yellow-300" style={{ fontSize: '1.2rem', lineHeight: 1 }}>{wonMult}× Win!</div>
+                            <div className="font-mono font-black text-white" style={{ fontSize: '0.8rem' }}>+{formatCommaNumber(baseAmount * wonMult)}</div>
                         </div>
                     )}
 
-                    {/* Action button */}
-                    {phase === 'done' && wonMult !== null ? (
-                        <button onClick={() => onClaim(baseAmount * wonMult)} className="pill-green w-full">
-                            <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>Claim</div>
-                        </button>
-                    ) : (
-                        <button onClick={doSpin} disabled={phase === 'spinning'} className={`pill-green w-full${phase === 'spinning' ? ' opacity-60' : ''}`}>
-                            <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>{phase === 'spinning' ? 'Spinning…' : 'Spin'}</div>
-                        </button>
-                    )}
+                    {/* Action button — Claim only after spin, Spin before */}
+                    <div style={{ marginTop: 4 }}>
+                        {phase === 'done' && wonMult !== null ? (
+                            <button onClick={() => onClaim(baseAmount * wonMult)} className="pill-green w-full">
+                                <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>Claim</div>
+                            </button>
+                        ) : (
+                            <button onClick={doSpin} disabled={phase === 'spinning'} className={`pill-green w-full${phase === 'spinning' ? ' opacity-60' : ''}`}>
+                                <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>{phase === 'spinning' ? 'Spinning…' : 'Spin'}</div>
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

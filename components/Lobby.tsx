@@ -261,46 +261,20 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 transform: 'translateY(-14px)',
                             }}
                         >
-                            {/* ── Promo card 1: Grand Jackpot — vertical, spans both rows, same row as slots ── */}
-                            <button
-                                onClick={() => onSelectGame(GAMES_CONFIG[0], false)}
-                                className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
-                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(255,220,120,0.85), inset 0 -3px 0 rgba(90,50,0,0.8), inset 3px 0 0 rgba(255,200,80,0.3), inset -3px 0 0 rgba(90,50,0,0.4), 0 6px 18px rgba(0,0,0,0.6)' }}>
-                                <div className="absolute inset-0 bg-gradient-to-b from-amber-700 via-amber-900 to-[#1a0d00]" style={{ borderRadius: 14 }} />
-                                <div className="absolute inset-0 flex flex-col items-center justify-between p-2.5 z-10">
-                                    <div className="text-center">
-                                        <div className="font-tanker text-amber-300" style={{ fontSize: 13, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>Grand Jackpot</div>
-                                        <div className="font-black text-amber-100/70" style={{ fontSize: 10 }}>Collect to win</div>
-                                    </div>
-                                    <img src="/new_coinicon.png" alt="" style={{ width: 42, height: 42, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(251,191,36,0.6))' }} />
-                                    <div className="font-black text-white" style={{ fontSize: 14, lineHeight: 1, textShadow: '0 0 10px rgba(251,191,36,0.7)' }}>
-                                        {formatK(jackpotTotals[0] ? Math.floor(jackpotTotals[0] * 1.2) : 0)}
-                                    </div>
-                                    <div className="pill-green w-full">
-                                        <div className="pill-face" style={{ padding: '5px 0', fontSize: '10px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>See More</div>
-                                    </div>
-                                </div>
-                            </button>
-
-                            {/* ── Promo card 2: Mission Pass — vertical, spans both rows ── */}
+                            {/* ── Promo card 1: Mission Pass banner ── */}
                             <button
                                 onClick={onOpenBattlePass}
                                 className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
-                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)' }}>
-                                <div className="absolute inset-0 bg-gradient-to-b from-fuchsia-700 via-purple-900 to-[#100025]" style={{ borderRadius: 14 }} />
-                                <div className="absolute inset-0 flex flex-col items-center justify-between p-2.5 z-10">
-                                    <div className="text-center">
-                                        <div className="font-tanker text-fuchsia-200" style={{ fontSize: 13, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>Mission Pass</div>
-                                        <div className="font-black text-purple-200/70" style={{ fontSize: 10 }}>Get huge rewards</div>
-                                    </div>
-                                    <img src="/ui/pass.png" alt="" style={{ width: 46, height: 46, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(168,85,247,0.6))' }} />
-                                    <div className="font-black text-white" style={{ fontSize: 12, lineHeight: 1 }}>
-                                        {missionState.passLevel > 1 ? `Level ${missionState.passLevel}` : 'Start now!'}
-                                    </div>
-                                    <div className="pill-green w-full">
-                                        <div className="pill-face" style={{ padding: '5px 0', fontSize: '10px', background: 'linear-gradient(180deg,#a855f7,#7c3aed,#5b21b6)' }}>See More</div>
-                                    </div>
-                                </div>
+                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
+                                <img src="/lobbybanner_missionpass.png" alt="Mission Pass" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
+                            </button>
+
+                            {/* ── Promo card 2: VIP Lounge banner ── */}
+                            <button
+                                onClick={onOpenVipLounge}
+                                className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
+                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
+                                <img src="/lobbybanner_viplounge.png" alt="VIP Lounge" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
                             </button>
 
                             {GAMES_CONFIG.map((game, idx) => {

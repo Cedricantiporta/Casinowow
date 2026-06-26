@@ -9,7 +9,6 @@ interface SlotQuestPanelProps {
     rewardCoins: number;
     allDone: boolean;
     onOpenQuestPath: () => void;
-    onClose: () => void;
 }
 
 const TYPE_ICON: Record<string, string> = {
@@ -32,23 +31,18 @@ const PANEL_BG = {
 };
 
 export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
-    missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onOpenQuestPath, onClose,
+    missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onOpenQuestPath,
 }) => {
     return (
         <div style={{
             ...PANEL_BG,
-            position: 'absolute', left: 74, top: '38%', transform: 'translateY(-38%)',
+            position: 'absolute', left: 74, top: 8,
             zIndex: 45, width: 150, borderRadius: 16, overflow: 'hidden',
         }} className="animate-pop-in">
             {/* Header */}
-            <div className="flex items-center justify-between" style={{ padding: '7px 9px 6px' }}>
-                <div className="flex items-center gap-1.5">
-                    <img src="/questlobbyicon.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
-                    <span className="font-black text-white" style={{ fontSize: 11 }}>Quest</span>
-                </div>
-                <button onClick={onClose} className="text-white/70" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>
-                    <i className="ti ti-chevron-left" style={{ fontSize: 14 }} />
-                </button>
+            <div className="flex items-center gap-1.5" style={{ padding: '7px 9px 6px' }}>
+                <img src="/questlobbyicon.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
+                <span className="font-black text-white" style={{ fontSize: 11 }}>Quest</span>
             </div>
 
             {/* Play the active slot hint */}

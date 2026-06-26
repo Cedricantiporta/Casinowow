@@ -574,7 +574,6 @@ const App: React.FC = () => {
       'pirate-bounty',  // Walking wilds (7 reels)
       'arctic-freeze',  // Ice pick bonus
       'cosmic-cash',    // Supernova cascade
-      'sugar-rush',     // Expanding wild reels
   ];
   const makeSlotMissions = (slotId: string, bet: number, stageIndex: number = 0, playerLevel: number = 1): SlotQuestMission[] => {
       const base = Math.max(bet, 1000);
@@ -643,7 +642,11 @@ const App: React.FC = () => {
   const [slotQuestState, setSlotQuestState] = useState<SlotQuestState>(() => {
       try {
           const saved = localStorage.getItem('cw_slot_quest');
-          if (saved) return JSON.parse(saved);
+          if (saved) {
+              const parsed = JSON.parse(saved);
+              // Always use current QUEST_PATH_IDS to keep stage count in sync
+              return { ...parsed, pathSlotIds: QUEST_PATH_IDS };
+          }
       } catch {}
       return { pathSlotIds: QUEST_PATH_IDS, currentPathIndex: 0, missions: [] };
   });
@@ -1237,18 +1240,21 @@ const App: React.FC = () => {
   };
 
   const handleSlotQuestClaim = () => {
-      // Guard: only claim when the active stage actually has completed missions.
-      // (An empty missions array would otherwise pass .every() and auto-advance.)
       if (!slotQuestState.missions.length || !slotQuestState.missions.every(m => m.current >= m.target)) return;
-      const rewardCoins = currentBetRef.current * 20;
-      setPlayer(p => ({ ...p, balance: p.balance + rewardCoins }));
+      const stageIdx = slotQuestState.currentPathIndex;
+      const maxBetNow = MAX_BET_BY_LEVEL(player.level);
+      // Stage reward: 10×, 20×, ... 70× of max bet per stage
+      const stageReward = maxBetNow * (stageIdx + 1) * 10;
+      // Grand prize on completing all 7 stages: +100× max bet
+      const isLastStage = stageIdx + 1 >= QUEST_PATH_IDS.length;
+      const grandPrize = isLastStage ? maxBetNow * 100 : 0;
+      setPlayer(p => ({ ...p, balance: p.balance + stageReward + grandPrize }));
       setSlotQuestState(prev => {
           const nextIndex = prev.currentPathIndex + 1;
           const next = { ...prev, currentPathIndex: nextIndex, missions: [] };
           try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
           return next;
       });
-      // Quest path modal is already open when claim is triggered from within it
   };
 
   useEffect(() => {
@@ -4568,10 +4574,10 @@ const App: React.FC = () => {
                         <div className="absolute left-1 z-40 flex flex-col gap-1 items-center select-none"
                             style={{ background: isHighLimit ? 'linear-gradient(180deg,rgba(201,144,26,0.92),rgba(122,80,0,0.92))' : 'linear-gradient(180deg,rgba(124,63,181,0.92),rgba(74,24,128,0.92))', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
                             {sidebarPage === 0 ? (<>
-                                {/* Quest — opens the slot quest panel anchored to the sidebar's right edge */}
+                                {/* Quest — clicking opens the quest path modal */}
                                 {slotQuestState.missions.length > 0 && (
                                     <button
-                                        onClick={() => setShowQuestSidebar(v => !v)}
+                                        onClick={() => setShowQuestPath(true)}
                                         className="relative flex flex-col items-center active:scale-95 transition-transform"
                                     >
                                         {slotQuestState.missions.every(m => m.current >= m.target) && (
@@ -4609,6 +4615,7 @@ const App: React.FC = () => {
                                     <img src="/ui/dice.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                     <div style={pillStyle}>Play</div>
                                 </button>
+                            </>) : (<>
                                 {/* Pass */}
                                 <button
                                     onClick={!isPassLocked ? openBattlePassModal : undefined}
@@ -4622,7 +4629,6 @@ const App: React.FC = () => {
                                     <img src="/ui/pass.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                     <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0', marginTop:'-6px' }}>LV.{missionState.passLevel}</div>
                                 </button>
-                            </>) : (<>
                                 {/* Missions */}
                                 <button
                                     onClick={openMissionsModal}
@@ -5092,16 +5098,15 @@ const App: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Slot Quest panel — pops out from the right edge of the left sidebar */}
-                    {selectedGame && slotQuestState.missions.length > 0 && showQuestSidebar && (
+                    {/* Slot Quest panel — always visible when in slot with active missions */}
+                    {selectedGame && slotQuestState.missions.length > 0 && (
                         <SlotQuestPanel
                             missions={slotQuestState.missions}
                             activeSlotName={GAMES_CONFIG.find(g => g.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex])?.name || ''}
                             isOnActiveSlot={selectedGame.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex]}
-                            rewardCoins={currentBetRef.current * 20}
+                            rewardCoins={MAX_BET_BY_LEVEL(player.level) * (slotQuestState.currentPathIndex + 1) * 10}
                             allDone={slotQuestState.missions.every(m => m.current >= m.target)}
                             onOpenQuestPath={() => setShowQuestPath(true)}
-                            onClose={() => setShowQuestSidebar(false)}
                         />
                     )}
                 </div>
@@ -5413,7 +5418,7 @@ const App: React.FC = () => {
               const game = GAMES_CONFIG.find(g => g.id === slotId);
               if (game) handleGameSelect(game, false, true);
           }}
-          rewardCoins={currentBetRef.current * 20}
+          maxBet={MAX_BET_BY_LEVEL(player.level)}
           allMissionsDone={slotQuestState.missions.length > 0 && slotQuestState.missions.every(m => m.current >= m.target)}
           onClaim={handleSlotQuestClaim}
       />

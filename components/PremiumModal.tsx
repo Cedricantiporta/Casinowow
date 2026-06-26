@@ -132,17 +132,21 @@ const vipDiscountedPrice = (price: string) => `₱ ${Math.floor(parsePesosNum(pr
 // First-purchase 90% off (VIP + Mission Pass).
 const firstBuyPrice = (price: string) => `₱ ${Math.max(1, Math.round(parsePesosNum(price) * 0.1)).toLocaleString()}`;
 
-// Card backgrounds — purple + purple-gold, matching the daily-mission cards.
+// Card backgrounds — purple + gold/amber for VIP & Pass cards.
 const PURPLE_BG = 'linear-gradient(180deg,rgba(197,16,224,0.45) 0%,rgba(160,60,255,0.30) 22%,rgba(18,4,56,0.96) 100%)';
 const PURPLE_BG_SHADOW = 'inset 0 1px 0 rgba(200,120,255,0.5), 0 4px 16px rgba(0,0,0,0.6)';
-const PURPLE_GOLD_BG = 'linear-gradient(180deg,rgba(168,85,247,0.6) 0%,rgba(201,144,26,0.62) 46%,rgba(40,12,70,0.96) 100%)';
-const PURPLE_GOLD_SHADOW = 'inset 0 1px 0 rgba(255,225,150,0.5), 0 4px 16px rgba(0,0,0,0.6)';
+const PURPLE_GOLD_BG = 'linear-gradient(180deg,rgba(251,191,36,0.75) 0%,rgba(180,100,10,0.80) 42%,rgba(80,35,5,0.97) 100%)';
+const PURPLE_GOLD_SHADOW = 'inset 0 1px 0 rgba(255,220,100,0.7), 0 4px 16px rgba(0,0,0,0.6)';
 
 export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isVip, isPremium, onBuyVip, onBuyPremium, onBuyBundle, maxBet = 10000 }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const bundles = getBundles(maxBet);
     const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
     const visibleBundles = bundles.filter(b => !purchasedIds.has(b.id));
+
+    // Only hide VIP/Pass cards when purchased through this modal — not when received for free
+    const handleBuyVip = () => { setPurchasedIds(prev => new Set([...prev, 'vip'])); onBuyVip(); };
+    const handleBuyPremium = () => { setPurchasedIds(prev => new Set([...prev, 'pass'])); onBuyPremium(); };
 
     useEffect(() => {
         const el = scrollRef.current;
@@ -175,7 +179,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                 <div className="flex gap-3 h-full items-stretch" style={{ minWidth: 'max-content' }}>
 
                     {/* VIP Lounge Card */}
-                    {!isVip && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0 relative"
+                    {!purchasedIds.has('vip') && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0 relative"
                         style={{ width: CARD_W, background: PURPLE_GOLD_BG, boxShadow: PURPLE_GOLD_SHADOW }}>
                         <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full text-[9px] font-black leading-none uppercase tracking-wide"
                             style={{ background: '#dc2626', color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>90% Off</div>
@@ -195,7 +199,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             ))}
                         </div>
                         <div className="shrink-0 px-3 pb-3 pt-1">
-                            <button onClick={onBuyVip} className="pill-green w-full">
+                            <button onClick={handleBuyVip} className="pill-green w-full">
                                 <div className="pill-face" style={{ padding: '8px 12px', fontSize: '10px', gap: '6px' }}>
                                     <span style={{ opacity: 0.6, textDecoration: 'line-through' }}>₱ 299</span>
                                     <span>{firstBuyPrice('₱ 299')}</span>
@@ -205,7 +209,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     </div>}
 
                     {/* Mission Pass Card */}
-                    {!isPremium && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0 relative"
+                    {!purchasedIds.has('pass') && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0 relative"
                         style={{ width: CARD_W, background: PURPLE_GOLD_BG, boxShadow: PURPLE_GOLD_SHADOW }}>
                         <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full text-[9px] font-black leading-none uppercase tracking-wide"
                             style={{ background: '#dc2626', color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>90% Off</div>
@@ -225,7 +229,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                             ))}
                         </div>
                         <div className="shrink-0 px-3 pb-3 pt-1">
-                            <button onClick={onBuyPremium} className="pill-green w-full">
+                            <button onClick={handleBuyPremium} className="pill-green w-full">
                                 <div className="pill-face" style={{ padding: '8px 12px', fontSize: '10px', gap: '6px' }}>
                                     <span style={{ opacity: 0.6, textDecoration: 'line-through' }}>₱ 199</span>
                                     <span>{firstBuyPrice('₱ 199')}</span>

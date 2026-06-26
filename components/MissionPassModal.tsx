@@ -100,23 +100,20 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
             style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', height: 'min(96%, 400px)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
 
             {showPremiumInfo && (
-                <div className="absolute inset-0 z-[10] flex items-center justify-center animate-pop-in"
-                    style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+                <div className="absolute inset-0 z-[30] flex items-center justify-center animate-pop-in"
                     onClick={() => setShowPremiumInfo(false)}>
                     <div className="flex flex-col rounded-2xl overflow-hidden mx-4"
-                        style={{ background: 'linear-gradient(160deg,#1e0d00 0%,#140800 100%)', border: '1px solid rgba(251,191,36,0.2)', boxShadow: '0 8px 32px rgba(0,0,0,0.9)', width: '100%', maxWidth: 310 }}
+                        style={{
+                            background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)',
+                            boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
+                            width: '100%', maxWidth: 310,
+                        }}
                         onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: '1px solid rgba(251,191,36,0.1)' }}>
-                            <div>
-                                <div className="font-black text-[13px] leading-none" style={{ background: 'linear-gradient(180deg,#fff8c0,#f0c000)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                    Mission Pass
-                                </div>
-                                <div className="text-yellow-200/40 text-[8px] mt-0.5">Premium benefits</div>
+                        <div className="flex items-center justify-between px-4 py-2.5">
+                            <span className="font-black text-white text-sm">Mission Pass</span>
+                            <div className="round-btn cursor-pointer" onClick={() => setShowPremiumInfo(false)}>
+                                <i className="ti ti-x" />
                             </div>
-                            <button onClick={() => setShowPremiumInfo(false)}
-                                style={{ background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%', width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff', flexShrink: 0 }}>
-                                <i className="ti ti-x" style={{ fontSize: 11 }} />
-                            </button>
                         </div>
                         <div className="flex flex-col px-3 py-2 gap-1">
                             {[
@@ -125,13 +122,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                 { icon: 'ti-diamond', color: '#a78bfa', title: 'Exclusive Gems',   desc: 'Extra gem tiers in the pass' },
                                 { icon: 'ti-hammer',  color: '#67e8f9', title: 'Quest Picks',      desc: 'Bonus picks for Wild & Dice' },
                             ].map(b => (
-                                <div key={b.title} className="flex items-center gap-2.5 rounded-xl px-2.5 py-1.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
-                                    <div className="shrink-0 flex items-center justify-center rounded-lg" style={{ width: 26, height: 26, background: `${b.color}1a` }}>
+                                <div key={b.title} className="flex items-center gap-2.5 rounded-xl px-2.5 py-1.5" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                                    <div className="shrink-0 flex items-center justify-center rounded-lg" style={{ width: 26, height: 26, background: `${b.color}22` }}>
                                         <i className={`ti ${b.icon}`} style={{ fontSize: 13, color: b.color }} />
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="font-black text-[11px] leading-none text-white">{b.title}</div>
-                                        <div className="text-white/35 text-[8px] mt-0.5 leading-snug">{b.desc}</div>
+                                        <div className="text-white/50 text-[8px] mt-0.5 leading-snug">{b.desc}</div>
                                     </div>
                                 </div>
                             ))}
