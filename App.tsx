@@ -4584,6 +4584,16 @@ const App: React.FC = () => {
                         <div className="absolute left-1 z-40 flex flex-col gap-1 items-center select-none"
                             style={{ background: isHighLimit ? 'linear-gradient(180deg,rgba(201,144,26,0.92),rgba(122,80,0,0.92))' : 'linear-gradient(180deg,rgba(124,63,181,0.92),rgba(74,24,128,0.92))', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
                             {sidebarPage === 0 ? (<>
+                                {/* Quest — only when missions exist and NOT all completed */}
+                                {slotQuestState.missions.length > 0 && !slotQuestState.missions.every(m => m.current >= m.target) && (
+                                    <button
+                                        onClick={() => setShowQuestPath(true)}
+                                        className="relative flex flex-col items-center active:scale-95 transition-transform"
+                                    >
+                                        <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <div style={pillStyle}>Quest</div>
+                                    </button>
+                                )}
                                 {/* Pass */}
                                 <button
                                     onClick={!isPassLocked ? openBattlePassModal : undefined}
