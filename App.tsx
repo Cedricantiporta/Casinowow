@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell } from './types';
+import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission } from './types';
 import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
@@ -14,6 +14,7 @@ import { FreeSpinSummary } from './components/FreeSpinSummary';
 import { BankruptcyModal } from './components/BankruptcyModal';
 import { MissionPassModal } from './components/MissionPassModal';
 import { CardCollectionModal } from './components/CardCollectionModal';
+import { SlotQuestPanel } from './components/SlotQuestPanel';
 import { SimpleCelebrationModal } from './components/SimpleCelebrationModal';
 import { TimeBonusModal } from './components/TimeBonusModal';
 import { LoginBonusModal } from './components/LoginBonusModal';
@@ -562,6 +563,24 @@ const App: React.FC = () => {
       } catch {}
       return defaults;
   });
+  // Slot quest state — quest path + active missions
+  const QUEST_PATH_IDS = GAMES_CONFIG.slice(0, 8).map(g => g.id);
+  const makeSlotMissions = (slotId: string, bet: number): SlotQuestMission[] => {
+      const base = Math.max(bet, 1000);
+      return [
+          { id: `${slotId}_win`, type: 'WIN_COUNT', label: 'WIN', description: 'Win 20 times in Base Game', current: 0, target: 20 },
+          { id: `${slotId}_maxbet`, type: 'MAX_BET_SPIN', label: 'MAX', description: 'Spin 10 times on Max Bet', current: 0, target: 10 },
+          { id: `${slotId}_coins`, type: 'WIN_COINS', label: 'COINS', description: `Win a total of ${Math.round(base * 50 / 1e9)}B Coins`, current: 0, target: base * 50 },
+      ];
+  };
+  const [slotQuestState, setSlotQuestState] = useState<SlotQuestState>(() => {
+      try {
+          const saved = localStorage.getItem('cw_slot_quest');
+          if (saved) return JSON.parse(saved);
+      } catch {}
+      return { pathSlotIds: QUEST_PATH_IDS, currentPathIndex: 0, missions: [] };
+  });
+
   // Hold and Win state (Egypt / Pharaoh's Tomb)
   const [holdWinActive, setHoldWinActive] = useState(false);
   const [holdWinLockedGrid, setHoldWinLockedGrid] = useState<boolean[][]>([]);
@@ -1137,10 +1156,21 @@ const App: React.FC = () => {
 
   const handleClaimFreeVip = () => {
       const now = Date.now();
-      setPlayer(p => ({ ...p, isVip: true, vipExpiry: now + 7 * 24 * 3600000, freeVipClaimed: true }));
+      setPlayer(p => ({ ...p, isVip: true, vipExpiry: Math.max(p.vipExpiry || 0, now) + 7 * 24 * 3600000, freeVipClaimed: true }));
       setShowFreeVipPopup(false);
       audioService.playWinBig();
       setTimeout(() => setShowVipLounge(true), 250);
+  };
+
+  const handleSlotQuestClaim = () => {
+      const rewardCoins = currentBetRef.current * 20;
+      setPlayer(p => ({ ...p, balance: p.balance + rewardCoins }));
+      setSlotQuestState(prev => {
+          const nextIndex = prev.currentPathIndex + 1;
+          const next = { ...prev, currentPathIndex: nextIndex, missions: [] };
+          try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
+          return next;
+      });
   };
 
   useEffect(() => {
@@ -2524,6 +2554,16 @@ const App: React.FC = () => {
       updateMissions(MissionType.SPIN_COUNT, 1);
       updateMissions(MissionType.BET_COINS, currentBet);
       if (betIndex === availableBets.length - 1) updateMissions(MissionType.MAX_BET_SPIN, 1);
+      // Track slot quest progress (max-bet spin)
+      if (selectedGame && betIndex === availableBets.length - 1) {
+          setSlotQuestState(prev => {
+              if (!prev.missions.length || prev.pathSlotIds[prev.currentPathIndex] !== selectedGame.id) return prev;
+              const updated = prev.missions.map(m => m.type === 'MAX_BET_SPIN' && m.current < m.target ? { ...m, current: m.current + 1 } : m);
+              const next = { ...prev, missions: updated };
+              try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
+              return next;
+          });
+      }
       // Track VIP bets for end-of-day cashback
       if (player.isVip) {
           const today = new Date().toDateString();
@@ -3191,6 +3231,20 @@ const App: React.FC = () => {
        if (player.isVip) addVipXp(1);
        updateMissions(MissionType.WIN_COINS, totalPayout);
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
+       // Track slot quest progress (wins + coins)
+       if (selectedGame && totalPayout > 0) {
+           setSlotQuestState(prev => {
+               if (!prev.missions.length || prev.pathSlotIds[prev.currentPathIndex] !== selectedGame.id) return prev;
+               const updated = prev.missions.map(m =>
+                   m.type === 'WIN_COUNT' && m.current < m.target ? { ...m, current: m.current + 1 } :
+                   m.type === 'WIN_COINS' && m.current < m.target ? { ...m, current: Math.min(m.target, m.current + totalPayout) } :
+                   m
+               );
+               const next = { ...prev, missions: updated };
+               try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
+               return next;
+           });
+       }
 
        // Base-game win amount shown in the bottom bar (persists until next spin).
        if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
@@ -3701,6 +3755,17 @@ const App: React.FC = () => {
       setGameLoadingConfig(game);
       setTimeout(() => {
           setSelectedGame(game);
+          // Generate slot quest missions when entering a new slot
+          setSlotQuestState(prev => {
+              const activePath = prev.pathSlotIds[prev.currentPathIndex];
+              if (game.id === activePath && (!prev.missions || prev.missions.length === 0 || prev.missions[0].id.split('_')[0] !== game.id)) {
+                  const newMissions = makeSlotMissions(game.id, currentBetRef.current);
+                  const next = { ...prev, missions: newMissions };
+                  try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
+                  return next;
+              }
+              return prev;
+          });
           // Reset Mystery feature overlay when switching games.
           mysteryCellsRef.current = [];
           setMysteryCells([]);
@@ -4420,6 +4485,8 @@ const App: React.FC = () => {
                 packCredits={player.packCredits}
                 premiumPackCredits={player.premiumPackCredits ?? 0}
                 isJackpotReady={(Date.now() - (player.jackpotRouletteLastTime ?? 0)) >= 3 * 60 * 60 * 1000}
+                questPathSlotIds={slotQuestState.pathSlotIds}
+                questPathCurrentIndex={slotQuestState.currentPathIndex}
             />
         ) : (
             <div data-slot-bg="true" className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
@@ -4945,6 +5012,18 @@ const App: React.FC = () => {
                                 {holdWinRespins}/3
                             </span>
                         </div>
+                    )}
+
+                    {/* Slot Quest panel — right-side overlay showing quest progress for current slot path */}
+                    {selectedGame && slotQuestState.missions.length > 0 && (
+                        <SlotQuestPanel
+                            missions={slotQuestState.missions}
+                            activeSlotName={GAMES_CONFIG.find(g => g.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex])?.name || ''}
+                            isOnActiveSlot={selectedGame.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex]}
+                            rewardCoins={currentBetRef.current * 20}
+                            allDone={slotQuestState.missions.every(m => m.current >= m.target)}
+                            onClaim={handleSlotQuestClaim}
+                        />
                     )}
                 </div>
 
@@ -5540,7 +5619,7 @@ const App: React.FC = () => {
                   setCelebrationMsg('💰 Coin Flood! +100T Coins');
               } else if (code === 'dev1') {
                   const now = Date.now();
-                  setPlayer(p => ({ ...p, diamonds: p.diamonds + 50_000, isVip: true, vipExpiry: now + 30 * 24 * 3600000, xpMultiplier: 3, xpBoostEndTime: now + 24 * 60 * 60 * 1000 }));
+                  setPlayer(p => ({ ...p, diamonds: p.diamonds + 50_000, isVip: true, vipExpiry: Math.max(p.vipExpiry || 0, now) + 30 * 24 * 3600000, xpMultiplier: 3, xpBoostEndTime: now + 24 * 60 * 60 * 1000 }));
                   setMissionState(ms => ({
                       ...ms,
                       isPremium: true,
@@ -5562,7 +5641,7 @@ const App: React.FC = () => {
                   setPlayer(p => ({
                       ...p,
                       isVip: true,
-                      vipExpiry: now + 30 * 24 * 3600000,
+                      vipExpiry: Math.max(p.vipExpiry || 0, now) + 30 * 24 * 3600000,
                   }));
                   setMissionState(ms => ({
                       ...ms,

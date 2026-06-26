@@ -128,6 +128,21 @@ export interface QuestState {
   diceCredits: number;
 }
 
+export interface SlotQuestMission {
+    id: string;
+    type: 'WIN_COUNT' | 'SPIN_COUNT' | 'MAX_BET_SPIN' | 'WIN_COINS';
+    label: string;
+    description: string;
+    current: number;
+    target: number;
+}
+
+export interface SlotQuestState {
+    pathSlotIds: string[];
+    currentPathIndex: number;
+    missions: SlotQuestMission[];
+}
+
 export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'DICE_CREDITS' | 'BACK' | 'PACKS' | 'STAR';
 
 export interface MiniGameReward {

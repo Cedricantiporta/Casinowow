@@ -31,6 +31,8 @@ interface LobbyProps {
     onOpenCollection: () => void;
     onOpenPiggyBank: () => void;
     onOpenRanking: () => void;
+    questPathSlotIds?: string[];
+    questPathCurrentIndex?: number;
     onOpenInbox?: () => void;
     inboxCount?: number;
     onOpenHighRoller: () => void;
@@ -77,7 +79,9 @@ export const Lobby: React.FC<LobbyProps> = ({
     piggyMaxBet,
     packCredits,
     premiumPackCredits,
-    isJackpotReady
+    isJackpotReady,
+    questPathSlotIds,
+    questPathCurrentIndex = 0,
 }) => {
     
     const [timeLeft, setTimeLeft] = useState(0);
@@ -184,7 +188,80 @@ export const Lobby: React.FC<LobbyProps> = ({
                 backgroundPosition: 'center',
             }}>
 
-              <div className="flex-1 relative flex items-center justify-start p-0.5 pt-0 pb-8 md:pb-9" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
+              <div className="flex-1 relative flex flex-col pb-8 md:pb-9 overflow-hidden" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
+
+                {/* ── Promo banners ── */}
+                {!isHighLimit && (
+                    <div className="shrink-0 flex flex-col gap-1 px-2 pt-1.5 pb-1">
+                        {/* Banner 1: Grand jackpot highlight */}
+                        <div className="flex items-center gap-2 rounded-lg px-3" style={{ height: 32, background: 'linear-gradient(90deg,rgba(120,20,180,0.85) 0%,rgba(80,0,140,0.7) 60%,rgba(40,0,80,0.4) 100%)', border: '1px solid rgba(200,100,255,0.25)' }}>
+                            <i className="ti ti-crown" style={{ fontSize: 13, color: '#fbbf24', flexShrink: 0 }} />
+                            <span style={{ fontSize: 9, fontWeight: 900, color: '#fde68a', letterSpacing: 0.5, flexShrink: 0 }}>Grand Jackpot</span>
+                            <span style={{ fontSize: 11, fontWeight: 900, color: '#fff', textShadow: '0 0 8px rgba(251,191,36,0.8)', flex: 1 }}>{formatK(jackpotTotals[0] ? Math.floor(jackpotTotals[0] * 1.2) : 0)}</span>
+                            <span style={{ fontSize: 8, color: '#c084fc', fontWeight: 700 }}>Live</span>
+                            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 6px #4ade80', flexShrink: 0, animation: 'pulse 1.5s infinite' }} />
+                        </div>
+                        {/* Banner 2: Mission pass / event CTA */}
+                        <div className="flex items-center gap-2 rounded-lg px-3" style={{ height: 32, background: 'linear-gradient(90deg,rgba(0,60,120,0.85) 0%,rgba(0,40,80,0.7) 60%,rgba(0,20,50,0.4) 100%)', border: '1px solid rgba(56,189,248,0.2)' }}>
+                            <i className="ti ti-bolt" style={{ fontSize: 13, color: '#38bdf8', flexShrink: 0 }} />
+                            <span style={{ fontSize: 9, fontWeight: 900, color: '#7dd3fc', letterSpacing: 0.5, flex: 1 }}>Mission Pass — Complete quests for big rewards</span>
+                            <button onClick={onOpenBattlePass} style={{ border: 'none', borderRadius: 5, background: 'rgba(56,189,248,0.2)', color: '#38bdf8', fontSize: 8, fontWeight: 900, padding: '2px 8px', cursor: 'pointer' }}>Go</button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── Quest path ── */}
+                {!isHighLimit && questPathSlotIds && questPathSlotIds.length > 0 && (() => {
+                    const pathGames = questPathSlotIds.map(id => GAMES_CONFIG.find(g => g.id === id)).filter(Boolean) as typeof GAMES_CONFIG;
+                    return (
+                        <div className="shrink-0 px-2 pb-1">
+                            <div className="flex items-center gap-1 mb-1">
+                                <i className="ti ti-route" style={{ fontSize: 10, color: '#a78bfa' }} />
+                                <span style={{ fontSize: 8, fontWeight: 900, color: '#a78bfa', letterSpacing: 1 }}>QUEST PATH</span>
+                            </div>
+                            <div className="flex items-center overflow-x-auto no-scrollbar" style={{ gap: 0 }}>
+                                {pathGames.map((game, pi) => {
+                                    const isDone = pi < questPathCurrentIndex;
+                                    const isActive = pi === questPathCurrentIndex;
+                                    const isLocked = pi > questPathCurrentIndex;
+                                    return (
+                                        <React.Fragment key={game.id}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, flexShrink: 0 }}>
+                                                <div style={{
+                                                    width: 36, height: 36, borderRadius: 8, position: 'relative', overflow: 'hidden',
+                                                    boxShadow: isActive ? '0 0 10px rgba(168,85,247,0.8)' : 'none',
+                                                    border: isActive ? '2px solid #a78bfa' : isDone ? '2px solid #4ade80' : '2px solid rgba(255,255,255,0.1)',
+                                                    filter: isLocked ? 'brightness(0.4) grayscale(0.6)' : isDone ? 'brightness(0.7)' : 'none',
+                                                }}>
+                                                    <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(to bottom right, ${game.color?.split(' ').find(c => c.startsWith('from-'))?.replace('from-', '') ?? '#7c3aed'}, #1e1b4b)` }} />
+                                                    {game.coverImage
+                                                        ? <img src={game.coverImage} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                        : <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                                                            {THEME_PNG[game.theme]
+                                                                ? <img src={THEME_PNG[game.theme]} alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+                                                                : '🎰'}
+                                                          </span>}
+                                                    {isDone && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}><i className="ti ti-check" style={{ fontSize: 16, color: '#4ade80' }} /></div>}
+                                                    {isLocked && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}><i className="ti ti-lock" style={{ fontSize: 13, color: '#fff' }} /></div>}
+                                                </div>
+                                                <span style={{ fontSize: 6, fontWeight: 700, color: isActive ? '#c4b5fd' : isDone ? '#4ade80' : '#4b5563', whiteSpace: 'nowrap', maxWidth: 36, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {isActive ? '▶ NOW' : isDone ? 'DONE' : '···'}
+                                                </span>
+                                            </div>
+                                            {pi < pathGames.length - 1 && (
+                                                <div style={{ width: 12, height: 2, background: pi < questPathCurrentIndex ? '#4ade80' : 'rgba(255,255,255,0.1)', flexShrink: 0, margin: '0 1px', marginBottom: 12 }} />
+                                            )}
+                                        </React.Fragment>
+                                    );
+                                })}
+                                <div style={{ width: 8, flexShrink: 0 }} />
+                            </div>
+                        </div>
+                    );
+                })()}
+
+                {/* ── Slot grid ── */}
+                <div className="flex-1 flex items-center justify-start p-0.5 pt-0 overflow-hidden">
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
@@ -326,8 +403,9 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <div className="w-8"></div>
                         </div>
                     )}
+                </div>{/* end slot grid wrapper */}
             </div>
- 
+
             {/* Bottom bar — centered floating platform, icons protrude above */}
             {(() => {
                 const iconBtn = (locked: boolean) =>
