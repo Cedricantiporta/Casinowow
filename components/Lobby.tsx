@@ -186,21 +186,11 @@ export const Lobby: React.FC<LobbyProps> = ({
 
               <div className="flex-1 relative flex flex-col pb-8 md:pb-9 overflow-hidden" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
 
-                {/* ── Topbar ── */}
-                <div className="shrink-0 flex items-center gap-2 px-4 select-none"
-                    style={{ height: 34, background: 'linear-gradient(180deg,rgba(0,0,0,0.55),rgba(0,0,0,0.25))' }}>
-                    <i className="ti ti-trophy text-amber-400" style={{ fontSize: 14 }} />
-                    <span className="font-black text-amber-200/80 uppercase tracking-widest" style={{ fontSize: 9 }}>Jackpot Pool</span>
-                    <span className="font-tanker text-amber-300" style={{ fontSize: 15, lineHeight: 1, textShadow: '0 0 10px rgba(251,191,36,0.6)' }}>
-                        {formatK(jackpotTotals.reduce((a, b) => a + b, 0) * (isHighLimit ? 10 : 1))}
-                    </span>
-                    <div className="ml-auto flex items-center gap-1.5">
-                        <span className="font-black text-white/50" style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Lv.{playerLevel}</span>
-                    </div>
-                </div>
+                {/* ── Top spacer ── */}
+                <div className="shrink-0" style={{ height: 28 }} />
 
                 {/* ── Slot grid ── */}
-                <div className="flex-1 flex items-end justify-start p-0.5 pt-0 overflow-hidden">
+                <div className="flex-1 flex items-center justify-start p-0.5 pt-0 overflow-hidden">
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
@@ -265,7 +255,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                         /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
-                            className="grid gap-x-2 gap-y-6 auto-cols-max pt-1 pb-3 overflow-x-auto no-scrollbar snap-x items-start"
+                            className="grid gap-x-2 gap-y-0 auto-cols-max pt-1 pb-3 overflow-x-auto no-scrollbar snap-x items-start"
                             style={{
                                 gridTemplateRows: 'repeat(2, auto)',
                                 gridAutoFlow: 'column',
