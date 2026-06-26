@@ -115,9 +115,6 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                             <div className="text-[10px] font-black text-white/80 tracking-wider text-center">{timer.label}</div>
                             {/* Raw base amount — multiplier applied at claim popup */}
                             <div className="text-sm font-black text-white text-center drop-shadow-md">{formatCommaNumber(timer.reward)}</div>
-                            {collectMultiplier > 1 && isReady && (
-                                <div style={{ fontSize: 8, color: '#fbbf24', fontWeight: 800 }}>{collectMultiplier}× active</div>
-                            )}
                             <button
                                 onClick={() => isReady ? setPendingClaim({ id: timer.id, reward: timer.reward }) : undefined}
                                 disabled={!isReady}
@@ -140,9 +137,6 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                     <div className="text-[10px] font-black text-yellow-200/90 tracking-wider text-center">Jackpot</div>
                     {/* jackpotBaseAmount already includes collect multiplier from App.tsx */}
                     <div className="text-sm font-black text-white text-center drop-shadow-md">{formatCommaNumber(jackpotBaseAmount)}</div>
-                    {collectMultiplier > 1 && (
-                        <div style={{ fontSize: 8, color: '#fbbf24', fontWeight: 800 }}>{collectMultiplier}× included</div>
-                    )}
                     <button
                         onClick={() => jackpotReady && setShowRoulette(true)}
                         disabled={!jackpotReady}
@@ -155,40 +149,30 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                 </div>
             </div>
 
-            {/* Claim popup — shows base → multiplier → total */}
+            {/* Claim popup — standard modal: base + multiplier on one row, total, claim */}
             {pendingClaim && (
                 <div
-                    className="absolute inset-0 z-[10] flex items-center justify-center animate-pop-in"
-                    style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(6px)' }}
+                    className="absolute inset-0 z-[10] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in"
                     onClick={() => setPendingClaim(null)}>
                     <div
-                        className="tcard flex flex-col items-center gap-3 px-7 py-6"
-                        style={{ minWidth: 220 }}
-                        onClick={e => e.stopPropagation()}>
-                        {/* Base amount */}
-                        <div className="text-center">
-                            <div className="font-bold text-white/50" style={{ fontSize: 10, marginBottom: 4 }}>Base reward</div>
-                            <div className="font-black text-purple-200" style={{ fontSize: 20 }}>{formatCommaNumber(pendingClaim.reward)}</div>
+                        className="rounded-3xl overflow-hidden flex flex-col items-center gap-2.5 px-6 py-5"
+                        onClick={e => e.stopPropagation()}
+                        style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+                        {/* Base amount + multiplier on the same row */}
+                        <div className="flex items-center gap-3">
+                            <span className="font-black text-white" style={{ fontSize: 24, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.6)' }}>{formatCommaNumber(pendingClaim.reward)}</span>
+                            {collectMultiplier > 1 && (
+                                <div className="flex items-center gap-1">
+                                    <img src="/ui/exp_multiplier.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                                    <span className="font-black text-amber-300" style={{ fontSize: 22, lineHeight: 1 }}>{collectMultiplier}×</span>
+                                </div>
+                            )}
                         </div>
 
-                        {collectMultiplier > 1 ? (
-                            <>
-                                {/* Multiplier */}
-                                <div className="flex items-center gap-1.5">
-                                    <img src="/ui/exp_multiplier.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
-                                    <span className="font-black text-amber-300" style={{ fontSize: 24, lineHeight: 1 }}>{collectMultiplier}×</span>
-                                </div>
-                                {/* Total */}
-                                <div className="text-center">
-                                    <div className="font-bold text-white/50" style={{ fontSize: 10, marginBottom: 4 }}>Total</div>
-                                    <div className="font-black text-white" style={{ fontSize: 28, textShadow: '0 0 20px rgba(251,191,36,0.5)', lineHeight: 1 }}>
-                                        {formatCommaNumber(Math.floor(pendingClaim.reward * collectMultiplier))}
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="text-center text-white/40" style={{ fontSize: 10 }}>
-                                Spin more to unlock a bonus multiplier
+                        {/* Total */}
+                        {collectMultiplier > 1 && (
+                            <div className="font-black text-white" style={{ fontSize: 32, lineHeight: 1, textShadow: '0 0 16px rgba(251,191,36,0.6)' }}>
+                                {formatCommaNumber(Math.floor(pendingClaim.reward * collectMultiplier))}
                             </div>
                         )}
 
