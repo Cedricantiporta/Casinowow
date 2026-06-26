@@ -329,14 +329,14 @@ export const JackpotRouletteModal: React.FC<Props> = ({ isOpen, baseAmount, coll
                     {phase === 'done' && wonMult !== null && (
                         <div style={{ marginTop: 2 }}>
                             <div className="font-tanker text-yellow-300" style={{ fontSize: '1.2rem', lineHeight: 1 }}>{wonMult}× Win!</div>
-                            <div className="font-mono font-black text-white" style={{ fontSize: '0.8rem' }}>+{formatCommaNumber(baseAmount * wonMult)}</div>
+                            <div className="font-mono font-black text-white" style={{ fontSize: '0.8rem' }}>+{formatCommaNumber(baseAmount * collectMultiplier * wonMult)}</div>
                         </div>
                     )}
 
                     {/* Action button — Claim only after spin, Spin before */}
                     <div style={{ marginTop: 4 }}>
                         {phase === 'done' && wonMult !== null ? (
-                            <button onClick={() => onClaim(baseAmount * wonMult)} className="pill-green w-full">
+                            <button onClick={() => onClaim(baseAmount * collectMultiplier * wonMult)} className="pill-green w-full">
                                 <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>Claim</div>
                             </button>
                         ) : (

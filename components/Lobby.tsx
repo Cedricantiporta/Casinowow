@@ -265,7 +265,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button
                                 onClick={onOpenBattlePass}
                                 className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
-                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
+                                style={{ width: 116, marginTop: -26, height: 212, alignSelf: 'flex-start', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
                                 <img src="/lobbybanner_missionpass.png" alt="Mission Pass" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
                             </button>
 
@@ -273,7 +273,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button
                                 onClick={onOpenVipLounge}
                                 className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
-                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
+                                style={{ width: 116, marginTop: -26, height: 212, alignSelf: 'flex-start', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
                                 <img src="/lobbybanner_viplounge.png" alt="VIP Lounge" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
                             </button>
 

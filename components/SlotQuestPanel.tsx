@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SlotQuestMission } from '../types';
 import { formatK } from '../constants';
 
@@ -33,6 +33,27 @@ const PANEL_BG = {
 export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
     missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onOpenQuestPath,
 }) => {
+    const [minimized, setMinimized] = useState(false);
+
+    if (minimized) {
+        return (
+            <div
+                style={{
+                    ...PANEL_BG,
+                    position: 'absolute', left: 74, top: 8,
+                    zIndex: 45, width: 22, borderRadius: 11, overflow: 'hidden',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    padding: '8px 0 8px', gap: 6, cursor: 'pointer',
+                }}
+                onClick={() => setMinimized(false)}
+                className="animate-pop-in"
+            >
+                <img src="/questlobbyicon.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
+                <i className="ti ti-chevron-right text-white/70" style={{ fontSize: 12 }} />
+            </div>
+        );
+    }
+
     return (
         <div style={{
             ...PANEL_BG,
@@ -43,6 +64,13 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
             <div className="flex items-center gap-1.5" style={{ padding: '7px 9px 6px' }}>
                 <img src="/questlobbyicon.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
                 <span className="font-black text-white" style={{ fontSize: 11 }}>Quest</span>
+                <button
+                    onClick={() => setMinimized(true)}
+                    className="ml-auto shrink-0 flex items-center justify-center"
+                    style={{ width: 18, height: 18, borderRadius: 4, background: 'rgba(0,0,0,0.2)', cursor: 'pointer' }}
+                >
+                    <i className="ti ti-chevron-left text-white/70" style={{ fontSize: 11 }} />
+                </button>
             </div>
 
             {/* Play the active slot hint */}
