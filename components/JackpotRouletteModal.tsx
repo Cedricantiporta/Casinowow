@@ -170,12 +170,13 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
 interface Props {
     isOpen: boolean;
     baseAmount: number;
+    collectMultiplier?: number;
     onClaim: (amount: number) => void;
     onClose: () => void;
 }
 type Phase = 'ready' | 'spinning' | 'done';
 
-export const JackpotRouletteModal: React.FC<Props> = ({ isOpen, baseAmount, onClaim, onClose }) => {
+export const JackpotRouletteModal: React.FC<Props> = ({ isOpen, baseAmount, collectMultiplier = 1, onClaim, onClose }) => {
     const [phase, setPhase] = useState<Phase>('ready');
     const [wonMult, setWonMult] = useState<number | null>(null);
 
@@ -310,7 +311,15 @@ export const JackpotRouletteModal: React.FC<Props> = ({ isOpen, baseAmount, onCl
 
                     {/* Base amount */}
                     <div>
-                        <div className="text-yellow-300/70 text-[9px] font-black uppercase tracking-widest">Base Amount</div>
+                        <div className="flex items-center gap-1.5">
+                            <span className="text-yellow-300/70 text-[10px] font-black">Base amount</span>
+                            {collectMultiplier > 1 && (
+                                <span className="flex items-center gap-0.5 font-black text-amber-300" style={{ fontSize: 10 }}>
+                                    <img src="/ui/exp_multiplier.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />
+                                    Collect {collectMultiplier}×
+                                </span>
+                            )}
+                        </div>
                         <div className="font-mono font-black text-white" style={{ fontSize: '0.95rem' }}>{formatCommaNumber(baseAmount)}</div>
                     </div>
 

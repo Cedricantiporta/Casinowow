@@ -592,7 +592,6 @@ const App: React.FC = () => {
       return { pathSlotIds: QUEST_PATH_IDS, currentPathIndex: 0, missions: [] };
   });
   const [showQuestPath, setShowQuestPath] = useState(false);
-  const [hasAutoStarted, setHasAutoStarted] = useState(() => !!localStorage.getItem('cw_has_auto_started'));
 
   // Hold and Win state (Egypt / Pharaoh's Tomb)
   const [holdWinActive, setHoldWinActive] = useState(false);
@@ -1187,21 +1186,6 @@ const App: React.FC = () => {
       // After claiming, show the quest path so the player sees the next stage unlocked
       setTimeout(() => setShowQuestPath(true), 400);
   };
-
-  // First-time player: auto-open Piggy Riches after startup modals settle
-  useEffect(() => {
-      if (hasAutoStarted) return;
-      const t = setTimeout(() => {
-          const piggy = GAMES_CONFIG.find(g => g.id === 'piggy-riches');
-          if (piggy) {
-              handleGameSelect(piggy, false);
-              localStorage.setItem('cw_has_auto_started', '1');
-              setHasAutoStarted(true);
-          }
-      }, 2000);
-      return () => clearTimeout(t);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   useEffect(() => {
     const maxAllowed = MAX_BET_BY_LEVEL(player.level);
@@ -3756,13 +3740,14 @@ const App: React.FC = () => {
       }
   };
 
-  const handleGameSelect = (game: GameConfig, highLimit: boolean = false) => {
+  const handleGameSelect = (game: GameConfig, highLimit: boolean = false, fromQuest: boolean = false) => {
       const gameIndex = GAMES_CONFIG.findIndex(g => g.id === game.id);
       const unlockLevel = gameIndex === 0 ? 0 : gameIndex * 5 + 1;
 
       const currentLevel = playerRef.current.level;
 
-      if (currentLevel < unlockLevel) {
+      // Quest path slots bypass the lobby level lock — they are unlocked via the quest only.
+      if (!fromQuest && currentLevel < unlockLevel) {
           audioService.playStoneBreak();
           setCelebrationMsg(`Locked! Unlock at Level ${unlockLevel}`);
           return;
@@ -5360,7 +5345,7 @@ const App: React.FC = () => {
           currentPathIndex={slotQuestState.currentPathIndex}
           onPlaySlot={(slotId) => {
               const game = GAMES_CONFIG.find(g => g.id === slotId);
-              if (game) handleGameSelect(game, false);
+              if (game) handleGameSelect(game, false, true);
           }}
           rewardCoins={currentBetRef.current * 20}
       />

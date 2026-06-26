@@ -21,8 +21,6 @@ const THEME_ICON_SIZE: Partial<Record<string, string>> = {
 
 interface LobbyProps {
     onSelectGame: (game: GameConfig, isHighLimit: boolean) => void;
-    onOpenWildQuest?: () => void;
-    onOpenDiceQuest?: () => void;
     onOpenMiniGames?: () => void;
     onOpenQuestPath?: () => void;
     onOpenMissions: () => void;
@@ -187,57 +185,6 @@ export const Lobby: React.FC<LobbyProps> = ({
 
               <div className="flex-1 relative flex flex-col pb-8 md:pb-9 overflow-hidden" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
 
-                {/* ── Promo banners — 2-column card style ── */}
-                {!isHighLimit && (
-                    <div className="shrink-0 flex gap-2 px-2 pt-1.5 pb-1">
-                        {/* Left card: Grand Jackpot */}
-                        <button
-                            onClick={() => onSelectGame(GAMES_CONFIG[0], false)}
-                            className="flex-1 relative overflow-hidden active:scale-[0.97] transition-transform"
-                            style={{ height: 78, borderRadius: 12, background: 'linear-gradient(135deg,#3b1500 0%,#1a0900 60%,#0d0400 100%)', border: '1px solid rgba(245,158,11,0.2)', cursor: 'pointer' }}>
-                            {/* Content */}
-                            <div className="absolute inset-0 flex flex-col justify-between p-2.5">
-                                <div>
-                                    <div style={{ fontSize: 8, fontWeight: 900, color: '#fbbf24', letterSpacing: 0.4 }}>Grand Jackpot</div>
-                                    <div style={{ fontSize: 7, color: '#92400e' }}>Collect to win</div>
-                                </div>
-                                <div style={{ fontSize: 15, fontWeight: 900, color: '#fff', textShadow: '0 0 10px rgba(251,191,36,0.5)', lineHeight: 1 }}>
-                                    {formatK(jackpotTotals[0] ? Math.floor(jackpotTotals[0] * 1.2) : 0)}
-                                </div>
-                                <div style={{ alignSelf: 'flex-start', background: 'linear-gradient(180deg,#38bdf8,#0369a1)', borderRadius: 6, padding: '3px 8px', fontSize: 7, fontWeight: 900, color: '#fff' }}>
-                                    Play Now
-                                </div>
-                            </div>
-                            {/* Decorative coin stack */}
-                            <div className="absolute right-0 bottom-0 pointer-events-none" style={{ width: 52, height: 60, overflow: 'hidden' }}>
-                                <img src="/ui/collect.png" alt="" style={{ position: 'absolute', bottom: -4, right: -4, width: 58, height: 58, objectFit: 'contain', opacity: 0.55 }} />
-                            </div>
-                        </button>
-
-                        {/* Right card: Mission Pass */}
-                        <button
-                            onClick={onOpenBattlePass}
-                            className="flex-1 relative overflow-hidden active:scale-[0.97] transition-transform"
-                            style={{ height: 78, borderRadius: 12, background: 'linear-gradient(135deg,#1a0050 0%,#0d0030 60%,#060018 100%)', border: '1px solid rgba(168,85,247,0.2)', cursor: 'pointer' }}>
-                            <div className="absolute inset-0 flex flex-col justify-between p-2.5">
-                                <div>
-                                    <div style={{ fontSize: 8, fontWeight: 900, color: '#c084fc', letterSpacing: 0.4 }}>Mission Pass</div>
-                                    <div style={{ fontSize: 7, color: '#6d28d9' }}>Get huge rewards</div>
-                                </div>
-                                <div style={{ fontSize: 11, fontWeight: 900, color: '#e9d5ff', lineHeight: 1 }}>
-                                    {missionState.passLevel > 1 ? `Level ${missionState.passLevel}` : 'Start now!'}
-                                </div>
-                                <div style={{ alignSelf: 'flex-start', background: 'linear-gradient(180deg,#a855f7,#7c3aed)', borderRadius: 6, padding: '3px 8px', fontSize: 7, fontWeight: 900, color: '#fff' }}>
-                                    See More
-                                </div>
-                            </div>
-                            <div className="absolute right-0 bottom-0 pointer-events-none" style={{ width: 52, height: 60, overflow: 'hidden' }}>
-                                <img src="/ui/pass.png" alt="" style={{ position: 'absolute', bottom: -4, right: -4, width: 58, height: 58, objectFit: 'contain', opacity: 0.45 }} />
-                            </div>
-                        </button>
-                    </div>
-                )}
-
                 {/* ── Slot grid ── */}
                 <div className="flex-1 flex items-center justify-start p-0.5 pt-0 overflow-hidden">
 
@@ -313,6 +260,48 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 transform: 'translateY(-14px)',
                             }}
                         >
+                            {/* ── Promo card 1: Grand Jackpot — vertical, spans both rows, same row as slots ── */}
+                            <button
+                                onClick={() => onSelectGame(GAMES_CONFIG[0], false)}
+                                className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
+                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(255,220,120,0.85), inset 0 -3px 0 rgba(90,50,0,0.8), inset 3px 0 0 rgba(255,200,80,0.3), inset -3px 0 0 rgba(90,50,0,0.4), 0 6px 18px rgba(0,0,0,0.6)' }}>
+                                <div className="absolute inset-0 bg-gradient-to-b from-amber-700 via-amber-900 to-[#1a0d00]" style={{ borderRadius: 14 }} />
+                                <div className="absolute inset-0 flex flex-col items-center justify-between p-2.5 z-10">
+                                    <div className="text-center">
+                                        <div className="font-tanker text-amber-300" style={{ fontSize: 13, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>Grand Jackpot</div>
+                                        <div className="font-black text-amber-100/70" style={{ fontSize: 10 }}>Collect to win</div>
+                                    </div>
+                                    <img src="/new_coinicon.png" alt="" style={{ width: 42, height: 42, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(251,191,36,0.6))' }} />
+                                    <div className="font-black text-white" style={{ fontSize: 14, lineHeight: 1, textShadow: '0 0 10px rgba(251,191,36,0.7)' }}>
+                                        {formatK(jackpotTotals[0] ? Math.floor(jackpotTotals[0] * 1.2) : 0)}
+                                    </div>
+                                    <div className="pill-green w-full">
+                                        <div className="pill-face" style={{ padding: '5px 0', fontSize: '10px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>See More</div>
+                                    </div>
+                                </div>
+                            </button>
+
+                            {/* ── Promo card 2: Mission Pass — vertical, spans both rows ── */}
+                            <button
+                                onClick={onOpenBattlePass}
+                                className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
+                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)' }}>
+                                <div className="absolute inset-0 bg-gradient-to-b from-fuchsia-700 via-purple-900 to-[#100025]" style={{ borderRadius: 14 }} />
+                                <div className="absolute inset-0 flex flex-col items-center justify-between p-2.5 z-10">
+                                    <div className="text-center">
+                                        <div className="font-tanker text-fuchsia-200" style={{ fontSize: 13, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>Mission Pass</div>
+                                        <div className="font-black text-purple-200/70" style={{ fontSize: 10 }}>Get huge rewards</div>
+                                    </div>
+                                    <img src="/ui/pass.png" alt="" style={{ width: 46, height: 46, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(168,85,247,0.6))' }} />
+                                    <div className="font-black text-white" style={{ fontSize: 12, lineHeight: 1 }}>
+                                        {missionState.passLevel > 1 ? `Level ${missionState.passLevel}` : 'Start now!'}
+                                    </div>
+                                    <div className="pill-green w-full">
+                                        <div className="pill-face" style={{ padding: '5px 0', fontSize: '10px', background: 'linear-gradient(180deg,#a855f7,#7c3aed,#5b21b6)' }}>See More</div>
+                                    </div>
+                                </div>
+                            </button>
+
                             {GAMES_CONFIG.map((game, idx) => {
                                 const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.8)]' :
                                     game.theme === 'EGYPT' ? 'text-amber-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]' :
@@ -451,7 +440,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {/* Mini Games (Wild + Dice combined) */}
                             <button onClick={!isQuestLocked ? onOpenMiniGames : undefined} className={iconBtn(isQuestLocked)}>
                                 <div className="relative leading-none">
-                                    <img src="/ui/mine_new.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/minigameslobbyicon.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {!isQuestLocked && (wildCredits + diceCredits) > 0 && (
                                         <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
@@ -467,7 +456,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {/* Quest Path */}
                             <button onClick={onOpenQuestPath} className={iconBtn(false)}>
                                 <div className="relative leading-none">
-                                    <img src="/ui/gift_store.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <img src="/questlobbyicon.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                     {questPathCurrentIndex > 0 && (
                                         <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #a855f7, #7c3aed 60%, #5b21b6)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(192,132,252,0.7)' }}>

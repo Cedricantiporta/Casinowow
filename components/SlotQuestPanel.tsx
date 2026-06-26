@@ -11,17 +11,12 @@ interface SlotQuestPanelProps {
     onClaim: () => void;
 }
 
-const TYPE_COLOR: Record<string, string> = {
-    WIN_COUNT:   '#38bdf8',
-    SPIN_COUNT:  '#a78bfa',
-    MAX_BET_SPIN:'#fb923c',
-    WIN_COINS:   '#4ade80',
-};
-const TYPE_LABEL: Record<string, string> = {
-    WIN_COUNT:   'WIN',
-    SPIN_COUNT:  'SPIN',
-    MAX_BET_SPIN:'MAX',
-    WIN_COINS:   'COINS',
+// Tabler icon per mission type (UI_MAP: prefer line icons over caps text badges)
+const TYPE_ICON: Record<string, string> = {
+    WIN_COUNT:   'ti-trophy',
+    SPIN_COUNT:  'ti-refresh',
+    MAX_BET_SPIN:'ti-bolt',
+    WIN_COINS:   'ti-coin',
 };
 
 export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
@@ -33,108 +28,74 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
         return (
             <div
                 onClick={() => setOpen(true)}
+                className="tcard cursor-pointer"
                 style={{
                     position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
-                    zIndex: 40, cursor: 'pointer',
-                    background: 'linear-gradient(180deg,#1e0050,#0d0030)',
-                    border: '1px solid rgba(168,85,247,0.4)',
-                    borderRight: 'none',
-                    borderRadius: '10px 0 0 10px',
+                    zIndex: 40, borderRadius: '14px 0 0 14px',
                     padding: '10px 6px',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    boxShadow: '-3px 0 14px rgba(0,0,0,0.7)',
                 }}>
-                <img src="/ui/gift_store.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
-                <span style={{ writingMode: 'vertical-rl', fontSize: 8, fontWeight: 900, color: '#c4b5fd', letterSpacing: 1 }}>QUEST</span>
+                <img src="/questlobbyicon.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} />
+                <span className="font-black text-white/90" style={{ writingMode: 'vertical-rl', fontSize: 9, letterSpacing: 1 }}>Quest</span>
             </div>
         );
     }
 
     return (
-        <div style={{
+        <div className="tcard" style={{
             position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
-            zIndex: 40, width: 138,
-            background: 'linear-gradient(160deg,#100028 0%,#1c004a 50%,#0a0020 100%)',
-            border: '1px solid rgba(168,85,247,0.3)',
-            borderRight: 'none',
-            borderRadius: '12px 0 0 12px',
-            boxShadow: '-4px 0 22px rgba(0,0,0,0.75)',
-            overflow: 'hidden',
+            zIndex: 40, width: 140, borderRadius: '16px 0 0 16px', overflow: 'hidden',
         }}>
             {/* Header */}
-            <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '7px 8px 6px',
-                background: 'rgba(168,85,247,0.12)',
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <img src="/ui/gift_store.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />
-                    <span style={{ fontSize: 9, fontWeight: 900, color: '#e9d5ff', letterSpacing: 0.8 }}>Quest</span>
+            <div className="flex items-center justify-between" style={{ padding: '7px 9px 6px' }}>
+                <div className="flex items-center gap-1.5">
+                    <img src="/questlobbyicon.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
+                    <span className="font-black text-white" style={{ fontSize: 11 }}>Quest</span>
                 </div>
-                <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7c3aed', padding: 0, lineHeight: 1 }}>
-                    <i className="ti ti-chevron-right" style={{ fontSize: 13 }} />
+                <button onClick={() => setOpen(false)} className="text-white/60" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>
+                    <i className="ti ti-chevron-right" style={{ fontSize: 14 }} />
                 </button>
             </div>
 
-            {/* Not on active slot warning */}
+            {/* Play the active slot hint */}
             {!isOnActiveSlot && (
-                <div style={{ padding: '4px 8px', background: 'rgba(251,191,36,0.07)' }}>
-                    <div style={{ fontSize: 8, color: '#fbbf24', fontWeight: 700, lineHeight: 1.3 }}>
-                        Play: <span style={{ color: '#fef3c7' }}>{activeSlotName}</span>
+                <div style={{ padding: '0 9px 5px' }}>
+                    <div className="font-bold text-amber-300" style={{ fontSize: 10, lineHeight: 1.3 }}>
+                        Play: <span className="text-white">{activeSlotName}</span>
                     </div>
                 </div>
             )}
 
             {/* Missions */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 5, padding: '6px 7px 5px' }}>
+            <div className="flex flex-col" style={{ gap: 7, padding: '0 9px 7px' }}>
                 {missions.map(m => {
                     const pct = Math.min(100, m.target > 0 ? (m.current / m.target) * 100 : 0);
                     const done = m.current >= m.target;
-                    const barColor = done ? '#4ade80' : TYPE_COLOR[m.type];
                     const displayCurrent = m.type === 'WIN_COINS' ? formatK(m.current) : String(m.current);
                     const displayTarget = m.type === 'WIN_COINS' ? formatK(m.target) : String(m.target);
                     return (
                         <div key={m.id}>
-                            {/* Description row */}
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-                                <span style={{
-                                    fontSize: 7, fontWeight: 900,
-                                    color: done ? '#4ade80' : barColor,
-                                    background: `${done ? '#4ade80' : barColor}1a`,
-                                    borderRadius: 4, padding: '1px 4px', flexShrink: 0,
-                                }}>
-                                    {done ? '✓' : TYPE_LABEL[m.type]}
-                                </span>
-                                <span style={{
-                                    fontSize: 7.5, lineHeight: 1.25,
-                                    color: done ? '#86efac' : '#c4b5fd',
-                                    opacity: done ? 0.65 : 1,
-                                }}>
-                                    {m.description}
-                                </span>
+                            {/* Description */}
+                            <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>
+                                <i className={`ti ${done ? 'ti-check' : TYPE_ICON[m.type]} ${done ? 'text-green-400' : 'text-white/70'}`} style={{ fontSize: 12 }} />
+                                <span className={done ? 'text-green-300' : 'text-white/85'} style={{ fontSize: 10, lineHeight: 1.2, fontWeight: 600 }}>{m.description}</span>
                             </div>
-                            {/* Progress bar with X/XX counter inside */}
-                            <div style={{
-                                height: 14, borderRadius: 7,
-                                background: 'rgba(255,255,255,0.08)',
-                                position: 'relative', overflow: 'hidden',
-                            }}>
-                                <div style={{
-                                    position: 'absolute', inset: 0,
-                                    width: `${pct}%`,
-                                    background: done
-                                        ? 'linear-gradient(90deg,#22c55e,#4ade80)'
-                                        : `linear-gradient(90deg,${barColor}80,${barColor})`,
-                                    borderRadius: 7,
-                                    transition: 'width 0.4s ease',
-                                }} />
-                                <span style={{
-                                    position: 'absolute', right: 5, top: '50%', transform: 'translateY(-50%)',
-                                    fontSize: 7, fontWeight: 900, lineHeight: 1,
-                                    color: 'rgba(255,255,255,0.9)',
-                                    textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-                                    whiteSpace: 'nowrap',
-                                }}>
+                            {/* Progress bar — the one canonical .rtrack bar, X/XX label inside */}
+                            <div className="rtrack" style={{ height: 15, minWidth: 0, padding: '0 6px' }}>
+                                <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                                    <div style={{
+                                        position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12,
+                                        width: `${pct}%`,
+                                        background: done
+                                            ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'
+                                            : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)',
+                                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
+                                        transition: 'width 0.4s ease',
+                                    }}>
+                                        <div className="absolute inset-y-0 w-5 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+                                    </div>
+                                </div>
+                                <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
                                     {displayCurrent}/{displayTarget}
                                 </span>
                             </div>
@@ -144,20 +105,15 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
             </div>
 
             {/* Reward */}
-            <div style={{ padding: '4px 7px 8px' }}>
+            <div style={{ padding: '0 9px 9px' }}>
                 {allDone ? (
-                    <button onClick={onClaim} style={{
-                        width: '100%', border: 'none', borderRadius: 8, cursor: 'pointer',
-                        background: 'linear-gradient(180deg,#22c55e,#16a34a)',
-                        boxShadow: '0 2px 0 #14532d, 0 4px 10px rgba(34,197,94,0.3)',
-                        padding: '6px 4px', fontSize: 9, fontWeight: 900, color: '#fff',
-                    }}>
-                        Claim +{formatK(rewardCoins)}
+                    <button onClick={onClaim} className="pill-green w-full">
+                        <div className="pill-face" style={{ padding: '6px 4px', fontSize: '10px' }}>Claim +{formatK(rewardCoins)}</div>
                     </button>
                 ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <img src="/ui/gift_store.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
-                        <span style={{ fontSize: 8, color: '#9ca3af', fontWeight: 700 }}>+{formatK(rewardCoins)}</span>
+                    <div className="flex items-center gap-1.5">
+                        <img src="/new_coinicon.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                        <span className="font-bold text-white/60" style={{ fontSize: 10 }}>+{formatK(rewardCoins)}</span>
                     </div>
                 )}
             </div>

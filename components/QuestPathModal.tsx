@@ -31,155 +31,113 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
         .filter(Boolean) as typeof GAMES_CONFIG;
 
     return (
-        <div className="absolute inset-0 z-[140] flex flex-col animate-pop-in select-none"
-            style={{ background: 'linear-gradient(160deg,#07001a 0%,#0d0030 60%,#050015 100%)' }}>
+        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none"
+            onClick={onClose}>
+            <div className="w-full max-w-[560px] rounded-3xl overflow-hidden flex flex-col"
+                onClick={e => e.stopPropagation()}
+                style={{
+                    background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)',
+                    boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
+                }}>
 
-            {/* Header */}
-            <div className="shrink-0 flex items-center gap-3 px-4 py-3"
-                style={{ background: 'rgba(168,85,247,0.08)', borderBottom: '1px solid rgba(168,85,247,0.18)' }}>
-                <button
-                    onClick={onClose}
-                    style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 8, width: 30, height: 30, cursor: 'pointer', color: '#c4b5fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <i className="ti ti-x" style={{ fontSize: 14 }} />
-                </button>
-                <div className="flex items-center gap-2">
-                    <i className="ti ti-route" style={{ fontSize: 16, color: '#a78bfa' }} />
-                    <span style={{ fontSize: 15, fontWeight: 900, color: '#e9d5ff', letterSpacing: 0.3 }}>Quest Path</span>
+                {/* Header */}
+                <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
+                    <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Quest Path</span>
+                    <div className="flex items-center z-10">
+                        <span className="font-black text-white/60" style={{ fontSize: 10 }}>
+                            Stage {Math.min(currentPathIndex + 1, pathGames.length)} / {pathGames.length}
+                        </span>
+                    </div>
+                    <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={onClose}><i className="ti ti-x" /></button>
                 </div>
-                <div style={{ marginLeft: 'auto', background: 'rgba(168,85,247,0.15)', borderRadius: 8, padding: '3px 10px' }}>
-                    <span style={{ fontSize: 9, fontWeight: 900, color: '#c4b5fd' }}>
-                        Stage {Math.min(currentPathIndex + 1, pathGames.length)} / {pathGames.length}
-                    </span>
-                </div>
-            </div>
 
-            {/* Trail */}
-            <div className="flex-1 flex items-center overflow-x-auto no-scrollbar" style={{ padding: '16px 20px', gap: 0 }}>
-                {pathGames.map((game, pi) => {
-                    const isDone = pi < currentPathIndex;
-                    const isActive = pi === currentPathIndex;
-                    const isLocked = pi > currentPathIndex;
+                {/* Trail */}
+                <div className="flex items-center overflow-x-auto no-scrollbar" style={{ padding: '8px 16px 18px', gap: 0 }}>
+                    {pathGames.map((game, pi) => {
+                        const isDone = pi < currentPathIndex;
+                        const isActive = pi === currentPathIndex;
+                        const isLocked = pi > currentPathIndex;
 
-                    return (
-                        <React.Fragment key={game.id}>
-                            {/* Stage node */}
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, flexShrink: 0, width: 90 }}>
-                                {/* Stage label */}
-                                <span style={{
-                                    fontSize: 8, fontWeight: 900, letterSpacing: 1,
-                                    color: isActive ? '#a78bfa' : isDone ? '#4ade80' : '#374151',
-                                }}>
-                                    STAGE {pi + 1}
-                                </span>
-
-                                {/* Slot card */}
-                                <div
-                                    onClick={() => isActive ? (onPlaySlot(game.id), onClose()) : undefined}
-                                    style={{
-                                        width: 76, height: 76,
-                                        borderRadius: 14,
-                                        position: 'relative',
-                                        overflow: 'hidden',
-                                        cursor: isActive ? 'pointer' : 'default',
-                                        flexShrink: 0,
-                                        boxShadow: isActive
-                                            ? '0 0 0 2.5px #a78bfa, 0 0 20px rgba(168,85,247,0.6), 0 4px 16px rgba(0,0,0,0.8)'
-                                            : isDone
-                                            ? '0 0 0 2px #4ade80, 0 4px 12px rgba(0,0,0,0.7)'
-                                            : '0 0 0 2px rgba(255,255,255,0.07), 0 4px 12px rgba(0,0,0,0.7)',
-                                        filter: isLocked ? 'brightness(0.38) grayscale(0.6)' : isDone ? 'brightness(0.7)' : 'none',
-                                        transition: 'all 0.2s',
-                                        animation: isActive ? 'pulse 2.5s ease-in-out infinite' : 'none',
-                                    }}>
-                                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg,#7c3aed,#1e1b4b)' }} />
-                                    {game.coverImage ? (
-                                        <img src={game.coverImage} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-                                    ) : (
-                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            {THEME_PNG[game.theme] ? (
-                                                <img src={THEME_PNG[game.theme]} alt="" style={{ width: 46, height: 46, objectFit: 'contain' }} />
-                                            ) : (
-                                                <span style={{ fontSize: 32 }}>🎰</span>
-                                            )}
-                                        </div>
-                                    )}
-                                    {/* Overlays */}
-                                    {isDone && (
-                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}>
-                                            <i className="ti ti-check" style={{ fontSize: 28, color: '#4ade80' }} />
-                                        </div>
-                                    )}
-                                    {isLocked && (
-                                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)' }}>
-                                            <i className="ti ti-lock" style={{ fontSize: 22, color: 'rgba(255,255,255,0.6)' }} />
-                                        </div>
-                                    )}
-                                    {isActive && (
-                                        <div style={{ position: 'absolute', top: 4, left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
-                                            <span style={{ background: 'rgba(168,85,247,0.92)', borderRadius: 4, padding: '1px 6px', fontSize: 7, fontWeight: 900, color: '#fff' }}>NOW</span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Game name */}
-                                <span style={{
-                                    fontSize: 7, fontWeight: 700, textAlign: 'center',
-                                    color: isActive ? '#c4b5fd' : isDone ? '#86efac' : '#374151',
-                                    maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                }}>
-                                    {game.name}
-                                </span>
-
-                                {/* Gift reward */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                                    <img
-                                        src="/ui/gift_store.png"
-                                        alt=""
-                                        style={{
-                                            width: 34, height: 34, objectFit: 'contain',
-                                            filter: isDone ? 'grayscale(1) brightness(0.4)' : isLocked ? 'grayscale(1) brightness(0.25)' : 'drop-shadow(0 2px 6px rgba(251,191,36,0.5))',
-                                        }}
-                                    />
-                                    <span style={{
-                                        fontSize: 7, fontWeight: 900,
-                                        color: isDone ? '#374151' : isActive ? '#fbbf24' : '#1f2937',
-                                    }}>
-                                        {isDone ? 'Claimed' : `+${formatK(rewardCoins)}`}
+                        return (
+                            <React.Fragment key={game.id}>
+                                <div className="flex flex-col items-center shrink-0" style={{ width: 92, gap: 6 }}>
+                                    {/* Stage label */}
+                                    <span className={`font-black ${isActive ? 'text-fuchsia-200' : isDone ? 'text-green-300' : 'text-white/30'}`} style={{ fontSize: 10 }}>
+                                        Stage {pi + 1}
                                     </span>
-                                </div>
 
-                                {/* Play Now button for active slot only */}
-                                {isActive && (
+                                    {/* Slot card — slot-style chrome (inset highlights, no colored borders) */}
                                     <button
-                                        className="pill-green"
-                                        onClick={() => { onPlaySlot(game.id); onClose(); }}
-                                        style={{ minWidth: 76 }}>
-                                        <div className="pill-face" style={{ padding: '4px 10px', fontSize: '8px' }}>Play Now</div>
+                                        onClick={() => { if (isActive) { onPlaySlot(game.id); onClose(); } }}
+                                        className={`relative overflow-hidden ${isActive ? 'active:scale-95 transition-transform' : ''}`}
+                                        style={{
+                                            width: 78, height: 78, borderRadius: 16,
+                                            boxShadow: isActive
+                                                ? 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), 0 0 18px rgba(168,85,247,0.7), 0 6px 18px rgba(0,0,0,0.7)'
+                                                : 'inset 0 3px 0 rgba(220,170,255,0.5), inset 0 -3px 0 rgba(50,0,120,0.6), 0 4px 12px rgba(0,0,0,0.6)',
+                                            filter: isLocked ? 'brightness(0.45) grayscale(0.5)' : isDone ? 'brightness(0.7)' : 'none',
+                                            cursor: isActive ? 'pointer' : 'default',
+                                            animation: isActive ? 'piggyShake 0.8s ease-in-out infinite' : 'none',
+                                        }}>
+                                        <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`} style={{ borderRadius: 14 }} />
+                                        {game.coverImage ? (
+                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ borderRadius: 14 }} />
+                                        ) : (
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                {THEME_PNG[game.theme]
+                                                    ? <img src={THEME_PNG[game.theme]} alt="" style={{ width: 46, height: 46, objectFit: 'contain' }} />
+                                                    : <span style={{ fontSize: 32 }}>🎰</span>}
+                                            </div>
+                                        )}
+                                        {isDone && (
+                                            <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                                                <i className="ti ti-check text-green-400" style={{ fontSize: 28 }} />
+                                            </div>
+                                        )}
+                                        {isLocked && (
+                                            <img src="/ui/lock.png" alt="" className="absolute z-30 pointer-events-none select-none"
+                                                style={{ top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 30, height: 30, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
+                                        )}
+                                        {isActive && (
+                                            <div className="absolute top-1 left-0 right-0 flex justify-center">
+                                                <span className="font-black text-white" style={{ background: 'rgba(124,58,237,0.92)', borderRadius: 4, padding: '1px 7px', fontSize: 8 }}>Now</span>
+                                            </div>
+                                        )}
                                     </button>
-                                )}
-                            </div>
 
-                            {/* Arrow connector */}
-                            {pi < pathGames.length - 1 && (
-                                <div style={{ flexShrink: 0, width: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: -30 }}>
-                                    <i className="ti ti-chevron-right" style={{
-                                        fontSize: 16,
-                                        color: pi < currentPathIndex ? '#4ade80' : 'rgba(255,255,255,0.12)',
-                                    }} />
+                                    {/* Game name */}
+                                    <span className={`font-bold text-center ${isActive ? 'text-fuchsia-100' : isDone ? 'text-green-200' : 'text-white/30'}`}
+                                        style={{ fontSize: 10, maxWidth: 88, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {game.name}
+                                    </span>
+
+                                    {/* Gift reward */}
+                                    <div className="flex flex-col items-center" style={{ gap: 2 }}>
+                                        <img src="/ui/collect.png" alt=""
+                                            style={{ width: 36, height: 36, objectFit: 'contain', filter: isDone || isLocked ? 'grayscale(1) brightness(0.4)' : 'drop-shadow(0 2px 6px rgba(251,191,36,0.5))' }} />
+                                        <span className={`font-black ${isDone ? 'text-white/30' : isActive ? 'text-amber-300' : 'text-white/40'}`} style={{ fontSize: 10 }}>
+                                            {isDone ? 'Claimed' : `+${formatK(rewardCoins)}`}
+                                        </span>
+                                    </div>
+
+                                    {/* Play button for active stage */}
+                                    {isActive && (
+                                        <button className="pill-green" onClick={() => { onPlaySlot(game.id); onClose(); }}>
+                                            <div className="pill-face" style={{ padding: '4px 12px', fontSize: '10px' }}>Play Now</div>
+                                        </button>
+                                    )}
                                 </div>
-                            )}
-                        </React.Fragment>
-                    );
-                })}
-                <div style={{ width: 20, flexShrink: 0 }} />
-            </div>
 
-            {/* Footer hint */}
-            <div className="shrink-0 px-4 pb-4 pt-2 text-center"
-                style={{ borderTop: '1px solid rgba(168,85,247,0.1)' }}>
-                <span style={{ fontSize: 8, color: '#4b5563', fontWeight: 600 }}>
-                    Complete all missions in each slot to unlock the next stage and claim your reward
-                </span>
+                                {/* Connector */}
+                                {pi < pathGames.length - 1 && (
+                                    <div className="shrink-0 flex items-center justify-center" style={{ width: 18, marginTop: -34 }}>
+                                        <i className={`ti ti-chevron-right ${pi < currentPathIndex ? 'text-green-400' : 'text-white/15'}`} style={{ fontSize: 16 }} />
+                                    </div>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

@@ -162,36 +162,32 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                     style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(6px)' }}
                     onClick={() => setPendingClaim(null)}>
                     <div
-                        className="flex flex-col items-center rounded-2xl gap-3 px-7 py-6"
-                        style={{ background: 'linear-gradient(160deg,#1e0d3e 0%,#0d0020 100%)', border: '1px solid rgba(168,85,247,0.3)', boxShadow: '0 12px 40px rgba(0,0,0,0.95)', minWidth: 210 }}
+                        className="tcard flex flex-col items-center gap-3 px-7 py-6"
+                        style={{ minWidth: 220 }}
                         onClick={e => e.stopPropagation()}>
                         {/* Base amount */}
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 700, marginBottom: 4 }}>Base Reward</div>
-                            <div style={{ fontSize: 20, fontWeight: 900, color: '#c4b5fd' }}>{formatCommaNumber(pendingClaim.reward)}</div>
+                        <div className="text-center">
+                            <div className="font-bold text-white/50" style={{ fontSize: 10, marginBottom: 4 }}>Base reward</div>
+                            <div className="font-black text-purple-200" style={{ fontSize: 20 }}>{formatCommaNumber(pendingClaim.reward)}</div>
                         </div>
 
                         {collectMultiplier > 1 ? (
                             <>
                                 {/* Multiplier */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <div style={{ flex: 1, height: 1, background: 'rgba(168,85,247,0.25)' }} />
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                        <img src="/ui/exp_multiplier.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} />
-                                        <span style={{ fontSize: 22, fontWeight: 900, color: '#fbbf24', lineHeight: 1 }}>{collectMultiplier}×</span>
-                                    </div>
-                                    <div style={{ flex: 1, height: 1, background: 'rgba(168,85,247,0.25)' }} />
+                                <div className="flex items-center gap-1.5">
+                                    <img src="/ui/exp_multiplier.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
+                                    <span className="font-black text-amber-300" style={{ fontSize: 24, lineHeight: 1 }}>{collectMultiplier}×</span>
                                 </div>
                                 {/* Total */}
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: 9, color: '#6b7280', fontWeight: 700, marginBottom: 4 }}>Total</div>
-                                    <div style={{ fontSize: 28, fontWeight: 900, color: '#fff', textShadow: '0 0 20px rgba(251,191,36,0.5)', lineHeight: 1 }}>
+                                <div className="text-center">
+                                    <div className="font-bold text-white/50" style={{ fontSize: 10, marginBottom: 4 }}>Total</div>
+                                    <div className="font-black text-white" style={{ fontSize: 28, textShadow: '0 0 20px rgba(251,191,36,0.5)', lineHeight: 1 }}>
                                         {formatCommaNumber(Math.floor(pendingClaim.reward * collectMultiplier))}
                                     </div>
                                 </div>
                             </>
                         ) : (
-                            <div style={{ fontSize: 8, color: '#4b5563', textAlign: 'center' }}>
+                            <div className="text-center text-white/40" style={{ fontSize: 10 }}>
                                 Spin more to unlock a bonus multiplier
                             </div>
                         )}
@@ -210,6 +206,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
         <JackpotRouletteModal
             isOpen={showRoulette}
             baseAmount={jackpotBaseAmount}
+            collectMultiplier={collectMultiplier}
             onClose={() => setShowRoulette(false)}
             onClaim={(amount) => { onJackpotClaim?.(amount); setShowRoulette(false); }}
         />
