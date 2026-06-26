@@ -252,7 +252,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                         /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
-                            className="grid gap-x-2 gap-y-8 auto-cols-max pt-5 pb-4 overflow-x-auto no-scrollbar snap-x items-start"
+                            className="grid gap-x-2 gap-y-8 auto-cols-max pt-2 pb-4 overflow-x-auto no-scrollbar snap-x items-start"
                             style={{
                                 gridTemplateRows: 'repeat(2, auto)',
                                 gridAutoFlow: 'column',
@@ -265,7 +265,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button
                                 onClick={onOpenBattlePass}
                                 className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
-                                style={{ width: 116, height: 200, alignSelf: 'flex-start', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
+                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
                                 <img src="/lobbybanner_missionpass.png" alt="Mission Pass" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
                             </button>
 
@@ -273,21 +273,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button
                                 onClick={onOpenVipLounge}
                                 className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
-                                style={{ width: 116, height: 200, alignSelf: 'flex-start', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
+                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
                                 <img src="/lobbybanner_viplounge.png" alt="VIP Lounge" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
                             </button>
 
                             {GAMES_CONFIG.map((game, idx) => {
-                                const titleStyle = game.theme === 'NEON' ? 'text-fuchsia-300 drop-shadow-[0_0_8px_rgba(232,121,249,0.8)]' :
-                                    game.theme === 'EGYPT' ? 'text-amber-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]' :
-                                    game.theme === 'DRAGON' ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]' :
-                                    game.theme === 'PIRATE' ? 'text-sky-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]' :
-                                    game.theme === 'SPACE' ? 'text-indigo-400 drop-shadow-[0_0_8px_rgba(129,140,248,0.8)]' :
-                                    game.theme === 'PIGGY' ? 'text-pink-300 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]' :
-                                    game.theme === 'GOLDEN_POT' ? 'text-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]' :
-                                    game.theme === 'LEPRECHAUN' ? 'text-emerald-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]' :
-                                    game.theme === 'ARCTIC' ? 'text-cyan-300 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]' :
-                                    'text-pink-400 drop-shadow-[0_0_8px_rgba(244,114,182,0.8)]';
                                 let icon = '🍭';
                                 if (game.theme === 'NEON') icon = '🎰';
                                 else if (game.theme === 'EGYPT') icon = '🦂';
@@ -308,38 +298,43 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 const unlockLevel = getUnlockLevel(idx);
                                 const isLocked = playerLevel < unlockLevel;
                                 return (
-                                    <button
+                                    /* Wrapper is the grid item — jackpot label in normal flow so row height includes it */
+                                    <div
                                         key={game.id}
-                                        onClick={() => onSelectGame(game, false)}
-                                        className={`row-span-1 relative group w-[76px] h-[76px] md:w-[96px] md:h-[96px] overflow-visible snap-center ${isLocked ? 'cursor-not-allowed' : ''}`}
-                                        style={{ borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
+                                        className="row-span-1 snap-center flex flex-col items-center"
+                                        style={{ gap: 4 }}
                                     >
-                                        <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none flex items-center justify-center" style={{ transform: 'translateY(-100%)' }}>
-                                            <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'4px', padding:'2px 6px' }}>
-                                                {formatK(jackpotTotals[idx] ?? 0)}
-                                            </span>
-                                        </div>
-                                        <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 14 }}></div>
-                                        {game.coverImage && (
-                                            <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1, borderRadius: 14, objectPosition: 'center' }} />
-                                        )}
-                                        <div className="absolute inset-0 overflow-hidden z-10 select-none" style={{ borderRadius: 14 }}>
-                                            {!game.coverImage && (
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    {THEME_PNG[game.theme] ? (
-                                                        <img src={THEME_PNG[game.theme]} alt="" style={{ width: THEME_ICON_SIZE[game.theme] ?? '4.5rem', height: THEME_ICON_SIZE[game.theme] ?? '4.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }} />
-                                                    ) : (
-                                                        <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
-                                                    )}
-                                                </div>
+                                        {/* Jackpot label — normal flow, contributes to grid row height */}
+                                        <span style={{ fontSize:'11px', fontWeight:900, color:'#f3e8ff', whiteSpace:'nowrap', lineHeight:1, background:'rgba(10,2,30,0.9)', border:'1.5px solid #7c3aed', borderRadius:'4px', padding:'2px 6px' }}>
+                                            {formatK(jackpotTotals[idx] ?? 0)}
+                                        </span>
+                                        <button
+                                            onClick={() => onSelectGame(game, false)}
+                                            className={`relative group w-[76px] h-[76px] md:w-[96px] md:h-[96px] ${isLocked ? 'cursor-not-allowed' : ''}`}
+                                            style={{ borderRadius: 16, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
+                                        >
+                                            <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 14 }}></div>
+                                            {game.coverImage && (
+                                                <img src={game.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" style={{ zIndex: 1, borderRadius: 14, objectPosition: 'center' }} />
                                             )}
-                                        </div>
-                                        <div className="absolute inset-0 overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: 14 }}></div>
-                                        {isLocked && (
-                                            <img src="/ui/lock.png" alt="" className="absolute z-30 pointer-events-none select-none"
-                                                style={{ top: 4, right: 4, width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
-                                        )}
-                                    </button>
+                                            <div className="absolute inset-0 overflow-hidden z-10 select-none" style={{ borderRadius: 14 }}>
+                                                {!game.coverImage && (
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        {THEME_PNG[game.theme] ? (
+                                                            <img src={THEME_PNG[game.theme]} alt="" style={{ width: THEME_ICON_SIZE[game.theme] ?? '4.5rem', height: THEME_ICON_SIZE[game.theme] ?? '4.5rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }} />
+                                                        ) : (
+                                                            <span style={{ fontSize: '4rem', lineHeight: 1, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.8))' }}>{icon}</span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="absolute inset-0 overflow-hidden bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none z-10" style={{ borderRadius: 14 }}></div>
+                                            {isLocked && (
+                                                <img src="/ui/lock.png" alt="" className="absolute z-30 pointer-events-none select-none"
+                                                    style={{ top: 4, right: 4, width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
+                                            )}
+                                        </button>
+                                    </div>
                                 );
                             })}
                             <div className="w-8"></div>
