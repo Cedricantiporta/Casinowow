@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { SlotQuestMission } from '../types';
 import { formatK } from '../constants';
 
@@ -9,57 +9,45 @@ interface SlotQuestPanelProps {
     rewardCoins: number;
     allDone: boolean;
     onOpenQuestPath: () => void;
+    onClose: () => void;
 }
 
 const TYPE_ICON: Record<string, string> = {
-    WIN_COUNT:   'ti-trophy',
-    SPIN_COUNT:  'ti-refresh',
-    MAX_BET_SPIN:'ti-bolt',
-    WIN_COINS:   'ti-coin',
+    WIN_COUNT:    'ti-trophy',
+    SPIN_COUNT:   'ti-refresh',
+    MAX_BET_SPIN: 'ti-bolt',
+    WIN_COINS:    'ti-coin',
+    BET_COINS:    'ti-coins',
+    BIG_WIN_COUNT:'ti-flame',
+    LEVEL_UP:     'ti-star',
+    REACH_LEVEL:  'ti-star',
 };
 
+// Semi-transparent — readable but lets the reels show through a little.
 const PANEL_BG = {
-    background: 'rgba(14,0,38,0.96)',
-    boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.28), inset 0 -3px 0 rgba(0,0,0,0.7), 0 6px 24px rgba(0,0,0,0.85)',
+    background: 'linear-gradient(180deg,rgba(120,55,180,0.82),rgba(48,12,96,0.86))',
+    backdropFilter: 'blur(5px)',
+    WebkitBackdropFilter: 'blur(5px)',
+    boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.4), 0 6px 22px rgba(0,0,0,0.7)',
 };
 
 export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
-    missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onOpenQuestPath,
+    missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onOpenQuestPath, onClose,
 }) => {
-    const [open, setOpen] = useState(true);
-
-    if (!open) {
-        return (
-            <div
-                onClick={() => setOpen(true)}
-                className="cursor-pointer"
-                style={{
-                    ...PANEL_BG,
-                    position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
-                    zIndex: 40, borderRadius: '14px 0 0 14px',
-                    padding: '10px 6px',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                }}>
-                <img src="/questlobbyicon.png" alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} />
-                <span className="font-black text-white/90" style={{ writingMode: 'vertical-rl', fontSize: 9, letterSpacing: 1 }}>Quest</span>
-            </div>
-        );
-    }
-
     return (
         <div style={{
             ...PANEL_BG,
-            position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
-            zIndex: 40, width: 140, borderRadius: '16px 0 0 16px', overflow: 'hidden',
-        }}>
+            position: 'absolute', left: 74, top: '38%', transform: 'translateY(-38%)',
+            zIndex: 45, width: 150, borderRadius: 16, overflow: 'hidden',
+        }} className="animate-pop-in">
             {/* Header */}
             <div className="flex items-center justify-between" style={{ padding: '7px 9px 6px' }}>
                 <div className="flex items-center gap-1.5">
                     <img src="/questlobbyicon.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
                     <span className="font-black text-white" style={{ fontSize: 11 }}>Quest</span>
                 </div>
-                <button onClick={() => setOpen(false)} className="text-white/60" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>
-                    <i className="ti ti-chevron-right" style={{ fontSize: 14 }} />
+                <button onClick={onClose} className="text-white/70" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, lineHeight: 1 }}>
+                    <i className="ti ti-chevron-left" style={{ fontSize: 14 }} />
                 </button>
             </div>
 
@@ -77,8 +65,9 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
                 {missions.map(m => {
                     const pct = Math.min(100, m.target > 0 ? (m.current / m.target) * 100 : 0);
                     const done = m.current >= m.target;
-                    const displayCurrent = m.type === 'WIN_COINS' ? formatK(m.current) : String(m.current);
-                    const displayTarget = m.type === 'WIN_COINS' ? formatK(m.target) : String(m.target);
+                    const isCoins = m.type === 'WIN_COINS' || m.type === 'BET_COINS';
+                    const displayCurrent = isCoins ? formatK(m.current) : String(m.current);
+                    const displayTarget = isCoins ? formatK(m.target) : String(m.target);
                     return (
                         <div key={m.id}>
                             <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>

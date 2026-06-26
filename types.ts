@@ -130,7 +130,7 @@ export interface QuestState {
 
 export interface SlotQuestMission {
     id: string;
-    type: 'WIN_COUNT' | 'SPIN_COUNT' | 'MAX_BET_SPIN' | 'WIN_COINS';
+    type: 'WIN_COUNT' | 'SPIN_COUNT' | 'MAX_BET_SPIN' | 'WIN_COINS' | 'BET_COINS' | 'BIG_WIN_COUNT' | 'LEVEL_UP' | 'REACH_LEVEL';
     label: string;
     description: string;
     current: number;

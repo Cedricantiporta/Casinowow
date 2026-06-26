@@ -576,13 +576,69 @@ const App: React.FC = () => {
       'cosmic-cash',    // Supernova cascade
       'sugar-rush',     // Expanding wild reels
   ];
-  const makeSlotMissions = (slotId: string, bet: number): SlotQuestMission[] => {
+  const makeSlotMissions = (slotId: string, bet: number, stageIndex: number = 0, playerLevel: number = 1): SlotQuestMission[] => {
       const base = Math.max(bet, 1000);
-      return [
-          { id: `${slotId}_win`, type: 'WIN_COUNT', label: 'WIN', description: 'Win 20 times in Base Game', current: 0, target: 20 },
-          { id: `${slotId}_maxbet`, type: 'MAX_BET_SPIN', label: 'MAX', description: 'Spin 10 times on Max Bet', current: 0, target: 10 },
-          { id: `${slotId}_coins`, type: 'WIN_COINS', label: 'COINS', description: `Win a total of ${Math.round(base * 50 / 1e9)}B Coins`, current: 0, target: base * 50 },
+      // Mission template builders — each stage draws a distinct trio so no two
+      // stages feel identical (spin counts, big wins, total bet, level ups, etc).
+      const M = {
+          win:    (t: number): SlotQuestMission => ({ id: `${slotId}_win`,    type: 'WIN_COUNT',     label: 'Win',   description: `Win ${t} times`, current: 0, target: t }),
+          spin:   (t: number): SlotQuestMission => ({ id: `${slotId}_spin`,   type: 'SPIN_COUNT',    label: 'Spin',  description: `Spin ${t} times`, current: 0, target: t }),
+          maxbet: (t: number): SlotQuestMission => ({ id: `${slotId}_maxbet`, type: 'MAX_BET_SPIN',  label: 'Max',   description: `Spin ${t} times on Max Bet`, current: 0, target: t }),
+          coins:  (mult: number): SlotQuestMission => ({ id: `${slotId}_coins`, type: 'WIN_COINS',   label: 'Coins', description: `Win a total of ${formatK(base * mult)} Coins`, current: 0, target: base * mult }),
+          bet:    (mult: number): SlotQuestMission => ({ id: `${slotId}_bet`,   type: 'BET_COINS',   label: 'Bet',   description: `Bet a total of ${formatK(base * mult)} Coins`, current: 0, target: base * mult }),
+          big:    (t: number): SlotQuestMission => ({ id: `${slotId}_big`,    type: 'BIG_WIN_COUNT', label: 'Big',   description: `Land ${t} Big Wins`, current: 0, target: t }),
+          level:  (t: number): SlotQuestMission => ({ id: `${slotId}_level`,  type: 'LEVEL_UP',      label: 'Level', description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
+          reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
+      };
+      const stages: SlotQuestMission[][] = [
+          [M.reach(10),  M.win(20),  M.spin(30)],
+          [M.spin(40),   M.big(3),   M.bet(80)],
+          [M.win(25),    M.maxbet(10), M.coins(70)],
+          [M.big(5),     M.spin(50), M.bet(120)],
+          [M.win(30),    M.level(2), M.coins(90)],
+          [M.maxbet(12), M.big(4),   M.bet(150)],
+          [M.win(35),    M.spin(60), M.coins(110)],
+          [M.level(3),   M.big(6),   M.coins(140)],
       ];
+      return stages[stageIndex % stages.length];
+  };
+  // Advance a slot-quest mission of the given type while playing the active path slot.
+  const trackSlotQuest = (matchType: SlotQuestMission['type'], delta: number) => {
+      if (delta <= 0 || !selectedGame) return;
+      setSlotQuestState(prev => {
+          if (!prev.missions.length || prev.pathSlotIds[prev.currentPathIndex] !== selectedGame.id) return prev;
+          let changed = false;
+          const updated = prev.missions.map(m => {
+              if (m.type === matchType && m.current < m.target) {
+                  changed = true;
+                  return { ...m, current: Math.min(m.target, m.current + delta) };
+              }
+              return m;
+          });
+          if (!changed) return prev;
+          const next = { ...prev, missions: updated };
+          try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
+          return next;
+      });
+  };
+  // "Reach level X" missions track the absolute player level rather than a count.
+  const trackSlotReachLevel = (level: number) => {
+      if (!selectedGame) return;
+      setSlotQuestState(prev => {
+          if (!prev.missions.length || prev.pathSlotIds[prev.currentPathIndex] !== selectedGame.id) return prev;
+          let changed = false;
+          const updated = prev.missions.map(m => {
+              if (m.type === 'REACH_LEVEL' && m.current < m.target) {
+                  changed = true;
+                  return { ...m, current: Math.min(m.target, level) };
+              }
+              return m;
+          });
+          if (!changed) return prev;
+          const next = { ...prev, missions: updated };
+          try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
+          return next;
+      });
   };
   const [slotQuestState, setSlotQuestState] = useState<SlotQuestState>(() => {
       try {
@@ -592,6 +648,7 @@ const App: React.FC = () => {
       return { pathSlotIds: QUEST_PATH_IDS, currentPathIndex: 0, missions: [] };
   });
   const [showQuestPath, setShowQuestPath] = useState(false);
+  const [showQuestSidebar, setShowQuestSidebar] = useState(false);
 
   // Hold and Win state (Egypt / Pharaoh's Tomb)
   const [holdWinActive, setHoldWinActive] = useState(false);
@@ -1014,18 +1071,13 @@ const App: React.FC = () => {
            audioService.playStoneBreak();
            return;
       }
-      if (modal === 'MISSIONS' && currentLevel < 10) {
-          setCelebrationMsg("Missions Unlock at Level 10!");
-          audioService.playStoneBreak();
-          return;
-      }
       if (modal === 'COLLECTION' && currentLevel < 30) {
           setCelebrationMsg("Cards Unlock at Level 30!");
           audioService.playStoneBreak();
           return;
       }
-      if (modal === 'PIGGY' && currentLevel < 5) {
-          setCelebrationMsg("Piggy Bank Unlocks at Level 5!");
+      if (modal === 'PIGGY' && currentLevel < 10) {
+          setCelebrationMsg("Piggy Bank Unlocks at Level 10!");
           audioService.playStoneBreak();
           return;
       }
@@ -1047,11 +1099,21 @@ const App: React.FC = () => {
   };
 
   const openMissionsModal = () => {
+      if (playerRef.current.level < 15) {
+          setCelebrationMsg("Missions Unlock at Level 15!");
+          audioService.playStoneBreak();
+          return;
+      }
       setMissionInitialView('MISSIONS');
       openModal('MISSIONS');
   };
 
   const openBattlePassModal = () => {
+      if (playerRef.current.level < 10) {
+          setCelebrationMsg("Mission Pass Unlocks at Level 10!");
+          audioService.playStoneBreak();
+          return;
+      }
       setMissionInitialView('PASS');
       openModal('MISSIONS');
   };
@@ -1061,8 +1123,8 @@ const App: React.FC = () => {
   };
 
   const handleOpenPiggyBank = () => {
-      if (playerRef.current.level < 5) {
-           setCelebrationMsg("Piggy Bank Unlocks at Level 5!");
+      if (playerRef.current.level < 10) {
+           setCelebrationMsg("Piggy Bank Unlocks at Level 10!");
            audioService.playStoneBreak();
            return;
       }
@@ -1175,6 +1237,9 @@ const App: React.FC = () => {
   };
 
   const handleSlotQuestClaim = () => {
+      // Guard: only claim when the active stage actually has completed missions.
+      // (An empty missions array would otherwise pass .every() and auto-advance.)
+      if (!slotQuestState.missions.length || !slotQuestState.missions.every(m => m.current >= m.target)) return;
       const rewardCoins = currentBetRef.current * 20;
       setPlayer(p => ({ ...p, balance: p.balance + rewardCoins }));
       setSlotQuestState(prev => {
@@ -1325,7 +1390,7 @@ const App: React.FC = () => {
   }, [loginState]);
 
   const updateMissions = (type: MissionType, amount: number) => {
-      if (player.level < 10) return; 
+      if (player.level < 15) return;
       setMissionState(prev => {
           const visibleIds = new Set<string>();
           const frequencies = ['DAILY'];
@@ -2567,16 +2632,10 @@ const App: React.FC = () => {
       updateMissions(MissionType.SPIN_COUNT, 1);
       updateMissions(MissionType.BET_COINS, currentBet);
       if (betIndex === availableBets.length - 1) updateMissions(MissionType.MAX_BET_SPIN, 1);
-      // Track slot quest progress (max-bet spin)
-      if (selectedGame && betIndex === availableBets.length - 1) {
-          setSlotQuestState(prev => {
-              if (!prev.missions.length || prev.pathSlotIds[prev.currentPathIndex] !== selectedGame.id) return prev;
-              const updated = prev.missions.map(m => m.type === 'MAX_BET_SPIN' && m.current < m.target ? { ...m, current: m.current + 1 } : m);
-              const next = { ...prev, missions: updated };
-              try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
-              return next;
-          });
-      }
+      // Track slot quest progress (per-spin: spin count, total bet, max-bet spins)
+      trackSlotQuest('SPIN_COUNT', 1);
+      trackSlotQuest('BET_COINS', currentBet);
+      if (betIndex === availableBets.length - 1) trackSlotQuest('MAX_BET_SPIN', 1);
       // Track VIP bets for end-of-day cashback
       if (player.isVip) {
           const today = new Date().toDateString();
@@ -3244,20 +3303,10 @@ const App: React.FC = () => {
        if (player.isVip) addVipXp(1);
        updateMissions(MissionType.WIN_COINS, totalPayout);
        if (winTier) updateMissions(MissionType.BIG_WIN_COUNT, 1);
-       // Track slot quest progress (wins + coins)
-       if (selectedGame && totalPayout > 0) {
-           setSlotQuestState(prev => {
-               if (!prev.missions.length || prev.pathSlotIds[prev.currentPathIndex] !== selectedGame.id) return prev;
-               const updated = prev.missions.map(m =>
-                   m.type === 'WIN_COUNT' && m.current < m.target ? { ...m, current: m.current + 1 } :
-                   m.type === 'WIN_COINS' && m.current < m.target ? { ...m, current: Math.min(m.target, m.current + totalPayout) } :
-                   m
-               );
-               const next = { ...prev, missions: updated };
-               try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
-               return next;
-           });
-       }
+       // Track slot quest progress (wins, coins won, big wins)
+       trackSlotQuest('WIN_COUNT', 1);
+       trackSlotQuest('WIN_COINS', totalPayout);
+       if (winTier) trackSlotQuest('BIG_WIN_COUNT', 1);
 
        // Base-game win amount shown in the bottom bar (persists until next spin).
        if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
@@ -3329,6 +3378,8 @@ const App: React.FC = () => {
                   setTimeout(() => setShowLevelUp(false), 2000);
               }
               updateMissions(MissionType.LEVEL_UP, 1);
+              trackSlotQuest('LEVEL_UP', newLevel - prev.level);
+              trackSlotReachLevel(newLevel);
               setMissionState(prev => ({
                   ...prev,
                   passRewards: GENERATE_PASS_REWARDS(10000).map(r => {
@@ -3773,7 +3824,7 @@ const App: React.FC = () => {
           setSlotQuestState(prev => {
               const activePath = prev.pathSlotIds[prev.currentPathIndex];
               if (game.id === activePath && (!prev.missions || prev.missions.length === 0 || prev.missions[0].id.split('_')[0] !== game.id)) {
-                  const newMissions = makeSlotMissions(game.id, currentBetRef.current);
+                  const newMissions = makeSlotMissions(game.id, currentBetRef.current, prev.currentPathIndex, player.level);
                   const next = { ...prev, missions: newMissions };
                   try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
                   return next;
@@ -4517,6 +4568,21 @@ const App: React.FC = () => {
                         <div className="absolute left-1 z-40 flex flex-col gap-1 items-center select-none"
                             style={{ background: isHighLimit ? 'linear-gradient(180deg,rgba(201,144,26,0.92),rgba(122,80,0,0.92))' : 'linear-gradient(180deg,rgba(124,63,181,0.92),rgba(74,24,128,0.92))', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
                             {sidebarPage === 0 ? (<>
+                                {/* Quest — opens the slot quest panel anchored to the sidebar's right edge */}
+                                {slotQuestState.missions.length > 0 && (
+                                    <button
+                                        onClick={() => setShowQuestSidebar(v => !v)}
+                                        className="relative flex flex-col items-center active:scale-95 transition-transform"
+                                    >
+                                        {slotQuestState.missions.every(m => m.current >= m.target) && (
+                                            <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                !
+                                            </div>
+                                        )}
+                                        <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <div style={pillStyle}>Quest</div>
+                                    </button>
+                                )}
                                 {/* Mine */}
                                 <button
                                     onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
@@ -4527,7 +4593,7 @@ const App: React.FC = () => {
                                             {quest.wildCredits}
                                         </div>
                                     )}
-                                    <img src="/ui/mine_new.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                    <img src="/ui/coinmine.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                     <div style={pillStyle}>Play</div>
                                 </button>
                                 {/* Dice */}
@@ -5026,8 +5092,8 @@ const App: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Slot Quest panel — right-side overlay showing quest progress for current slot path */}
-                    {selectedGame && slotQuestState.missions.length > 0 && (
+                    {/* Slot Quest panel — pops out from the right edge of the left sidebar */}
+                    {selectedGame && slotQuestState.missions.length > 0 && showQuestSidebar && (
                         <SlotQuestPanel
                             missions={slotQuestState.missions}
                             activeSlotName={GAMES_CONFIG.find(g => g.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex])?.name || ''}
@@ -5035,6 +5101,7 @@ const App: React.FC = () => {
                             rewardCoins={currentBetRef.current * 20}
                             allDone={slotQuestState.missions.every(m => m.current >= m.target)}
                             onOpenQuestPath={() => setShowQuestPath(true)}
+                            onClose={() => setShowQuestSidebar(false)}
                         />
                     )}
                 </div>
@@ -5347,7 +5414,7 @@ const App: React.FC = () => {
               if (game) handleGameSelect(game, false, true);
           }}
           rewardCoins={currentBetRef.current * 20}
-          allMissionsDone={slotQuestState.missions.every(m => m.current >= m.target)}
+          allMissionsDone={slotQuestState.missions.length > 0 && slotQuestState.missions.every(m => m.current >= m.target)}
           onClaim={handleSlotQuestClaim}
       />
 

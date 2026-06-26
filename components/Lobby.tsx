@@ -157,9 +157,10 @@ export const Lobby: React.FC<LobbyProps> = ({
     const getUnlockLevel = (index: number) => index === 0 ? 0 : index * 5 + 1;
 
     // Feature Locks
-    const isPiggyLocked = playerLevel < 5;
+    const isPiggyLocked = playerLevel < 10;
     const isQuestLocked = playerLevel < 20;
-    const isMissionsLocked = playerLevel < 10;
+    const isMissionsLocked = playerLevel < 15;
+    const isPassLocked = playerLevel < 10;
     const isCardsLocked = playerLevel < 30;
     const isHighRollerLocked = playerLevel < 35;
     const isRankingLocked = playerLevel < 18;
@@ -491,11 +492,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {sep}
 
                             {/* Pass */}
-                            <button onClick={!isMissionsLocked ? onOpenBattlePass : undefined} className={iconBtn(isMissionsLocked)}>
+                            <button onClick={!isPassLocked ? onOpenBattlePass : undefined} className={iconBtn(isPassLocked)}>
 
                                 <div className="relative leading-none">
                                     <img src="/ui/pass.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                    {totalMissionNotifs > 0 && !isMissionsLocked && (
+                                    {totalMissionNotifs > 0 && !isPassLocked && (
                                         <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
                                             <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{totalMissionNotifs}</span>

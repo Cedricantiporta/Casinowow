@@ -16,89 +16,83 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
 }) => {
     if (!isOpen) return null;
 
-    const questBadge = (n: number) => n > 0 ? (
-        <div className="absolute -top-1 -right-1 min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center text-white font-black text-[9px] leading-none z-10"
-            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
-            {n > 60 ? '60' : n}
-        </div>
-    ) : null;
-
     const games = [
         {
             key: 'wild',
             icon: '/ui/coinmine.png',
-            label: 'Wild Quest',
+            label: 'Coin Mine',
+            blurb: 'Dig for coins, gems and multipliers',
             credits: wildCredits,
-            accentColor: '#a855f7',
-            bg: isQuestLocked ? 'rgba(255,255,255,0.04)' : 'rgba(120,40,200,0.18)',
-            labelColor: '#e9d5ff',
-            creditColor: '#c084fc',
+            glow: 'rgba(168,85,247,0.55)',
             onOpen: onOpenWildQuest,
         },
         {
             key: 'dice',
             icon: '/ui/dice.png',
-            label: 'Dice Quest',
+            label: 'Dice Roll',
+            blurb: 'Roll across the board for big rewards',
             credits: diceCredits,
-            accentColor: '#3b82f6',
-            bg: isQuestLocked ? 'rgba(255,255,255,0.04)' : 'rgba(40,100,200,0.18)',
-            labelColor: '#bfdbfe',
-            creditColor: '#60a5fa',
+            glow: 'rgba(56,189,248,0.55)',
             onOpen: onOpenDiceQuest,
         },
     ];
 
     return (
-        <div className="absolute inset-0 z-[160] flex flex-col animate-pop-in select-none"
-            style={{ background: 'linear-gradient(160deg,#0f0025 0%,#1a0040 50%,#090015 100%)' }}>
+        <div className="absolute inset-0 z-[160] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none"
+            onClick={onClose}>
+            <div className="w-full max-w-sm rounded-3xl overflow-hidden flex flex-col"
+                onClick={e => e.stopPropagation()}
+                style={{
+                    background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)',
+                    boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
+                }}>
 
-            {/* Header */}
-            <div className="shrink-0 flex items-center gap-3 px-4 py-3">
-                <span className="font-black text-xl tracking-widest flex-1"
-                    style={{ background: 'linear-gradient(180deg,#e8b8ff,#c060ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    Mini Games
-                </span>
-                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}
-                    style={{ background: 'linear-gradient(180deg,#a060ff,#6020c0)', boxShadow: '0 2px 0 #3010a0' }}>
-                    <i className="ti ti-x"></i>
+                {/* Header */}
+                <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
+                    <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Mini Games</span>
+                    <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={onClose}><i className="ti ti-x" /></button>
                 </div>
-            </div>
 
-            <div className="flex-1 flex items-center justify-center gap-4 px-4 pb-4">
-                {games.map(game => (
-                    <button
-                        key={game.key}
-                        onClick={() => { if (!isQuestLocked) { onClose(); setTimeout(game.onOpen, 50); } }}
-                        className="relative flex flex-col items-center rounded-2xl py-7 px-4 active:scale-[0.97] transition-transform"
-                        style={{
-                            background: game.bg,
-                            opacity: isQuestLocked ? 0.5 : 1,
-                            flex: '1 1 0',
-                            minHeight: '260px',
-                            maxWidth: '160px',
-                            gap: '14px',
-                        }}>
-                        {questBadge(game.credits)}
-                        <img
-                            src={game.icon}
-                            alt=""
-                            style={{
-                                width: '5rem',
-                                height: '5rem',
-                                objectFit: 'contain',
-                                flexShrink: 0,
-                                filter: isQuestLocked ? 'grayscale(1)' : `drop-shadow(0 0 14px ${game.accentColor}99)`,
-                            }}
-                        />
-                        <div className="flex flex-col items-center gap-1 text-center">
-                            <span className="font-black text-sm uppercase tracking-widest" style={{ color: game.labelColor }}>{game.label}</span>
+                {/* Tiles */}
+                <div className="flex gap-2.5 px-4 pb-5 pt-1">
+                    {games.map(game => (
+                        <div key={game.key} className="tcard flex flex-col items-center flex-1 gap-2.5 p-3 relative">
+                            {/* Credit badge */}
                             {!isQuestLocked && game.credits > 0 && (
-                                <span className="text-xs font-bold" style={{ color: game.creditColor }}>{game.credits} / 60</span>
+                                <div className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
+                                    style={{
+                                        background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)',
+                                        boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)',
+                                    }}>
+                                    <span className="font-black text-white leading-none" style={{ fontSize: 9 }}>{game.credits > 60 ? 60 : game.credits}</span>
+                                </div>
                             )}
-                            {isQuestLocked && <span className="text-[10px] text-gray-500 font-bold">Unlocks at Lv.20</span>}
+
+                            <div className={`flex items-center justify-center ${isQuestLocked ? 'grayscale opacity-60' : ''}`} style={{ width: 80, height: 80 }}>
+                                <img src={game.icon} alt=""
+                                    style={{ width: 80, height: 80, objectFit: 'contain', filter: isQuestLocked ? undefined : `drop-shadow(0 0 12px ${game.glow})` }} />
+                            </div>
+
+                            <div className="font-black text-white text-center" style={{ fontSize: 13 }}>{game.label}</div>
+                            <div className="text-white/55 text-center" style={{ fontSize: 10, lineHeight: 1.3, minHeight: 26 }}>{game.blurb}</div>
+
+                            <button
+                                onClick={() => { if (!isQuestLocked) { onClose(); setTimeout(game.onOpen, 50); } }}
+                                disabled={isQuestLocked}
+                                className={`pill-green w-full ${isQuestLocked ? 'opacity-40' : ''}`}>
+                                <div className="pill-face" style={{ padding: '6px 10px', fontSize: '10px' }}>
+                                    {isQuestLocked ? 'Lv.20' : !isQuestLocked && game.credits > 0 ? `Play ${game.credits}/60` : 'Play'}
+                                </div>
+                            </button>
                         </div>
-                    </button>
-                ))}
+                    ))}
+                </div>
+
+                {isQuestLocked && (
+                    <div className="text-center text-white/50 pb-4" style={{ fontSize: 10, marginTop: -8 }}>
+                        Unlocks at level 20
+                    </div>
+                )}
             </div>
         </div>
     );
