@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GAMES_CONFIG, formatK } from '../constants';
 
 const THEME_PNG: Partial<Record<string, string>> = {
@@ -19,16 +19,28 @@ interface QuestPathModalProps {
     currentPathIndex: number;
     onPlaySlot: (slotId: string) => void;
     rewardCoins: number;
+    allMissionsDone?: boolean;
+    onClaim?: () => void;
 }
 
 export const QuestPathModal: React.FC<QuestPathModalProps> = ({
     isOpen, onClose, pathSlotIds, currentPathIndex, onPlaySlot, rewardCoins,
+    allMissionsDone = false, onClaim,
 }) => {
+    const [unlockingIndex, setUnlockingIndex] = useState<number | null>(null);
+
     if (!isOpen) return null;
 
     const pathGames = pathSlotIds
         .map(id => GAMES_CONFIG.find(g => g.id === id))
         .filter(Boolean) as typeof GAMES_CONFIG;
+
+    const handleClaim = () => {
+        const nextIdx = currentPathIndex + 1;
+        setUnlockingIndex(nextIdx);
+        setTimeout(() => setUnlockingIndex(null), 900);
+        onClaim?.();
+    };
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none"
@@ -57,6 +69,7 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
                         const isDone = pi < currentPathIndex;
                         const isActive = pi === currentPathIndex;
                         const isLocked = pi > currentPathIndex;
+                        const isUnlocking = pi === unlockingIndex;
 
                         return (
                             <React.Fragment key={game.id}>
@@ -66,18 +79,17 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
                                         Stage {pi + 1}
                                     </span>
 
-                                    {/* Slot card — slot-style chrome (inset highlights, no colored borders) */}
+                                    {/* Slot card */}
                                     <button
                                         onClick={() => { if (isActive) { onPlaySlot(game.id); onClose(); } }}
-                                        className={`relative overflow-hidden ${isActive ? 'active:scale-95 transition-transform' : ''}`}
+                                        className={`relative overflow-hidden ${isActive ? 'active:scale-95 transition-transform' : ''} ${isUnlocking ? 'animate-pop-in' : ''}`}
                                         style={{
                                             width: 78, height: 78, borderRadius: 16,
                                             boxShadow: isActive
                                                 ? 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), 0 0 18px rgba(168,85,247,0.7), 0 6px 18px rgba(0,0,0,0.7)'
                                                 : 'inset 0 3px 0 rgba(220,170,255,0.5), inset 0 -3px 0 rgba(50,0,120,0.6), 0 4px 12px rgba(0,0,0,0.6)',
-                                            filter: isLocked ? 'brightness(0.45) grayscale(0.5)' : isDone ? 'brightness(0.7)' : 'none',
+                                            filter: isLocked ? 'brightness(0.45) grayscale(0.5)' : 'none',
                                             cursor: isActive ? 'pointer' : 'default',
-                                            animation: isActive ? 'piggyShake 0.8s ease-in-out infinite' : 'none',
                                         }}>
                                         <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`} style={{ borderRadius: 14 }} />
                                         {game.coverImage ? (
@@ -90,7 +102,7 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
                                             </div>
                                         )}
                                         {isDone && (
-                                            <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                                            <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.35)' }}>
                                                 <i className="ti ti-check text-green-400" style={{ fontSize: 28 }} />
                                             </div>
                                         )}
@@ -120,10 +132,25 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
                                         </span>
                                     </div>
 
-                                    {/* Play button for active stage */}
-                                    {isActive && (
-                                        <button className="pill-green" onClick={() => { onPlaySlot(game.id); onClose(); }}>
-                                            <div className="pill-face" style={{ padding: '4px 12px', fontSize: '10px' }}>Play Now</div>
+                                    {/* Always-visible stage button */}
+                                    {isDone && (
+                                        <button disabled className="pill-green w-full opacity-40">
+                                            <div className="pill-face" style={{ padding: '4px 8px', fontSize: '10px' }}>Claimed</div>
+                                        </button>
+                                    )}
+                                    {isActive && allMissionsDone && (
+                                        <button className="pill-green w-full" onClick={handleClaim}>
+                                            <div className="pill-face" style={{ padding: '4px 8px', fontSize: '10px' }}>Claim</div>
+                                        </button>
+                                    )}
+                                    {isActive && !allMissionsDone && (
+                                        <button className="pill-green w-full" onClick={() => { onPlaySlot(game.id); onClose(); }}>
+                                            <div className="pill-face" style={{ padding: '4px 8px', fontSize: '10px' }}>Play Now</div>
+                                        </button>
+                                    )}
+                                    {isLocked && (
+                                        <button disabled className="pill-green w-full opacity-30">
+                                            <div className="pill-face" style={{ padding: '4px 8px', fontSize: '10px' }}>Locked</div>
                                         </button>
                                     )}
                                 </div>

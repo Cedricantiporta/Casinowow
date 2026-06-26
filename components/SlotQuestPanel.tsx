@@ -8,10 +8,9 @@ interface SlotQuestPanelProps {
     isOnActiveSlot: boolean;
     rewardCoins: number;
     allDone: boolean;
-    onClaim: () => void;
+    onOpenQuestPath: () => void;
 }
 
-// Tabler icon per mission type (UI_MAP: prefer line icons over caps text badges)
 const TYPE_ICON: Record<string, string> = {
     WIN_COUNT:   'ti-trophy',
     SPIN_COUNT:  'ti-refresh',
@@ -19,8 +18,13 @@ const TYPE_ICON: Record<string, string> = {
     WIN_COINS:   'ti-coin',
 };
 
+const PANEL_BG = {
+    background: 'rgba(14,0,38,0.96)',
+    boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.28), inset 0 -3px 0 rgba(0,0,0,0.7), 0 6px 24px rgba(0,0,0,0.85)',
+};
+
 export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
-    missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onClaim,
+    missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onOpenQuestPath,
 }) => {
     const [open, setOpen] = useState(true);
 
@@ -28,8 +32,9 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
         return (
             <div
                 onClick={() => setOpen(true)}
-                className="tcard cursor-pointer"
+                className="cursor-pointer"
                 style={{
+                    ...PANEL_BG,
                     position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
                     zIndex: 40, borderRadius: '14px 0 0 14px',
                     padding: '10px 6px',
@@ -42,7 +47,8 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
     }
 
     return (
-        <div className="tcard" style={{
+        <div style={{
+            ...PANEL_BG,
             position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)',
             zIndex: 40, width: 140, borderRadius: '16px 0 0 16px', overflow: 'hidden',
         }}>
@@ -75,12 +81,10 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
                     const displayTarget = m.type === 'WIN_COINS' ? formatK(m.target) : String(m.target);
                     return (
                         <div key={m.id}>
-                            {/* Description */}
                             <div className="flex items-center gap-1.5" style={{ marginBottom: 4 }}>
                                 <i className={`ti ${done ? 'ti-check' : TYPE_ICON[m.type]} ${done ? 'text-green-400' : 'text-white/70'}`} style={{ fontSize: 12 }} />
                                 <span className={done ? 'text-green-300' : 'text-white/85'} style={{ fontSize: 10, lineHeight: 1.2, fontWeight: 600 }}>{m.description}</span>
                             </div>
-                            {/* Progress bar — the one canonical .rtrack bar, X/XX label inside */}
                             <div className="rtrack" style={{ height: 15, minWidth: 0, padding: '0 6px' }}>
                                 <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
                                     <div style={{
@@ -104,11 +108,11 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
                 })}
             </div>
 
-            {/* Reward */}
+            {/* Footer */}
             <div style={{ padding: '0 9px 9px' }}>
                 {allDone ? (
-                    <button onClick={onClaim} className="pill-green w-full">
-                        <div className="pill-face" style={{ padding: '6px 4px', fontSize: '10px' }}>Claim +{formatK(rewardCoins)}</div>
+                    <button onClick={onOpenQuestPath} className="pill-green w-full">
+                        <div className="pill-face" style={{ padding: '6px 4px', fontSize: '10px' }}>Complete</div>
                     </button>
                 ) : (
                     <div className="flex items-center gap-1.5">

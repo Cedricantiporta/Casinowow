@@ -1183,8 +1183,7 @@ const App: React.FC = () => {
           try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
           return next;
       });
-      // After claiming, show the quest path so the player sees the next stage unlocked
-      setTimeout(() => setShowQuestPath(true), 400);
+      // Quest path modal is already open when claim is triggered from within it
   };
 
   useEffect(() => {
@@ -3090,7 +3089,7 @@ const App: React.FC = () => {
         const arcticVipMult = player.isVip ? 1.2 : 1.0;
         const arcticSpinsAtMax = Math.max(1, player.level * 1.1);
         const arcticBetFraction = currentBet / MAX_BET_BY_LEVEL(player.level);
-        const arcticXp = Math.floor((player.xpToNextLevel / arcticSpinsAtMax) * arcticBetFraction * player.xpMultiplier * arcticVipMult * 2);
+        const arcticXp = Math.floor((player.xpToNextLevel / arcticSpinsAtMax) * arcticBetFraction * player.xpMultiplier * arcticVipMult);
         addXp(arcticXp);
         if (totalPayout > 0) {
             setPlayer(prev => ({
@@ -3239,7 +3238,7 @@ const App: React.FC = () => {
        const spinsAtMaxBet = Math.max(1, player.level * 1.1);
        // XP is capped at the NORMAL lobby max bet — high-limit (bigger) bets grant no extra XP.
        const betFraction = Math.min(1, currentBet / MAX_BET_BY_LEVEL(player.level));
-       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult * 2);
+       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult);
 
        addXp(xpGained);
        if (player.isVip) addVipXp(1);
@@ -3296,7 +3295,7 @@ const App: React.FC = () => {
        const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
        // XP capped at the NORMAL lobby max bet — high-limit bets grant no extra XP.
        const betFractionLoss = Math.min(1, currentBet / MAX_BET_BY_LEVEL(player.level));
-       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss * 2);
+       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss);
        addXp(lossXp);
        if (player.isVip) addVipXp(1);
        const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
@@ -5035,7 +5034,7 @@ const App: React.FC = () => {
                             isOnActiveSlot={selectedGame.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex]}
                             rewardCoins={currentBetRef.current * 20}
                             allDone={slotQuestState.missions.every(m => m.current >= m.target)}
-                            onClaim={handleSlotQuestClaim}
+                            onOpenQuestPath={() => setShowQuestPath(true)}
                         />
                     )}
                 </div>
@@ -5348,6 +5347,8 @@ const App: React.FC = () => {
               if (game) handleGameSelect(game, false, true);
           }}
           rewardCoins={currentBetRef.current * 20}
+          allMissionsDone={slotQuestState.missions.every(m => m.current >= m.target)}
+          onClaim={handleSlotQuestClaim}
       />
 
       {/* Dragon Trigger Popup */}
