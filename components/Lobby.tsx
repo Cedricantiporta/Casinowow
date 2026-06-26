@@ -186,8 +186,21 @@ export const Lobby: React.FC<LobbyProps> = ({
 
               <div className="flex-1 relative flex flex-col pb-8 md:pb-9 overflow-hidden" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
 
+                {/* ── Topbar ── */}
+                <div className="shrink-0 flex items-center gap-2 px-4 select-none"
+                    style={{ height: 34, background: 'linear-gradient(180deg,rgba(0,0,0,0.55),rgba(0,0,0,0.25))' }}>
+                    <i className="ti ti-trophy text-amber-400" style={{ fontSize: 14 }} />
+                    <span className="font-black text-amber-200/80 uppercase tracking-widest" style={{ fontSize: 9 }}>Jackpot Pool</span>
+                    <span className="font-tanker text-amber-300" style={{ fontSize: 15, lineHeight: 1, textShadow: '0 0 10px rgba(251,191,36,0.6)' }}>
+                        {formatK(jackpotTotals.reduce((a, b) => a + b, 0) * (isHighLimit ? 10 : 1))}
+                    </span>
+                    <div className="ml-auto flex items-center gap-1.5">
+                        <span className="font-black text-white/50" style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Lv.{playerLevel}</span>
+                    </div>
+                </div>
+
                 {/* ── Slot grid ── */}
-                <div className="flex-1 flex items-center justify-start p-0.5 pt-0 overflow-hidden">
+                <div className="flex-1 flex items-end justify-start p-0.5 pt-0 overflow-hidden">
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
@@ -252,13 +265,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                         /* ── Normal lobby — horizontal scroll grid ── */
                         <div
                             ref={scrollRef}
-                            className="grid gap-x-2 gap-y-8 auto-cols-max pt-2 pb-4 overflow-x-auto no-scrollbar snap-x items-start"
+                            className="grid gap-x-2 gap-y-6 auto-cols-max pt-1 pb-3 overflow-x-auto no-scrollbar snap-x items-start"
                             style={{
                                 gridTemplateRows: 'repeat(2, auto)',
                                 gridAutoFlow: 'column',
                                 paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 2.25rem)',
                                 paddingRight: '0.75rem',
-                                transform: 'translateY(-14px)',
                             }}
                         >
                             {/* ── Promo card 1: Mission Pass banner ── */}
@@ -266,7 +278,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 onClick={onOpenBattlePass}
                                 className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
                                 style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
-                                <img src="/lobbybanner_missionpass.png" alt="Mission Pass" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
+                                <img src="/lobby_mission.png" alt="Mission Pass" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
                             </button>
 
                             {/* ── Promo card 2: VIP Lounge banner ── */}
@@ -274,7 +286,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 onClick={onOpenVipLounge}
                                 className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
                                 style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
-                                <img src="/lobbybanner_viplounge.png" alt="VIP Lounge" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
+                                <img src="/lobby_vip.png" alt="VIP Lounge" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
                             </button>
 
                             {GAMES_CONFIG.map((game, idx) => {
