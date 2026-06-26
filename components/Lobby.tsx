@@ -187,10 +187,10 @@ export const Lobby: React.FC<LobbyProps> = ({
               <div className="flex-1 relative flex flex-col pb-8 md:pb-9 overflow-hidden" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
 
                 {/* ── Top spacer ── */}
-                <div className="shrink-0" style={{ height: 28 }} />
+                <div className="shrink-0" style={{ height: 6 }} />
 
                 {/* ── Slot grid ── */}
-                <div className="flex-1 flex items-center justify-start p-0.5 pt-0 overflow-hidden">
+                <div className="flex-1 flex items-start justify-start p-0.5 pt-0 overflow-hidden">
 
                     {isHighLimit ? (
                         /* ── High Roller lobby — single horizontal scroll row ── */
