@@ -184,7 +184,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 backgroundPosition: 'center',
             }}>
 
-              <div className="flex-1 relative flex flex-col pb-8 md:pb-9 overflow-hidden" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
+              <div className="flex-1 relative flex flex-col pb-5 md:pb-6 overflow-hidden" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
 
                 {/* ── Top spacer ── */}
                 <div className="shrink-0" style={{ height: 6 }} />
