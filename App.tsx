@@ -806,13 +806,13 @@ const App: React.FC = () => {
 
       const scatterRoll = Math.random() * 100;
       let targetScatters = 0;
-      if (scatterRoll >= 60) targetScatters = 1;
-      if (scatterRoll >= 82) targetScatters = 2;
-      if (scatterRoll >= 99.0) targetScatters = 3;
-      if (scatterRoll >= 99.75) targetScatters = 4;
+      if (scatterRoll >= 80) targetScatters = 1;
+      if (scatterRoll >= 91) targetScatters = 2;
+      if (scatterRoll >= 99.5) targetScatters = 3;
+      if (scatterRoll >= 99.875) targetScatters = 4;
 
       if (selectedGame.theme === 'DRAGON') {
-          if (scatterRoll >= 99.25) targetScatters = 4;
+          if (scatterRoll >= 99.625) targetScatters = 4;
       }
       targetScatters = Math.min(targetScatters, cols);
 
@@ -1009,27 +1009,46 @@ const App: React.FC = () => {
     const winningCells: {col: number, row: number}[] = [];
     const currentPaylines = GET_PAYLINES(selectedGame.rows, selectedGame.reels);
 
+    const isPiggyRiches = selectedGame.id === 'piggy-riches';
+    const isFreeSpin = totalFreeSpins > 0;
+    const freespinWinMult = isFreeSpin ? 0.5 : 1;
+    const isEffectiveWild = (sym: SymbolType): boolean =>
+        sym === SymbolType.WILD || (isPiggyRiches && sym === SymbolType.SCATTER);
+
     currentPaylines.forEach(line => {
       const symbols = line.indices.map((row, col) => (finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN);
       let matchLen = 1;
       let matchSymbol = symbols[0];
       for (let i = 1; i < symbols.length; i++) {
         const s = symbols[i];
-        if (s === matchSymbol || s === SymbolType.WILD || matchSymbol === SymbolType.WILD) {
-            if (matchSymbol === SymbolType.WILD && s !== SymbolType.WILD) {
+        if (s === matchSymbol || isEffectiveWild(s) || isEffectiveWild(matchSymbol)) {
+            if (isEffectiveWild(matchSymbol) && !isEffectiveWild(s)) {
                 matchSymbol = s;
-            } 
+            }
             matchLen++;
         } else break;
       }
       if (matchLen >= 3) {
-        const symbolConfig = GET_SYMBOLS(selectedGame.theme)[matchSymbol];
+        // For Piggy Riches scatter acting as wild, use WILD value when matchSymbol is still SCATTER
+        const lookupSymbol = (isPiggyRiches && matchSymbol === SymbolType.SCATTER) ? SymbolType.WILD : matchSymbol;
+        const symbolConfig = GET_SYMBOLS(selectedGame.theme)[lookupSymbol];
         if (symbolConfig) {
             const baseValue = symbolConfig.value;
             let lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
-            if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0; 
+            if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0;
 
-            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult);
+            // Piggy Riches: 2X multiplier during free spins when scatter wild is in the matched portion
+            let piggyMult = 1;
+            if (isPiggyRiches && isFreeSpin) {
+                for (let i = 0; i < matchLen; i++) {
+                    if (finalGrid[i] && finalGrid[i][line.indices[i]] === SymbolType.SCATTER) {
+                        piggyMult = 2;
+                        break;
+                    }
+                }
+            }
+
+            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * freespinWinMult * piggyMult);
             if (lineWin > 0) {
                 totalPayout += lineWin;
                 winningLines.push(line.id);
@@ -1365,6 +1384,10 @@ const App: React.FC = () => {
           audioService.playWinBig();
           setShowWinPopup(true);
           setStatus(GameStatus.WIN_ANIMATION);
+          updateMissions(MissionType.BIG_WIN_COUNT, 1);
+          if (player.level >= 20) {
+              setQuest(q => ({ ...q, credits: Math.min(q.max, q.credits + 1) }));
+          }
       } else setStatus(GameStatus.IDLE);
       setFreeSpinsWon(0);
       setTotalFreeSpins(0);
@@ -1599,18 +1622,19 @@ const App: React.FC = () => {
                 <div className="flex-1 flex items-center justify-center w-full min-h-0 relative m-0 p-0">
                     <div className={`relative z-10 bg-black/60 p-1 md:p-1.5 rounded-xl shadow-2xl flex gap-1 h-full max-h-full aspect-[5/3] overflow-hidden ${isHighLimit ? 'shadow-[0_0_30px_rgba(220,38,38,0.35)] animate-pulse' : ''}`}>
                         {grid.map((col, i) => (
-                            <Reel 
-                                key={i} 
-                                id={i} 
-                                symbols={targetGrid.length > 0 ? targetGrid[i] : col} 
-                                spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} 
-                                stopping={status === GameStatus.STOPPING} 
-                                stopDelay={i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)} 
-                                duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION} 
-                                onStop={handleReelStop} 
-                                winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []} 
-                                gameConfig={selectedGame} 
-                                isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE} 
+                            <Reel
+                                key={i}
+                                id={i}
+                                symbols={targetGrid.length > 0 ? targetGrid[i] : col}
+                                spinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING}
+                                stopping={status === GameStatus.STOPPING}
+                                stopDelay={i * (fastSpin && freeSpinsRemaining === 0 ? 50 : REEL_DELAY)}
+                                duration={fastSpin && freeSpinsRemaining === 0 ? 200 : SPIN_DURATION}
+                                onStop={handleReelStop}
+                                winningIndices={winData?.winningCells.filter(cell => cell.col === i).map(c => c.row) || []}
+                                gameConfig={selectedGame}
+                                isScatterShowcase={status === GameStatus.SCATTER_SHOWCASE}
+                                isFreeSpins={totalFreeSpins > 0}
                             />
                         ))}
                         <PaylinesOverlay winData={winData} rowCount={selectedGame.rows} />

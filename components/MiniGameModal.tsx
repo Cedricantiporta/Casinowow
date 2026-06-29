@@ -167,14 +167,23 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
     }, [autoRoll, isRolling, isMoving, picks]);
 
+    const revealingRef = useRef<Set<number>>(new Set());
+
     // --- Wild Quest Handlers ---
     const handleTileClick = (index: number) => {
-        if (picks <= 0 || grid[index].revealed || stageWinning) return;
+        if (picks <= 0 || stageWinning || revealingRef.current.has(index)) return;
+        if (grid[index].revealed) return;
+        revealingRef.current.add(index);
+
         const cell = grid[index];
-        const newGrid = [...grid];
-        newGrid[index] = { ...cell, revealed: true };
-        setGrid(newGrid);
-        if (onGridUpdate) onGridUpdate(newGrid);
+
+        setGrid(prevGrid => {
+            if (prevGrid[index].revealed) return prevGrid;
+            const newGrid = [...prevGrid];
+            newGrid[index] = { ...prevGrid[index], revealed: true };
+            if (onGridUpdate) onGridUpdate(newGrid);
+            return newGrid;
+        });
 
         if (cell.content === 'GEM') {
             audioService.playGemFound();

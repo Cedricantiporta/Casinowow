@@ -6,15 +6,16 @@ import { GameConfig } from '../types';
 
 interface ReelProps {
   id: number;
-  symbols: SymbolType[]; 
-  spinning: boolean; 
-  stopping: boolean; 
+  symbols: SymbolType[];
+  spinning: boolean;
+  stopping: boolean;
   stopDelay: number;
   duration: number;
   onStop: () => void;
-  winningIndices: number[]; 
+  winningIndices: number[];
   gameConfig: GameConfig;
-  isScatterShowcase?: boolean; 
+  isScatterShowcase?: boolean;
+  isFreeSpins?: boolean;
 }
 
 const getRandomSymbol = () => {
@@ -27,7 +28,7 @@ const getRandomSymbol = () => {
   return SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, isFreeSpins }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
   const [landing, setLanding] = useState(false); 
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
@@ -127,14 +128,16 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                     const isShowcase = landing && visibleRowIndex >= 0 && isScatterShowcase && s === SymbolType.SCATTER;
 
                     return (
-                        <ReelCell 
-                            key={i} 
-                            symbol={s} 
+                        <ReelCell
+                            key={i}
+                            symbol={s}
                             config={SYMBOL_CONFIGS[s]}
                             blur={!landing && spinning}
-                            highlight={isWinner} 
+                            highlight={isWinner}
                             isScatterShowcase={isShowcase}
-                            heightPercent={100 / totalItems} // Cell takes up proportional height of the tall container
+                            heightPercent={100 / totalItems}
+                            isPiggyRiches={gameConfig.id === 'piggy-riches'}
+                            isFreeSpins={!!isFreeSpins}
                         />
                     );
                 })}
@@ -147,14 +150,16 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   );
 };
 
-const ReelCell: React.FC<{ 
-    symbol: SymbolType, 
-    blur?: boolean, 
-    highlight?: boolean, 
-    config: SymbolConfig, 
+const ReelCell: React.FC<{
+    symbol: SymbolType,
+    blur?: boolean,
+    highlight?: boolean,
+    config: SymbolConfig,
     heightPercent: number,
-    isScatterShowcase?: boolean 
-}> = ({ symbol, blur, highlight, config, heightPercent, isScatterShowcase }) => {
+    isScatterShowcase?: boolean,
+    isPiggyRiches?: boolean,
+    isFreeSpins?: boolean,
+}> = ({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, isPiggyRiches, isFreeSpins }) => {
     
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
@@ -217,16 +222,22 @@ const ReelCell: React.FC<{
                     
                     {isScatter && !blur && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
-                            <span className={`
-                                block font-titan
-                                text-lg md:text-2xl font-black text-white 
-                                tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]
-                                stroke-black stroke-2
-                            `}
-                            style={{ textShadow: '0 0 4px black, 0 0 8px black' }} // Heavy shadow for readability
-                            >
-                                SCATTER
-                            </span>
+                            {isPiggyRiches ? (
+                                isFreeSpins ? (
+                                    <div className="flex flex-col items-center leading-none">
+                                        <span className="block font-luckiest text-xl md:text-3xl font-black text-yellow-300 tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
+                                              style={{ textShadow: '0 0 4px black, 0 0 8px black' }}>2X</span>
+                                        <span className="block font-luckiest text-xs md:text-sm font-black text-white tracking-widest drop-shadow-[0_1px_2px_rgba(0,0,0,1)]"
+                                              style={{ textShadow: '0 0 4px black, 0 0 6px black' }}>WILD</span>
+                                    </div>
+                                ) : (
+                                    <span className="block font-luckiest text-lg md:text-2xl font-black text-yellow-300 tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
+                                          style={{ textShadow: '0 0 4px black, 0 0 8px black' }}>WILD</span>
+                                )
+                            ) : (
+                                <span className="block font-titan text-lg md:text-2xl font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
+                                      style={{ textShadow: '0 0 4px black, 0 0 8px black' }}>SCATTER</span>
+                            )}
                         </div>
                     )}
                 </div>
