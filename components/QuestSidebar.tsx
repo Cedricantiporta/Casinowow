@@ -1,7 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { QuestState } from '../types';
-import { formatTime } from '../constants';
 
 interface QuestSidebarProps {
     quest: QuestState;
@@ -11,57 +10,47 @@ interface QuestSidebarProps {
     picks?: number;
 }
 
-export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim, xpMultiplier = 1, xpBoostEndTime = 0, picks = 0 }) => {
-    const isMax = quest.credits >= quest.max;
+const MAX_CREDITS = 60;
+const DOT = 'absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 rounded-full flex items-center justify-center text-white text-[9px] font-black shadow-lg z-20';
+const DOT_STYLE = { background: '#dc2626', border: '1.5px solid #f0c000' };
 
-    const getIcon = () => {
-        if (quest.activeGame === 'DICE') return '🎲';
-        if (quest.activeGame === 'WILD') return '🗿';
-        return '🗺️'; // Default
-    };
-
-    const getLabel = () => {
-        if (quest.activeGame === 'DICE') return 'DICE';
-        if (quest.activeGame === 'WILD') return 'WILD';
-        return 'QUEST';
-    }
+export const QuestSidebar: React.FC<QuestSidebarProps> = ({ quest, onClaim }) => {
+    const wildCredits = quest.wildCredits ?? 0;
+    const diceCredits = quest.diceCredits ?? 0;
+    const wildFull = wildCredits >= MAX_CREDITS;
+    const diceFull = diceCredits >= MAX_CREDITS;
 
     return (
-        <div className="flex flex-col items-center gap-1 self-center pointer-events-auto relative">
-            {/* Quest Button - Clean Circle, Icon Only */}
-            <button 
+        <div className="flex flex-col items-center gap-2 pointer-events-auto relative">
+            {/* Mine Button */}
+            <button
                 onClick={onClaim}
-                className={`
-                    relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center shadow-2xl transition-all cursor-pointer overflow-visible
-                    hover:scale-105 active:scale-95
-                    ${isMax ? 'bg-gradient-to-b from-fuchsia-600 to-purple-900' : 'bg-gradient-to-b from-[#2a1b3d] to-[#1a1025]'}
-                `}
+                className="group relative w-20 h-20 rounded-full shadow-xl flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible"
+                style={{ background: 'linear-gradient(180deg,#2a1b3d,#1a1025)' }}
             >
-                 {/* Always show Icon */}
-                <div className="flex flex-col items-center justify-center">
-                    <span className="text-2xl md:text-4xl drop-shadow-md mb-1">{getIcon()}</span>
-                    <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)] z-10">
-                        {getLabel()}
-                    </span>
-                </div>
-
-                 {/* Credits Counter Badge */}
-                 {isMax ? (
-                    <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-black shadow-lg border-2 border-white z-20 animate-pulse">
-                        MAX
+                <img src="/ui/coinmine.png" alt="" style={{ width: 50, height: 50, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} className="group-hover:-translate-y-0.5 transition-transform" />
+                <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">Mine</span>
+                {wildCredits > 0 && (
+                    <div className={DOT} style={DOT_STYLE}>
+                        {wildFull ? 'MAX' : Math.floor(wildCredits)}
                     </div>
-                 ) : quest.credits > 0 && (
-                    <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1 bg-purple-600 rounded-full flex items-center justify-center text-white text-xs font-black shadow-lg border-2 border-white z-20">
-                        {Math.floor(quest.credits)}
-                    </div>
-                 )}
+                )}
             </button>
-            
-            {isMax && (
-                <span className="bg-green-600 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase drop-shadow-md animate-pulse shadow-lg border border-green-400">
-                    COLLECT
-                </span>
-            )}
+
+            {/* Dice Button */}
+            <button
+                onClick={onClaim}
+                className="group relative w-20 h-20 rounded-full shadow-xl flex flex-col items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible"
+                style={{ background: 'linear-gradient(180deg,#1a2b3d,#101a25)' }}
+            >
+                <img src="/ui/dice.png" alt="" style={{ width: 50, height: 50, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.7))' }} className="group-hover:-translate-y-0.5 transition-transform" />
+                <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">Dice</span>
+                {diceCredits > 0 && (
+                    <div className={DOT} style={DOT_STYLE}>
+                        {diceFull ? 'MAX' : Math.floor(diceCredits)}
+                    </div>
+                )}
+            </button>
         </div>
     );
 };

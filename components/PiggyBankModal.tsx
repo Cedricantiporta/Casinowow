@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { formatCommaNumber, formatNumber } from '../constants';
+import React, { useState, useEffect } from 'react';
+import { formatK } from '../constants';
 import { audioService } from '../services/audioService';
 
 interface PiggyBankModalProps {
@@ -7,109 +7,115 @@ interface PiggyBankModalProps {
     onClose: () => void;
     amount: number;
     diamonds: number;
-    onBreak: () => void;
+    onBreak: (tierAmount: number, gemCost: number) => void;
     level: number;
+    maxBet?: number;
     balance?: number;
+    onOpenGemShop?: () => void;
+    eventPiggyBoost?: number;
 }
 
-export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, balance = 0 }) => {
-    const [isBreaking, setIsBreaking] = useState(false);
-    const [shake, setShake] = useState(false);
-    
-    if (!isOpen) return null;
-    
-    // Dynamic Cost: Base 50 Gems, +1 Gem per 20,000 Coins saved
-    // Cap at 1000 Gems
-    const rawCost = Math.max(50, Math.floor(amount / 20000));
-    const breakCost = Math.min(rawCost, 1000);
-    
-    // Cap: Level * 2,500,000
-    const cap = level * 2500000;
-    const isFull = amount >= cap;
+export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet = 0, balance = 0, onOpenGemShop, eventPiggyBoost = 0 }) => {
+    const [breaking, setBreaking] = useState(false);
+    const [openShake, setOpenShake] = useState(false);
 
-    const handleBreakClick = () => {
-        if (diamonds < breakCost || amount <= 0) {
-             setShake(true);
-             audioService.playStoneBreak();
-             setTimeout(() => setShake(false), 500);
-             onBreak(); // Trigger parent toast/validation
-             return;
+    useEffect(() => {
+        if (isOpen) {
+            setOpenShake(true);
+            const t = setTimeout(() => setOpenShake(false), 900);
+            return () => clearTimeout(t);
         }
+    }, [isOpen]);
 
-        setIsBreaking(true);
+    if (!isOpen) return null;
+
+    const cap = Math.floor(maxBet * 5 * (1 + eventPiggyBoost));
+
+    const GEM_BREAK_COST = 50;
+
+    const handleBreak = () => {
+        if (breaking || amount <= 0 || diamonds < GEM_BREAK_COST) return;
+        setBreaking(true);
         audioService.playClick();
-        
         setTimeout(() => {
             audioService.playStoneBreak();
-            onBreak();
+            onBreak(amount, GEM_BREAK_COST);
             setTimeout(() => {
-                setIsBreaking(false);
+                setBreaking(false);
                 onClose();
-            }, 1500);
-        }, 500);
+            }, 1200);
+        }, 400);
     };
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/90 backdrop-blur-md animate-pop-in">
-            <div className="relative w-full max-w-sm p-3">
-                <div className="bg-gradient-to-b from-pink-500 to-rose-800 rounded-2xl p-4 flex flex-col items-center text-center shadow-[0_0_40px_rgba(244,114,182,0.4)] overflow-hidden relative">
-                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
-                     <div className="absolute top-3 right-3 flex items-center gap-2 z-50">
-                         <div className="currency-pill flex items-center gap-2 px-3 py-1">
-                             <div className="coin">$</div>
-                             <span className="font-mono font-bold text-white">{formatCommaNumber(Math.floor(balance || 0))}</span>
-                         </div>
-                         <div className="currency-pill flex items-center gap-2 px-3 py-1">
-                             <div className="gem"></div>
-                             <span className="font-mono font-bold text-white">{formatNumber(diamonds)}</span>
-                         </div>
-                         <button onClick={onClose} className="w-7 h-7 bg-black/20 hover:bg-black/40 rounded-full text-white font-bold flex items-center justify-center z-50 text-xs">✕</button>
-                     </div>
-                     
-                     <h2 className="text-xl md:text-2xl font-black font-cartoon text-white uppercase tracking-wider drop-shadow-md mb-1">Piggy Bank</h2>
-                     <p className="text-pink-100 text-[10px] md:text-xs font-bold mb-3">Saves 1% of every bet!</p>
-                     
-                     <div className={`relative w-23 h-23 md:w-26 md:h-26 flex items-center justify-center mb-4 transition-transform duration-300 ${isBreaking ? 'scale-110 shake' : shake ? 'shake' : 'animate-bounce'}`}>
-                         <div className="text-5xl md:text-6xl filter drop-shadow-2xl">🐷</div>
-                         {isBreaking && <div className="absolute text-4xl animate-ping">💥</div>}
-                         {isFull && !isBreaking && <div className="absolute -top-1 -right-1 bg-red-600 text-white font-black text-[9px] px-2 py-0.5 rounded-full animate-bounce shadow-lg">FULL!</div>}
-                     </div>
-                     
-                     <div className="bg-black/40 rounded-xl p-3 mb-4 w-full backdrop-blur-sm">
-                          <div className="flex justify-between items-end mb-1 px-1">
-                              <div className="text-pink-200 text-[9px] font-bold uppercase tracking-widest">Saved Amount</div>
-                              <div className="text-pink-300 text-[8px] font-bold uppercase">Cap: {formatNumber(cap)}</div>
-                          </div>
-                          <div className="text-2xl md:text-3xl font-mono font-black text-white drop-shadow-md truncate leading-none mb-2">
-                              {formatCommaNumber(Math.floor(amount))}
-                          </div>
-                          
-                          {/* Capacity Bar */}
-                          <div className="w-full h-2.5 bg-black/60 rounded-full overflow-hidden shadow-inner">
-                              <div 
-                                 className={`h-full transition-all duration-500 ${isFull ? 'bg-red-500' : 'bg-gradient-to-r from-green-400 to-emerald-500'}`} 
-                                 style={{ width: `${Math.min(100, (amount / cap) * 100)}%` }}
-                              ></div>
-                          </div>
-                          {isFull && <div className="text-red-300 text-[9px] font-bold mt-1 uppercase animate-pulse">Bank is Full! Break it to save more.</div>}
-                     </div>
-                     
-                     <button 
-                        onClick={handleBreakClick}
-                        disabled={isBreaking}
-                        className={`w-full py-2 font-black text-sm uppercase tracking-widest rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2
-                            ${diamonds >= breakCost && amount > 0 
-                                ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:brightness-110 text-white cursor-pointer' 
-                                : 'bg-gray-600 text-gray-400 cursor-not-allowed'}
-                        `}
-                     >
-                          <span>Break Bank</span>
-                          <span className="bg-black/30 px-3 py-1 rounded-full text-xs flex items-center gap-1">
-                             {breakCost} 💎
-                          </span>
-                     </button>
+        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none">
+        <div className="w-full max-w-[440px] flex flex-col rounded-3xl overflow-hidden"
+            style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxHeight: 'min(92%, 520px)' }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 pt-3 pb-2 shrink-0">
+                <div className="flex items-center gap-2">
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
+                        <img src="/new_coinicon.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />
+                        <span className="num font-mono">{formatK(Math.floor(balance || 0))}</span>
+                    </div>
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1">
+                        <img src="/symbols/diamond.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
+                        <span className="num font-mono">{diamonds}</span>
+                        {onOpenGemShop && <button onClick={onOpenGemShop} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '2px 8px', fontSize: '9px' }}>Buy</div></button>}
+                    </div>
                 </div>
+                <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x"></i></div>
             </div>
+
+            {/* Main Content */}
+            <div className="flex-1 flex flex-col items-center justify-center px-6 pb-6 gap-5">
+                <h2 className="text-xl font-black text-white tracking-wider drop-shadow-md">Piggy Bank</h2>
+
+                {/* Piggy icon */}
+                <div className={`relative flex items-center justify-center transition-transform duration-300 ${breaking ? 'scale-110' : ''}`}>
+                    <img src="/ui/piggy.png" alt=""
+                        className={openShake ? 'animate-piggy-shake' : ''}
+                        style={{ width: '7rem', height: '7rem', objectFit: 'contain', filter: 'drop-shadow(0 4px 24px rgba(255,150,200,0.5))' }} />
+                    {amount >= cap && cap > 0 && (
+                        <div className="absolute -top-1 -right-2 pill-red pointer-events-none">
+                            <div className="pill-face" style={{ padding: '3px 8px', fontSize: '9px', background: 'linear-gradient(180deg,#ef4444 0%,#b91c1c 50%,#991b1b 100%)' }}>Full</div>
+                        </div>
+                    )}
+                    {breaking && <div className="absolute text-5xl animate-ping">💥</div>}
+                </div>
+
+                {/* Saved amount */}
+                <div className="flex items-center gap-2">
+                    <img src="/new_coinicon.png" alt="" style={{ width: '1.5rem', height: '1.5rem', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+                    <span className="text-2xl font-mono font-black text-white drop-shadow-md">{formatK(Math.floor(amount))}</span>
+                </div>
+
+                {/* Single break button */}
+                <button
+                    onClick={handleBreak}
+                    disabled={breaking || amount <= 0 || diamonds < GEM_BREAK_COST}
+                    className="pill-green"
+                    style={{ opacity: (breaking || amount <= 0 || diamonds < GEM_BREAK_COST) ? 0.4 : 1 }}
+                >
+                    <div className="pill-face" style={{ padding: '10px 44px', fontSize: '13px', flexDirection: 'column', gap: '2px' }}>
+                        <span>Break Piggy Bank</span>
+                        <span style={{ fontSize: '9px', opacity: 0.8, WebkitTextStroke: 0 }}>
+                            <img src="/symbols/diamond.png" alt="" style={{ width: '0.9em', height: '0.9em', objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle' }} /> {GEM_BREAK_COST} Gems
+                        </span>
+                    </div>
+                </button>
+
+                <p className="text-white/30 text-[9px] text-center max-w-xs">
+                    Gains 5% of each bet (10% with VIP) · Max {formatK(Math.floor(cap))} coins
+                </p>
+                {eventPiggyBoost > 0 && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                        <i className="ti ti-calendar" style={{ fontSize: 11, color: '#f87171' }} />
+                        <span style={{ color: '#f87171', fontSize: 10, fontWeight: 700 }}>Events: +{Math.round(eventPiggyBoost * 100)}% higher cap</span>
+                    </div>
+                )}
+            </div>
+        </div>
         </div>
     );
 };

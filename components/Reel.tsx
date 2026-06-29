@@ -1,61 +1,84 @@
 
 import React, { useEffect, useState, useRef } from 'react';
-import { SymbolType, SymbolConfig } from '../types';
-import { WEIGHTS, GET_SYMBOLS } from '../constants';
+import { SymbolType, SymbolConfig, GameTheme } from '../types';
+import { WEIGHTS, NEON_WEIGHTS, GET_SYMBOLS, JACKPOT_ICONS, GENERIC_JACKPOT_ICONS, THEME_JACKPOT_ICONS, FREESPIN_JACKPOT_ICONS } from '../constants';
 import { GameConfig } from '../types';
+import { ViperBorder, ViperTheme } from './ViperBorder';
+
+// Border theme per slot — cool themes glow blue, warm themes glow gold.
+const BLUE_BORDER_THEMES = new Set<GameTheme>(['NEON', 'PIRATE', 'ARCTIC', 'UNDERWATER', 'MMORPG', 'SPACE'] as GameTheme[]);
+export const borderThemeFor = (theme: GameTheme): ViperTheme => (BLUE_BORDER_THEMES.has(theme) ? 'blue' : 'gold');
 
 interface ReelProps {
   id: number;
-  symbols: SymbolType[]; 
-  spinning: boolean; 
-  stopping: boolean; 
+  symbols: SymbolType[];
+  spinning: boolean;
+  stopping: boolean;
   stopDelay: number;
   duration: number;
   onStop: () => void;
-  winningIndices: number[]; 
+  winningIndices: number[];
   gameConfig: GameConfig;
-  isScatterShowcase?: boolean; 
+  isScatterShowcase?: boolean;
+  forcedSymbols?: SymbolType[];
+  newCells?: boolean[];
+  dissolving?: boolean;
+  anticipation?: boolean;
+  inFreeSpins?: boolean;
+  instantStop?: boolean;
 }
 
-const getRandomSymbol = () => {
-  let sum = WEIGHTS.reduce((acc, el) => acc + el.weight, 0);
+const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
+const NO_SEVEN_THEMES = new Set(['DRAGON']);
+
+const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean, excludeSeven?: boolean) => {
+  let weights = neon ? NEON_WEIGHTS : WEIGHTS;
+  if (excludeScatter) weights = weights.filter(w => w.type !== SymbolType.SCATTER);
+  if (excludeSeven) weights = weights.filter(w => w.type !== SymbolType.SEVEN);
+  let sum = weights.reduce((acc, el) => acc + el.weight, 0);
   let rand = Math.random() * sum;
-  for (let w of WEIGHTS) {
+  for (let w of weights) {
     rand -= w.weight;
     if (rand <= 0) return w.type;
   }
-  return SymbolType.TEN;
+  return neon ? SymbolType.TEN : SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins, instantStop }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
-  const [landing, setLanding] = useState(false); 
+  const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
   const VISIBLE_ROWS = gameConfig.rows;
-  
+  const noScatter = NO_SCATTER_THEMES.has(gameConfig.theme);
+  const noSeven = NO_SEVEN_THEMES.has(gameConfig.theme);
+  const isNeon = gameConfig.theme === 'NEON';
+  const getRandSym = () => makeRandomSymbol(noScatter, isNeon, noSeven);
+
   // Initialize strip on mount or config change
   useEffect(() => {
-    setStrip(Array(VISIBLE_ROWS).fill(null).map(getRandomSymbol));
-  }, [VISIBLE_ROWS]);
+    setStrip(Array(VISIBLE_ROWS).fill(null).map(getRandSym));
+  }, [VISIBLE_ROWS, noScatter]); // eslint-disable-line
 
   // Effect 1: Handle Spin Start
   useEffect(() => {
     if (spinning && !stopping) {
       setLanding(false);
-      setStrip(Array(VISIBLE_ROWS * 4).fill(null).map(getRandomSymbol));
+      setStrip(Array(VISIBLE_ROWS * 4).fill(null).map(getRandSym));
     }
-  }, [spinning, stopping, VISIBLE_ROWS]);
+  }, [spinning, stopping, VISIBLE_ROWS, noScatter]); // eslint-disable-line
 
   // Effect 2: Handle Stop Trigger
   useEffect(() => {
     if (stopping && !landing) {
+        // stopDelay already includes any anticipation extension baked in by the parent
         const timer = setTimeout(() => {
-            setLanding(true); 
-            
-            // Set final strip: Random symbols on top + Final symbols at bottom
+            setLanding(true);
+
+            // Set final strip: Final symbols on top + Random symbols on bottom
+            // (spin animates top-to-bottom, so finals must be at the top)
             const finalStrip = [
-                ...Array(VISIBLE_ROWS).fill(null).map(getRandomSymbol),
-                ...symbols 
+                ...symbols,
+                ...Array(VISIBLE_ROWS).fill(null).map(getRandSym),
             ];
             setStrip(finalStrip);
         }, stopDelay);
@@ -66,8 +89,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   // Effect 3: Handle Animation Completion (Signal Parent)
   useEffect(() => {
       if (stopping && landing) {
-          // Delay to allow bounce animation to play before notifying parent
-          const delay = duration > 800 ? 400 : 200; 
+          const delay = instantStop ? 0 : (duration > 800 ? 400 : 200);
           const timer = setTimeout(() => {
               onStop();
           }, delay);
@@ -91,16 +113,51 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
   let translateY = '0%';
   
   if (landing) {
-      const rowsToHide = totalItems - VISIBLE_ROWS;
-      const shiftPercent = (rowsToHide / totalItems) * 100;
-      translateY = `-${shiftPercent}%`;
-  } 
+      translateY = '0%'; // finals are at top of strip; show top rows
+  }
   
+  // Cascade display mode: bypass animation, show symbols directly
+  if (forcedSymbols && forcedSymbols.length > 0) {
+      return (
+          <div
+              className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} min-w-0`}
+              style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}` }}
+          >
+              <div className="w-full h-full flex flex-col">
+                  {forcedSymbols.map((s, i) => {
+                      const isWinner = winningIndices.includes(i);
+                      const isNew = newCells?.[i] ?? false;
+                      return (
+                          <ReelCell
+                              key={i}
+                              symbol={s}
+                              config={SYMBOL_CONFIGS[s]}
+                              blur={false}
+                              highlight={isWinner}
+                              isScatterShowcase={false}
+                              heightPercent={100 / gameConfig.rows}
+                              theme={gameConfig.theme}
+                              isLastCell={i === forcedSymbols.length - 1}
+                              isNewCell={isNew}
+                              dissolving={dissolving}
+                              gameRows={gameConfig.rows}
+                              gameReels={gameConfig.reels}
+                              inFreeSpins={inFreeSpins}
+                          />
+                      );
+                  })}
+              </div>
+          </div>
+      );
+  }
+
   return (
-    <div 
-        className={`relative flex-1 overflow-hidden ${gameConfig.reelBg} shadow-inner rounded-md min-w-0`}
-        style={{ aspectRatio: `1 / ${gameConfig.rows}` }} 
+    <div
+        className={`relative flex-1 overflow-hidden ${isScatterShowcase ? 'z-10' : ''} ${gameConfig.reelBg} min-w-0`}
+        style={{ aspectRatio: `1 / ${gameConfig.theme === 'NEON' ? 2 : gameConfig.rows}` }}
     >
+       {/* Anticipation viper border — animated two-snake glow */}
+       {anticipation && <ViperBorder theme={borderThemeFor(gameConfig.theme)} animate />}
        {/* Scroll Wrapper - Static Position Adjustments */}
        <div 
             className="w-full absolute top-0 left-0 will-change-transform transition-transform duration-300 ease-out"
@@ -109,128 +166,221 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                 transform: (!landing && spinning) ? 'none' : `translateY(${translateY})`, // Static scroll to result
             }}
        >
-            {/* Animation Wrapper - Jiggle/Spin Effects */}
+            {/* Animation Wrapper - Jiggle/Spin Effects.
+                Blur is applied ONCE here during spin (cheap) instead of per-cell. */}
             <div className={`
                 w-full h-full flex flex-col
-                ${(!landing && spinning) ? 'animate-spin-blur' : ''} 
+                ${(!landing && spinning) ? 'animate-spin-blur blur-[2px] opacity-80' : ''}
                 ${(landing) ? 'animate-bounce-land' : ''}
             `}>
                 {renderStrip.map((s, i) => {
-                    // Determine if this specific cell is a winner
-                    // Only relevant if landing. 
-                    // In landing strip of length N, the visible rows are indices [N-V, ..., N-1].
-                    // winningIndices are relative to the visible window (0..V-1).
-                    // So if i is the index in the full strip:
-                    // visibleRowIndex = i - (totalItems - VISIBLE_ROWS)
-                    const visibleRowIndex = i - (totalItems - VISIBLE_ROWS);
-                    const isWinner = landing && visibleRowIndex >= 0 && winningIndices.includes(visibleRowIndex);
-                    const isShowcase = landing && visibleRowIndex >= 0 && isScatterShowcase && s === SymbolType.SCATTER;
+                    // When landed, the final symbols occupy the TOP VISIBLE_ROWS rows of the
+                    // strip (Effect 2 places finals first), and translateY(0%) shows that top
+                    // window. So the on-screen row index is simply i, for i < VISIBLE_ROWS.
+                    const inVisibleWindow = landing && i < VISIBLE_ROWS;
+                    const visibleRowIndex = i;
+                    const isWinner = inVisibleWindow && winningIndices.includes(visibleRowIndex);
+                    const isShowcase = inVisibleWindow && isScatterShowcase && s === SymbolType.SCATTER;
 
                     return (
-                        <ReelCell 
-                            key={i} 
-                            symbol={s} 
+                        <ReelCell
+                            key={i}
+                            symbol={s}
                             config={SYMBOL_CONFIGS[s]}
                             blur={!landing && spinning}
-                            highlight={isWinner} 
+                            highlight={isWinner}
                             isScatterShowcase={isShowcase}
-                            heightPercent={100 / totalItems} // Cell takes up proportional height of the tall container
+                            heightPercent={100 / totalItems}
+                            theme={gameConfig.theme}
+                            isLastCell={i === renderStrip.length - 1}
+                            dissolving={dissolving}
+                            gameRows={gameConfig.rows}
+                            gameReels={gameConfig.reels}
+                            inFreeSpins={inFreeSpins}
                         />
                     );
                 })}
             </div>
        </div>
 
-      {/* Overlay Gradients */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 pointer-events-none z-10"></div>
     </div>
   );
 };
 
-const ReelCell: React.FC<{ 
-    symbol: SymbolType, 
-    blur?: boolean, 
-    highlight?: boolean, 
-    config: SymbolConfig, 
+// No cell separators on any theme.
+const getCellSeparatorStyle = (_theme: GameTheme, _isLastCell: boolean): React.CSSProperties => {
+    return {};
+};
+
+// 3D text-shadow per letter tier
+const getLetter3DShadow = (symbol: SymbolType, theme?: GameTheme): string => {
+    if (theme === 'EGYPT') {
+        // Deep layered gold 3D to match the pharaoh artwork style
+        return '1px 1px 0 #8b5000, 2px 2px 0 #6b3a00, 3px 3px 0 #4a2700, 4px 4px 10px rgba(0,0,0,0.95), 0 0 18px rgba(220,150,0,0.45)';
+    }
+    if (symbol === SymbolType.TEN || symbol === SymbolType.JACK) {
+        return '1px 1px 0 rgba(0,0,0,0.8), 2px 2px 0 rgba(0,0,0,0.6), 3px 3px 0 rgba(0,0,0,0.4), 4px 4px 8px rgba(0,0,0,0.5)';
+    }
+    if (symbol === SymbolType.QUEEN || symbol === SymbolType.KING) {
+        return '1px 1px 0 #2d0060, 2px 2px 0 #1a003a, 3px 3px 0 #0d001e, 4px 4px 8px rgba(0,0,0,0.8)';
+    }
+    if (symbol === SymbolType.ACE) {
+        return '1px 1px 0 #7c3800, 2px 2px 0 #4a2000, 3px 3px 0 #2a1000, 4px 4px 8px rgba(0,0,0,0.8)';
+    }
+    return '';
+};
+
+
+const ReelCell: React.FC<{
+    symbol: SymbolType,
+    blur?: boolean,
+    highlight?: boolean,
+    config: SymbolConfig,
     heightPercent: number,
-    isScatterShowcase?: boolean 
-}> = ({ symbol, blur, highlight, config, heightPercent, isScatterShowcase }) => {
-    
+    isScatterShowcase?: boolean,
+    theme: GameTheme,
+    isLastCell: boolean,
+    isNewCell?: boolean,
+    dissolving?: boolean,
+    gameRows?: number,
+    gameReels?: number,
+    inFreeSpins?: boolean,
+}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6, inFreeSpins }) => {
+
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
-    const isLetter = [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
+    const isImageIcon = typeof config?.icon === 'string' && config.icon.startsWith('/');
+    const isLetter = !isImageIcon && theme !== 'NEON' && [SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE].includes(symbol);
 
-    let bgClasses = config?.bg || 'bg-transparent';
-    
-    // Background Effects (Glows only, no bounce)
+
+    const JP_TYPES = new Set<SymbolType>([
+        SymbolType.JACKPOT_MINI, SymbolType.JACKPOT_MINOR, SymbolType.JACKPOT_MAJOR,
+        SymbolType.JACKPOT_MEGA, SymbolType.JACKPOT_GRAND,
+    ]);
+    const isJackpot = JP_TYPES.has(symbol);
+
+    // All cells use black bg; highlight/showcase add glow on top
+    let bgClasses = 'bg-black';
+
     if (highlight) {
-        // Use specific highlight class from config if available to reflect color, otherwise default Gold
-        bgClasses = (config?.highlightClass || "bg-gold-500/30 shadow-[0_0_50px_rgba(255,215,0,0.8)] border-gold-400/50") + " z-20 border";
+        bgClasses = 'bg-black z-20';
     } else if (isScatter && isScatterShowcase) {
-        bgClasses = "bg-indigo-500/50 border-indigo-300 shadow-[0_0_40px_rgba(99,102,241,0.9)] z-20";
+        bgClasses = 'bg-black border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
     }
 
-    // Bounce Animation Logic (Applies to Content Wrapper)
-    const activeBounce = highlight || isScatterShowcase;
-    
-    // Custom size for WILD text to fit, while keeping Emojis huge
-    const fontSize = isWild ? 'text-4xl md:text-5xl lg:text-6xl' : 'text-6xl md:text-7xl lg:text-8xl';
+    const activeBounce = highlight || (isScatterShowcase && !isScatter);
+    const activeScatterShake = isScatter && isScatterShowcase;
+
+    // Scale icons proportionally — cells shrink when more rows or more reels fill the same container
+    const cellScale = Math.min(1.0, 3.0 / gameRows, 6.0 / gameReels);
+    const emojiFontSize  = `${(3.0375  * cellScale).toFixed(3)}rem`;
+    const letterFontSize = `${(2.73    * cellScale).toFixed(3)}rem`;
+    const wildFontSize   = `${(1.296   * cellScale).toFixed(3)}rem`;
+    const scatterLabelFs = `${(0.729   * cellScale).toFixed(3)}rem`;
+    const iconFontSize   = isWild ? wildFontSize : isLetter ? letterFontSize : emojiFontSize;
+
+    const separatorStyle = getCellSeparatorStyle(theme, isLastCell);
 
     return (
-        <div 
+        <div
             className={`
-                w-full flex items-center justify-center relative 
-                ${blur ? 'blur-[2px] opacity-80' : ''} 
-                transition-all duration-300
+                w-full flex items-center justify-center relative bg-black
+                ${isNewCell ? 'animate-drop-in' : ''}
+                ${highlight && dissolving ? 'animate-dissolve-out' : ''}
+                ${!isNewCell && !(highlight && dissolving) ? 'transition-transform duration-300' : ''}
             `}
-            style={{ 
+            style={{
                 height: `${heightPercent}%`,
+                ...separatorStyle,
             }}
         >
             <div className={`
-                relative
-                aspect-square
-                h-full
-                w-full
-                max-w-full
-                rounded-none 
+                relative h-full w-full max-w-full rounded-none
                 flex items-center justify-center
-                transition-all duration-300
-                overflow-hidden
-                ${isLetter && !highlight ? '' : bgClasses}
-            `}>
-                 {/* Inner Shine - Hide for letters unless highlighted */}
-                 {(!isLetter || highlight) && <div className="absolute inset-0 rounded-none border border-white/10 shadow-inner pointer-events-none"></div>}
-                 
-                 {/* Content Wrapper - Handles Bounce Animation */}
-                 <div className={`
-                     relative flex flex-col items-center justify-center z-10 w-full h-full
-                     ${activeBounce ? 'animate-bounce scale-110' : ''}
-                 `}>
-                    <div className={`
-                        ${fontSize} select-none transform 
-                        ${config?.style || ''}
-                        ${activeBounce ? 'drop-shadow-[0_0_25px_rgba(255,255,255,1)]' : ''}
-                    `}>
-                        {config?.icon}
-                    </div>
-                    
-                    {isScatter && !blur && (
+                overflow-visible
+                ${bgClasses}
+            `}
+            style={undefined}
+            >
+                {/* Content wrapper */}
+                <div className={`
+                    relative flex flex-col items-center justify-center z-10 w-full h-full
+                    ${activeScatterShake ? 'animate-scatter-shake' : activeBounce ? 'animate-bounce-sm' : ''}
+                `}>
+                    {isJackpot ? (
+                        ((inFreeSpins && FREESPIN_JACKPOT_ICONS[symbol]) || THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]) ? (
+                            <img
+                                src={(inFreeSpins && FREESPIN_JACKPOT_ICONS[symbol]) || THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]}
+                                alt=""
+                                className="w-full h-full object-contain pointer-events-none select-none"
+                            />
+                        ) : null
+                    ) : isImageIcon ? (
+                        <img
+                            src={config.icon}
+                            alt=""
+                            className={`select-none object-contain pointer-events-none${highlight && theme === 'PIGGY' ? ' animate-pulse' : ''}`}
+                            style={{
+                                width:    `${85 * cellScale * (config.imageScale ?? 1)}%`,
+                                height:   `${85 * cellScale * (config.imageScale ?? 1)}%`,
+                                ...(theme === 'UNDERWATER' || (theme === 'PIGGY' && isScatter) ? { position: 'absolute', width: `${85 * cellScale * (config.imageScale ?? 1)}%`, height: `${85 * cellScale * (config.imageScale ?? 1)}%`, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', ...(theme === 'PIGGY' ? { zIndex: 20 } : {}) } : {}),
+                            }}
+                        />
+                    ) : (
+                        <div
+                            className={`select-none transform ${config?.style || ''}`}
+                            style={{
+                                fontSize: iconFontSize,
+                                ...(isLetter ? { textShadow: getLetter3DShadow(symbol, theme), color: theme === 'EGYPT' ? '#fbbf24' : '#ffffff' } : undefined),
+                            }}
+                        >
+                            {config?.icon}
+                        </div>
+                    )}
+
+                    {isScatter && !blur && (!isImageIcon || theme === 'NEON' || theme === 'CANDY') && (
                         <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
-                            <span className={`
-                                block font-titan
-                                text-lg md:text-2xl font-black text-white 
-                                tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]
-                                stroke-black stroke-2
-                            `}
-                            style={{ textShadow: '0 0 4px black, 0 0 8px black' }} // Heavy shadow for readability
+                            <span
+                                className="block font-titan font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
+                                style={{ fontSize: scatterLabelFs, textShadow: '0 0 4px black, 0 0 8px black' }}
                             >
-                                SCATTER
+                                BONUS
                             </span>
+                        </div>
+                    )}
+                    {isWild && !blur && !isImageIcon && (
+                        <div className="absolute bottom-0 w-full flex justify-center items-end pb-1 z-30">
+                            <span
+                                className="block font-titan font-black text-white tracking-widest drop-shadow-[0_2px_2px_rgba(0,0,0,1)]"
+                                style={{ fontSize: scatterLabelFs, textShadow: '0 0 4px black, 0 0 8px black' }}
+                            >
+                                WILD
+                            </span>
+                        </div>
+                    )}
+                    {theme === 'PIGGY' && symbol === SymbolType.COIN && !blur && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none">
+                            {inFreeSpins ? (
+                                <>
+                                    <span
+                                        className="block font-black text-yellow-300 leading-none"
+                                        style={{ fontSize: `${2.0 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black, 1px 1px 0 #000' }}
+                                    >2X</span>
+                                    <span
+                                        className="block font-black text-white tracking-widest"
+                                        style={{ fontSize: `${0.65 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black' }}
+                                    >WILD</span>
+                                </>
+                            ) : (
+                                <span
+                                    className="block font-black text-yellow-300 tracking-widest"
+                                    style={{ fontSize: `${1.1 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black, 1px 1px 0 #000' }}
+                                >WILD</span>
+                            )}
                         </div>
                     )}
                 </div>
             </div>
         </div>
-    )
-}
+    );
+});

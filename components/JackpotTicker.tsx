@@ -1,47 +1,60 @@
 
 import React, { useState, useEffect } from 'react';
-import { formatCommaNumber } from '../constants';
+import { formatK } from '../constants';
+
+const JP_MULTIPLIERS = [15, 30, 100, 500, 1000];
+
+const TOPBAR_IMGS = [
+    '/topbarjackpot (1).png',
+    '/topbarjackpot (2).png',
+    '/topbarjackpot (3).png',
+    '/topbarjackpot (4).png',
+    '/topbarjackpot (5).png',
+];
+const TIER_KEYS = ['mini', 'minor', 'major', 'mega', 'grand'] as const;
+const TIER_CLASSES = ['t-green', 't-cyan', 't-purple', 't-red', 't-gold'] as const;
+const TIER_NAMES = ['MINI', 'MINOR', 'MAJOR', 'MEGA', 'GRAND'] as const;
 
 interface JackpotTickerProps {
+    slotIdx?: number;
     currentBet: number;
+    isSpinning?: boolean;
+    theme?: string;
 }
 
-const JACKPOT_CONFIG = [
-    { name: 'MINI', multiplier: 50, tierClass: 't-green' },
-    { name: 'MINOR', multiplier: 150, tierClass: 't-cyan' },
-    { name: 'MAJOR', multiplier: 500, tierClass: 't-purple' },
-    { name: 'MAXI', multiplier: 1500, tierClass: 't-red' },
-    { name: 'GRAND', multiplier: 5000, tierClass: 't-gold' }
-];
-
 export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet }) => {
-    const [fluctuation, setFluctuation] = useState<number[]>([0, 0, 0, 0, 0]);
+    const [growth, setGrowth] = useState<number[]>([0, 0, 0, 0, 0]);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setFluctuation(prev => prev.map(() => Math.floor(Math.random() * (currentBet * 0.1 || 500))));
-        }, 1000);
-        return () => clearInterval(interval);
+        setGrowth([0, 0, 0, 0, 0]);
     }, [currentBet]);
+
+    useEffect(() => {
+        const id = setInterval(() => {
+            setGrowth(prev => prev.map((v) =>
+                v + Math.floor(Math.random() * currentBet * 0.0012 + currentBet * 0.0006)
+            ));
+        }, 120);
+        return () => clearInterval(id);
+    }, [currentBet]);
+
+    const amounts = JP_MULTIPLIERS.map((m, i) => Math.floor(currentBet * m + growth[i]));
 
     return (
         <div className="jackpot font-nunito w-full select-none">
-            {JACKPOT_CONFIG.map((jp, idx) => {
-                const baseAmount = currentBet * jp.multiplier;
-                const displayAmount = baseAmount + fluctuation[idx];
-
-                return (
-                    <div key={jp.name} className={`jp ${jp.tierClass}`}>
-                        <div className="jp-tier">{jp.name}</div>
-                        <div className="jp-box">
-                            <div className="jp-amt">
-                                {formatCommaNumber(displayAmount)}
-                            </div>
-                        </div>
+            {TIER_KEYS.map((key, idx) => (
+                <div key={key} className={`jp ${TIER_CLASSES[idx]}`}>
+                    <div className="jp-tier flex items-center justify-center">
+                        <img
+                            src={TOPBAR_IMGS[idx]}
+                            alt={TIER_NAMES[idx]}
+                            className="select-none pointer-events-none"
+                            style={{ height: '1.4em', width: 'auto', objectFit: 'contain' }}
+                        />
                     </div>
-                );
-            })}
+                    <div className="jp-amt">{formatK(amounts[idx] ?? 0)}</div>
+                </div>
+            ))}
         </div>
     );
 };
-

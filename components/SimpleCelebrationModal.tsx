@@ -7,28 +7,23 @@ interface SimpleCelebrationModalProps {
 }
 
 export const SimpleCelebrationModal: React.FC<SimpleCelebrationModalProps> = ({ isOpen, message, onClose }) => {
-    
     useEffect(() => {
         if (isOpen) {
-            const timer = setTimeout(() => {
-                onClose();
-            }, 3000); // Auto close after 3 seconds
+            const timer = setTimeout(onClose, 1500);
             return () => clearTimeout(timer);
         }
-    }, [isOpen, onClose, message]);
+    }, [isOpen, message, onClose]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !message) return null;
 
     return (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center pointer-events-none">
-            {/* Compact text without border and backdrop */}
-            <div className="animate-pop-in flex flex-col items-center">
-                 <h2 className="text-3xl md:text-4xl font-black font-display text-white text-center mb-1 drop-shadow-[0_4px_4px_rgba(0,0,0,1)]" style={{ textShadow: '0 0 10px black, 0 0 20px black' }}>
-                     {message}
-                 </h2>
-                 <div className="text-white font-black uppercase tracking-[0.2em] text-lg md:text-xl animate-pulse drop-shadow-[0_2px_2px_rgba(0,0,0,1)]" style={{ textShadow: '0 0 5px black, 0 0 15px black' }}>
-                     CLAIMED
-                 </div>
+        <div className="absolute inset-0 z-[300] flex items-center justify-center pointer-events-none">
+            <div className="animate-pop-in flex flex-col items-center gap-1 rounded-2xl px-7 py-4 text-center"
+                style={{ background: 'linear-gradient(180deg,#9333ea 0%,#5b21b6 18%,#2e1065 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+                <span className="text-purple-300/60 text-[9px] font-black uppercase tracking-widest">Reward</span>
+                <span className="font-black text-white text-lg leading-tight" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+                    {message}
+                </span>
             </div>
         </div>
     );

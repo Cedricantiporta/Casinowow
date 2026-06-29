@@ -14,7 +14,7 @@ export const FreeSpinsWonPopup: React.FC<FreeSpinsWonPopupProps> = ({ isOpen, co
             if (timerRef.current) clearTimeout(timerRef.current);
             timerRef.current = setTimeout(() => {
                 onComplete();
-            }, 2000); // 2 Seconds
+            }, 2000);
         }
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current);
@@ -29,35 +29,33 @@ export const FreeSpinsWonPopup: React.FC<FreeSpinsWonPopupProps> = ({ isOpen, co
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md animate-pop-in">
-            <div className="relative bg-gradient-to-b from-yellow-300 to-orange-500 p-0.5 rounded-xl shadow-[0_0_30px_rgba(255,165,0,0.5)]">
-                 <div className="bg-gradient-to-b from-yellow-500 to-orange-600 rounded-xl p-5 md:p-8 flex flex-col items-center text-center min-w-[240px] md:min-w-[320px] shadow-inner relative overflow-hidden">
-                    
-                    {/* Background Rays */}
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200%] h-[200%] bg-[conic-gradient(from_0deg,transparent_0deg,rgba(255,255,255,0.2)_20deg,transparent_40deg)] animate-[spin_10s_linear_infinite]"></div>
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-pop-in select-none">
+            <div className="w-full max-w-[260px] flex flex-col rounded-3xl overflow-hidden"
+                style={{
+                    background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)',
+                    boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
+                }}>
+                {/* Header */}
+                <div className="shrink-0 px-4 pt-3 pb-1 text-center">
+                    <h2 className="text-sm font-black text-white">You Won Free Spins!</h2>
+                </div>
 
-                    <div className="relative z-10 flex flex-col items-center gap-1">
-                        
-                        <h2 className="text-sm md:text-base font-black font-display text-white uppercase tracking-widest drop-shadow-[0_2px_0_rgba(0,0,0,0.3)] mb-1">
-                            YOU WON FREE
-                        </h2>
-
-                        <div className="text-5xl md:text-6xl font-black font-display text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] my-2 animate-bounce">
-                            {count}
-                        </div>
-
-                        <div className="text-sm md:text-base font-black font-display text-white uppercase tracking-[0.3em] drop-shadow-[0_2px_0_rgba(0,0,0,0.3)]">
-                            SPINS
-                        </div>
-
-                        <button 
-                            onClick={handleStartNow}
-                            className="mt-4 px-6 py-1.5 bg-gradient-to-r from-red-600 to-red-500 text-white font-black uppercase text-xs tracking-widest rounded-lg shadow hover:scale-105 active:scale-95 transition-transform z-20"
-                        >
-                            Start Now
-                        </button>
+                {/* Body */}
+                <div className="flex flex-col items-center justify-center px-4 py-2 text-center">
+                    <div className="text-5xl font-black text-white animate-bounce">
+                        {count}
                     </div>
-                 </div>
+                    <div className="text-sm font-black text-purple-200/80 tracking-wider mt-1">
+                        Spins
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="shrink-0 px-4 pb-3">
+                    <button onClick={handleStartNow} className="pill-green w-full">
+                        <div className="pill-face">Start Now</div>
+                    </button>
+                </div>
             </div>
         </div>
     );

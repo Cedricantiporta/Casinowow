@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mission, MissionState, PassReward, MissionFrequency } from '../types';
-import { formatNumber, formatCommaNumber, SCALE_COIN_REWARD } from '../constants';
+import { formatNumber, formatCommaNumber, formatK, formatKShort, SCALE_COIN_REWARD } from '../constants';
 
 interface MissionPassModalProps {
     isOpen: boolean;
@@ -8,28 +8,36 @@ interface MissionPassModalProps {
     onClose: () => void;
     missionState: MissionState;
     diamonds: number;
+    balance?: number;
     onClaimReward: (reward: PassReward) => void;
     onFinishMission: (mission: Mission) => void;
-    onClaimMissionReward: (mission: Mission) => void; 
+    onClaimMissionReward: (mission: Mission) => void;
     onBuyPass: () => void;
     onBuyLevel: () => void;
     onClaimAll: () => void;
     playerLevel: number;
+    maxBet?: number;
+    onOpenGemShop?: () => void;
+    onOpenPremium?: () => void;
 }
 
-export const MissionPassModal: React.FC<MissionPassModalProps> = ({ 
-    isOpen, 
+export const MissionPassModal: React.FC<MissionPassModalProps> = ({
+    isOpen,
     initialView,
-    onClose, 
-    missionState, 
-    diamonds, 
-    onClaimReward, 
+    onClose,
+    missionState,
+    diamonds,
+    balance = 0,
+    onClaimReward,
     onFinishMission,
     onClaimMissionReward,
     onBuyPass,
     onBuyLevel,
     onClaimAll,
-    playerLevel
+    playerLevel,
+    maxBet = 10000,
+    onOpenGemShop,
+    onOpenPremium,
 }) => {
     const [view, setView] = useState<'MISSIONS' | 'PASS'>('MISSIONS');
     const [activeTab, setActiveTab] = useState<MissionFrequency>('DAILY');
@@ -37,256 +45,390 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     const rewardsContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (isOpen) {
-            setView(initialView);
-            setShowPremiumInfo(false);
-        }
+        if (isOpen) setView(initialView);
+        else setShowPremiumInfo(false);
     }, [isOpen, initialView]);
+
+    useEffect(() => {
+        if (!isOpen || view !== 'PASS') return;
+        const el = rewardsContainerRef.current;
+        if (!el) return;
+        const handler = (e: WheelEvent) => { e.preventDefault(); el.scrollLeft += e.deltaY; };
+        el.addEventListener('wheel', handler, { passive: false });
+        return () => el.removeEventListener('wheel', handler);
+    }, [isOpen, view]);
 
     if (!isOpen) return null;
 
-    const currentMissions = missionState.activeMissions
-        .filter(m => m.frequency === activeTab && !m.claimed)
-        .slice(0, 4);
-
+    const currentMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
     const levels = Array.from(new Set(missionState.passRewards.map(r => r.level))).sort((a: number, b: number) => a - b);
-    const rewardsToClaimCount = missionState.passRewards.filter(r => 
-        r.level <= missionState.passLevel && 
-        !r.claimed && 
+    const rewardsToClaimCount = missionState.passRewards.filter(r =>
+        r.level <= missionState.passLevel &&
+        !r.claimed &&
         (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
     ).length;
-    
-    const diamondCostToSkip = (xp: number) => Math.ceil(xp / 50) * 10;
+
+    const diamondCostToSkip = (xp: number) => Math.max(1, Math.ceil(xp / 5));
     const isXpBoosted = missionState.passBoostMultiplier > 1;
 
     const handleScroll = (direction: 'LEFT' | 'RIGHT') => {
-        if (rewardsContainerRef.current) {
-            const amount = 200;
-            rewardsContainerRef.current.scrollBy({ left: direction === 'LEFT' ? -amount : amount, behavior: 'smooth' });
-        }
-    };
-    
-    const jumpToCurrentLevel = () => {
-         if (rewardsContainerRef.current) {
-             const targetIndex = Math.max(0, missionState.passLevel - 2);
-             const targetScroll = targetIndex * 160; 
-             rewardsContainerRef.current.scrollTo({ left: targetScroll, behavior: 'smooth' });
-         }
-    };
-
-    const handlePremiumPurchase = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onBuyPass();
-        setShowPremiumInfo(false);
+        rewardsContainerRef.current?.scrollBy({ left: direction === 'LEFT' ? -200 : 200, behavior: 'smooth' });
     };
 
     const getDisplayValue = (reward: PassReward) => {
         if (reward.type === 'COINS') {
-            return formatNumber(SCALE_COIN_REWARD(reward.value, playerLevel));
+            if (reward.claimed && reward.claimedValue !== undefined) return formatKShort(reward.claimedValue);
+            return formatKShort(SCALE_COIN_REWARD(reward.value, playerLevel, maxBet));
         }
+        if (reward.type === 'CREDIT_BACK') return `+${reward.value} Cards`;
         return reward.label;
     };
 
+    const renderIcon = (reward: PassReward | undefined, sz = '2.8rem') => {
+        if (!reward) return null;
+        const style = { width: sz, height: sz, objectFit: 'contain' as const };
+        if (reward.type === 'COINS') return <img src="/new_coinicon.png" alt="" style={style} />;
+        if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={style} />;
+        if (reward.type === 'PICKS' || reward.type === 'DICE_CREDITS') return <img src="/pass-picksdice.png" alt="" style={style} />;
+        if (reward.type === 'CREDIT_BACK') return <img src={reward.label.toLowerCase().includes('premium') ? '/card_premium.png' : '/card_normal.png'} alt="" style={{ width: '2rem', height: sz, objectFit: 'contain' as const }} />;
+        return <img src="/topbar_levelstar.png" alt="" style={style} />;
+    };
+
     return (
-        <div className="fixed inset-0 z-[150] flex flex-col bg-[#0d0814] animate-pop-in">
+        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-3">
+        <div className="w-full max-w-[720px] flex flex-col rounded-3xl overflow-hidden relative"
+            style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', height: 'min(96%, 400px)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+
             {showPremiumInfo && (
-                <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-3 animate-pop-in">
-                    <div className="relative bg-gradient-to-b from-yellow-300 to-yellow-600 rounded-2xl p-0.5 w-full max-w-sm shadow-xl">
-                        <div className="bg-gradient-to-b from-black/95 to-black/90 rounded-2xl p-5 flex flex-col items-center text-center relative overflow-hidden">
-                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-                             <button onClick={() => setShowPremiumInfo(false)} className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition z-50 text-xs">✕</button>
-                             <h2 className="text-xl font-black font-display text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-500 uppercase tracking-widest mb-2 drop-shadow-sm">Premium Pass</h2>
-                             <div className="text-4xl mb-3 animate-bounce">👑</div>
-                             <ul className="space-y-2 mb-4 text-left w-full max-w-xs relative z-10 text-xs">
-                                 <li className="flex items-center gap-2"><span>🚀</span><span className="text-white font-bold">Unlock Premium Rewards</span></li>
-                                 <li className="flex items-center gap-2"><span>⚡</span><span className="text-white font-bold">+20 Instant Levels</span></li>
-                                 <li className="flex items-center gap-2"><span>💎</span><span className="text-white font-bold">Exclusive Gem Packs</span></li>
-                                 <li className="flex items-center gap-2"><span>⛏️</span><span className="text-white font-bold">Extra Quest Picks</span></li>
-                             </ul>
-                             <div className="bg-yellow-900/30 rounded-lg p-3 mb-4 w-full">
-                                 <div className="text-yellow-400 font-black text-lg">₱ 0.00</div>
-                                 <div className="text-yellow-200 text-[10px] uppercase">Free with Demo Account!</div>
-                              </div>
-                             <button 
-                                onClick={handlePremiumPurchase} 
-                                className="w-full py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-black text-xs uppercase tracking-widest rounded-lg transition-transform relative z-20"
-                             >
-                                Unlock Now
-                             </button>
+                <div className="absolute inset-0 z-[30] flex items-center justify-center animate-pop-in"
+                    onClick={() => setShowPremiumInfo(false)}>
+                    <div className="flex flex-col rounded-2xl overflow-hidden mx-4"
+                        style={{
+                            background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)',
+                            boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
+                            width: '100%', maxWidth: 310,
+                        }}
+                        onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-4 py-2.5">
+                            <span className="font-black text-white text-sm">Mission Pass</span>
+                            <div className="round-btn cursor-pointer" onClick={() => setShowPremiumInfo(false)}>
+                                <i className="ti ti-x" />
+                            </div>
+                        </div>
+                        <div className="flex flex-col px-3 py-2 gap-1">
+                            {[
+                                { icon: 'ti-gift',    color: '#86efac', title: 'Double Rewards',  desc: 'FREE + PREMIUM on every level' },
+                                { icon: 'ti-bolt',    color: '#fbbf24', title: '+20 Levels',       desc: 'Instant boost on activation' },
+                                { icon: 'ti-diamond', color: '#a78bfa', title: 'Exclusive Gems',   desc: 'Extra gem tiers in the pass' },
+                                { icon: 'ti-hammer',  color: '#67e8f9', title: 'Quest Picks',      desc: 'Bonus picks for Wild & Dice' },
+                            ].map(b => (
+                                <div key={b.title} className="flex items-center gap-2.5 rounded-xl px-2.5 py-1.5" style={{ background: 'rgba(255,255,255,0.07)' }}>
+                                    <div className="shrink-0 flex items-center justify-center rounded-lg" style={{ width: 26, height: 26, background: `${b.color}22` }}>
+                                        <i className={`ti ${b.icon}`} style={{ fontSize: 13, color: b.color }} />
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <div className="font-black text-[11px] leading-none text-white">{b.title}</div>
+                                        <div className="text-white/50 text-[8px] mt-0.5 leading-snug">{b.desc}</div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="px-3 pb-3 pt-1.5 flex justify-center">
+                            {missionState.isPremium ? (
+                                <button onClick={() => setShowPremiumInfo(false)} className="pill-green">
+                                    <div className="pill-face" style={{ padding: '5px 22px', fontSize: '11px' }}>Close</div>
+                                </button>
+                            ) : (
+                                <button onClick={(e) => { e.stopPropagation(); onBuyPass(); setShowPremiumInfo(false); }} className="pill-gold">
+                                    <div className="pill-face" style={{ padding: '5px 22px', fontSize: '11px' }}>Unlock Premium</div>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
             )}
 
-            <div className="w-full h-full flex flex-col relative">
-                <div className="bg-gradient-to-r from-purple-900 to-indigo-900 p-3 md:p-4 flex justify-between items-center shrink-0 z-10 shadow-lg relative">
-                    <div className="flex items-center gap-2">
-                        {view === 'PASS' && (
-                            <button onClick={() => setView('MISSIONS')} className="text-white hover:text-fuchsia-300 text-xl font-bold px-1.5 mr-1 transition-colors">⬅</button>
+            <div className="w-full h-full flex flex-col relative overflow-hidden">
+                {/* TOPBAR */}
+                <div className="shrink-0 flex items-center gap-1.5 px-3 pt-2 pb-1.5 relative">
+                    <div className="rtrack" style={{ flex: 'none', width: 80 }}>
+                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18 }}>
+                            <div className="rfill" style={{ width: `${Math.min(100, (missionState.passXP / missionState.passXpToNext) * 100)}%` }} />
+                        </div>
+                        <span className="rnum" style={{ fontSize: 8 }}>Lv.{missionState.passLevel} {missionState.passXP}/{missionState.passXpToNext}</span>
+                    </div>
+                    <button onClick={() => setView(view === 'MISSIONS' ? 'PASS' : 'MISSIONS')} className="pill-green relative shrink-0">
+                        <div className="pill-face" style={{ padding: '3px 10px', fontSize: '9px' }}>{view === 'MISSIONS' ? 'Mission Pass' : 'Daily Missions'}</div>
+                        {view === 'MISSIONS' && rewardsToClaimCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-white flex items-center justify-center leading-none" style={{ fontSize: 7, fontWeight: 900 }}>{rewardsToClaimCount}</span>
                         )}
-                        <h2 className="text-base md:text-lg font-display font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-purple-200 uppercase tracking-widest drop-shadow-md">
-                            {view === 'MISSIONS' ? 'Missions' : 'Season Pass'}
-                        </h2>
+                    </button>
+                    {missionState.passBoostMultiplier > 1 && missionState.passBoostEndTime > Date.now() && (
+                        <span className="font-black text-[9px] px-1.5 py-0.5 rounded-full shrink-0 flex items-center gap-0.5"
+                            style={{ background: 'rgba(251,191,36,0.2)', color: '#fbbf24' }}>
+                            <i className="ti ti-bolt" style={{ fontSize: '0.7rem' }} />
+                            {missionState.passBoostMultiplier}x XP
+                        </span>
+                    )}
+                    <span className="absolute left-0 right-0 text-center text-white font-tanker text-base pointer-events-none">
+                        {view === 'MISSIONS' ? 'Daily Missions' : 'Mission Pass'}
+                    </span>
+                    <div className="flex-1" />
+                    <div className="currency-pill flex items-center gap-1 px-2 py-0.5 shrink-0" style={{ background: 'rgba(0,0,0,0.55)', borderRadius: '9999px' }}>
+                        <img src="/symbols/diamond.png" alt="" style={{ width: '11px', height: '11px', objectFit: 'contain' }} />
+                        <span className="font-black text-[10px] text-white">{diamonds.toLocaleString('en-US')}</span>
+                        {onOpenGemShop && <button onClick={() => { onClose(); setTimeout(onOpenGemShop!, 50); }} className="pill-green" style={{ marginLeft: '2px' }}><div className="pill-face" style={{ padding: '1px 6px', fontSize: '8px' }}>Buy</div></button>}
                     </div>
-                    <div className="flex items-center gap-2">
-                         <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition text-sm shadow-inner font-bold">✕</button>
-                    </div>
+                    <div className="round-btn shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
                 </div>
 
+                {/* MISSIONS VIEW */}
                 {view === 'MISSIONS' && (
-                    <div className="flex-1 flex flex-col relative overflow-hidden">
-                        <div className="p-4 bg-gradient-to-b from-[#1e142b] to-[#120b1c] flex justify-between items-center z-10 border-b border-purple-900/45">
-                            <div className="flex items-center gap-3">
-                                <div className="relative w-11 h-11 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-md">
-                                    <span className="font-black text-base text-white">{missionState.passLevel}</span>
-                                </div>
-                                <div>
-                                    <div className="text-purple-300 text-[9px] md:text-[10px] font-black uppercase tracking-widest">Pass Level</div>
-                                    <div className="w-28 md:w-36 h-2 bg-black rounded-full mt-1 shadow-inner overflow-hidden">
-                                        <div className="h-full bg-purple-600" style={{ width: `${(missionState.passXP / missionState.passXpToNext) * 100}%` }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onClick={() => setView('PASS')} className="bg-gradient-to-r from-fuchsia-600 to-purple-700 hover:from-fuchsia-500 hover:to-purple-600 text-white font-black uppercase text-xs px-4 py-2 rounded-lg shadow relative active:scale-95 transition-transform">
-                                Rewards
-                                {rewardsToClaimCount > 0 && <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-[10px] font-black animate-pulse">{rewardsToClaimCount}</div>}
-                            </button>
-                        </div>
-
-                        <div className="flex justify-center my-4 shrink-0">
-                            <div className="bg-black/40 p-1 rounded-lg flex shadow-inner">
-                                <button onClick={() => setActiveTab('DAILY')} className={`px-4 py-1.5 rounded-md font-black uppercase tracking-wider text-[11px] transition-all ${activeTab === 'DAILY' ? 'bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>Daily</button>
-                                <button onClick={() => setActiveTab('WEEKLY')} className={`px-4 py-1.5 rounded-md font-black uppercase tracking-wider text-[11px] transition-all ${activeTab === 'WEEKLY' ? 'bg-gradient-to-r from-gold-500 to-yellow-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>Weekly</button>
-                                <button onClick={() => setActiveTab('MONTHLY')} className={`px-4 py-1.5 rounded-md font-black uppercase tracking-wider text-[11px] transition-all ${activeTab === 'MONTHLY' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>Monthly</button>
-                            </div>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-4 md:px-8">
-                            <div className="flex flex-col gap-3.5 max-w-xl mx-auto w-full">
-                                {currentMissions.map((mission) => (
-                                    <div key={mission.id} className={`rounded-xl ${mission.completed ? 'bg-gradient-to-r from-green-950 to-[#0e1c0e]' : 'bg-gradient-to-r from-[#2a233e] to-[#1e172e]'} flex items-center p-3 md:p-4 relative overflow-hidden shadow-md group transition-all duration-300 gap-3 md:gap-4 border border-white/5`}>
-                                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
-                                        
-                                        {/* Left Side: Icon */}
-                                        <div className="relative z-10 w-12 h-12 bg-black/45 rounded-xl flex items-center justify-center text-3xl shrink-0 shadow-inner group-hover:scale-105 transition-transform duration-300">
-                                            {mission.type === 'SPIN_COUNT' ? '🎰' : mission.type === 'WIN_COINS' ? '💰' : '⭐'}
-                                        </div>
-
-                                        {/* Middle: Content & Progress */}
-                                        <div className="relative z-10 flex-grow min-w-0 pr-1 select-none">
-                                            <div className="text-fuchsia-400 text-[8px] md:text-[9.5px] font-bold uppercase tracking-widest mb-0.5 leading-none">Mission</div>
-                                            <div className="text-white font-black text-xs md:text-sm leading-snug drop-shadow-sm mb-1.5 truncate">{mission.description}</div>
-                                            
-                                            <div className="w-full flex items-center gap-2">
-                                                <div className="flex-1 h-2 bg-black rounded-full overflow-hidden shadow-inner">
-                                                    <div className={`h-full bg-gradient-to-r ${mission.completed ? 'from-green-500 to-emerald-500' : 'from-fuchsia-500 to-purple-500'}`} style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%` }}></div>
-                                                </div>
-                                                <span className="text-purple-300 font-mono text-[9px] md:text-[10px] font-black shrink-0">{mission.completed ? '100%' : `${mission.current}/${mission.target}`}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Right Side: Rewards & Actions */}
-                                        <div className="relative z-10 flex flex-col items-end justify-between self-stretch shrink-0 min-w-[75px] md:min-w-[90px] border-l border-white/5 pl-3">
-                                            <div className="flex flex-col items-end leading-none text-right mb-2">
-                                                <span className={`font-mono text-[9.5px] font-black ${isXpBoosted ? 'text-yellow-400' : 'text-fuchsia-300'}`}>
-                                                    +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} XP
-                                                </span>
-                                                <span className="text-gold-300 font-mono text-[8px] md:text-[9px] font-bold mt-1">+{formatNumber(mission.coinReward)}</span>
-                                            </div>
-
-                                            {mission.completed ? (
-                                                <button onClick={() => onClaimMissionReward(mission)} className="w-full py-1.5 bg-gradient-to-r from-green-600 to-green-500 rounded-lg text-white text-[10px] md:text-[11px] font-black uppercase shadow animate-pulse">CLAIM</button>
-                                            ) : (
-                                                <button onClick={() => onFinishMission(mission)} className="w-full py-1 bg-[#362147] hover:bg-[#4a2e61] rounded-lg text-cyan-200 text-[9px] font-bold uppercase flex items-center justify-center gap-0.5 active:scale-95 transition-transform shadow-sm">
-                                                    <span>Skip</span><span className="text-[8px] text-cyan-300">💎{diamondCostToSkip(mission.xpReward)}</span>
-                                                </button>
-                                            )}
+                    <div className="flex-1 flex items-stretch p-3 gap-3 overflow-hidden">
+                        {currentMissions.map((mission) => (
+                            <div key={mission.id}
+                                className={`${mission.isGolden ? 'tcard-goldpurple' : 'tcard'} flex-1 flex flex-col gap-2 p-3 pb-2 relative overflow-hidden`}>
+                                {(mission.isGolden || (mission.stacks && mission.stacks > 0)) && (
+                                    <div className="flex items-center justify-start relative z-10 -mb-1">
+                                        <div className="flex gap-0.5 items-center">
+                                            {Array.from({ length: mission.isGolden ? 1 : 2 }).map((_, idx) => {
+                                                const filled = mission.isGolden ? 1 : (mission.stacks || 0);
+                                                return <div key={idx} className="w-2 h-2 rounded-full" style={{ background: idx < filled ? (mission.isGolden ? '#fbbf24' : '#a855f7') : 'rgba(255,255,255,0.15)' }} />;
+                                            })}
                                         </div>
                                     </div>
-                                ))}
-                                {currentMissions.length === 0 && <div className="col-span-full flex flex-col items-center justify-center bg-white/5 rounded-xl h-44 text-gray-500 font-bold uppercase tracking-widest text-center text-xs p-4 border border-dashed border-white/10"><span>🎉</span><span className="mt-2 text-[10px] tracking-widest text-purple-300">All missions completed</span></div>}
+                                )}
+                                <div className="flex-1 flex items-center justify-center shrink-0 mx-auto relative z-10 min-h-0" style={{ fontSize: 'clamp(2.5rem, 7vw, 4rem)' }}>
+                                    {(() => {
+                                        const sz = { width: '1em', height: '1em', objectFit: 'contain' as const, display: 'inline-block' as const };
+                                        if (mission.type === 'LEVEL_UP') return <img src="/mission-levelup.png" alt="" style={sz} />;
+                                        if (mission.type === 'SPIN_COUNT' || mission.type === 'MAX_BET_SPIN') return <img src="/mission-spin.png" alt="" style={sz} />;
+                                        if (mission.type === 'WIN_COINS' || mission.type === 'BET_COINS' || mission.type === 'BIG_WIN_COUNT') return <img src="/mission-wincoin.png" alt="" style={sz} />;
+                                        return <img src="/topbar_levelstar.png" alt="" style={sz} />;
+                                    })()}
+                                </div>
+                                <div className="text-white font-black text-[12px] leading-snug text-center flex-1 relative z-10">{mission.description}</div>
+                                <div className="relative z-10">
+                                    <div className="relative h-5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                                        <div className="absolute inset-y-0 left-0 rounded-full transition-all"
+                                            style={{ width: `${Math.min(100, (mission.current / mission.target) * 100)}%`, background: mission.isGolden ? 'linear-gradient(180deg,#fbbf24,#d97706)' : 'linear-gradient(180deg,#60a5fa,#2563eb)' }} />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="text-[10px] font-black leading-none text-white" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                                                {`${formatNumber(mission.current)} / ${formatNumber(mission.target)}`}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-0.5 relative z-10">
+                                    <div className="text-center">
+                                        <span className={`font-mono text-[11px] font-black ${isXpBoosted || mission.isGolden ? 'text-yellow-300' : 'text-blue-300'}`}>
+                                            +{isXpBoosted ? mission.xpReward * missionState.passBoostMultiplier : mission.xpReward} Pass XP
+                                        </span>
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="text-yellow-300 font-mono text-[11px] font-black">+{formatNumber(mission.coinReward)} Coins</span>
+                                    </div>
+                                </div>
+                                <div className="relative z-10">
+                                    {mission.claimed ? (
+                                        <button disabled className="pill-green w-full">
+                                            <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px', background: 'linear-gradient(180deg,#3a3a3a,#222,#111)' }}>Done</div>
+                                        </button>
+                                    ) : mission.completed ? (
+                                        <button onClick={() => onClaimMissionReward(mission)} className="pill-green w-full">
+                                            <div className="pill-face" style={{ padding: '5px 12px', fontSize: '10px' }}>Claim Reward</div>
+                                        </button>
+                                    ) : (
+                                        <button onClick={() => onFinishMission(mission)} className="pill-blue w-full">
+                                            <div className="pill-face" style={{ padding: '5px 12px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
+                                                <img src="/symbols/diamond.png" alt="" style={{ width: '0.85em', height: '0.85em', objectFit: 'contain' }} />
+                                                Skip {diamondCostToSkip(mission.xpReward)}
+                                            </div>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        ))}
+                        {currentMissions.length === 0 && (
+                            <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 text-center p-4">
+                                <span className="text-4xl">🎉</span>
+                                <span className="mt-3 text-[12px] text-purple-300 font-bold tracking-widest">All Done!</span>
+                            </div>
+                        )}
                     </div>
                 )}
 
+                {/* PASS VIEW */}
                 {view === 'PASS' && (
-                    <div className="flex-1 flex flex-col bg-black relative">
-                        <div className="absolute top-[45%] left-0 right-0 z-20 pointer-events-none flex justify-between px-2">
-                            <button onClick={() => handleScroll('LEFT')} className="w-8 h-8 bg-black/60 text-white rounded-full flex items-center justify-center shadow pointer-events-auto text-xs font-black">◀</button>
-                            <button onClick={() => handleScroll('RIGHT')} className="w-8 h-8 bg-black/60 text-white rounded-full flex items-center justify-center shadow pointer-events-auto text-xs font-black">▶</button>
+                    <div className="flex-1 flex flex-col relative overflow-hidden">
+                        <div className="flex flex-1 overflow-hidden">
+                            {/* Left labels — Free / Premium */}
+                            <div className="flex-none flex flex-col shrink-0" style={{ width: 32 }}>
+                                {/* Free label — height matches free card */}
+                                <div className="flex items-center justify-center" style={{ height: 88 }}>
+                                    <span style={{ writingMode: 'vertical-rl', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#93c5fd', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Free</span>
+                                </div>
+                                {/* Gap for level line */}
+                                <div style={{ height: 44 }} />
+                                {/* Premium label — height matches premium card */}
+                                <div className="flex items-center justify-center" style={{ height: 88 }}>
+                                    <span style={{ writingMode: 'vertical-rl', fontWeight: 900, fontSize: 14, letterSpacing: 1, color: '#fcd34d', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Premium</span>
+                                </div>
+                            </div>
+
+                            {/* Scrollable rewards */}
+                            <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto no-scrollbar" style={{ scrollBehavior: 'smooth' }}>
+                                <div className="flex h-full" style={{ paddingLeft: 6, paddingRight: 12, gap: 6, alignItems: 'stretch' }}>
+                                    {levels.map((lvl) => {
+                                        const rewards = missionState.passRewards.filter(r => r.level === lvl);
+                                        const freeReward = rewards.find(r => r.tier === 'FREE');
+                                        const premReward = rewards.find(r => r.tier === 'PREMIUM');
+                                        const unlocked = missionState.passLevel >= lvl;
+                                        const isNextBuyable = lvl === missionState.passLevel + 1;
+
+                                        const freeClaimable = !!(freeReward && !freeReward.claimed && unlocked);
+                                        const freeClaimed = !!(freeReward?.claimed);
+                                        const premClaimable = !!(premReward && !premReward.claimed && unlocked && missionState.isPremium);
+                                        const premClaimed = !!(premReward?.claimed);
+
+                                        return (
+                                            <div key={lvl} className="flex-none flex flex-col" style={{ width: 88, gap: 0 }}>
+
+                                                {/* FREE card */}
+                                                <div
+                                                    onClick={freeClaimable ? () => freeReward && onClaimReward(freeReward) : undefined}
+                                                    className="relative overflow-hidden"
+                                                    style={{
+                                                        height: 88,
+                                                        borderRadius: 12,
+                                                        background: freeClaimed
+                                                            ? 'linear-gradient(160deg,#1e3a6e,#132654)'
+                                                            : 'linear-gradient(160deg,#3b82f6 0%,#2563eb 50%,#1e40af 100%)',
+                                                        cursor: freeClaimable ? 'pointer' : 'default',
+                                                        opacity: freeClaimed ? 0.6 : 1,
+                                                        boxShadow: freeClaimable
+                                                            ? 'inset 0 1px 0 rgba(150,200,255,0.5), 0 4px 12px rgba(37,99,235,0.4)'
+                                                            : 'inset 0 1px 0 rgba(150,200,255,0.25)',
+                                                    }}>
+                                                    {/* Top gloss */}
+                                                    <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '45%', background: 'linear-gradient(180deg,rgba(255,255,255,0.18) 0%,rgba(255,255,255,0) 100%)', borderRadius: '12px 12px 50% 50%', pointerEvents: 'none' }} />
+                                                    {/* Icon */}
+                                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 14 }}>
+                                                        {renderIcon(freeReward)}
+                                                    </div>
+                                                    {/* Value label */}
+                                                    <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>
+                                                        {freeReward ? getDisplayValue(freeReward) : ''}
+                                                    </div>
+                                                    {/* Lock icon — top-right, no container */}
+                                                    {!freeClaimed && !freeClaimable && (
+                                                        <img src="/ui/lock.png" alt="" style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
+                                                    )}
+                                                    {/* Claimed check */}
+                                                    {freeClaimed && (
+                                                        <div style={{ position: 'absolute', top: 5, right: 6, background: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            <i className="ti ti-check" style={{ fontSize: 10, color: '#86efac' }} />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Level line */}
+                                                <div className="flex items-center justify-center relative shrink-0" style={{ height: 44 }}>
+                                                    {/* Track line */}
+                                                    <div style={{ position: 'absolute', left: 0, right: 0, top: '50%', height: 2, transform: 'translateY(-50%)', background: unlocked ? 'linear-gradient(90deg,#9333ea,#c084fc)' : 'rgba(255,255,255,0.15)' }} />
+                                                    {/* Bubble / buy pill */}
+                                                    {isNextBuyable ? (
+                                                        <button onClick={onBuyLevel} className="relative z-10 flex items-center gap-1 rounded-full font-black"
+                                                            style={{ background: 'linear-gradient(180deg,#22c55e,#15803d)', boxShadow: '0 2px 0 #14532d', padding: '3px 8px', fontSize: 8, color: '#fff', border: 'none', cursor: 'pointer' }}>
+                                                            <img src="/symbols/diamond.png" alt="" style={{ width: 9, height: 9, objectFit: 'contain' }} /> 100
+                                                        </button>
+                                                    ) : (
+                                                        <div className="relative z-10 flex items-center justify-center font-black rounded-full"
+                                                            style={{
+                                                                width: 24, height: 24, fontSize: 9,
+                                                                background: unlocked ? 'linear-gradient(180deg,#c084fc,#7c3aed)' : '#111827',
+                                                                border: `2px solid ${unlocked ? '#e879f9' : 'rgba(255,255,255,0.25)'}`,
+                                                                boxShadow: unlocked ? '0 2px 8px rgba(168,85,247,0.6)' : 'none',
+                                                                color: 'white', flexShrink: 0,
+                                                            }}>
+                                                            {lvl}
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* PREMIUM card */}
+                                                <div
+                                                    onClick={premClaimable ? () => premReward && onClaimReward(premReward) : undefined}
+                                                    className="relative overflow-hidden"
+                                                    style={{
+                                                        height: 88,
+                                                        borderRadius: 12,
+                                                        background: premClaimed
+                                                            ? 'linear-gradient(160deg,#5a3800,#3a2000)'
+                                                            : 'linear-gradient(160deg,#d97706 0%,#b45309 50%,#92400e 100%)',
+                                                        cursor: premClaimable ? 'pointer' : 'default',
+                                                        opacity: premClaimed ? 0.6 : 1,
+                                                        boxShadow: premClaimable
+                                                            ? 'inset 0 1px 0 rgba(255,240,120,0.5), 0 4px 12px rgba(217,119,6,0.4)'
+                                                            : 'inset 0 1px 0 rgba(255,240,120,0.2)',
+                                                    }}>
+                                                    {/* Top gloss */}
+                                                    <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '45%', background: 'linear-gradient(180deg,rgba(255,255,255,0.22) 0%,rgba(255,255,255,0) 100%)', borderRadius: '12px 12px 50% 50%', pointerEvents: 'none' }} />
+                                                    {/* Icon */}
+                                                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 14 }}>
+                                                        {renderIcon(premReward)}
+                                                    </div>
+                                                    {/* Value label */}
+                                                    <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>
+                                                        {premReward ? getDisplayValue(premReward) : ''}
+                                                    </div>
+                                                    {/* Lock icon — top-right, no container */}
+                                                    {!premClaimed && !premClaimable && (
+                                                        <img src="/ui/lock.png" alt="" style={{ position: 'absolute', top: 6, right: 6, width: 24, height: 24, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
+                                                    )}
+                                                    {/* Claimed check */}
+                                                    {premClaimed && (
+                                                        <div style={{ position: 'absolute', top: 5, right: 6, background: 'rgba(0,0,0,0.5)', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            <i className="ti ti-check" style={{ fontSize: 10, color: '#fcd34d' }} />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                            </div>
+                                        );
+                                    })}
+                                    <div style={{ width: 8, flexShrink: 0 }} />
+                                </div>
+                            </div>
                         </div>
 
-                        <div className="p-2.5 bg-gradient-to-b from-[#1e142b] to-[#0f0816] shrink-0 flex flex-col items-center justify-between gap-2 shadow z-10">
-                             <div className="flex items-center gap-3 w-full justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="relative w-10 h-10 rounded-full bg-gradient-to-br from-gold-400 to-orange-600 flex items-center justify-center shadow z-10">
-                                        <span className="font-black text-sm text-white">{missionState.passLevel}</span>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-white font-black uppercase text-[10px] tracking-wider italic leading-none">Season Pass</h3>
-                                        <span className="text-gold-400 font-mono text-[9px] font-bold">{missionState.passXP}/{missionState.passXpToNext} XP</span>
-                                    </div>
+                        {/* Bottom bar */}
+                        <div className="shrink-0 flex items-center justify-center gap-3 px-4 pt-1 pb-3">
+                            <button
+                                onClick={rewardsToClaimCount > 0 ? onClaimAll : undefined}
+                                disabled={rewardsToClaimCount === 0}
+                                className="pill-green"
+                                style={{ opacity: rewardsToClaimCount === 0 ? 0.4 : 1 }}>
+                                <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px' }}>
+                                    Claim All {rewardsToClaimCount > 0 ? `(${rewardsToClaimCount})` : ''}
                                 </div>
-
-                                <div className="flex items-center gap-1.5">
-                                    <button onClick={jumpToCurrentLevel} className="bg-black/40 text-white text-[8px] font-bold px-2 py-1.5 rounded-lg uppercase">
-                                        Jump
-                                    </button>
-                                    
-                                    {rewardsToClaimCount > 0 && (
-                                        <button onClick={onClaimAll} className="bg-gradient-to-r from-green-600 to-green-500 text-white text-[9px] font-black px-2.5 py-1.5 rounded-lg uppercase">Claim All ({rewardsToClaimCount})</button>
-                                    )}
-                                    <button onClick={onBuyLevel} className="flex flex-col items-center justify-center px-2 py-1 bg-gradient-to-br from-indigo-900 to-indigo-800 rounded-lg shadow text-[8px]">
-                                        <span className="text-white font-bold">Buy Lvl (+100 💎)</span>
-                                    </button>
-                                    
-                                    {!missionState.isPremium ? (
-                                        <button onClick={() => setShowPremiumInfo(true)} className="px-2.5 py-1.5 bg-gradient-to-r from-gold-500 to-yellow-600 rounded-lg shadow">
-                                            <span className="font-black text-white text-[9px] uppercase italic tracking-wider">GET PREMIUM</span>
-                                        </button>
-                                    ) : (
-                                        <span className="text-gold-300 font-black uppercase tracking-widest text-[9px] bg-gold-950/40 px-2 py-1 rounded-md">👑 Premium</span>
-                                    )}
-                                </div>
-                             </div>
-                        </div>
-
-                        <div ref={rewardsContainerRef} className="flex-1 overflow-x-auto flex items-center p-3 gap-3 no-scrollbar bg-gradient-to-b from-[#1a1025] to-black snap-x">
-                            {levels.map((lvl) => {
-                                const rewards = missionState.passRewards.filter(r => r.level === lvl);
-                                const freeReward = rewards.find(r => r.tier === 'FREE');
-                                const premReward = rewards.find(r => r.tier === 'PREMIUM');
-                                const isUnlocked = missionState.passLevel >= lvl;
-                                
-                                return (
-                                    <div key={lvl} className="flex-none w-32 flex flex-col gap-2.5 relative snap-center">
-                                        <div className={`text-center font-black text-sm ${isUnlocked ? 'text-white' : 'text-gray-600'}`}>LEVEL {lvl}</div>
-                                        <div className={`aspect-[3/4] bg-gradient-to-b from-[#382952] to-[#231833] rounded-lg p-1.5 flex flex-col items-center justify-between relative shadow transition-opacity duration-300 ${freeReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
-                                            <div className="flex-1 flex flex-col items-center justify-center w-full">
-                                                <div className="text-3xl mb-1">{freeReward?.type === 'COINS' ? '🪙' : freeReward?.type === 'DIAMONDS' ? '💎' : '📦'}</div>
-                                                <span className="font-black text-white text-[10px] text-center leading-tight mb-1 drop-shadow-md">{freeReward ? getDisplayValue(freeReward) : ''}</span>
-                                                <span className="text-[8px] text-gray-300 uppercase font-bold bg-black/50 px-2 py-0.5 rounded-full">Free</span>
-                                            </div>
-                                            <button onClick={() => freeReward && onClaimReward(freeReward)} disabled={!isUnlocked || freeReward?.claimed} className={`w-full py-1 text-[9px] font-black uppercase rounded-md transition-all ${isUnlocked && !freeReward?.claimed ? 'bg-gradient-to-r from-green-600 to-green-500 text-white animate-pulse' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>{freeReward?.claimed ? 'Claimed' : isUnlocked ? 'Claim' : 'Locked'}</button>
-                                        </div>
-                                        <div className={`aspect-[3/4] bg-gradient-to-b from-gray-800 to-black rounded-lg p-1.5 flex flex-col items-center justify-between relative shadow transition-opacity duration-300 ${missionState.isPremium ? 'from-[#451a03] to-[#2e1065]' : ''} ${premReward?.claimed ? 'opacity-50 grayscale' : 'opacity-100'}`}>
-                                            <div className="flex-1 flex flex-col items-center justify-center w-full relative">
-                                                 {!missionState.isPremium && <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-[1px]"><span className="text-3xl text-white">🔒</span></div>}
-                                                <div className="text-3xl mb-1">{premReward?.type === 'COINS' ? '💰' : premReward?.type === 'DIAMONDS' ? '💎' : premReward?.type === 'PICKS' ? '⛏️' : '👑'}</div>
-                                                <span className={`font-black text-[10px] text-center leading-tight mb-1 drop-shadow-md ${missionState.isPremium ? 'text-gold-100' : 'text-gray-500'}`}>{premReward ? getDisplayValue(premReward) : ''}</span>
-                                                <span className={`text-[8px] uppercase font-bold px-2 py-0.5 rounded-full ${missionState.isPremium ? 'text-gold-400 bg-black/50' : 'text-gray-600 bg-black/20'}`}>Premium</span>
-                                            </div>
-                                            <button onClick={() => premReward && onClaimReward(premReward)} disabled={!isUnlocked || premReward?.claimed || !missionState.isPremium} className={`w-full py-1 text-[9px] font-black uppercase rounded-md transition-all ${isUnlocked && !premReward?.claimed && missionState.isPremium ? 'bg-gradient-to-r from-gold-500 to-yellow-500 text-black' : 'bg-gray-800 text-gray-600 cursor-not-allowed'}`}>{premReward?.claimed ? 'Claimed' : (isUnlocked && missionState.isPremium) ? 'Claim' : 'Locked'}</button>
-                                        </div>
+                            </button>
+                            {!missionState.isPremium ? (
+                                <button onClick={() => { onClose(); setTimeout(() => onOpenPremium?.(), 50); }} className="pill-gold">
+                                    <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px' }}>Unlock Premium</div>
+                                </button>
+                            ) : (
+                                <button onClick={() => setShowPremiumInfo(true)} className="pill-gold">
+                                    <div className="pill-face" style={{ padding: '10px 28px', fontSize: '13px' }}>
+                                        <i className="ti ti-check" style={{ marginRight: 4 }} />Premium Active
                                     </div>
-                                );
-                            })}
-                            <div className="w-6 shrink-0"></div> 
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
             </div>
+        </div>
         </div>
     );
 };

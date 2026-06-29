@@ -1,0 +1,21 @@
+{
+  "name": "Casino Slop",
+  "short_name": "CasinoSlop",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0a0015",
+  "theme_color": "#0a0015",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/ui/games.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/ui/games.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

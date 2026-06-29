@@ -11,41 +11,19 @@ interface LevelUpToastProps {
 
 export const LevelUpToast: React.FC<LevelUpToastProps> = ({ level, reward, maxBetIncreased, newMaxBet, onClose }) => {
     useEffect(() => {
-        const timer = setTimeout(onClose, 2000); 
+        const timer = setTimeout(onClose, 1500);
         return () => clearTimeout(timer);
     }, [onClose]);
 
     return (
-        <div className="fixed top-[40px] md:top-[70px] right-2 md:right-4 z-[200] w-full max-w-[180px] origin-top-right pointer-events-none">
-            <div 
-                onClick={onClose}
-                className="animate-pop-in cursor-pointer pointer-events-auto bg-zinc-950 rounded-xl p-3 shadow-2xl flex flex-col items-center text-center leading-tight"
-            >
-                <h2 className="text-gold-400 font-black text-sm uppercase italic tracking-tighter mb-0.5 animate-pulse drop-shadow-md">
-                    LEVEL UP!
-                </h2>
-                <h3 className="text-xs font-display font-medium text-white mb-2 tracking-widest opacity-90">
-                    LEVEL {level}
-                </h3>
-                
-                {reward > 0 && (
-                    <div className="bg-green-800 px-2.5 py-0.5 rounded-md mb-2">
-                        <span className="text-green-200 font-mono font-bold text-xs">
-                            +{formatNumber(reward)}
-                        </span>
-                    </div>
-                )}
-                
-                {maxBetIncreased && (
-                    <div className="flex flex-col items-center mt-1 animate-pulse">
-                        <div className="text-gold-300 text-[8px] font-bold uppercase tracking-wider mb-0.5">
-                            MAX BET UP
-                        </div>
-                        <div className="bg-gold-900 px-2 py-0.5 rounded text-gold-100 font-mono font-bold text-[10px] shadow-md">
-                            {formatNumber(newMaxBet)}
-                        </div>
-                    </div>
-                )}
+        <div className="absolute top-[38px] right-2 z-[200] animate-pop-in pointer-events-none">
+            <div className="rounded-2xl overflow-hidden flex items-center gap-2.5" style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 6px 20px rgba(0,0,0,0.8)', padding: '9px 13px' }}>
+                <img src="/topbar_levelstar.png" alt="" style={{ width: '1.4rem', height: '1.4rem', objectFit: 'contain', flexShrink: 0 }} />
+                <div>
+                    <div className="font-tanker text-white" style={{ fontSize: '0.95rem', lineHeight: 1.1 }}>Level {level}!</div>
+                    {reward > 0 && <div className="text-purple-200 font-bold" style={{ fontSize: 9, marginTop: 2 }}>+{formatNumber(reward)} coins</div>}
+                    {maxBetIncreased && <div className="text-yellow-300 font-bold" style={{ fontSize: 9 }}>Max Bet ↑ {formatNumber(newMaxBet)}</div>}
+                </div>
             </div>
         </div>
     );

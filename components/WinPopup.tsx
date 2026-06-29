@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { audioService } from '../services/audioService';
-import { formatCommaNumber } from '../constants';
+import { formatK } from '../constants';
 
 interface WinPopupProps {
     amount: number;
@@ -8,114 +8,101 @@ interface WinPopupProps {
     onComplete: () => void;
 }
 
+const WIN_STYLES: Record<string, { textColor: string; shadow: string }> = {
+    'ULTIMATE WIN': { textColor: '#fde68a', shadow: 'rgba(251,191,36,0.7)' },
+    'MEGA WIN':     { textColor: '#fda4af', shadow: 'rgba(244,63,94,0.7)'  },
+    'EPIC WIN':     { textColor: '#d8b4fe', shadow: 'rgba(168,85,247,0.7)' },
+    'GREAT WIN':    { textColor: '#67e8f9', shadow: 'rgba(34,211,238,0.7)' },
+    'BIG WIN':      { textColor: '#86efac', shadow: 'rgba(34,197,94,0.7)'  },
+};
+
+// Image art per win tier
+const WIN_IMAGES: Record<string, string> = {
+    'ULTIMATE WIN': '/new_ultimatewin.png',
+    'MEGA WIN':     '/new_megawin.png',
+    'EPIC WIN':     '/new_epicwin.png',
+    'GREAT WIN':    '/new_greatwin.png',
+    'BIG WIN':      '/new_bigwin.png',
+};
+
+const NUNITO_3D = (color: string): React.CSSProperties => ({
+    fontFamily: "'Tanker', cursive",
+    fontWeight: 400,
+    textTransform: 'uppercase' as const,
+    color,
+    textShadow: `2px 2px 0 #000, 4px 4px 0 rgba(0,0,0,0.5)`,
+    WebkitTextStroke: '1px rgba(0,0,0,0.6)',
+    paintOrder: 'stroke fill',
+});
+
+const AMOUNT_STYLE: React.CSSProperties = {
+    fontFamily: "'Tanker', cursive",
+    fontWeight: 400,
+    color: '#ffffff',
+    textShadow: '2px 2px 0 #000, 0 0 8px rgba(0,0,0,0.9)',
+    WebkitTextStroke: '1.5px #000',
+    paintOrder: 'stroke fill',
+};
+
 export const WinPopup: React.FC<WinPopupProps> = ({ amount, type, onComplete }) => {
     const [displayAmount, setDisplayAmount] = useState(0);
-    
-    useEffect(() => {
-        audioService.playWinCheer();
+    const onCompleteRef = React.useRef(onComplete);
+    onCompleteRef.current = onComplete;
+    const mountTimeRef = React.useRef(Date.now());
 
-        let duration = 3000; 
-        if (type === 'BIG WIN') duration = 3500;
-        else if (type === 'GREAT WIN') duration = 4000;
-        else if (type === 'EPIC WIN') duration = 5000;
-        else if (type === 'MEGA WIN') duration = 6000;
-        else if (type === 'ULTIMATE WIN') duration = 7000;
-        
-        // Counting Animation
+    const guardedComplete = React.useCallback(() => {
+        if (Date.now() - mountTimeRef.current > 1500) onCompleteRef.current();
+    }, []);
+
+    useEffect(() => {
+        mountTimeRef.current = Date.now();
+        audioService.playWinCheer();
         const startTime = Date.now();
-        const countDuration = Math.min(2000, duration - 500); // Count faster than total popup time
-        
+        const countDuration = 1500;
+        let lastTick = 0;
         const timerInterval = setInterval(() => {
-            const now = Date.now();
-            const elapsed = now - startTime;
+            const elapsed = Date.now() - startTime;
             if (elapsed >= countDuration) {
                 setDisplayAmount(amount);
                 clearInterval(timerInterval);
             } else {
-                const progress = elapsed / countDuration;
-                // Ease out cubic
-                const easedProgress = 1 - Math.pow(1 - progress, 3);
-                setDisplayAmount(Math.floor(amount * easedProgress));
+                const p = 1 - Math.pow(1 - elapsed / countDuration, 3);
+                setDisplayAmount(Math.floor(amount * p));
+                // Coin tick every ~75ms, speeds up proportionally to count rate
+                const speed = 1 + p * 1.5;
+                if (elapsed - lastTick >= Math.max(35, 80 / speed)) {
+                    audioService.playCoinTick(speed);
+                    lastTick = elapsed;
+                }
             }
         }, 16);
+        const autoClose = setTimeout(() => onCompleteRef.current(), 3000);
+        return () => { clearTimeout(autoClose); clearInterval(timerInterval); };
+    }, [type, amount]);
 
-        const completeTimer = setTimeout(() => {
-            onComplete();
-        }, duration); 
-        return () => {
-            clearTimeout(completeTimer);
-            clearInterval(timerInterval);
-        };
-    }, [onComplete, type, amount]);
-
-    const getCoinCount = (tier: string) => {
-        switch(tier) {
-            case 'ULTIMATE WIN': return 250;
-            case 'MEGA WIN': return 150;
-            case 'EPIC WIN': return 100;
-            case 'GREAT WIN': return 75;
-            case 'BIG WIN': return 40;
-            default: return 15;
-        }
-    };
-
-    const getTheme = (tier: string) => {
-        switch(tier) {
-            case 'ULTIMATE WIN': return { color: 'text-yellow-400', title: tier };
-            case 'MEGA WIN': return { color: 'text-red-500', title: tier };
-            case 'EPIC WIN': return { color: 'text-purple-500', title: tier };
-            case 'GREAT WIN': return { color: 'text-blue-500', title: tier };
-            default: return { color: 'text-green-400', title: tier };
-        }
-    };
-
-    const theme = getTheme(type);
-    const particleCount = getCoinCount(type);
+    const s = WIN_STYLES[type] || WIN_STYLES['BIG WIN'];
 
     return (
-        <div 
-            onClick={onComplete}
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/95 backdrop-blur-sm cursor-pointer overflow-hidden"
-        >
-            <style>{`
-                @keyframes coinFall {
-                    0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
-                    10% { opacity: 1; }
-                    100% { transform: translateY(110vh) rotate(360deg); opacity: 1; }
-                }
-            `}</style>
+        <div onClick={guardedComplete}
+            className="absolute inset-0 z-[200] flex flex-col items-center justify-center cursor-pointer"
+            style={{ background: 'rgba(0,0,0,0.45)' }}>
 
-            <div className="relative flex flex-col items-center z-20 w-full max-w-sm p-4">
-                {/* Flat Title */}
-                <h2 className={`text-3xl md:text-5xl font-display font-black uppercase text-center tracking-tighter mb-4 ${theme.color}`}
-                    style={{ textShadow: '0 3px 0 #000, 0 5px 10px rgba(0,0,0,0.5)' }}
-                >
-                    {theme.title}
-                </h2>
-                
-                {/* Amount - No container, just huge text with heavy shadow */}
-                <div className="text-4xl md:text-[4.5rem] font-mono font-black text-white transform scale-105"
-                     style={{ 
-                         textShadow: '0 0 5px #000, 0 0 10px #000, 0 3px 0 #000, 0 5px 5px rgba(0,0,0,0.5)',
-                         WebkitTextStroke: '1px black'
-                     }}>
-                    {formatCommaNumber(displayAmount)}
-                </div>
-            </div>
+            <div className="flex flex-col items-center gap-4 p-6">
+                {/* Win type — image art */}
+                {WIN_IMAGES[type] ? (
+                    <img src={WIN_IMAGES[type]} alt={type} className="select-none pointer-events-none"
+                        style={{ width: 'clamp(220px, 70vw, 520px)', height: 'auto', filter: 'drop-shadow(0 6px 14px rgba(0,0,0,0.6))' }} />
+                ) : (
+                    <div style={{ fontSize: 'clamp(40px,11vw,88px)', lineHeight: 1, ...NUNITO_3D(s.textColor) }}>
+                        {type}
+                    </div>
+                )}
 
-            {/* 2D Particles */}
-            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-10">
-                {[...Array(particleCount)].map((_, i) => (
-                    <div key={i} 
-                            className="absolute text-xl opacity-80"
-                            style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `-10%`, 
-                                animation: `coinFall ${2 + Math.random() * 2}s linear infinite`,
-                                animationDelay: `${Math.random() * 5}s`,
-                            }}
-                    >🪙</div>
-                ))}
+                {/* Amount — no container, just the text */}
+                <span style={{ fontSize: 'clamp(28px,7vw,56px)', lineHeight: 1, ...AMOUNT_STYLE }}>
+                    {formatK(displayAmount)}
+                </span>
+
             </div>
         </div>
     );

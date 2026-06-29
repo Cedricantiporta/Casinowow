@@ -6,16 +6,17 @@ import { GET_PAYLINES } from '../constants';
 interface PaylinesOverlayProps {
     winData: WinData | null;
     rowCount?: number;
+    colCount?: number;
 }
 
-export const PaylinesOverlay: React.FC<PaylinesOverlayProps> = ({ winData, rowCount = 3 }) => {
+export const PaylinesOverlay: React.FC<PaylinesOverlayProps> = ({ winData, rowCount = 3, colCount = 5 }) => {
     if (!winData) return null;
 
-    const ALL_LINES = GET_PAYLINES(rowCount);
+    const ALL_LINES = GET_PAYLINES(rowCount, colCount);
 
     const getPoint = (col: number, row: number) => {
-        const x = (col * 20) + 10;
-        const y = (row * (100/rowCount)) + (50/rowCount);
+        const x = (col * (100 / colCount)) + (50 / colCount);
+        const y = (row * (100 / rowCount)) + (50 / rowCount);
         return `${x}%,${y}%`;
     };
 

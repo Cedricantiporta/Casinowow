@@ -28,13 +28,11 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     playerLevel
 }) => {
     
-    const missionsReady = missionState.activeMissions.filter(m => m.completed && !m.claimed).length;
     const isMissionXpBoosted = missionState.passBoostMultiplier > 1;
     
-    // Only count premium rewards if user is premium
-    const passRewardsReady = missionState.passRewards.filter(r => 
-        r.level <= missionState.passLevel && 
-        !r.claimed && 
+    const passRewardsReady = missionState.passRewards.filter(r =>
+        r.level <= missionState.passLevel + (missionState.isPremium ? 10 : 0) &&
+        !r.claimed &&
         (r.tier === 'FREE' || (r.tier === 'PREMIUM' && missionState.isPremium))
     ).length;
 
@@ -42,7 +40,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
     const isMissionsUnlocked = playerLevel >= 10;
 
     return (
-        <div className="fixed left-2 md:left-4 top-1/2 -translate-y-1/2 flex flex-col gap-6 z-30 pointer-events-none items-center">
+        <div className="fixed top-1/2 -translate-y-1/2 flex flex-col gap-8 z-30 pointer-events-none items-center" style={{ left: 'calc(env(safe-area-inset-left, 0px) + 0.5rem)' }}>
             {/* Quest Widget - Unlocked or Locked always visible */}
             <div className={`pointer-events-auto flex flex-col items-center animate-pop-in relative ${!isQuestUnlocked ? 'grayscale opacity-60' : ''}`}>
                 <QuestSidebar 
@@ -54,7 +52,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 />
                 {!isQuestUnlocked && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 backdrop-blur-[1px] rounded-full z-20 pointer-events-none">
-                        <span className="text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">🔒</span>
+                        <img src="/ui/lock.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 2px 2px rgba(0,0,0,1))' }} />
                         <span className="text-white text-[8px] px-1 rounded font-bold bg-red-600 shadow-md mt-0.5">Lvl 20</span>
                     </div>
                 )}
@@ -69,18 +67,19 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                 <div className="relative flex flex-col items-center justify-center">
                     <button 
                         onClick={isMissionsUnlocked ? onOpenBattlePass : undefined}
-                        className={`group relative w-14 h-14 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-fuchsia-900 to-[#4a044e] shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible z-10 ${!isMissionsUnlocked ? 'grayscale opacity-60' : ''}`}
+                        className={`group relative w-20 h-20 rounded-full bg-gradient-to-br from-fuchsia-900 to-[#4a044e] shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all overflow-visible z-10 ${!isMissionsUnlocked ? 'grayscale opacity-60' : ''}`}
                     >
                         <div className="absolute inset-0 rounded-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 pointer-events-none overflow-hidden"></div>
                         <div className="flex flex-col items-center justify-center">
-                             <div className="text-2xl md:text-4xl drop-shadow-md group-hover:-translate-y-1 transition-transform mb-1">🎫</div>
+                             <img src="/ui/pass.png" alt="" className="drop-shadow-md group-hover:-translate-y-1 transition-transform mb-1" style={{ width: 54, height: 54, objectFit: 'contain' }} />
                              <span className="absolute bottom-2 text-[8px] md:text-[10px] font-black text-white uppercase tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,1)] z-10">
-                                PASS
+                                Pass
                              </span>
                         </div>
                         
                         {passRewardsReady > 0 && isMissionsUnlocked && (
-                            <div className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-black animate-bounce shadow-lg border-2 border-white z-20">
+                            <div className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 rounded-full flex items-center justify-center text-white text-xs font-black shadow-lg z-20"
+                                style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
                                 {passRewardsReady}
                             </div>
                         )}
@@ -88,13 +87,14 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
                     
                     {!isMissionsUnlocked && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 backdrop-blur-[1px] rounded-full z-20 pointer-events-none">
-                            <span className="text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">🔒</span>
+                            <img src="/ui/lock.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 2px 2px rgba(0,0,0,1))' }} />
                             <span className="text-white text-[8px] px-1 rounded font-bold bg-red-600 shadow-md mt-0.5">Lvl 10</span>
                         </div>
                     )}
                     
                     {passRewardsReady > 0 && isMissionsUnlocked && (
-                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-20 bg-green-600 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase drop-shadow-md animate-pulse shadow-lg border border-green-400 whitespace-nowrap">
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-20 text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase drop-shadow-md shadow-lg whitespace-nowrap"
+                            style={{ background: '#dc2626', border: '1.5px solid #f0c000' }}>
                             COLLECT
                         </span>
                     )}
@@ -103,7 +103,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({
 
             {/* XP Boost Indicator (Redesigned) - Show always if active */}
             {xpMultiplier > 1 && (
-                <div className="relative w-14 h-14 md:w-20 md:h-20 animate-pop-in z-30 rounded-full shadow-xl mt-2 pointer-events-auto">
+                <div className="relative w-20 h-20 animate-pop-in z-30 rounded-full shadow-xl mt-2 pointer-events-auto">
                      {/* Pulsing Glow */}
                      <div className="absolute inset-0 bg-yellow-400 rounded-full blur-md animate-pulse opacity-60"></div>
                      

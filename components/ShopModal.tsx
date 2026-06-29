@@ -1,213 +1,280 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { formatK } from '../constants';
 
 interface ShopModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onBuy: (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT', amount: number, duration?: number, cost?: number) => void;
+    onBuy: (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST', amount: number, duration?: number, cost?: number) => void;
     level: number;
     isFreeStashClaimed?: boolean;
+    freeCoinsAvailable?: boolean;
+    freeCoinsAmount?: number;
     initialTab?: 'COINS' | 'BOOSTS' | 'DIAMONDS';
     balance?: number;
     diamonds?: number;
+    maxBet?: number;
+    claimedItems?: string[];
+    onClaimItem?: (label: string) => void;
+    isVip?: boolean;
+    vipLevel?: number;
 }
 
-export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, initialTab = 'COINS', balance = 0, diamonds = 0 }) => {
-    const [activeTab, setActiveTab] = useState<'COINS' | 'BOOSTS' | 'DIAMONDS'>(initialTab);
+export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, freeCoinsAvailable = false, freeCoinsAmount = 300000, balance = 0, diamonds = 0, maxBet = 10000, initialTab, claimedItems, onClaimItem, isVip, vipLevel }) => {
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
+    const [cooldown, setCooldown] = useState(false);
+    const [popup, setPopup] = useState<'nopay' | 'nogems' | null>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const gemsSepRef = useRef<HTMLDivElement>(null);
+    const boostsSepRef = useRef<HTMLDivElement>(null);
+    const freeSepRef = useRef<HTMLDivElement>(null);
 
-    // Helper to format numbers fully with commas
-    const formatFullNumber = (num: number) => {
-        return num.toLocaleString('en-US');
+    // Non-passive wheel handler so we can preventDefault and scroll horizontally
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const onWheel = (e: WheelEvent) => {
+            e.preventDefault();
+            el.scrollBy({ left: e.deltaY * 2, behavior: 'auto' });
+        };
+        el.addEventListener('wheel', onWheel, { passive: false });
+        return () => el.removeEventListener('wheel', onWheel);
+    }, [isOpen]);
+
+    const handleBuy = (action: () => void) => {
+        if (cooldown) return;
+        action();
+        setCooldown(true);
+        setTimeout(() => setCooldown(false), 1000);
+    };
+
+    const fmt = formatK;
+
+    const scrollToSection = (section: 'COINS' | 'DIAMONDS' | 'BOOSTS' | 'FREE' | number) => {
+        const container = scrollRef.current;
+        if (!container) return;
+        if (section === 'COINS' || section === 0) { container.scrollTo({ left: 0, behavior: 'smooth' }); return; }
+        const refMap: Record<string, React.RefObject<HTMLDivElement>> = { DIAMONDS: gemsSepRef, BOOSTS: boostsSepRef, FREE: freeSepRef };
+        const legacyIdxMap: Record<number, React.RefObject<HTMLDivElement>> = { 5: gemsSepRef, 8: boostsSepRef, 11: freeSepRef };
+        const ref = typeof section === 'string' ? refMap[section] : legacyIdxMap[section];
+        if (ref?.current) { container.scrollTo({ left: ref.current.offsetLeft - 8, behavior: 'smooth' }); }
     };
 
     useEffect(() => {
-        if (isOpen) {
-            setActiveTab(initialTab);
-            const BASE_PER_LEVEL = 1000000; 
-            
-            setDynamicPacks([
-                { 
-                    amount: level * BASE_PER_LEVEL * 1, 
-                    price: "₱ 49", 
-                    color: "bg-gradient-to-b from-cyan-600 to-cyan-800",
-                    label: "Pile",
-                },
-                { 
-                    amount: level * BASE_PER_LEVEL * 2.5, 
-                    price: "₱ 99", 
-                    color: "bg-gradient-to-b from-green-600 to-green-800",
-                    label: "Double",
-                },
-                { 
-                    amount: level * BASE_PER_LEVEL * 5, 
-                    price: "₱ 199", 
-                    color: "bg-gradient-to-b from-emerald-600 to-emerald-800",
-                    label: "Big Bag",
-                },
-                { 
-                    amount: level * BASE_PER_LEVEL * 10, 
-                    price: "₱ 499", 
-                    color: "bg-gradient-to-b from-purple-600 to-purple-800",
-                    label: "Roller",
-                },
-                { 
-                    amount: level * BASE_PER_LEVEL * 50, 
-                    price: "₱ 2,490", 
-                    color: "bg-gradient-to-b from-yellow-600 to-yellow-800",
-                    label: "Jackpot",
-                },
-            ]);
+        if (!isOpen) return;
+        const tabSectionMap: Record<string, 'COINS' | 'DIAMONDS' | 'BOOSTS'> = { 'COINS': 'COINS', 'DIAMONDS': 'DIAMONDS', 'BOOSTS': 'BOOSTS' };
+        const sec = tabSectionMap[initialTab || 'COINS'] ?? 'COINS';
+        if (sec !== 'COINS') {
+            setTimeout(() => scrollToSection(sec), 80);
         }
-    }, [isOpen, level, isFreeStashClaimed, initialTab]);
+    }, [isOpen, initialTab]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const prices = [29, 49, 99, 249, 629];
+        const coinBase = [49, 99, 199, 499, 2490];
+        const labels = ['Pile', 'Double', 'Big Bag', 'Roller', 'Jackpot'];
+        const icons = ['/coin_1.png', '/coin_2.png', '/coin_3.png', '/coin_4.png', '/coin_5.png'];
+        const colors = [
+            'from-cyan-500 to-cyan-800',
+            'from-green-500 to-green-800',
+            'from-emerald-500 to-emerald-800',
+            'from-purple-500 to-purple-800',
+            'from-yellow-500 to-amber-700',
+        ];
+        setDynamicPacks(prices.map((price, i) => {
+            const amount = Math.round((coinBase[i] / 50) * maxBet);
+            return {
+                icon: icons[i],
+                label: labels[i],
+                sub: fmt(amount),
+                pesosLabel: String(price),
+                color: colors[i],
+                action: () => onBuy('COIN', amount, 0, price),
+            };
+        }));
+    }, [isOpen, maxBet]);
 
     if (!isOpen) return null;
 
-    const itemsPacks = [
-        { label: "10 Pack Credits", type: 'PACK_CREDIT', val: 10, duration: 0, cost: 45, priceLabel: "45 💎", color: "bg-gradient-to-b from-orange-700 to-red-900", icon: '📦' },
-        { label: "100 Pack Credits", type: 'PACK_CREDIT', val: 100, duration: 0, cost: 400, priceLabel: "400 💎", color: "bg-gradient-to-b from-orange-800 to-red-950", icon: '📦' },
-        { label: "2x Player XP (30m)", type: 'BOOST', val: 2, duration: 1800000, cost: 200, priceLabel: "200 💎", color: "bg-gradient-to-b from-fuchsia-700 to-fuchsia-900", icon: '🚀' },
-        { label: "2x Player XP (12H)", type: 'BOOST', val: 2, duration: 43200000, cost: 500, priceLabel: "500 💎", color: "bg-gradient-to-b from-fuchsia-800 to-purple-950", icon: '🚀' },
-        { label: "2x Mission XP (30m)", type: 'PASS_XP', val: 2, duration: 1800000, cost: 300, priceLabel: "300 💎", color: "bg-gradient-to-b from-indigo-600 to-indigo-900", icon: '📜' },
+    const discount = isVip
+        ? (vipLevel === 1 ? 5 : vipLevel === 2 ? 10 : 20)
+        : 0;
+
+    const gemPacks = [
+        { icon: '/gem_1.png', label: '100 Gems',   sub: '100',   pesosLabel: '49',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
+        { icon: '/gem_2.png', label: '500 Gems',   sub: '500',   pesosLabel: '199', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
+        { icon: '/gem_3.png', label: '5,000 Gems', sub: '5,000', pesosLabel: '499', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
     ];
 
-    const diamondPacks = [
-        { amount: 50, price: "₱ 49", color: "bg-gradient-to-b from-cyan-500 to-cyan-700" },
-        { amount: 150, price: "₱ 99", color: "bg-gradient-to-b from-cyan-600 to-blue-800" },
-        { amount: 500, price: "₱ 249", color: "bg-gradient-to-b from-blue-600 to-indigo-800" },
-        { amount: 1500, price: "₱ 499", color: "bg-gradient-to-b from-indigo-600 to-purple-800" },
-        { amount: 5000, price: "₱ 1,250", color: "bg-gradient-to-b from-purple-600 to-fuchsia-800" },
+    const boostPacks = [
+        { icon: '/ui/boost.png', label: 'XP Boost 30m',       sub: '2× XP',        gemCost:  50, color: 'from-fuchsia-600 to-fuchsia-900', action: () => onBuy('BOOST',         2, 1_800_000,    50) },
+        { icon: '/ui/boost.png', label: 'XP Boost 12H',       sub: '2× XP',        gemCost: 500, color: 'from-fuchsia-700 to-purple-900',  action: () => onBuy('BOOST',         2, 43_200_000,  500) },
+        { icon: '/ui/boost.png', label: 'Mission XP 30m',     sub: '2× Mission',   gemCost:  50, color: 'from-indigo-500 to-indigo-800',   action: () => onBuy('PASS_XP',       2, 1_800_000,    50) },
+        { icon: '/bonus wheel shop.png', label: 'Collect Boost 12H', sub: '2× Collect', gemCost: 100, color: 'from-yellow-600 to-amber-900',    action: () => onBuy('COLLECT_BOOST', 2, 43_200_000,  100) },
     ];
 
-    const handleBuy = (type: any, val: number, duration?: number, cost?: number) => {
-        onBuy(type, val, duration, cost);
+    const freeItem = {
+        icon: '/ui/gift_store.png',
+        label: 'FREE COINS',
+        sub: fmt(freeCoinsAmount),
+        price: isFreeStashClaimed ? 'CLAIMED' : 'CLAIM',
+        color: isFreeStashClaimed ? 'from-gray-600 to-gray-800' : 'from-lime-500 to-green-700',
+        isClaimed: !!isFreeStashClaimed,
+        isRealMoney: false,
+        gemCost: undefined as number | undefined,
+        action: () => !isFreeStashClaimed && onBuy('COIN', freeCoinsAmount, 0, 0),
     };
 
-    const TabButton = ({ tab, label, icon }: { tab: 'COINS' | 'BOOSTS' | 'DIAMONDS', label: string, icon?: string }) => (
-        <button 
-            onClick={() => setActiveTab(tab)} 
-            className={`
-                px-3 py-1 rounded-lg font-bold uppercase tracking-wider transition-all text-[10px] flex items-center gap-1
-                ${activeTab === tab 
-                    ? 'bg-purple-600 text-white shadow-md shadow-purple-600/30 scale-105' 
-                    : 'bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600'}
-            `}
-        >
-            {icon && <span className="text-xs">{icon}</span>}
-            {label}
-        </button>
-    );
+    const coinItems = dynamicPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined }));
+    const gemItems = gemPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined }));
+    const boostItems = boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false, price: `GEM:${item.gemCost}` }));
+    const freeItems = [freeItem];
 
     return (
-        <div className="fixed inset-0 z-[150] flex flex-col bg-gray-950 animate-pop-in">
-            
-            {/* Header with Centered Tabs */}
-            <div className="bg-gray-900 border-b border-gray-800 p-2 flex items-center justify-between shrink-0 z-10 shadow-sm gap-2 relative">
-                
-                <div className="hidden sm:block text-xs font-display font-medium text-white whitespace-nowrap w-16">Store</div>
-                
-                {/* Centered Tabs */}
-                <div className="flex items-center gap-1 mx-auto">
-                    <TabButton tab="COINS" label="Coins" icon="🪙" />
-                    <TabButton tab="DIAMONDS" label="Gems" icon="💎" />
-                    <TabButton tab="BOOSTS" label="Items" icon="🎒" />
+        <div
+            className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
+            style={{ background: 'linear-gradient(160deg,#5a18a0 0%,#40108a 50%,#2a0860 100%)' }}
+        >
+            {/* Header */}
+            <div className="flex items-center gap-2 px-4 pt-3 pb-2 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                        <img src="/new_coinicon.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0 }} />
+                        <span className="num font-mono">{fmt(balance)}</span>
+                    </div>
+                    <div className="currency-pill flex items-center gap-1.5 px-2.5 py-1" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                        <img src="/symbols/diamond.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} />
+                        <span className="num font-mono">{fmt(diamonds)}</span>
+                    </div>
                 </div>
-                
-                {/* Right Side Actions */}
-                <div className="flex items-center gap-2 shrink-0 ml-auto select-none">
-                     <div className="currency-pill flex items-center gap-2 px-3 py-1">
-                         <div className="coin">$</div>
-                         <span className="font-mono font-bold text-white">{formatFullNumber(balance)}</span>
-                     </div>
-                     <div className="currency-pill flex items-center gap-2 px-3 py-1">
-                         <div className="gem"></div>
-                         <span className="font-mono font-bold text-white">{formatFullNumber(diamonds)}</span>
-                     </div>
-
-                     <div className="flex items-center bg-transparent px-1.5 py-0.5 select-none">
-                         <span className="text-xs mr-1">🪙</span>
-                         <div className="flex items-center gap-1 mr-2 leading-none">
-                             <span className="text-[7.5px] text-gray-400 uppercase font-black">Free</span>
-                             <span className="text-white text-[9.5px] font-black">300k</span>
-                         </div>
-                         <button 
-                            onClick={() => !isFreeStashClaimed && handleBuy('COIN', 300000, 0, 0)}
-                            disabled={isFreeStashClaimed}
-                            className={`px-1.5 py-0.5 rounded font-black uppercase text-[7.5px] transition-all ${isFreeStashClaimed ? 'bg-gray-800 text-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-500 text-white'}`}
-                         >
-                             {isFreeStashClaimed ? 'Claimed' : 'Claim'}
-                         </button>
-                     </div>
-
-                     <button onClick={onClose} className="w-5.5 h-5.5 bg-white/10 hover:bg-white/20 rounded flex items-center justify-center text-white text-[10px] transition font-sans">✕</button>
-                </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-2 bg-gray-950">
-                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1.5">
-                    {activeTab === 'COINS' ? dynamicPacks.map((pack, i) => (
-                        <button 
-                            key={i}
-                            onClick={() => handleBuy('COIN', pack.amount, 0, pack.cost)}
-                            disabled={pack.disabled}
-                            className={`aspect-[3/4] relative group overflow-hidden rounded-md p-1 flex flex-col items-center justify-between ${pack.disabled ? 'bg-gray-800 grayscale opacity-40 cursor-not-allowed' : pack.color} hover:brightness-110 transition-all shadow-md hover:scale-[1.01] active:scale-[0.99]`}
-                        >
-                            <div className="w-full flex justify-center">
-                                <div className="text-[6px] font-black uppercase bg-black/40 px-1 py-0.5 rounded text-white whitespace-nowrap shadow-sm tracking-wide">{pack.label}</div>
-                            </div>
-                            
-                            <div className="text-lg md:text-xl drop-shadow-md transform group-hover:scale-105 transition-transform duration-300 leading-none py-0.5">🪙</div>
-                            
-                            <div className="w-full text-center flex flex-col gap-0.5">
-                                <div className="text-[8.5px] md:text-[10px] font-black text-white drop-shadow-sm font-display leading-none break-all">
-                                    {formatFullNumber(pack.amount)}
-                                </div>
-                                <div className={`w-full py-0.5 rounded text-[7px] md:text-[8px] font-black text-white uppercase whitespace-nowrap transition-colors shadow-sm ${pack.disabled ? 'bg-gray-750' : 'bg-green-600 group-hover:bg-green-500'}`}>
-                                     {pack.disabled ? 'CLAIMED' : pack.price}
-                                </div>
-                            </div>
-                        </button>
-                    )) : activeTab === 'DIAMONDS' ? diamondPacks.map((pack, i) => (
-                        <button 
-                            key={i}
-                            onClick={() => handleBuy('DIAMOND', pack.amount)}
-                            className={`aspect-[3/4] relative group overflow-hidden rounded-md p-1 flex flex-col items-center justify-between ${pack.color} hover:brightness-110 transition-all shadow-md hover:scale-[1.01] active:scale-[0.99]`}
-                        >
-                            <div className="w-full flex justify-center opacity-0 select-none">
-                                 <span className="text-[5px]">.</span>
-                            </div>
-                            <div className="text-lg md:text-xl drop-shadow-md transform group-hover:scale-105 transition-transform duration-300 animate-pulse leading-none py-0.5">💎</div>
-                            
-                            <div className="w-full text-center flex flex-col gap-0.5">
-                                <div className="text-[8.5px] md:text-[10px] font-black text-white drop-shadow-sm font-display leading-none">
-                                    {formatFullNumber(pack.amount)}
-                                </div>
-                                <div className="w-full py-0.5 bg-cyan-600 rounded text-[7px] md:text-[8px] font-black text-white uppercase whitespace-nowrap transition-colors shadow-sm hover:bg-cyan-500">
-                                    {pack.price}
-                                </div>
-                            </div>
-                        </button>
-                    )) : itemsPacks.map((pack, i) => (
-                        <button 
-                            key={i}
-                            onClick={() => handleBuy(pack.type as any, pack.val, pack.duration, pack.cost)}
-                            className={`aspect-[3/4] relative group overflow-hidden rounded-md p-1 flex flex-col items-center justify-between ${pack.color} hover:brightness-110 transition-all shadow-md hover:scale-[1.01] active:scale-[0.99]`}
-                        >
-                            <div className="w-full flex justify-center">
-                                 <div className="text-[6px] font-black uppercase bg-black/40 px-1 py-0.5 rounded text-white whitespace-nowrap tracking-wider">ITEM</div>
-                            </div>
-
-                            <div className="text-lg md:text-xl drop-shadow-md transform group-hover:scale-105 transition-transform duration-300 leading-none py-0.5">{pack.icon}</div>
-                            
-                            <div className="w-full text-center flex flex-col gap-0.5">
-                                <div className="text-[7.5px] md:text-[8.5px] font-black text-white leading-none break-words w-full px-0.5">
-                                    {pack.label}
-                                </div>
-                                <div className="w-full py-0.5 bg-indigo-600 rounded text-[7px] md:text-[8px] font-black text-white uppercase whitespace-nowrap transition-colors shadow-sm hover:bg-indigo-500">
-                                    {pack.priceLabel}
-                                </div>
-                            </div>
+                <div className="flex-1"></div>
+                {/* Section tabs */}
+                <div className="flex items-center gap-1">
+                    {[
+                        { name: 'Coins',  sec: 'COINS'    as const },
+                        { name: 'Gems',   sec: 'DIAMONDS' as const },
+                        { name: 'Boosts', sec: 'BOOSTS'   as const },
+                    ].map(tab => (
+                        <button key={tab.name} onClick={() => scrollToSection(tab.sec)} className="pill-green">
+                            <div className="pill-face" style={{ padding: '5px 10px', fontSize: '10px' }}>{tab.name}</div>
                         </button>
                     ))}
+                    <button onClick={() => scrollToSection('FREE')} className="pill-green relative">
+                        <div className="pill-face" style={{ padding: '5px 10px', fontSize: '10px' }}>Free</div>
+                        {freeCoinsAvailable && (
+                            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full z-10" style={{ background: '#dc2626', border: '1.5px solid #f0c000' }} />
+                        )}
+                    </button>
+                </div>
+                <div className="round-btn cursor-pointer shrink-0" onClick={onClose}><i className="ti ti-x"></i></div>
+            </div>
+
+            {/* Popup overlay */}
+            {popup && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={() => setPopup(null)}>
+                    <div className="rounded-3xl px-6 py-5 max-w-[260px] text-center shadow-2xl" style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }} onClick={e => e.stopPropagation()}>
+                        <div className="text-white font-black text-sm mb-1">
+                            {popup === 'nogems' ? 'Not Enough Gems' : 'Purchase Unavailable'}
+                        </div>
+                        <div className="text-white/50 text-[10px] mb-3">
+                            {popup === 'nogems' ? 'You need more gems to purchase this item.' : 'Real money purchases are not available in this environment.'}
+                        </div>
+                        <button onClick={() => setPopup(null)} className="pill-green"><div className="pill-face">OK</div></button>
+                    </div>
+                </div>
+            )}
+
+            {/* Scroll area */}
+            <div className="flex-1 min-h-0 pb-4">
+                <div
+                    ref={scrollRef}
+                    className="w-full h-full overflow-x-auto overflow-y-hidden no-scrollbar py-3"
+                    style={{ paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 1rem)', paddingRight: '1rem' }}
+                >
+                    <div className="flex gap-3 h-full items-stretch min-w-max">
+                        {[
+                            { items: coinItems, sepRef: null,         sepLabel: null,    sepColor: null },
+                            { items: gemItems,  sepRef: gemsSepRef,   sepLabel: 'Gems',  sepColor: '#0e7490' },
+                            { items: boostItems,sepRef: boostsSepRef, sepLabel: 'Boosts',sepColor: '#7c3aed' },
+                            { items: freeItems, sepRef: freeSepRef,   sepLabel: 'Free',  sepColor: '#166534' },
+                        ].map(({ items, sepRef, sepLabel, sepColor }) => (
+                            <React.Fragment key={sepLabel ?? 'coins'}>
+                                {sepRef && sepLabel && (
+                                    <div ref={sepRef} className="flex items-stretch shrink-0 gap-0.5">
+                                        <div className="w-px bg-white/15 self-stretch" />
+                                        <div className="flex flex-col justify-center px-1">
+                                            <div className="text-[8px] font-black uppercase tracking-widest"
+                                                style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)', color: sepColor ?? '#fff', letterSpacing: '0.15em' }}>
+                                                {sepLabel}
+                                            </div>
+                                        </div>
+                                        <div className="w-px bg-white/15 self-stretch" />
+                                    </div>
+                                )}
+                                {items.map((item, i) => {
+                                    const btnDisabled = cooldown;
+                                    const gemCost = (item as any).gemCost as number | undefined;
+                                    const onItemClick = () => {
+                                        if (cooldown) return;
+                                        if (item.isRealMoney) { setPopup('nopay'); return; }
+                                        if (item.isClaimed) { setPopup('nopay'); return; }
+                                        if (gemCost !== undefined && diamonds < gemCost) { setPopup('nogems'); return; }
+                                        handleBuy(item.action);
+                                    };
+                                    const showVipDiscount = isVip && discount > 0 && item.isRealMoney;
+                                    const pesoMatch = item.price.match(/₱\s*(\d+)/);
+                                    const originalPeso = pesoMatch ? parseInt(pesoMatch[1], 10) : null;
+                                    const discountedPeso = (showVipDiscount && originalPeso !== null)
+                                        ? Math.floor(originalPeso * (1 - discount / 100))
+                                        : null;
+                                    const cardBg = showVipDiscount
+                                        ? 'linear-gradient(180deg,rgba(200,140,30,0.65) 0%,rgba(90,40,5,0.97) 100%)'
+                                        : 'linear-gradient(180deg,rgba(130,55,230,0.65) 0%,rgba(50,12,110,0.97) 100%)';
+                                    const cardShadow = showVipDiscount
+                                        ? 'inset 0 1px 0 rgba(255,210,90,0.5), 0 4px 16px rgba(0,0,0,0.6)'
+                                        : 'inset 0 1px 0 rgba(190,140,255,0.5), 0 4px 16px rgba(0,0,0,0.6)';
+                                    return (
+                                        <div key={i} className={`flex-shrink-0 w-[140px] flex flex-col items-center justify-between rounded-2xl overflow-hidden px-3 pt-3 pb-2 transition-all relative`} style={{ background: cardBg, boxShadow: cardShadow }}>
+                                            {showVipDiscount && (
+                                                <div className="absolute top-2 right-2 z-10 px-1.5 py-0.5 rounded-full text-[9px] font-black leading-none"
+                                                    style={{ background: 'linear-gradient(135deg,#f59e0b,#b45309)', color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+                                                    VIP -{discount}%
+                                                </div>
+                                            )}
+                                            <div className={`text-xs font-black uppercase text-white tracking-widest leading-none w-full ${showVipDiscount ? 'text-left pr-12' : 'text-center'}`}>{item.label}</div>
+                                            <div className="flex-1 flex items-center justify-center py-1">
+                                                {typeof item.icon === 'string' && item.icon.startsWith('/') ? (
+                                                    <img src={item.icon} alt="" style={{ width: '6rem', height: '6rem', objectFit: 'contain', display: 'block' }} />
+                                                ) : (
+                                                    <span className="text-[5rem] leading-none drop-shadow-2xl">{item.icon}</span>
+                                                )}
+                                            </div>
+                                            <div className="w-full flex flex-col gap-1.5">
+                                                {item.sub && (
+                                                    <div className="text-sm font-black text-white text-center leading-none drop-shadow-sm">{item.sub}</div>
+                                                )}
+                                                <button
+                                                    onClick={onItemClick}
+                                                    disabled={btnDisabled || item.isClaimed}
+                                                    className={`pill-green w-full ${item.isClaimed ? 'opacity-40' : ''}`}
+                                                >
+                                                    <div className="pill-face" style={{ fontSize: '10px' }}>
+                                                        {item.isClaimed
+                                                            ? '✓ Claimed'
+                                                            : item.price.startsWith('GEM:')
+                                                                ? <><img src="/symbols/diamond.png" alt="" style={{ width: '0.85em', height: '0.85em', objectFit: 'contain', display: 'inline-block' }} /> {item.price.slice(4)}</>
+                                                                : (showVipDiscount && discountedPeso !== null)
+                                                                    ? <span className="flex items-center gap-1 justify-center"><span style={{ opacity: 0.6, textDecoration: 'line-through' }}>₱ {originalPeso}</span><span>₱ {discountedPeso}</span></span>
+                                                                    : item.price}
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </React.Fragment>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
