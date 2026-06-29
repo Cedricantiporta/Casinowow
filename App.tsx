@@ -833,6 +833,8 @@ const App: React.FC = () => {
   type ActiveToast = { type: 'LEVEL_UP'; level: number; reward: number; maxBetIncreased: boolean; newMaxBet: number } | { type: 'PACK' } | { type: 'CARD'; rarity: 'COMMON' | 'RARE'; cardName: string } | null;
   const [activeToast, setActiveToast] = useState<ActiveToast>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [slotUnlockToast, setSlotUnlockToast] = useState<(typeof GAMES_CONFIG)[0] | null>(null);
+  const slotUnlockToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingWinTierRef = useRef<string | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
@@ -3557,10 +3559,15 @@ const App: React.FC = () => {
                   if (slotUnlock) {
                        setShownUnlocks(prev => new Set(prev).add(slotUnlock.lvl));
                        if (newLevel > 40) {
-                           // After level 40, use a subtle lobby badge instead of a popup
+                           // After level 40: compact top-right toast + lobby NEW badge
                            setNewSlotIds(prev => prev.includes(slotUnlock.id) ? prev : [...prev, slotUnlock.id]);
                            audioService.playUnlock();
-                           setCelebrationMsg(`${slotUnlock.name} Unlocked!`);
+                           const unlockConfig = GAMES_CONFIG.find(g => g.id === slotUnlock.id);
+                           if (unlockConfig) {
+                               setSlotUnlockToast(unlockConfig);
+                               if (slotUnlockToastTimerRef.current) clearTimeout(slotUnlockToastTimerRef.current);
+                               slotUnlockToastTimerRef.current = setTimeout(() => setSlotUnlockToast(null), 6000);
+                           }
                        } else {
                            setFeatureUnlockData({
                                name: slotUnlock.name,
@@ -4754,6 +4761,7 @@ const App: React.FC = () => {
                 isJackpotReady={(Date.now() - (player.jackpotRouletteLastTime ?? 0)) >= 3 * 60 * 60 * 1000}
                 questPathCurrentIndex={slotQuestState.currentPathIndex}
                 newSlotIds={newSlotIds}
+                bonusTimers={bonusTimers}
             />
         ) : (
             <div data-slot-bg="true" className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
@@ -5754,6 +5762,24 @@ const App: React.FC = () => {
                       <div className="font-black text-white text-xs uppercase tracking-widest">+1 Card Pack!</div>
                       <div className="text-purple-300 text-[9px] font-bold">Added to your stash</div>
                   </div>
+              </div>
+          </div>
+      )}
+
+      {slotUnlockToast && currentView === 'GAME' && (
+          <div className="absolute top-[38px] right-2 z-[202] animate-pop-in" style={{ width: 130 }}>
+              <div className="rounded-2xl overflow-hidden flex flex-col gap-1.5"
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 6px 20px rgba(0,0,0,0.8)', padding: '8px' }}>
+                  {slotUnlockToast.coverImage && (
+                      <img src={slotUnlockToast.coverImage} alt="" style={{ width: '100%', height: 68, objectFit: 'cover', borderRadius: 8, display: 'block' }} />
+                  )}
+                  <div className="flex flex-col gap-0.5 text-center">
+                      <div className="font-tanker text-white leading-none" style={{ fontSize: '0.8rem' }}>Unlocked!</div>
+                      <div className="text-purple-200 font-bold leading-none" style={{ fontSize: 9 }}>{slotUnlockToast.name}</div>
+                  </div>
+                  <button onClick={() => { const c = slotUnlockToast; setSlotUnlockToast(null); handleGameSelect(c); }} className="pill-green w-full">
+                      <div className="pill-face" style={{ padding: '5px 8px', fontSize: '9px' }}>Play Now →</div>
+                  </button>
               </div>
           </div>
       )}

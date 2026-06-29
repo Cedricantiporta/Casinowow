@@ -48,6 +48,7 @@ interface LobbyProps {
     isJackpotReady?: boolean;
     questPathCurrentIndex?: number;
     newSlotIds?: string[];
+    bonusTimers?: { id: number; endTime: number; reward: number; label: string }[];
 }
 
 export const Lobby: React.FC<LobbyProps> = ({
@@ -79,6 +80,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     isJackpotReady,
     questPathCurrentIndex = 0,
     newSlotIds = [],
+    bonusTimers = [],
 }) => {
     
     const [timeLeft, setTimeLeft] = useState(0);
@@ -123,6 +125,7 @@ export const Lobby: React.FC<LobbyProps> = ({
         });
     }, [currentBet, isHighLimit]);
 
+    const readyTimers = bonusTimers.filter(t => t.endTime <= Date.now()).length;
     const isReadyToCollect = timeLeft === 0;
     const visibleDailyMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
     const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel + (missionState.isPremium ? 10 : 0) && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
@@ -453,10 +456,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         style={{ width: 72, height: 72, objectFit: 'contain' }}
                                         className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]"
                                     />
-                                    {(isReadyToCollect || isJackpotReady) && (
+                                    {(readyTimers > 0 || isJackpotReady) && (
                                         <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{(isReadyToCollect ? 1 : 0) + (isJackpotReady ? 1 : 0)}</span>
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{readyTimers + (isJackpotReady ? 1 : 0)}</span>
                                         </div>
                                     )}
                                 </div>

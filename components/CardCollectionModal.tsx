@@ -480,7 +480,15 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                 {/* Draw Cards */}
                                 <button onClick={() => setShowDrawPopup(true)}
                                     className="relative flex flex-col items-center gap-0.5 px-2.5 active:scale-95 transition-transform">
-                                    <img src="/Album_draw.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <div className="relative leading-none">
+                                        <img src="/Album_draw.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                        {(packCredits + premiumPackCredits) > 0 && (
+                                            <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
+                                                style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
+                                                <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{packCredits + premiumPackCredits > 99 ? '99+' : packCredits + premiumPackCredits}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                     <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Draw Cards</span>
                                 </button>
 
