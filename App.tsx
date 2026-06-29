@@ -591,14 +591,14 @@ const App: React.FC = () => {
           reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
       };
       const stages: SlotQuestMission[][] = [
-          [M.reach(10),  M.win(20),  M.spin(30)],
+          [M.reach(10),  M.win(20),     M.spin(30)],
           [M.spin(40),   M.freespin(1), M.bet(80)],
-          [M.win(25),    M.maxbet(10), M.coins(70)],
-          [M.big(5),     M.spin(50), M.bet(120)],
-          [M.win(30),    M.level(2), M.coins(90)],
-          [M.maxbet(12), M.big(4),   M.bet(150)],
-          [M.win(35),    M.spin(60), M.coins(110)],
-          [M.level(3),   M.big(6),   M.coins(140)],
+          [M.win(25),    M.maxbet(10),  M.coins(70)],
+          [M.freespin(1), M.spin(50),  M.bet(120)],
+          [M.win(30),    M.level(5),    M.coins(90)],
+          [M.maxbet(40), M.big(4),      M.bet(150)],
+          [M.win(25),    M.spin(60),    M.coins(110)],
+          [M.level(3),   M.big(6),      M.coins(140)],
       ];
       return stages[stageIndex % stages.length];
   };
@@ -1246,10 +1246,10 @@ const App: React.FC = () => {
       const stageIdx = slotQuestState.currentPathIndex;
       const maxBetNow = MAX_BET_BY_LEVEL(player.level);
       // Stage reward: 10×, 20×, ... 70× of max bet per stage
-      const stageReward = maxBetNow * (stageIdx + 1) * 10;
-      // Grand prize on completing all 7 stages: +100× max bet
+      const stageReward = maxBetNow * (stageIdx + 1) * 20;
+      // Grand prize on completing all 7 stages: +300× max bet
       const isLastStage = stageIdx + 1 >= QUEST_PATH_IDS.length;
-      const grandPrize = isLastStage ? maxBetNow * 100 : 0;
+      const grandPrize = isLastStage ? maxBetNow * 300 : 0;
       setPlayer(p => ({ ...p, balance: p.balance + stageReward + grandPrize }));
       setSlotQuestState(prev => {
           const nextIndex = prev.currentPathIndex + 1;
@@ -3334,10 +3334,11 @@ const App: React.FC = () => {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
 
        const vipXpMult = player.isVip ? 1.2 : 1.0;
+       const level15Mult = player.level > 15 ? 1.6 : 1.0;
        const spinsAtMaxBet = Math.max(1, player.level * 1.1);
        // XP is capped at the NORMAL lobby max bet — high-limit (bigger) bets grant no extra XP.
        const betFraction = Math.min(1, currentBet / MAX_BET_BY_LEVEL(player.level));
-       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult);
+       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult * level15Mult);
 
        addXp(xpGained);
        if (player.isVip) addVipXp(1);
@@ -3381,10 +3382,11 @@ const App: React.FC = () => {
            setLastWinAmount(0);
        }
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
+       const level15MultLoss = player.level > 15 ? 1.6 : 1.0;
        const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
        // XP capped at the NORMAL lobby max bet — high-limit bets grant no extra XP.
        const betFractionLoss = Math.min(1, currentBet / MAX_BET_BY_LEVEL(player.level));
-       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss);
+       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss * level15MultLoss);
        addXp(lossXp);
        if (player.isVip) addVipXp(1);
        const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
@@ -5136,7 +5138,7 @@ const App: React.FC = () => {
                             missions={slotQuestState.missions}
                             activeSlotName={GAMES_CONFIG.find(g => g.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex])?.name || ''}
                             isOnActiveSlot={selectedGame.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex]}
-                            rewardCoins={MAX_BET_BY_LEVEL(player.level) * (slotQuestState.currentPathIndex + 1) * 10}
+                            rewardCoins={MAX_BET_BY_LEVEL(player.level) * (slotQuestState.currentPathIndex + 1) * 20}
                             allDone={slotQuestState.missions.every(m => m.current >= m.target)}
                             onOpenQuestPath={() => setShowQuestPath(true)}
                         />

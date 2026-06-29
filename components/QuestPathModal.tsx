@@ -50,9 +50,9 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
         .map(id => GAMES_CONFIG.find(g => g.id === id))
         .filter(Boolean) as typeof GAMES_CONFIG;
 
-    // Per-stage reward: stage i = maxBet * (i+1) * 10
-    const stageReward = (i: number) => maxBet * (i + 1) * 10;
-    const grandPrize = maxBet * 100;
+    // Per-stage reward: stage i = maxBet * (i+1) * 20
+    const stageReward = (i: number) => maxBet * (i + 1) * 20;
+    const grandPrize = maxBet * 300;
 
     const handleClaim = () => {
         const nextIdx = currentPathIndex + 1;
@@ -74,7 +74,7 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
                 {/* Header — grand prize centered, big font, close on right */}
                 <div className="shrink-0 flex items-center gap-3 px-4 py-2 relative">
                     <div className="absolute left-0 right-0 flex flex-col items-center pointer-events-none" style={{ top: 6 }}>
-                        <span className="font-black text-amber-200/80 uppercase tracking-widest" style={{ fontSize: 9 }}>Grand Prize</span>
+                        <span className="font-black text-amber-200/80 uppercase tracking-widest" style={{ fontSize: 9 }}>Final Stage Bonus</span>
                         <div className="flex items-center gap-1.5">
                             <img src="/new_coinicon.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain' }} />
                             <span className="font-tanker text-amber-300" style={{ fontSize: 26, lineHeight: 1, textShadow: '0 0 14px rgba(251,191,36,0.7)' }}>+{formatK(grandPrize)}</span>
@@ -94,7 +94,9 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
                         const isActive = pi === currentPathIndex;
                         const isLocked = pi > currentPathIndex;
                         const isUnlocking = pi === unlockingIndex;
-                        const reward = stageReward(pi);
+                        const isLastStage = pi === pathGames.length - 1;
+                        // Last stage claim credits stageReward + grandPrize — show the true combined amount
+                        const reward = isLastStage ? stageReward(pi) + grandPrize : stageReward(pi);
 
                         return (
                             <React.Fragment key={game.id}>
