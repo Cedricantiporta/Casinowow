@@ -722,6 +722,12 @@ const App: React.FC = () => {
   const arcticMidFreeSpinsRef = useRef(false);
   const [pendingArcticFreePick, setPendingArcticFreePick] = useState(false);
   const pirateJpTierRef = useRef<number | null>(null);
+  // Captures the free-spin status at spin() call time so generateSmartGrid always gets the
+  // right value even after freeSpinsRemaining has been decremented in the same render batch.
+  const isCurrentFreeSpinRef = useRef(false);
+  // Quest completion deferred until current bonus ends
+  const pendingQuestCompleteRef = useRef(false);
+  const prevQuestAllDoneRef = useRef(false);
 
   // Pirate's Bounty — Ghost Ship Walking Wilds state
   const [pirateWalkActive, setPirateWalkActive] = useState(false);
@@ -1393,6 +1399,30 @@ const App: React.FC = () => {
     try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, diceCredits: quest.diceCredits, wildCredits: quest.wildCredits })); } catch {}
   }, [quest.wildStage, quest.diceStage, quest.dicePosition, quest.wildGrid]);
 
+  // When all slot quest missions complete, stop auto-spin and open the quest path modal.
+  // If a bonus is still running, defer until it ends.
+  useEffect(() => {
+      const allDone = slotQuestState.missions.length > 0 && slotQuestState.missions.every(m => m.current >= m.target);
+      if (allDone && !prevQuestAllDoneRef.current) {
+          setPlayer(p => ({ ...p, autoSpin: false }));
+          if (freeSpinsRemaining === 0 && !holdWinActive && !pirateWalkActive) {
+              setTimeout(() => setShowQuestPath(true), 600);
+          } else {
+              pendingQuestCompleteRef.current = true;
+          }
+      }
+      if (!allDone) pendingQuestCompleteRef.current = false;
+      prevQuestAllDoneRef.current = allDone;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slotQuestState.missions]);
+
+  useEffect(() => {
+      if (pendingQuestCompleteRef.current && freeSpinsRemaining === 0 && !holdWinActive && !pirateWalkActive && status === GameStatus.IDLE) {
+          pendingQuestCompleteRef.current = false;
+          setTimeout(() => setShowQuestPath(true), 800);
+      }
+  }, [freeSpinsRemaining, holdWinActive, pirateWalkActive, status]);
+
   // Expire VIP when 30-day window elapses
   useEffect(() => {
       if (player.isVip && player.vipExpiry && Date.now() > player.vipExpiry) {
@@ -1955,7 +1985,9 @@ const App: React.FC = () => {
       const cols = selectedGame.reels;
       const rows = selectedGame.rows;
       const ft = featureThemeOf(selectedGame.theme);
-      const isFreeSpin = freeSpinsRemaining > 0;
+      // Read from ref so the last free spin still generates a free-spin grid even though
+      // freeSpinsRemaining was already decremented to 0 in the same React render batch.
+      const isFreeSpin = isCurrentFreeSpinRef.current;
       const newGrid: SymbolType[][] = [];
       const isSmallGrid = cols <= 3;
       let pirateShipSeeded = false;
@@ -2395,7 +2427,7 @@ const App: React.FC = () => {
 
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
-      if (freeSpinsRemaining > 0 && ft !== 'ARCTIC' && ft !== 'NEON' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
+      if (isFreeSpin && ft !== 'ARCTIC' && ft !== 'NEON' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
           // CANDY gets 50% reduced jackpot spawn rates
           const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
@@ -2439,7 +2471,7 @@ const App: React.FC = () => {
           }
 
           // Ghost Ship jackpot: only during free spins, 8% chance per walk-spin.
-          if (freeSpinsRemaining > 0 && Math.random() < 0.08) {
+          if (isFreeSpin && Math.random() < 0.08) {
               const JP_PIRATE = [
                   { sym: SymbolType.JACKPOT_MINI,  w: 60 },
                   { sym: SymbolType.JACKPOT_MINOR, w: 25 },
@@ -2468,7 +2500,7 @@ const App: React.FC = () => {
       // reveal the SAME randomly-chosen symbol. We set the underlying cells to that symbol now
       // (so win evaluation is automatic) and record which cells are masked by a mystery tile.
       mysteryCellsRef.current = [];
-      if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && freeSpinsRemaining > 0 && Math.random() > 0.25) {
+      if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && isFreeSpin && Math.random() > 0.25) {
           // Reveal symbol — weighted toward mid/high pays; WILD is rarest outcome.
           const REVEAL_POOL = [
               { s: SymbolType.GRAPE,  w: 24 },
@@ -2631,6 +2663,7 @@ const App: React.FC = () => {
         ? availableBets[availableBets.length - 1]
         : availableBets[betIndex];
     const isFreeSpin = freeSpinsRemaining > 0;
+    isCurrentFreeSpinRef.current = isFreeSpin; // captured before state batch so generateSmartGrid sees the right value
     const isHoldWinRespin = holdWinRef.current.active;
     const isPirateWalk = pirateWalkRef.current.active;
 
@@ -3131,7 +3164,8 @@ const App: React.FC = () => {
     const currentPaylines = GET_PAYLINES(selectedGame.rows, selectedGame.reels);
 
     const isPiggy = selectedGame.theme === 'PIGGY';
-    const isCoinOrWild = (sym: SymbolType) => sym === SymbolType.WILD || (isPiggy && sym === SymbolType.COIN);
+    // PIGGY: coins only substitute as wilds during free spins (not in the base game)
+    const isCoinOrWild = (sym: SymbolType) => sym === SymbolType.WILD || (isPiggy && freeSpinsRemaining > 0 && sym === SymbolType.COIN);
     currentPaylines.forEach(line => {
       const symbols = line.indices.map((row, col) => (finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN);
       let matchLen = 1;
