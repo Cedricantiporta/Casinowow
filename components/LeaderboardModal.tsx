@@ -150,44 +150,57 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 <Avatar src={e.avatar} size={34} ring={rank <= 3 ? `0 0 0 2px ${rank === 1 ? '#ffd24a' : rank === 2 ? '#cdd6e2' : '#d68a48'}, 0 2px 6px rgba(0,0,0,0.45)` : undefined} />
                 <div className="flex-1 min-w-0">
                     <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{pinned ? 'Your rank' : e.name}{e.isYou && !pinned ? ' (You)' : ''}</div>
-                    <div className="text-white/50 font-bold" style={{ fontSize: 9 }}>Level {e.level}</div>
-                </div>
-                {reward ? (
-                    <div className="shrink-0 flex flex-col items-end gap-0.5">
-                        <div className="flex items-center gap-0.5">
-                            <img src="/symbols/diamond.png" alt="" style={{ width: 11, height: 11, objectFit: 'contain' }} />
-                            <span className="font-black text-amber-300" style={{ fontSize: 9 }}>{reward.gems >= 1000 ? `${reward.gems / 1000}K` : reward.gems}</span>
+                    {(e.vipLevel ?? 0) > 0 && (
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                            <i className="ti ti-crown" style={{ fontSize: 9, color: '#fbbf24' }} />
+                            <span className="font-bold text-amber-300" style={{ fontSize: 9 }}>VIP {e.vipLevel}</span>
                         </div>
-                        {reward.collectDays && (
-                            <div className="flex items-center gap-0.5">
-                                <img src="/ui/collect.png" alt="" style={{ width: 11, height: 11, objectFit: 'contain' }} />
-                                <span className="font-bold text-white/65" style={{ fontSize: 9 }}>{reward.collectDays}D</span>
-                            </div>
-                        )}
-                        {reward.expDays && (
-                            <div className="flex items-center gap-0.5">
-                                <i className="ti ti-bolt text-yellow-300" style={{ fontSize: 10, lineHeight: 1 }} />
-                                <span className="font-bold text-white/65" style={{ fontSize: 9 }}>{reward.expDays}D</span>
-                            </div>
-                        )}
-                        {reward.missionExpHours && (
-                            <div className="flex items-center gap-0.5">
-                                <i className="ti ti-target text-green-300" style={{ fontSize: 10, lineHeight: 1 }} />
-                                <span className="font-bold text-white/65" style={{ fontSize: 9 }}>{fmtDuration(reward.missionExpHours)}</span>
-                            </div>
-                        )}
-                        {reward.exclusiveAvatar && (
-                            <img src={EXCLUSIVE_AVATAR} alt="" style={{ width: 16, height: 16, objectFit: 'cover', borderRadius: '50%', boxShadow: '0 0 0 1.5px #a855f7' }} />
-                        )}
-                    </div>
-                ) : (
-                    <div className="shrink-0 flex items-center gap-1">
-                        {metric !== 'level' && <img src="/new_coinicon.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />}
-                        <span className="font-black text-yellow-300" style={{ fontSize: 13 }}>
+                    )}
+                </div>
+                <div className="shrink-0 flex flex-col items-end gap-1">
+                    {/* Score / metric value — always shown */}
+                    <div className="flex items-center gap-1">
+                        {metric !== 'level' && <img src="/new_coinicon.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />}
+                        <span className="font-black text-yellow-300" style={{ fontSize: 12 }}>
                             {metric === 'level' ? `Lv ${e.level}` : formatScore(metricOf(e, metric))}
                         </span>
                     </div>
-                )}
+                    {/* Monthly reward chips — horizontal row, score tab only, top 10 */}
+                    {reward && (
+                        <div className="flex items-center gap-1">
+                            <div title={`${reward.gems.toLocaleString()} Gems`} className="flex items-center gap-0.5 rounded-lg px-1.5 py-0.5"
+                                style={{ background: 'rgba(251,191,36,0.18)' }}>
+                                <img src="/symbols/diamond.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />
+                                <span className="font-black text-amber-300" style={{ fontSize: 10 }}>{reward.gems >= 1000 ? `${reward.gems / 1000}K` : reward.gems}</span>
+                            </div>
+                            {reward.collectDays && (
+                                <div title={`${reward.collectDays} days 2× Collect Bonus`} className="flex items-center gap-0.5 rounded-lg px-1 py-0.5"
+                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                    <img src="/ui/collect.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />
+                                    <span className="font-bold text-white/75" style={{ fontSize: 10 }}>{reward.collectDays}D</span>
+                                </div>
+                            )}
+                            {reward.expDays && (
+                                <div title={`${reward.expDays} days 2× XP`} className="flex items-center gap-0.5 rounded-lg px-1 py-0.5"
+                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                    <i className="ti ti-bolt text-yellow-300" style={{ fontSize: 11, lineHeight: 1 }} />
+                                    <span className="font-bold text-white/75" style={{ fontSize: 10 }}>{reward.expDays}D</span>
+                                </div>
+                            )}
+                            {reward.missionExpHours && (
+                                <div title={`${fmtDuration(reward.missionExpHours)} 2× Mission XP`} className="flex items-center gap-0.5 rounded-lg px-1 py-0.5"
+                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                    <i className="ti ti-target text-green-300" style={{ fontSize: 11, lineHeight: 1 }} />
+                                    <span className="font-bold text-white/75" style={{ fontSize: 10 }}>{fmtDuration(reward.missionExpHours)}</span>
+                                </div>
+                            )}
+                            {reward.exclusiveAvatar && (
+                                <img src={EXCLUSIVE_AVATAR} alt="Exclusive Avatar" title="Exclusive Avatar unlock"
+                                    style={{ width: 18, height: 18, objectFit: 'cover', borderRadius: '50%', boxShadow: '0 0 0 1.5px #a855f7' }} />
+                            )}
+                        </div>
+                    )}
+                </div>
             </button>
         );
     };

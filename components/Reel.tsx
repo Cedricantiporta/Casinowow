@@ -358,25 +358,16 @@ const ReelCell: React.FC<{
                             </span>
                         </div>
                     )}
-                    {theme === 'PIGGY' && symbol === SymbolType.COIN && !blur && (
+                    {theme === 'PIGGY' && symbol === SymbolType.COIN && !blur && inFreeSpins && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none">
-                            {inFreeSpins ? (
-                                <>
-                                    <span
-                                        className="block font-black text-yellow-300 leading-none"
-                                        style={{ fontSize: `${2.0 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black, 1px 1px 0 #000' }}
-                                    >2X</span>
-                                    <span
-                                        className="block font-black text-white tracking-widest"
-                                        style={{ fontSize: `${0.65 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black' }}
-                                    >WILD</span>
-                                </>
-                            ) : (
-                                <span
-                                    className="block font-black text-yellow-300 tracking-widest"
-                                    style={{ fontSize: `${1.1 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black, 1px 1px 0 #000' }}
-                                >WILD</span>
-                            )}
+                            <span
+                                className="block font-black text-yellow-300 leading-none"
+                                style={{ fontSize: `${2.0 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black, 1px 1px 0 #000' }}
+                            >2X</span>
+                            <span
+                                className="block font-black text-white tracking-widest"
+                                style={{ fontSize: `${0.65 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black' }}
+                            >WILD</span>
                         </div>
                     )}
                 </div>

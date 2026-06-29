@@ -323,6 +323,7 @@ const App: React.FC = () => {
               name: playerNameRef.current,
               avatar: profileEmojiRef.current,
               level: p.level,
+              vipLevel: p.vipLevel ?? 0,
               score: p.balance,
               gems: p.diamonds,
               totalWon: p.stats?.totalCoinsWon || 0,
@@ -344,6 +345,7 @@ const App: React.FC = () => {
           name: playerNameRef.current,
           avatar: profileEmojiRef.current,
           level: player.level,
+          vipLevel: player.vipLevel ?? 0,
           score: player.balance,
           gems: player.diamonds,
           totalWon: player.stats?.totalCoinsWon || 0,
@@ -861,6 +863,7 @@ const App: React.FC = () => {
       name: trimmed,
       avatar: profileEmoji,
       level: player.level,
+      vipLevel: player.vipLevel ?? 0,
       score: player.balance,
       gems: player.diamonds,
       totalWon: player.stats?.totalCoinsWon || 0,
@@ -908,6 +911,12 @@ const App: React.FC = () => {
   useEffect(() => {
       try { localStorage.setItem('cw_bonus_timers', JSON.stringify(bonusTimers)); } catch {}
   }, [bonusTimers]);
+  // Keep displayed timer rewards in sync with player level so display = claimed amount
+  useEffect(() => {
+      const mults = [5.0, 25.0, 100.0];
+      const base = CALCULATE_TIME_BONUS(player.level);
+      setBonusTimers(prev => prev.map(t => ({ ...t, reward: Math.floor(base * mults[t.id]) })));
+  }, [player.level]);
 
   // Generate daily inbox messages on mount
   useEffect(() => {
@@ -1199,18 +1208,20 @@ const App: React.FC = () => {
 
   const handleClaimTimeBonus = (id: number, _reward: number) => {
       const now = Date.now();
-      const multipliers = [5.0, 25.0, 100.0];
-      const base = CALCULATE_TIME_BONUS(player.level);
+      // _reward is timer.reward (always current-level base, kept in sync by useEffect)
+      // Award exactly what was displayed: base × treasury multiplier
+      const awardedReward = Math.floor(_reward * treasuryMultiplier);
 
-      const baseReward = Math.floor(base * multipliers[id]);
-      const awardedReward = Math.floor(baseReward * treasuryMultiplier);
+      // Refresh for the next countdown cycle using fresh level calculation
+      const mults = [5.0, 25.0, 100.0];
+      const freshBase = Math.floor(CALCULATE_TIME_BONUS(player.level) * mults[id]);
 
       setBonusTimers(prev => prev.map(t => {
           if (t.id === id) {
               let nextWait = 300000; // 5m (Quick)
               if (id === 1) nextWait = 900000; // 15m (Super)
               if (id === 2) nextWait = 3600000; // 1H (Mega)
-              return { ...t, endTime: now + nextWait, reward: baseReward }; // Store base; multiplier applied at claim
+              return { ...t, endTime: now + nextWait, reward: freshBase };
           }
           return t;
       }));
@@ -3175,8 +3186,11 @@ const App: React.FC = () => {
     const isPiggy = selectedGame.theme === 'PIGGY';
     // PIGGY: coins only substitute as wilds during free spins (not in the base game)
     const isCoinOrWild = (sym: SymbolType) => sym === SymbolType.WILD || (isPiggy && freeSpinsRemaining > 0 && sym === SymbolType.COIN);
+    // PIGGY: on normal spins, COIN scores as SEVEN (scatter coin counts toward seven paylines)
+    const normalizePiggy = (sym: SymbolType): SymbolType =>
+        (isPiggy && freeSpinsRemaining === 0 && sym === SymbolType.COIN) ? SymbolType.SEVEN : sym;
     currentPaylines.forEach(line => {
-      const symbols = line.indices.map((row, col) => (finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN);
+      const symbols = line.indices.map((row, col) => normalizePiggy((finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN));
       let matchLen = 1;
       let matchSymbol = symbols[0];
       for (let i = 1; i < symbols.length; i++) {
@@ -5940,6 +5954,7 @@ const App: React.FC = () => {
                       name: playerName,
                       avatar: profileEmoji,
                       level: 1,
+                      vipLevel: 0,
                       score: INITIAL_BALANCE,
                       gems: INITIAL_GEMS,
                       totalWon: 0,
@@ -6039,6 +6054,7 @@ const App: React.FC = () => {
               name: playerName,
               avatar: profileEmoji,
               level: player.level,
+              vipLevel: player.vipLevel ?? 0,
               score: player.balance,
               gems: player.diamonds,
               totalWon: player.stats?.totalCoinsWon || 0,
