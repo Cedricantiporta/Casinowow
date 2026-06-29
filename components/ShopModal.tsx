@@ -82,7 +82,7 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             'from-yellow-500 to-amber-700',
         ];
         setDynamicPacks(prices.map((price, i) => {
-            const amount = Math.round((coinBase[i] / 50) * maxBet);
+            const amount = Math.round((coinBase[i] / 50) * maxBet * 10);
             return {
                 icon: icons[i],
                 label: labels[i],

@@ -49,6 +49,15 @@ interface SavedGameState {
     freeSpinTotalWin: number;
     spinsWithoutBonus: number;
     grid: SymbolType[][];
+    holdWinActive?: boolean;
+    holdWinLockedGrid?: boolean[][];
+    holdWinCoinValues?: number[][];
+    holdWinJpGrid?: (string|null)[][];
+    holdWinRespins?: number;
+    pirateWalkActive?: boolean;
+    pirateShipCol?: number;
+    pirateShip2Col?: number;
+    pirateWalkTotalWin?: number;
 }
 
 // Feature-theme aliasing: the lower-tier slots reuse a proven feature mechanic from one of the
@@ -281,7 +290,13 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'LOBBY' | 'GAME' | 'HIGH_LIMIT'>('LOBBY');
   const [selectedGame, setSelectedGame] = useState<GameConfig>(GAMES_CONFIG[0]);
   const [isHighLimit, setIsHighLimit] = useState(false);
-  const [savedGameStates, setSavedGameStates] = useState<Record<string, SavedGameState>>({});
+  const [savedGameStates, setSavedGameStates] = useState<Record<string, SavedGameState>>(() => {
+    try {
+      const saved = localStorage.getItem('cw_saved_game_states');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {};
+  });
 
   const [player, setPlayer] = useState<PlayerState>(() => {
     try {
@@ -1369,6 +1384,10 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_player', JSON.stringify(player)); } catch {}
   }, [player]);
+
+  useEffect(() => {
+    try { localStorage.setItem('cw_saved_game_states', JSON.stringify(savedGameStates)); } catch {}
+  }, [savedGameStates]);
 
   useEffect(() => {
     try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, diceCredits: quest.diceCredits, wildCredits: quest.wildCredits })); } catch {}
@@ -3841,7 +3860,16 @@ const App: React.FC = () => {
           freeSpinsWon,
           freeSpinTotalWin,
           spinsWithoutBonus,
-          grid
+          grid,
+          holdWinActive: holdWinRef.current.active,
+          holdWinLockedGrid: holdWinRef.current.lockedGrid,
+          holdWinCoinValues: holdWinRef.current.coinValues,
+          holdWinJpGrid: holdWinRef.current.jpGrid,
+          holdWinRespins: holdWinRef.current.respins,
+          pirateWalkActive: pirateWalkRef.current.active,
+          pirateShipCol: pirateWalkRef.current.shipCol,
+          pirateShip2Col: pirateWalkRef.current.ship2Col,
+          pirateWalkTotalWin: pirateWalkTotalWinRef.current,
       };
       setSavedGameStates(prev => ({ ...prev, [selectedGame.id]: currentState }));
 
@@ -3928,6 +3956,32 @@ const App: React.FC = () => {
               setSpinsWithoutBonus(savedState.spinsWithoutBonus);
               setGrid(savedState.grid);
               setWinData(null);
+              if (savedState.holdWinActive) {
+                  holdWinRef.current = {
+                      active: true,
+                      lockedGrid: savedState.holdWinLockedGrid ?? [],
+                      coinValues: savedState.holdWinCoinValues ?? [],
+                      jpGrid: savedState.holdWinJpGrid ?? [],
+                      respins: savedState.holdWinRespins ?? 3,
+                  };
+                  setHoldWinActive(true);
+                  setHoldWinLockedGrid(savedState.holdWinLockedGrid ?? []);
+                  setHoldWinCoinValues(savedState.holdWinCoinValues ?? []);
+                  setHoldWinJpGrid(savedState.holdWinJpGrid ?? []);
+                  setHoldWinRespins(savedState.holdWinRespins ?? 3);
+              }
+              if (savedState.pirateWalkActive) {
+                  pirateWalkRef.current = {
+                      active: true,
+                      shipCol: savedState.pirateShipCol ?? -1,
+                      ship2Col: savedState.pirateShip2Col ?? -1,
+                  };
+                  pirateWalkTotalWinRef.current = savedState.pirateWalkTotalWin ?? 0;
+                  setPirateWalkActive(true);
+                  setPirateShipCol(savedState.pirateShipCol ?? -1);
+                  setPirateShip2Col(savedState.pirateShip2Col ?? -1);
+                  setPirateWalkTotalWin(savedState.pirateWalkTotalWin ?? 0);
+              }
           } else {
               setFreeSpinsRemaining(0);
               setTotalFreeSpins(0);
@@ -4158,7 +4212,16 @@ const App: React.FC = () => {
                 freeSpinsWon,
                 freeSpinTotalWin,
                 spinsWithoutBonus,
-                grid
+                grid,
+                holdWinActive: holdWinRef.current.active,
+                holdWinLockedGrid: holdWinRef.current.lockedGrid,
+                holdWinCoinValues: holdWinRef.current.coinValues,
+                holdWinJpGrid: holdWinRef.current.jpGrid,
+                holdWinRespins: holdWinRef.current.respins,
+                pirateWalkActive: pirateWalkRef.current.active,
+                pirateShipCol: pirateWalkRef.current.shipCol,
+                pirateShip2Col: pirateWalkRef.current.ship2Col,
+                pirateWalkTotalWin: pirateWalkTotalWinRef.current,
             }
         }));
         setPlayer(p => ({ ...p, autoSpin: false }));
@@ -4663,9 +4726,9 @@ const App: React.FC = () => {
                                     </button>
                                     {/* Album */}
                                     <button onClick={() => openModal('COLLECTION')} className="relative flex flex-col items-center active:scale-95 transition-transform">
-                                        {albumReady > 0 && (
+                                        {(albumReady > 0 || player.packCredits > 0) && (
                                             <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {albumReady}
+                                                {albumReady > 0 ? albumReady : player.packCredits}
                                             </div>
                                         )}
                                         <img src="/ui/cards_new.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
