@@ -19,11 +19,11 @@ const EXCLUSIVE_AVATAR = '/Profile_pic (12).png';
 
 interface RankReward { gems: number; collectDays?: number; expDays?: number; missionExpHours?: number; exclusiveAvatar?: boolean }
 const RANK_REWARDS: Record<number, RankReward> = {
-    1:  { gems: 5000, collectDays: 30, expDays: 7,  missionExpHours: 72, exclusiveAvatar: true },
-    2:  { gems: 3500, collectDays: 15, expDays: 3,  missionExpHours: 24 },
-    3:  { gems: 2000, collectDays: 7,  expDays: 1,  missionExpHours: 12 },
-    4:  { gems: 500,  collectDays: 1,  missionExpHours: 1 },
-    5:  { gems: 500,  collectDays: 1,  missionExpHours: 1 },
+    1:  { gems: 10000, collectDays: 30, expDays: 7,  missionExpHours: 72, exclusiveAvatar: true },
+    2:  { gems: 5000,  collectDays: 15, expDays: 3,  missionExpHours: 24 },
+    3:  { gems: 2000,  collectDays: 7,  expDays: 1,  missionExpHours: 12 },
+    4:  { gems: 500,   collectDays: 1,  missionExpHours: 1 },
+    5:  { gems: 500,   collectDays: 1,  missionExpHours: 1 },
     6:  { gems: 200 }, 7: { gems: 200 }, 8: { gems: 200 }, 9: { gems: 200 }, 10: { gems: 200 },
 };
 
@@ -125,6 +125,15 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         });
         return () => { alive = false; };
     }, [isOpen, metric, player.score, player.level, player.maxJackpot, player.maxWin, player.name, player.avatar]);
+
+    // Persist the player's score-tab rank so monthly rewards can reference it.
+    useEffect(() => {
+        if (!isOpen || loading || metric !== 'score') return;
+        const rank = entries.findIndex(e => e.isYou) + 1;
+        if (rank > 0) {
+            try { localStorage.setItem('cw_last_rank', String(rank)); } catch {}
+        }
+    }, [isOpen, loading, entries, metric]);
 
     if (!isOpen) return null;
 

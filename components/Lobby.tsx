@@ -47,6 +47,7 @@ interface LobbyProps {
     premiumPackCredits?: number;
     isJackpotReady?: boolean;
     questPathCurrentIndex?: number;
+    newSlotIds?: string[];
 }
 
 export const Lobby: React.FC<LobbyProps> = ({
@@ -77,6 +78,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     premiumPackCredits,
     isJackpotReady,
     questPathCurrentIndex = 0,
+    newSlotIds = [],
 }) => {
     
     const [timeLeft, setTimeLeft] = useState(0);
@@ -299,6 +301,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 else if (game.theme === 'MMORPG') icon = '⚔️';
                                 const unlockLevel = getUnlockLevel(idx);
                                 const isLocked = playerLevel < unlockLevel;
+                                const isNew = !isLocked && newSlotIds.includes(game.id);
                                 return (
                                     /* Wrapper is the grid item — jackpot label in normal flow so row height includes it */
                                     <div
@@ -313,7 +316,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         <button
                                             onClick={() => onSelectGame(game, false)}
                                             className={`relative group w-[90px] h-[90px] md:w-[106px] md:h-[106px] ${isLocked ? 'cursor-not-allowed' : ''}`}
-                                            style={{ borderRadius: 18, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
+                                            style={{ borderRadius: 18, boxShadow: isNew ? 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), 0 0 0 2px #4ade80, 0 0 14px rgba(74,222,128,0.55), 0 6px 18px rgba(0,0,0,0.6)' : 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
                                         >
                                             <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 14 }}></div>
                                             {game.coverImage && (
@@ -334,6 +337,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             {isLocked && (
                                                 <img src="/ui/lock.png" alt="" className="absolute z-30 pointer-events-none select-none"
                                                     style={{ top: 4, right: 4, width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
+                                            )}
+                                            {isNew && (
+                                                <div className="absolute top-1.5 right-1.5 z-30 font-black text-black rounded-md px-1.5 py-0.5"
+                                                    style={{ fontSize: 8, background: '#4ade80', letterSpacing: '0.06em', lineHeight: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+                                                    NEW
+                                                </div>
                                             )}
                                         </button>
                                     </div>

@@ -605,7 +605,7 @@ const App: React.FC = () => {
           big:    (t: number): SlotQuestMission => ({ id: `${slotId}_big`,    type: 'BIG_WIN_COUNT', label: 'Big',   description: `Land ${t} Big Wins`, current: 0, target: t }),
           level:  (t: number): SlotQuestMission => ({ id: `${slotId}_level`,  type: 'LEVEL_UP',      label: 'Level', description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
           reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
-          bonus:  (t: number): SlotQuestMission => ({ id: `${slotId}_bonus`,  type: 'BONUS_TRIGGER', label: 'Bonus', description: `Trigger ${t} Bonus feature${t !== 1 ? 's' : ''}`, current: 0, target: t }),
+          bonus:  (t: number): SlotQuestMission => ({ id: `${slotId}_bonus`,  type: 'BONUS_TRIGGER', label: 'Bonus', description: `Complete ${t} Bonus game${t !== 1 ? 's' : ''}`, current: 0, target: t }),
       };
       const stages: SlotQuestMission[][] = [
           [M.reach(10),  M.win(20),    M.spin(30)],
@@ -613,7 +613,7 @@ const App: React.FC = () => {
           [M.win(25),    M.maxbet(10), M.coins(70)],
           [M.bonus(1),   M.spin(50),   M.bet(120)],
           [M.win(30),    M.level(2), M.coins(90)],
-          [M.maxbet(12), M.big(4),   M.bet(150)],
+          [M.maxbet(30), M.big(3),   M.bet(150)],
           [M.win(35),    M.spin(60), M.coins(110)],
           [M.level(3),   M.big(6),   M.coins(140)],
       ];
@@ -824,6 +824,9 @@ const App: React.FC = () => {
   });
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
+  const [newSlotIds, setNewSlotIds] = useState<string[]>(() => {
+      try { return JSON.parse(localStorage.getItem('cw_new_slots') || '[]'); } catch { return []; }
+  });
   const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE'; stage: number; coins: number; diamonds: number; autoAdvance?: boolean } | null>(null);
   const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
   const [pendingBigWin, setPendingBigWin] = useState(false);
@@ -909,6 +912,9 @@ const App: React.FC = () => {
       try { localStorage.setItem('cw_inbox', JSON.stringify(inbox)); } catch {}
   }, [inbox]);
   useEffect(() => {
+      try { localStorage.setItem('cw_new_slots', JSON.stringify(newSlotIds)); } catch {}
+  }, [newSlotIds]);
+  useEffect(() => {
       try { localStorage.setItem('cw_bonus_timers', JSON.stringify(bonusTimers)); } catch {}
   }, [bonusTimers]);
   // Keep displayed timer rewards in sync with player level so display = claimed amount
@@ -982,6 +988,38 @@ const App: React.FC = () => {
 
           return next;
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Monthly rank rewards: check on mount if a new month has started and deliver gem rewards
+  useEffect(() => {
+      try {
+          const now = new Date();
+          const thisMonth = `${now.getFullYear()}-${now.getMonth()}`;
+          const lastRewardMonth = localStorage.getItem('cw_last_reward_month') || '';
+          if (lastRewardMonth && lastRewardMonth !== thisMonth) {
+              const lastRank = Number(localStorage.getItem('cw_last_rank') || '0');
+              const MONTHLY_GEMS: Record<number, number> = { 1: 10000, 2: 5000, 3: 2000 };
+              const gems = MONTHLY_GEMS[lastRank] || 0;
+              if (gems > 0) {
+                  const monthName = new Date(now.getFullYear(), now.getMonth() - 1).toLocaleString('default', { month: 'long' });
+                  const msgId = `monthly_rank_${lastRewardMonth}`;
+                  setInbox(prev => {
+                      if (prev.some(m => m.id === msgId)) return prev;
+                      return [...prev, {
+                          id: msgId,
+                          type: 'MONTHLY_RANK' as const,
+                          title: `${monthName} Rankings Reward`,
+                          body: `You placed #${lastRank} last month! +${gems.toLocaleString()} Gems`,
+                          claimed: false,
+                          createdAt: Date.now(),
+                          expiresAt: Date.now() + 7 * 86400000,
+                      }];
+                  });
+              }
+          }
+          localStorage.setItem('cw_last_reward_month', thisMonth);
+      } catch {}
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1066,6 +1104,13 @@ const App: React.FC = () => {
                   setPlayer(p => ({ ...p, balance: p.balance + cashback }));
                   triggerCoinAnim(cashback);
                   setCelebrationMsg(`+${cashback.toLocaleString()} VIP Cashback`);
+              }
+          } else if (msg.type === 'MONTHLY_RANK') {
+              const gemsMatch = msg.body.match(/\+([\d,]+) Gems/);
+              const gems = gemsMatch ? Number(gemsMatch[1].replace(/,/g, '')) : 0;
+              if (gems > 0) {
+                  setPlayer(p => ({ ...p, diamonds: p.diamonds + gems }));
+                  setCelebrationMsg(`+${gems.toLocaleString()} Gems`);
               }
           }
           audioService.playWinBig();
@@ -2926,7 +2971,6 @@ const App: React.FC = () => {
                     });
                 });
                 holdWinRef.current = { active: false, lockedGrid, coinValues, jpGrid, respins: 3 };
-                trackSlotQuest('BONUS_TRIGGER', 1);
                 setTimeout(() => {
                     audioService.playScatterTrigger();
                     setSpinsWithoutBonus(0);
@@ -2972,7 +3016,6 @@ const App: React.FC = () => {
                 setPirateShip2Col(-1); // ship 2 starts off-screen
                 audioService.playScatterTrigger();
                 setSpinsWithoutBonus(0);
-                trackSlotQuest('BONUS_TRIGGER', 1);
                 calculateWin(targetGrid);
                 return next;
             }
@@ -2996,7 +3039,6 @@ const App: React.FC = () => {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
-                 trackSlotQuest('BONUS_TRIGGER', 1);
                  const betAmt = currentBetRef.current;
                  if (neonRouletteTimerRef.current) clearTimeout(neonRouletteTimerRef.current);
                  neonRouletteTimerRef.current = setTimeout(() => {
@@ -3021,7 +3063,6 @@ const App: React.FC = () => {
                      setStatus(GameStatus.SCATTER_SHOWCASE);
                      audioService.playScatterTrigger();
                      setSpinsWithoutBonus(0);
-                     trackSlotQuest('BONUS_TRIGGER', 1);
                      setTimeout(() => { audioService.playBonusTrigger(); setShowSpinCountRoulette(true); }, 1500);
                  }
                  return next;
@@ -3045,7 +3086,6 @@ const App: React.FC = () => {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
-                 trackSlotQuest('BONUS_TRIGGER', 1);
                  setTimeout(() => {
                      audioService.playFreeSpinTrigger();
                      setShowFreeSpinsPopup(true);
@@ -3069,7 +3109,6 @@ const App: React.FC = () => {
                     setStatus(GameStatus.SCATTER_SHOWCASE);
                     audioService.playScatterTrigger();
                     setSpinsWithoutBonus(0);
-                    trackSlotQuest('BONUS_TRIGGER', 1);
                     setTimeout(() => { audioService.playFreeSpinTrigger(); setShowFreeSpinsPopup(true); }, 2000);
                     return next;
                 }
@@ -3091,7 +3130,6 @@ const App: React.FC = () => {
                 if (Math.random() < chance) {
                     dragonPickSpinsRef.current = 0;
                     dragonPickBonusMultRef.current = 0;
-                    trackSlotQuest('BONUS_TRIGGER', 1);
                     setTimeout(() => {
                         setDragonPotShaking(true);
                         setInstantStop(true);
@@ -3122,7 +3160,6 @@ const App: React.FC = () => {
                     arcticPickSpinsRef.current = 0;
                     setArcticSpinProgress(0);
                     setPlayer(p => ({ ...p, autoSpin: false }));
-                    trackSlotQuest('BONUS_TRIGGER', 1);
                     setTimeout(() => {
                         setShowArcticTriggerPopup(true);
                         setInstantStop(true);
@@ -3518,25 +3555,28 @@ const App: React.FC = () => {
               setTimeout(() => {
                   const slotUnlock = justUnlockedSlot(newLevel);
                   if (slotUnlock) {
-                       setFeatureUnlockData({ 
-                           name: slotUnlock.name, 
-                           icon: GAMES_CONFIG.find(g => g.id === slotUnlock.id)?.coverImage || slotUnlock.icon,
-                           description: 'New Game Unlocked! Play Now.', 
-                           action: () => { 
-                               // Find fresh config from constant to avoid closure issues
-                               const config = GAMES_CONFIG.find(g => g.id === slotUnlock.id);
-                               if (config) {
-                                   setActiveModal('NONE'); // Force close unlock modal
-                                   // Ensure we switch view and handle game select with a fresh config
-                                   setTimeout(() => {
-                                       handleGameSelect(config);
-                                   }, 100); 
-                               }
-                           } 
-                       });
                        setShownUnlocks(prev => new Set(prev).add(slotUnlock.lvl));
-                       setActiveModal('FEATURE_UNLOCK');
-                       setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 3000);
+                       if (newLevel > 40) {
+                           // After level 40, use a subtle lobby badge instead of a popup
+                           setNewSlotIds(prev => prev.includes(slotUnlock.id) ? prev : [...prev, slotUnlock.id]);
+                           audioService.playUnlock();
+                           setCelebrationMsg(`${slotUnlock.name} Unlocked!`);
+                       } else {
+                           setFeatureUnlockData({
+                               name: slotUnlock.name,
+                               icon: GAMES_CONFIG.find(g => g.id === slotUnlock.id)?.coverImage || slotUnlock.icon,
+                               description: 'New Game Unlocked! Play Now.',
+                               action: () => {
+                                   const config = GAMES_CONFIG.find(g => g.id === slotUnlock.id);
+                                   if (config) {
+                                       setActiveModal('NONE');
+                                       setTimeout(() => { handleGameSelect(config); }, 100);
+                                   }
+                               }
+                           });
+                           setActiveModal('FEATURE_UNLOCK');
+                           setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 3000);
+                       }
                   }
                   else if (justUnlocked(newLevel)) {
                       if (newLevel === 10) {
@@ -3727,6 +3767,9 @@ const App: React.FC = () => {
       setPendingBigWin(true);
       pendingWinTierRef.current = meta.winType;
       setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
+      trackSlotQuest('BIG_WIN_COUNT', 1);
+      updateMissions(MissionType.BIG_WIN_COUNT, 1);
+      trackSlotQuest('BONUS_TRIGGER', 1);
   };
 
   const handleDragonPickWin = (tier: string, amount: number) => {
@@ -3745,6 +3788,9 @@ const App: React.FC = () => {
       setPendingBigWin(true);
       pendingWinTierRef.current = meta.winType;
       setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
+      trackSlotQuest('BIG_WIN_COUNT', 1);
+      updateMissions(MissionType.BIG_WIN_COUNT, 1);
+      trackSlotQuest('BONUS_TRIGGER', 1);
   };
 
   const handleNeonRouletteClose = () => {
@@ -3760,6 +3806,7 @@ const App: React.FC = () => {
       const winTier = getWinTier(prize, currentBet);
       setWinData({ payout: prize, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
       if (winTier) { audioService.playWinTier(winTier); setShowWinPopup(true); }
+      trackSlotQuest('BONUS_TRIGGER', 1);
   };
 
   const handleJackpotClose = () => {
@@ -3898,6 +3945,7 @@ const App: React.FC = () => {
   };
 
   const handleGameSelect = (game: GameConfig, highLimit: boolean = false, fromQuest: boolean = false) => {
+      setNewSlotIds(prev => prev.filter(id => id !== game.id));
       const gameIndex = GAMES_CONFIG.findIndex(g => g.id === game.id);
       const unlockLevel = gameIndex === 0 ? 0 : gameIndex * 5 + 1;
 
@@ -4108,6 +4156,7 @@ const App: React.FC = () => {
 
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
+      trackSlotQuest('BONUS_TRIGGER', 1);
       const currentBet = availableBets[betIndex];
       const latestTotalWin = freeSpinTotalWinRef.current;
       const tier = latestTotalWin > 0 ? (getWinTier(latestTotalWin, currentBet) || 'BIG WIN') : null;
@@ -4183,6 +4232,7 @@ const App: React.FC = () => {
                   setPirateWalkActive(false);
                   setPirateShipCol(-1);
                   setPirateShip2Col(-1);
+                  trackSlotQuest('BONUS_TRIGGER', 1);
                   const won = pirateWalkTotalWinRef.current;
                   setTimeout(() => {
                       setCelebrationMsg(won > 0 ? `+${formatCommaNumber(won)}` : 'The Ghost Ship sailed away…');
@@ -4701,6 +4751,7 @@ const App: React.FC = () => {
                 premiumPackCredits={player.premiumPackCredits ?? 0}
                 isJackpotReady={(Date.now() - (player.jackpotRouletteLastTime ?? 0)) >= 3 * 60 * 60 * 1000}
                 questPathCurrentIndex={slotQuestState.currentPathIndex}
+                newSlotIds={newSlotIds}
             />
         ) : (
             <div data-slot-bg="true" className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
@@ -5768,7 +5819,7 @@ const App: React.FC = () => {
       ))}
 
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
-      {holdWinSummary && <FreeSpinSummary isOpen={true} totalWin={holdWinSummary.total} bet={holdWinSummary.bet} label="Hold & Win Complete" onClose={() => { const total = holdWinSummary.total; setHoldWinSummary(null); setStatus(GameStatus.IDLE); if (total > 0) setCelebrationMsg('+' + formatK(total)); }} />}
+      {holdWinSummary && <FreeSpinSummary isOpen={true} totalWin={holdWinSummary.total} bet={holdWinSummary.bet} label="Hold & Win Complete" onClose={() => { const total = holdWinSummary.total; setHoldWinSummary(null); setStatus(GameStatus.IDLE); if (total > 0) setCelebrationMsg('+' + formatK(total)); trackSlotQuest('BONUS_TRIGGER', 1); }} />}
       
       {showWelcomeGift && (
         <div className="absolute inset-0 z-[500] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
