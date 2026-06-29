@@ -29,15 +29,12 @@ const RANK_REWARDS: Record<number, RankReward> = {
 
 const fmtDuration = (hours: number) => hours >= 24 ? `${hours / 24}D` : `${hours}H`;
 
-const RewardChip: React.FC<{ tooltip: string; bg: string; icon: React.ReactNode; label: string; labelColor?: string; noPadding?: boolean }> = ({ tooltip, bg, icon, label, labelColor, noPadding }) => {
+const RewardChip: React.FC<{ tooltip: string; icon: React.ReactNode; label: string; labelColor?: string }> = ({ tooltip, icon, label, labelColor }) => {
     const [show, setShow] = useState(false);
     return (
-        <div className="relative flex-shrink-0" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
-            <div className="flex items-center gap-0.5 rounded-lg cursor-default"
-                style={{ background: bg, padding: noPadding ? 0 : '2px 6px' }}>
-                {icon}
-                {label && <span className="font-black" style={{ fontSize: 10, color: labelColor ?? 'rgba(255,255,255,0.75)' }}>{label}</span>}
-            </div>
+        <div className="relative flex-shrink-0 flex items-center gap-0.5 cursor-default" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+            {icon}
+            {label && <span className="font-black" style={{ fontSize: 10, color: labelColor ?? 'rgba(255,255,255,0.75)' }}>{label}</span>}
             {show && (
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-[500] pointer-events-none whitespace-nowrap"
                     style={{
@@ -207,7 +204,6 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                         <div className="flex items-center gap-1">
                             <RewardChip
                                 tooltip={`${reward.gems.toLocaleString()} Gems`}
-                                bg="rgba(251,191,36,0.18)"
                                 icon={<img src="/symbols/diamond.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />}
                                 label={reward.gems >= 1000 ? `${reward.gems / 1000}K` : String(reward.gems)}
                                 labelColor="#fbbf24"
@@ -215,34 +211,29 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                             {reward.collectDays && (
                                 <RewardChip
                                     tooltip={`${reward.collectDays} days 2× Collect Bonus`}
-                                    bg="rgba(255,255,255,0.08)"
-                                    icon={<img src="/ui/collect.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />}
+                                    icon={<img src="/ui/exp_multiplier.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
                                     label={`${reward.collectDays}D`}
                                 />
                             )}
                             {reward.expDays && (
                                 <RewardChip
                                     tooltip={`${reward.expDays} days 2× XP`}
-                                    bg="rgba(255,255,255,0.08)"
-                                    icon={<i className="ti ti-bolt" style={{ fontSize: 11, lineHeight: 1, color: '#fde68a' }} />}
+                                    icon={<img src="/topbar_levelstar.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
                                     label={`${reward.expDays}D`}
                                 />
                             )}
                             {reward.missionExpHours && (
                                 <RewardChip
                                     tooltip={`${fmtDuration(reward.missionExpHours)} 2× Mission XP`}
-                                    bg="rgba(255,255,255,0.08)"
-                                    icon={<i className="ti ti-target" style={{ fontSize: 11, lineHeight: 1, color: '#86efac' }} />}
+                                    icon={<img src="/ui/missions_new.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
                                     label={fmtDuration(reward.missionExpHours)}
                                 />
                             )}
                             {reward.exclusiveAvatar && (
                                 <RewardChip
                                     tooltip="Exclusive Avatar unlock"
-                                    bg="transparent"
                                     icon={<img src={EXCLUSIVE_AVATAR} alt="" style={{ width: 18, height: 18, objectFit: 'cover', borderRadius: '50%', boxShadow: '0 0 0 1.5px #a855f7' }} />}
                                     label=""
-                                    noPadding
                                 />
                             )}
                         </div>

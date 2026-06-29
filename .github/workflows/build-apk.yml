@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - claude/kind-sagan-rKUPh
+      - claude/slots-balance-bugs-8h5etm
     paths:
       - '**.tsx'
       - '**.ts'

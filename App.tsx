@@ -4543,9 +4543,17 @@ const App: React.FC = () => {
 
                 {/* RIGHT ZONE — Piggy + Level + XP + Settings + Events */}
                 <div className="flex items-center gap-1 flex-1 min-w-0">
-                    <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
-                        style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer', flexShrink: 0 }}
-                        className={`shrink-0 active:scale-90 transition-transform ${piggyShaking ? 'animate-piggy-shake' : ''}`} />
+                    <div className="relative shrink-0" style={{ width: 34, height: 34 }} onClick={handleOpenPiggyBank}>
+                        <img src="/ui/piggy.png" alt=""
+                            style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer' }}
+                            className={`active:scale-90 transition-transform ${piggyShaking ? 'animate-piggy-shake' : ''}`} />
+                        {player.level >= 10 && player.piggyBank >= Math.floor(MAX_BET_BY_LEVEL(player.level) * 5 * (1 + EVENT_PIGGY_BOOST)) && (
+                            <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+                                style={{ bottom: 2, background: '#e01c1c', borderRadius: 6, padding: '1px 5px', fontSize: 7, fontWeight: 900, color: '#fff', letterSpacing: '0.06em', lineHeight: 1.4, whiteSpace: 'nowrap' }}>
+                                FULL
+                            </div>
+                        )}
+                    </div>
 
                     {/* Level Pill + Multiplier + XP popup */}
                     <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 95 }}>
