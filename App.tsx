@@ -603,12 +603,13 @@ const App: React.FC = () => {
           big:    (t: number): SlotQuestMission => ({ id: `${slotId}_big`,    type: 'BIG_WIN_COUNT', label: 'Big',   description: `Land ${t} Big Wins`, current: 0, target: t }),
           level:  (t: number): SlotQuestMission => ({ id: `${slotId}_level`,  type: 'LEVEL_UP',      label: 'Level', description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
           reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
+          bonus:  (t: number): SlotQuestMission => ({ id: `${slotId}_bonus`,  type: 'BONUS_TRIGGER', label: 'Bonus', description: `Trigger ${t} Bonus feature${t !== 1 ? 's' : ''}`, current: 0, target: t }),
       };
       const stages: SlotQuestMission[][] = [
-          [M.reach(10),  M.win(20),  M.spin(30)],
-          [M.spin(40),   M.big(3),   M.bet(80)],
+          [M.reach(10),  M.win(20),    M.spin(30)],
+          [M.spin(40),   M.level(5),   M.bet(80)],
           [M.win(25),    M.maxbet(10), M.coins(70)],
-          [M.big(5),     M.spin(50), M.bet(120)],
+          [M.bonus(1),   M.spin(50),   M.bet(120)],
           [M.win(30),    M.level(2), M.coins(90)],
           [M.maxbet(12), M.big(4),   M.bet(150)],
           [M.win(35),    M.spin(60), M.coins(110)],
@@ -2914,6 +2915,7 @@ const App: React.FC = () => {
                     });
                 });
                 holdWinRef.current = { active: false, lockedGrid, coinValues, jpGrid, respins: 3 };
+                trackSlotQuest('BONUS_TRIGGER', 1);
                 setTimeout(() => {
                     audioService.playScatterTrigger();
                     setSpinsWithoutBonus(0);
@@ -2959,6 +2961,7 @@ const App: React.FC = () => {
                 setPirateShip2Col(-1); // ship 2 starts off-screen
                 audioService.playScatterTrigger();
                 setSpinsWithoutBonus(0);
+                trackSlotQuest('BONUS_TRIGGER', 1);
                 calculateWin(targetGrid);
                 return next;
             }
@@ -2982,6 +2985,7 @@ const App: React.FC = () => {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
+                 trackSlotQuest('BONUS_TRIGGER', 1);
                  const betAmt = currentBetRef.current;
                  if (neonRouletteTimerRef.current) clearTimeout(neonRouletteTimerRef.current);
                  neonRouletteTimerRef.current = setTimeout(() => {
@@ -3006,6 +3010,7 @@ const App: React.FC = () => {
                      setStatus(GameStatus.SCATTER_SHOWCASE);
                      audioService.playScatterTrigger();
                      setSpinsWithoutBonus(0);
+                     trackSlotQuest('BONUS_TRIGGER', 1);
                      setTimeout(() => { audioService.playBonusTrigger(); setShowSpinCountRoulette(true); }, 1500);
                  }
                  return next;
@@ -3029,6 +3034,7 @@ const App: React.FC = () => {
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
                  setSpinsWithoutBonus(0);
+                 trackSlotQuest('BONUS_TRIGGER', 1);
                  setTimeout(() => {
                      audioService.playFreeSpinTrigger();
                      setShowFreeSpinsPopup(true);
@@ -3052,6 +3058,7 @@ const App: React.FC = () => {
                     setStatus(GameStatus.SCATTER_SHOWCASE);
                     audioService.playScatterTrigger();
                     setSpinsWithoutBonus(0);
+                    trackSlotQuest('BONUS_TRIGGER', 1);
                     setTimeout(() => { audioService.playFreeSpinTrigger(); setShowFreeSpinsPopup(true); }, 2000);
                     return next;
                 }
@@ -3073,6 +3080,7 @@ const App: React.FC = () => {
                 if (Math.random() < chance) {
                     dragonPickSpinsRef.current = 0;
                     dragonPickBonusMultRef.current = 0;
+                    trackSlotQuest('BONUS_TRIGGER', 1);
                     setTimeout(() => {
                         setDragonPotShaking(true);
                         setInstantStop(true);
@@ -3103,6 +3111,7 @@ const App: React.FC = () => {
                     arcticPickSpinsRef.current = 0;
                     setArcticSpinProgress(0);
                     setPlayer(p => ({ ...p, autoSpin: false }));
+                    trackSlotQuest('BONUS_TRIGGER', 1);
                     setTimeout(() => {
                         setShowArcticTriggerPopup(true);
                         setInstantStop(true);
@@ -5537,19 +5546,21 @@ const App: React.FC = () => {
           onClaim={handleSlotQuestClaim}
       />
 
-      {/* Grand Prize claim popup — shown after completing the final quest stage */}
+      {/* Grand Prize claim popup — shown after completing all quest stages */}
       {grandPrizePopup !== null && (
-          <div className="absolute inset-0 z-[210] flex items-center justify-center bg-black/30 backdrop-blur-md p-4 animate-pop-in select-none"
-              onClick={() => setGrandPrizePopup(null)}>
-              <div className="rounded-3xl overflow-hidden flex flex-col items-center px-7 py-6 mx-4"
-                  onClick={e => e.stopPropagation()}
-                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxWidth: 320 }}>
-                  <span className="font-tanker text-amber-300" style={{ fontSize: 22, lineHeight: 1, textShadow: '0 0 14px rgba(251,191,36,0.7)' }}>Quest Complete!</span>
-                  <span className="font-black text-white/70 mt-1" style={{ fontSize: 11 }}>Grand Prize claimed</span>
-                  <img src="/new_coinicon.png" alt="" style={{ width: 64, height: 64, objectFit: 'contain', margin: '12px 0', filter: 'drop-shadow(0 2px 10px rgba(251,191,36,0.8))' }} />
-                  <span className="font-tanker text-white" style={{ fontSize: 26, lineHeight: 1, textShadow: '0 0 12px rgba(251,191,36,0.6)' }}>+{formatK(grandPrizePopup)}</span>
-                  <button onClick={() => setGrandPrizePopup(null)} className="pill-green w-full mt-5">
-                      <div className="pill-face" style={{ padding: '8px 12px', fontSize: '12px' }}>Claim</div>
+          <div className="absolute inset-0 z-[210] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-pop-in select-none">
+              <div className="rounded-3xl overflow-hidden flex flex-col items-center px-7 py-7 mx-4"
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 40px rgba(0,0,0,0.9)', maxWidth: 340 }}>
+                  <i className="ti ti-trophy text-amber-300" style={{ fontSize: 44, filter: 'drop-shadow(0 0 14px rgba(251,191,36,0.7))' }} />
+                  <span className="font-tanker text-amber-300 mt-2" style={{ fontSize: 28, lineHeight: 1, textShadow: '0 0 16px rgba(251,191,36,0.8)' }}>Congratulations!</span>
+                  <span className="font-black text-white/80 mt-2 text-center" style={{ fontSize: 12 }}>You completed all Quest stages!</span>
+                  <span className="font-bold text-white/55 mt-0.5 text-center" style={{ fontSize: 11 }}>Grand Prize Awarded</span>
+                  <div className="flex items-center gap-2 mt-4">
+                      <img src="/new_coinicon.png" alt="" style={{ width: 44, height: 44, objectFit: 'contain', filter: 'drop-shadow(0 2px 10px rgba(251,191,36,0.8))' }} />
+                      <span className="font-tanker text-yellow-300" style={{ fontSize: 34, lineHeight: 1, textShadow: '0 0 16px rgba(251,191,36,0.7)' }}>+{formatK(grandPrizePopup)}</span>
+                  </div>
+                  <button onClick={() => { setGrandPrizePopup(null); if (currentView === 'GAME') handleHeaderBack(); }} className="pill-green w-full mt-6">
+                      <div className="pill-face" style={{ padding: '9px 12px', fontSize: '13px' }}>Claim &amp; Go to Lobby</div>
                   </button>
               </div>
           </div>
