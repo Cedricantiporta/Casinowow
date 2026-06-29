@@ -44,6 +44,19 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
         return () => el.removeEventListener('wheel', onWheel);
     }, [isOpen]);
 
+    // Auto-scroll to active stage when modal opens
+    useEffect(() => {
+        if (!isOpen) return;
+        const id = requestAnimationFrame(() => {
+            const el = trailRef.current;
+            if (!el) return;
+            const ITEM_W = 110; // card(92) + connector(18)
+            const scrollLeft = currentPathIndex * ITEM_W - el.clientWidth / 2 + 46;
+            el.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
+        });
+        return () => cancelAnimationFrame(id);
+    }, [isOpen, currentPathIndex]);
+
     if (!isOpen) return null;
 
     const pathGames = pathSlotIds

@@ -8,21 +8,26 @@ interface LeaderboardModalProps {
     player: LocalPlayer;
 }
 
-const TABS: { key: LeaderboardMetric | 'rewards'; label: string }[] = [
+const TABS: { key: LeaderboardMetric; label: string }[] = [
     { key: 'score',      label: 'Total Coins' },
     { key: 'level',      label: 'Top Level' },
     { key: 'maxJackpot', label: 'Max Jackpot' },
     { key: 'maxWin',     label: 'Max Win' },
-    { key: 'rewards',    label: 'Rewards' },
 ];
 
-const MONTHLY_REWARDS: { ranks: string; gems: number; collectDays?: number; expDays?: number; missionExpHours?: number; exclusive?: boolean }[] = [
-    { ranks: '1st',    gems: 5000, collectDays: 30, expDays: 7,  missionExpHours: 72,  exclusive: true },
-    { ranks: '2nd',    gems: 3500, collectDays: 15, expDays: 3,  missionExpHours: 24 },
-    { ranks: '3rd',    gems: 2000, collectDays: 7,  expDays: 1,  missionExpHours: 12 },
-    { ranks: '4th–5th', gems: 500, collectDays: 1,  missionExpHours: 1 },
-    { ranks: '6th–10th', gems: 200 },
-];
+const EXCLUSIVE_AVATAR = '/Profile_pic (12).png';
+
+interface RankReward { gems: number; collectDays?: number; expDays?: number; missionExpHours?: number; exclusiveAvatar?: boolean }
+const RANK_REWARDS: Record<number, RankReward> = {
+    1:  { gems: 5000, collectDays: 30, expDays: 7,  missionExpHours: 72, exclusiveAvatar: true },
+    2:  { gems: 3500, collectDays: 15, expDays: 3,  missionExpHours: 24 },
+    3:  { gems: 2000, collectDays: 7,  expDays: 1,  missionExpHours: 12 },
+    4:  { gems: 500,  collectDays: 1,  missionExpHours: 1 },
+    5:  { gems: 500,  collectDays: 1,  missionExpHours: 1 },
+    6:  { gems: 200 }, 7: { gems: 200 }, 8: { gems: 200 }, 9: { gems: 200 }, 10: { gems: 200 },
+};
+
+const fmtDuration = (hours: number) => hours >= 24 ? `${hours / 24}D` : `${hours}H`;
 
 const formatScore = (n: number) => {
     if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B`;
@@ -106,16 +111,16 @@ const PlayerCard: React.FC<{ entry: LeaderboardEntry; rank: number; onClose: () 
 };
 
 export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, player }) => {
-    const [metric, setMetric] = useState<LeaderboardMetric | 'rewards'>('score');
+    const [metric, setMetric] = useState<LeaderboardMetric>('score');
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<{ entry: LeaderboardEntry; rank: number } | null>(null);
 
     useEffect(() => {
-        if (!isOpen || metric === 'rewards') return;
+        if (!isOpen) return;
         let alive = true;
         setLoading(true);
-        fetchTopPlayers(player, metric as LeaderboardMetric).then(list => {
+        fetchTopPlayers(player, metric).then(list => {
             if (alive) { setEntries(list); setLoading(false); }
         });
         return () => { alive = false; };
@@ -123,15 +128,15 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
 
     if (!isOpen) return null;
 
-    const isRewardsTab = metric === 'rewards';
     const youRank = entries.findIndex(e => e.isYou) + 1;
     const you = entries.find(e => e.isYou);
 
     const Row: React.FC<{ e: LeaderboardEntry; rank: number; pinned?: boolean }> = ({ e, rank, pinned }) => {
         const m = medal(rank);
+        const reward = metric === 'score' && !pinned ? RANK_REWARDS[rank] : undefined;
         return (
             <button onClick={() => setSelected({ entry: e, rank })}
-                className="w-full flex items-center gap-3 rounded-2xl px-3 py-2 text-left active:scale-[0.99] transition-transform"
+                className="w-full flex items-center gap-2.5 rounded-2xl px-3 py-2 text-left active:scale-[0.99] transition-transform"
                 style={{
                     background: e.isYou
                         ? 'linear-gradient(90deg,rgba(255,205,70,0.30),rgba(255,150,40,0.10))'
@@ -147,12 +152,42 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                     <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{pinned ? 'Your rank' : e.name}{e.isYou && !pinned ? ' (You)' : ''}</div>
                     <div className="text-white/50 font-bold" style={{ fontSize: 9 }}>Level {e.level}</div>
                 </div>
-                <div className="shrink-0 flex items-center gap-1">
-                    {metric !== 'level' && <img src="/new_coinicon.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />}
-                    <span className="font-black text-yellow-300" style={{ fontSize: 13 }}>
-                        {metric === 'level' ? `Lv ${e.level}` : formatScore(metricOf(e, metric as LeaderboardMetric))}
-                    </span>
-                </div>
+                {reward ? (
+                    <div className="shrink-0 flex flex-col items-end gap-0.5">
+                        <div className="flex items-center gap-0.5">
+                            <img src="/symbols/diamond.png" alt="" style={{ width: 11, height: 11, objectFit: 'contain' }} />
+                            <span className="font-black text-amber-300" style={{ fontSize: 9 }}>{reward.gems >= 1000 ? `${reward.gems / 1000}K` : reward.gems}</span>
+                        </div>
+                        {reward.collectDays && (
+                            <div className="flex items-center gap-0.5">
+                                <img src="/ui/collect.png" alt="" style={{ width: 11, height: 11, objectFit: 'contain' }} />
+                                <span className="font-bold text-white/65" style={{ fontSize: 9 }}>{reward.collectDays}D</span>
+                            </div>
+                        )}
+                        {reward.expDays && (
+                            <div className="flex items-center gap-0.5">
+                                <i className="ti ti-bolt text-yellow-300" style={{ fontSize: 10, lineHeight: 1 }} />
+                                <span className="font-bold text-white/65" style={{ fontSize: 9 }}>{reward.expDays}D</span>
+                            </div>
+                        )}
+                        {reward.missionExpHours && (
+                            <div className="flex items-center gap-0.5">
+                                <i className="ti ti-target text-green-300" style={{ fontSize: 10, lineHeight: 1 }} />
+                                <span className="font-bold text-white/65" style={{ fontSize: 9 }}>{fmtDuration(reward.missionExpHours)}</span>
+                            </div>
+                        )}
+                        {reward.exclusiveAvatar && (
+                            <img src={EXCLUSIVE_AVATAR} alt="" style={{ width: 16, height: 16, objectFit: 'cover', borderRadius: '50%', boxShadow: '0 0 0 1.5px #a855f7' }} />
+                        )}
+                    </div>
+                ) : (
+                    <div className="shrink-0 flex items-center gap-1">
+                        {metric !== 'level' && <img src="/new_coinicon.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />}
+                        <span className="font-black text-yellow-300" style={{ fontSize: 13 }}>
+                            {metric === 'level' ? `Lv ${e.level}` : formatScore(metricOf(e, metric))}
+                        </span>
+                    </div>
+                )}
             </button>
         );
     };
@@ -191,66 +226,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
 
             {/* List */}
             <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-2">
-                {isRewardsTab ? (
-                    <div className="flex flex-col gap-2 max-w-[640px] mx-auto w-full pt-1">
-                        <div className="rounded-2xl px-4 py-2.5 mb-1 text-center"
-                            style={{ background: 'rgba(255,255,255,0.06)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.07)' }}>
-                            <span className="font-black text-amber-300" style={{ fontSize: 12 }}>Monthly Ranking Rewards</span>
-                            <p className="text-white/50 font-bold mt-0.5" style={{ fontSize: 10 }}>Prizes awarded to top players at the end of each month</p>
-                        </div>
-                        {MONTHLY_REWARDS.map((r, i) => {
-                            const m = i === 0 ? medal(1) : i === 1 ? medal(2) : i === 2 ? medal(3) : medal(99);
-                            return (
-                                <div key={r.ranks} className="rounded-2xl px-3 py-3 flex gap-3 items-start"
-                                    style={{ background: 'linear-gradient(90deg,rgba(255,255,255,0.10),rgba(255,255,255,0.035))', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                                    <div className="shrink-0 flex items-center justify-center rounded-full font-black"
-                                        style={{ width: 36, height: 36, fontSize: 10, background: m.bg, color: m.color, boxShadow: m.glow }}>
-                                        {r.ranks}
-                                    </div>
-                                    <div className="flex-1 flex flex-col gap-1.5">
-                                        <div className="flex flex-wrap gap-1.5">
-                                            <div className="flex items-center gap-1 rounded-xl px-2 py-1"
-                                                style={{ background: 'rgba(255,205,70,0.15)', boxShadow: 'inset 0 1px 0 rgba(255,235,170,0.12)' }}>
-                                                <img src="/symbols/diamond.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />
-                                                <span className="font-black text-amber-300" style={{ fontSize: 11 }}>{r.gems.toLocaleString()} Gems</span>
-                                            </div>
-                                            {r.collectDays && (
-                                                <div className="flex items-center gap-1 rounded-xl px-2 py-1"
-                                                    style={{ background: 'rgba(255,255,255,0.08)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                                                    <i className="ti ti-coin text-purple-300" style={{ fontSize: 12 }} />
-                                                    <span className="font-bold text-white/75" style={{ fontSize: 10 }}>{r.collectDays}d 2× Collect</span>
-                                                </div>
-                                            )}
-                                            {r.expDays && (
-                                                <div className="flex items-center gap-1 rounded-xl px-2 py-1"
-                                                    style={{ background: 'rgba(255,255,255,0.08)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                                                    <i className="ti ti-bolt text-yellow-300" style={{ fontSize: 12 }} />
-                                                    <span className="font-bold text-white/75" style={{ fontSize: 10 }}>{r.expDays}d 2× XP</span>
-                                                </div>
-                                            )}
-                                            {r.missionExpHours && (
-                                                <div className="flex items-center gap-1 rounded-xl px-2 py-1"
-                                                    style={{ background: 'rgba(255,255,255,0.08)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                                                    <i className="ti ti-target text-green-300" style={{ fontSize: 12 }} />
-                                                    <span className="font-bold text-white/75" style={{ fontSize: 10 }}>
-                                                        {r.missionExpHours >= 24 ? `${r.missionExpHours / 24}d` : `${r.missionExpHours}h`} 2× Mission XP
-                                                    </span>
-                                                </div>
-                                            )}
-                                            {r.exclusive && (
-                                                <div className="flex items-center gap-1 rounded-xl px-2 py-1"
-                                                    style={{ background: 'rgba(168,85,247,0.25)', boxShadow: 'inset 0 1px 0 rgba(200,150,255,0.12)' }}>
-                                                    <i className="ti ti-crown text-purple-300" style={{ fontSize: 12 }} />
-                                                    <span className="font-bold text-purple-200" style={{ fontSize: 10 }}>Exclusive Avatar</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                ) : loading ? (
+                {loading ? (
                     <div className="h-full flex items-center justify-center text-white/55 text-sm">Loading…</div>
                 ) : (
                     <div className="flex flex-col gap-1.5 max-w-[640px] mx-auto w-full">
@@ -260,7 +236,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             </div>
 
             {/* Your standing — pinned summary */}
-            {!isRewardsTab && !loading && you && (
+            {!loading && you && (
                 <div className="shrink-0 px-3 pt-1.5 pb-3">
                     <div className="max-w-[640px] mx-auto">
                         <Row e={you} rank={youRank} pinned />
