@@ -585,13 +585,14 @@ const App: React.FC = () => {
           maxbet: (t: number): SlotQuestMission => ({ id: `${slotId}_maxbet`, type: 'MAX_BET_SPIN',  label: 'Max',   description: `Spin ${t} times on Max Bet`, current: 0, target: t }),
           coins:  (mult: number): SlotQuestMission => ({ id: `${slotId}_coins`, type: 'WIN_COINS',   label: 'Coins', description: `Win a total of ${formatK(base * mult)} Coins`, current: 0, target: base * mult }),
           bet:    (mult: number): SlotQuestMission => ({ id: `${slotId}_bet`,   type: 'BET_COINS',   label: 'Bet',   description: `Bet a total of ${formatK(base * mult)} Coins`, current: 0, target: base * mult }),
-          big:    (t: number): SlotQuestMission => ({ id: `${slotId}_big`,    type: 'BIG_WIN_COUNT', label: 'Big',   description: `Land ${t} Big Wins`, current: 0, target: t }),
-          level:  (t: number): SlotQuestMission => ({ id: `${slotId}_level`,  type: 'LEVEL_UP',      label: 'Level', description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
+          big:      (t: number): SlotQuestMission => ({ id: `${slotId}_big`,      type: 'BIG_WIN_COUNT',  label: 'Big',      description: `Land ${t} Big Wins`, current: 0, target: t }),
+          freespin: (t: number): SlotQuestMission => ({ id: `${slotId}_freespin`, type: 'FREE_SPIN_COUNT', label: 'Bonus',    description: `Trigger ${t} Free Spin${t !== 1 ? 's' : ''} or Respin${t !== 1 ? 's' : ''}`, current: 0, target: t }),
+          level:    (t: number): SlotQuestMission => ({ id: `${slotId}_level`,    type: 'LEVEL_UP',       label: 'Level',    description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
           reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
       };
       const stages: SlotQuestMission[][] = [
           [M.reach(10),  M.win(20),  M.spin(30)],
-          [M.spin(40),   M.big(3),   M.bet(80)],
+          [M.spin(40),   M.freespin(1), M.bet(80)],
           [M.win(25),    M.maxbet(10), M.coins(70)],
           [M.big(5),     M.spin(50), M.bet(120)],
           [M.win(30),    M.level(2), M.coins(90)],
@@ -2874,6 +2875,7 @@ const App: React.FC = () => {
                             setReelTransitioning('out');
                             setTimeout(() => {
                                 holdWinRef.current.active = true;
+                                trackSlotQuest('FREE_SPIN_COUNT', 1);
                                 setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
                                 setReelTransitioning('in');
                                 setTimeout(() => { setReelTransitioning(false); setStatus(GameStatus.IDLE); }, 1100);
@@ -2902,6 +2904,7 @@ const App: React.FC = () => {
                 pirateDualShipRef.current = false;
                 pirateShip2OffsetRef.current = 0;
                 pirateWalkRef.current = { active: true, shipCol: selectedGame.reels - 1, ship2Col: ship2Start };
+                trackSlotQuest('FREE_SPIN_COUNT', 1);
                 setPirateWalkActive(true);
                 setPirateShipCol(selectedGame.reels - 1);
                 setPirateShip2Col(-1); // ship 2 starts off-screen
@@ -2948,9 +2951,11 @@ const App: React.FC = () => {
                      const retrigerSpins = 5;
                      setFreeSpinsWon(retrigerSpins);
                      setTotalFreeSpins(prev => prev + retrigerSpins);
+                     trackSlotQuest('FREE_SPIN_COUNT', 1);
                      setShowFreeSpinsPopup(true);
                      audioService.playFreeSpinTrigger();
                  } else {
+                     trackSlotQuest('FREE_SPIN_COUNT', 1);
                      setStatus(GameStatus.SCATTER_SHOWCASE);
                      audioService.playScatterTrigger();
                      setSpinsWithoutBonus(0);
@@ -2969,6 +2974,7 @@ const App: React.FC = () => {
                  : baseSpins;
              setFreeSpinsWon(spinsWon);
              setTotalFreeSpins(prev => prev + spinsWon);
+             trackSlotQuest('FREE_SPIN_COUNT', 1);
 
              if (freeSpinsRemaining > 0) {
                  setShowFreeSpinsPopup(true);
@@ -2993,6 +2999,7 @@ const App: React.FC = () => {
                 const spinsWon = 10;
                 setFreeSpinsWon(spinsWon);
                 setTotalFreeSpins(prev => prev + spinsWon);
+                trackSlotQuest('FREE_SPIN_COUNT', 1);
                 if (freeSpinsRemaining > 0) {
                     setShowFreeSpinsPopup(true);
                     audioService.playFreeSpinTrigger();
@@ -3087,6 +3094,8 @@ const App: React.FC = () => {
                     setPlayer(p => ({ ...p, balance: p.balance + jpAmount }));
                     audioService.playJackpotSound('MINI');
                     setWinData({ payout: jpAmount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: 'BIG WIN' });
+                    trackSlotQuest('BIG_WIN_COUNT', 1);
+                    updateMissions(MissionType.BIG_WIN_COUNT, 1);
                     setPendingBigWin(true);
                     pendingWinTierRef.current = 'BIG WIN';
                     setJackpotWinTier({ name: 'MINI', color: '#4ade80', icon: '', amount: jpAmount });
@@ -3583,6 +3592,8 @@ const App: React.FC = () => {
               setStatus(GameStatus.WIN_ANIMATION);
               if (winTier) {
                   // Big-win celebration first, then the collect summary (deferred until it closes).
+                  trackSlotQuest('BIG_WIN_COUNT', 1);
+                  updateMissions(MissionType.BIG_WIN_COUNT, 1);
                   audioService.playWinTier(winTier);
                   pendingHoldWinSummaryRef.current = { total, bet: currentBet };
                   setShowWinPopup(true);
@@ -3648,6 +3659,8 @@ const App: React.FC = () => {
       const meta = TIER_META[tier] || { color: '#fde68a', winType: 'MEGA WIN' };
       audioService.playJackpotSound(tier);
       setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: meta.winType });
+      trackSlotQuest('BIG_WIN_COUNT', 1);
+      updateMissions(MissionType.BIG_WIN_COUNT, 1);
       setPendingBigWin(true);
       pendingWinTierRef.current = meta.winType;
       setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
@@ -3666,6 +3679,8 @@ const App: React.FC = () => {
       const meta = TIER_META[tier] || { color: '#fde68a', winType: 'MEGA WIN' };
       audioService.playJackpotSound(tier);
       setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: meta.winType });
+      trackSlotQuest('BIG_WIN_COUNT', 1);
+      updateMissions(MissionType.BIG_WIN_COUNT, 1);
       setPendingBigWin(true);
       pendingWinTierRef.current = meta.winType;
       setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
@@ -3683,7 +3698,7 @@ const App: React.FC = () => {
       const currentBet = availableBets[betIndex];
       const winTier = getWinTier(prize, currentBet);
       setWinData({ payout: prize, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
-      if (winTier) { audioService.playWinTier(winTier); setShowWinPopup(true); }
+      if (winTier) { trackSlotQuest('BIG_WIN_COUNT', 1); updateMissions(MissionType.BIG_WIN_COUNT, 1); audioService.playWinTier(winTier); setShowWinPopup(true); }
   };
 
   const handleJackpotClose = () => {
