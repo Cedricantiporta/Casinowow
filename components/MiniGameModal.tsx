@@ -103,6 +103,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [shatteringCells, setShatteringCells] = useState<Set<number>>(new Set());
     const [starBuff, setStarBuff] = useState(false);
 
+    const gridRef = useRef<WildGridCell[]>([]);
+    const processingRef = useRef<Set<number>>(new Set());
+    useEffect(() => { gridRef.current = grid; }, [grid]);
+
     const [isRolling, setIsRolling] = useState(false);
     const [isMoving, setIsMoving] = useState(false);
     const [diceValue, setDiceValue] = useState(1);
@@ -354,12 +358,13 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     }, []);
 
     const handleTileClick = (index: number) => {
-        if (grid[index].revealed || stageWinning || stagePending || shatteringCells.has(index)) return;
+        if (grid[index].revealed || stageWinning || stagePending || shatteringCells.has(index) || processingRef.current.has(index)) return;
         if (wildCredits <= 0) {
             setNoPicksMsg(true);
             setTimeout(() => setNoPicksMsg(false), 2000);
             return;
         }
+        processingRef.current.add(index);
         const cell = grid[index];
         const newGrid = [...grid.map(c => ({ ...c }))];
 
@@ -369,10 +374,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             audioService.playStoneBreak();
             setShatteringCells(prev => new Set(prev).add(index));
             setTimeout(() => {
+                processingRef.current.delete(index);
                 setShatteringCells(prev => { const n = new Set(prev); n.delete(index); return n; });
-                newGrid[index] = { ...cell, revealed: false, content: cell.blockBase ?? 'REWARD' };
-                setGrid(newGrid);
-                if (onGridUpdate) onGridUpdate(newGrid);
+                const freshGrid = gridRef.current.map(c => ({ ...c }));
+                freshGrid[index] = { ...cell, revealed: false, content: cell.blockBase ?? 'REWARD' };
+                setGrid(freshGrid);
+                if (onGridUpdate) onGridUpdate(freshGrid);
                 onPickTile(false, null);
             }, 350);
             return;
@@ -406,8 +413,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             if (onGridUpdate) onGridUpdate(newGrid);
             audioService.playWinBig();
             setTimeout(() => {
+                processingRef.current.delete(index);
                 setExplodingCells(new Set());
-                const finalGrid = newGrid.map(c => ({ ...c }));
+                const finalGrid = gridRef.current.map(c => ({ ...c }));
                 const surroundingRewards: MiniGameReward[] = [];
                 let gemFoundFromBomb = false;
                 let bombGemMult = 1;
@@ -448,8 +456,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         audioService.playStoneBreak();
         setShatteringCells(prev => new Set(prev).add(index));
         setTimeout(() => {
+            processingRef.current.delete(index);
             setShatteringCells(prev => { const n = new Set(prev); n.delete(index); return n; });
-            const latestGrid = [...grid.map(c => ({ ...c }))];
+            const latestGrid = [...gridRef.current.map(c => ({ ...c }))];
             latestGrid[index] = { ...cell, revealed: true };
             const gridAfterGem = cell.content === 'GEM' ? latestGrid : checkAndPlaceGem(latestGrid);
             setGrid(gridAfterGem);

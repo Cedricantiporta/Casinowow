@@ -1913,6 +1913,8 @@ const App: React.FC = () => {
           }
           setTimeout(() => {
               if (winTier) {
+                  trackSlotQuest('BIG_WIN_COUNT', 1);
+                  updateMissions(MissionType.BIG_WIN_COUNT, 1);
                   audioService.playWinTier(winTier);
                   setShowWinPopup(true);
                   setStatus(GameStatus.WIN_ANIMATION);
@@ -1994,6 +1996,10 @@ const App: React.FC = () => {
           for(let r=0; r<rows; r++) {
               let sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
               while (selectedGame.theme === 'PIGGY' && sym === SymbolType.SCATTER) {
+                  sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
+              }
+              // Mystery feature themes: scatter appears ~50% less often
+              if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && sym === SymbolType.SCATTER && Math.random() < 0.5) {
                   sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
               }
               if (c === 2) {
@@ -3105,16 +3111,18 @@ const App: React.FC = () => {
     const winningCells: {col: number, row: number}[] = [];
     const currentPaylines = GET_PAYLINES(selectedGame.rows, selectedGame.reels);
 
+    const isPiggy = selectedGame.theme === 'PIGGY';
+    const isCoinOrWild = (sym: SymbolType) => sym === SymbolType.WILD || (isPiggy && sym === SymbolType.COIN);
     currentPaylines.forEach(line => {
       const symbols = line.indices.map((row, col) => (finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN);
       let matchLen = 1;
       let matchSymbol = symbols[0];
       for (let i = 1; i < symbols.length; i++) {
         const s = symbols[i];
-        if (s === matchSymbol || s === SymbolType.WILD || matchSymbol === SymbolType.WILD) {
-            if (matchSymbol === SymbolType.WILD && s !== SymbolType.WILD) {
+        if (s === matchSymbol || isCoinOrWild(s) || isCoinOrWild(matchSymbol)) {
+            if (isCoinOrWild(matchSymbol) && !isCoinOrWild(s)) {
                 matchSymbol = s;
-            } 
+            }
             matchLen++;
         } else break;
       }
@@ -3123,10 +3131,12 @@ const App: React.FC = () => {
         if (symbolConfig) {
             const baseValue = symbolConfig.value;
             let lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
-            if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0; 
+            if (matchLen === 3 && selectedGame.reels === 3) lenMult = 1.0;
 
             const neonMult = selectedGame.theme === 'NEON' ? 1.588 : 1.0;
-            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult);
+            // PIGGY free spins: COIN as 2× wild — any COIN in the winning sequence doubles the line win
+            const coinMult = (isPiggy && totalFreeSpins > 0 && symbols.slice(0, matchLen).some(s => s === SymbolType.COIN)) ? 2 : 1;
+            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * coinMult);
             if (lineWin > 0) {
                 totalPayout += lineWin;
                 winningLines.push(line.id);
@@ -3145,6 +3155,11 @@ const App: React.FC = () => {
         }
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
+
+    // Mystery feature themes (Farm, Beast, AngryFlock, Princess): 50% win reduction on line payouts
+    if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
+        totalPayout = Math.floor(totalPayout * 0.5);
+    }
 
     // SPACE: Supernova progressive multiplier applies to line wins during free spins.
     // No-win spin resets the multiplier back to ×1.
