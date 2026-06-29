@@ -29,6 +29,34 @@ const RANK_REWARDS: Record<number, RankReward> = {
 
 const fmtDuration = (hours: number) => hours >= 24 ? `${hours / 24}D` : `${hours}H`;
 
+const RewardChip: React.FC<{ tooltip: string; bg: string; icon: React.ReactNode; label: string; labelColor?: string; noPadding?: boolean }> = ({ tooltip, bg, icon, label, labelColor, noPadding }) => {
+    const [show, setShow] = useState(false);
+    return (
+        <div className="relative flex-shrink-0" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+            <div className="flex items-center gap-0.5 rounded-lg cursor-default"
+                style={{ background: bg, padding: noPadding ? 0 : '2px 6px' }}>
+                {icon}
+                {label && <span className="font-black" style={{ fontSize: 10, color: labelColor ?? 'rgba(255,255,255,0.75)' }}>{label}</span>}
+            </div>
+            {show && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-[500] pointer-events-none whitespace-nowrap"
+                    style={{
+                        background: 'linear-gradient(180deg,#6a1eb0 0%,#380870 100%)',
+                        boxShadow: 'inset 0 1px 0 rgba(180,100,255,0.4), 0 4px 12px rgba(0,0,0,0.85)',
+                        borderRadius: 8,
+                        padding: '4px 9px',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: '#e9d5ff',
+                        letterSpacing: '0.03em',
+                    }}>
+                    {tooltip}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const formatScore = (n: number) => {
     if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B`;
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
@@ -177,35 +205,45 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                     {/* Monthly reward chips — horizontal row, score tab only, top 10 */}
                     {reward && (
                         <div className="flex items-center gap-1">
-                            <div title={`${reward.gems.toLocaleString()} Gems`} className="flex items-center gap-0.5 rounded-lg px-1.5 py-0.5"
-                                style={{ background: 'rgba(251,191,36,0.18)' }}>
-                                <img src="/symbols/diamond.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />
-                                <span className="font-black text-amber-300" style={{ fontSize: 10 }}>{reward.gems >= 1000 ? `${reward.gems / 1000}K` : reward.gems}</span>
-                            </div>
+                            <RewardChip
+                                tooltip={`${reward.gems.toLocaleString()} Gems`}
+                                bg="rgba(251,191,36,0.18)"
+                                icon={<img src="/symbols/diamond.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />}
+                                label={reward.gems >= 1000 ? `${reward.gems / 1000}K` : String(reward.gems)}
+                                labelColor="#fbbf24"
+                            />
                             {reward.collectDays && (
-                                <div title={`${reward.collectDays} days 2× Collect Bonus`} className="flex items-center gap-0.5 rounded-lg px-1 py-0.5"
-                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                    <img src="/ui/collect.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />
-                                    <span className="font-bold text-white/75" style={{ fontSize: 10 }}>{reward.collectDays}D</span>
-                                </div>
+                                <RewardChip
+                                    tooltip={`${reward.collectDays} days 2× Collect Bonus`}
+                                    bg="rgba(255,255,255,0.08)"
+                                    icon={<img src="/ui/collect.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />}
+                                    label={`${reward.collectDays}D`}
+                                />
                             )}
                             {reward.expDays && (
-                                <div title={`${reward.expDays} days 2× XP`} className="flex items-center gap-0.5 rounded-lg px-1 py-0.5"
-                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                    <i className="ti ti-bolt text-yellow-300" style={{ fontSize: 11, lineHeight: 1 }} />
-                                    <span className="font-bold text-white/75" style={{ fontSize: 10 }}>{reward.expDays}D</span>
-                                </div>
+                                <RewardChip
+                                    tooltip={`${reward.expDays} days 2× XP`}
+                                    bg="rgba(255,255,255,0.08)"
+                                    icon={<i className="ti ti-bolt" style={{ fontSize: 11, lineHeight: 1, color: '#fde68a' }} />}
+                                    label={`${reward.expDays}D`}
+                                />
                             )}
                             {reward.missionExpHours && (
-                                <div title={`${fmtDuration(reward.missionExpHours)} 2× Mission XP`} className="flex items-center gap-0.5 rounded-lg px-1 py-0.5"
-                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
-                                    <i className="ti ti-target text-green-300" style={{ fontSize: 11, lineHeight: 1 }} />
-                                    <span className="font-bold text-white/75" style={{ fontSize: 10 }}>{fmtDuration(reward.missionExpHours)}</span>
-                                </div>
+                                <RewardChip
+                                    tooltip={`${fmtDuration(reward.missionExpHours)} 2× Mission XP`}
+                                    bg="rgba(255,255,255,0.08)"
+                                    icon={<i className="ti ti-target" style={{ fontSize: 11, lineHeight: 1, color: '#86efac' }} />}
+                                    label={fmtDuration(reward.missionExpHours)}
+                                />
                             )}
                             {reward.exclusiveAvatar && (
-                                <img src={EXCLUSIVE_AVATAR} alt="Exclusive Avatar" title="Exclusive Avatar unlock"
-                                    style={{ width: 18, height: 18, objectFit: 'cover', borderRadius: '50%', boxShadow: '0 0 0 1.5px #a855f7' }} />
+                                <RewardChip
+                                    tooltip="Exclusive Avatar unlock"
+                                    bg="transparent"
+                                    icon={<img src={EXCLUSIVE_AVATAR} alt="" style={{ width: 18, height: 18, objectFit: 'cover', borderRadius: '50%', boxShadow: '0 0 0 1.5px #a855f7' }} />}
+                                    label=""
+                                    noPadding
+                                />
                             )}
                         </div>
                     )}

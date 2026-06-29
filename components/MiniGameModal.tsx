@@ -984,12 +984,12 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         <div className="px-3 pb-3 flex gap-2">
                             {(showBuyPopup === 'PICKS'
                                 ? [
-                                    { label: 'Starter', picks: 5,  dice: 0,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 150 },
-                                    { label: 'Pro',     picks: 20, dice: 0,  coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 500 },
+                                    { label: 'Starter', picks: 5,  dice: 0,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 300 },
+                                    { label: 'Pro',     picks: 20, dice: 0,  coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 1000 },
                                 ]
                                 : [
-                                    { label: 'Starter', picks: 0,  dice: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 150 },
-                                    { label: 'Pro',     picks: 0,  dice: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 500 },
+                                    { label: 'Starter', picks: 0,  dice: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 300 },
+                                    { label: 'Pro',     picks: 0,  dice: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 1000 },
                                 ]
                             ).map(opt => {
                                 const canAfford = diamonds >= opt.gemCost;

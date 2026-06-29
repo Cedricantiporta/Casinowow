@@ -4234,10 +4234,12 @@ const App: React.FC = () => {
                   setPirateShip2Col(-1);
                   trackSlotQuest('BONUS_TRIGGER', 1);
                   const won = pirateWalkTotalWinRef.current;
-                  setTimeout(() => {
-                      setCelebrationMsg(won > 0 ? `+${formatCommaNumber(won)}` : 'The Ghost Ship sailed away…');
-                      if (won > 0) audioService.playWinBig();
-                  }, 250);
+                  if (freeSpinsRemaining === 0) {
+                      setTimeout(() => {
+                          setCelebrationMsg(won > 0 ? `+${formatCommaNumber(won)}` : 'The Ghost Ship sailed away…');
+                          if (won > 0) audioService.playWinBig();
+                      }, 250);
+                  }
                   // DO NOT call spin() here — the IDLE effect re-runs after pirateWalkActive flips false
                   // and will correctly show the free-spin summary (freeSpinsWon > 0) or auto-spin.
               } else if (activeModal === 'NONE' && !jackpotWinTier) {
