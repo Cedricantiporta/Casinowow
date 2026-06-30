@@ -489,7 +489,29 @@ const App: React.FC = () => {
     const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; })();
     return { lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 100, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
   });
-  const [decks, setDecks] = useState<Deck[]>(GENERATE_DECKS());
+  const [decks, setDecks] = useState<Deck[]>(() => {
+      try {
+          const saved = localStorage.getItem('cw_decks');
+          if (saved) {
+              const savedDecks = JSON.parse(saved) as Deck[];
+              const fresh = GENERATE_DECKS();
+              return fresh.map(freshDeck => {
+                  const savedDeck = savedDecks.find(d => d.gameId === freshDeck.gameId);
+                  if (!savedDeck) return freshDeck;
+                  return {
+                      ...freshDeck,
+                      cards: freshDeck.cards.map(freshCard => {
+                          const savedCard = savedDeck.cards.find(c => c.id === freshCard.id);
+                          return savedCard ? { ...freshCard, count: savedCard.count } : freshCard;
+                      }),
+                      isCompleted: savedDeck.isCompleted ?? false,
+                      rewardClaimed: savedDeck.rewardClaimed ?? false,
+                  };
+              });
+          }
+      } catch {}
+      return GENERATE_DECKS();
+  });
 
   const [availableBets, setAvailableBets] = useState<number[]>(ALL_BETS);
   const [betIndex, setBetIndex] = useState(0);
@@ -666,7 +688,7 @@ const App: React.FC = () => {
           [M.win(25),    M.maxbet(10), M.coins(70)],
           [M.bonus(1),   M.spin(50),   M.bet(120)],
           [M.win(30),    M.level(2), M.coins(90)],
-          [M.maxbet(30), M.big(3),   M.bet(150)],
+          [M.maxbet(30), M.big(3),   M.bet(38)],
           [M.win(35),    M.spin(60), M.coins(110)],
           [M.level(3),   M.big(6),   M.coins(140)],
       ];
@@ -1559,6 +1581,10 @@ const App: React.FC = () => {
   }, [missionState]);
 
   useEffect(() => {
+    try { localStorage.setItem('cw_decks', JSON.stringify(decks)); } catch {}
+  }, [decks]);
+
+  useEffect(() => {
     try { localStorage.setItem('cw_login', JSON.stringify(loginState)); } catch {}
   }, [loginState]);
 
@@ -1664,8 +1690,13 @@ const App: React.FC = () => {
               setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 }));
               msg = `${reward.value}x XP Boost`;
           } else if (reward.type === 'CREDIT_BACK') {
-              setPlayer(p => ({ ...p, packCredits: p.packCredits + reward.value }));
-              msg = `+${reward.value} Card Packs`;
+              if (reward.tier === 'PREMIUM') {
+                  setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + reward.value }));
+                  msg = `+${reward.value} Premium Packs`;
+              } else {
+                  setPlayer(p => ({ ...p, packCredits: p.packCredits + reward.value }));
+                  msg = `+${reward.value} Card Packs`;
+              }
           } else if (reward.type === 'PICKS') {
               setQuest(q => ({ ...q, wildCredits: (q.wildCredits ?? 0) + reward.value }));
               msg = `+${reward.value} Picks`;
@@ -1689,6 +1720,7 @@ const App: React.FC = () => {
       let totalCoins = 0;
       let totalDiamonds = 0;
       let totalPackCredits = 0;
+      let totalPremPackCredits = 0;
       let totalPicks = 0;
       let totalDice = 0;
       let xpBoostApplied = false;
@@ -1696,7 +1728,10 @@ const App: React.FC = () => {
       rewardsToClaim.forEach(r => {
           if (r.type === 'COINS') totalCoins += SCALE_COIN_REWARD(r.value, player.level, currentBetRef.current);
           else if (r.type === 'DIAMONDS') totalDiamonds += r.value;
-          else if (r.type === 'CREDIT_BACK') totalPackCredits += r.value;
+          else if (r.type === 'CREDIT_BACK') {
+              if (r.tier === 'PREMIUM') totalPremPackCredits += r.value;
+              else totalPackCredits += r.value;
+          }
           else if (r.type === 'PICKS') totalPicks += r.value;
           else if (r.type === 'DICE_CREDITS') totalDice += r.value;
           else if (r.type === 'XP_BOOST') {
@@ -1710,6 +1745,7 @@ const App: React.FC = () => {
           balance: p.balance + totalCoins,
           diamonds: p.diamonds + totalDiamonds,
           packCredits: p.packCredits + totalPackCredits,
+          premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPremPackCredits,
       }));
       if (totalPicks > 0) {
           setQuest(q => ({ ...q, wildCredits: (q.wildCredits ?? 0) + totalPicks }));
@@ -4849,7 +4885,7 @@ const App: React.FC = () => {
                 {/* Quest + Pass vertical panel — always visible in game view */}
                 {(() => {
                     const qReady = false;
-                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel + (missionState.isPremium ? 10 : 0) && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
+                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
                     const totalNotifs = passReady;
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;

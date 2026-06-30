@@ -686,8 +686,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     </div>
                                 </div>
                                 {[
-                                    { name: 'Starter', img: '/card_normal.png', gemCost: 80, packs: 10, contents: ['10 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 25))} Coins`], bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)', accent: '#3b82f6', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
-                                    { name: 'Pro Bundle', img: '/card_normal.png', gemCost: 280, packs: 30, contents: ['30 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 100))} Coins`], bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)', accent: '#60a5fa', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                    { name: 'Starter', img: '/card_normal.png', gemCost: 80, packs: 20, contents: ['20 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 25))} Coins`], bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)', accent: '#3b82f6', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                    { name: 'Pro Bundle', img: '/card_normal.png', gemCost: 280, packs: 60, contents: ['60 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 100))} Coins`], bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)', accent: '#60a5fa', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
                                 ].map(opt => {
                                     const canAfford = diamonds >= opt.gemCost;
                                     return (
@@ -727,8 +727,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     </div>
                                 </div>
                                 {[
-                                    { name: 'Starter', img: '/card_premium.png', gemCost: 320, packs: 10, contents: ['10 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 50))} Coins`], bg: 'linear-gradient(160deg,#2e1065,#5b21b6)', accent: '#a855f7', shadowClr: '#2e1065', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
-                                    { name: 'Pro Bundle', img: '/card_premium.png', gemCost: 1100, packs: 30, contents: ['30 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 200))} Coins`], bg: 'linear-gradient(160deg,#3b0764,#6d28d9)', accent: '#c084fc', shadowClr: '#3b0764', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                    { name: 'Starter', img: '/card_premium.png', gemCost: 320, packs: 20, contents: ['20 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 50))} Coins`], bg: 'linear-gradient(160deg,#2e1065,#5b21b6)', accent: '#a855f7', shadowClr: '#2e1065', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                    { name: 'Pro Bundle', img: '/card_premium.png', gemCost: 1100, packs: 60, contents: ['60 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 200))} Coins`], bg: 'linear-gradient(160deg,#3b0764,#6d28d9)', accent: '#c084fc', shadowClr: '#3b0764', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
                                 ].map(opt => {
                                     const canAfford = diamonds >= opt.gemCost;
                                     const buyFn = onBuyPremiumCredits;
