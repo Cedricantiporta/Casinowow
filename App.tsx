@@ -677,8 +677,9 @@ const App: React.FC = () => {
           maxbet: (t: number): SlotQuestMission => ({ id: `${slotId}_maxbet`, type: 'MAX_BET_SPIN',  label: 'Max',   description: `Spin ${t} times on Max Bet`, current: 0, target: t }),
           coins:  (mult: number): SlotQuestMission => ({ id: `${slotId}_coins`, type: 'WIN_COINS',   label: 'Coins', description: `Win a total of ${formatK(base * mult)} Coins`, current: 0, target: base * mult }),
           bet:    (mult: number): SlotQuestMission => ({ id: `${slotId}_bet`,   type: 'BET_COINS',   label: 'Bet',   description: `Bet a total of ${formatK(base * mult)} Coins`, current: 0, target: base * mult }),
-          big:    (t: number): SlotQuestMission => ({ id: `${slotId}_big`,    type: 'BIG_WIN_COUNT', label: 'Big',   description: `Land ${t} Big Wins`, current: 0, target: t }),
-          level:  (t: number): SlotQuestMission => ({ id: `${slotId}_level`,  type: 'LEVEL_UP',      label: 'Level', description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
+          big:      (t: number): SlotQuestMission => ({ id: `${slotId}_big`,      type: 'BIG_WIN_COUNT',  label: 'Big',      description: `Land ${t} Big Wins`, current: 0, target: t }),
+          freespin: (t: number): SlotQuestMission => ({ id: `${slotId}_freespin`, type: 'FREE_SPIN_COUNT', label: 'Bonus',    description: `Complete ${t} Free Spin${t !== 1 ? 's' : ''} or Respin${t !== 1 ? 's' : ''}`, current: 0, target: t }),
+          level:    (t: number): SlotQuestMission => ({ id: `${slotId}_level`,    type: 'LEVEL_UP',       label: 'Level',    description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
           reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
           bonus:  (t: number): SlotQuestMission => ({ id: `${slotId}_bonus`,  type: 'BONUS_TRIGGER', label: 'Bonus', description: `Complete ${t} Bonus game${t !== 1 ? 's' : ''}`, current: 0, target: t }),
       };
@@ -687,10 +688,10 @@ const App: React.FC = () => {
           [M.spin(40),   M.level(5),   M.bet(80)],
           [M.win(25),    M.maxbet(10), M.coins(70)],
           [M.bonus(1),   M.spin(50),   M.bet(120)],
-          [M.win(30),    M.level(2), M.coins(90)],
-          [M.maxbet(30), M.big(3),   M.bet(38)],
-          [M.win(35),    M.spin(60), M.coins(110)],
-          [M.level(3),   M.big(6),   M.coins(140)],
+          [M.win(30),    M.level(2),   M.coins(90)],
+          [M.maxbet(30), M.big(3),     M.bet(38)],
+          [M.win(35),    M.spin(60),   M.coins(110)],
+          [M.level(3),   M.big(6),     M.coins(140)],
       ];
       return stages[stageIndex % stages.length];
   };
@@ -1400,10 +1401,10 @@ const App: React.FC = () => {
       const stageIdx = slotQuestState.currentPathIndex;
       const maxBetNow = MAX_BET_BY_LEVEL(player.level);
       // Stage reward: 10×, 20×, ... 70× of max bet per stage
-      const stageReward = maxBetNow * (stageIdx + 1) * 10;
-      // Grand prize on completing all 7 stages: +100× max bet
+      const stageReward = maxBetNow * (stageIdx + 1) * 20;
+      // Grand prize on completing all 7 stages: +300× max bet
       const isLastStage = stageIdx + 1 >= QUEST_PATH_IDS.length;
-      const grandPrize = isLastStage ? maxBetNow * 100 : 0;
+      const grandPrize = isLastStage ? maxBetNow * 300 : 0;
       setPlayer(p => ({ ...p, balance: p.balance + stageReward + grandPrize }));
       setSlotQuestState(prev => {
           const nextIndex = prev.currentPathIndex + 1;
@@ -3287,6 +3288,8 @@ const App: React.FC = () => {
                     setPlayer(p => ({ ...p, balance: p.balance + jpAmount }));
                     audioService.playJackpotSound('MINI');
                     setWinData({ payout: jpAmount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: 'BIG WIN' });
+                    trackSlotQuest('BIG_WIN_COUNT', 1);
+                    updateMissions(MissionType.BIG_WIN_COUNT, 1);
                     setPendingBigWin(true);
                     pendingWinTierRef.current = 'BIG WIN';
                     setJackpotWinTier({ name: 'MINI', color: '#4ade80', icon: '', amount: jpAmount });
@@ -3360,9 +3363,9 @@ const App: React.FC = () => {
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
 
-    // Mystery feature themes (Farm, Beast, AngryFlock, Princess): 50% win reduction on line payouts
+    // Mystery feature themes (Farm, Beast, AngryFlock, Princess): 20% win boost on line payouts
     if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
-        totalPayout = Math.floor(totalPayout * 0.5);
+        totalPayout = Math.floor(totalPayout * 1.2);
     }
 
     // SPACE: Supernova progressive multiplier applies to line wins during free spins.
@@ -3529,10 +3532,11 @@ const App: React.FC = () => {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
 
        const vipXpMult = player.isVip ? 1.2 : 1.0;
+       const level15Mult = player.level > 15 ? 1.6 : 1.0;
        const spinsAtMaxBet = Math.max(1, player.level * 1.1);
        // XP is capped at the NORMAL lobby max bet — high-limit (bigger) bets grant no extra XP.
        const betFraction = Math.min(1, currentBet / MAX_BET_BY_LEVEL(player.level));
-       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult);
+       const xpGained = Math.floor((player.xpToNextLevel / spinsAtMaxBet) * betFraction * player.xpMultiplier * vipXpMult * level15Mult);
 
        addXp(xpGained);
        if (player.isVip) addVipXp(1);
@@ -3576,10 +3580,11 @@ const App: React.FC = () => {
            setLastWinAmount(0);
        }
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
+       const level15MultLoss = player.level > 15 ? 1.6 : 1.0;
        const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
        // XP capped at the NORMAL lobby max bet — high-limit bets grant no extra XP.
        const betFractionLoss = Math.min(1, currentBet / MAX_BET_BY_LEVEL(player.level));
-       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss);
+       const lossXp = Math.floor((player.xpToNextLevel / spinsAtMaxBetLoss) * betFractionLoss * player.xpMultiplier * vipXpMultLoss * level15MultLoss);
        addXp(lossXp);
        if (player.isVip) addVipXp(1);
        const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
@@ -3766,6 +3771,7 @@ const App: React.FC = () => {
       }
       // If free spins just ended (no retrigger pending), show summary
       if (freeSpinsWon > 0 && freeSpinsRemaining === 0 && !showFreeSpinsPopup) {
+          trackSlotQuest('FREE_SPIN_COUNT', 1);
           setShowFreeSpinSummary(true);
       } else {
           setStatus(GameStatus.IDLE);
@@ -3795,6 +3801,8 @@ const App: React.FC = () => {
               setStatus(GameStatus.WIN_ANIMATION);
               if (winTier) {
                   // Big-win celebration first, then the collect summary (deferred until it closes).
+                  trackSlotQuest('BIG_WIN_COUNT', 1);
+                  updateMissions(MissionType.BIG_WIN_COUNT, 1);
                   audioService.playWinTier(winTier);
                   pendingHoldWinSummaryRef.current = { total, bet: currentBet };
                   setShowWinPopup(true);
@@ -3860,6 +3868,8 @@ const App: React.FC = () => {
       const meta = TIER_META[tier] || { color: '#fde68a', winType: 'MEGA WIN' };
       audioService.playJackpotSound(tier);
       setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: meta.winType });
+      trackSlotQuest('BIG_WIN_COUNT', 1);
+      updateMissions(MissionType.BIG_WIN_COUNT, 1);
       setPendingBigWin(true);
       pendingWinTierRef.current = meta.winType;
       setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
@@ -3881,6 +3891,8 @@ const App: React.FC = () => {
       const meta = TIER_META[tier] || { color: '#fde68a', winType: 'MEGA WIN' };
       audioService.playJackpotSound(tier);
       setWinData({ payout: amount, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: meta.winType });
+      trackSlotQuest('BIG_WIN_COUNT', 1);
+      updateMissions(MissionType.BIG_WIN_COUNT, 1);
       setPendingBigWin(true);
       pendingWinTierRef.current = meta.winType;
       setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
@@ -3901,7 +3913,7 @@ const App: React.FC = () => {
       const currentBet = availableBets[betIndex];
       const winTier = getWinTier(prize, currentBet);
       setWinData({ payout: prize, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
-      if (winTier) { audioService.playWinTier(winTier); setShowWinPopup(true); }
+      if (winTier) { trackSlotQuest('BIG_WIN_COUNT', 1); updateMissions(MissionType.BIG_WIN_COUNT, 1); audioService.playWinTier(winTier); setShowWinPopup(true); }
       trackSlotQuest('BONUS_TRIGGER', 1);
   };
 
@@ -4914,9 +4926,22 @@ const App: React.FC = () => {
                                 return sidebarPage === 0 ? (<>
                                     {/* Slot 1: Quest when in progress, else Pass */}
                                     {questInProgress ? (
-                                        <button onClick={() => setShowQuestPath(true)} className="relative flex flex-col items-center active:scale-95 transition-transform">
-                                            <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                            <div style={pillStyle}>Quest</div>
+                                        <button onClick={() => setShowQuestPath(true)} className="active:scale-95 transition-transform" style={{ width: '100%' }}>
+                                            {(() => {
+                                                const ms = slotQuestState.missions;
+                                                const pct = ms.length > 0 ? Math.min(100, ms.reduce((s, m) => s + (m.target > 0 ? Math.min(1, m.current / m.target) : 0), 0) / ms.length * 100) : 0;
+                                                const done = pct >= 100;
+                                                return (
+                                                    <div className="rtrack" style={{ height: 16, width: '100%', padding: '0 3px', minWidth: 0, borderRadius: 8 }}>
+                                                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 8, pointerEvents: 'none' }}>
+                                                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 6, width: `${pct}%`, background: done ? 'linear-gradient(180deg,#4ade80,#16a34a 60%,#15803d)' : 'linear-gradient(180deg,#a78bfa,#7c3aed 60%,#5b21b6)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }}>
+                                                                <div className="absolute inset-y-0 w-5 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+                                                            </div>
+                                                        </div>
+                                                        <span style={{ position: 'relative', zIndex: 1, fontSize: 8, fontWeight: 900, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.7)' }}>Quest {Math.round(pct)}%</span>
+                                                    </div>
+                                                );
+                                            })()}
                                         </button>
                                     ) : passBtn}
                                     {/* Mine */}
@@ -5065,7 +5090,7 @@ const App: React.FC = () => {
                                 newCells={cascadeNewCells ? cascadeNewCells[i] : undefined}
                                 dissolving={cascadeDissolving}
                                 anticipation={isAnticipating && i === stoppedReels}
-                                inFreeSpins={freeSpinsRemaining > 0}
+                                inFreeSpins={freeSpinsWon > 0}
                                 instantStop={instantStop}
                             />
                             ));
@@ -5145,8 +5170,8 @@ const App: React.FC = () => {
                                                     }}>
                                                     {locked ? (
                                                         <>
-                                                            {/* Full-size coin — no border/background, same footprint as the reel symbol */}
-                                                            {!jpTier && coinIcon && (
+                                                            {/* Full-size coin — always show behind both amounts and jackpot badges */}
+                                                            {coinIcon && (
                                                                 <img src={coinIcon} alt="" className="absolute inset-0 pointer-events-none select-none"
                                                                     style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }} />
                                                             )}
@@ -5418,7 +5443,7 @@ const App: React.FC = () => {
                             missions={slotQuestState.missions}
                             activeSlotName={GAMES_CONFIG.find(g => g.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex])?.name || ''}
                             isOnActiveSlot={selectedGame.id === slotQuestState.pathSlotIds[slotQuestState.currentPathIndex]}
-                            rewardCoins={MAX_BET_BY_LEVEL(player.level) * (slotQuestState.currentPathIndex + 1) * 10}
+                            rewardCoins={MAX_BET_BY_LEVEL(player.level) * (slotQuestState.currentPathIndex + 1) * 20}
                             allDone={slotQuestState.missions.every(m => m.current >= m.target)}
                             onOpenQuestPath={() => setShowQuestPath(true)}
                         />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SlotQuestMission } from '../types';
 import { formatK } from '../constants';
 
@@ -12,14 +12,15 @@ interface SlotQuestPanelProps {
 }
 
 const TYPE_ICON: Record<string, string> = {
-    WIN_COUNT:    'ti-trophy',
-    SPIN_COUNT:   'ti-refresh',
-    MAX_BET_SPIN: 'ti-bolt',
-    WIN_COINS:    'ti-coin',
-    BET_COINS:    'ti-coins',
-    BIG_WIN_COUNT:'ti-flame',
-    LEVEL_UP:     'ti-star',
-    REACH_LEVEL:  'ti-star',
+    WIN_COUNT:      'ti-trophy',
+    SPIN_COUNT:     'ti-refresh',
+    MAX_BET_SPIN:   'ti-bolt',
+    WIN_COINS:      'ti-coin',
+    BET_COINS:      'ti-coins',
+    BIG_WIN_COUNT:  'ti-flame',
+    FREE_SPIN_COUNT:'ti-stars',
+    LEVEL_UP:       'ti-star',
+    REACH_LEVEL:    'ti-star',
 };
 
 // Semi-transparent — readable but lets the reels show through a little.
@@ -34,6 +35,24 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
     missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onOpenQuestPath,
 }) => {
     const [minimized, setMinimized] = useState(false);
+    const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const prevAllDoneRef = useRef(allDone);
+
+    // Auto-hide after 5 seconds when visible
+    useEffect(() => {
+        if (!minimized) {
+            autoHideRef.current = setTimeout(() => setMinimized(true), 5000);
+        }
+        return () => { if (autoHideRef.current) clearTimeout(autoHideRef.current); };
+    }, [minimized]);
+
+    // Reopen when quest becomes completed
+    useEffect(() => {
+        if (!prevAllDoneRef.current && allDone) {
+            setMinimized(false);
+        }
+        prevAllDoneRef.current = allDone;
+    }, [allDone]);
 
     if (minimized) {
         return (

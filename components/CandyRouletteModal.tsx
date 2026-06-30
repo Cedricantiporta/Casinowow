@@ -49,21 +49,34 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
 
     ctx.clearRect(0, 0, CS, CS);
 
-    // Outer chassis ring
+    // Drop shadow for 3-D depth
     ctx.save();
     ctx.beginPath();
-    ctx.arc(MID, MID, R + 26, 0, Math.PI * 2);
-    ctx.fillStyle = '#1a1020';
-    ctx.shadowBlur = 40;
-    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.arc(MID, MID + 10, R + 14, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    (ctx as any).filter = 'blur(12px)';
+    ctx.fill();
+    ctx.restore();
+    (ctx as any).filter = 'none';
+
+    // Outer chassis ring — metallic
+    ctx.save();
+    const rimGrad = ctx.createRadialGradient(MID - 20, MID - 20, R + 2, MID, MID, R + 20);
+    rimGrad.addColorStop(0, '#4b5563');
+    rimGrad.addColorStop(0.55, '#1f2937');
+    rimGrad.addColorStop(1, '#0d1117');
+    ctx.beginPath();
+    ctx.arc(MID, MID, R + 20, 0, Math.PI * 2);
+    ctx.fillStyle = rimGrad;
+    ctx.shadowBlur = 24; ctx.shadowColor = 'rgba(0,0,0,0.85)';
     ctx.fill();
     ctx.restore();
 
     ctx.save();
     ctx.beginPath();
-    ctx.arc(MID, MID, R + 17, 0, Math.PI * 2);
-    ctx.strokeStyle = '#0f0a18';
-    ctx.lineWidth = 10;
+    ctx.arc(MID, MID, R + 13, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 2;
     ctx.stroke();
     ctx.restore();
 
@@ -72,55 +85,81 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
     ctx.translate(MID, MID);
     ctx.rotate(angle);
 
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, R, 0, Math.PI * 2);
+    ctx.clip();
+
     for (let i = 0; i < N; i++) {
         const startAng = i * arcAngle + offsetAngle;
-        const endAng = startAng + arcAngle;
+        const endAng   = startAng + arcAngle;
+        const bisector = startAng + arcAngle / 2;
+
+        // Base fill
+        ctx.save();
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.arc(0, 0, R, startAng, endAng);
         ctx.closePath();
         ctx.fillStyle = SEGMENTS[i].color;
         ctx.fill();
-        ctx.strokeStyle = '#1c0c1e';
-        ctx.lineWidth = 3;
-        ctx.stroke();
 
-        // Edge gloss
+        // 3-D shading
+        const sg = ctx.createRadialGradient(Math.cos(bisector) * R * 0.5, Math.sin(bisector) * R * 0.5, 0, 0, 0, R);
+        sg.addColorStop(0,   'rgba(255,255,255,0.24)');
+        sg.addColorStop(0.55,'rgba(255,255,255,0.04)');
+        sg.addColorStop(1,   'rgba(0,0,0,0.32)');
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, R, startAng, endAng);
+        ctx.closePath();
+        ctx.fillStyle = sg;
+        ctx.fill();
+        ctx.restore();
+
+        // Dividers
         ctx.save();
         ctx.beginPath();
-        ctx.arc(0, 0, R - 10, startAng + 0.07, endAng - 0.07);
-        ctx.strokeStyle = 'rgba(255,255,255,0.22)';
-        ctx.lineWidth = 8;
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, R, startAng, endAng);
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(0,0,0,0.60)';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.restore();
+
+        // Rim shine
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, R - 5, startAng + 0.05, endAng - 0.05);
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.lineWidth = 4.5;
         ctx.stroke();
         ctx.restore();
     }
+    ctx.restore(); // end clip
 
-    // Labels (label number + sub text)
+    // Labels
     for (let i = 0; i < N; i++) {
         const bisector = i * arcAngle + arcAngle / 2 + offsetAngle;
         ctx.save();
         ctx.rotate(bisector);
-
-        // Main number label
-        ctx.save();
-        ctx.translate(R * 0.68, 0);
+        ctx.translate(R * 0.72, 0);
         ctx.rotate(Math.PI / 2);
-        ctx.font = `900 30px 'Titan One', cursive`;
-        ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.strokeStyle = '#1c0c30';
+        ctx.strokeStyle = 'rgba(0,0,0,0.9)';
         ctx.lineWidth = 7;
+        ctx.fillStyle = '#fff';
+
+        ctx.font = `900 28px 'Titan One', cursive`;
         ctx.strokeText(SEGMENTS[i].label, 0, -10);
         ctx.fillText(SEGMENTS[i].label, 0, -10);
-        // Sub text
-        ctx.font = `900 15px sans-serif`;
-        ctx.strokeStyle = '#1c0c30';
+
+        ctx.font = `900 14px sans-serif`;
         ctx.lineWidth = 5;
         ctx.strokeText(SEGMENTS[i].sub, 0, 14);
         ctx.fillText(SEGMENTS[i].sub, 0, 14);
-        ctx.restore();
-
         ctx.restore();
     }
 
@@ -131,23 +170,24 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
         const ry = Math.sin(ang) * R;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(rx, ry, 9, 0, Math.PI * 2);
-        ctx.fillStyle = '#94a3b8';
-        ctx.strokeStyle = '#1e293b';
-        ctx.lineWidth = 3;
-        ctx.fill();
-        ctx.stroke();
+        ctx.arc(rx, ry, 7, 0, Math.PI * 2);
+        const rg = ctx.createRadialGradient(rx - 2, ry - 2, 1, rx, ry, 7);
+        rg.addColorStop(0, '#e2e8f0'); rg.addColorStop(1, '#475569');
+        ctx.fillStyle = rg;
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2;
+        ctx.fill(); ctx.stroke();
         ctx.beginPath();
-        ctx.arc(rx - 2, ry - 2, 3.5, 0, Math.PI * 2);
+        ctx.arc(rx - 1.5, ry - 1.5, 2.5, 0, Math.PI * 2);
         ctx.fillStyle = '#fff';
         ctx.fill();
         ctx.restore();
     }
-    ctx.restore();
+    ctx.restore(); // end rotate
 
-    // Chasing bulbs (fixed, pink-tinted for candy theme)
-    const totalBulbs = 12;
-    const bulbR = R + 23;
+    // Chasing bulbs (pink-tinted, candy theme)
+    const totalBulbs = 14;
+    const bulbR = R + 14;
     const step = Math.floor(bulbPhase) % totalBulbs;
     for (let b = 0; b < totalBulbs; b++) {
         const bAng = (b * Math.PI * 2 / totalBulbs) - Math.PI / 2;
@@ -156,27 +196,36 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
         const isLit = b === step || b === (step + 1) % totalBulbs || b === (step + 2) % totalBulbs;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(bx, by, 9, 0, Math.PI * 2);
+        ctx.arc(bx, by, 7, 0, Math.PI * 2);
         if (isLit) {
-            const g = ctx.createRadialGradient(bx - 2, by - 2, 1, bx, by, 10);
+            const g = ctx.createRadialGradient(bx - 2, by - 2, 1, bx, by, 8);
             g.addColorStop(0, '#fff'); g.addColorStop(0.3, '#fbcfe8'); g.addColorStop(1, '#ec4899');
             ctx.fillStyle = g;
-            ctx.shadowColor = '#f472b6'; ctx.shadowBlur = 18;
+            ctx.shadowColor = '#f472b6'; ctx.shadowBlur = 16;
             ctx.strokeStyle = '#4a0320';
         } else {
             ctx.fillStyle = '#6b1237'; ctx.strokeStyle = '#1c0017';
         }
-        ctx.lineWidth = 2.5; ctx.fill(); ctx.stroke();
+        ctx.lineWidth = 2; ctx.fill(); ctx.stroke();
         ctx.restore();
     }
 
     // Center hub
     ctx.save();
+    const hubGrad = ctx.createRadialGradient(MID - 8, MID - 8, 2, MID, MID, 38);
+    hubGrad.addColorStop(0, '#4b5563');
+    hubGrad.addColorStop(0.5, '#1f2937');
+    hubGrad.addColorStop(1, '#0d1117');
     ctx.beginPath();
-    ctx.arc(MID, MID, 40, 0, Math.PI * 2);
-    ctx.fillStyle = '#1c0824';
-    ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.arc(MID, MID, 38, 0, Math.PI * 2);
+    ctx.fillStyle = hubGrad;
+    ctx.shadowBlur = 14; ctx.shadowColor = 'rgba(0,0,0,0.95)';
     ctx.fill();
+    ctx.beginPath();
+    ctx.arc(MID, MID, 38, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
     ctx.restore();
 }
 

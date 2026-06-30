@@ -13,16 +13,16 @@ interface Seg {
 }
 
 const SEGMENTS: Seg[] = [
-    { label: '2×',    color: '#1d4ed8', textColor: '#bfdbfe', mult: 2,  baseWeight: 28   },
-    { label: '3×',    color: '#1a5c2b', textColor: '#bbf7d0', mult: 3,  baseWeight: 18   },
-    { label: 'MINI',  color: '#064e3b', textColor: '#6ee7b7', jp: 'MINI',  baseWeight: 12  },
-    { label: '4×',    color: '#5b21b6', textColor: '#ddd6fe', mult: 4,  baseWeight: 14   },
-    { label: '5×',    color: '#166534', textColor: '#bbf7d0', mult: 5,  baseWeight: 8    },
-    { label: 'MINOR', color: '#0c4a6e', textColor: '#7dd3fc', jp: 'MINOR', baseWeight: 5  },
-    { label: 'MAJOR', color: '#6b21a8', textColor: '#d8b4fe', jp: 'MAJOR', baseWeight: 0.6},
-    { label: '10×',   color: '#7c3aed', textColor: '#e9d5ff', mult: 10, baseWeight: 3    },
-    { label: 'MEGA',  color: '#9f1239', textColor: '#fda4af', jp: 'MEGA',  baseWeight: 0.2},
-    { label: 'GRAND', color: '#78350f', textColor: '#fde68a', jp: 'GRAND', baseWeight: 0.05},
+    { label: '2×',    color: '#111111', textColor: '#ffffff', mult: 2,  baseWeight: 28   },
+    { label: '3×',    color: '#111111', textColor: '#ffffff', mult: 3,  baseWeight: 18   },
+    { label: 'MINI',  color: '#16a34a', textColor: '#ffffff', jp: 'MINI',  baseWeight: 12  },
+    { label: '4×',    color: '#111111', textColor: '#ffffff', mult: 4,  baseWeight: 14   },
+    { label: '5×',    color: '#111111', textColor: '#ffffff', mult: 5,  baseWeight: 8    },
+    { label: 'MINOR', color: '#0891b2', textColor: '#ffffff', jp: 'MINOR', baseWeight: 5  },
+    { label: 'MAJOR', color: '#9333ea', textColor: '#ffffff', jp: 'MAJOR', baseWeight: 0.6},
+    { label: '10×',   color: '#111111', textColor: '#ffffff', mult: 10, baseWeight: 3    },
+    { label: 'MEGA',  color: '#ef4444', textColor: '#ffffff', jp: 'MEGA',  baseWeight: 0.2},
+    { label: 'GRAND', color: '#f59e0b', textColor: '#ffffff', jp: 'GRAND', baseWeight: 0.05},
 ];
 
 const JP_CHANCE = [0.50, 0.60, 0.75, 0.90, 1.0];
@@ -53,21 +53,36 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
 
     ctx.clearRect(0, 0, CS, CS);
 
-    // Outer chassis ring
+    // Drop shadow for 3-D disc depth
     ctx.save();
     ctx.beginPath();
-    ctx.arc(MID, MID, R + 26, 0, Math.PI * 2);
-    ctx.fillStyle = '#1a1830';
-    ctx.shadowBlur = 40;
-    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.arc(MID, MID + 10, R + 14, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.45)';
+    (ctx as any).filter = 'blur(12px)';
+    ctx.fill();
+    ctx.restore();
+    (ctx as any).filter = 'none';
+
+    // Outer chassis ring — metallic dark
+    ctx.save();
+    const rimGrad = ctx.createRadialGradient(MID - 20, MID - 20, R + 2, MID, MID, R + 20);
+    rimGrad.addColorStop(0, '#4b5563');
+    rimGrad.addColorStop(0.55, '#1f2937');
+    rimGrad.addColorStop(1, '#0d1117');
+    ctx.beginPath();
+    ctx.arc(MID, MID, R + 20, 0, Math.PI * 2);
+    ctx.fillStyle = rimGrad;
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = 'rgba(0,0,0,0.85)';
     ctx.fill();
     ctx.restore();
 
+    // Inner rim accent line
     ctx.save();
     ctx.beginPath();
-    ctx.arc(MID, MID, R + 17, 0, Math.PI * 2);
-    ctx.strokeStyle = '#0f0e20';
-    ctx.lineWidth = 10;
+    ctx.arc(MID, MID, R + 13, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 2;
     ctx.stroke();
     ctx.restore();
 
@@ -76,73 +91,131 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
     ctx.translate(MID, MID);
     ctx.rotate(angle);
 
+    // Clip to wheel circle
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(0, 0, R, 0, Math.PI * 2);
+    ctx.clip();
+
     for (let i = 0; i < N; i++) {
         const startAng = i * arcAngle + offsetAngle;
-        const endAng = startAng + arcAngle;
+        const endAng   = startAng + arcAngle;
+        const bisector = startAng + arcAngle / 2;
+        const seg = SEGMENTS[i];
+        const isGrand = seg.jp === 'GRAND';
+
+        // ── Base fill ──
+        ctx.save();
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.arc(0, 0, R, startAng, endAng);
         ctx.closePath();
-        ctx.fillStyle = SEGMENTS[i].color;
+        ctx.fillStyle = seg.color;
         ctx.fill();
-        ctx.strokeStyle = '#1c1836';
-        ctx.lineWidth = 3;
-        ctx.stroke();
 
-        // Edge gloss
+        // ── GRAND golden glow overlay ──
+        if (isGrand) {
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, R, startAng, endAng);
+            ctx.closePath();
+            const gg = ctx.createRadialGradient(Math.cos(bisector) * R * 0.45, Math.sin(bisector) * R * 0.45, 0, 0, 0, R);
+            gg.addColorStop(0, 'rgba(255,235,80,0.55)');
+            gg.addColorStop(1, 'rgba(160,70,0,0.30)');
+            ctx.fillStyle = gg;
+            ctx.fill();
+        }
+
+        // ── 3-D radial shading — lighter near face centre, darker at rim ──
+        const sg = ctx.createRadialGradient(Math.cos(bisector) * R * 0.5, Math.sin(bisector) * R * 0.5, 0, 0, 0, R);
+        sg.addColorStop(0,   'rgba(255,255,255,0.24)');
+        sg.addColorStop(0.55,'rgba(255,255,255,0.04)');
+        sg.addColorStop(1,   'rgba(0,0,0,0.32)');
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, R, startAng, endAng);
+        ctx.closePath();
+        ctx.fillStyle = sg;
+        ctx.fill();
+        ctx.restore();
+
+        // ── Divider lines ──
         ctx.save();
         ctx.beginPath();
-        ctx.arc(0, 0, R - 10, startAng + 0.07, endAng - 0.07);
-        ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-        ctx.lineWidth = 8;
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, R, startAng, endAng);
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(0,0,0,0.60)';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.restore();
+
+        // ── Outer rim shine highlight ──
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(0, 0, R - 5, startAng + 0.04, endAng - 0.04);
+        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+        ctx.lineWidth = 4.5;
         ctx.stroke();
         ctx.restore();
     }
+    ctx.restore(); // end clip
 
-    // Labels
+    // ── Labels ──
     for (let i = 0; i < N; i++) {
         const bisector = i * arcAngle + arcAngle / 2 + offsetAngle;
+        const seg = SEGMENTS[i];
+        const isGrand = seg.jp === 'GRAND';
+        const label = seg.label;
         ctx.save();
         ctx.rotate(bisector);
-        ctx.translate(R * 0.70, 0);
+        ctx.translate(R * 0.74, 0);
         ctx.rotate(Math.PI / 2);
-        const label = SEGMENTS[i].label;
-        const fs = label.length > 3 ? 19 : 26;
+        const fs = label.length > 4 ? 18 : label.length > 3 ? 20 : label.length > 2 ? 24 : 30;
         ctx.font = `900 ${fs}px 'Titan One', cursive`;
-        ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.strokeStyle = '#1c0c30';
+        // Outline
+        ctx.strokeStyle = 'rgba(0,0,0,0.9)';
         ctx.lineWidth = 7;
         ctx.strokeText(label, 0, 0);
+        // Fill
+        if (isGrand) {
+            ctx.shadowColor = '#fbbf24';
+            ctx.shadowBlur = 18;
+            ctx.fillStyle = '#fff500';
+        } else {
+            ctx.fillStyle = seg.textColor;
+        }
         ctx.fillText(label, 0, 0);
         ctx.restore();
     }
 
-    // Rim rivets
+    // ── Rim rivets ──
     for (let i = 0; i < N; i++) {
         const ang = i * arcAngle + offsetAngle;
         const rx = Math.cos(ang) * R;
         const ry = Math.sin(ang) * R;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(rx, ry, 9, 0, Math.PI * 2);
-        ctx.fillStyle = '#94a3b8';
-        ctx.strokeStyle = '#1e293b';
-        ctx.lineWidth = 3;
-        ctx.fill();
-        ctx.stroke();
+        ctx.arc(rx, ry, 7, 0, Math.PI * 2);
+        const rg = ctx.createRadialGradient(rx - 2, ry - 2, 1, rx, ry, 7);
+        rg.addColorStop(0, '#e2e8f0'); rg.addColorStop(1, '#475569');
+        ctx.fillStyle = rg;
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 2;
+        ctx.fill(); ctx.stroke();
         ctx.beginPath();
-        ctx.arc(rx - 2, ry - 2, 3.5, 0, Math.PI * 2);
+        ctx.arc(rx - 1.5, ry - 1.5, 2.5, 0, Math.PI * 2);
         ctx.fillStyle = '#fff';
         ctx.fill();
         ctx.restore();
     }
-    ctx.restore();
+    ctx.restore(); // end rotate
 
-    // Chasing bulbs (fixed, not rotating)
-    const totalBulbs = 12;
-    const bulbR = R + 23;
+    // ── Chasing bulbs (fixed) ──
+    const totalBulbs = 14;
+    const bulbR = R + 14;
     const step = Math.floor(bulbPhase) % totalBulbs;
     for (let b = 0; b < totalBulbs; b++) {
         const bAng = (b * Math.PI * 2 / totalBulbs) - Math.PI / 2;
@@ -151,27 +224,36 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
         const isLit = b === step || b === (step + 1) % totalBulbs || b === (step + 2) % totalBulbs;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(bx, by, 9, 0, Math.PI * 2);
+        ctx.arc(bx, by, 7, 0, Math.PI * 2);
         if (isLit) {
-            const g = ctx.createRadialGradient(bx - 2, by - 2, 1, bx, by, 10);
+            const g = ctx.createRadialGradient(bx - 2, by - 2, 1, bx, by, 8);
             g.addColorStop(0, '#fff'); g.addColorStop(0.3, '#fef08a'); g.addColorStop(1, '#ca8a04');
             ctx.fillStyle = g;
-            ctx.shadowColor = '#facc15'; ctx.shadowBlur = 18;
+            ctx.shadowColor = '#facc15'; ctx.shadowBlur = 16;
             ctx.strokeStyle = '#3f2203';
         } else {
-            ctx.fillStyle = '#713f12'; ctx.strokeStyle = '#1c1917';
+            ctx.fillStyle = '#422006'; ctx.strokeStyle = '#1c1917';
         }
-        ctx.lineWidth = 2.5; ctx.fill(); ctx.stroke();
+        ctx.lineWidth = 2; ctx.fill(); ctx.stroke();
         ctx.restore();
     }
 
-    // Center hub
+    // ── Center hub ──
     ctx.save();
+    const hubGrad = ctx.createRadialGradient(MID - 8, MID - 8, 2, MID, MID, 38);
+    hubGrad.addColorStop(0, '#4b5563');
+    hubGrad.addColorStop(0.5, '#1f2937');
+    hubGrad.addColorStop(1, '#0d1117');
     ctx.beginPath();
-    ctx.arc(MID, MID, 40, 0, Math.PI * 2);
-    ctx.fillStyle = '#1c1836';
-    ctx.shadowBlur = 10; ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.arc(MID, MID, 38, 0, Math.PI * 2);
+    ctx.fillStyle = hubGrad;
+    ctx.shadowBlur = 14; ctx.shadowColor = 'rgba(0,0,0,0.95)';
     ctx.fill();
+    ctx.beginPath();
+    ctx.arc(MID, MID, 38, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
     ctx.restore();
 }
 

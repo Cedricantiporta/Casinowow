@@ -664,7 +664,11 @@ export const FREE_SPIN_WEIGHTS = [
 
 export const GET_DYNAMIC_WEIGHTS = (isFreeSpin: boolean, spinsWithoutBonus: number) => {
     if (isFreeSpin) return FREE_SPIN_WEIGHTS;
-    return WEIGHTS;
+    // Every 70 spins without a bonus, scatter chance increases by 20% (resets when free spin triggers)
+    const bonusStacks = Math.floor(spinsWithoutBonus / 70);
+    if (bonusStacks === 0) return WEIGHTS;
+    const scatterMult = 1 + 0.2 * bonusStacks;
+    return WEIGHTS.map(w => w.type === SymbolType.SCATTER ? { ...w, weight: w.weight * scatterMult } : w);
 };
 
 const PAYLINES_CACHE = new Map<string, Payline[]>();
@@ -956,7 +960,8 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
         // XP decreases by 30% each successive mission; golden 4th gets 5× on top
         const baseXp = Math.floor(60 * Math.pow(0.7, i));
         const xpReward = isGolden ? baseXp * 5 : baseXp;
-        const coinReward = isGolden ? Math.floor(mb * (5 + i * 1.5) * 5) : Math.floor(mb * (5 + i * 1.5));
+        // Coin reward: 1 max bet per 20 pass XP earned
+        const coinReward = Math.floor((xpReward / 20) * mb);
         const finalTarget = isGolden ? Math.floor(target * 4) : Math.floor(target);
 
         missions.push({
@@ -1011,12 +1016,13 @@ export const REGENERATE_MISSION_STACK = (
     }
 
     const isCoinType = t.type === MissionType.WIN_COINS || t.type === MissionType.BET_COINS;
+    const newXpReward = Math.floor(mission.xpReward * scale);
     return {
         type: t.type,
         description: `${t.desc} ${formatNumber(target)}${isCoinType ? '' : ' times'}`,
         target,
-        xpReward:   Math.floor(mission.xpReward   * scale),
-        coinReward: Math.floor(mission.coinReward  * scale),
+        xpReward:   newXpReward,
+        coinReward: Math.floor((newXpReward / 20) * mb),
     };
 };
 
