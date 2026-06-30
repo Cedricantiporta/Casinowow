@@ -96,9 +96,15 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                     <span className="flex items-center gap-1 text-[10px] font-black text-rose-300">51+<i className="ti ti-arrow-down" /></span>
                 </div>
 
-                {/* Leaderboard */}
+                {/* Leaderboard — blank while a season is processing */}
                 <div ref={listRef} className="flex-1 overflow-y-auto no-scrollbar px-3 pb-3 flex flex-col gap-1 min-h-0">
-                    {board.map((e, i) => {
+                    {phase === 'processing' ? (
+                        <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
+                            <i className="ti ti-hourglass-high text-white/40" style={{ fontSize: 34 }} />
+                            <div className="font-black text-white/80 text-sm">Season ended</div>
+                            <div className="text-white/50" style={{ fontSize: 11 }}>Next arena begins in <span className="font-black text-white">{formatCountdown(remaining)}</span></div>
+                        </div>
+                    ) : board.map((e, i) => {
                         const pos = i + 1;
                         const inPromo = pos <= 10;
                         const inDemo = pos >= 51;
@@ -164,6 +170,7 @@ export const ArenaSideWidget: React.FC<{
         return () => clearInterval(t);
     }, []);
     const info = rankInfo(arena.tierIndex);
+    const processing = seasonPhase(arena, now) === 'processing';
     const you: ArenaEntry = { id: 'you', name: playerName, avatar: playerAvatar, points: arena.points };
     const board = getArenaBoard(arena, you, now);
     const myIdx = board.findIndex(e => e.isYou);
@@ -173,7 +180,7 @@ export const ArenaSideWidget: React.FC<{
     const WINDOW = 6;
     let start = Math.max(0, myIdx - 2);
     start = Math.min(start, Math.max(0, board.length - WINDOW));
-    const rows = board.slice(start, start + WINDOW);
+    const rows = processing ? [] : board.slice(start, start + WINDOW);
 
     return (
         <button onClick={onOpen}
@@ -195,8 +202,14 @@ export const ArenaSideWidget: React.FC<{
                 </div>
             </div>
 
-            {/* Live windowed leaderboard */}
-            <div className="flex flex-col" style={{ gap: 2 }}>
+            {/* Live windowed leaderboard — blank while a season is processing */}
+            <div className="flex flex-col justify-center" style={{ gap: 2, minHeight: 116 }}>
+                {processing && (
+                    <div className="flex flex-col items-center gap-1 text-center px-1 m-auto">
+                        <i className="ti ti-hourglass-high text-white/40" style={{ fontSize: 20 }} />
+                        <span className="text-white/55 font-bold leading-tight" style={{ fontSize: 8 }}>Season ended</span>
+                    </div>
+                )}
                 {rows.map((e) => {
                     const pos = board.indexOf(e) + 1;
                     const tint = ROW_TINT[pos];

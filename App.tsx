@@ -3274,6 +3274,9 @@ const App: React.FC = () => {
             let coinCount = 0;
             targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
             if (coinCount >= 6) {
+                // The trigger COINs also score as a payline (COIN→SEVEN on the base
+                // game) — pay that line win first, before entering free spins.
+                calculateWin(targetGrid);
                 const spinsWon = 10;
                 setFreeSpinsWon(spinsWon);
                 setTotalFreeSpins(prev => prev + spinsWon);
@@ -3589,9 +3592,9 @@ const App: React.FC = () => {
     setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: !!winTier, scattersFound: scatterCount, winType: winTier || undefined });
 
     // Arena points — every spin scores, scaled by bet tier; wins score more.
+    // (Frozen while a season is processing.)
     arenaBetTierRef.current = betIndex;
-    const arenaPts = pointsForEvent(winTier, betIndex);
-    setArenaState(prev => ({ ...prev, points: prev.points + arenaPts }));
+    addArenaPoints(pointsForEvent(winTier, betIndex));
 
     if (totalFreeSpins > 0 && totalPayout > 0) setFreeSpinTotalWin(prev => prev + totalPayout);
 
@@ -3681,13 +3684,19 @@ const App: React.FC = () => {
     }
   };
 
+  // Add Arena points — but only during a season's active phase. While a season is
+  // processing (the 3-minute window before the next one) accrual is frozen.
+  const addArenaPoints = (pts: number) => {
+      if (pts <= 0) return;
+      setArenaState(prev => seasonPhase(prev, Date.now()) === 'active' ? { ...prev, points: prev.points + pts } : prev);
+  };
+
   // Award Arena win-tier points for a feature win (jackpot, roulette, cascade,
   // respin, pick bonus) that happens outside the normal per-spin evaluation.
   const awardArenaWin = (amount: number) => {
       if (amount <= 0) return;
       const bet = currentBetRef.current || 1;
-      const pts = winBonusPoints(getWinTier(amount, bet), arenaBetTierRef.current);
-      if (pts > 0) setArenaState(prev => ({ ...prev, points: prev.points + pts }));
+      addArenaPoints(winBonusPoints(getWinTier(amount, bet), arenaBetTierRef.current));
   };
 
   const addXp = (amount: number) => {

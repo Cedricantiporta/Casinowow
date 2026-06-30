@@ -268,8 +268,18 @@ const ReelCell: React.FC<{
         bgClasses = 'bg-black border-2 border-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.7)] z-20';
     }
 
-    const activeBounce = highlight || (isScatterShowcase && !isScatter);
-    const activeScatterShake = isScatter && isScatterShowcase;
+    // The scatter-trigger showcase animation runs for at most 5 seconds, even if
+    // the showcase state lingers while the bonus intro plays out.
+    const [showcaseExpired, setShowcaseExpired] = useState(false);
+    useEffect(() => {
+        if (!isScatterShowcase) { setShowcaseExpired(false); return; }
+        const t = setTimeout(() => setShowcaseExpired(true), 5000);
+        return () => clearTimeout(t);
+    }, [isScatterShowcase]);
+    const showcaseActive = isScatterShowcase && !showcaseExpired;
+
+    const activeBounce = highlight || (showcaseActive && !isScatter);
+    const activeScatterShake = isScatter && showcaseActive;
 
     // Scale icons proportionally — cells shrink when more rows or more reels fill the same container
     const cellScale = Math.min(1.0, 3.0 / gameRows, 6.0 / gameReels);

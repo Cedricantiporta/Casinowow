@@ -103,6 +103,22 @@ const EXTRA_SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = EXTRA_NAMES.map((
 const LIMIT = 100;
 const TABLE = 'leaderboard';
 
+// The live economy reaches quadrillions, so lift the static roster into that range
+// (top whale ≈ 2.8Q, tapering down). Only ~50% of AI carry a VIP badge; gems are
+// modest and derived from level rather than the (huge) coin score.
+const AI_SCALE = 330_000;
+function aiEntry(e: Omit<LeaderboardEntry, 'isYou' | 'gems'>, i: number): LeaderboardEntry {
+    return {
+        ...e,
+        score: e.score * AI_SCALE,
+        totalWon: e.totalWon * AI_SCALE,
+        maxJackpot: e.maxJackpot * AI_SCALE,
+        maxWin: e.maxWin * AI_SCALE,
+        vipLevel: i % 2 === 0 ? e.vipLevel : 0, // ~50% have VIP
+        gems: Math.round(e.level * 80),
+    };
+}
+
 const metricValue = (e: { score: number; level: number; maxJackpot: number; maxWin: number }, m: LeaderboardMetric) =>
     m === 'level' ? e.level : m === 'maxJackpot' ? e.maxJackpot : m === 'maxWin' ? e.maxWin : e.score;
 
@@ -122,8 +138,7 @@ function getDeviceId(): string {
 
 function seededBoard(you: LocalPlayer, metric: LeaderboardMetric): LeaderboardEntry[] {
     const merged: LeaderboardEntry[] = [
-        ...SEED.map(e => ({ ...e, gems: Math.floor(e.score / 4000) })),
-        ...EXTRA_SEED.map(e => ({ ...e, gems: Math.floor(e.score / 4000) })),
+        ...[...SEED, ...EXTRA_SEED].map(aiEntry),
         { id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, vipLevel: you.vipLevel ?? 0, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true },
     ];
     merged.sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
@@ -167,8 +182,8 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
         // real players. Drop any AI whose name collides with a real player.
         const liveNames = new Set(live.map(e => e.name.toLowerCase()));
         const ai = [...SEED, ...EXTRA_SEED]
-            .filter(e => !liveNames.has(e.name.toLowerCase()))
-            .map(e => ({ ...e, gems: Math.floor(e.score / 4000) }));
+            .map(aiEntry)
+            .filter(e => !liveNames.has(e.name.toLowerCase()));
         const merged: LeaderboardEntry[] = [...live, ...ai];
         if (!merged.some(e => e.isYou)) {
             merged.push({ id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, vipLevel: you.vipLevel ?? 0, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true });
@@ -197,6 +212,7 @@ export async function submitScore(you: LocalPlayer): Promise<void> {
     };
     const full = {
         ...core,
+        vip_level: you.vipLevel ?? 0,
         gems: Math.round(you.gems),
         total_won: Math.round(you.totalWon),
         max_jackpot: Math.round(you.maxJackpot),
