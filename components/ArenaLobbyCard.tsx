@@ -80,7 +80,7 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
                 <span className="text-white/50 font-bold leading-none" style={{ fontSize: 7.5 }}>Reward Pool</span>
                 <div className="flex items-center gap-0.5">
                     <img src="/new_coinicon.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />
-                    <span className="font-black text-amber-300 leading-none" style={{ fontSize: 10 }}>{formatK(pool)}</span>
+                    <span className="font-black text-amber-300 leading-none" style={{ fontSize: 10 }}>{formatK(pool, 9)}</span>
                 </div>
             </div>
 

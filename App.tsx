@@ -3694,7 +3694,10 @@ const App: React.FC = () => {
   // processing (the 3-minute window before the next one) accrual is frozen.
   const addArenaPoints = (pts: number) => {
       if (pts <= 0) return;
-      setArenaState(prev => seasonPhase(prev, Date.now()) === 'active' ? { ...prev, points: prev.points + pts } : prev);
+      // Apply an active Arena XP buff (from purchases / shop).
+      const arenaMult = (player.arenaXpBoostEndTime || 0) > Date.now() ? (player.arenaXpMultiplier || 1) : 1;
+      const total = Math.round(pts * arenaMult);
+      setArenaState(prev => seasonPhase(prev, Date.now()) === 'active' ? { ...prev, points: prev.points + total } : prev);
   };
 
   // Grant a quest credit (dice or mine/pick) and flash its icon over the reels.
@@ -4573,14 +4576,42 @@ const App: React.FC = () => {
     }
   };
   
-  const handleShopBuy = (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST', amount: number, duration?: number, cost?: number) => {
+  // Buffs granted alongside a coin/gem purchase, scaled by purchase tier (1–3).
+  const PURCHASE_BUFFS = [
+      null,
+      { collectDays: 1, xpDays: 1, arenaDays: 1, dice: 2,  picks: 2,  packs: 2 },
+      { collectDays: 3, xpDays: 2, arenaDays: 2, dice: 5,  picks: 5,  packs: 5 },
+      { collectDays: 7, xpDays: 3, arenaDays: 3, dice: 10, picks: 10, packs: 10 },
+  ];
+  const purchaseTier = (cost?: number, gemAmount?: number): number => {
+      if (gemAmount) return gemAmount >= 2500 ? 3 : gemAmount >= 500 ? 2 : 1;
+      if (cost) return cost >= 499 ? 3 : cost >= 199 ? 2 : 1;
+      return 1;
+  };
+  const grantPurchaseBuffs = (tier: number) => {
+      const b = PURCHASE_BUFFS[tier];
+      if (!b) return;
+      const DAY = 86_400_000;
+      const now = Date.now();
+      setPlayer(p => ({
+          ...p,
+          collectBoostEndTime: Math.max(now, p.collectBoostEndTime || 0) + b.collectDays * DAY,
+          xpMultiplier: 2, xpBoostEndTime: Math.max(now, p.xpBoostEndTime || 0) + b.xpDays * DAY,
+          arenaXpMultiplier: 2, arenaXpBoostEndTime: Math.max(now, p.arenaXpBoostEndTime || 0) + b.arenaDays * DAY,
+          packCredits: p.packCredits + b.packs,
+      }));
+      setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + b.dice), wildCredits: Math.min(60, q.wildCredits + b.picks) }));
+  };
+
+  const handleShopBuy = (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST' | 'ARENA_XP', amount: number, duration?: number, cost?: number) => {
       if (cost) {
-          if (type === 'BOOST' || type === 'PASS_XP' || type === 'PACK_CREDIT' || type === 'COLLECT_BOOST') {
+          if (type === 'BOOST' || type === 'PASS_XP' || type === 'PACK_CREDIT' || type === 'COLLECT_BOOST' || type === 'ARENA_XP') {
              if (player.diamonds >= cost) {
                  setPlayer(p => ({...p, diamonds: p.diamonds - cost}));
                  if (type === 'BOOST') setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + (duration || 0) }));
                  if (type === 'PASS_XP') setMissionState(prev => ({ ...prev, passBoostMultiplier: amount, passBoostEndTime: Date.now() + (duration || 0) }));
                  if (type === 'COLLECT_BOOST') setPlayer(p => ({ ...p, collectBoostEndTime: Math.max(Date.now(), p.collectBoostEndTime || 0) + (duration || 0) }));
+                 if (type === 'ARENA_XP') setPlayer(p => ({ ...p, arenaXpMultiplier: amount, arenaXpBoostEndTime: Math.max(Date.now(), p.arenaXpBoostEndTime || 0) + (duration || 0) }));
                  if (type === 'PACK_CREDIT') {
                      setPlayer(p => ({ ...p, packCredits: p.packCredits + amount }));
                      setCelebrationMsg(`+${amount} Pack Credits`);
@@ -4601,10 +4632,13 @@ const App: React.FC = () => {
           triggerCoinAnim(amount);
           setCelebrationMsg(`+${formatCommaNumber(amount)} Coins`);
           audioService.playWinBig();
+          // Paid coin packs (cost > 0) also grant bonus buffs.
+          if (cost && cost > 0) grantPurchaseBuffs(purchaseTier(cost));
       } else if (type === 'DIAMOND') {
           setPlayer(p => ({ ...p, diamonds: p.diamonds + amount }));
           setCelebrationMsg(`+${amount} Gems`);
           audioService.playWinBig();
+          grantPurchaseBuffs(purchaseTier(undefined, amount));
       }
   };
 
@@ -4624,6 +4658,12 @@ const App: React.FC = () => {
           setPlayer(p => ({ ...p, diamonds: p.diamonds + item.itemAmount }));
           setCelebrationMsg(`+${item.itemAmount} Gems!`);
       }
+      // Bonus buffs scaled by pack tier (parsed from productId, e.g. coin_5 / gem_3).
+      const packNum = parseInt((item.productId.split('_')[1] || '1'), 10) || 1;
+      const tier = item.itemType === 'DIAMOND'
+          ? (item.itemAmount >= 2500 ? 3 : item.itemAmount >= 500 ? 2 : 1)
+          : (packNum >= 5 ? 3 : packNum >= 3 ? 2 : 1);
+      grantPurchaseBuffs(tier);
       audioService.playWinBig();
   };
 
@@ -5138,13 +5178,13 @@ const App: React.FC = () => {
                     );
                 })()}
 
-                {/* Quest-credit gained — flash the dice/pick icon over the reels for 2s */}
+                {/* Quest-credit gained — flash the picks/dice icon over the reels for 2s */}
                 {questCreditToast && (
                     <div className="absolute inset-0 z-[60] flex items-center justify-center pointer-events-none">
                         <img
-                            src={questCreditToast === 'dice' ? '/ui/dice.png' : '/ui/coinmine.png'}
+                            src="/pass-picksdice.png"
                             alt=""
-                            className="animate-vibrate animate-pop-in"
+                            className="animate-pot-shake"
                             style={{ width: 96, height: 96, objectFit: 'contain', filter: 'drop-shadow(0 4px 18px rgba(0,0,0,0.85))' }}
                         />
                     </div>

@@ -819,14 +819,16 @@ export const formatKShort = (n: number): string => {
 // Coin formatter: shows full number with commas up to 15 raw digits.
 // At 16+ digits, abbreviates with the smallest unit that keeps the shown number <= 15 digits.
 // This maximizes visible digits: e.g. 1,500,000,000,000,000 → "1,500,000,000,000K" not "1.5T".
-export const formatK = (n: number): string => {
+// maxDigits: show the full comma-separated number until it exceeds this many
+// digits, then abbreviate with the smallest unit that fits within maxDigits.
+export const formatK = (n: number, maxDigits = 15): string => {
     if (!isFinite(n) || isNaN(n)) return '0';
     const abs = Math.abs(n);
     const sign = n < 0 ? '-' : '';
 
     const digitCount = (v: number) => v < 1 ? 1 : Math.floor(Math.log10(v)) + 1;
 
-    if (digitCount(abs) <= 15) {
+    if (digitCount(abs) <= maxDigits) {
         return sign + Math.round(abs).toLocaleString('en-US');
     }
 
@@ -847,7 +849,7 @@ export const formatK = (n: number): string => {
         const { div, suffix } = tiers[i];
         if (abs < div) continue;
         const reduced = Math.round(abs / div);
-        if (digitCount(reduced) <= 15 || i === tiers.length - 1) {
+        if (digitCount(reduced) <= maxDigits || i === tiers.length - 1) {
             return sign + reduced.toLocaleString('en-US') + suffix;
         }
     }

@@ -91,7 +91,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                     <div className="flex items-center gap-1">
                         <span className="text-white/50 font-bold" style={{ fontSize: 9 }}>Pool</span>
                         <img src="/new_coinicon.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />
-                        <span className="font-black text-amber-300" style={{ fontSize: 11 }}>{formatK(arenaRewardPool(maxBet, arena.tierIndex))}</span>
+                        <span className="font-black text-amber-300" style={{ fontSize: 11 }}>{formatK(arenaRewardPool(maxBet, arena.tierIndex), 9)}</span>
                     </div>
                     <span className="flex items-center gap-1 text-[10px] font-black text-rose-300">51+<i className="ti ti-arrow-down" /></span>
                 </div>
@@ -210,6 +210,12 @@ export const ArenaSideWidget: React.FC<{
                 </div>
             </div>
 
+            {/* Prize pool — prominent, on top of the list */}
+            <div className="flex items-center justify-center gap-1 rounded-lg py-0.5" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                <img src="/new_coinicon.png" alt="" style={{ width: 15, height: 15, objectFit: 'contain' }} />
+                <span className="font-black text-amber-300 leading-none" style={{ fontSize: 12 }}>{formatK(pool, 9)}</span>
+            </div>
+
             {/* Live windowed leaderboard — blank while a season is processing */}
             <div className="flex flex-col justify-center" style={{ gap: 2, minHeight: 116 }}>
                 {processing && (
@@ -235,13 +241,6 @@ export const ArenaSideWidget: React.FC<{
                         </div>
                     );
                 })}
-            </div>
-
-            {/* Prize pool */}
-            <div className="flex items-center justify-center gap-0.5">
-                <img src="/new_coinicon.png" alt="" style={{ width: 11, height: 11, objectFit: 'contain' }} />
-                <span className="font-black text-amber-300 leading-none" style={{ fontSize: 8.5 }}>{formatK(pool)}</span>
-                <span className="text-white/45 leading-none" style={{ fontSize: 7.5 }}>pool</span>
             </div>
 
             {/* Promotion / hold / demotion status */}
