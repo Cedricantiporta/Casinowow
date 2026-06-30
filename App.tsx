@@ -1552,7 +1552,7 @@ const App: React.FC = () => {
   }, [slotQuestState.missions]);
 
   useEffect(() => {
-      if (pendingQuestCompleteRef.current && freeSpinsRemaining === 0 && !holdWinActive && !pirateWalkActive && status === GameStatus.IDLE) {
+      if (pendingQuestCompleteRef.current && freeSpinsRemaining === 0 && !holdWinActive && !pirateWalkActive) {
           pendingQuestCompleteRef.current = false;
           setTimeout(() => setShowQuestPath(true), 800);
       }
@@ -4926,19 +4926,19 @@ const App: React.FC = () => {
                                 return sidebarPage === 0 ? (<>
                                     {/* Slot 1: Quest when in progress, else Pass */}
                                     {questInProgress ? (
-                                        <button onClick={() => setShowQuestPath(true)} className="active:scale-95 transition-transform" style={{ width: '100%' }}>
+                                        <button onClick={() => setShowQuestPath(true)} className="relative flex flex-col items-center active:scale-95 transition-transform">
+                                            <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                             {(() => {
                                                 const ms = slotQuestState.missions;
                                                 const pct = ms.length > 0 ? Math.min(100, ms.reduce((s, m) => s + (m.target > 0 ? Math.min(1, m.current / m.target) : 0), 0) / ms.length * 100) : 0;
-                                                const done = pct >= 100;
                                                 return (
-                                                    <div className="rtrack" style={{ height: 16, width: '100%', padding: '0 3px', minWidth: 0, borderRadius: 8 }}>
-                                                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 8, pointerEvents: 'none' }}>
-                                                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 6, width: `${pct}%`, background: done ? 'linear-gradient(180deg,#4ade80,#16a34a 60%,#15803d)' : 'linear-gradient(180deg,#a78bfa,#7c3aed 60%,#5b21b6)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }}>
+                                                    <div className="rtrack" style={{ height: 14, width: 48, marginTop: -3, padding: '0 3px', minWidth: 0 }}>
+                                                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                                                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${pct}%`, background: 'linear-gradient(180deg,#4ade80,#16a34a 60%,#15803d)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }}>
                                                                 <div className="absolute inset-y-0 w-5 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
                                                             </div>
                                                         </div>
-                                                        <span style={{ position: 'relative', zIndex: 1, fontSize: 8, fontWeight: 900, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.7)' }}>Quest {Math.round(pct)}%</span>
+                                                        <span style={{ position: 'relative', zIndex: 1, fontSize: 8, fontWeight: 900, color: '#fff', textShadow: '0 1px 2px rgba(0,0,0,0.7)' }}>{Math.round(pct)}%</span>
                                                     </div>
                                                 );
                                             })()}

@@ -19,6 +19,7 @@ const TYPE_ICON: Record<string, string> = {
     BET_COINS:      'ti-coins',
     BIG_WIN_COUNT:  'ti-flame',
     FREE_SPIN_COUNT:'ti-stars',
+    BONUS_TRIGGER:  'ti-stars',
     LEVEL_UP:       'ti-star',
     REACH_LEVEL:    'ti-star',
 };
@@ -38,13 +39,13 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
     const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const prevAllDoneRef = useRef(allDone);
 
-    // Auto-hide after 5 seconds when visible
+    // Auto-hide after 5 seconds when visible, but not when all done
     useEffect(() => {
-        if (!minimized) {
+        if (!minimized && !allDone) {
             autoHideRef.current = setTimeout(() => setMinimized(true), 5000);
         }
         return () => { if (autoHideRef.current) clearTimeout(autoHideRef.current); };
-    }, [minimized]);
+    }, [minimized, allDone]);
 
     // Reopen when quest becomes completed
     useEffect(() => {

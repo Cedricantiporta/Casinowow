@@ -361,12 +361,12 @@ const ReelCell: React.FC<{
                     {theme === 'PIGGY' && symbol === SymbolType.COIN && !blur && inFreeSpins && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none">
                             <span
-                                className="block font-black text-yellow-300 leading-none"
-                                style={{ fontSize: `${2.0 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black, 1px 1px 0 #000' }}
+                                className="block leading-none"
+                                style={{ fontSize: `${2.6 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 6px #000, 0 0 12px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
                             >2X</span>
                             <span
-                                className="block font-black text-white tracking-widest"
-                                style={{ fontSize: `${0.65 * cellScale}rem`, textShadow: '0 0 4px black, 0 0 8px black' }}
+                                className="block tracking-widest"
+                                style={{ fontSize: `${0.7 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fff', textShadow: '0 0 4px black, 0 0 8px black' }}
                             >WILD</span>
                         </div>
                     )}
