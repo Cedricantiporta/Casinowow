@@ -68,6 +68,38 @@ const SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = [
     { id: 's20', name: 'CandyKing',    avatar: '/Profile_pic (8).png',  level: 35,  vipLevel: 1,  score: 78_000_000,    totalWon: 320_000_000,    maxJackpot: 44_000_000,    maxWin: 29_000_000 },
 ];
 
+// Extended roster — gamer-style names with varied, mostly-beatable scores so the
+// board feels populated (~70 total with the SEED whales above) and real players
+// can climb past most of them. Generated deterministically so it never shuffles.
+const EXTRA_NAMES = [
+    'NinjaMax47', 'ShadowX', 'FrostByte', 'LuckySpin', 'PixelFox', 'AstroAce', 'GhostRunner', 'DarkWolf',
+    'NovaStrike', 'CyberLynx', 'BlazeKing', 'VoidWalker', 'NeonDrift', 'StormChaser', 'Ashley', 'Luna',
+    'Ethan', 'Mia', 'Alex', 'Chloe', 'Mason', 'Zoe', 'Liam', 'Ava', 'Noah', 'Ella', 'Kai', 'Maya',
+    'SpinMaster', 'CoinHunter', 'JackpotJoe', 'WildCard', 'GoldRush', 'LuckyDuck', 'MoonShot', 'TurboTom',
+    'ViperX', 'QuickSilver', 'PhantomFox', 'EchoByte', 'CrimsonAce', 'SilentBolt', 'Player48293018',
+    'Player92018471', 'Player77410293', 'Player30192847', 'Player65820194', 'Player11938472', 'Player84029175',
+    'Player57301928', 'Player20485917', 'Player93817264',
+];
+const EXTRA_PICS = ['/Profile_pic (1).png', '/Profile_pic (2).png', '/Profile_pic (3).png', '/Profile_pic (4).png'];
+const EXTRA_DEFAULT = '/Profile_pic (3).png';
+
+const EXTRA_SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = EXTRA_NAMES.map((name, i) => {
+    // Scores start just under the lowest whale (~78M) and taper to ~12M.
+    const score = Math.round(64_000_000 * Math.pow(0.965, i)) + 8_000_000;
+    const r = (i * 2654435761 % 1000) / 1000; // deterministic pseudo-random in [0,1)
+    return {
+        id: `x${i + 1}`,
+        name,
+        avatar: r < 0.3 ? EXTRA_PICS[i % EXTRA_PICS.length] : EXTRA_DEFAULT,
+        level: 99 - Math.floor(i * 1.3) > 30 ? 99 - Math.floor(i * 1.3) : 30 + (i % 12),
+        vipLevel: Math.max(0, 6 - Math.floor(i / 8)),
+        score,
+        totalWon: Math.round(score * 3.4),
+        maxJackpot: Math.round(score * 0.22),
+        maxWin: Math.round(score * 0.13),
+    };
+});
+
 const LIMIT = 100;
 const TABLE = 'leaderboard';
 
@@ -91,6 +123,7 @@ function getDeviceId(): string {
 function seededBoard(you: LocalPlayer, metric: LeaderboardMetric): LeaderboardEntry[] {
     const merged: LeaderboardEntry[] = [
         ...SEED.map(e => ({ ...e, gems: Math.floor(e.score / 4000) })),
+        ...EXTRA_SEED.map(e => ({ ...e, gems: Math.floor(e.score / 4000) })),
         { id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, vipLevel: you.vipLevel ?? 0, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true },
     ];
     merged.sort((a, b) => metricValue(b, metric) - metricValue(a, metric));

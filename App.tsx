@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission } from './types';
+import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState } from './types';
 import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
@@ -38,6 +38,12 @@ import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
 import { LeaderboardModal } from './components/LeaderboardModal';
 import { submitScore } from './services/leaderboardService';
+import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
+import { ArenaResultsModal } from './components/ArenaResultsModal';
+import {
+    initialArenaState, pointsForEvent, betTierMultiplier, getFinalBoard, positionOf,
+    arenaReward, nextTier, outcomeFor, seasonPhase, phaseTimeRemaining, SEASON_TOTAL_MS, SEASON_ACTIVE_MS,
+} from './services/arenaService';
 import { DragonPickGrid } from './components/DragonPickModal';
 import { NeonRouletteModal } from './components/NeonRouletteModal';
 import { CandyRouletteModal, CandyWildConfig } from './components/CandyRouletteModal';
@@ -747,6 +753,19 @@ const App: React.FC = () => {
   const [showQuestPath, setShowQuestPath] = useState(false);
   const [showQuestSidebar, setShowQuestSidebar] = useState(false);
   const [grandPrizePopup, setGrandPrizePopup] = useState<number | null>(null);
+
+  // Arena ranking system
+  const [arenaState, setArenaState] = useState<ArenaState>(() => {
+      try {
+          const saved = localStorage.getItem('cw_arena');
+          if (saved) return { ...initialArenaState(Date.now()), ...JSON.parse(saved) };
+      } catch {}
+      return initialArenaState(Date.now());
+  });
+  const [showArena, setShowArena] = useState(false);
+  const [showArenaResults, setShowArenaResults] = useState(false);
+  const arenaBetTierRef = useRef(0);          // last bet tier index, for AI scaling
+  const arenaProcessedRef = useRef(0);        // last seasonId we ran end-of-season for
 
   // Hold and Win state (Egypt / Pharaoh's Tomb)
   const [holdWinActive, setHoldWinActive] = useState(false);
@@ -1525,6 +1544,66 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_player', JSON.stringify(player)); } catch {}
   }, [player]);
+
+  // Persist Arena state.
+  useEffect(() => {
+    try { localStorage.setItem('cw_arena', JSON.stringify(arenaState)); } catch {}
+  }, [arenaState]);
+
+  // Arena season clock — processes end-of-season and rolls into the next one.
+  useEffect(() => {
+    const tick = () => {
+      const now = Date.now();
+      setArenaState(prev => {
+        const elapsed = now - prev.seasonStart;
+        // Active phase ended → run end-of-season processing once.
+        if (elapsed >= SEASON_TOTAL_MS) {
+          // Whole season (incl. processing) has elapsed → start a fresh one.
+          const processedThis = arenaProcessedRef.current === prev.seasonId;
+          let tierIndex = prev.tierIndex;
+          if (!processedThis && prev.points > 0) {
+            // Player competed but app missed the processing window — settle it now.
+            const board = getFinalBoard(prev, { id: 'you', name: playerName || 'You', avatar: profileEmoji, points: prev.points });
+            const position = positionOf(board);
+            tierIndex = nextTier(prev.tierIndex, position);
+            const reward = arenaReward(position, MAX_BET_BY_LEVEL(player.level));
+            if (reward > 0) setPlayer(p => ({ ...p, balance: p.balance + reward }));
+          }
+          arenaProcessedRef.current = prev.seasonId; // don't reprocess
+          return {
+            ...prev,
+            tierIndex,
+            seasonId: prev.seasonId + 1,
+            seasonStart: now,
+            points: 0,
+            refMult: betTierMultiplier(arenaBetTierRef.current),
+            lastResult: null,
+          };
+        }
+        if (elapsed >= SEASON_ACTIVE_MS && arenaProcessedRef.current !== prev.seasonId) {
+          // Entering the 3-minute processing window — settle results.
+          arenaProcessedRef.current = prev.seasonId;
+          const board = getFinalBoard(prev, { id: 'you', name: playerName || 'You', avatar: profileEmoji, points: prev.points });
+          const position = positionOf(board);
+          const newTier = nextTier(prev.tierIndex, position);
+          const outcome = outcomeFor(prev.tierIndex, position);
+          const reward = arenaReward(position, MAX_BET_BY_LEVEL(player.level));
+          if (reward > 0) setPlayer(p => ({ ...p, balance: p.balance + reward }));
+          setShowArenaResults(true);
+          return {
+            ...prev,
+            tierIndex: newTier,
+            lastResult: { seasonId: prev.seasonId, position, oldTier: prev.tierIndex, newTier, outcome, reward, pointsEarned: prev.points },
+          };
+        }
+        return prev;
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playerName, profileEmoji, player.level]);
 
   useEffect(() => {
     try { localStorage.setItem('cw_saved_game_states', JSON.stringify(savedGameStates)); } catch {}
@@ -3504,6 +3583,11 @@ const App: React.FC = () => {
     const winTier = getWinTier(totalPayout, currentBet);
     setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: !!winTier, scattersFound: scatterCount, winType: winTier || undefined });
 
+    // Arena points — every spin scores, scaled by bet tier; wins score more.
+    arenaBetTierRef.current = betIndex;
+    const arenaPts = pointsForEvent(winTier, betIndex);
+    setArenaState(prev => ({ ...prev, points: prev.points + arenaPts }));
+
     if (totalFreeSpins > 0 && totalPayout > 0) setFreeSpinTotalWin(prev => prev + totalPayout);
 
     // PIRATE: tally Ghost Ship walk winnings for the end-of-feature summary
@@ -4875,6 +4959,10 @@ const App: React.FC = () => {
                 inboxCount={inbox.filter((m: any) => !m.claimed).length}
                 onOpenHighRoller={handleOpenHighRoller}
                 onOpenVipLounge={() => setShowVipLounge(true)}
+                onOpenArena={() => setShowArena(true)}
+                arena={arenaState}
+                arenaPlayerName={playerName}
+                arenaPlayerAvatar={profileEmoji}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
@@ -5006,6 +5094,17 @@ const App: React.FC = () => {
                         </div>
                     );
                 })()}
+
+                {/* Arena widget — top-right, live while spinning */}
+                <div className="absolute right-1 top-2 z-40">
+                    <ArenaSideWidget
+                        arena={arenaState}
+                        playerName={playerName}
+                        playerAvatar={profileEmoji}
+                        onOpen={() => setShowArena(true)}
+                    />
+                </div>
+
                 {(() => {
                     const JP_BG: Record<string, string> = {
                         DRAGON:     'linear-gradient(180deg,rgba(120,20,0,0.6),rgba(50,0,0,0.6))',
@@ -6284,6 +6383,22 @@ const App: React.FC = () => {
               maxJackpot: player.stats?.maxJackpotWin || 0,
               maxWin: player.stats?.maxSingleWin || 0,
           }}
+      />
+
+      {/* Arena ranking */}
+      <ArenaModal
+          isOpen={showArena}
+          onClose={() => setShowArena(false)}
+          arena={arenaState}
+          playerName={playerName}
+          playerAvatar={profileEmoji}
+          maxBet={MAX_BET_BY_LEVEL(player.level)}
+      />
+      <ArenaResultsModal
+          isOpen={showArenaResults && !!arenaState.lastResult}
+          result={arenaState.lastResult || null}
+          nextSeasonInMs={phaseTimeRemaining(arenaState, Date.now())}
+          onClose={() => { setShowArenaResults(false); setArenaState(prev => ({ ...prev, lastResult: null })); }}
       />
 
       {/* Purchase Unavailable Popup */}

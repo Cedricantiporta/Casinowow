@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GAMES_CONFIG, formatCommaNumber, formatTime, formatK } from '../constants';
-import { GameConfig, QuestState, MissionState } from '../types';
+import { GameConfig, QuestState, MissionState, ArenaState } from '../types';
 import { jackpotService, SLOT_VARS } from '../services/jackpotService';
+import { ArenaLobbyCard } from './ArenaLobbyCard';
 
 const THEME_PNG: Partial<Record<string, string>> = {
     DRAGON: '/dragon/dragon-11.png',
@@ -33,6 +34,10 @@ interface LobbyProps {
     inboxCount?: number;
     onOpenHighRoller: () => void;
     onOpenVipLounge: () => void;
+    onOpenArena?: () => void;
+    arena?: ArenaState;
+    arenaPlayerName?: string;
+    arenaPlayerAvatar?: string;
     questState: QuestState;
     missionState: MissionState;
     nextTimeBonus: number;
@@ -65,6 +70,10 @@ export const Lobby: React.FC<LobbyProps> = ({
     inboxCount,
     onOpenHighRoller,
     onOpenVipLounge,
+    onOpenArena,
+    arena,
+    arenaPlayerName,
+    arenaPlayerAvatar,
     questState,
     missionState,
     nextTimeBonus,
@@ -283,6 +292,16 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
                                 <img src="/lobby_vip.png" alt="VIP Lounge" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
                             </button>
+
+                            {/* ── Promo card 3: Arena ── */}
+                            {arena && (
+                                <ArenaLobbyCard
+                                    arena={arena}
+                                    playerName={arenaPlayerName || 'You'}
+                                    playerAvatar={arenaPlayerAvatar || '/Profile_pic (3).png'}
+                                    onOpen={() => onOpenArena?.()}
+                                />
+                            )}
 
                             {GAMES_CONFIG.map((game, idx) => {
                                 let icon = '🍭';

@@ -143,6 +143,27 @@ export interface SlotQuestState {
     missions: SlotQuestMission[];
 }
 
+// --- Arena Ranking System ---
+
+export interface ArenaResult {
+    seasonId: number;
+    position: number;
+    oldTier: number;
+    newTier: number;
+    outcome: 'promoted' | 'held' | 'demoted';
+    reward: number;        // coins awarded
+    pointsEarned: number;  // arena points the player finished with
+}
+
+export interface ArenaState {
+    tierIndex: number;        // 0..17 current rank/division
+    seasonId: number;         // increments each season
+    seasonStart: number;      // timestamp (ms) the active phase began
+    points: number;           // player's arena points this season
+    refMult: number;          // bet-tier multiplier snapshot for AI scaling
+    lastResult?: ArenaResult | null; // pending results popup, if any
+}
+
 export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'DICE_CREDITS' | 'BACK' | 'PACKS' | 'STAR';
 
 export interface MiniGameReward {
