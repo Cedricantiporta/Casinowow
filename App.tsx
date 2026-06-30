@@ -4876,8 +4876,8 @@ const App: React.FC = () => {
                                                     }}>
                                                     {locked ? (
                                                         <>
-                                                            {/* Full-size coin — no border/background, same footprint as the reel symbol */}
-                                                            {!jpTier && coinIcon && (
+                                                            {/* Full-size coin — always show behind both amounts and jackpot badges */}
+                                                            {coinIcon && (
                                                                 <img src={coinIcon} alt="" className="absolute inset-0 pointer-events-none select-none"
                                                                     style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }} />
                                                             )}
