@@ -308,9 +308,9 @@ const ReelCell: React.FC<{
                     ${activeScatterShake ? 'animate-scatter-shake' : activeBounce ? 'animate-bounce-sm' : ''}
                 `}>
                     {isJackpot ? (
-                        ((inFreeSpins && FREESPIN_JACKPOT_ICONS[symbol]) || THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]) ? (
+                        (THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]) ? (
                             <img
-                                src={(inFreeSpins && FREESPIN_JACKPOT_ICONS[symbol]) || THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]}
+                                src={THEME_JACKPOT_ICONS[theme]?.[symbol] || GENERIC_JACKPOT_ICONS[symbol] || JACKPOT_ICONS[theme]}
                                 alt=""
                                 className="w-full h-full object-contain pointer-events-none select-none"
                             />

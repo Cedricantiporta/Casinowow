@@ -3165,9 +3165,9 @@ const App: React.FC = () => {
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
 
-    // Mystery feature themes (Farm, Beast, AngryFlock, Princess): 50% win reduction on line payouts
+    // Mystery feature themes (Farm, Beast, AngryFlock, Princess): 20% win boost on line payouts
     if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
-        totalPayout = Math.floor(totalPayout * 0.5);
+        totalPayout = Math.floor(totalPayout * 1.2);
     }
 
     // SPACE: Supernova progressive multiplier applies to line wins during free spins.
@@ -4634,8 +4634,19 @@ const App: React.FC = () => {
                                 return sidebarPage === 0 ? (<>
                                     {/* Slot 1: Quest when in progress, else Pass */}
                                     {questInProgress ? (
-                                        <button onClick={() => setShowQuestPath(true)} className="relative flex flex-col items-center active:scale-95 transition-transform">
-                                            <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <button onClick={() => setShowQuestPath(true)} className="relative flex flex-col items-center active:scale-95 transition-transform" style={{ width: 54 }}>
+                                            {/* Combined 3-mission progress bar */}
+                                            <div style={{ width: 54, height: 54, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, background: 'rgba(0,0,0,0.35)', borderRadius: 14, padding: '8px 6px', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.3), 0 2px 6px rgba(0,0,0,0.5)' }}>
+                                                {slotQuestState.missions.slice(0, 3).map((m, mi) => {
+                                                    const pct = Math.min(100, m.target > 0 ? (m.current / m.target) * 100 : 0);
+                                                    const done = m.current >= m.target;
+                                                    return (
+                                                        <div key={mi} style={{ width: '100%', height: 10, background: 'rgba(0,0,0,0.5)', borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
+                                                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, borderRadius: 5, background: done ? 'linear-gradient(90deg,#4ade80,#16a34a)' : 'linear-gradient(90deg,#c084fc,#7c3aed)', transition: 'width 0.4s ease' }} />
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                             <div style={pillStyle}>Quest</div>
                                         </button>
                                     ) : passBtn}
