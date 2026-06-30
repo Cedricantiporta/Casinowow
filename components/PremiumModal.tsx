@@ -39,7 +39,7 @@ const getBundles = (maxBet: number) => [
         goldBg: true,
         items: [
             { icon: IC.vip, label: 'VIP Access (7 Days)' },
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 200))} Coins` },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 2000))} Coins` },
             { icon: IC.gem, label: '1,000 Gems' },
             { icon: IC.dice, label: '+10 Dice' },
             { icon: IC.pick, label: '+10 Picks' },
@@ -56,7 +56,7 @@ const getBundles = (maxBet: number) => [
         goldBg: true,
         items: [
             { icon: IC.gem, label: '10,000 Gems' },
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 900))} Coins` },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 9000))} Coins` },
             { icon: IC.premium, label: '40 Premium Packs' },
             { icon: IC.pass, label: 'Monthly Pass (30d)' },
             { icon: IC.dice, label: '+50 Dice' },
@@ -72,7 +72,7 @@ const getBundles = (maxBet: number) => [
         tag: '30% OFF',
         tagColor: '#dc2626',
         items: [
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 25))} Coins` },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 250))} Coins` },
             { icon: IC.gem, label: '100 Gems' },
             { icon: IC.cards, label: '5 Standard Packs' },
             COLLECT_ITEM,
@@ -87,7 +87,7 @@ const getBundles = (maxBet: number) => [
         tagColor: '#dc2626',
         items: [
             { icon: IC.gem, label: '1,000 Gems' },
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 50))} Coins` },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 500))} Coins` },
             { icon: IC.boost, label: '2× XP Boost (1h)' },
             COLLECT_ITEM,
         ],
@@ -103,7 +103,7 @@ const getBundles = (maxBet: number) => [
             { icon: IC.pick, label: '+20 Picks' },
             { icon: IC.dice, label: '+20 Dice' },
             { icon: IC.gem, label: '250 Gems' },
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 12.5))} Coins` },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 125))} Coins` },
             COLLECT_ITEM,
         ],
         origPrice: '₱ 175',
@@ -115,7 +115,7 @@ const getBundles = (maxBet: number) => [
         tag: '30% OFF',
         tagColor: '#dc2626',
         items: [
-            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 250))} Coins` },
+            { icon: IC.coin, label: `${formatCommaNumber(Math.round(maxBet * 2500))} Coins` },
             { icon: IC.gem, label: '2,500 Gems' },
             { icon: IC.premium, label: '10 Premium Packs' },
             { icon: IC.boost, label: '2× XP Boost (24h)' },
@@ -135,7 +135,7 @@ const firstBuyPrice = (price: string) => `₱ ${Math.max(1, Math.round(parsePeso
 // Card backgrounds — purple + gold/amber for VIP & Pass cards.
 const PURPLE_BG = 'linear-gradient(180deg,rgba(197,16,224,0.45) 0%,rgba(160,60,255,0.30) 22%,rgba(18,4,56,0.96) 100%)';
 const PURPLE_BG_SHADOW = 'inset 0 1px 0 rgba(200,120,255,0.5), 0 4px 16px rgba(0,0,0,0.6)';
-const PURPLE_GOLD_BG = 'linear-gradient(180deg,rgba(251,191,36,0.75) 0%,rgba(180,100,10,0.80) 42%,rgba(80,35,5,0.97) 100%)';
+const PURPLE_GOLD_BG = 'linear-gradient(180deg,rgba(251,191,36,0.85) 0%,rgba(120,40,200,0.80) 52%,rgba(50,8,120,0.97) 100%)';
 const PURPLE_GOLD_SHADOW = 'inset 0 1px 0 rgba(255,220,100,0.7), 0 4px 16px rgba(0,0,0,0.6)';
 
 export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isVip, isPremium, onBuyVip, onBuyPremium, onBuyBundle, maxBet = 10000 }) => {
@@ -181,9 +181,14 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     {/* VIP Lounge Card */}
                     {!purchasedIds.has('vip') && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0 relative"
                         style={{ width: CARD_W, background: PURPLE_GOLD_BG, boxShadow: PURPLE_GOLD_SHADOW }}>
-                        <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full text-[9px] font-black leading-none uppercase tracking-wide"
+                        <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-[9px] font-black leading-none uppercase tracking-wide"
                             style={{ background: '#dc2626', color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>90% Off</div>
-                        <div className="shrink-0 px-4 pt-4 pb-2">
+                        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-lg"
+                            style={{ background: 'rgba(74,222,128,0.18)' }}>
+                            <i className="ti ti-tag" style={{ fontSize: 9, color: '#4ade80' }} />
+                            <span style={{ fontSize: 9, fontWeight: 700, color: '#4ade80' }}>First Purchase</span>
+                        </div>
+                        <div className="shrink-0 px-4 pt-8 pb-2">
                             <div className="flex items-center gap-2 mb-1">
                                 <img src="/ui/VIP.png" alt="" style={{ width: 34, height: 34, objectFit: 'contain' }} className="shrink-0" />
                                 <div className="font-black text-yellow-300 text-sm tracking-wider leading-none">VIP Lounge</div>
@@ -211,9 +216,14 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                     {/* Mission Pass Card */}
                     {!purchasedIds.has('pass') && <div className="flex flex-col rounded-2xl overflow-hidden shrink-0 relative"
                         style={{ width: CARD_W, background: PURPLE_GOLD_BG, boxShadow: PURPLE_GOLD_SHADOW }}>
-                        <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full text-[9px] font-black leading-none uppercase tracking-wide"
+                        <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-[9px] font-black leading-none uppercase tracking-wide"
                             style={{ background: '#dc2626', color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>90% Off</div>
-                        <div className="shrink-0 px-4 pt-4 pb-2">
+                        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-lg"
+                            style={{ background: 'rgba(74,222,128,0.18)' }}>
+                            <i className="ti ti-tag" style={{ fontSize: 9, color: '#4ade80' }} />
+                            <span style={{ fontSize: 9, fontWeight: 700, color: '#4ade80' }}>First Purchase</span>
+                        </div>
+                        <div className="shrink-0 px-4 pt-8 pb-2">
                             <div className="flex items-center gap-2 mb-1">
                                 <img src="/ui/pass.png" alt="" style={{ width: 34, height: 34, objectFit: 'contain' }} className="shrink-0" />
                                 <div className="font-black text-yellow-300 text-sm tracking-wider leading-none">Mission Pass</div>
@@ -240,14 +250,21 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
 
                     {/* Bundle Cards */}
                     {visibleBundles.map(bundle => (
-                        <div key={bundle.id} className="flex flex-col rounded-2xl overflow-hidden shrink-0"
+                        <div key={bundle.id} className="flex flex-col rounded-2xl overflow-hidden shrink-0 relative"
                             style={{ width: CARD_W, background: (bundle as any).goldBg ? PURPLE_GOLD_BG : PURPLE_BG, boxShadow: (bundle as any).goldBg ? PURPLE_GOLD_SHADOW : PURPLE_BG_SHADOW }}>
-                            <div className="shrink-0 px-4 pt-4 pb-2">
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide"
-                                        style={{ background: bundle.tagColor, color: '#fff' }}>{bundle.tag}{isVip ? ' +VIP' : ''}</span>
-                                </div>
-                                <div className="font-black text-white text-sm uppercase tracking-wider leading-none mt-1">{bundle.name}</div>
+                            {/* % off pill — top-left */}
+                            <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-full text-[9px] font-black leading-none uppercase tracking-wide"
+                                style={{ background: bundle.tagColor, color: '#fff', boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+                                {bundle.tag}{isVip ? ' +VIP' : ''}
+                            </div>
+                            {/* Timer pill — top-right */}
+                            <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-lg"
+                                style={{ background: 'rgba(0,0,0,0.4)' }}>
+                                <i className="ti ti-clock" style={{ fontSize: 9, color: 'rgba(255,255,255,0.5)' }} />
+                                <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.5)' }}>7d</span>
+                            </div>
+                            <div className="shrink-0 px-4 pt-8 pb-2">
+                                <div className="font-black text-white text-sm uppercase tracking-wider leading-none">{bundle.name}</div>
                             </div>
                             <div className="flex-1 px-4 py-2 flex flex-col gap-2">
                                 {bundle.items.map((item, i) => (

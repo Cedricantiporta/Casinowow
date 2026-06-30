@@ -21,6 +21,7 @@ export interface LeaderboardEntry {
     name: string;
     avatar: string; // path under /public, e.g. "/Profile_pic (3).png"
     level: number;
+    vipLevel: number;
     score: number;       // total coins
     gems: number;        // total gems
     totalWon: number;    // lifetime coins won
@@ -33,6 +34,7 @@ export interface LocalPlayer {
     name: string;
     avatar: string;
     level: number;
+    vipLevel: number;
     score: number;
     gems: number;
     totalWon: number;
@@ -44,26 +46,26 @@ export interface LocalPlayer {
 // established; the local player is merged in each time it's read. Gems are derived
 // from score so the seed stays compact.
 const SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = [
-    { id: 's1',  name: 'MidnightAce',  avatar: '/Profile_pic (1).png',  level: 142, score: 8_420_000_000, totalWon: 31_200_000_000, maxJackpot: 1_850_000_000, maxWin: 940_000_000 },
-    { id: 's2',  name: 'GoldenTiger',  avatar: '/Profile_pic (5).png',  level: 137, score: 6_910_000_000, totalWon: 27_400_000_000, maxJackpot: 1_620_000_000, maxWin: 880_000_000 },
-    { id: 's3',  name: 'LuckyNova',    avatar: '/Profile_pic (9).png',  level: 129, score: 5_730_000_000, totalWon: 23_900_000_000, maxJackpot: 1_410_000_000, maxWin: 760_000_000 },
-    { id: 's4',  name: 'VegasQueen',   avatar: '/Profile_pic (2).png',  level: 121, score: 4_880_000_000, totalWon: 20_100_000_000, maxJackpot: 1_180_000_000, maxWin: 690_000_000 },
-    { id: 's5',  name: 'HighRoller_X', avatar: '/Profile_pic (7).png',  level: 118, score: 4_120_000_000, totalWon: 17_800_000_000, maxJackpot: 990_000_000,   maxWin: 610_000_000 },
-    { id: 's6',  name: 'NeonShark',    avatar: '/Profile_pic (11).png', level: 110, score: 3_540_000_000, totalWon: 15_300_000_000, maxJackpot: 870_000_000,   maxWin: 540_000_000 },
-    { id: 's7',  name: 'DiamondHands', avatar: '/Profile_pic (4).png',  level: 104, score: 2_980_000_000, totalWon: 13_100_000_000, maxJackpot: 720_000_000,   maxWin: 480_000_000 },
-    { id: 's8',  name: 'SpinSultan',   avatar: '/Profile_pic (8).png',  level: 97,  score: 2_410_000_000, totalWon: 10_800_000_000, maxJackpot: 610_000_000,   maxWin: 410_000_000 },
-    { id: 's9',  name: 'JackpotJin',   avatar: '/Profile_pic (12).png', level: 92,  score: 1_960_000_000, totalWon: 9_200_000_000,  maxJackpot: 1_240_000_000, maxWin: 360_000_000 },
-    { id: 's10', name: 'WildWolf',     avatar: '/Profile_pic (6).png',  level: 88,  score: 1_540_000_000, totalWon: 7_600_000_000,  maxJackpot: 480_000_000,   maxWin: 320_000_000 },
-    { id: 's11', name: 'RubyReels',    avatar: '/Profile_pic (3).png',  level: 83,  score: 1_180_000_000, totalWon: 6_100_000_000,  maxJackpot: 390_000_000,   maxWin: 270_000_000 },
-    { id: 's12', name: 'CosmicCash',   avatar: '/Profile_pic (10).png', level: 79,  score: 940_000_000,   totalWon: 4_900_000_000,  maxJackpot: 330_000_000,   maxWin: 230_000_000 },
-    { id: 's13', name: 'EmberFox',     avatar: '/Profile_pic (1).png',  level: 74,  score: 720_000_000,   totalWon: 3_800_000_000,  maxJackpot: 280_000_000,   maxWin: 190_000_000 },
-    { id: 's14', name: 'SilkSpinner',  avatar: '/Profile_pic (5).png',  level: 69,  score: 560_000_000,   totalWon: 2_900_000_000,  maxJackpot: 220_000_000,   maxWin: 160_000_000 },
-    { id: 's15', name: 'TurboTycoon',  avatar: '/Profile_pic (9).png',  level: 64,  score: 430_000_000,   totalWon: 2_200_000_000,  maxJackpot: 180_000_000,   maxWin: 130_000_000 },
-    { id: 's16', name: 'PixelPirate',  avatar: '/Profile_pic (2).png',  level: 58,  score: 320_000_000,   totalWon: 1_600_000_000,  maxJackpot: 140_000_000,   maxWin: 98_000_000 },
-    { id: 's17', name: 'AmberAce',     avatar: '/Profile_pic (7).png',  level: 52,  score: 240_000_000,   totalWon: 1_150_000_000,  maxJackpot: 110_000_000,   maxWin: 76_000_000 },
-    { id: 's18', name: 'FrostByte',    avatar: '/Profile_pic (11).png', level: 47,  score: 175_000_000,   totalWon: 820_000_000,    maxJackpot: 84_000_000,    maxWin: 58_000_000 },
-    { id: 's19', name: 'MintMogul',    avatar: '/Profile_pic (4).png',  level: 41,  score: 120_000_000,   totalWon: 540_000_000,    maxJackpot: 61_000_000,    maxWin: 42_000_000 },
-    { id: 's20', name: 'CandyKing',    avatar: '/Profile_pic (8).png',  level: 35,  score: 78_000_000,    totalWon: 320_000_000,    maxJackpot: 44_000_000,    maxWin: 29_000_000 },
+    { id: 's1',  name: 'MidnightAce',  avatar: '/Profile_pic (1).png',  level: 142, vipLevel: 20, score: 8_420_000_000, totalWon: 31_200_000_000, maxJackpot: 1_850_000_000, maxWin: 940_000_000 },
+    { id: 's2',  name: 'GoldenTiger',  avatar: '/Profile_pic (5).png',  level: 137, vipLevel: 18, score: 6_910_000_000, totalWon: 27_400_000_000, maxJackpot: 1_620_000_000, maxWin: 880_000_000 },
+    { id: 's3',  name: 'LuckyNova',    avatar: '/Profile_pic (9).png',  level: 129, vipLevel: 17, score: 5_730_000_000, totalWon: 23_900_000_000, maxJackpot: 1_410_000_000, maxWin: 760_000_000 },
+    { id: 's4',  name: 'VegasQueen',   avatar: '/Profile_pic (2).png',  level: 121, vipLevel: 15, score: 4_880_000_000, totalWon: 20_100_000_000, maxJackpot: 1_180_000_000, maxWin: 690_000_000 },
+    { id: 's5',  name: 'HighRoller_X', avatar: '/Profile_pic (7).png',  level: 118, vipLevel: 14, score: 4_120_000_000, totalWon: 17_800_000_000, maxJackpot: 990_000_000,   maxWin: 610_000_000 },
+    { id: 's6',  name: 'NeonShark',    avatar: '/Profile_pic (11).png', level: 110, vipLevel: 13, score: 3_540_000_000, totalWon: 15_300_000_000, maxJackpot: 870_000_000,   maxWin: 540_000_000 },
+    { id: 's7',  name: 'DiamondHands', avatar: '/Profile_pic (4).png',  level: 104, vipLevel: 11, score: 2_980_000_000, totalWon: 13_100_000_000, maxJackpot: 720_000_000,   maxWin: 480_000_000 },
+    { id: 's8',  name: 'SpinSultan',   avatar: '/Profile_pic (8).png',  level: 97,  vipLevel: 10, score: 2_410_000_000, totalWon: 10_800_000_000, maxJackpot: 610_000_000,   maxWin: 410_000_000 },
+    { id: 's9',  name: 'JackpotJin',   avatar: '/Profile_pic (12).png', level: 92,  vipLevel: 9,  score: 1_960_000_000, totalWon: 9_200_000_000,  maxJackpot: 1_240_000_000, maxWin: 360_000_000 },
+    { id: 's10', name: 'WildWolf',     avatar: '/Profile_pic (6).png',  level: 88,  vipLevel: 8,  score: 1_540_000_000, totalWon: 7_600_000_000,  maxJackpot: 480_000_000,   maxWin: 320_000_000 },
+    { id: 's11', name: 'RubyReels',    avatar: '/Profile_pic (3).png',  level: 83,  vipLevel: 7,  score: 1_180_000_000, totalWon: 6_100_000_000,  maxJackpot: 390_000_000,   maxWin: 270_000_000 },
+    { id: 's12', name: 'CosmicCash',   avatar: '/Profile_pic (10).png', level: 79,  vipLevel: 6,  score: 940_000_000,   totalWon: 4_900_000_000,  maxJackpot: 330_000_000,   maxWin: 230_000_000 },
+    { id: 's13', name: 'EmberFox',     avatar: '/Profile_pic (1).png',  level: 74,  vipLevel: 5,  score: 720_000_000,   totalWon: 3_800_000_000,  maxJackpot: 280_000_000,   maxWin: 190_000_000 },
+    { id: 's14', name: 'SilkSpinner',  avatar: '/Profile_pic (5).png',  level: 69,  vipLevel: 4,  score: 560_000_000,   totalWon: 2_900_000_000,  maxJackpot: 220_000_000,   maxWin: 160_000_000 },
+    { id: 's15', name: 'TurboTycoon',  avatar: '/Profile_pic (9).png',  level: 64,  vipLevel: 3,  score: 430_000_000,   totalWon: 2_200_000_000,  maxJackpot: 180_000_000,   maxWin: 130_000_000 },
+    { id: 's16', name: 'PixelPirate',  avatar: '/Profile_pic (2).png',  level: 58,  vipLevel: 2,  score: 320_000_000,   totalWon: 1_600_000_000,  maxJackpot: 140_000_000,   maxWin: 98_000_000 },
+    { id: 's17', name: 'AmberAce',     avatar: '/Profile_pic (7).png',  level: 52,  vipLevel: 2,  score: 240_000_000,   totalWon: 1_150_000_000,  maxJackpot: 110_000_000,   maxWin: 76_000_000 },
+    { id: 's18', name: 'FrostByte',    avatar: '/Profile_pic (11).png', level: 47,  vipLevel: 1,  score: 175_000_000,   totalWon: 820_000_000,    maxJackpot: 84_000_000,    maxWin: 58_000_000 },
+    { id: 's19', name: 'MintMogul',    avatar: '/Profile_pic (4).png',  level: 41,  vipLevel: 1,  score: 120_000_000,   totalWon: 540_000_000,    maxJackpot: 61_000_000,    maxWin: 42_000_000 },
+    { id: 's20', name: 'CandyKing',    avatar: '/Profile_pic (8).png',  level: 35,  vipLevel: 1,  score: 78_000_000,    totalWon: 320_000_000,    maxJackpot: 44_000_000,    maxWin: 29_000_000 },
 ];
 
 const LIMIT = 100;
@@ -89,7 +91,7 @@ function getDeviceId(): string {
 function seededBoard(you: LocalPlayer, metric: LeaderboardMetric): LeaderboardEntry[] {
     const merged: LeaderboardEntry[] = [
         ...SEED.map(e => ({ ...e, gems: Math.floor(e.score / 4000) })),
-        { id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true },
+        { id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, vipLevel: you.vipLevel ?? 0, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true },
     ];
     merged.sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
     return merged.slice(0, LIMIT);
@@ -120,6 +122,7 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
             name: row.name || 'Player',
             avatar: row.avatar || '/Profile_pic (3).png',
             level: row.level ?? 1,
+            vipLevel: row.vip_level ?? 0,
             score: Number(row.score) || 0,
             gems: Number(row.gems) || 0,
             totalWon: Number(row.total_won) || 0,

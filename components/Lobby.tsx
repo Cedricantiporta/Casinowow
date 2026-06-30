@@ -47,6 +47,8 @@ interface LobbyProps {
     premiumPackCredits?: number;
     isJackpotReady?: boolean;
     questPathCurrentIndex?: number;
+    newSlotIds?: string[];
+    bonusTimers?: { id: number; endTime: number; reward: number; label: string }[];
 }
 
 export const Lobby: React.FC<LobbyProps> = ({
@@ -77,6 +79,8 @@ export const Lobby: React.FC<LobbyProps> = ({
     premiumPackCredits,
     isJackpotReady,
     questPathCurrentIndex = 0,
+    newSlotIds = [],
+    bonusTimers = [],
 }) => {
     
     const [timeLeft, setTimeLeft] = useState(0);
@@ -121,6 +125,7 @@ export const Lobby: React.FC<LobbyProps> = ({
         });
     }, [currentBet, isHighLimit]);
 
+    const readyTimers = bonusTimers.filter(t => t.endTime <= Date.now()).length;
     const isReadyToCollect = timeLeft === 0;
     const visibleDailyMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
     const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel + (missionState.isPremium ? 10 : 0) && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
@@ -184,7 +189,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 backgroundPosition: 'center',
             }}>
 
-              <div className="flex-1 relative flex flex-col pb-5 md:pb-6 overflow-hidden" style={{ boxShadow: 'inset 0 -40px 60px rgba(0,0,0,0.7), inset 0 -80px 80px rgba(0,0,0,0.4)' }}>
+              <div className="flex-1 relative flex flex-col pb-5 md:pb-6 overflow-hidden">
 
                 {/* ── Top spacer ── */}
                 <div className="shrink-0" style={{ height: 6 }} />
@@ -299,6 +304,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 else if (game.theme === 'MMORPG') icon = '⚔️';
                                 const unlockLevel = getUnlockLevel(idx);
                                 const isLocked = playerLevel < unlockLevel;
+                                const isNew = !isLocked && newSlotIds.includes(game.id);
                                 return (
                                     /* Wrapper is the grid item — jackpot label in normal flow so row height includes it */
                                     <div
@@ -313,7 +319,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         <button
                                             onClick={() => onSelectGame(game, false)}
                                             className={`relative group w-[90px] h-[90px] md:w-[106px] md:h-[106px] ${isLocked ? 'cursor-not-allowed' : ''}`}
-                                            style={{ borderRadius: 18, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
+                                            style={{ borderRadius: 18, boxShadow: isNew ? 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), 0 0 0 2px #4ade80, 0 0 14px rgba(74,222,128,0.55), 0 6px 18px rgba(0,0,0,0.6)' : 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
                                         >
                                             <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 14 }}></div>
                                             {game.coverImage && (
@@ -334,6 +340,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                             {isLocked && (
                                                 <img src="/ui/lock.png" alt="" className="absolute z-30 pointer-events-none select-none"
                                                     style={{ top: 4, right: 4, width: 22, height: 22, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.95))' }} />
+                                            )}
+                                            {isNew && (
+                                                <div className="absolute top-1.5 right-1.5 z-30 font-black text-black rounded-md px-1.5 py-0.5"
+                                                    style={{ fontSize: 8, background: '#4ade80', letterSpacing: '0.06em', lineHeight: 1, boxShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>
+                                                    NEW
+                                                </div>
                                             )}
                                         </button>
                                     </div>
@@ -429,12 +441,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <button onClick={onOpenQuestPath} className={iconBtn(false)}>
                                 <div className="relative leading-none">
                                     <img src="/questlobbyicon.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                    {questPathCurrentIndex > 0 && (
-                                        <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
-                                            style={{ background: 'radial-gradient(circle at 40% 28%, #a855f7, #7c3aed 60%, #5b21b6)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(192,132,252,0.7)' }}>
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{questPathCurrentIndex}</span>
-                                        </div>
-                                    )}
                                 </div>
                                 <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Quest</span>
                             </button>
@@ -450,10 +456,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         style={{ width: 72, height: 72, objectFit: 'contain' }}
                                         className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]"
                                     />
-                                    {(isReadyToCollect || isJackpotReady) && (
+                                    {(readyTimers > 0 || isJackpotReady) && (
                                         <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{(isReadyToCollect ? 1 : 0) + (isJackpotReady ? 1 : 0)}</span>
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{readyTimers + (isJackpotReady ? 1 : 0)}</span>
                                         </div>
                                     )}
                                 </div>

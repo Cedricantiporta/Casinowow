@@ -6,6 +6,9 @@ import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
 import { LeftSidebar } from './components/LeftSidebar';
 import { ShopModal } from './components/ShopModal';
+import { PaymentModal, PaymentItem } from './components/PaymentModal';
+import { detectCurrency, CurrencyInfo, PRODUCT_USD_CENTS, toStripeAmount, formatLocalPrice, getDeviceId } from './services/paymentService';
+import { supabase } from './services/supabaseClient';
 import { MiniGameModal } from './components/MiniGameModal';
 import { Lobby } from './components/Lobby';
 import { FreeSpinsWonPopup } from './components/FreeSpinsWonPopup';
@@ -49,6 +52,15 @@ interface SavedGameState {
     freeSpinTotalWin: number;
     spinsWithoutBonus: number;
     grid: SymbolType[][];
+    holdWinActive?: boolean;
+    holdWinLockedGrid?: boolean[][];
+    holdWinCoinValues?: number[][];
+    holdWinJpGrid?: (string|null)[][];
+    holdWinRespins?: number;
+    pirateWalkActive?: boolean;
+    pirateShipCol?: number;
+    pirateShip2Col?: number;
+    pirateWalkTotalWin?: number;
 }
 
 // Feature-theme aliasing: the lower-tier slots reuse a proven feature mechanic from one of the
@@ -281,7 +293,13 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<'LOBBY' | 'GAME' | 'HIGH_LIMIT'>('LOBBY');
   const [selectedGame, setSelectedGame] = useState<GameConfig>(GAMES_CONFIG[0]);
   const [isHighLimit, setIsHighLimit] = useState(false);
-  const [savedGameStates, setSavedGameStates] = useState<Record<string, SavedGameState>>({});
+  const [savedGameStates, setSavedGameStates] = useState<Record<string, SavedGameState>>(() => {
+    try {
+      const saved = localStorage.getItem('cw_saved_game_states');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {};
+  });
 
   const [player, setPlayer] = useState<PlayerState>(() => {
     try {
@@ -308,6 +326,7 @@ const App: React.FC = () => {
               name: playerNameRef.current,
               avatar: profileEmojiRef.current,
               level: p.level,
+              vipLevel: p.vipLevel ?? 0,
               score: p.balance,
               gems: p.diamonds,
               totalWon: p.stats?.totalCoinsWon || 0,
@@ -329,6 +348,7 @@ const App: React.FC = () => {
           name: playerNameRef.current,
           avatar: profileEmojiRef.current,
           level: player.level,
+          vipLevel: player.vipLevel ?? 0,
           score: player.balance,
           gems: player.diamonds,
           totalWon: player.stats?.totalCoinsWon || 0,
@@ -355,6 +375,51 @@ const App: React.FC = () => {
   useEffect(() => {
       jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
   }, [player.level]);
+
+  // Detect currency from IP and build local price table
+  useEffect(() => {
+      detectCurrency().then(c => {
+          setCurrency(c);
+          const prices: Record<string, string> = {};
+          Object.entries(PRODUCT_USD_CENTS).forEach(([id, usdCents]) => {
+              prices[id] = formatLocalPrice(toStripeAmount(usdCents, c), c);
+          });
+          setLocalPrices(prices);
+      });
+  }, []);
+
+  // Claim any pending payment credits (from Stripe webhook) on app focus / mount
+  useEffect(() => {
+      const claimPendingCredits = async () => {
+          if (typeof window === 'undefined') return;
+          if (!supabase) return;
+          const deviceId = getDeviceId();
+          const { data, error } = await supabase
+              .from('payment_credits')
+              .select('id, type, amount')
+              .eq('device_id', deviceId)
+              .eq('claimed', false);
+          if (error || !data || data.length === 0) return;
+          for (const row of data) {
+              if (row.type === 'COIN') {
+                  setPlayer(p => ({ ...p, balance: p.balance + row.amount }));
+                  triggerCoinAnim?.(row.amount);
+              } else if (row.type === 'DIAMOND') {
+                  setPlayer(p => ({ ...p, diamonds: p.diamonds + row.amount }));
+              }
+              await supabase.from('payment_credits').update({ claimed: true }).eq('id', row.id);
+          }
+          if (data.length > 0) {
+              const totalCoins = data.filter(r => r.type === 'COIN').reduce((s, r) => s + r.amount, 0);
+              const totalGems = data.filter(r => r.type === 'DIAMOND').reduce((s, r) => s + r.amount, 0);
+              if (totalCoins > 0) setCelebrationMsg(`+${formatCommaNumber(totalCoins)} Coins added!`);
+              else if (totalGems > 0) setCelebrationMsg(`+${totalGems} Gems added!`);
+          }
+      };
+      claimPendingCredits();
+      window.addEventListener('focus', claimPendingCredits);
+      return () => window.removeEventListener('focus', claimPendingCredits);
+  }, []);
 
   // Preload all startup assets
   useEffect(() => {
@@ -424,7 +489,29 @@ const App: React.FC = () => {
     const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; })();
     return { lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 100, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
   });
-  const [decks, setDecks] = useState<Deck[]>(GENERATE_DECKS());
+  const [decks, setDecks] = useState<Deck[]>(() => {
+      try {
+          const saved = localStorage.getItem('cw_decks');
+          if (saved) {
+              const savedDecks = JSON.parse(saved) as Deck[];
+              const fresh = GENERATE_DECKS();
+              return fresh.map(freshDeck => {
+                  const savedDeck = savedDecks.find(d => d.gameId === freshDeck.gameId);
+                  if (!savedDeck) return freshDeck;
+                  return {
+                      ...freshDeck,
+                      cards: freshDeck.cards.map(freshCard => {
+                          const savedCard = savedDeck.cards.find(c => c.id === freshCard.id);
+                          return savedCard ? { ...freshCard, count: savedCard.count } : freshCard;
+                      }),
+                      isCompleted: savedDeck.isCompleted ?? false,
+                      rewardClaimed: savedDeck.rewardClaimed ?? false,
+                  };
+              });
+          }
+      } catch {}
+      return GENERATE_DECKS();
+  });
 
   const [availableBets, setAvailableBets] = useState<number[]>(ALL_BETS);
   const [betIndex, setBetIndex] = useState(0);
@@ -515,6 +602,11 @@ const App: React.FC = () => {
   const [featureUnlockData, setFeatureUnlockData] = useState({ name: '', icon: '', description: '', action: () => {} });
   const [shownUnlocks, setShownUnlocks] = useState<Set<number>>(new Set());
 
+  // ── Payment system ─────────────────────────────────────────────────────────
+  const [paymentItem, setPaymentItem] = useState<PaymentItem | null>(null);
+  const [currency, setCurrency] = useState<CurrencyInfo>({ code: 'USD', symbol: '$', rate: 1, zeroDecimal: false, country: 'Unknown' });
+  const [localPrices, setLocalPrices] = useState<Record<string, string>>({});
+
   const [showFreeSpinsPopup, setShowFreeSpinsPopup] = useState(false);
   const [freeSpinsWon, setFreeSpinsWon] = useState(0);
   const [showBankruptcy, setShowBankruptcy] = useState(false);
@@ -589,16 +681,17 @@ const App: React.FC = () => {
           freespin: (t: number): SlotQuestMission => ({ id: `${slotId}_freespin`, type: 'FREE_SPIN_COUNT', label: 'Bonus',    description: `Complete ${t} Free Spin${t !== 1 ? 's' : ''} or Respin${t !== 1 ? 's' : ''}`, current: 0, target: t }),
           level:    (t: number): SlotQuestMission => ({ id: `${slotId}_level`,    type: 'LEVEL_UP',       label: 'Level',    description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
           reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
+          bonus:  (t: number): SlotQuestMission => ({ id: `${slotId}_bonus`,  type: 'BONUS_TRIGGER', label: 'Bonus', description: `Complete ${t} Bonus game${t !== 1 ? 's' : ''}`, current: 0, target: t }),
       };
       const stages: SlotQuestMission[][] = [
-          [M.reach(10),  M.win(20),     M.spin(30)],
-          [M.spin(40),   M.freespin(1), M.bet(80)],
-          [M.win(25),    M.maxbet(10),  M.coins(70)],
-          [M.freespin(1), M.spin(50),  M.bet(120)],
-          [M.win(30),    M.level(5),    M.coins(90)],
-          [M.maxbet(40), M.big(4),      M.bet(150)],
-          [M.win(25),    M.spin(60),    M.coins(110)],
-          [M.level(3),   M.big(6),      M.coins(140)],
+          [M.reach(10),  M.win(20),    M.spin(30)],
+          [M.spin(40),   M.level(5),   M.bet(80)],
+          [M.win(25),    M.maxbet(10), M.coins(70)],
+          [M.bonus(1),   M.spin(50),   M.bet(120)],
+          [M.win(30),    M.level(2),   M.coins(90)],
+          [M.maxbet(30), M.big(3),     M.bet(38)],
+          [M.win(35),    M.spin(60),   M.coins(110)],
+          [M.level(3),   M.big(6),     M.coins(140)],
       ];
       return stages[stageIndex % stages.length];
   };
@@ -708,6 +801,12 @@ const App: React.FC = () => {
   const arcticMidFreeSpinsRef = useRef(false);
   const [pendingArcticFreePick, setPendingArcticFreePick] = useState(false);
   const pirateJpTierRef = useRef<number | null>(null);
+  // Captures the free-spin status at spin() call time so generateSmartGrid always gets the
+  // right value even after freeSpinsRemaining has been decremented in the same render batch.
+  const isCurrentFreeSpinRef = useRef(false);
+  // Quest completion deferred until current bonus ends
+  const pendingQuestCompleteRef = useRef(false);
+  const prevQuestAllDoneRef = useRef(false);
 
   // Pirate's Bounty — Ghost Ship Walking Wilds state
   const [pirateWalkActive, setPirateWalkActive] = useState(false);
@@ -801,12 +900,17 @@ const App: React.FC = () => {
   });
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
+  const [newSlotIds, setNewSlotIds] = useState<string[]>(() => {
+      try { return JSON.parse(localStorage.getItem('cw_new_slots') || '[]'); } catch { return []; }
+  });
   const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE'; stage: number; coins: number; diamonds: number; autoAdvance?: boolean } | null>(null);
   const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
   const [pendingBigWin, setPendingBigWin] = useState(false);
   type ActiveToast = { type: 'LEVEL_UP'; level: number; reward: number; maxBetIncreased: boolean; newMaxBet: number } | { type: 'PACK' } | { type: 'CARD'; rarity: 'COMMON' | 'RARE'; cardName: string } | null;
   const [activeToast, setActiveToast] = useState<ActiveToast>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [slotUnlockToast, setSlotUnlockToast] = useState<(typeof GAMES_CONFIG)[0] | null>(null);
+  const slotUnlockToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingWinTierRef = useRef<string | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
@@ -840,6 +944,7 @@ const App: React.FC = () => {
       name: trimmed,
       avatar: profileEmoji,
       level: player.level,
+      vipLevel: player.vipLevel ?? 0,
       score: player.balance,
       gems: player.diamonds,
       totalWon: player.stats?.totalCoinsWon || 0,
@@ -885,8 +990,17 @@ const App: React.FC = () => {
       try { localStorage.setItem('cw_inbox', JSON.stringify(inbox)); } catch {}
   }, [inbox]);
   useEffect(() => {
+      try { localStorage.setItem('cw_new_slots', JSON.stringify(newSlotIds)); } catch {}
+  }, [newSlotIds]);
+  useEffect(() => {
       try { localStorage.setItem('cw_bonus_timers', JSON.stringify(bonusTimers)); } catch {}
   }, [bonusTimers]);
+  // Keep displayed timer rewards in sync with player level so display = claimed amount
+  useEffect(() => {
+      const mults = [5.0, 25.0, 100.0];
+      const base = CALCULATE_TIME_BONUS(player.level);
+      setBonusTimers(prev => prev.map(t => ({ ...t, reward: Math.floor(base * mults[t.id]) })));
+  }, [player.level]);
 
   // Generate daily inbox messages on mount
   useEffect(() => {
@@ -952,6 +1066,38 @@ const App: React.FC = () => {
 
           return next;
       });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Monthly rank rewards: check on mount if a new month has started and deliver gem rewards
+  useEffect(() => {
+      try {
+          const now = new Date();
+          const thisMonth = `${now.getFullYear()}-${now.getMonth()}`;
+          const lastRewardMonth = localStorage.getItem('cw_last_reward_month') || '';
+          if (lastRewardMonth && lastRewardMonth !== thisMonth) {
+              const lastRank = Number(localStorage.getItem('cw_last_rank') || '0');
+              const MONTHLY_GEMS: Record<number, number> = { 1: 10000, 2: 5000, 3: 2000 };
+              const gems = MONTHLY_GEMS[lastRank] || 0;
+              if (gems > 0) {
+                  const monthName = new Date(now.getFullYear(), now.getMonth() - 1).toLocaleString('default', { month: 'long' });
+                  const msgId = `monthly_rank_${lastRewardMonth}`;
+                  setInbox(prev => {
+                      if (prev.some(m => m.id === msgId)) return prev;
+                      return [...prev, {
+                          id: msgId,
+                          type: 'MONTHLY_RANK' as const,
+                          title: `${monthName} Rankings Reward`,
+                          body: `You placed #${lastRank} last month! +${gems.toLocaleString()} Gems`,
+                          claimed: false,
+                          createdAt: Date.now(),
+                          expiresAt: Date.now() + 7 * 86400000,
+                      }];
+                  });
+              }
+          }
+          localStorage.setItem('cw_last_reward_month', thisMonth);
+      } catch {}
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1036,6 +1182,13 @@ const App: React.FC = () => {
                   setPlayer(p => ({ ...p, balance: p.balance + cashback }));
                   triggerCoinAnim(cashback);
                   setCelebrationMsg(`+${cashback.toLocaleString()} VIP Cashback`);
+              }
+          } else if (msg.type === 'MONTHLY_RANK') {
+              const gemsMatch = msg.body.match(/\+([\d,]+) Gems/);
+              const gems = gemsMatch ? Number(gemsMatch[1].replace(/,/g, '')) : 0;
+              if (gems > 0) {
+                  setPlayer(p => ({ ...p, diamonds: p.diamonds + gems }));
+                  setCelebrationMsg(`+${gems.toLocaleString()} Gems`);
               }
           }
           audioService.playWinBig();
@@ -1178,18 +1331,20 @@ const App: React.FC = () => {
 
   const handleClaimTimeBonus = (id: number, _reward: number) => {
       const now = Date.now();
-      const multipliers = [5.0, 25.0, 100.0];
-      const base = CALCULATE_TIME_BONUS(player.level);
+      // _reward is timer.reward (always current-level base, kept in sync by useEffect)
+      // Award exactly what was displayed: base × treasury multiplier
+      const awardedReward = Math.floor(_reward * treasuryMultiplier);
 
-      const baseReward = Math.floor(base * multipliers[id]);
-      const awardedReward = Math.floor(baseReward * treasuryMultiplier);
+      // Refresh for the next countdown cycle using fresh level calculation
+      const mults = [5.0, 25.0, 100.0];
+      const freshBase = Math.floor(CALCULATE_TIME_BONUS(player.level) * mults[id]);
 
       setBonusTimers(prev => prev.map(t => {
           if (t.id === id) {
               let nextWait = 300000; // 5m (Quick)
               if (id === 1) nextWait = 900000; // 15m (Super)
               if (id === 2) nextWait = 3600000; // 1H (Mega)
-              return { ...t, endTime: now + nextWait, reward: baseReward }; // Store base; multiplier applied at claim
+              return { ...t, endTime: now + nextWait, reward: freshBase };
           }
           return t;
       }));
@@ -1372,8 +1527,36 @@ const App: React.FC = () => {
   }, [player]);
 
   useEffect(() => {
+    try { localStorage.setItem('cw_saved_game_states', JSON.stringify(savedGameStates)); } catch {}
+  }, [savedGameStates]);
+
+  useEffect(() => {
     try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, diceCredits: quest.diceCredits, wildCredits: quest.wildCredits })); } catch {}
   }, [quest.wildStage, quest.diceStage, quest.dicePosition, quest.wildGrid]);
+
+  // When all slot quest missions complete, stop auto-spin and open the quest path modal.
+  // If a bonus is still running, defer until it ends.
+  useEffect(() => {
+      const allDone = slotQuestState.missions.length > 0 && slotQuestState.missions.every(m => m.current >= m.target);
+      if (allDone && !prevQuestAllDoneRef.current) {
+          setPlayer(p => ({ ...p, autoSpin: false }));
+          if (freeSpinsRemaining === 0 && !holdWinActive && !pirateWalkActive) {
+              setTimeout(() => setShowQuestPath(true), 600);
+          } else {
+              pendingQuestCompleteRef.current = true;
+          }
+      }
+      if (!allDone) pendingQuestCompleteRef.current = false;
+      prevQuestAllDoneRef.current = allDone;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slotQuestState.missions]);
+
+  useEffect(() => {
+      if (pendingQuestCompleteRef.current && freeSpinsRemaining === 0 && !holdWinActive && !pirateWalkActive && status === GameStatus.IDLE) {
+          pendingQuestCompleteRef.current = false;
+          setTimeout(() => setShowQuestPath(true), 800);
+      }
+  }, [freeSpinsRemaining, holdWinActive, pirateWalkActive, status]);
 
   // Expire VIP when 30-day window elapses
   useEffect(() => {
@@ -1397,6 +1580,10 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_missions', JSON.stringify(missionState)); } catch {}
   }, [missionState]);
+
+  useEffect(() => {
+    try { localStorage.setItem('cw_decks', JSON.stringify(decks)); } catch {}
+  }, [decks]);
 
   useEffect(() => {
     try { localStorage.setItem('cw_login', JSON.stringify(loginState)); } catch {}
@@ -1504,8 +1691,13 @@ const App: React.FC = () => {
               setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 }));
               msg = `${reward.value}x XP Boost`;
           } else if (reward.type === 'CREDIT_BACK') {
-              setPlayer(p => ({ ...p, packCredits: p.packCredits + reward.value }));
-              msg = `+${reward.value} Card Packs`;
+              if (reward.tier === 'PREMIUM') {
+                  setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + reward.value }));
+                  msg = `+${reward.value} Premium Packs`;
+              } else {
+                  setPlayer(p => ({ ...p, packCredits: p.packCredits + reward.value }));
+                  msg = `+${reward.value} Card Packs`;
+              }
           } else if (reward.type === 'PICKS') {
               setQuest(q => ({ ...q, wildCredits: (q.wildCredits ?? 0) + reward.value }));
               msg = `+${reward.value} Picks`;
@@ -1529,6 +1721,7 @@ const App: React.FC = () => {
       let totalCoins = 0;
       let totalDiamonds = 0;
       let totalPackCredits = 0;
+      let totalPremPackCredits = 0;
       let totalPicks = 0;
       let totalDice = 0;
       let xpBoostApplied = false;
@@ -1536,7 +1729,10 @@ const App: React.FC = () => {
       rewardsToClaim.forEach(r => {
           if (r.type === 'COINS') totalCoins += SCALE_COIN_REWARD(r.value, player.level, currentBetRef.current);
           else if (r.type === 'DIAMONDS') totalDiamonds += r.value;
-          else if (r.type === 'CREDIT_BACK') totalPackCredits += r.value;
+          else if (r.type === 'CREDIT_BACK') {
+              if (r.tier === 'PREMIUM') totalPremPackCredits += r.value;
+              else totalPackCredits += r.value;
+          }
           else if (r.type === 'PICKS') totalPicks += r.value;
           else if (r.type === 'DICE_CREDITS') totalDice += r.value;
           else if (r.type === 'XP_BOOST') {
@@ -1550,6 +1746,7 @@ const App: React.FC = () => {
           balance: p.balance + totalCoins,
           diamonds: p.diamonds + totalDiamonds,
           packCredits: p.packCredits + totalPackCredits,
+          premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPremPackCredits,
       }));
       if (totalPicks > 0) {
           setQuest(q => ({ ...q, wildCredits: (q.wildCredits ?? 0) + totalPicks }));
@@ -1937,7 +2134,9 @@ const App: React.FC = () => {
       const cols = selectedGame.reels;
       const rows = selectedGame.rows;
       const ft = featureThemeOf(selectedGame.theme);
-      const isFreeSpin = freeSpinsRemaining > 0;
+      // Read from ref so the last free spin still generates a free-spin grid even though
+      // freeSpinsRemaining was already decremented to 0 in the same React render batch.
+      const isFreeSpin = isCurrentFreeSpinRef.current;
       const newGrid: SymbolType[][] = [];
       const isSmallGrid = cols <= 3;
       let pirateShipSeeded = false;
@@ -2377,7 +2576,7 @@ const App: React.FC = () => {
 
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
-      if (freeSpinsRemaining > 0 && ft !== 'ARCTIC' && ft !== 'NEON' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
+      if (isFreeSpin && ft !== 'ARCTIC' && ft !== 'NEON' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
           // CANDY gets 50% reduced jackpot spawn rates
           const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
@@ -2421,7 +2620,7 @@ const App: React.FC = () => {
           }
 
           // Ghost Ship jackpot: only during free spins, 8% chance per walk-spin.
-          if (freeSpinsRemaining > 0 && Math.random() < 0.08) {
+          if (isFreeSpin && Math.random() < 0.08) {
               const JP_PIRATE = [
                   { sym: SymbolType.JACKPOT_MINI,  w: 60 },
                   { sym: SymbolType.JACKPOT_MINOR, w: 25 },
@@ -2450,7 +2649,7 @@ const App: React.FC = () => {
       // reveal the SAME randomly-chosen symbol. We set the underlying cells to that symbol now
       // (so win evaluation is automatic) and record which cells are masked by a mystery tile.
       mysteryCellsRef.current = [];
-      if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && freeSpinsRemaining > 0 && Math.random() > 0.25) {
+      if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && isFreeSpin && Math.random() > 0.25) {
           // Reveal symbol — weighted toward mid/high pays; WILD is rarest outcome.
           const REVEAL_POOL = [
               { s: SymbolType.GRAPE,  w: 24 },
@@ -2613,6 +2812,7 @@ const App: React.FC = () => {
         ? availableBets[availableBets.length - 1]
         : availableBets[betIndex];
     const isFreeSpin = freeSpinsRemaining > 0;
+    isCurrentFreeSpinRef.current = isFreeSpin; // captured before state batch so generateSmartGrid sees the right value
     const isHoldWinRespin = holdWinRef.current.active;
     const isPirateWalk = pirateWalkRef.current.active;
 
@@ -3115,9 +3315,13 @@ const App: React.FC = () => {
     const currentPaylines = GET_PAYLINES(selectedGame.rows, selectedGame.reels);
 
     const isPiggy = selectedGame.theme === 'PIGGY';
-    const isCoinOrWild = (sym: SymbolType) => sym === SymbolType.WILD || (isPiggy && sym === SymbolType.COIN);
+    // PIGGY: coins only substitute as wilds during free spins (not in the base game)
+    const isCoinOrWild = (sym: SymbolType) => sym === SymbolType.WILD || (isPiggy && freeSpinsRemaining > 0 && sym === SymbolType.COIN);
+    // PIGGY: on normal spins, COIN scores as SEVEN (scatter coin counts toward seven paylines)
+    const normalizePiggy = (sym: SymbolType): SymbolType =>
+        (isPiggy && freeSpinsRemaining === 0 && sym === SymbolType.COIN) ? SymbolType.SEVEN : sym;
     currentPaylines.forEach(line => {
-      const symbols = line.indices.map((row, col) => (finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN);
+      const symbols = line.indices.map((row, col) => normalizePiggy((finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN));
       let matchLen = 1;
       let matchSymbol = symbols[0];
       for (let i = 1; i < symbols.length; i++) {
@@ -3447,25 +3651,33 @@ const App: React.FC = () => {
               setTimeout(() => {
                   const slotUnlock = justUnlockedSlot(newLevel);
                   if (slotUnlock) {
-                       setFeatureUnlockData({ 
-                           name: slotUnlock.name, 
-                           icon: GAMES_CONFIG.find(g => g.id === slotUnlock.id)?.coverImage || slotUnlock.icon,
-                           description: 'New Game Unlocked! Play Now.', 
-                           action: () => { 
-                               // Find fresh config from constant to avoid closure issues
-                               const config = GAMES_CONFIG.find(g => g.id === slotUnlock.id);
-                               if (config) {
-                                   setActiveModal('NONE'); // Force close unlock modal
-                                   // Ensure we switch view and handle game select with a fresh config
-                                   setTimeout(() => {
-                                       handleGameSelect(config);
-                                   }, 100); 
-                               }
-                           } 
-                       });
                        setShownUnlocks(prev => new Set(prev).add(slotUnlock.lvl));
-                       setActiveModal('FEATURE_UNLOCK');
-                       setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 3000);
+                       if (newLevel > 40) {
+                           // After level 40: compact top-right toast + lobby NEW badge
+                           setNewSlotIds(prev => prev.includes(slotUnlock.id) ? prev : [...prev, slotUnlock.id]);
+                           audioService.playUnlock();
+                           const unlockConfig = GAMES_CONFIG.find(g => g.id === slotUnlock.id);
+                           if (unlockConfig) {
+                               setSlotUnlockToast(unlockConfig);
+                               if (slotUnlockToastTimerRef.current) clearTimeout(slotUnlockToastTimerRef.current);
+                               slotUnlockToastTimerRef.current = setTimeout(() => setSlotUnlockToast(null), 6000);
+                           }
+                       } else {
+                           setFeatureUnlockData({
+                               name: slotUnlock.name,
+                               icon: GAMES_CONFIG.find(g => g.id === slotUnlock.id)?.coverImage || slotUnlock.icon,
+                               description: 'New Game Unlocked! Play Now.',
+                               action: () => {
+                                   const config = GAMES_CONFIG.find(g => g.id === slotUnlock.id);
+                                   if (config) {
+                                       setActiveModal('NONE');
+                                       setTimeout(() => { handleGameSelect(config); }, 100);
+                                   }
+                               }
+                           });
+                           setActiveModal('FEATURE_UNLOCK');
+                           setTimeout(() => setActiveModal(m => m === 'FEATURE_UNLOCK' ? 'NONE' : m), 3000);
+                       }
                   }
                   else if (justUnlocked(newLevel)) {
                       if (newLevel === 10) {
@@ -3661,6 +3873,9 @@ const App: React.FC = () => {
       setPendingBigWin(true);
       pendingWinTierRef.current = meta.winType;
       setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
+      trackSlotQuest('BIG_WIN_COUNT', 1);
+      updateMissions(MissionType.BIG_WIN_COUNT, 1);
+      trackSlotQuest('BONUS_TRIGGER', 1);
   };
 
   const handleDragonPickWin = (tier: string, amount: number) => {
@@ -3681,6 +3896,9 @@ const App: React.FC = () => {
       setPendingBigWin(true);
       pendingWinTierRef.current = meta.winType;
       setJackpotWinTier({ name: tier, color: meta.color, icon: '', amount });
+      trackSlotQuest('BIG_WIN_COUNT', 1);
+      updateMissions(MissionType.BIG_WIN_COUNT, 1);
+      trackSlotQuest('BONUS_TRIGGER', 1);
   };
 
   const handleNeonRouletteClose = () => {
@@ -3696,6 +3914,7 @@ const App: React.FC = () => {
       const winTier = getWinTier(prize, currentBet);
       setWinData({ payout: prize, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
       if (winTier) { trackSlotQuest('BIG_WIN_COUNT', 1); updateMissions(MissionType.BIG_WIN_COUNT, 1); audioService.playWinTier(winTier); setShowWinPopup(true); }
+      trackSlotQuest('BONUS_TRIGGER', 1);
   };
 
   const handleJackpotClose = () => {
@@ -3834,6 +4053,7 @@ const App: React.FC = () => {
   };
 
   const handleGameSelect = (game: GameConfig, highLimit: boolean = false, fromQuest: boolean = false) => {
+      setNewSlotIds(prev => prev.filter(id => id !== game.id));
       const gameIndex = GAMES_CONFIG.findIndex(g => g.id === game.id);
       const unlockLevel = gameIndex === 0 ? 0 : gameIndex * 5 + 1;
 
@@ -3853,7 +4073,16 @@ const App: React.FC = () => {
           freeSpinsWon,
           freeSpinTotalWin,
           spinsWithoutBonus,
-          grid
+          grid,
+          holdWinActive: holdWinRef.current.active,
+          holdWinLockedGrid: holdWinRef.current.lockedGrid,
+          holdWinCoinValues: holdWinRef.current.coinValues,
+          holdWinJpGrid: holdWinRef.current.jpGrid,
+          holdWinRespins: holdWinRef.current.respins,
+          pirateWalkActive: pirateWalkRef.current.active,
+          pirateShipCol: pirateWalkRef.current.shipCol,
+          pirateShip2Col: pirateWalkRef.current.ship2Col,
+          pirateWalkTotalWin: pirateWalkTotalWinRef.current,
       };
       setSavedGameStates(prev => ({ ...prev, [selectedGame.id]: currentState }));
 
@@ -3940,6 +4169,32 @@ const App: React.FC = () => {
               setSpinsWithoutBonus(savedState.spinsWithoutBonus);
               setGrid(savedState.grid);
               setWinData(null);
+              if (savedState.holdWinActive) {
+                  holdWinRef.current = {
+                      active: true,
+                      lockedGrid: savedState.holdWinLockedGrid ?? [],
+                      coinValues: savedState.holdWinCoinValues ?? [],
+                      jpGrid: savedState.holdWinJpGrid ?? [],
+                      respins: savedState.holdWinRespins ?? 3,
+                  };
+                  setHoldWinActive(true);
+                  setHoldWinLockedGrid(savedState.holdWinLockedGrid ?? []);
+                  setHoldWinCoinValues(savedState.holdWinCoinValues ?? []);
+                  setHoldWinJpGrid(savedState.holdWinJpGrid ?? []);
+                  setHoldWinRespins(savedState.holdWinRespins ?? 3);
+              }
+              if (savedState.pirateWalkActive) {
+                  pirateWalkRef.current = {
+                      active: true,
+                      shipCol: savedState.pirateShipCol ?? -1,
+                      ship2Col: savedState.pirateShip2Col ?? -1,
+                  };
+                  pirateWalkTotalWinRef.current = savedState.pirateWalkTotalWin ?? 0;
+                  setPirateWalkActive(true);
+                  setPirateShipCol(savedState.pirateShipCol ?? -1);
+                  setPirateShip2Col(savedState.pirateShip2Col ?? -1);
+                  setPirateWalkTotalWin(savedState.pirateWalkTotalWin ?? 0);
+              }
           } else {
               setFreeSpinsRemaining(0);
               setTotalFreeSpins(0);
@@ -4009,6 +4264,7 @@ const App: React.FC = () => {
 
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
+      trackSlotQuest('BONUS_TRIGGER', 1);
       const currentBet = availableBets[betIndex];
       const latestTotalWin = freeSpinTotalWinRef.current;
       const tier = latestTotalWin > 0 ? (getWinTier(latestTotalWin, currentBet) || 'BIG WIN') : null;
@@ -4084,11 +4340,14 @@ const App: React.FC = () => {
                   setPirateWalkActive(false);
                   setPirateShipCol(-1);
                   setPirateShip2Col(-1);
+                  trackSlotQuest('BONUS_TRIGGER', 1);
                   const won = pirateWalkTotalWinRef.current;
-                  setTimeout(() => {
-                      setCelebrationMsg(won > 0 ? `+${formatCommaNumber(won)}` : 'The Ghost Ship sailed away…');
-                      if (won > 0) audioService.playWinBig();
-                  }, 250);
+                  if (freeSpinsRemaining === 0) {
+                      setTimeout(() => {
+                          setCelebrationMsg(won > 0 ? `+${formatCommaNumber(won)}` : 'The Ghost Ship sailed away…');
+                          if (won > 0) audioService.playWinBig();
+                      }, 250);
+                  }
                   // DO NOT call spin() here — the IDLE effect re-runs after pirateWalkActive flips false
                   // and will correctly show the free-spin summary (freeSpinsWon > 0) or auto-spin.
               } else if (activeModal === 'NONE' && !jackpotWinTier) {
@@ -4170,7 +4429,16 @@ const App: React.FC = () => {
                 freeSpinsWon,
                 freeSpinTotalWin,
                 spinsWithoutBonus,
-                grid
+                grid,
+                holdWinActive: holdWinRef.current.active,
+                holdWinLockedGrid: holdWinRef.current.lockedGrid,
+                holdWinCoinValues: holdWinRef.current.coinValues,
+                holdWinJpGrid: holdWinRef.current.jpGrid,
+                holdWinRespins: holdWinRef.current.respins,
+                pirateWalkActive: pirateWalkRef.current.active,
+                pirateShipCol: pirateWalkRef.current.shipCol,
+                pirateShip2Col: pirateWalkRef.current.ship2Col,
+                pirateWalkTotalWin: pirateWalkTotalWinRef.current,
             }
         }));
         setPlayer(p => ({ ...p, autoSpin: false }));
@@ -4211,6 +4479,25 @@ const App: React.FC = () => {
           setCelebrationMsg(`+${amount} Gems`);
           audioService.playWinBig();
       }
+  };
+
+  const handlePay = (productId: string, itemType: 'COIN' | 'DIAMOND', itemAmount: number, icon: string, label: string) => {
+      setPaymentItem({ productId, itemType, itemAmount, icon, label });
+  };
+
+  const handlePaymentSuccess = (item: PaymentItem) => {
+      setPaymentItem(null);
+      // Optimistically credit — webhook will also fire but the DB unique constraint
+      // on stripe_payment_intent_id prevents double-credit.
+      if (item.itemType === 'COIN') {
+          setPlayer(p => ({ ...p, balance: p.balance + item.itemAmount }));
+          triggerCoinAnim(item.itemAmount);
+          setCelebrationMsg(`+${formatCommaNumber(item.itemAmount)} Coins!`);
+      } else {
+          setPlayer(p => ({ ...p, diamonds: p.diamonds + item.itemAmount }));
+          setCelebrationMsg(`+${item.itemAmount} Gems!`);
+      }
+      audioService.playWinBig();
   };
 
   const handleClaimShopItem = (label: string) => {
@@ -4376,9 +4663,17 @@ const App: React.FC = () => {
 
                 {/* RIGHT ZONE — Piggy + Level + XP + Settings + Events */}
                 <div className="flex items-center gap-1 flex-1 min-w-0">
-                    <img src="/ui/piggy.png" alt="" onClick={handleOpenPiggyBank}
-                        style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer', flexShrink: 0 }}
-                        className={`shrink-0 active:scale-90 transition-transform ${piggyShaking ? 'animate-piggy-shake' : ''}`} />
+                    <div className="relative shrink-0" style={{ width: 34, height: 34 }} onClick={handleOpenPiggyBank}>
+                        <img src="/ui/piggy.png" alt=""
+                            style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer' }}
+                            className={`active:scale-90 transition-transform ${piggyShaking ? 'animate-piggy-shake' : ''}`} />
+                        {player.level >= 10 && player.piggyBank >= Math.floor(MAX_BET_BY_LEVEL(player.level) * 5 * (1 + EVENT_PIGGY_BOOST)) && (
+                            <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+                                style={{ bottom: 2, background: '#e01c1c', borderRadius: 6, padding: '1px 5px', fontSize: 7, fontWeight: 900, color: '#fff', letterSpacing: '0.06em', lineHeight: 1.4, whiteSpace: 'nowrap' }}>
+                                FULL
+                            </div>
+                        )}
+                    </div>
 
                     {/* Level Pill + Multiplier + XP popup */}
                     <div className="relative flex items-center gap-1 flex-1" style={{ minWidth: 95 }}>
@@ -4593,6 +4888,8 @@ const App: React.FC = () => {
                 premiumPackCredits={player.premiumPackCredits ?? 0}
                 isJackpotReady={(Date.now() - (player.jackpotRouletteLastTime ?? 0)) >= 3 * 60 * 60 * 1000}
                 questPathCurrentIndex={slotQuestState.currentPathIndex}
+                newSlotIds={newSlotIds}
+                bonusTimers={bonusTimers}
             />
         ) : (
             <div data-slot-bg="true" className="flex-1 flex flex-col items-center justify-start p-0 m-0 relative h-full pb-[56px] md:pb-[64px] max-w-3xl mx-auto w-full select-none min-h-0 gap-0">
@@ -4600,7 +4897,7 @@ const App: React.FC = () => {
                 {/* Quest + Pass vertical panel — always visible in game view */}
                 {(() => {
                     const qReady = false;
-                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel + (missionState.isPremium ? 10 : 0) && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
+                    const passReady = missionState.passRewards.filter((r: any) => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
                     const totalNotifs = passReady;
                     const isQuestLocked = player.level < 20;
                     const isPassLocked = player.level < 10;
@@ -4611,7 +4908,7 @@ const App: React.FC = () => {
                         <div className="absolute left-1 z-40 flex flex-col gap-1 items-center select-none"
                             style={{ background: isHighLimit ? 'linear-gradient(180deg,rgba(201,144,26,0.92),rgba(122,80,0,0.92))' : 'linear-gradient(180deg,rgba(124,63,181,0.92),rgba(74,24,128,0.92))', borderRadius:'21px', padding:'6px 6px 8px', boxShadow:'0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)', width:'66px', top:'38%', transform:'translateY(-38%)' }}>
                             {(() => {
-                                const questInProgress = slotQuestState.missions.length > 0 && !slotQuestState.missions.every(m => m.current >= m.target);
+                                const questInProgress = slotQuestState.currentPathIndex < QUEST_PATH_IDS.length;
                                 const passBtn = (
                                     <button
                                         onClick={!isPassLocked ? openBattlePassModal : undefined}
@@ -4690,9 +4987,9 @@ const App: React.FC = () => {
                                     </button>
                                     {/* Album */}
                                     <button onClick={() => openModal('COLLECTION')} className="relative flex flex-col items-center active:scale-95 transition-transform">
-                                        {albumReady > 0 && (
+                                        {(albumReady > 0 || player.packCredits > 0) && (
                                             <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {albumReady}
+                                                {albumReady > 0 ? albumReady : player.packCredits}
                                             </div>
                                         )}
                                         <img src="/ui/cards_new.png" alt="" style={{ width: 48, height: 48, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
@@ -5343,7 +5640,9 @@ const App: React.FC = () => {
                 setActiveModal('COLLECTION');
             }, 50);
         }
-    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} isVip={!!player.isVip} vipLevel={player.vipLevel || 1} />}
+    }} onBuy={handleShopBuy} onPay={handlePay} localPrices={localPrices} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} isVip={!!player.isVip} vipLevel={player.vipLevel || 1} />}
+
+    <PaymentModal item={paymentItem} currency={currency} onClose={() => setPaymentItem(null)} onSuccess={handlePaymentSuccess} />
 
       {activeModal === 'COLLECTION' && <CardCollectionModal
           isOpen
@@ -5467,19 +5766,21 @@ const App: React.FC = () => {
           onClaim={handleSlotQuestClaim}
       />
 
-      {/* Grand Prize claim popup — shown after completing the final quest stage */}
+      {/* Grand Prize claim popup — shown after completing all quest stages */}
       {grandPrizePopup !== null && (
-          <div className="absolute inset-0 z-[210] flex items-center justify-center bg-black/30 backdrop-blur-md p-4 animate-pop-in select-none"
-              onClick={() => setGrandPrizePopup(null)}>
-              <div className="rounded-3xl overflow-hidden flex flex-col items-center px-7 py-6 mx-4"
-                  onClick={e => e.stopPropagation()}
-                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', maxWidth: 320 }}>
-                  <span className="font-tanker text-amber-300" style={{ fontSize: 22, lineHeight: 1, textShadow: '0 0 14px rgba(251,191,36,0.7)' }}>Quest Complete!</span>
-                  <span className="font-black text-white/70 mt-1" style={{ fontSize: 11 }}>Grand Prize claimed</span>
-                  <img src="/new_coinicon.png" alt="" style={{ width: 64, height: 64, objectFit: 'contain', margin: '12px 0', filter: 'drop-shadow(0 2px 10px rgba(251,191,36,0.8))' }} />
-                  <span className="font-tanker text-white" style={{ fontSize: 26, lineHeight: 1, textShadow: '0 0 12px rgba(251,191,36,0.6)' }}>+{formatK(grandPrizePopup)}</span>
-                  <button onClick={() => setGrandPrizePopup(null)} className="pill-green w-full mt-5">
-                      <div className="pill-face" style={{ padding: '8px 12px', fontSize: '12px' }}>Claim</div>
+          <div className="absolute inset-0 z-[210] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-pop-in select-none">
+              <div className="rounded-3xl overflow-hidden flex flex-col items-center px-7 py-7 mx-4"
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 40px rgba(0,0,0,0.9)', maxWidth: 340 }}>
+                  <i className="ti ti-trophy text-amber-300" style={{ fontSize: 44, filter: 'drop-shadow(0 0 14px rgba(251,191,36,0.7))' }} />
+                  <span className="font-tanker text-amber-300 mt-2" style={{ fontSize: 28, lineHeight: 1, textShadow: '0 0 16px rgba(251,191,36,0.8)' }}>Congratulations!</span>
+                  <span className="font-black text-white/80 mt-2 text-center" style={{ fontSize: 12 }}>You completed all Quest stages!</span>
+                  <span className="font-bold text-white/55 mt-0.5 text-center" style={{ fontSize: 11 }}>Grand Prize Awarded</span>
+                  <div className="flex items-center gap-2 mt-4">
+                      <img src="/new_coinicon.png" alt="" style={{ width: 44, height: 44, objectFit: 'contain', filter: 'drop-shadow(0 2px 10px rgba(251,191,36,0.8))' }} />
+                      <span className="font-tanker text-yellow-300" style={{ fontSize: 34, lineHeight: 1, textShadow: '0 0 16px rgba(251,191,36,0.7)' }}>+{formatK(grandPrizePopup)}</span>
+                  </div>
+                  <button onClick={() => { setGrandPrizePopup(null); if (currentView === 'GAME') handleHeaderBack(); }} className="pill-green w-full mt-6">
+                      <div className="pill-face" style={{ padding: '9px 12px', fontSize: '13px' }}>Claim &amp; Go to Lobby</div>
                   </button>
               </div>
           </div>
@@ -5610,6 +5911,24 @@ const App: React.FC = () => {
           </div>
       )}
 
+      {slotUnlockToast && currentView === 'GAME' && (
+          <div className="absolute top-[38px] right-2 z-[202] animate-pop-in" style={{ width: 130 }}>
+              <div className="rounded-2xl overflow-hidden flex flex-col gap-1.5"
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 6px 20px rgba(0,0,0,0.8)', padding: '8px' }}>
+                  {slotUnlockToast.coverImage && (
+                      <img src={slotUnlockToast.coverImage} alt="" style={{ width: '100%', height: 68, objectFit: 'cover', borderRadius: 8, display: 'block' }} />
+                  )}
+                  <div className="flex flex-col gap-0.5 text-center">
+                      <div className="font-tanker text-white leading-none" style={{ fontSize: '0.8rem' }}>Unlocked!</div>
+                      <div className="text-purple-200 font-bold leading-none" style={{ fontSize: 9 }}>{slotUnlockToast.name}</div>
+                  </div>
+                  <button onClick={() => { const c = slotUnlockToast; setSlotUnlockToast(null); handleGameSelect(c); }} className="pill-green w-full">
+                      <div className="pill-face" style={{ padding: '5px 8px', fontSize: '9px' }}>Play Now →</div>
+                  </button>
+              </div>
+          </div>
+      )}
+
       {activeToast && (
           <div className="absolute top-[38px] right-2 z-[201] animate-pop-in pointer-events-none">
               <div className="rounded-2xl overflow-hidden flex items-center gap-2.5" style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 6px 20px rgba(0,0,0,0.8)', padding: '9px 13px' }}>
@@ -5673,7 +5992,7 @@ const App: React.FC = () => {
       ))}
 
       {showFreeSpinSummary && <FreeSpinSummary isOpen={showFreeSpinSummary} totalWin={freeSpinTotalWin} bet={availableBets[betIndex]} onClose={handleFreeSpinSummaryClose} />}
-      {holdWinSummary && <FreeSpinSummary isOpen={true} totalWin={holdWinSummary.total} bet={holdWinSummary.bet} label="Hold & Win Complete" onClose={() => { const total = holdWinSummary.total; setHoldWinSummary(null); setStatus(GameStatus.IDLE); if (total > 0) setCelebrationMsg('+' + formatK(total)); }} />}
+      {holdWinSummary && <FreeSpinSummary isOpen={true} totalWin={holdWinSummary.total} bet={holdWinSummary.bet} label="Hold & Win Complete" onClose={() => { const total = holdWinSummary.total; setHoldWinSummary(null); setStatus(GameStatus.IDLE); if (total > 0) setCelebrationMsg('+' + formatK(total)); trackSlotQuest('BONUS_TRIGGER', 1); }} />}
       
       {showWelcomeGift && (
         <div className="absolute inset-0 z-[500] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
@@ -5859,6 +6178,7 @@ const App: React.FC = () => {
                       name: playerName,
                       avatar: profileEmoji,
                       level: 1,
+                      vipLevel: 0,
                       score: INITIAL_BALANCE,
                       gems: INITIAL_GEMS,
                       totalWon: 0,
@@ -5958,6 +6278,7 @@ const App: React.FC = () => {
               name: playerName,
               avatar: profileEmoji,
               level: player.level,
+              vipLevel: player.vipLevel ?? 0,
               score: player.balance,
               gems: player.diamonds,
               totalWon: player.stats?.totalCoinsWon || 0,

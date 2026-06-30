@@ -5,6 +5,8 @@ interface ShopModalProps {
     isOpen: boolean;
     onClose: () => void;
     onBuy: (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST', amount: number, duration?: number, cost?: number) => void;
+    onPay?: (productId: string, itemType: 'COIN' | 'DIAMOND', itemAmount: number, icon: string, label: string) => void;
+    localPrices?: Record<string, string>;
     level: number;
     isFreeStashClaimed?: boolean;
     freeCoinsAvailable?: boolean;
@@ -19,7 +21,7 @@ interface ShopModalProps {
     vipLevel?: number;
 }
 
-export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, level, isFreeStashClaimed, freeCoinsAvailable = false, freeCoinsAmount = 300000, balance = 0, diamonds = 0, maxBet = 10000, initialTab, claimedItems, onClaimItem, isVip, vipLevel }) => {
+export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, onPay, localPrices, level, isFreeStashClaimed, freeCoinsAvailable = false, freeCoinsAmount = 300000, balance = 0, diamonds = 0, maxBet = 10000, initialTab, claimedItems, onClaimItem, isVip, vipLevel }) => {
     const [dynamicPacks, setDynamicPacks] = useState<any[]>([]);
     const [cooldown, setCooldown] = useState(false);
     const [popup, setPopup] = useState<'nopay' | 'nogems' | null>(null);
@@ -82,13 +84,17 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
             'from-yellow-500 to-amber-700',
         ];
         setDynamicPacks(prices.map((price, i) => {
-            const amount = Math.round((coinBase[i] / 50) * maxBet);
+            const amount = Math.round((coinBase[i] / 50) * maxBet * 100);
+            const productId = `coin_${i + 1}`;
             return {
+                productId,
                 icon: icons[i],
                 label: labels[i],
                 sub: fmt(amount),
                 pesosLabel: String(price),
                 color: colors[i],
+                itemType: 'COIN' as const,
+                itemAmount: amount,
                 action: () => onBuy('COIN', amount, 0, price),
             };
         }));
@@ -101,9 +107,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         : 0;
 
     const gemPacks = [
-        { icon: '/gem_1.png', label: '100 Gems',   sub: '100',   pesosLabel: '49',  color: 'from-sky-400 to-cyan-700',       action: () => onBuy('DIAMOND', 100)  },
-        { icon: '/gem_2.png', label: '500 Gems',   sub: '500',   pesosLabel: '199', color: 'from-blue-500 to-indigo-700',    action: () => onBuy('DIAMOND', 500)  },
-        { icon: '/gem_3.png', label: '5,000 Gems', sub: '5,000', pesosLabel: '499', color: 'from-purple-500 to-fuchsia-700', action: () => onBuy('DIAMOND', 5000) },
+        { productId: 'gem_1', icon: '/gem_1.png', label: '100 Gems',   sub: '100',   pesosLabel: '49',  color: 'from-sky-400 to-cyan-700',       itemType: 'DIAMOND' as const, itemAmount: 100,  action: () => onBuy('DIAMOND', 100)  },
+        { productId: 'gem_2', icon: '/gem_2.png', label: '500 Gems',   sub: '500',   pesosLabel: '199', color: 'from-blue-500 to-indigo-700',    itemType: 'DIAMOND' as const, itemAmount: 500,  action: () => onBuy('DIAMOND', 500)  },
+        { productId: 'gem_3', icon: '/gem_3.png', label: '2,500 Gems', sub: '2,500', pesosLabel: '499', color: 'from-purple-500 to-fuchsia-700', itemType: 'DIAMOND' as const, itemAmount: 2500, action: () => onBuy('DIAMOND', 2500) },
     ];
 
     const boostPacks = [
@@ -125,8 +131,20 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
         action: () => !isFreeStashClaimed && onBuy('COIN', freeCoinsAmount, 0, 0),
     };
 
-    const coinItems = dynamicPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined }));
-    const gemItems = gemPacks.map(item => ({ ...item, isRealMoney: true, isClaimed: false, price: `₱ ${item.pesosLabel}`, gemCost: undefined as number | undefined }));
+    const coinItems = dynamicPacks.map(item => ({
+        ...item,
+        isRealMoney: true,
+        isClaimed: false,
+        price: (localPrices && localPrices[item.productId]) ? localPrices[item.productId] : `₱ ${item.pesosLabel}`,
+        gemCost: undefined as number | undefined,
+    }));
+    const gemItems = gemPacks.map(item => ({
+        ...item,
+        isRealMoney: true,
+        isClaimed: false,
+        price: (localPrices && localPrices[item.productId]) ? localPrices[item.productId] : `₱ ${item.pesosLabel}`,
+        gemCost: undefined as number | undefined,
+    }));
     const boostItems = boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false, price: `GEM:${item.gemCost}` }));
     const freeItems = [freeItem];
 
@@ -216,9 +234,13 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, le
                                     const gemCost = (item as any).gemCost as number | undefined;
                                     const onItemClick = () => {
                                         if (cooldown) return;
-                                        if (item.isRealMoney) { setPopup('nopay'); return; }
                                         if (item.isClaimed) { setPopup('nopay'); return; }
                                         if (gemCost !== undefined && diamonds < gemCost) { setPopup('nogems'); return; }
+                                        if (item.isRealMoney && onPay && (item as any).productId) {
+                                            onPay((item as any).productId, (item as any).itemType, (item as any).itemAmount, (item as any).icon, (item as any).label);
+                                            return;
+                                        }
+                                        if (item.isRealMoney) { setPopup('nopay'); return; }
                                         handleBuy(item.action);
                                     };
                                     const showVipDiscount = isVip && discount > 0 && item.isRealMoney;

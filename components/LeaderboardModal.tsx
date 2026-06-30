@@ -15,6 +15,45 @@ const TABS: { key: LeaderboardMetric; label: string }[] = [
     { key: 'maxWin',     label: 'Max Win' },
 ];
 
+const EXCLUSIVE_AVATAR = '/Profile_pic (12).png';
+
+interface RankReward { gems: number; collectDays?: number; expDays?: number; missionExpHours?: number; exclusiveAvatar?: boolean }
+const RANK_REWARDS: Record<number, RankReward> = {
+    1:  { gems: 10000, collectDays: 30, expDays: 7,  missionExpHours: 72, exclusiveAvatar: true },
+    2:  { gems: 5000,  collectDays: 15, expDays: 3,  missionExpHours: 24 },
+    3:  { gems: 2000,  collectDays: 7,  expDays: 1,  missionExpHours: 12 },
+    4:  { gems: 500,   collectDays: 1,  missionExpHours: 1 },
+    5:  { gems: 500,   collectDays: 1,  missionExpHours: 1 },
+    6:  { gems: 200 }, 7: { gems: 200 }, 8: { gems: 200 }, 9: { gems: 200 }, 10: { gems: 200 },
+};
+
+const fmtDuration = (hours: number) => hours >= 24 ? `${hours / 24}D` : `${hours}H`;
+
+const RewardChip: React.FC<{ tooltip: string; icon: React.ReactNode; label: string; labelColor?: string }> = ({ tooltip, icon, label, labelColor }) => {
+    const [show, setShow] = useState(false);
+    return (
+        <div className="relative flex-shrink-0 flex items-center gap-0.5 cursor-default" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
+            {icon}
+            {label && <span className="font-black" style={{ fontSize: 10, color: labelColor ?? 'rgba(255,255,255,0.75)' }}>{label}</span>}
+            {show && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-[500] pointer-events-none whitespace-nowrap"
+                    style={{
+                        background: 'linear-gradient(180deg,#6a1eb0 0%,#380870 100%)',
+                        boxShadow: 'inset 0 1px 0 rgba(180,100,255,0.4), 0 4px 12px rgba(0,0,0,0.85)',
+                        borderRadius: 8,
+                        padding: '4px 9px',
+                        fontSize: 10,
+                        fontWeight: 700,
+                        color: '#e9d5ff',
+                        letterSpacing: '0.03em',
+                    }}>
+                    {tooltip}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const formatScore = (n: number) => {
     if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B`;
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
@@ -112,6 +151,15 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
         return () => { alive = false; };
     }, [isOpen, metric, player.score, player.level, player.maxJackpot, player.maxWin, player.name, player.avatar]);
 
+    // Persist the player's score-tab rank so monthly rewards can reference it.
+    useEffect(() => {
+        if (!isOpen || loading || metric !== 'score') return;
+        const rank = entries.findIndex(e => e.isYou) + 1;
+        if (rank > 0) {
+            try { localStorage.setItem('cw_last_rank', String(rank)); } catch {}
+        }
+    }, [isOpen, loading, entries, metric]);
+
     if (!isOpen) return null;
 
     const youRank = entries.findIndex(e => e.isYou) + 1;
@@ -119,9 +167,10 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
 
     const Row: React.FC<{ e: LeaderboardEntry; rank: number; pinned?: boolean }> = ({ e, rank, pinned }) => {
         const m = medal(rank);
+        const reward = metric === 'score' && !pinned ? RANK_REWARDS[rank] : undefined;
         return (
             <button onClick={() => setSelected({ entry: e, rank })}
-                className="w-full flex items-center gap-3 rounded-2xl px-3 py-2 text-left active:scale-[0.99] transition-transform"
+                className="w-full flex items-center gap-2.5 rounded-2xl px-3 py-2 text-left active:scale-[0.99] transition-transform"
                 style={{
                     background: e.isYou
                         ? 'linear-gradient(90deg,rgba(255,205,70,0.30),rgba(255,150,40,0.10))'
@@ -135,13 +184,60 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 <Avatar src={e.avatar} size={34} ring={rank <= 3 ? `0 0 0 2px ${rank === 1 ? '#ffd24a' : rank === 2 ? '#cdd6e2' : '#d68a48'}, 0 2px 6px rgba(0,0,0,0.45)` : undefined} />
                 <div className="flex-1 min-w-0">
                     <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{pinned ? 'Your rank' : e.name}{e.isYou && !pinned ? ' (You)' : ''}</div>
-                    <div className="text-white/50 font-bold" style={{ fontSize: 9 }}>Level {e.level}</div>
+                    {(e.vipLevel ?? 0) > 0 && (
+                        <div className="flex items-center gap-0.5 mt-0.5">
+                            <i className="ti ti-crown" style={{ fontSize: 9, color: '#fbbf24' }} />
+                            <span className="font-bold text-amber-300" style={{ fontSize: 9 }}>VIP {e.vipLevel}</span>
+                        </div>
+                    )}
                 </div>
-                <div className="shrink-0 flex items-center gap-1">
-                    {metric !== 'level' && <img src="/new_coinicon.png" alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />}
-                    <span className="font-black text-yellow-300" style={{ fontSize: 13 }}>
-                        {metric === 'level' ? `Lv ${e.level}` : formatScore(metricOf(e, metric))}
-                    </span>
+                <div className="shrink-0 flex flex-col items-end gap-1">
+                    {/* Score / metric value — always shown */}
+                    <div className="flex items-center gap-1">
+                        {metric !== 'level' && <img src="/new_coinicon.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />}
+                        <span className="font-black text-yellow-300" style={{ fontSize: 12 }}>
+                            {metric === 'level' ? `Lv ${e.level}` : formatScore(metricOf(e, metric))}
+                        </span>
+                    </div>
+                    {/* Monthly reward chips — horizontal row, score tab only, top 10 */}
+                    {reward && (
+                        <div className="flex items-center gap-1">
+                            <RewardChip
+                                tooltip={`${reward.gems.toLocaleString()} Gems`}
+                                icon={<img src="/symbols/diamond.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />}
+                                label={reward.gems >= 1000 ? `${reward.gems / 1000}K` : String(reward.gems)}
+                                labelColor="#fbbf24"
+                            />
+                            {reward.collectDays && (
+                                <RewardChip
+                                    tooltip={`${reward.collectDays} days 2× Collect Bonus`}
+                                    icon={<img src="/ui/exp_multiplier.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
+                                    label={`${reward.collectDays}D`}
+                                />
+                            )}
+                            {reward.expDays && (
+                                <RewardChip
+                                    tooltip={`${reward.expDays} days 2× XP`}
+                                    icon={<img src="/topbar_levelstar.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
+                                    label={`${reward.expDays}D`}
+                                />
+                            )}
+                            {reward.missionExpHours && (
+                                <RewardChip
+                                    tooltip={`${fmtDuration(reward.missionExpHours)} 2× Mission XP`}
+                                    icon={<img src="/ui/missions_new.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
+                                    label={fmtDuration(reward.missionExpHours)}
+                                />
+                            )}
+                            {reward.exclusiveAvatar && (
+                                <RewardChip
+                                    tooltip="Exclusive Avatar unlock"
+                                    icon={<img src={EXCLUSIVE_AVATAR} alt="" style={{ width: 18, height: 18, objectFit: 'cover', borderRadius: '50%', boxShadow: '0 0 0 1.5px #a855f7' }} />}
+                                    label=""
+                                />
+                            )}
+                        </div>
+                    )}
                 </div>
             </button>
         );
