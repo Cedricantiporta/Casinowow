@@ -128,7 +128,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const readyTimers = bonusTimers.filter(t => t.endTime <= Date.now()).length;
     const isReadyToCollect = timeLeft === 0;
     const visibleDailyMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
-    const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel + (missionState.isPremium ? 10 : 0) && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
+    const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
     const totalMissionNotifs = passRewardsReady;
     const missionsNotifs = missionState.activeMissions.filter(m => m.frequency === 'DAILY' && m.completed && !m.claimed).length;
     const questReady = (questState.diceCredits ?? 0) > 0 || (questState.wildCredits ?? 0) > 0;

@@ -414,11 +414,11 @@ export const JackpotRouletteModal: React.FC<Props> = ({ isOpen, baseAmount, coll
                     <div style={{ marginTop: 4 }}>
                         {phase === 'done' && wonMult !== null ? (
                             <button onClick={() => onClaim(baseAmount * collectMultiplier * wonMult)} className="pill-green w-full">
-                                <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>Claim</div>
+                                <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px', color: '#fff', WebkitTextStroke: '0' }}>Claim</div>
                             </button>
                         ) : (
                             <button onClick={doSpin} disabled={phase === 'spinning'} className={`pill-green w-full${phase === 'spinning' ? ' opacity-60' : ''}`}>
-                                <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>{phase === 'spinning' ? 'Spinning…' : 'Spin'}</div>
+                                <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px', color: '#fff', WebkitTextStroke: '0' }}>{phase === 'spinning' ? 'Spinning…' : 'Spin'}</div>
                             </button>
                         )}
                     </div>

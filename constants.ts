@@ -643,7 +643,7 @@ export const NEON_WEIGHTS = [
   { type: SymbolType.CHERRY,  weight: 4    },
   { type: SymbolType.SEVEN,   weight: 0    },
   { type: SymbolType.WILD,    weight: 3    },
-  { type: SymbolType.SCATTER, weight: 0.125 },
+  { type: SymbolType.SCATTER, weight: 0.0625 },
 ];
 
 export const FREE_SPIN_WEIGHTS = [

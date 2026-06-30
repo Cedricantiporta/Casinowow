@@ -347,7 +347,7 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
                         </div>
                         <div className="text-pink-100/80 text-[11px] font-black uppercase tracking-[0.2em]">{freeSpins} Free Spins</div>
                         <button onClick={() => setPhase('ready')} className="pill-pink w-full mt-1">
-                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#f9a8d4,#db2777)' }}>Spin Now!</div>
+                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#f9a8d4,#db2777)', color: '#fff', WebkitTextStroke: '0' }}>Spin Now!</div>
                         </button>
                     </div>
                 </div>
@@ -405,7 +405,7 @@ export const CandyRouletteModal: React.FC<Props> = ({ isOpen, freeSpins, onCompl
                             <div className="font-black text-white text-sm uppercase tracking-[0.2em]">{wonSeg.sub}</div>
                         </div>
                         <button onClick={() => onComplete(wonSeg.cfg)} className="pill-pink w-full mt-1">
-                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#f9a8d4,#db2777)' }}>Start Free Spins!</div>
+                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#f9a8d4,#db2777)', color: '#fff', WebkitTextStroke: '0' }}>Start Free Spins!</div>
                         </button>
                     </div>
                 </div>

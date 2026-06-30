@@ -267,6 +267,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
     const [multCount, setMultCount] = useState(0);
     const [totalMultWins, setTotalMultWins] = useState(0);
     const [showSummary, setShowSummary] = useState(false);
+    const [showJpAnnounce, setShowJpAnnounce] = useState(false);
     const [summaryTotal, setSummaryTotal] = useState(0);
     const [prize, setPrize] = useState(0);
 
@@ -373,7 +374,8 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                     setSummaryTotal(prev + amt);
                     return prev;
                 });
-                timerRef.current = setTimeout(() => setShowSummary(true), 500);
+                setShowJpAnnounce(true);
+                timerRef.current = setTimeout(() => { setShowJpAnnounce(false); setShowSummary(true); }, 2200);
             }
         }, SPIN_MS + 100);
     };
@@ -387,7 +389,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
             a.angleDeg = 0; a.fromDeg = 0; a.toDeg = 0; a.spinning = false;
             a.lastSector = -1; a.tickerWiggle = 0;
             multCountRef.current = 0;
-            setPhase('prompt'); setWonSeg(null); setShowSummary(false);
+            setPhase('prompt'); setWonSeg(null); setShowSummary(false); setShowJpAnnounce(false);
             setPrize(0); setMultCount(0); setMultPayout(0); setTotalMultWins(0); setSummaryTotal(0);
             onRunningTotal?.(0);
         }
@@ -410,7 +412,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                         </div>
                         <div className="text-sky-100/80 text-[11px] font-black uppercase tracking-[0.2em]">Bonus Round</div>
                         <button onClick={() => setPhase('ready')} className="pill-blue w-full mt-1">
-                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>Spin Now!</div>
+                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)', color: '#fff', WebkitTextStroke: '0' }}>Spin Now!</div>
                         </button>
                     </div>
                 </div>
@@ -470,6 +472,20 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                 </div>
             )}
 
+            {/* Jackpot announce */}
+            {showJpAnnounce && wonSeg?.jp && (
+                <div className="absolute inset-0 z-[210] flex items-center justify-center animate-pop-in pointer-events-none">
+                    <div className="flex flex-col items-center gap-2 rounded-3xl px-10 py-8 text-center"
+                        style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.85),rgba(0,0,0,0.92))', boxShadow: `0 0 60px ${wonSeg.jp === 'GRAND' ? 'rgba(251,191,36,0.6)' : 'rgba(168,85,247,0.5)'}` }}>
+                        <span className="font-black text-white/60 uppercase tracking-widest" style={{ fontSize: 11 }}>Jackpot!</span>
+                        <span className="font-black uppercase leading-none"
+                            style={{ fontSize: 48, color: wonSeg.jp === 'GRAND' ? '#fbbf24' : wonSeg.jp === 'MEGA' ? '#ef4444' : wonSeg.jp === 'MAJOR' ? '#c084fc' : wonSeg.jp === 'MINOR' ? '#38bdf8' : '#4ade80', textShadow: `0 0 30px currentColor, 0 0 60px currentColor` }}>
+                            {wonSeg.jp}
+                        </span>
+                    </div>
+                </div>
+            )}
+
             {/* Summary */}
             {showSummary && wonSeg && (
                 <div className="absolute inset-0 z-[210] flex items-center justify-center animate-pop-in">
@@ -498,7 +514,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                             </div>
                         </div>
                         <button onClick={() => onComplete(prize)} className="pill-gold w-full mt-1">
-                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#fbbf24,#f59e0b)', color: '#1c0a00' }}>Claim All</div>
+                            <div className="pill-face" style={{ padding: '8px 12px', fontSize: '11px', background: 'linear-gradient(180deg,#fbbf24,#f59e0b)', color: '#fff', WebkitTextStroke: '0' }}>Claim All</div>
                         </button>
                     </div>
                 </div>
