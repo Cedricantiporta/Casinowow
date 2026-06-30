@@ -96,13 +96,27 @@ const EXTRA_SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = EXTRA_NAMES.map((
 const LIMIT = 100;
 const TABLE = 'leaderboard';
 
+// Deterministic shuffle of the shared name pool so names land on random
+// placements (including casual handles like "404" / "richkid" near the top)
+// while staying stable across reloads.
+function seededShuffle<T>(arr: T[], seed: number): T[] {
+    const a = [...arr];
+    let s = seed;
+    const rnd = () => { s |= 0; s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+}
+const SHUFFLED_NAMES = seededShuffle(AI_NAMES, 0x5eed42);
+
 // The live economy reaches quadrillions, so lift the static roster into that range
 // (top whale ≈ 2.8Q, tapering down). Only ~50% of AI carry a VIP badge; gems are
-// modest and derived from level rather than the (huge) coin score.
+// modest and derived from level rather than the (huge) coin score. Names are taken
+// from the shuffled pool by index so placements are randomized.
 const AI_SCALE = 330_000;
 function aiEntry(e: Omit<LeaderboardEntry, 'isYou' | 'gems'>, i: number): LeaderboardEntry {
     return {
         ...e,
+        name: SHUFFLED_NAMES[i % SHUFFLED_NAMES.length],
         score: e.score * AI_SCALE,
         totalWon: e.totalWon * AI_SCALE,
         maxJackpot: e.maxJackpot * AI_SCALE,

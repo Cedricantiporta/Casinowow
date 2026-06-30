@@ -486,15 +486,14 @@ const App: React.FC = () => {
           const now = new Date();
           const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
           if (parsed.lastDailyReset !== todayKey) {
-              const level = parsed.passLevel || 1;
               const nonDaily = (parsed.activeMissions || []).filter((m: { frequency: string }) => m.frequency !== 'DAILY');
-              return { ...parsed, lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(level), ...nonDaily], passXpToNext: 100 };
+              return { ...parsed, lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(player.level, MAX_BET_BY_LEVEL(player.level)), ...nonDaily], passXpToNext: 100 };
           }
           return { ...parsed, passXpToNext: 100 };
       }
     } catch {}
     const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; })();
-    return { lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(1)], passLevel: 1, passXP: 0, passXpToNext: 100, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
+    return { lastDailyReset: todayKey, activeMissions: [...GENERATE_DAILY_MISSIONS(player.level, MAX_BET_BY_LEVEL(player.level))], passLevel: 1, passXP: 0, passXpToNext: 100, passRewards: GENERATE_PASS_REWARDS(10000), isPremium: false, premiumExpiry: 0, passBoostMultiplier: 1, passBoostEndTime: 0 };
   });
   const [decks, setDecks] = useState<Deck[]>(() => {
       try {
@@ -3277,8 +3276,9 @@ const App: React.FC = () => {
             targetGrid.forEach(col => col.forEach(sym => { if (sym === SymbolType.COIN) coinCount++; }));
             if (coinCount >= 6) {
                 // The trigger COINs also score as a payline (COIN→SEVEN on the base
-                // game) — pay that line win first, before entering free spins.
-                calculateWin(targetGrid);
+                // game) — credit that line win first (silently), before entering free
+                // spins, without disrupting the free-spin screen flow.
+                calculateWin(targetGrid, true);
                 const spinsWon = 10;
                 setFreeSpinsWon(spinsWon);
                 setTotalFreeSpins(prev => prev + spinsWon);
@@ -3395,7 +3395,10 @@ const App: React.FC = () => {
     });
   }, [targetGrid, selectedGame, freeSpinsRemaining, spinsWithoutBonus]);
 
-  const calculateWin = (finalGrid: SymbolType[][]) => {
+  // creditOnly: pay out the line win and update stats/XP/arena, but skip all
+  // status/popup/sound side-effects — used when a feature (e.g. Piggy free-spin
+  // trigger) needs the payline win credited without taking over the screen flow.
+  const calculateWin = (finalGrid: SymbolType[][], creditOnly = false) => {
     const ft = featureThemeOf(selectedGame.theme);
     const currentBet = availableBets[betIndex];
     let totalPayout = 0;
@@ -3638,6 +3641,7 @@ const App: React.FC = () => {
            setLastWinAmount(totalPayout);
        }
 
+       if (!creditOnly) {
        if (winTier) {
            if (jackpotWon) {
                // Store tier; fire sound + popup when jackpot celebration closes
@@ -3661,10 +3665,12 @@ const App: React.FC = () => {
            const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
            setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 150 : 500);
        }
+       }
     } else {
-       if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
+       if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active && !creditOnly) {
            setLastWinAmount(0);
        }
+       if (!creditOnly) {
        const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
        const level15MultLoss = player.level > 15 ? 1.6 : 1.0;
        const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
@@ -3675,6 +3681,7 @@ const App: React.FC = () => {
        if (player.isVip) addVipXp(1);
        const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
        setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
+       }
     }
   };
 
@@ -5145,6 +5152,7 @@ const App: React.FC = () => {
                             arena={arenaState}
                             playerName={playerName}
                             playerAvatar={profileEmoji}
+                            maxBet={MAX_BET_BY_LEVEL(player.level)}
                             onOpen={() => setShowArena(true)}
                         />
                     </div>

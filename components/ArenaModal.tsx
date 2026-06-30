@@ -3,7 +3,7 @@ import { formatK } from '../constants';
 import { ArenaState } from '../types';
 import {
     getArenaBoard, positionOf, rankInfo, phaseTimeRemaining, seasonPhase,
-    formatCountdown, arenaReward, arenaRewardPool, ArenaEntry, RANK_NAMES, MAX_TIER,
+    formatCountdown, arenaReward, arenaRewardPool, outcomeFor, ArenaEntry, RANK_NAMES, MAX_TIER,
 } from '../services/arenaService';
 
 interface ArenaModalProps {
@@ -161,9 +161,15 @@ const ROW_TINT: Record<number, string> = {
 // In-game side widget — a tall live mini-leaderboard mirroring the left sidebar's
 // length. Shows a window of players around the player, highlights the player's
 // row, colour-codes the top 3, and updates live as positions shift while spinning.
+const SIDE_OUTCOME: Record<string, { label: string; color: string; icon: string }> = {
+    promoted: { label: 'Promotion', color: '#4ade80', icon: 'ti-arrow-up' },
+    held:     { label: 'Holding',   color: '#cbd5e1', icon: 'ti-minus' },
+    demoted:  { label: 'Demotion',  color: '#fb7185', icon: 'ti-arrow-down' },
+};
+
 export const ArenaSideWidget: React.FC<{
-    arena: ArenaState; playerName: string; playerAvatar: string; onOpen: () => void;
-}> = ({ arena, playerName, playerAvatar, onOpen }) => {
+    arena: ArenaState; playerName: string; playerAvatar: string; maxBet: number; onOpen: () => void;
+}> = ({ arena, playerName, playerAvatar, maxBet, onOpen }) => {
     const [now, setNow] = useState(() => Date.now());
     useEffect(() => {
         const t = setInterval(() => setNow(Date.now()), 1000);
@@ -175,6 +181,8 @@ export const ArenaSideWidget: React.FC<{
     const board = getArenaBoard(arena, you, now);
     const myIdx = board.findIndex(e => e.isYou);
     const remaining = phaseTimeRemaining(arena, now);
+    const pool = arenaRewardPool(maxBet, arena.tierIndex);
+    const outcome = SIDE_OUTCOME[outcomeFor(arena.tierIndex, myIdx + 1)];
 
     // 6-row window centred on the player, clamped so the top is visible when near it.
     const WINDOW = 6;
@@ -228,6 +236,22 @@ export const ArenaSideWidget: React.FC<{
                     );
                 })}
             </div>
+
+            {/* Prize pool */}
+            <div className="flex items-center justify-center gap-0.5">
+                <img src="/new_coinicon.png" alt="" style={{ width: 11, height: 11, objectFit: 'contain' }} />
+                <span className="font-black text-amber-300 leading-none" style={{ fontSize: 8.5 }}>{formatK(pool)}</span>
+                <span className="text-white/45 leading-none" style={{ fontSize: 7.5 }}>pool</span>
+            </div>
+
+            {/* Promotion / hold / demotion status */}
+            {!processing && (
+                <div className="flex items-center justify-center gap-0.5 rounded-full py-0.5"
+                    style={{ background: `${outcome.color}26`, boxShadow: `inset 0 0 0 1px ${outcome.color}66` }}>
+                    <i className={`ti ${outcome.icon}`} style={{ fontSize: 8, color: outcome.color }} />
+                    <span className="font-black leading-none" style={{ fontSize: 8, color: outcome.color }}>{outcome.label}</span>
+                </div>
+            )}
 
             {/* Countdown footer */}
             <div className="flex items-center justify-center gap-0.5 rounded-full py-0.5" style={{ background: 'rgba(0,0,0,0.4)' }}>
