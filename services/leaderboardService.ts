@@ -150,7 +150,7 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
             return seededBoard(you, metric);
         }
         if (!data || data.length === 0) return seededBoard(you, metric);
-        return data.map(row => ({
+        const live: LeaderboardEntry[] = data.map(row => ({
             id: row.device_id,
             name: row.name || 'Player',
             avatar: row.avatar || '/Profile_pic (3).png',
@@ -163,6 +163,18 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
             maxWin: Number(row.max_win) || 0,
             isYou: row.device_id === deviceId,
         }));
+        // Blend in the AI roster so the board always feels populated, even with few
+        // real players. Drop any AI whose name collides with a real player.
+        const liveNames = new Set(live.map(e => e.name.toLowerCase()));
+        const ai = [...SEED, ...EXTRA_SEED]
+            .filter(e => !liveNames.has(e.name.toLowerCase()))
+            .map(e => ({ ...e, gems: Math.floor(e.score / 4000) }));
+        const merged: LeaderboardEntry[] = [...live, ...ai];
+        if (!merged.some(e => e.isYou)) {
+            merged.push({ id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, vipLevel: you.vipLevel ?? 0, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true });
+        }
+        merged.sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
+        return merged.slice(0, LIMIT);
     } catch (e) {
         console.warn('[leaderboard] read exception:', e);
         return seededBoard(you, metric);

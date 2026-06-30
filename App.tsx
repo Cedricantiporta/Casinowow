@@ -43,6 +43,7 @@ import { ArenaResultsModal } from './components/ArenaResultsModal';
 import {
     initialArenaState, pointsForEvent, betTierMultiplier, getFinalBoard, positionOf,
     arenaReward, nextTier, outcomeFor, seasonPhase, phaseTimeRemaining, SEASON_TOTAL_MS, SEASON_ACTIVE_MS,
+    winBonusPoints,
 } from './services/arenaService';
 import { DragonPickGrid } from './components/DragonPickModal';
 import { NeonRouletteModal } from './components/NeonRouletteModal';
@@ -766,6 +767,8 @@ const App: React.FC = () => {
   const [showArenaResults, setShowArenaResults] = useState(false);
   const arenaBetTierRef = useRef(0);          // last bet tier index, for AI scaling
   const arenaProcessedRef = useRef(0);        // last seasonId we ran end-of-season for
+  // Arena unlocks once all quest stages are cleared OR the player reaches level 27.
+  const arenaUnlocked = player.level >= 27 || slotQuestState.currentPathIndex >= QUEST_PATH_IDS.length;
 
   // Hold and Win state (Egypt / Pharaoh's Tomb)
   const [holdWinActive, setHoldWinActive] = useState(false);
@@ -1566,7 +1569,7 @@ const App: React.FC = () => {
             const board = getFinalBoard(prev, { id: 'you', name: playerName || 'You', avatar: profileEmoji, points: prev.points });
             const position = positionOf(board);
             tierIndex = nextTier(prev.tierIndex, position);
-            const reward = arenaReward(position, MAX_BET_BY_LEVEL(player.level));
+            const reward = arenaReward(position, MAX_BET_BY_LEVEL(player.level), prev.tierIndex);
             if (reward > 0) setPlayer(p => ({ ...p, balance: p.balance + reward }));
           }
           arenaProcessedRef.current = prev.seasonId; // don't reprocess
@@ -1587,9 +1590,9 @@ const App: React.FC = () => {
           const position = positionOf(board);
           const newTier = nextTier(prev.tierIndex, position);
           const outcome = outcomeFor(prev.tierIndex, position);
-          const reward = arenaReward(position, MAX_BET_BY_LEVEL(player.level));
+          const reward = arenaReward(position, MAX_BET_BY_LEVEL(player.level), prev.tierIndex);
           if (reward > 0) setPlayer(p => ({ ...p, balance: p.balance + reward }));
-          setShowArenaResults(true);
+          if (arenaUnlocked) setShowArenaResults(true);
           return {
             ...prev,
             tierIndex: newTier,
@@ -2183,6 +2186,7 @@ const App: React.FC = () => {
           // No further wins — keep cascade grid visible until next spin(); clear it there
           const winTier = getWinTier(accWin, bet);
           setWinData({ payout: accWin, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
+          awardArenaWin(accWin);
           setCascadeMultiplier(1);
           setCascadeTotalWin(0);
           if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
@@ -3372,6 +3376,7 @@ const App: React.FC = () => {
                     setPendingBigWin(true);
                     pendingWinTierRef.current = 'BIG WIN';
                     setJackpotWinTier({ name: 'MINI', color: '#4ade80', icon: '', amount: jpAmount });
+                    awardArenaWin(jpAmount);
                 } else {
                     calculateWin(targetGrid);
                 }
@@ -3676,6 +3681,15 @@ const App: React.FC = () => {
     }
   };
 
+  // Award Arena win-tier points for a feature win (jackpot, roulette, cascade,
+  // respin, pick bonus) that happens outside the normal per-spin evaluation.
+  const awardArenaWin = (amount: number) => {
+      if (amount <= 0) return;
+      const bet = currentBetRef.current || 1;
+      const pts = winBonusPoints(getWinTier(amount, bet), arenaBetTierRef.current);
+      if (pts > 0) setArenaState(prev => ({ ...prev, points: prev.points + pts }));
+  };
+
   const addXp = (amount: number) => {
       setPlayer(prev => {
           // Base EXP increased by 50% across all sources
@@ -3882,6 +3896,7 @@ const App: React.FC = () => {
           setPlayer(p => ({ ...p, balance: p.balance + total }));
           const winTier = getWinTier(total, currentBet);
           setWinData({ payout: total, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
+          awardArenaWin(total);
           if (total > 0) {
               setStatus(GameStatus.WIN_ANIMATION);
               if (winTier) {
@@ -3961,6 +3976,7 @@ const App: React.FC = () => {
       trackSlotQuest('BIG_WIN_COUNT', 1);
       updateMissions(MissionType.BIG_WIN_COUNT, 1);
       trackSlotQuest('BONUS_TRIGGER', 1);
+      awardArenaWin(amount);
   };
 
   const handleDragonPickWin = (tier: string, amount: number) => {
@@ -3984,6 +4000,7 @@ const App: React.FC = () => {
       trackSlotQuest('BIG_WIN_COUNT', 1);
       updateMissions(MissionType.BIG_WIN_COUNT, 1);
       trackSlotQuest('BONUS_TRIGGER', 1);
+      awardArenaWin(amount);
   };
 
   const handleNeonRouletteClose = () => {
@@ -4000,6 +4017,7 @@ const App: React.FC = () => {
       setWinData({ payout: prize, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
       if (winTier) { trackSlotQuest('BIG_WIN_COUNT', 1); updateMissions(MissionType.BIG_WIN_COUNT, 1); audioService.playWinTier(winTier); setShowWinPopup(true); }
       trackSlotQuest('BONUS_TRIGGER', 1);
+      awardArenaWin(prize);
   };
 
   const handleJackpotClose = () => {
@@ -4960,9 +4978,10 @@ const App: React.FC = () => {
                 onOpenHighRoller={handleOpenHighRoller}
                 onOpenVipLounge={() => setShowVipLounge(true)}
                 onOpenArena={() => setShowArena(true)}
-                arena={arenaState}
+                arena={arenaUnlocked ? arenaState : undefined}
                 arenaPlayerName={playerName}
                 arenaPlayerAvatar={profileEmoji}
+                arenaMaxBet={MAX_BET_BY_LEVEL(player.level)}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
@@ -5095,15 +5114,17 @@ const App: React.FC = () => {
                     );
                 })()}
 
-                {/* Arena widget — top-right, live while spinning */}
-                <div className="absolute right-1 top-2 z-40">
-                    <ArenaSideWidget
-                        arena={arenaState}
-                        playerName={playerName}
-                        playerAvatar={profileEmoji}
-                        onOpen={() => setShowArena(true)}
-                    />
-                </div>
+                {/* Arena widget — right side, mirrors the left sidebar; live while spinning */}
+                {arenaUnlocked && (
+                    <div className="absolute right-1 z-40" style={{ top: '38%', transform: 'translateY(-38%)' }}>
+                        <ArenaSideWidget
+                            arena={arenaState}
+                            playerName={playerName}
+                            playerAvatar={profileEmoji}
+                            onOpen={() => setShowArena(true)}
+                        />
+                    </div>
+                )}
 
                 {(() => {
                     const JP_BG: Record<string, string> = {
@@ -5829,6 +5850,7 @@ const App: React.FC = () => {
               triggerCoinAnim(amount);
               audioService.playWinBig();
               setCelebrationMsg(`+${formatCommaNumber(amount)} Coins`);
+              awardArenaWin(amount);
           }} />
       
       <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} />

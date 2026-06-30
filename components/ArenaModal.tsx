@@ -3,7 +3,7 @@ import { formatK } from '../constants';
 import { ArenaState } from '../types';
 import {
     getArenaBoard, positionOf, rankInfo, phaseTimeRemaining, seasonPhase,
-    formatCountdown, arenaReward, ArenaEntry, RANK_NAMES, MAX_TIER,
+    formatCountdown, arenaReward, arenaRewardPool, ArenaEntry, RANK_NAMES, MAX_TIER,
 } from '../services/arenaService';
 
 interface ArenaModalProps {
@@ -85,10 +85,15 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                     </div>
                 </div>
 
-                {/* Zone legend */}
-                <div className="shrink-0 flex items-center justify-center gap-4 px-3 pb-1.5">
-                    <span className="flex items-center gap-1 text-[10px] font-black text-green-300"><i className="ti ti-arrow-up" />Promotion 1–10</span>
-                    <span className="flex items-center gap-1 text-[10px] font-black text-rose-300"><i className="ti ti-arrow-down" />Demotion 51+</span>
+                {/* Reward pool + zone legend */}
+                <div className="shrink-0 flex items-center justify-between gap-2 px-4 pb-1.5">
+                    <span className="flex items-center gap-1 text-[10px] font-black text-green-300"><i className="ti ti-arrow-up" />Top 1–10</span>
+                    <div className="flex items-center gap-1">
+                        <span className="text-white/50 font-bold" style={{ fontSize: 9 }}>Pool</span>
+                        <img src="/new_coinicon.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />
+                        <span className="font-black text-amber-300" style={{ fontSize: 11 }}>{formatK(arenaRewardPool(maxBet, arena.tierIndex))}</span>
+                    </div>
+                    <span className="flex items-center gap-1 text-[10px] font-black text-rose-300">51+<i className="ti ti-arrow-down" /></span>
                 </div>
 
                 {/* Leaderboard */}
@@ -97,7 +102,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                         const pos = i + 1;
                         const inPromo = pos <= 10;
                         const inDemo = pos >= 51;
-                        const reward = arenaReward(pos, maxBet);
+                        const reward = arenaReward(pos, maxBet, arena.tierIndex);
                         return (
                             <div
                                 key={e.id}
@@ -140,8 +145,16 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
     );
 };
 
-// Compact in-game side widget — mirrors the left sidebar container style and
-// updates live while the player spins (points, position, season countdown).
+// Top-3 row tints for the live mini-leaderboard.
+const ROW_TINT: Record<number, string> = {
+    1: 'rgba(251,191,36,0.34)',  // gold
+    2: 'rgba(203,213,225,0.30)', // silver
+    3: 'rgba(217,119,6,0.32)',   // bronze
+};
+
+// In-game side widget — a tall live mini-leaderboard mirroring the left sidebar's
+// length. Shows a window of players around the player, highlights the player's
+// row, colour-codes the top 3, and updates live as positions shift while spinning.
 export const ArenaSideWidget: React.FC<{
     arena: ArenaState; playerName: string; playerAvatar: string; onOpen: () => void;
 }> = ({ arena, playerName, playerAvatar, onOpen }) => {
@@ -153,24 +166,59 @@ export const ArenaSideWidget: React.FC<{
     const info = rankInfo(arena.tierIndex);
     const you: ArenaEntry = { id: 'you', name: playerName, avatar: playerAvatar, points: arena.points };
     const board = getArenaBoard(arena, you, now);
-    const pos = positionOf(board);
+    const myIdx = board.findIndex(e => e.isYou);
     const remaining = phaseTimeRemaining(arena, now);
+
+    // 6-row window centred on the player, clamped so the top is visible when near it.
+    const WINDOW = 6;
+    let start = Math.max(0, myIdx - 2);
+    start = Math.min(start, Math.max(0, board.length - WINDOW));
+    const rows = board.slice(start, start + WINDOW);
+
     return (
         <button onClick={onOpen}
-            className="flex flex-col items-center gap-0.5 active:scale-95 transition-transform select-none"
+            className="flex flex-col items-stretch active:scale-[0.98] transition-transform select-none"
             style={{
-                width: 58, padding: '6px 4px 5px', borderRadius: 16,
-                background: 'linear-gradient(180deg,rgba(124,63,181,0.92),rgba(74,24,128,0.92))',
+                width: 92, padding: 5, borderRadius: 16, gap: 4,
+                background: 'linear-gradient(180deg,rgba(124,63,181,0.94),rgba(58,18,104,0.94))',
                 boxShadow: '0 4px 14px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.18)',
             }}>
-            <ArenaBadge tierIndex={arena.tierIndex} size={38} />
-            <span className="font-black text-white leading-none mt-0.5" style={{ fontSize: 9 }}>{info.label}</span>
-            <div className="flex items-center gap-0.5">
-                <i className="ti ti-bolt" style={{ color: info.color, fontSize: 9 }} />
-                <span className="font-black text-white leading-none" style={{ fontSize: 9 }}>{formatK(arena.points)}</span>
+            {/* Header — rank + points + countdown */}
+            <div className="flex items-center gap-1.5 px-0.5">
+                <ArenaBadge tierIndex={arena.tierIndex} size={26} />
+                <div className="flex flex-col items-start min-w-0 flex-1">
+                    <span className="font-black text-white leading-none truncate" style={{ fontSize: 8.5 }}>{info.label}</span>
+                    <div className="flex items-center gap-0.5">
+                        <i className="ti ti-bolt" style={{ color: info.color, fontSize: 8 }} />
+                        <span className="font-black text-white leading-none" style={{ fontSize: 8.5 }}>{formatK(arena.points)}</span>
+                    </div>
+                </div>
             </div>
-            <span className="text-white/60 font-bold leading-none" style={{ fontSize: 8 }}>#{pos}</span>
-            <div className="flex items-center gap-0.5 rounded-full px-1.5 py-0.5 mt-0.5" style={{ background: 'rgba(0,0,0,0.4)' }}>
+
+            {/* Live windowed leaderboard */}
+            <div className="flex flex-col" style={{ gap: 2 }}>
+                {rows.map((e) => {
+                    const pos = board.indexOf(e) + 1;
+                    const tint = ROW_TINT[pos];
+                    return (
+                        <div key={e.id}
+                            className="flex items-center gap-1 rounded-md px-1"
+                            style={{
+                                height: 18,
+                                background: e.isYou ? 'linear-gradient(90deg,rgba(216,180,254,0.55),rgba(168,85,247,0.35))' : tint || 'rgba(0,0,0,0.22)',
+                                boxShadow: e.isYou ? 'inset 0 0 0 1.2px rgba(245,225,255,0.85)' : undefined,
+                            }}>
+                            <span className="font-black text-white/90 text-center" style={{ fontSize: 8, width: 13, textShadow: '0 1px 1px rgba(0,0,0,0.7)' }}>{pos}</span>
+                            <img src={e.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 13, height: 13 }} />
+                            <span className="font-black text-white leading-none ml-auto" style={{ fontSize: 8, textShadow: '0 1px 1px rgba(0,0,0,0.7)' }}>{formatK(e.points)}</span>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* Countdown footer */}
+            <div className="flex items-center justify-center gap-0.5 rounded-full py-0.5" style={{ background: 'rgba(0,0,0,0.4)' }}>
+                <i className="ti ti-clock text-white/70" style={{ fontSize: 8 }} />
                 <span className="font-black text-white leading-none" style={{ fontSize: 8 }}>{formatCountdown(remaining)}</span>
             </div>
         </button>

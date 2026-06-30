@@ -70,13 +70,30 @@ export function pointsForEvent(winType: string | null, betIndex: number): number
     return Math.round(total * betTierMultiplier(betIndex));
 }
 
-// ── Rewards ──  position (1-based) → coins = factor × maxBet
+// Win-tier bonus only (no spin base) — for feature wins (jackpots, roulettes,
+// cascades, respins) that happen outside the normal per-spin evaluation.
+export function winBonusPoints(winType: string | null, betIndex: number): number {
+    if (!winType || !(winType in ARENA_BASE_POINTS)) return 0;
+    return Math.round((ARENA_BASE_POINTS as Record<string, number>)[winType] * betTierMultiplier(betIndex));
+}
+
+// ── Rewards ──  position (1-based) → coins = factor × maxBet × rank multiplier.
+// Each rank tier above the lowest increases all rewards by 50% (compounding).
 const REWARD_FACTORS: Record<number, number> = { 1: 100, 2: 60, 3: 30, 4: 10, 5: 10 };
-export function arenaReward(position: number, maxBet: number): number {
+export const rankRewardMultiplier = (tierIndex: number): number => Math.pow(1.5, Math.max(0, tierIndex));
+
+export function arenaReward(position: number, maxBet: number, tierIndex: number = 0): number {
     let factor = 0;
     if (position in REWARD_FACTORS) factor = REWARD_FACTORS[position];
     else if (position >= 6 && position <= 10) factor = 5;
-    return Math.round(factor * maxBet);
+    return Math.round(factor * maxBet * rankRewardMultiplier(tierIndex));
+}
+
+// Combined reward pool for a rank — sum of every paid position (top 1–10).
+export function arenaRewardPool(maxBet: number, tierIndex: number = 0): number {
+    let total = 0;
+    for (let pos = 1; pos <= 10; pos++) total += arenaReward(pos, maxBet, tierIndex);
+    return total;
 }
 
 // ── Promotion / demotion ──

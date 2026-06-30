@@ -38,6 +38,7 @@ interface LobbyProps {
     arena?: ArenaState;
     arenaPlayerName?: string;
     arenaPlayerAvatar?: string;
+    arenaMaxBet?: number;
     questState: QuestState;
     missionState: MissionState;
     nextTimeBonus: number;
@@ -74,6 +75,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     arena,
     arenaPlayerName,
     arenaPlayerAvatar,
+    arenaMaxBet,
     questState,
     missionState,
     nextTimeBonus,
@@ -299,6 +301,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     arena={arena}
                                     playerName={arenaPlayerName || 'You'}
                                     playerAvatar={arenaPlayerAvatar || '/Profile_pic (3).png'}
+                                    maxBet={arenaMaxBet || 0}
                                     onOpen={() => onOpenArena?.()}
                                 />
                             )}
