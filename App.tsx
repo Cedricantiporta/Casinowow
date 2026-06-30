@@ -586,7 +586,7 @@ const App: React.FC = () => {
           coins:  (mult: number): SlotQuestMission => ({ id: `${slotId}_coins`, type: 'WIN_COINS',   label: 'Coins', description: `Win a total of ${formatK(base * mult)} Coins`, current: 0, target: base * mult }),
           bet:    (mult: number): SlotQuestMission => ({ id: `${slotId}_bet`,   type: 'BET_COINS',   label: 'Bet',   description: `Bet a total of ${formatK(base * mult)} Coins`, current: 0, target: base * mult }),
           big:      (t: number): SlotQuestMission => ({ id: `${slotId}_big`,      type: 'BIG_WIN_COUNT',  label: 'Big',      description: `Land ${t} Big Wins`, current: 0, target: t }),
-          freespin: (t: number): SlotQuestMission => ({ id: `${slotId}_freespin`, type: 'FREE_SPIN_COUNT', label: 'Bonus',    description: `Trigger ${t} Free Spin${t !== 1 ? 's' : ''} or Respin${t !== 1 ? 's' : ''}`, current: 0, target: t }),
+          freespin: (t: number): SlotQuestMission => ({ id: `${slotId}_freespin`, type: 'FREE_SPIN_COUNT', label: 'Bonus',    description: `Complete ${t} Free Spin${t !== 1 ? 's' : ''} or Respin${t !== 1 ? 's' : ''}`, current: 0, target: t }),
           level:    (t: number): SlotQuestMission => ({ id: `${slotId}_level`,    type: 'LEVEL_UP',       label: 'Level',    description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
           reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
       };
@@ -2875,7 +2875,6 @@ const App: React.FC = () => {
                             setReelTransitioning('out');
                             setTimeout(() => {
                                 holdWinRef.current.active = true;
-                                trackSlotQuest('FREE_SPIN_COUNT', 1);
                                 setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
                                 setReelTransitioning('in');
                                 setTimeout(() => { setReelTransitioning(false); setStatus(GameStatus.IDLE); }, 1100);
@@ -2904,7 +2903,6 @@ const App: React.FC = () => {
                 pirateDualShipRef.current = false;
                 pirateShip2OffsetRef.current = 0;
                 pirateWalkRef.current = { active: true, shipCol: selectedGame.reels - 1, ship2Col: ship2Start };
-                trackSlotQuest('FREE_SPIN_COUNT', 1);
                 setPirateWalkActive(true);
                 setPirateShipCol(selectedGame.reels - 1);
                 setPirateShip2Col(-1); // ship 2 starts off-screen
@@ -2951,11 +2949,9 @@ const App: React.FC = () => {
                      const retrigerSpins = 5;
                      setFreeSpinsWon(retrigerSpins);
                      setTotalFreeSpins(prev => prev + retrigerSpins);
-                     trackSlotQuest('FREE_SPIN_COUNT', 1);
                      setShowFreeSpinsPopup(true);
                      audioService.playFreeSpinTrigger();
                  } else {
-                     trackSlotQuest('FREE_SPIN_COUNT', 1);
                      setStatus(GameStatus.SCATTER_SHOWCASE);
                      audioService.playScatterTrigger();
                      setSpinsWithoutBonus(0);
@@ -2974,7 +2970,6 @@ const App: React.FC = () => {
                  : baseSpins;
              setFreeSpinsWon(spinsWon);
              setTotalFreeSpins(prev => prev + spinsWon);
-             trackSlotQuest('FREE_SPIN_COUNT', 1);
 
              if (freeSpinsRemaining > 0) {
                  setShowFreeSpinsPopup(true);
@@ -2999,7 +2994,6 @@ const App: React.FC = () => {
                 const spinsWon = 10;
                 setFreeSpinsWon(spinsWon);
                 setTotalFreeSpins(prev => prev + spinsWon);
-                trackSlotQuest('FREE_SPIN_COUNT', 1);
                 if (freeSpinsRemaining > 0) {
                     setShowFreeSpinsPopup(true);
                     audioService.playFreeSpinTrigger();
@@ -3565,6 +3559,7 @@ const App: React.FC = () => {
       }
       // If free spins just ended (no retrigger pending), show summary
       if (freeSpinsWon > 0 && freeSpinsRemaining === 0 && !showFreeSpinsPopup) {
+          trackSlotQuest('FREE_SPIN_COUNT', 1);
           setShowFreeSpinSummary(true);
       } else {
           setStatus(GameStatus.IDLE);
@@ -4634,19 +4629,23 @@ const App: React.FC = () => {
                                 return sidebarPage === 0 ? (<>
                                     {/* Slot 1: Quest when in progress, else Pass */}
                                     {questInProgress ? (
-                                        <button onClick={() => setShowQuestPath(true)} className="relative flex flex-col items-center active:scale-95 transition-transform" style={{ width: 54 }}>
-                                            {/* Combined 3-mission progress bar */}
-                                            <div style={{ width: 54, height: 54, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, background: 'rgba(0,0,0,0.35)', borderRadius: 14, padding: '8px 6px', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.3), 0 2px 6px rgba(0,0,0,0.5)' }}>
-                                                {slotQuestState.missions.slice(0, 3).map((m, mi) => {
-                                                    const pct = Math.min(100, m.target > 0 ? (m.current / m.target) * 100 : 0);
-                                                    const done = m.current >= m.target;
-                                                    return (
-                                                        <div key={mi} style={{ width: '100%', height: 10, background: 'rgba(0,0,0,0.5)', borderRadius: 5, overflow: 'hidden', position: 'relative' }}>
-                                                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, borderRadius: 5, background: done ? 'linear-gradient(90deg,#4ade80,#16a34a)' : 'linear-gradient(90deg,#c084fc,#7c3aed)', transition: 'width 0.4s ease' }} />
+                                        <button onClick={() => setShowQuestPath(true)} className="relative flex flex-col items-center active:scale-95 transition-transform">
+                                            <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                            {/* Combined single progress bar — avg of all missions */}
+                                            {(() => {
+                                                const ms = slotQuestState.missions;
+                                                const pct = ms.length > 0 ? Math.min(100, ms.reduce((s, m) => s + (m.target > 0 ? Math.min(1, m.current / m.target) : 0), 0) / ms.length * 100) : 0;
+                                                const done = pct >= 100;
+                                                return (
+                                                    <div className="rtrack" style={{ height: 10, width: 48, marginTop: -3, padding: '0 4px', minWidth: 0 }}>
+                                                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                                                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${pct}%`, background: done ? 'linear-gradient(180deg,#4ade80,#16a34a 60%,#15803d)' : 'linear-gradient(180deg,#a78bfa,#7c3aed 60%,#5b21b6)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }}>
+                                                                <div className="absolute inset-y-0 w-5 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+                                                            </div>
                                                         </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                    </div>
+                                                );
+                                            })()}
                                             <div style={pillStyle}>Quest</div>
                                         </button>
                                     ) : passBtn}
@@ -4796,7 +4795,7 @@ const App: React.FC = () => {
                                 newCells={cascadeNewCells ? cascadeNewCells[i] : undefined}
                                 dissolving={cascadeDissolving}
                                 anticipation={isAnticipating && i === stoppedReels}
-                                inFreeSpins={freeSpinsRemaining > 0}
+                                inFreeSpins={freeSpinsWon > 0}
                                 instantStop={instantStop}
                             />
                             ));

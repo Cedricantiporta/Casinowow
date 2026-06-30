@@ -664,7 +664,11 @@ export const FREE_SPIN_WEIGHTS = [
 
 export const GET_DYNAMIC_WEIGHTS = (isFreeSpin: boolean, spinsWithoutBonus: number) => {
     if (isFreeSpin) return FREE_SPIN_WEIGHTS;
-    return WEIGHTS;
+    // Every 70 spins without a bonus, scatter chance increases by 20% (resets when free spin triggers)
+    const bonusStacks = Math.floor(spinsWithoutBonus / 70);
+    if (bonusStacks === 0) return WEIGHTS;
+    const scatterMult = 1 + 0.2 * bonusStacks;
+    return WEIGHTS.map(w => w.type === SymbolType.SCATTER ? { ...w, weight: w.weight * scatterMult } : w);
 };
 
 const PAYLINES_CACHE = new Map<string, Payline[]>();
