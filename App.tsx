@@ -5624,14 +5624,12 @@ const App: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Egypt HW respin counter — absolute right so reel grid stays centered */}
+                    {/* Egypt HW respin counter — short yellow banner over the reels */}
                     {holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && (
-                        <div className="flex flex-col items-center gap-1 px-2 py-2 tcard-gold absolute"
-                            style={{ right: 0, top: '50%', transform: 'translateY(-50%)' }}>
-                            <span style={{ fontSize: 'clamp(7px,1.3vw,10px)', color: '#fbbf24', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase' }}>RESPINS</span>
-                            <span style={{ fontSize: 'clamp(14px,2.8vw,20px)', color: '#fde68a', fontWeight: 900, textShadow: '0 0 10px rgba(251,191,36,0.8)', lineHeight: 1 }}>
-                                {holdWinRespins}/3
-                            </span>
+                        <div className="absolute z-30 flex items-center justify-center gap-1.5 px-4 py-0.5"
+                            style={{ top: 0, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(180deg,#ffe24d 0%,#ffb31a 50%,#f57c00 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 2px 6px rgba(0,0,0,0.5)' }}>
+                            <span style={{ fontSize: 11, color: '#5a3000', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Respins</span>
+                            <span style={{ fontSize: 15, color: '#3a1d00', fontWeight: 900, lineHeight: 1 }}>{holdWinRespins}/3</span>
                         </div>
                     )}
 
