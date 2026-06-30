@@ -11,16 +11,16 @@ interface Seg {
 
 // 10 segments — higher multiplier = lower chance (weighted pick, like the neon/candy wheel)
 const SEGMENTS: Seg[] = [
-    { label: '2×',  color: '#e0e7ff', mult: 2,  baseWeight: 18 },
-    { label: '4×',  color: '#ede9fe', mult: 4,  baseWeight: 12 },
-    { label: '6×',  color: '#fce7f3', mult: 6,  baseWeight: 6  },
-    { label: '2×',  color: '#dbeafe', mult: 2,  baseWeight: 18 },
-    { label: '8×',  color: '#fce7f3', mult: 8,  baseWeight: 3  },
-    { label: '4×',  color: '#f3e8ff', mult: 4,  baseWeight: 12 },
-    { label: '2×',  color: '#e0e7ff', mult: 2,  baseWeight: 18 },
-    { label: '10×', color: '#fef3c7', mult: 10, baseWeight: 1  },
-    { label: '4×',  color: '#ede9fe', mult: 4,  baseWeight: 12 },
-    { label: '6×',  color: '#fce7f3', mult: 6,  baseWeight: 6  },
+    { label: '2×',  color: '#111111', mult: 2,  baseWeight: 18 },
+    { label: '4×',  color: '#111111', mult: 4,  baseWeight: 12 },
+    { label: '6×',  color: '#111111', mult: 6,  baseWeight: 6  },
+    { label: '2×',  color: '#111111', mult: 2,  baseWeight: 18 },
+    { label: '8×',  color: '#111111', mult: 8,  baseWeight: 3  },
+    { label: '4×',  color: '#111111', mult: 4,  baseWeight: 12 },
+    { label: '2×',  color: '#111111', mult: 2,  baseWeight: 18 },
+    { label: '10×', color: '#111111', mult: 10, baseWeight: 1  },
+    { label: '4×',  color: '#111111', mult: 4,  baseWeight: 12 },
+    { label: '6×',  color: '#111111', mult: 6,  baseWeight: 6  },
 ];
 
 const N = SEGMENTS.length;
@@ -39,11 +39,10 @@ const pickSeg = (): number => {
 
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
-// Per-segment text colors for the jackpot roulette multipliers
 const SEG_TEXT: string[] = [
-    '#3730a3', '#5b21b6', '#9d174d',
-    '#1e3a8a', '#9d174d', '#4c1d95',
-    '#3730a3', '#78350f', '#5b21b6', '#9d174d',
+    '#ffffff', '#ffffff', '#ffffff',
+    '#ffffff', '#ffffff', '#ffffff',
+    '#ffffff', '#ffffff', '#ffffff', '#ffffff',
 ];
 
 function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: number) {

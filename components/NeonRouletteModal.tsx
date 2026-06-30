@@ -13,14 +13,14 @@ interface Seg {
 }
 
 const SEGMENTS: Seg[] = [
-    { label: '2×',    color: '#dbeafe', textColor: '#1e3a8a', mult: 2,  baseWeight: 28   },
-    { label: '3×',    color: '#dcfce7', textColor: '#14532d', mult: 3,  baseWeight: 18   },
+    { label: '2×',    color: '#111111', textColor: '#ffffff', mult: 2,  baseWeight: 28   },
+    { label: '3×',    color: '#111111', textColor: '#ffffff', mult: 3,  baseWeight: 18   },
     { label: 'MINI',  color: '#16a34a', textColor: '#ffffff', jp: 'MINI',  baseWeight: 12  },
-    { label: '4×',    color: '#ede9fe', textColor: '#4c1d95', mult: 4,  baseWeight: 14   },
-    { label: '5×',    color: '#d1fae5', textColor: '#064e3b', mult: 5,  baseWeight: 8    },
+    { label: '4×',    color: '#111111', textColor: '#ffffff', mult: 4,  baseWeight: 14   },
+    { label: '5×',    color: '#111111', textColor: '#ffffff', mult: 5,  baseWeight: 8    },
     { label: 'MINOR', color: '#0891b2', textColor: '#ffffff', jp: 'MINOR', baseWeight: 5  },
     { label: 'MAJOR', color: '#9333ea', textColor: '#ffffff', jp: 'MAJOR', baseWeight: 0.6},
-    { label: '10×',   color: '#fef3c7', textColor: '#78350f', mult: 10, baseWeight: 3    },
+    { label: '10×',   color: '#111111', textColor: '#ffffff', mult: 10, baseWeight: 3    },
     { label: 'MEGA',  color: '#ef4444', textColor: '#ffffff', jp: 'MEGA',  baseWeight: 0.2},
     { label: 'GRAND', color: '#f59e0b', textColor: '#ffffff', jp: 'GRAND', baseWeight: 0.05},
 ];
