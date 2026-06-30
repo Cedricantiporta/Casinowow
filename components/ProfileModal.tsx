@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { GameConfig } from '../types';
 import { formatK } from '../constants';
+import { AVATARS, isAvatarUnlocked, avatarRequirementLabel } from '../services/avatarService';
 
 interface ProfileModalProps {
     isOpen: boolean;
@@ -35,6 +36,9 @@ interface ProfileModalProps {
     onNavigateToGame?: (game: GameConfig) => void;
     albumsCompleted?: number;
     albumsTotal?: number;
+    arenaTier?: number;
+    unlockedAvatars?: string[];
+    onBuyAvatar?: (path: string, cost: number) => void;
 }
 
 // Profile pics 1-12. Only the first four are unlocked; the rest are locked.
@@ -69,7 +73,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     isOpen, onClose, player, isPremium, passBoostMultiplier = 1, passBoostEndTime = 0,
     recentGames, profileEmoji = '', onSetProfileEmoji, playerName: playerNameProp,
     onSetPlayerName, onNavigateToGame, albumsCompleted = 0, albumsTotal = 0,
+    arenaTier = 0, unlockedAvatars = [], onBuyAvatar,
 }) => {
+    const avatarCtx = { level: player.level, isVip: !!player.isVip, arenaTier, unlockedAvatars };
     const playerName = playerNameProp ?? (localStorage.getItem('playerName') || 'Player');
     const [showPicPicker, setShowPicPicker] = useState(false);
     const [editingName, setEditingName] = useState(false);
@@ -120,8 +126,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         onClick={() => setShowPicPicker(v => !v)}
                         className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 cursor-pointer transition-transform active:scale-95"
                         style={vip
-                            ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', border: '1px solid #8b6200', boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.5), inset 0 -2px 3px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4)' }
-                            : { background: 'linear-gradient(180deg,#9b6ce0,#5022a8)', border: '1px solid #38106e', boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.5), inset 0 -2px 3px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.4)' }
+                            ? { background: 'linear-gradient(180deg,#e0a820,#9a6800)', boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 2.5px #fbbf24, 0 2px 5px rgba(0,0,0,0.5)' }
+                            : { background: 'linear-gradient(180deg,#9b6ce0,#5022a8)', boxShadow: 'inset 0 0 0 2px rgba(255,255,255,0.6), 0 0 0 2.5px #a855f7, 0 2px 5px rgba(0,0,0,0.5)' }
                         }>
                         {isPic
                             ? <img src={profileEmoji} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -130,19 +136,27 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                     </button>
                     {showPicPicker && (
                         <div className="absolute top-14 left-0 z-50 rounded-2xl p-2 shadow-2xl flex flex-wrap gap-1.5"
-                            style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 188 }}>
-                            {PROFILE_PICS.map((pic, i) => {
-                                const locked = i >= UNLOCKED_PIC_COUNT;
+                            style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 200 }}>
+                            {AVATARS.map((def) => {
+                                const pic = def.path;
+                                const unlocked = isAvatarUnlocked(def, avatarCtx);
+                                const isGem = def.unlock.type === 'gems';
+                                const buyable = !unlocked && isGem;
+                                const canAfford = isGem && (def.unlock as any).cost <= player.diamonds;
+                                const reqLabel = avatarRequirementLabel(def);
                                 return (
                                     <button key={pic}
-                                        onClick={() => { if (locked) return; onSetProfileEmoji?.(pic); setShowPicPicker(false); }}
-                                        disabled={locked}
-                                        className={`relative w-10 h-10 rounded-xl overflow-hidden transition-transform${locked ? '' : ' active:scale-90 hover:brightness-125'}`}
-                                        style={{ border: profileEmoji === pic ? `2px solid ${vip ? '#fbbf24' : '#a855f7'}` : '2px solid transparent', cursor: locked ? 'default' : 'pointer' }}>
-                                        <img src={pic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: locked ? 'grayscale(1) brightness(0.45)' : undefined }} />
-                                        {locked && (
-                                            <span className="absolute inset-0 flex items-center justify-center text-white/85" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>
-                                                <i className="ti ti-lock text-sm"></i>
+                                        onClick={() => {
+                                            if (unlocked) { onSetProfileEmoji?.(pic); setShowPicPicker(false); return; }
+                                            if (buyable && canAfford) onBuyAvatar?.(pic, (def.unlock as any).cost);
+                                        }}
+                                        className={`relative w-11 h-11 rounded-xl overflow-hidden transition-transform${unlocked || (buyable && canAfford) ? ' active:scale-90 hover:brightness-125' : ''}`}
+                                        style={{ border: profileEmoji === pic ? `2px solid ${vip ? '#fbbf24' : '#a855f7'}` : '2px solid transparent', cursor: unlocked || (buyable && canAfford) ? 'pointer' : 'default' }}>
+                                        <img src={pic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: unlocked ? undefined : 'grayscale(1) brightness(0.4)' }} />
+                                        {!unlocked && (
+                                            <span className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 text-white/90" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                                                {isGem ? <i className="ti ti-diamond" style={{ fontSize: 11 }} /> : <i className="ti ti-lock" style={{ fontSize: 11 }} />}
+                                                <span className="font-black leading-none" style={{ fontSize: 7.5 }}>{reqLabel}</span>
                                             </span>
                                         )}
                                     </button>

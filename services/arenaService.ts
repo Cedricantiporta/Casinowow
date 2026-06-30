@@ -111,16 +111,25 @@ export function outcomeFor(tierIndex: number, position: number): Outcome {
 }
 
 // ── AI roster ──
-const AI_NAMES = [
-    'NinjaMax47', 'DONUT', 'ShadowX', 'FrostByte', 'LuckySpin', 'PixelFox', 'AstroAce', 'GhostRunner',
-    'DarkWolf', 'NovaStrike', 'CyberLynx', 'BlazeKing', 'VoidWalker', 'NeonDrift', 'IronClad', 'StormChaser',
-    'Ashley', 'Luna', 'Ethan', 'Mia', 'Alex', 'Chloe', 'Mason', 'Zoe', 'Liam', 'Ava', 'Noah', 'Ella',
-    'Kai', 'Maya', 'Leo', 'Nina', 'Ryan', 'Sofia', 'Jack', 'Ruby',
-    'SpinMaster', 'CoinHunter', 'JackpotJoe', 'WildCard', 'GoldRush', 'LuckyDuck', 'MoonShot', 'RebelRook',
-    'TurboTom', 'ViperX', 'QuickSilver', 'PhantomFox', 'EchoByte', 'CrimsonAce', 'SilentBolt', 'MagmaWolf',
-    'Player48293018', 'Player92018471', 'Player77410293', 'Player30192847', 'Player65820194', 'Player11938472',
-    'Player84029175', 'Player57301928', 'Player20485917', 'Player93817264', 'Player46728190', 'Player18293746',
-    'Player60918273', 'Player34875612', 'Player72910384', 'Player59182037', 'Player81726354',
+// Shared AI username pool — casual handles, anime/meme tags, PascalCase gamer
+// names, and a few auto-generated "PlayerNNNN" defaults. Used by both the Arena
+// roster and the lifetime leaderboard.
+export const AI_NAMES = [
+    'kevin88', 'john321', 'matt', 'ryan77', 'sleepy', 'nobody', 'imlost', 'itsme', 'bruh', 'bro', 'bro123',
+    'dood', 'dudeee', 'jayy', 'ren', 'kai', 'kenny', 'lucas', 'marky', 'vince', 'potato', 'banana', 'pickle',
+    'toaster', 'waffle', 'coffeepls', 'milktea', 'ramen', 'egg', 'rice', 'bread', 'toast', 'hmmm', 'hehe',
+    'lol123', 'xdxd', 'ggwp', 'ez', 'ggez', 'lucky777', '777', '888', '999', '420', '69nice', 'onepiece',
+    'naruto56', 'gojo', 'itachi', 'luffy', 'zoro', 'kakashi', 'frieren', 'anya', 'delta', 'd3lta', 'nova',
+    'n0va', 'void', 'vanta', 'cipher', 'orbit', 'pixel', 'glitch', 'byte', '404', 'error', 'ghost', 'shadow',
+    'vibe', 'vibecode', 'unknown', 'anon', 'player1', 'guest442', 'bot01', 'npc', 'afk', 'carry', 'clutch',
+    'oneshot', 'taptap', 'spin2win', 'jackpot', 'allin', 'cashout', 'richkid', 'highroller', 'coinflip', 'luckylad',
+    // PascalCase gamer names
+    'ShadowFox', 'NightOwl', 'SilverWolf', 'GoldenAce', 'IronFist', 'StormBringer', 'FrostBite', 'EmberKing',
+    'MysticSage', 'ThunderClap', 'CrimsonBlade', 'LunarEclipse', 'SolarFlare', 'VortexRider', 'PhantomAce',
+    'BlazeRunner', 'NebulaStar', 'CobraStrike', 'RavenClaw', 'TitanForge', 'ShadowStrike', 'NeonKnight', 'PixelStorm',
+    // Auto-generated defaults
+    'Player3213141242', 'Player8829471', 'Player1029384756', 'Player5647382910', 'Player9081726354',
+    'Player4455667788', 'Player7263548190', 'Player3948571026',
 ];
 
 const PROFILE_PICS = ['/Profile_pic (1).png', '/Profile_pic (2).png', '/Profile_pic (3).png', '/Profile_pic (4).png'];

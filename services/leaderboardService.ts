@@ -4,6 +4,7 @@
 // upserts the local device's stats and reads the live top players. When it is not
 // configured, it falls back to a deterministic seeded board so the UI always works.
 import { supabase } from './supabaseClient';
+import { AI_NAMES } from './arenaService';
 
 // Ranking metrics the board can be sorted by.
 export type LeaderboardMetric = 'score' | 'level' | 'maxJackpot' | 'maxWin';
@@ -68,18 +69,10 @@ const SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = [
     { id: 's20', name: 'CandyKing',    avatar: '/Profile_pic (8).png',  level: 35,  vipLevel: 1,  score: 78_000_000,    totalWon: 320_000_000,    maxJackpot: 44_000_000,    maxWin: 29_000_000 },
 ];
 
-// Extended roster — gamer-style names with varied, mostly-beatable scores so the
-// board feels populated (~70 total with the SEED whales above) and real players
-// can climb past most of them. Generated deterministically so it never shuffles.
-const EXTRA_NAMES = [
-    'NinjaMax47', 'ShadowX', 'FrostByte', 'LuckySpin', 'PixelFox', 'AstroAce', 'GhostRunner', 'DarkWolf',
-    'NovaStrike', 'CyberLynx', 'BlazeKing', 'VoidWalker', 'NeonDrift', 'StormChaser', 'Ashley', 'Luna',
-    'Ethan', 'Mia', 'Alex', 'Chloe', 'Mason', 'Zoe', 'Liam', 'Ava', 'Noah', 'Ella', 'Kai', 'Maya',
-    'SpinMaster', 'CoinHunter', 'JackpotJoe', 'WildCard', 'GoldRush', 'LuckyDuck', 'MoonShot', 'TurboTom',
-    'ViperX', 'QuickSilver', 'PhantomFox', 'EchoByte', 'CrimsonAce', 'SilentBolt', 'Player48293018',
-    'Player92018471', 'Player77410293', 'Player30192847', 'Player65820194', 'Player11938472', 'Player84029175',
-    'Player57301928', 'Player20485917', 'Player93817264',
-];
+// Extended roster — uses the shared AI name pool with varied, mostly-beatable
+// scores so the board feels populated (~70 total with the SEED whales above) and
+// real players can climb past most of them. Deterministic so it never shuffles.
+const EXTRA_NAMES = AI_NAMES.slice(0, 52);
 const EXTRA_PICS = ['/Profile_pic (1).png', '/Profile_pic (2).png', '/Profile_pic (3).png', '/Profile_pic (4).png'];
 const EXTRA_DEFAULT = '/Profile_pic (3).png';
 

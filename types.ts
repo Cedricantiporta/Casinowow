@@ -77,6 +77,7 @@ export interface PlayerState {
   freeVipClaimed?: boolean;
   freeStashClaimedTime?: number;
   shopClaimedItems?: string[];
+  unlockedAvatars?: string[]; // gem-purchased / claimed avatar paths
   vipXp?: number;
   vipLevel?: number;
   vipXpToNext?: number;

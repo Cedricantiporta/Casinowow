@@ -765,6 +765,8 @@ const App: React.FC = () => {
   });
   const [showArena, setShowArena] = useState(false);
   const [showArenaResults, setShowArenaResults] = useState(false);
+  const [questCreditToast, setQuestCreditToast] = useState<null | 'dice' | 'mine'>(null);
+  const questCreditToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const arenaBetTierRef = useRef(0);          // last bet tier index, for AI scaling
   const arenaProcessedRef = useRef(0);        // last seasonId we ran end-of-season for
   // Arena unlocks once all quest stages are cleared OR the player reaches level 27.
@@ -3508,11 +3510,7 @@ const App: React.FC = () => {
         const arcticMaxBetIdx = availableBets.length - 1;
         const arcticQuestChance = Math.max(0.005, (0.10 - (arcticMaxBetIdx - betIndex) * 0.01) * 1.3 * 0.8);
         if (player.level >= 20 && Math.random() < arcticQuestChance) {
-            if (Math.random() < 0.5) {
-                setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
-            } else {
-                setQuest(q => ({ ...q, wildCredits: Math.min(60, q.wildCredits + 1) }));
-            }
+            gainQuestCredit(Math.random() < 0.5 ? 'dice' : 'mine');
         }
         if (player.level >= 30) {
             const cardRoll = Math.random();
@@ -3608,11 +3606,7 @@ const App: React.FC = () => {
     const maxBetIdx = availableBets.length - 1;
     const questChance = Math.max(0.005, (0.10 - (maxBetIdx - betIndex) * 0.01) * 1.3 * 0.8);
     if (player.level >= 20 && Math.random() < questChance) {
-        if (Math.random() < 0.5) {
-            setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
-        } else {
-            setQuest(q => ({ ...q, wildCredits: Math.min(60, q.wildCredits + 1) }));
-        }
+        gainQuestCredit(Math.random() < 0.5 ? 'dice' : 'mine');
     }
     if (player.level >= 30) {
         const cardRoll = Math.random();
@@ -3689,6 +3683,15 @@ const App: React.FC = () => {
   const addArenaPoints = (pts: number) => {
       if (pts <= 0) return;
       setArenaState(prev => seasonPhase(prev, Date.now()) === 'active' ? { ...prev, points: prev.points + pts } : prev);
+  };
+
+  // Grant a quest credit (dice or mine/pick) and flash its icon over the reels.
+  const gainQuestCredit = (type: 'dice' | 'mine') => {
+      if (type === 'dice') setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
+      else setQuest(q => ({ ...q, wildCredits: Math.min(60, q.wildCredits + 1) }));
+      setQuestCreditToast(type);
+      if (questCreditToastTimer.current) clearTimeout(questCreditToastTimer.current);
+      questCreditToastTimer.current = setTimeout(() => setQuestCreditToast(null), 2000);
   };
 
   // Award Arena win-tier points for a feature win (jackpot, roulette, cascade,
@@ -4731,7 +4734,7 @@ const App: React.FC = () => {
                         className="round-btn shrink-0 cursor-pointer"
                         style={{
                             ...(currentView === 'LOBBY' && profileEmoji?.startsWith('/Profile_pic')
-                                ? { width: 32, height: 32, padding: 0, overflow: 'hidden' }
+                                ? { width: 32, height: 32, padding: 0, overflow: 'hidden', boxShadow: `inset 0 0 0 2px rgba(255,255,255,0.55), 0 0 0 2px ${player.isVip ? '#fbbf24' : '#a855f7'}, 0 1px 3px rgba(0,0,0,0.5)` }
                                 : {}),
                             ...(showGoldHeader ? { background:'linear-gradient(180deg,#ffec70 0%,#ffbe2a 50%,#ff8c12 100%)', boxShadow:'0 2px 0 #5a3800' } : {}),
                         }}
@@ -5122,6 +5125,18 @@ const App: React.FC = () => {
                         </div>
                     );
                 })()}
+
+                {/* Quest-credit gained — flash the dice/pick icon over the reels for 2s */}
+                {questCreditToast && (
+                    <div className="absolute inset-0 z-[60] flex items-center justify-center pointer-events-none">
+                        <img
+                            src={questCreditToast === 'dice' ? '/ui/dice.png' : '/ui/coinmine.png'}
+                            alt=""
+                            className="animate-vibrate animate-pop-in"
+                            style={{ width: 96, height: 96, objectFit: 'contain', filter: 'drop-shadow(0 4px 18px rgba(0,0,0,0.85))' }}
+                        />
+                    </div>
+                )}
 
                 {/* Arena widget — right side, mirrors the left sidebar; live while spinning */}
                 {arenaUnlocked && (
@@ -5632,12 +5647,13 @@ const App: React.FC = () => {
                   {/* Plus Bet */}
                   <div
                       onClick={() => {
-                          if (betIndex < availableBets.length - 1 && status === GameStatus.IDLE && !player.autoSpin) {
-                              setBetIndex(prev => prev + 1);
+                          if (status === GameStatus.IDLE && !player.autoSpin) {
+                              // Wrap back to the lowest bet when already at max.
+                              setBetIndex(prev => prev >= availableBets.length - 1 ? 0 : prev + 1);
                               audioService.playClick();
                           }
                       }}
-                      className={`pm shrink-0 ${(betIndex === availableBets.length - 1) || status !== GameStatus.IDLE || player.autoSpin || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`pm shrink-0 ${status !== GameStatus.IDLE || player.autoSpin || freeSpinsRemaining > 0 || pirateWalkActive ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                       style={isHighLimit ? { background: 'linear-gradient(180deg,#ffec70 0%,#ffbe2a 50%,#ff8c12 100%)', border: '1px solid #8b6200', color: '#fff' } : {}}
                   >
                       +
@@ -6391,6 +6407,15 @@ const App: React.FC = () => {
           onNavigateToGame={(game) => { setShowProfile(false); handleGameSelect(game as GameConfig); }}
           albumsCompleted={decks.filter(d => d.isCompleted).length}
           albumsTotal={decks.length}
+          arenaTier={arenaState.tierIndex}
+          unlockedAvatars={player.unlockedAvatars || []}
+          onBuyAvatar={(path, cost) => {
+              if (player.diamonds < cost) return;
+              setPlayer(p => ({ ...p, diamonds: p.diamonds - cost, unlockedAvatars: [...(p.unlockedAvatars || []), path] }));
+              setProfileEmoji(path);
+              try { localStorage.setItem('cw_profile_emoji', path); } catch {}
+              audioService.playClick();
+          }}
       />
 
       <InboxModal
