@@ -49,7 +49,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
 
                 {/* Header */}
                 <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
-                    <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Mini Games</span>
+                    <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Quest</span>
                     <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={onClose}><i className="ti ti-x" /></button>
                 </div>
 

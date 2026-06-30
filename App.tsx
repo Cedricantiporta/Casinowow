@@ -3594,7 +3594,8 @@ const App: React.FC = () => {
 
   const addXp = (amount: number) => {
       setPlayer(prev => {
-          let newXp = prev.xp + Math.floor(amount * (1 + EVENT_EXP_BOOST));
+          // Base EXP increased by 50% across all sources
+          let newXp = prev.xp + Math.floor(amount * 1.5 * (1 + EVENT_EXP_BOOST));
           let newLevel = prev.level;
           let newReq = prev.xpToNextLevel;
           let leveledUp = false;
@@ -3683,7 +3684,7 @@ const App: React.FC = () => {
                       if (newLevel === 10) {
                           setFeatureUnlockData({
                               name: 'Piggy Bank',
-                              icon: '🐷',
+                              icon: '/ui/piggy.png',
                               description: 'Save coins with every spin!',
                               action: () => {
                                   setActiveModal('NONE');
@@ -3694,7 +3695,7 @@ const App: React.FC = () => {
                       } else if (newLevel === 15) {
                           setFeatureUnlockData({
                               name: 'Missions',
-                              icon: '📜',
+                              icon: '/ui/missions.png',
                               description: 'Complete daily challenges!',
                               action: () => {
                                   setActiveModal('NONE');
@@ -3704,9 +3705,9 @@ const App: React.FC = () => {
                           setShownUnlocks(prev => new Set(prev).add(15));
                       } else if (newLevel === 20) {
                           setFeatureUnlockData({ 
-                              name: 'Quest', 
-                              icon: '🗺️', 
-                              description: 'Embark on an adventure!', 
+                              name: 'Quest',
+                              icon: '/minigameslobbyicon.png',
+                              description: 'Embark on an adventure!',
                               action: () => { 
                                   setActiveModal('NONE');
                                   setTimeout(() => { openModal('MINIGAME'); audioService.playClick(); }, 50);
@@ -3715,9 +3716,9 @@ const App: React.FC = () => {
                           setShownUnlocks(prev => new Set(prev).add(20));
                       } else if (newLevel === 30) {
                           setFeatureUnlockData({ 
-                              name: 'Card Album', 
-                              icon: '🃏', 
-                              description: 'Collect cards for prizes!', 
+                              name: 'Card Album',
+                              icon: '/ui/cards.png',
+                              description: 'Collect cards for prizes!',
                               action: () => { 
                                   setActiveModal('NONE');
                                   setTimeout(() => openModal('COLLECTION'), 50);
@@ -3726,9 +3727,9 @@ const App: React.FC = () => {
                           setShownUnlocks(prev => new Set(prev).add(30));
                       } else if (newLevel === 40) {
                           setFeatureUnlockData({ 
-                              name: 'VIP Limit', 
-                              icon: '👑', 
-                              description: 'Unlock High Limit bets!', 
+                              name: 'VIP Limit',
+                              icon: '/ui/VIP.png',
+                              description: 'Unlock High Limit bets!',
                               action: () => { 
                                   setActiveModal('NONE');
                                   setTimeout(() => { setIsHighLimit(true); handleHeaderBack(); }, 50);
