@@ -6,6 +6,9 @@ import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
 import { LeftSidebar } from './components/LeftSidebar';
 import { ShopModal } from './components/ShopModal';
+import { PaymentModal, PaymentItem } from './components/PaymentModal';
+import { detectCurrency, CurrencyInfo, PRODUCT_USD_CENTS, toStripeAmount, formatLocalPrice, getDeviceId } from './services/paymentService';
+import { supabase } from './services/supabaseClient';
 import { MiniGameModal } from './components/MiniGameModal';
 import { Lobby } from './components/Lobby';
 import { FreeSpinsWonPopup } from './components/FreeSpinsWonPopup';
@@ -373,6 +376,51 @@ const App: React.FC = () => {
       jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
   }, [player.level]);
 
+  // Detect currency from IP and build local price table
+  useEffect(() => {
+      detectCurrency().then(c => {
+          setCurrency(c);
+          const prices: Record<string, string> = {};
+          Object.entries(PRODUCT_USD_CENTS).forEach(([id, usdCents]) => {
+              prices[id] = formatLocalPrice(toStripeAmount(usdCents, c), c);
+          });
+          setLocalPrices(prices);
+      });
+  }, []);
+
+  // Claim any pending payment credits (from Stripe webhook) on app focus / mount
+  useEffect(() => {
+      const claimPendingCredits = async () => {
+          if (typeof window === 'undefined') return;
+          if (!supabase) return;
+          const deviceId = getDeviceId();
+          const { data, error } = await supabase
+              .from('payment_credits')
+              .select('id, type, amount')
+              .eq('device_id', deviceId)
+              .eq('claimed', false);
+          if (error || !data || data.length === 0) return;
+          for (const row of data) {
+              if (row.type === 'COIN') {
+                  setPlayer(p => ({ ...p, balance: p.balance + row.amount }));
+                  triggerCoinAnim?.(row.amount);
+              } else if (row.type === 'DIAMOND') {
+                  setPlayer(p => ({ ...p, diamonds: p.diamonds + row.amount }));
+              }
+              await supabase.from('payment_credits').update({ claimed: true }).eq('id', row.id);
+          }
+          if (data.length > 0) {
+              const totalCoins = data.filter(r => r.type === 'COIN').reduce((s, r) => s + r.amount, 0);
+              const totalGems = data.filter(r => r.type === 'DIAMOND').reduce((s, r) => s + r.amount, 0);
+              if (totalCoins > 0) setCelebrationMsg(`+${formatCommaNumber(totalCoins)} Coins added!`);
+              else if (totalGems > 0) setCelebrationMsg(`+${totalGems} Gems added!`);
+          }
+      };
+      claimPendingCredits();
+      window.addEventListener('focus', claimPendingCredits);
+      return () => window.removeEventListener('focus', claimPendingCredits);
+  }, []);
+
   // Preload all startup assets
   useEffect(() => {
       let loaded = 0;
@@ -531,6 +579,11 @@ const App: React.FC = () => {
   
   const [featureUnlockData, setFeatureUnlockData] = useState({ name: '', icon: '', description: '', action: () => {} });
   const [shownUnlocks, setShownUnlocks] = useState<Set<number>>(new Set());
+
+  // ── Payment system ─────────────────────────────────────────────────────────
+  const [paymentItem, setPaymentItem] = useState<PaymentItem | null>(null);
+  const [currency, setCurrency] = useState<CurrencyInfo>({ code: 'USD', symbol: '$', rate: 1, zeroDecimal: false, country: 'Unknown' });
+  const [localPrices, setLocalPrices] = useState<Record<string, string>>({});
 
   const [showFreeSpinsPopup, setShowFreeSpinsPopup] = useState(false);
   const [freeSpinsWon, setFreeSpinsWon] = useState(0);
@@ -4380,6 +4433,25 @@ const App: React.FC = () => {
       }
   };
 
+  const handlePay = (productId: string, itemType: 'COIN' | 'DIAMOND', itemAmount: number, icon: string, label: string) => {
+      setPaymentItem({ productId, itemType, itemAmount, icon, label });
+  };
+
+  const handlePaymentSuccess = (item: PaymentItem) => {
+      setPaymentItem(null);
+      // Optimistically credit — webhook will also fire but the DB unique constraint
+      // on stripe_payment_intent_id prevents double-credit.
+      if (item.itemType === 'COIN') {
+          setPlayer(p => ({ ...p, balance: p.balance + item.itemAmount }));
+          triggerCoinAnim(item.itemAmount);
+          setCelebrationMsg(`+${formatCommaNumber(item.itemAmount)} Coins!`);
+      } else {
+          setPlayer(p => ({ ...p, diamonds: p.diamonds + item.itemAmount }));
+          setCelebrationMsg(`+${item.itemAmount} Gems!`);
+      }
+      audioService.playWinBig();
+  };
+
   const handleClaimShopItem = (label: string) => {
       setPlayer(p => ({ ...p, shopClaimedItems: [...(p.shopClaimedItems || []), label] }));
   };
@@ -5505,7 +5577,9 @@ const App: React.FC = () => {
                 setActiveModal('COLLECTION');
             }, 50);
         }
-    }} onBuy={handleShopBuy} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} isVip={!!player.isVip} vipLevel={player.vipLevel || 1} />}
+    }} onBuy={handleShopBuy} onPay={handlePay} localPrices={localPrices} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} isVip={!!player.isVip} vipLevel={player.vipLevel || 1} />}
+
+    <PaymentModal item={paymentItem} currency={currency} onClose={() => setPaymentItem(null)} onSuccess={handlePaymentSuccess} />
 
       {activeModal === 'COLLECTION' && <CardCollectionModal
           isOpen
