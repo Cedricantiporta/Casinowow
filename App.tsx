@@ -482,6 +482,11 @@ const App: React.FC = () => {
       const saved = localStorage.getItem('cw_missions');
       if (saved) {
           const parsed = JSON.parse(saved);
+          // Backfill the level-51 mega reward for saves created before it existed.
+          if (Array.isArray(parsed.passRewards) && !parsed.passRewards.some((r: PassReward) => r.level === 51)) {
+              const mega = GENERATE_PASS_REWARDS(10000).find(r => r.level === 51);
+              if (mega) parsed.passRewards = [...parsed.passRewards, mega];
+          }
           // Daily reset: if lastDailyReset is a different calendar day, regenerate daily missions
           const now = new Date();
           const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;

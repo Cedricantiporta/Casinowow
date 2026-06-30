@@ -1160,6 +1160,15 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
 
         rewards.push({ id: `prem-${i}`, level: i, type: typePrem, value: valuePrem, label: labelPrem, claimed: false, tier: 'PREMIUM' });
     }
+
+    // Bonus "level 51" mega reward — a Premium-only grand coin prize worth 3× the
+    // largest Premium coin reward. Claimable once the pass hits level 50.
+    const lastPremCoin = rewards
+        .filter(r => r.tier === 'PREMIUM' && r.type === 'COINS')
+        .reduce((m, r) => Math.max(m, r.value), 0);
+    const megaValue = Math.round(lastPremCoin * 3);
+    rewards.push({ id: 'prem-mega', level: 51, type: 'COINS', value: megaValue, label: formatNumber(megaValue), claimed: false, tier: 'PREMIUM' });
+
     return rewards;
 };
 

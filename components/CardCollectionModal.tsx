@@ -452,9 +452,20 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                     <h3 className="text-white font-black font-display text-[11px] truncate leading-none">{deck.gameName}</h3>
                                                     <div className="rtrack mt-1" style={{ height: 15, minWidth: 0, padding: '0 6px' }}>
                                                         <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
-                                                            <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12, width: `${(collected / 7) * 100}%`, background: isComplete ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)' : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease' }} />
+                                                            <div style={{
+                                                                position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12,
+                                                                width: (deck.rewardClaimed || isComplete) ? '100%' : `${(collected / 7) * 100}%`,
+                                                                background: deck.rewardClaimed
+                                                                    ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'
+                                                                    : isComplete
+                                                                    ? 'linear-gradient(180deg,#4ade80,#16a34a 60%,#15803d)'
+                                                                    : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)',
+                                                                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease',
+                                                            }} />
                                                         </div>
-                                                        <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{collected}/7</span>
+                                                        <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
+                                                            {deck.rewardClaimed ? 'Claimed' : isComplete ? 'Claim' : `${collected}/7`}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </button>

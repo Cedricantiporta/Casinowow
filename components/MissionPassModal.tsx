@@ -61,7 +61,15 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
     if (!isOpen) return null;
 
     const currentMissions = missionState.activeMissions.filter(m => m.frequency === 'DAILY').slice(0, 4);
-    const levels = Array.from(new Set(missionState.passRewards.map(r => r.level))).sort((a: number, b: number) => a - b);
+    // Level 51 is a special premium-only mega reward rendered as its own tall card.
+    const MEGA_LEVEL = 51;
+    const megaReward = missionState.passRewards.find(r => r.level === MEGA_LEVEL);
+    const megaUnlocked = missionState.passLevel >= 50;
+    const megaClaimed = !!megaReward?.claimed;
+    const megaClaimable = !!megaReward && !megaClaimed && megaUnlocked && missionState.isPremium;
+    const levels = Array.from(new Set(missionState.passRewards.map(r => r.level)))
+        .filter(l => l !== MEGA_LEVEL)
+        .sort((a: number, b: number) => a - b);
     const rewardsToClaimCount = missionState.passRewards.filter(r =>
         r.level <= missionState.passLevel &&
         !r.claimed &&
@@ -397,6 +405,47 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                             </div>
                                         );
                                     })}
+
+                                    {/* Level 51 — premium-only mega reward (spans both rows) */}
+                                    {megaReward && (
+                                        <div className="flex-none flex" style={{ width: 116 }}>
+                                            <div
+                                                onClick={megaClaimable ? () => onClaimReward(megaReward) : undefined}
+                                                className="relative overflow-hidden flex flex-col items-center justify-center w-full"
+                                                style={{
+                                                    height: 220, borderRadius: 14,
+                                                    background: megaClaimed
+                                                        ? 'linear-gradient(160deg,#5a3800,#3a2000)'
+                                                        : 'linear-gradient(160deg,#ffd740 0%,#f0a000 45%,#b45309 100%)',
+                                                    cursor: megaClaimable ? 'pointer' : 'default',
+                                                    opacity: megaClaimed ? 0.65 : 1,
+                                                    boxShadow: megaClaimable
+                                                        ? 'inset 0 1px 0 rgba(255,245,180,0.7), 0 0 22px rgba(251,191,36,0.7)'
+                                                        : 'inset 0 1px 0 rgba(255,240,120,0.3)',
+                                                }}>
+                                                {/* gloss */}
+                                                <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '32%', background: 'linear-gradient(180deg,rgba(255,255,255,0.3),rgba(255,255,255,0))', borderRadius: '14px 14px 50% 50%', pointerEvents: 'none' }} />
+                                                <span className="font-tanker text-white relative" style={{ fontSize: 13, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>Mega Bonus</span>
+                                                <img src="/ui/collect.png" alt="" className="relative my-1" style={{ width: 84, height: 84, objectFit: 'contain', filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.6))' }} />
+                                                <div className="relative flex items-center gap-1">
+                                                    <img src="/new_coinicon.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
+                                                    <span className="font-black text-white" style={{ fontSize: 14, textShadow: '0 1px 4px rgba(0,0,0,1)' }}>{getDisplayValue(megaReward)}</span>
+                                                </div>
+                                                {/* state badge */}
+                                                {megaClaimed ? (
+                                                    <span className="relative mt-1.5 font-black text-white/90 rounded-full px-3 py-1" style={{ fontSize: 10, background: 'rgba(0,0,0,0.4)' }}>Claimed</span>
+                                                ) : megaClaimable ? (
+                                                    <span className="relative mt-1.5 font-black rounded-full px-3 py-1" style={{ fontSize: 10, color: '#1c0a00', background: 'linear-gradient(180deg,#fff,#ffe066)' }}>Claim</span>
+                                                ) : (
+                                                    <span className="relative mt-1.5 font-black text-white/90 rounded-full px-3 py-1 flex items-center gap-1" style={{ fontSize: 9, background: 'rgba(0,0,0,0.4)' }}>
+                                                        <i className="ti ti-lock" style={{ fontSize: 10 }} />
+                                                        {missionState.isPremium ? 'Reach Lv.50' : 'Premium only'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div style={{ width: 8, flexShrink: 0 }} />
                                 </div>
                             </div>
