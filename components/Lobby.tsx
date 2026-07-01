@@ -46,7 +46,6 @@ interface LobbyProps {
     friendRequestCount?: number;
     onOpenLoginRewards?: () => void;
     loginRewardReady?: boolean;
-    onOpenGuild?: () => void;
     questState: QuestState;
     missionState: MissionState;
     nextTimeBonus: number;
@@ -90,7 +89,6 @@ export const Lobby: React.FC<LobbyProps> = ({
     friendRequestCount,
     onOpenLoginRewards,
     loginRewardReady,
-    onOpenGuild,
     questState,
     missionState,
     nextTimeBonus,
@@ -519,10 +517,10 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                                 {sep}
 
-                                {/* Guild — coming soon */}
-                                <button onClick={() => { onOpenGuild?.(); }} className={iconBtn(false)}>
-                                    <i className="ti ti-users-group" style={{ fontSize: 56, color: '#fff', display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.7))' }} />
-                                    <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Guild</span>
+                                {/* Leaderboard / Ranking */}
+                                <button onClick={!isRankingLocked ? () => { onOpenRanking(); setDockExpanded(false); } : undefined} className={iconBtn(isRankingLocked)}>
+                                    <img src="/ui/high_roller.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Ranking</span>
                                 </button>
                             </div>
                         )}

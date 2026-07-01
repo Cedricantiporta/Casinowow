@@ -5192,7 +5192,6 @@ const App: React.FC = () => {
                 friendRequestCount={incomingFriendRequests.length}
                 onOpenLoginRewards={() => openModal('LOGIN_BONUS')}
                 loginRewardReady={!loginState.claimedToday}
-                onOpenGuild={() => setCelebrationMsg('Guild — Coming Soon!')}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
