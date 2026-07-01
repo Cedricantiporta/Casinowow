@@ -306,6 +306,32 @@ const JP_META = [
     { name: 'GRAND', color: '#ff2244', icon: '🏆' },
 ];
 
+// Deterministic PRNG so a quest cycle's reshuffled slot order is stable
+// across re-renders/reloads without needing to persist the whole order.
+function mulberry32(seed: number) {
+    return function () {
+        seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+        let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+// Each daily reset of the completed quest path reshuffles the handpicked slot
+// order so it feels like a "different set" without changing the curated pool.
+function shuffledQuestPath(baseIds: string[], cycle: number): string[] {
+    if (cycle <= 0) return baseIds;
+    const rand = mulberry32(cycle * 2654435761 + 1);
+    const arr = [...baseIds];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(rand() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+// Missions get 20% harder each completed cycle, capped at 200% harder (3x).
+const questDifficultyMult = (cycleCount: number) => Math.min(3, 1 + Math.max(0, cycleCount) * 0.2);
+const questDayKey = (): string => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; };
+
 const App: React.FC = () => {
   const toastCountRef = useRef(0);
   const [appReady, setAppReady] = useState(false);
@@ -708,8 +734,9 @@ const App: React.FC = () => {
       'arctic-freeze',  // Ice pick bonus
       'cosmic-cash',    // Supernova cascade
   ];
-  const makeSlotMissions = (slotId: string, bet: number, stageIndex: number = 0, playerLevel: number = 1): SlotQuestMission[] => {
+  const makeSlotMissions = (slotId: string, bet: number, stageIndex: number = 0, playerLevel: number = 1, difficultyMult: number = 1): SlotQuestMission[] => {
       const base = Math.max(bet, 1000);
+      const scale = (n: number) => Math.max(1, Math.round(n * difficultyMult));
       // Mission template builders — each stage draws a distinct trio so no two
       // stages feel identical (spin counts, big wins, total bet, level ups, etc).
       const M = {
@@ -724,15 +751,17 @@ const App: React.FC = () => {
           reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
           bonus:  (t: number): SlotQuestMission => ({ id: `${slotId}_bonus`,  type: 'BONUS_TRIGGER', label: 'Bonus', description: `Complete ${t} Bonus game${t !== 1 ? 's' : ''}`, current: 0, target: t }),
       };
+      // Each cycle reset scales every target/coin-multiplier up to 20% harder,
+      // capped at 200% harder overall (difficultyMult caps at 3).
       const stages: SlotQuestMission[][] = [
-          [M.reach(10),  M.win(20),    M.spin(30)],
-          [M.spin(40),   M.level(5),   M.bet(80)],
-          [M.win(25),    M.maxbet(10), M.coins(70)],
-          [M.bonus(1),   M.spin(50),   M.bet(120)],
-          [M.win(30),    M.level(2),   M.coins(90)],
-          [M.maxbet(30), M.big(3),     M.bet(38)],
-          [M.win(35),    M.spin(60),   M.coins(110)],
-          [M.level(3),   M.big(6),     M.coins(140)],
+          [M.reach(scale(10)),  M.win(scale(20)),    M.spin(scale(30))],
+          [M.spin(scale(40)),   M.level(scale(5)),   M.bet(scale(80))],
+          [M.win(scale(25)),    M.maxbet(scale(10)), M.coins(scale(70))],
+          [M.bonus(scale(1)),   M.spin(scale(50)),   M.bet(scale(120))],
+          [M.win(scale(30)),    M.level(scale(2)),   M.coins(scale(90))],
+          [M.maxbet(scale(30)), M.big(scale(3)),     M.bet(scale(38))],
+          [M.win(scale(35)),    M.spin(scale(60)),   M.coins(scale(110))],
+          [M.level(scale(3)),   M.big(scale(6)),     M.coins(scale(140))],
       ];
       return stages[stageIndex % stages.length];
   };
@@ -789,12 +818,30 @@ const App: React.FC = () => {
           const saved = localStorage.getItem('cw_slot_quest');
           if (saved) {
               const parsed = JSON.parse(saved);
-              // Always use current QUEST_PATH_IDS to keep stage count in sync
-              return { ...parsed, pathSlotIds: QUEST_PATH_IDS };
+              // Re-derive the (possibly reshuffled) path order from the saved cycle
+              // count so it stays in sync with the current handpicked pool.
+              return { ...parsed, pathSlotIds: shuffledQuestPath(QUEST_PATH_IDS, parsed.cycleCount || 0) };
           }
       } catch {}
-      return { pathSlotIds: QUEST_PATH_IDS, currentPathIndex: 0, missions: [] };
+      return { pathSlotIds: QUEST_PATH_IDS, currentPathIndex: 0, missions: [], cycleCount: 0, lastResetDate: '' };
   });
+  // Once the full quest path is completed (grand prize claimed), reset it on
+  // the next calendar day: reshuffle the handpicked slot order and bump the
+  // difficulty another 20% (capped at 200% harder). Never resets mid-progress.
+  useEffect(() => {
+      const today = questDayKey();
+      setSlotQuestState(prev => {
+          const isComplete = prev.currentPathIndex >= prev.pathSlotIds.length;
+          if (!isComplete || prev.lastResetDate === today) return prev;
+          const nextCycle = (prev.cycleCount || 0) + 1;
+          const next: SlotQuestState = {
+              pathSlotIds: shuffledQuestPath(QUEST_PATH_IDS, nextCycle),
+              currentPathIndex: 0, missions: [], cycleCount: nextCycle, lastResetDate: today,
+          };
+          try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
+          return next;
+      });
+  }, [currentView]);
   const [showQuestPath, setShowQuestPath] = useState(false);
   const [showQuestSidebar, setShowQuestSidebar] = useState(false);
   const [grandPrizePopup, setGrandPrizePopup] = useState<number | null>(null);
@@ -1516,7 +1563,9 @@ const App: React.FC = () => {
       setPlayer(p => ({ ...p, balance: p.balance + stageReward + grandPrize }));
       setSlotQuestState(prev => {
           const nextIndex = prev.currentPathIndex + 1;
-          const next = { ...prev, currentPathIndex: nextIndex, missions: [] };
+          // Mark the completion date on the final stage so the daily-reset check
+          // waits for the next calendar day before reshuffling and restarting.
+          const next = { ...prev, currentPathIndex: nextIndex, missions: [], ...(isLastStage ? { lastResetDate: questDayKey() } : {}) };
           try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
           return next;
       });
@@ -4441,7 +4490,7 @@ const App: React.FC = () => {
           setSlotQuestState(prev => {
               const activePath = prev.pathSlotIds[prev.currentPathIndex];
               if (game.id === activePath && (!prev.missions || prev.missions.length === 0 || prev.missions[0].id.split('_')[0] !== game.id)) {
-                  const newMissions = makeSlotMissions(game.id, currentBetRef.current, prev.currentPathIndex, player.level);
+                  const newMissions = makeSlotMissions(game.id, currentBetRef.current, prev.currentPathIndex, player.level, questDifficultyMult(prev.cycleCount || 0));
                   const next = { ...prev, missions: newMissions };
                   try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
                   return next;

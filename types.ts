@@ -146,6 +146,11 @@ export interface SlotQuestState {
     pathSlotIds: string[];
     currentPathIndex: number;
     missions: SlotQuestMission[];
+    // How many times the full 7-stage path has been completed + reset — each
+    // reset reshuffles the slot order and scales mission targets 20% harder,
+    // capped at 200% harder (3x). lastResetDate gates the reset to once/day.
+    cycleCount?: number;
+    lastResetDate?: string;
 }
 
 // --- Friends System ---

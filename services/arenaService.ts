@@ -162,17 +162,24 @@ interface AISeed {
     rate: number;     // easing exponent variety
 }
 
-const POOL_SIZE = 69; // + the player = 70 total
+const POOL_SIZE = 69; // + the player = 70 total, at the lowest tier
 
-// Build the 69-opponent roster for a season. Stronger divisions field stronger
+// Field shrinks 10% per tier (compounding) as the ranks thin out at the top,
+// floored so there's always a meaningful pool to compete against.
+export function poolSizeForTier(tierIndex: number): number {
+    return Math.max(10, Math.round(POOL_SIZE * Math.pow(0.9, Math.max(0, tierIndex))));
+}
+
+// Build the opponent roster for a season. Stronger divisions field stronger
 // opponents. `refMult` scales AI points into the same unit range the player earns
 // at their current bet tier, so the board reads consistently.
 function buildRoster(seasonId: number, tierIndex: number, refMult: number): AISeed[] {
     const rand = mulberry32(seasonId * 2654435761 + tierIndex * 40503 + 1);
-    const divMult = 1 + tierIndex * 0.12; // higher tier → tougher field
+    const divMult = 1 + tierIndex * 0.20; // higher tier → noticeably tougher field
+    const poolSize = poolSizeForTier(tierIndex);
     const roster: AISeed[] = [];
     const used = new Set<number>();
-    for (let i = 0; i < POOL_SIZE; i++) {
+    for (let i = 0; i < poolSize; i++) {
         let ni = Math.floor(rand() * AI_NAMES.length);
         let guard = 0;
         while (used.has(ni) && guard++ < AI_NAMES.length) ni = (ni + 1) % AI_NAMES.length;

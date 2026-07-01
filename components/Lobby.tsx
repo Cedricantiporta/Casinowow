@@ -413,11 +413,13 @@ export const Lobby: React.FC<LobbyProps> = ({
                 <span className="text-[9px] font-black text-white tracking-wider leading-none -mt-2">Cards</span>
             </button>
 
-            {/* Standalone Collect icon — bigger, fixed far-right, never moves with the dock */}
+            {/* Standalone Collect icon — bigger, fixed far-right, never moves with the dock.
+                Yellow glow pulses continuously; a subtle bounce fires briefly every few
+                seconds (not a constant bounce) to draw the eye without being distracting. */}
             <button onClick={onClaimBonus}
                 className="fixed bottom-1 right-1 z-[50] flex flex-col items-center gap-0.5 active:scale-95 transition-transform select-none font-nunito">
-                <div className="relative">
-                    <img src="/ui/collect.png" alt="" style={{ width: 92, height: 92, objectFit: 'contain' }} className="drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]" />
+                <div className="relative" style={{ animation: 'collectBounce 4s ease-in-out infinite' }}>
+                    <img src="/ui/collect.png" alt="" style={{ width: 92, height: 92, objectFit: 'contain', animation: 'collectGlow 1.8s ease-in-out infinite' }} />
                     {(readyTimers > 0 || isJackpotReady) && (
                         <div className="absolute top-1 right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-0.5 z-10"
                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
@@ -581,13 +583,14 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">VIP</span>
                             </button>
 
-                            {/* Toggle sits here (end of row1) only while collapsed */}
-                            {!dockExpanded && toggle}
+                            {/* Toggle always sits at the end of row1, on both rows when expanded,
+                                so either row can be clicked to collapse and both stay aligned. */}
+                            {toggle}
                             </div>
 
-                            {/* Row 2 — revealed below row 1 when expanded */}
+                            {/* Row 2 — revealed below row 1 when expanded (no reveal animation) */}
                             {dockExpanded && (
-                                <div className="relative flex items-end justify-center gap-0.5 overflow-visible animate-pop-in"
+                                <div className="relative flex items-end justify-center gap-0.5 overflow-visible"
                                     style={{ paddingLeft:'14px', paddingRight:'14px', paddingBottom:'4px', paddingTop:'4px' }}>
 
                                     {/* Dice */}
