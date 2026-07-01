@@ -28,7 +28,10 @@ interface ReelProps {
   instantStop?: boolean;
 }
 
-const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN']);
+// JUNGLE's scatter trigger is entirely controlled by App.tsx's grid logic (fixed,
+// explicit chance, placed only at the exact center cell) — the reel's own local
+// spin-blur/filler symbol generation below must never roll one independently.
+const NO_SCATTER_THEMES = new Set(['PIGGY', 'LEPRECHAUN', 'JUNGLE']);
 const NO_SEVEN_THEMES = new Set(['DRAGON']);
 
 const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean, excludeSeven?: boolean) => {
