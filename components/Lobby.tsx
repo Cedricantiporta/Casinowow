@@ -5,7 +5,6 @@ import { GAMES_CONFIG, formatCommaNumber, formatTime, formatK } from '../constan
 import { GameConfig, QuestState, MissionState, ArenaState, Friend } from '../types';
 import { jackpotService, SLOT_VARS } from '../services/jackpotService';
 import { ArenaLobbyCard } from './ArenaLobbyCard';
-import { FriendsLobbyCard } from './FriendsLobbyCard';
 
 const THEME_PNG: Partial<Record<string, string>> = {
     DRAGON: '/dragon/dragon-11.png',
@@ -320,11 +319,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 />
                             )}
 
-                            {/* ── Promo card 4: Friends ── */}
-                            {friends && (
-                                <FriendsLobbyCard friends={friends} requestCount={friendRequestCount || 0} onOpen={() => onOpenFriends?.()} />
-                            )}
-
                             {GAMES_CONFIG.map((game, idx) => {
                                 let icon = '🍭';
                                 if (game.theme === 'NEON') icon = '🎰';
@@ -443,7 +437,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <div className="absolute pointer-events-none"
                                 style={{
                                     bottom: 0, left: 0, right: 0,
-                                    height: dockExpanded ? '104px' : '52px',
+                                    // Collapsed: 52px covers just the bottom of row1's icons (same
+                                    // protrusion as the original single-row dock). Expanded: that same
+                                    // 52px still covers row1's bottom, plus ~88px more to fully contain
+                                    // row2 beneath it — only row1's top pokes out, not both rows.
+                                    height: dockExpanded ? '140px' : '52px',
                                     borderRadius:'28px 28px 0 0',
                                     background: barBg,
                                     border: `1.5px solid ${borderCol}`,

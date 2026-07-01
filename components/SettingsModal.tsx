@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createSaveCode, redeemSaveCode } from '../services/saveCodeService';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -141,6 +142,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const [redeemMsg, setRedeemMsg] = useState<{ text: string; type: 'error' | 'warn' } | null>(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
 
+    // Save/transfer code (migrate progress to a new device / after reinstall)
+    const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+    const [generatingCode, setGeneratingCode] = useState(false);
+    const [transferMsg, setTransferMsg] = useState<{ text: string; type: 'error' | 'success' } | null>(null);
+    const [restoreInput, setRestoreInput] = useState('');
+    const [restoring, setRestoring] = useState(false);
+    const [confirmRestoreCode, setConfirmRestoreCode] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+
     if (!isOpen) return null;
 
     const showMsg = (text: string, type: 'error' | 'warn') => {
@@ -170,6 +180,48 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     };
 
     const codeInfo = pendingCode ? REDEEM_CODES[pendingCode] : null;
+
+    const showTransferMsg = (text: string, type: 'error' | 'success') => {
+        setTransferMsg({ text, type });
+        setTimeout(() => setTransferMsg(null), 4000);
+    };
+
+    const handleGenerateCode = async () => {
+        setGeneratingCode(true);
+        setGeneratedCode(null);
+        const { code, error } = await createSaveCode();
+        setGeneratingCode(false);
+        if (code) setGeneratedCode(code);
+        else showTransferMsg(error || 'Could not generate a code.', 'error');
+    };
+
+    const handleCopyCode = () => {
+        if (!generatedCode) return;
+        navigator.clipboard?.writeText(generatedCode).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }).catch(() => {});
+    };
+
+    const handleRestoreClick = () => {
+        const code = restoreInput.trim();
+        if (!code) { showTransferMsg('Enter a code.', 'error'); return; }
+        setConfirmRestoreCode(code);
+    };
+
+    const handleConfirmRestore = async () => {
+        if (!confirmRestoreCode) return;
+        setRestoring(true);
+        const { success, error } = await redeemSaveCode(confirmRestoreCode);
+        setConfirmRestoreCode(null);
+        if (success) {
+            showTransferMsg('Progress restored! Reloading…', 'success');
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            setRestoring(false);
+            showTransferMsg(error || 'Could not restore that code.', 'error');
+        }
+    };
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none">
@@ -206,6 +258,51 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             <button onClick={() => setShowResetConfirm(true)} className="pill-red w-full">
                                 <div className="pill-face" style={{ padding: '7px 14px', fontSize: '10px' }}>Reset Account</div>
                             </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Transfer Progress</div>
+                        <div className="p-3 flex flex-col gap-2.5 rounded-2xl" style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
+                            <p className="text-white/70 text-[9px] leading-snug">Reinstalling wipes your progress. Generate a code here, then enter it on the new install to bring everything back.</p>
+
+                            {/* Generate */}
+                            <div className="flex flex-col gap-1.5">
+                                <button onClick={handleGenerateCode} disabled={generatingCode} className="pill-blue w-full" style={{ opacity: generatingCode ? 0.6 : 1 }}>
+                                    <div className="pill-face" style={{ padding: '7px 14px', fontSize: '10px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
+                                        {generatingCode ? 'Generating…' : 'Generate Code'}
+                                    </div>
+                                </button>
+                                {generatedCode && (
+                                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                        <span className="flex-1 font-mono font-black text-white tracking-[0.15em] text-center" style={{ fontSize: 15 }}>{generatedCode}</span>
+                                        <button onClick={handleCopyCode} className="round-btn cursor-pointer shrink-0" style={{ width: 26, height: 26 }}>
+                                            <i className={`ti ${copied ? 'ti-check' : 'ti-copy'}`} style={{ fontSize: 12 }} />
+                                        </button>
+                                    </div>
+                                )}
+                                {generatedCode && <p className="text-white/45 text-[8px] px-0.5">Valid for 30 days. Keep it private.</p>}
+                            </div>
+
+                            {/* Restore */}
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={restoreInput}
+                                    onChange={e => setRestoreInput(e.target.value.toUpperCase())}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleRestoreClick(); }}
+                                    placeholder="Enter code to restore…"
+                                    className="flex-1 bg-black/50 text-white text-xs px-3 py-2 rounded-lg border border-white/10 outline-none font-mono tracking-widest placeholder:text-white/25 placeholder:tracking-normal focus:border-purple-500/60"
+                                />
+                                <button onClick={handleRestoreClick} disabled={restoring} className="pill-green" style={{ opacity: restoring ? 0.6 : 1 }}>
+                                    <div className="pill-face" style={{ padding: '6px 14px', fontSize: '10px' }}>Restore</div>
+                                </button>
+                            </div>
+                            {transferMsg && (
+                                <div className={`text-[10px] font-black px-1 animate-pop-in ${transferMsg.type === 'error' ? 'text-red-400' : 'text-green-400'}`}>
+                                    {transferMsg.text}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -274,6 +371,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </button>
                                 <button onClick={() => { setShowResetConfirm(false); onReset(); }} className="pill-red flex-[2]">
                                     <div className="pill-face" style={{ padding: '9px 12px', fontSize: '12px' }}>Yes, Reset</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Restore Confirmation Popup */}
+            {confirmRestoreCode && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/75 backdrop-blur-sm animate-pop-in">
+                    <div className="relative w-64 rounded-2xl overflow-hidden"
+                        style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+                        <div className="px-5 py-5 flex flex-col items-center gap-3">
+                            <div className="text-center">
+                                <div className="text-white font-black text-base tracking-wide">Restore Progress?</div>
+                                <div className="text-red-200/80 text-[10px] mt-1 leading-snug">This will overwrite everything on this device with the saved code's progress. This cannot be undone.</div>
+                            </div>
+                            <div className="flex gap-2 w-full mt-1">
+                                <button onClick={() => setConfirmRestoreCode(null)} className="pill-purple flex-1">
+                                    <div className="pill-face" style={{ padding: '9px 12px', fontSize: '12px' }}>Cancel</div>
+                                </button>
+                                <button onClick={handleConfirmRestore} className="pill-red flex-[2]">
+                                    <div className="pill-face" style={{ padding: '9px 12px', fontSize: '12px' }}>Yes, Restore</div>
                                 </button>
                             </div>
                         </div>
