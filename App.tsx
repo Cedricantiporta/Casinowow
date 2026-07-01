@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState } from './types';
+import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState } from './types';
 import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
@@ -39,6 +39,8 @@ import { InboxModal, InboxMessage } from './components/InboxModal';
 import { LeaderboardModal } from './components/LeaderboardModal';
 import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
+import { FriendsModal } from './components/FriendsModal';
+import { canSend as friendCanSend, canCollect as friendCanCollect, sendGiftAmount, collectGiftAmount } from './services/friendsService';
 import { ArenaResultsModal } from './components/ArenaResultsModal';
 import {
     initialArenaState, pointsForEvent, betTierMultiplier, getFinalBoard, positionOf,
@@ -779,6 +781,16 @@ const App: React.FC = () => {
   });
   const [showArena, setShowArena] = useState(false);
   const [showArenaResults, setShowArenaResults] = useState(false);
+
+  // Friends — add top players / AI, send + collect a daily coin gift with each.
+  const [friendsState, setFriendsState] = useState<FriendsState>(() => {
+      try {
+          const saved = localStorage.getItem('cw_friends');
+          if (saved) return JSON.parse(saved);
+      } catch {}
+      return { friends: [] };
+  });
+  const [showFriends, setShowFriends] = useState(false);
   const [questCreditToast, setQuestCreditToast] = useState<null | 'dice' | 'mine'>(null);
   const questCreditToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [questTaskCompleteToast, setQuestTaskCompleteToast] = useState<SlotQuestMission | null>(null);
@@ -1575,6 +1587,11 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_arena', JSON.stringify(arenaState)); } catch {}
   }, [arenaState]);
+
+  // Persist Friends state.
+  useEffect(() => {
+    try { localStorage.setItem('cw_friends', JSON.stringify(friendsState)); } catch {}
+  }, [friendsState]);
 
   // Arena season clock — processes end-of-season and rolls into the next one.
   useEffect(() => {
@@ -3535,9 +3552,9 @@ const App: React.FC = () => {
             const effectiveFastSpin = fastSpin;
             setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
         }
-        // Per-spin drops for Arctic (same logic as normal slots)
+        // Per-spin drops for Arctic (same logic as normal slots, halved chance)
         const arcticMaxBetIdx = availableBets.length - 1;
-        const arcticQuestChance = Math.max(0.005, (0.10 - (arcticMaxBetIdx - betIndex) * 0.01) * 1.3 * 0.8);
+        const arcticQuestChance = Math.max(0.005, (0.10 - (arcticMaxBetIdx - betIndex) * 0.01) * 1.3 * 0.8) * 0.5;
         if (player.level >= 20 && Math.random() < arcticQuestChance) {
             gainQuestCredit(Math.random() < 0.5 ? 'dice' : 'mine');
         }
@@ -3631,9 +3648,9 @@ const App: React.FC = () => {
         setPirateWalkTotalWin(pirateWalkTotalWinRef.current);
     }
 
-    // Per-spin drops — scale with bet level (±2% per step from max bet)
+    // Per-spin drops — scale with bet level (±2% per step from max bet), halved chance
     const maxBetIdx = availableBets.length - 1;
-    const questChance = Math.max(0.005, (0.10 - (maxBetIdx - betIndex) * 0.01) * 1.3 * 0.8);
+    const questChance = Math.max(0.005, (0.10 - (maxBetIdx - betIndex) * 0.01) * 1.3 * 0.8) * 0.5;
     if (player.level >= 20 && Math.random() < questChance) {
         gainQuestCredit(Math.random() < 0.5 ? 'dice' : 'mine');
     }
@@ -3722,6 +3739,46 @@ const App: React.FC = () => {
   };
 
   // Grant a quest credit (dice or mine/pick) and flash its icon over the reels.
+  // Friends — add, send a daily gift, collect a daily gift.
+  const handleAddFriend = (friend: Friend) => {
+      setFriendsState(prev => prev.friends.some(f => f.id === friend.id) ? prev : { ...prev, friends: [...prev.friends, friend] });
+  };
+  const handleSendGift = (friendId: string) => {
+      const now = Date.now();
+      const maxBet = MAX_BET_BY_LEVEL(player.level);
+      setFriendsState(prev => {
+          const friend = prev.friends.find(f => f.id === friendId);
+          if (!friend || !friendCanSend(friend, now)) return prev;
+          return { ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastSentAt: now } : f) };
+      });
+      const friend = friendsState.friends.find(f => f.id === friendId);
+      if (friend && friendCanSend(friend, now)) {
+          const amt = sendGiftAmount(maxBet);
+          setPlayer(p => ({ ...p, balance: p.balance + amt }));
+          triggerCoinAnim(amt);
+      }
+  };
+  const handleCollectGift = (friendId: string) => {
+      const now = Date.now();
+      const maxBet = MAX_BET_BY_LEVEL(player.level);
+      const friend = friendsState.friends.find(f => f.id === friendId);
+      if (!friend || !friendCanCollect(friend, now)) return;
+      setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastCollectedAt: now } : f) }));
+      const amt = collectGiftAmount(maxBet);
+      setPlayer(p => ({ ...p, balance: p.balance + amt }));
+      triggerCoinAnim(amt);
+  };
+  const handleCollectAllGifts = () => {
+      const now = Date.now();
+      const maxBet = MAX_BET_BY_LEVEL(player.level);
+      const collectible = friendsState.friends.filter(f => friendCanCollect(f, now));
+      if (collectible.length === 0) return;
+      setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => friendCanCollect(f, now) ? { ...f, lastCollectedAt: now } : f) }));
+      const amt = collectGiftAmount(maxBet) * collectible.length;
+      setPlayer(p => ({ ...p, balance: p.balance + amt }));
+      triggerCoinAnim(amt);
+  };
+
   const gainQuestCredit = (type: 'dice' | 'mine') => {
       if (type === 'dice') setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
       else setQuest(q => ({ ...q, wildCredits: Math.min(60, q.wildCredits + 1) }));
@@ -5067,6 +5124,8 @@ const App: React.FC = () => {
                 arenaPlayerName={playerName}
                 arenaPlayerAvatar={profileEmoji}
                 arenaMaxBet={MAX_BET_BY_LEVEL(player.level)}
+                onOpenFriends={() => setShowFriends(true)}
+                friends={friendsState.friends}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
@@ -6540,6 +6599,29 @@ const App: React.FC = () => {
           result={arenaState.lastResult || null}
           nextSeasonInMs={phaseTimeRemaining(arenaState, Date.now())}
           onClose={() => { setShowArenaResults(false); setArenaState(prev => ({ ...prev, lastResult: null })); }}
+      />
+
+      {/* Friends */}
+      <FriendsModal
+          isOpen={showFriends}
+          onClose={() => setShowFriends(false)}
+          friends={friendsState.friends}
+          you={{
+              name: playerName,
+              avatar: profileEmoji,
+              level: player.level,
+              vipLevel: player.vipLevel ?? 0,
+              score: player.balance,
+              gems: player.diamonds,
+              totalWon: player.stats?.totalCoinsWon || 0,
+              maxJackpot: player.stats?.maxJackpotWin || 0,
+              maxWin: player.stats?.maxSingleWin || 0,
+          }}
+          maxBet={MAX_BET_BY_LEVEL(player.level)}
+          onAddFriend={handleAddFriend}
+          onSendGift={handleSendGift}
+          onCollectGift={handleCollectGift}
+          onCollectAll={handleCollectAllGifts}
       />
 
       {/* Purchase Unavailable Popup */}

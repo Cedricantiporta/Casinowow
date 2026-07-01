@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { GAMES_CONFIG, formatCommaNumber, formatTime, formatK } from '../constants';
-import { GameConfig, QuestState, MissionState, ArenaState } from '../types';
+import { GameConfig, QuestState, MissionState, ArenaState, Friend } from '../types';
 import { jackpotService, SLOT_VARS } from '../services/jackpotService';
 import { ArenaLobbyCard } from './ArenaLobbyCard';
+import { FriendsLobbyCard } from './FriendsLobbyCard';
 
 const THEME_PNG: Partial<Record<string, string>> = {
     DRAGON: '/dragon/dragon-11.png',
@@ -39,6 +40,8 @@ interface LobbyProps {
     arenaPlayerName?: string;
     arenaPlayerAvatar?: string;
     arenaMaxBet?: number;
+    onOpenFriends?: () => void;
+    friends?: Friend[];
     questState: QuestState;
     missionState: MissionState;
     nextTimeBonus: number;
@@ -76,6 +79,8 @@ export const Lobby: React.FC<LobbyProps> = ({
     arenaPlayerName,
     arenaPlayerAvatar,
     arenaMaxBet,
+    onOpenFriends,
+    friends,
     questState,
     missionState,
     nextTimeBonus,
@@ -304,6 +309,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     maxBet={arenaMaxBet || 0}
                                     onOpen={() => onOpenArena?.()}
                                 />
+                            )}
+
+                            {/* ── Promo card 4: Friends ── */}
+                            {friends && (
+                                <FriendsLobbyCard friends={friends} onOpen={() => onOpenFriends?.()} />
                             )}
 
                             {GAMES_CONFIG.map((game, idx) => {

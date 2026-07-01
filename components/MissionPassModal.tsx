@@ -92,13 +92,13 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
         return reward.label;
     };
 
-    const renderIcon = (reward: PassReward | undefined, sz = '2.8rem') => {
+    const renderIcon = (reward: PassReward | undefined, sz = '2.8rem', locked = false) => {
         if (!reward) return null;
-        const style = { width: sz, height: sz, objectFit: 'contain' as const };
+        const style = { width: sz, height: sz, objectFit: 'contain' as const, filter: locked ? 'brightness(0.55)' : undefined };
         if (reward.type === 'COINS') return <img src="/new_coinicon.png" alt="" style={style} />;
         if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={style} />;
         if (reward.type === 'PICKS' || reward.type === 'DICE_CREDITS') return <img src="/pass-picksdice.png" alt="" style={style} />;
-        if (reward.type === 'CREDIT_BACK') return <img src={reward.label.toLowerCase().includes('premium') ? '/card_premium.png' : '/card_normal.png'} alt="" style={{ width: '2rem', height: sz, objectFit: 'contain' as const }} />;
+        if (reward.type === 'CREDIT_BACK') return <img src={reward.label.toLowerCase().includes('premium') ? '/card_premium.png' : '/card_normal.png'} alt="" style={{ width: '2rem', height: sz, objectFit: 'contain' as const, filter: locked ? 'brightness(0.55)' : undefined }} />;
         return <img src="/topbar_levelstar.png" alt="" style={style} />;
     };
 
@@ -322,7 +322,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '45%', background: 'linear-gradient(180deg,rgba(255,255,255,0.18) 0%,rgba(255,255,255,0) 100%)', borderRadius: '12px 12px 50% 50%', pointerEvents: 'none' }} />
                                                     {/* Icon */}
                                                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 14 }}>
-                                                        {renderIcon(freeReward)}
+                                                        {renderIcon(freeReward, undefined, !freeClaimed && !freeClaimable)}
                                                     </div>
                                                     {/* Value label */}
                                                     <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>
@@ -384,7 +384,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
                                                     <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '45%', background: 'linear-gradient(180deg,rgba(255,255,255,0.22) 0%,rgba(255,255,255,0) 100%)', borderRadius: '12px 12px 50% 50%', pointerEvents: 'none' }} />
                                                     {/* Icon */}
                                                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 14 }}>
-                                                        {renderIcon(premReward)}
+                                                        {renderIcon(premReward, undefined, !premClaimed && !premClaimable)}
                                                     </div>
                                                     {/* Value label */}
                                                     <div style={{ position: 'absolute', bottom: 6, left: 0, right: 0, textAlign: 'center', fontSize: 10, fontWeight: 900, color: '#fff', whiteSpace: 'nowrap', textShadow: '0 1px 4px rgba(0,0,0,1)' }}>

@@ -146,6 +146,23 @@ export interface SlotQuestState {
     missions: SlotQuestMission[];
 }
 
+// --- Friends System ---
+
+export interface Friend {
+    id: string;
+    name: string;
+    avatar: string;
+    level: number;
+    isAI: boolean;
+    addedAt: number;
+    lastSentAt?: number;      // last time you sent them a coin gift
+    lastCollectedAt?: number; // last time you collected their daily gift
+}
+
+export interface FriendsState {
+    friends: Friend[];
+}
+
 // --- Arena Ranking System ---
 
 export interface ArenaResult {
