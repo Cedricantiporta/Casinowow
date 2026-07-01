@@ -2521,10 +2521,11 @@ const App: React.FC = () => {
               if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && sym === SymbolType.SCATTER && Math.random() < 0.75) {
                   sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
               }
-              // JUNGLE: the scatter is one colossal icon that only ever appears dead-center
-              // on the grid (rendered spanning a 3x3 block as a separate overlay) — never
-              // anywhere else, so at most one can ever land per spin.
-              if (selectedGame.theme === 'JUNGLE' && sym === SymbolType.SCATTER && (c !== Math.floor(cols / 2) || r !== Math.floor(rows / 2))) {
+              // JUNGLE: never let the shared symbol table place a scatter anywhere —
+              // its colossal scatter is placed explicitly below with its own
+              // independent, fixed chance, decoupled from the shared per-cell weight
+              // and pity-timer (which assumes needing 3 simultaneous hits, not 1).
+              if (selectedGame.theme === 'JUNGLE' && sym === SymbolType.SCATTER) {
                   do { sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus); } while (sym === SymbolType.SCATTER);
               }
               if (c === 2) {
@@ -2539,8 +2540,9 @@ const App: React.FC = () => {
           newGrid.push(colData);
       }
 
-      // JUNGLE: the colossal center symbol. Base game — only ever SCATTER (already
-      // restricted to the exact center cell above), which triggers free spins.
+      // JUNGLE: the colossal center symbol. Base game — an explicit, fixed ~3.5%
+      // chance per spin to place SCATTER dead-center (never via the shared symbol
+      // table/pity-timer, which assumes a much rarer "3 simultaneous hits" bar).
       // Free spins — every single spin guarantees one, weighted low-to-high value
       // (SCATTER rarest of all, and retriggers +5 more free spins via the normal
       // scatter-count trigger check below since it fills the center cell too).
@@ -2570,7 +2572,13 @@ const App: React.FC = () => {
               }
               setJungleBigIcon(chosen);
           } else {
-              setJungleBigIcon(newGrid[centerCol][centerRow] === SymbolType.SCATTER ? SymbolType.SCATTER : null);
+              const JUNGLE_BASE_TRIGGER_CHANCE = 0.035;
+              if (Math.random() < JUNGLE_BASE_TRIGGER_CHANCE) {
+                  newGrid[centerCol][centerRow] = SymbolType.SCATTER;
+                  setJungleBigIcon(SymbolType.SCATTER);
+              } else {
+                  setJungleBigIcon(null);
+              }
           }
       }
 
@@ -2944,19 +2952,21 @@ const App: React.FC = () => {
 
       // ANGRYFLOCK: bird-roulette free spins. The chosen bird color governs the
       // wild pattern for every spin of the session:
-      //   green:  3-4 scattered single wilds
-      //   blue:   1-2 wild reels + 2-3 scattered wilds, combined
-      //   purple: 2-3 wild reels
-      //   red:    1-2 NEW sticky wilds per spin that persist for the rest of the session
+      //   green:  2-3 scattered single wilds
+      //   blue:   3-4 scattered single wilds
+      //   purple: 1-2 wild reels
+      //   red:    exactly 1 NEW sticky wild attempt per spin, persisting for the rest
+      //           of the session — if that attempt lands on an already-sticky cell,
+      //           nothing happens (no reroll, no duplicate effect, still just one wild there)
       if (ft === 'ANGRYFLOCK' && isFreeSpin && angryFlockColorRef.current) {
           const color = angryFlockColorRef.current;
           const eligible = (c: number, r: number) => newGrid[c]?.[r] !== undefined && newGrid[c][r] !== SymbolType.SCATTER;
-          const scatterFew = (count: number, avoid?: Set<number>) => {
+          const scatterFew = (count: number) => {
               const placed: { c: number; r: number }[] = [];
               let guard = 0;
               while (placed.length < count && guard < 200) {
                   const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
-                  if (eligible(c, r) && !(avoid && avoid.has(c)) && !placed.some(p => p.c === c && p.r === r)) placed.push({ c, r });
+                  if (eligible(c, r) && !placed.some(p => p.c === c && p.r === r)) placed.push({ c, r });
                   guard++;
               }
               placed.forEach(p => { newGrid[p.c][p.r] = SymbolType.WILD; });
@@ -2966,28 +2976,20 @@ const App: React.FC = () => {
               let guard = 0;
               while (chosen.size < Math.min(numReels, cols) && guard < 80) { chosen.add(Math.floor(Math.random() * cols)); guard++; }
               chosen.forEach(c => { for (let r = 0; r < rows; r++) if (eligible(c, r)) newGrid[c][r] = SymbolType.WILD; });
-              return chosen;
           };
           if (color === 'green') {
+              scatterFew(2 + Math.floor(Math.random() * 2)); // 2-3
+          } else if (color === 'blue') {
               scatterFew(3 + Math.floor(Math.random() * 2)); // 3-4
           } else if (color === 'purple') {
-              wildReels(2 + Math.floor(Math.random() * 2)); // 2-3 reels
-          } else if (color === 'blue') {
-              const reelsChosen = wildReels(1 + Math.floor(Math.random() * 2)); // 1-2 reels
-              scatterFew(2 + Math.floor(Math.random() * 2), reelsChosen); // + 2-3 scattered wilds
+              wildReels(1 + Math.floor(Math.random() * 2)); // 1-2 reels
           } else if (color === 'red') {
-              const newCount = 1 + Math.floor(Math.random() * 2); // 1-2 new sticky wilds this spin
+              const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
               const existing = angryFlockStickyWildsRef.current;
-              const placed: { col: number; row: number }[] = [];
-              let guard = 0;
-              while (placed.length < newCount && guard < 200) {
-                  const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
-                  if (eligible(c, r) && !existing.some(p => p.col === c && p.row === r) && !placed.some(p => p.col === c && p.row === r)) {
-                      placed.push({ col: c, row: r });
-                  }
-                  guard++;
+              // Only add if this cell isn't already sticky — landing on one is a no-op.
+              if (eligible(c, r) && !existing.some(p => p.col === c && p.row === r)) {
+                  angryFlockStickyWildsRef.current = [...existing, { col: c, row: r }];
               }
-              angryFlockStickyWildsRef.current = [...existing, ...placed];
               // Never disappear — re-stamp every sticky wild placed so far onto this spin's grid.
               angryFlockStickyWildsRef.current.forEach(p => { if (eligible(p.col, p.row)) newGrid[p.col][p.row] = SymbolType.WILD; });
           }
@@ -5790,7 +5792,7 @@ const App: React.FC = () => {
                                     src={GET_SYMBOLS(selectedGame.theme)[jungleBigIcon]?.icon}
                                     alt=""
                                     className="relative object-contain select-none"
-                                    style={{ width: '78%', height: '78%', filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.7))' }}
+                                    style={{ width: '96%', height: '96%', filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.7))' }}
                                 />
                             </div>
                         )}

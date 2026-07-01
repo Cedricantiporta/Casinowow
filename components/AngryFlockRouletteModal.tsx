@@ -14,14 +14,15 @@ interface Seg {
 
 // Each bird colour governs a distinct wild pattern for the whole free-spin
 // session (applied per-spin in App.tsx's generateSmartGrid ANGRYFLOCK block):
-//   green:  3-4 scattered single wilds
-//   blue:   1-2 wild reels + 2-3 scattered wilds, combined
-//   purple: 2-3 wild reels
-//   red:    1-2 NEW sticky wilds per spin that never disappear for the session
+//   green:  2-3 scattered single wilds
+//   blue:   3-4 scattered single wilds
+//   purple: 1-2 wild reels
+//   red:    1 NEW sticky wild attempt per spin, persisting for the session (a
+//           re-roll onto an already-sticky cell is just a no-op, not a reroll)
 const SEGMENTS: Seg[] = [
-    { label: 'GREEN',  sub: '3-4 Wilds',        color: '#16a34a', bird: 'green',  weight: 30 },
-    { label: 'BLUE',   sub: 'Reels + Wilds',    color: '#2563eb', bird: 'blue',   weight: 26 },
-    { label: 'PURPLE', sub: '2-3 Wild Reels',   color: '#7c3aed', bird: 'purple', weight: 24 },
+    { label: 'GREEN',  sub: '2-3 Wilds',        color: '#16a34a', bird: 'green',  weight: 30 },
+    { label: 'BLUE',   sub: '3-4 Wilds',        color: '#2563eb', bird: 'blue',   weight: 26 },
+    { label: 'PURPLE', sub: '1-2 Wild Reels',   color: '#7c3aed', bird: 'purple', weight: 24 },
     { label: 'RED',    sub: 'Sticky Wilds',     color: '#dc2626', bird: 'red',    weight: 20 },
 ];
 
