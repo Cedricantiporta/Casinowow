@@ -17,7 +17,7 @@ import { FreeSpinSummary } from './components/FreeSpinSummary';
 import { BankruptcyModal } from './components/BankruptcyModal';
 import { MissionPassModal } from './components/MissionPassModal';
 import { CardCollectionModal } from './components/CardCollectionModal';
-import { SlotQuestPanel, TYPE_ICON as QUEST_TYPE_ICON } from './components/SlotQuestPanel';
+import { SlotQuestPanel } from './components/SlotQuestPanel';
 import { QuestPathModal } from './components/QuestPathModal';
 import { SimpleCelebrationModal } from './components/SimpleCelebrationModal';
 import { TimeBonusModal } from './components/TimeBonusModal';
@@ -296,6 +296,16 @@ const STARTUP_ASSETS = [
     '/ui/VIP.png', '/ui/high_roller.png', '/symbols/diamond.png',
 ];
 
+// Canonical jackpot tier colors/icons, shared by slot jackpots and the roulette
+// jackpot so every "JackpotCelebration" popup in the game looks consistent.
+const JP_META = [
+    { name: 'MINI',  color: '#cd7f32', icon: '🥉' },
+    { name: 'MINOR', color: '#c0c0c0', icon: '🥈' },
+    { name: 'MAJOR', color: '#ffd700', icon: '🥇' },
+    { name: 'MEGA',  color: '#ff8c00', icon: '👑' },
+    { name: 'GRAND', color: '#ff2244', icon: '🏆' },
+];
+
 const App: React.FC = () => {
   const toastCountRef = useRef(0);
   const [appReady, setAppReady] = useState(false);
@@ -568,6 +578,9 @@ const App: React.FC = () => {
   const lifetimeSpinsRef = useRef<number>(0);
   const firstFreeSpinDoneRef = useRef<boolean>(false);
   const forceFreeSpinRef = useRef<boolean>(false);
+  // Piggy Riches: the guaranteed first free-spin trigger (10th spin) gets a
+  // +30% jackpot chance for that free-spin session only, then expires.
+  const piggyFirstFsBoostRef = useRef<boolean>(false);
   useEffect(() => {
       try {
           lifetimeSpinsRef.current = JSON.parse(localStorage.getItem('cw_player') || '{}')?.stats?.totalSpins || 0;
@@ -823,12 +836,11 @@ const App: React.FC = () => {
   };
   const [questCreditToast, setQuestCreditToast] = useState<null | 'dice' | 'mine'>(null);
   const questCreditToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [questTaskCompleteToast, setQuestTaskCompleteToast] = useState<SlotQuestMission | null>(null);
-  const questTaskCompleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const showQuestTaskComplete = (mission: SlotQuestMission) => {
-      setQuestTaskCompleteToast(mission);
-      if (questTaskCompleteTimerRef.current) clearTimeout(questTaskCompleteTimerRef.current);
-      questTaskCompleteTimerRef.current = setTimeout(() => setQuestTaskCompleteToast(null), 3000);
+  // A slot-quest task just completed — bump this to briefly re-show the
+  // SlotQuestPanel sidebar (instead of a standalone popup) for 3 seconds.
+  const [questPanelPulse, setQuestPanelPulse] = useState(0);
+  const showQuestTaskComplete = (_mission: SlotQuestMission) => {
+      setQuestPanelPulse(p => p + 1);
   };
   const arenaBetTierRef = useRef(0);          // last bet tier index, for AI scaling
   const arenaProcessedRef = useRef(0);        // last seasonId we ran end-of-season for
@@ -849,6 +861,7 @@ const App: React.FC = () => {
   const [hwCountingCell, setHwCountingCell] = useState<{c:number,r:number}|null>(null);
   const [hwCountingTotal, setHwCountingTotal] = useState(0);
   const hwCountContinuationRef = useRef<(() => void) | null>(null);
+  const neonRouletteJackpotContinuationRef = useRef<(() => void) | null>(null);
 
   const [cascadeMultiplier, setCascadeMultiplier] = useState(1);
   const [cascadeTotalWin, setCascadeTotalWin] = useState(0);
@@ -998,6 +1011,8 @@ const App: React.FC = () => {
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [slotUnlockToast, setSlotUnlockToast] = useState<(typeof GAMES_CONFIG)[0] | null>(null);
   const slotUnlockToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [missionCompleteToast, setMissionCompleteToast] = useState<Mission | null>(null);
+  const missionCompleteToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingWinTierRef = useRef<string | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
@@ -1811,15 +1826,25 @@ const App: React.FC = () => {
               const visibleForFreq = prev.activeMissions.filter(m => m.frequency === freq && !m.claimed).slice(0, 4);
               visibleForFreq.forEach(m => visibleIds.add(m.id));
           });
+          let justCompleted: Mission | null = null;
           const updatedMissions = prev.activeMissions.map(m => {
               if (visibleIds.has(m.id) && m.type === type && !m.completed) {
                   const newCurrent = m.current + amount;
-                  return { ...m, current: newCurrent, completed: newCurrent >= m.target };
+                  const next = { ...m, current: newCurrent, completed: newCurrent >= m.target };
+                  if (next.completed) justCompleted = next;
+                  return next;
               }
               return m;
           });
+          if (justCompleted) setTimeout(() => showMissionComplete(justCompleted!), 0);
           return { ...prev, activeMissions: updatedMissions };
       });
+  };
+
+  const showMissionComplete = (mission: Mission) => {
+      setMissionCompleteToast(mission);
+      if (missionCompleteToastTimerRef.current) clearTimeout(missionCompleteToastTimerRef.current);
+      missionCompleteToastTimerRef.current = setTimeout(() => setMissionCompleteToast(null), 6000);
   };
 
   const addPassXp = (amount: number) => {
@@ -2792,8 +2817,9 @@ const App: React.FC = () => {
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
       if (isFreeSpin && ft !== 'ARCTIC' && ft !== 'NEON' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
-          // CANDY gets 50% reduced jackpot spawn rates
-          const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
+          // CANDY gets 50% reduced jackpot spawn rates. PIGGY gets +30% jackpot
+          // chance only during the guaranteed first (10th-spin) free-spin session.
+          const jpScale = ft === 'CANDY' ? 0.5 : (ft === 'PIGGY' && piggyFirstFsBoostRef.current) ? 1.3 : 1.0;
           const JP_SPAWN = [
               { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * jpScale },
               { type: SymbolType.JACKPOT_MINOR, prob: 0.048 * jpScale },
@@ -2911,6 +2937,7 @@ const App: React.FC = () => {
       // PIGGY uses 6+ COIN cells to trigger (not SCATTER); all other slots use SCATTER.
       if (forceFreeSpinRef.current && !isFreeSpin) {
           if (selectedGame.theme === 'PIGGY') {
+              piggyFirstFsBoostRef.current = true;
               // Place 6 coins in random eligible (non-wild, non-scatter) cells.
               const eligible: {c: number; r: number}[] = [];
               for (let c = 0; c < cols; c++) {
@@ -3662,13 +3689,6 @@ const App: React.FC = () => {
         SymbolType.JACKPOT_MEGA,
         SymbolType.JACKPOT_GRAND,
     ];
-    const JP_META = [
-        { name: 'MINI',  color: '#cd7f32', icon: '🥉' },
-        { name: 'MINOR', color: '#c0c0c0', icon: '🥈' },
-        { name: 'MAJOR', color: '#ffd700', icon: '🥇' },
-        { name: 'MEGA',  color: '#ff8c00', icon: '👑' },
-        { name: 'GRAND', color: '#ff2244', icon: '🏆' },
-    ];
     // Jackpot amounts: 15/30/100/500/1000× current bet
     const JP_BET_MULTIPLIERS = [15, 30, 100, 500, 1000];
     const jpAmounts = JP_BET_MULTIPLIERS.map(m => Math.floor(currentBet * m));
@@ -4221,11 +4241,24 @@ const App: React.FC = () => {
       awardArenaWin(prize);
   };
 
+  const handleNeonRouletteJackpotHit = (tierName: string, amount: number, onContinue: () => void) => {
+      const meta = JP_META.find(m => m.name === tierName) || JP_META[0];
+      neonRouletteJackpotContinuationRef.current = onContinue;
+      audioService.playJackpotSound(tierName);
+      setJackpotWinTier({ ...meta, amount });
+  };
+
   const handleJackpotClose = () => {
       setJackpotWinTier(null);
       if (hwCountContinuationRef.current) {
           const cont = hwCountContinuationRef.current;
           hwCountContinuationRef.current = null;
+          cont();
+          return;
+      }
+      if (neonRouletteJackpotContinuationRef.current) {
+          const cont = neonRouletteJackpotContinuationRef.current;
+          neonRouletteJackpotContinuationRef.current = null;
           cont();
           return;
       }
@@ -4569,6 +4602,8 @@ const App: React.FC = () => {
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
       trackSlotQuest('BONUS_TRIGGER', 1);
+      // The guaranteed first free-spin's jackpot boost only lasts for that one session.
+      piggyFirstFsBoostRef.current = false;
       const currentBet = availableBets[betIndex];
       const latestTotalWin = freeSpinTotalWinRef.current;
       const tier = latestTotalWin > 0 ? (getWinTier(latestTotalWin, currentBet) || 'BIG WIN') : null;
@@ -5371,19 +5406,6 @@ const App: React.FC = () => {
                     </div>
                 )}
 
-                {/* Quest task completed — brief banner, 3s auto-close */}
-                {questTaskCompleteToast && (
-                    <div className="absolute left-1/2 z-[60] pointer-events-none animate-pop-in" style={{ top: 8, transform: 'translateX(-50%)' }}>
-                        <div className="flex items-center gap-2 rounded-full px-3 py-1.5"
-                            style={{ background: 'linear-gradient(180deg,rgba(74,222,128,0.95),rgba(21,128,61,0.95))', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.4), 0 4px 14px rgba(0,0,0,0.5)' }}>
-                            <i className="ti ti-check text-white" style={{ fontSize: 14 }} />
-                            <span className="font-black text-white leading-none" style={{ fontSize: 11 }}>Task Complete</span>
-                            <i className={`ti ${QUEST_TYPE_ICON[questTaskCompleteToast.type] || 'ti-star'} text-white/90`} style={{ fontSize: 12 }} />
-                            <span className="font-bold text-white/90 leading-none" style={{ fontSize: 10 }}>{questTaskCompleteToast.description}</span>
-                        </div>
-                    </div>
-                )}
-
                 {/* Arena widget — right side, mirrors the left sidebar; live while spinning */}
                 {arenaUnlocked && (
                     <div className="absolute right-1 z-40" style={{ top: '38%', transform: 'translateY(-38%)' }}>
@@ -5482,7 +5504,7 @@ const App: React.FC = () => {
                                 newCells={cascadeNewCells ? cascadeNewCells[i] : undefined}
                                 dissolving={cascadeDissolving}
                                 anticipation={isAnticipating && i === stoppedReels}
-                                inFreeSpins={freeSpinsWon > 0}
+                                inFreeSpins={freeSpinsRemaining > 0}
                                 instantStop={instantStop}
                             />
                             ));
@@ -5836,6 +5858,7 @@ const App: React.FC = () => {
                             rewardCoins={MAX_BET_BY_LEVEL(player.level) * (slotQuestState.currentPathIndex + 1) * 20}
                             allDone={slotQuestState.missions.every(m => m.current >= m.target)}
                             onOpenQuestPath={() => setShowQuestPath(true)}
+                            pulseKey={questPanelPulse}
                         />
                     )}
                 </div>
@@ -6239,6 +6262,7 @@ const App: React.FC = () => {
           onComplete={handleNeonRouletteComplete}
           onClose={handleNeonRouletteClose}
           onRunningTotal={(total) => setNeonRouletteTotal(total)}
+          onJackpotHit={handleNeonRouletteJackpotHit}
       />
 
       <SpinCountRouletteModal
@@ -6314,6 +6338,22 @@ const App: React.FC = () => {
                   </div>
                   <button onClick={() => { const c = slotUnlockToast; setSlotUnlockToast(null); handleGameSelect(c); }} className="pill-green w-full">
                       <div className="pill-face" style={{ padding: '5px 8px', fontSize: '9px' }}>Play Now →</div>
+                  </button>
+              </div>
+          </div>
+      )}
+
+      {missionCompleteToast && currentView === 'GAME' && (
+          <div className="absolute top-[38px] right-2 z-[202] animate-pop-in" style={{ width: 130 }}>
+              <div className="rounded-2xl overflow-hidden flex flex-col gap-1.5"
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 6px 20px rgba(0,0,0,0.8)', padding: '8px' }}>
+                  <div className="flex flex-col items-center gap-0.5 text-center">
+                      <i className="ti ti-circle-check text-white" style={{ fontSize: 22 }} />
+                      <div className="font-tanker text-white leading-none" style={{ fontSize: '0.8rem' }}>Mission Complete!</div>
+                      <div className="text-purple-200 font-bold leading-tight" style={{ fontSize: 9 }}>{missionCompleteToast.description}</div>
+                  </div>
+                  <button onClick={() => { setMissionCompleteToast(null); openMissionsModal(); }} className="pill-green w-full">
+                      <div className="pill-face" style={{ padding: '5px 8px', fontSize: '9px' }}>Claim →</div>
                   </button>
               </div>
           </div>

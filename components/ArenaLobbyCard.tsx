@@ -48,7 +48,8 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
             className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0 flex flex-col items-center"
             style={{
                 width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)',
-                background: `linear-gradient(180deg, #4a1d7a 0%, #2a0d52 50%, #1a0838 100%)`,
+                backgroundImage: `linear-gradient(180deg, rgba(74,29,122,0.55) 0%, rgba(26,8,56,0.75) 60%, rgba(26,8,56,0.92) 100%), url(/arenalobby_cardbg.png)`,
+                backgroundSize: 'cover', backgroundPosition: 'center',
                 padding: '9px 7px',
             }}>
             {/* solid rank-tinted header glow */}

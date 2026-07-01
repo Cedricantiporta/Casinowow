@@ -257,17 +257,23 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
     ctx.restore();
 }
 
-interface Props { isOpen: boolean; bet: number; jackpotAmounts: number[]; onMultPayout?: (amount: number) => void; onComplete: (prize: number) => void; onClose?: () => void; onRunningTotal?: (total: number) => void; }
+interface Props {
+    isOpen: boolean; bet: number; jackpotAmounts: number[]; onMultPayout?: (amount: number) => void;
+    onComplete: (prize: number) => void; onClose?: () => void; onRunningTotal?: (total: number) => void;
+    // When a jackpot segment hits, hand off to the app-level JackpotCelebration
+    // popup instead of showing our own announcement; call onContinue once it's
+    // been collected/closed to reveal the roulette's own summary screen.
+    onJackpotHit?: (tierName: string, amount: number, onContinue: () => void) => void;
+}
 type Phase = 'prompt' | 'ready' | 'spinning' | 'mult_popup' | 'done';
 
-export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts, onMultPayout, onComplete, onClose, onRunningTotal }) => {
+export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts, onMultPayout, onComplete, onClose, onRunningTotal, onJackpotHit }) => {
     const [phase, setPhase] = useState<Phase>('prompt');
     const [wonSeg, setWonSeg] = useState<Seg | null>(null);
     const [multPayout, setMultPayout] = useState(0);
     const [multCount, setMultCount] = useState(0);
     const [totalMultWins, setTotalMultWins] = useState(0);
     const [showSummary, setShowSummary] = useState(false);
-    const [showJpAnnounce, setShowJpAnnounce] = useState(false);
     const [summaryTotal, setSummaryTotal] = useState(0);
     const [prize, setPrize] = useState(0);
 
@@ -374,8 +380,11 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                     setSummaryTotal(prev + amt);
                     return prev;
                 });
-                setShowJpAnnounce(true);
-                timerRef.current = setTimeout(() => { setShowJpAnnounce(false); setShowSummary(true); }, 2200);
+                if (onJackpotHit) {
+                    onJackpotHit(seg.jp!, amt, () => setShowSummary(true));
+                } else {
+                    setShowSummary(true);
+                }
             }
         }, SPIN_MS + 100);
     };
@@ -389,7 +398,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
             a.angleDeg = 0; a.fromDeg = 0; a.toDeg = 0; a.spinning = false;
             a.lastSector = -1; a.tickerWiggle = 0;
             multCountRef.current = 0;
-            setPhase('prompt'); setWonSeg(null); setShowSummary(false); setShowJpAnnounce(false);
+            setPhase('prompt'); setWonSeg(null); setShowSummary(false);
             setPrize(0); setMultCount(0); setMultPayout(0); setTotalMultWins(0); setSummaryTotal(0);
             onRunningTotal?.(0);
         }
@@ -469,20 +478,6 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                             </div>
                         </div>
                     )}
-                </div>
-            )}
-
-            {/* Jackpot announce */}
-            {showJpAnnounce && wonSeg?.jp && (
-                <div className="absolute inset-0 z-[210] flex items-center justify-center animate-pop-in pointer-events-none">
-                    <div className="flex flex-col items-center gap-2 rounded-3xl px-10 py-8 text-center"
-                        style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.85),rgba(0,0,0,0.92))', boxShadow: `0 0 60px ${wonSeg.jp === 'GRAND' ? 'rgba(251,191,36,0.6)' : 'rgba(168,85,247,0.5)'}` }}>
-                        <span className="font-black text-white/60 uppercase tracking-widest" style={{ fontSize: 11 }}>Jackpot!</span>
-                        <span className="font-black uppercase leading-none"
-                            style={{ fontSize: 48, color: wonSeg.jp === 'GRAND' ? '#fbbf24' : wonSeg.jp === 'MEGA' ? '#ef4444' : wonSeg.jp === 'MAJOR' ? '#c084fc' : wonSeg.jp === 'MINOR' ? '#38bdf8' : '#4ade80', textShadow: `0 0 30px currentColor, 0 0 60px currentColor` }}>
-                            {wonSeg.jp}
-                        </span>
-                    </div>
                 </div>
             )}
 

@@ -9,6 +9,9 @@ interface SlotQuestPanelProps {
     rewardCoins: number;
     allDone: boolean;
     onOpenQuestPath: () => void;
+    // Bump this (e.g. Date.now()) whenever a task completes to briefly
+    // un-minimize the panel for 3s, then let it auto-hide again.
+    pulseKey?: number;
 }
 
 export const TYPE_ICON: Record<string, string> = {
@@ -33,11 +36,12 @@ const PANEL_BG = {
 };
 
 export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
-    missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onOpenQuestPath,
+    missions, activeSlotName, isOnActiveSlot, rewardCoins, allDone, onOpenQuestPath, pulseKey,
 }) => {
     const [minimized, setMinimized] = useState(false);
     const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const prevAllDoneRef = useRef(allDone);
+    const prevPulseKeyRef = useRef(pulseKey);
 
     // Auto-hide after 5 seconds when visible, but not when all done
     useEffect(() => {
@@ -54,6 +58,18 @@ export const SlotQuestPanel: React.FC<SlotQuestPanelProps> = ({
         }
         prevAllDoneRef.current = allDone;
     }, [allDone]);
+
+    // A task just completed — briefly un-minimize, then auto-hide again after 3s.
+    useEffect(() => {
+        if (pulseKey !== undefined && pulseKey !== prevPulseKeyRef.current) {
+            prevPulseKeyRef.current = pulseKey;
+            setMinimized(false);
+            if (autoHideRef.current) clearTimeout(autoHideRef.current);
+            if (!allDone) {
+                autoHideRef.current = setTimeout(() => setMinimized(true), 3000);
+            }
+        }
+    }, [pulseKey, allDone]);
 
     if (minimized) {
         return (
