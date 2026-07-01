@@ -60,24 +60,25 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
 
             <span className="relative font-black text-white leading-tight text-center" style={{ fontSize: 11, textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)' }}>{info.label}</span>
 
-            {/* points + position */}
-            <div className="relative flex items-center gap-1 mt-0.5">
-                <i className="ti ti-bolt" style={{ color: info.color, fontSize: 10, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
-                <span className="font-black text-white" style={{ fontSize: 10, textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)' }}>{formatK(arena.points)}</span>
-                {joined && <span className="text-white/80 font-bold" style={{ fontSize: 9, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>#{pos}</span>}
+            {/* points + position — solid pill, white text */}
+            <div className="relative flex items-center gap-1 rounded-full px-1.5 py-0.5 mt-0.5"
+                style={{ background: info.color, boxShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>
+                <i className="ti ti-bolt text-white" style={{ fontSize: 10 }} />
+                <span className="font-black text-white leading-none" style={{ fontSize: 10 }}>{formatK(arena.points)}</span>
+                {joined && <span className="text-white/90 font-bold leading-none" style={{ fontSize: 9 }}>#{pos}</span>}
             </div>
 
-            {/* promotion / hold / demotion status — or spin-to-join prompt */}
+            {/* promotion / hold / demotion status — or spin-to-join prompt — solid pill, white text */}
             {joined ? (
                 <div className="relative flex items-center gap-0.5 rounded-full px-1.5 py-0.5 mt-1"
-                    style={{ background: `${outcome.color}26`, boxShadow: `inset 0 0 0 1px ${outcome.color}66` }}>
-                    <i className={`ti ${outcome.icon}`} style={{ fontSize: 9, color: outcome.color }} />
-                    <span className="font-black leading-none" style={{ fontSize: 8.5, color: outcome.color }}>{outcome.label}</span>
+                    style={{ background: outcome.color, boxShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>
+                    <i className={`ti ${outcome.icon} text-white`} style={{ fontSize: 9 }} />
+                    <span className="font-black text-white leading-none" style={{ fontSize: 8.5 }}>{outcome.label}</span>
                 </div>
             ) : (
-                <div className="relative flex items-center gap-0.5 rounded-full px-1.5 py-0.5 mt-1" style={{ background: 'rgba(255,255,255,0.12)' }}>
-                    <i className="ti ti-refresh text-white/80" style={{ fontSize: 9 }} />
-                    <span className="font-black leading-none text-white/80" style={{ fontSize: 8.5 }}>Spin to join</span>
+                <div className="relative flex items-center gap-0.5 rounded-full px-1.5 py-0.5 mt-1" style={{ background: '#64748b', boxShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>
+                    <i className="ti ti-refresh text-white" style={{ fontSize: 9 }} />
+                    <span className="font-black leading-none text-white" style={{ fontSize: 8.5 }}>Spin to join</span>
                 </div>
             )}
 

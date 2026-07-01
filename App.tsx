@@ -2506,6 +2506,10 @@ const App: React.FC = () => {
               if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && sym === SymbolType.SCATTER && Math.random() < 0.75) {
                   sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
               }
+              // JUNGLE: the oversized scatter only ever lands on reels 2, 3, 4 (cols 1-3).
+              if (selectedGame.theme === 'JUNGLE' && sym === SymbolType.SCATTER && (c < 1 || c > 3)) {
+                  do { sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus); } while (sym === SymbolType.SCATTER);
+              }
               if (c === 2) {
                   const highPaying = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.SEVEN, SymbolType.CHERRY];
                   if (highPaying.includes(sym) && Math.random() < 0.5) {
@@ -2533,7 +2537,11 @@ const App: React.FC = () => {
       const isNeon = selectedGame.theme === 'NEON';
       // 3×3 grids get 80% less same-cell stacks (mega match) + 20% less wilds
       const smallGridPenalty = isSmallGrid ? 0.20 : 1.0;
-      const megaMatchProb = isFreeSpin ? 0.34 * smallGridPenalty : (isNeon ? 0.08 : 0.16) * smallGridPenalty;
+      // Mystery-feature slots (Farm, Beast, AngryFlock, Princess) get their
+      // "3 reels full same icon" mega match chance cut further — 70% less on
+      // normal spins, 40% less during free spins.
+      const mysteryMegaMatchMult = MYSTERY_FEATURE_THEMES.has(selectedGame.theme) ? (isFreeSpin ? 0.60 : 0.30) : 1.0;
+      const megaMatchProb = (isFreeSpin ? 0.34 * smallGridPenalty : (isNeon ? 0.08 : 0.16) * smallGridPenalty) * mysteryMegaMatchMult;
       
       if (Math.random() < megaMatchProb) { 
             const targets = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN];
@@ -3470,6 +3478,8 @@ const App: React.FC = () => {
                  ? 15
                  : selectedGame.theme === 'PIRATE'
                  ? scatterCount
+                 : selectedGame.theme === 'JUNGLE'
+                 ? 5
                  : 10;
              const spinsWon = selectedGame.theme !== 'PIRATE' && scatterCount > 3
                  ? baseSpins + (scatterCount - 3) * 5
