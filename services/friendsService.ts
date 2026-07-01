@@ -28,11 +28,17 @@ export function toFriend(e: LeaderboardEntry, now: number): Friend {
     return { id: e.id, name: e.name, avatar: e.avatar, level: e.level, isAI: !isRealPlayerId(e.id), addedAt: now };
 }
 
-// Gifting is one-time per friend, permanently — once you've sent a gift to a
-// friend (or accepting theirs auto-sent one back), that direction is closed
-// for good, so a receive→send→receive→send loop can't run forever.
-export function canSend(friend: Friend): boolean {
-    return !friend.lastSentAt;
+export const DAILY_MS = 24 * 60 * 60 * 1000;
+
+// Gifting is one-time per friend PER DAY — once you've sent a gift to a friend
+// (or accepting theirs auto-sent one back), that direction is closed until the
+// cooldown elapses, so a receive→send→receive→send loop can't run back-to-back.
+export function canSend(friend: Friend, now: number): boolean {
+    return !friend.lastSentAt || now - friend.lastSentAt >= DAILY_MS;
+}
+export function nextResetIn(timestamp: number | undefined, now: number): number {
+    if (!timestamp) return 0;
+    return Math.max(0, DAILY_MS - (now - timestamp));
 }
 
 // A received gift is always worth 3x the RECIPIENT's own max bet — computed on

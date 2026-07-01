@@ -221,7 +221,9 @@ export const GAMES_CONFIG: GameConfig[] = [
     theme: 'JUNGLE',
     rows: 3,
     reels: 5,
-    scattersToTrigger: 3,
+    // A single colossal scatter (rendered as one 3x3 icon dead-center) triggers
+    // the bonus by itself — there's only ever one on the grid at a time.
+    scattersToTrigger: 1,
     description: 'Wild wins in the deep rainforest.',
     color: 'from-green-600 via-emerald-700 to-green-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #059669 0%, #064e3b 100%)',

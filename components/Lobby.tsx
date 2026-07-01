@@ -5,6 +5,7 @@ import { GAMES_CONFIG, formatCommaNumber, formatTime, formatK } from '../constan
 import { GameConfig, QuestState, MissionState, ArenaState, Friend } from '../types';
 import { jackpotService, SLOT_VARS } from '../services/jackpotService';
 import { ArenaLobbyCard } from './ArenaLobbyCard';
+import { PassVipLobbyCard } from './PassVipLobbyCard';
 
 const THEME_PNG: Partial<Record<string, string>> = {
     DRAGON: '/dragon/dragon-11.png',
@@ -293,23 +294,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 paddingRight: '0.75rem',
                             }}
                         >
-                            {/* ── Promo card 1: Mission Pass banner ── */}
-                            <button
-                                onClick={onOpenBattlePass}
-                                className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
-                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
-                                <img src="/lobby_mission.png" alt="Mission Pass" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
-                            </button>
+                            {/* ── Promo card 1: Mission Pass / VIP Lounge, paginated in one card ── */}
+                            <PassVipLobbyCard onOpenBattlePass={onOpenBattlePass} onOpenVipLounge={onOpenVipLounge} />
 
-                            {/* ── Promo card 2: VIP Lounge banner ── */}
-                            <button
-                                onClick={onOpenVipLounge}
-                                className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0"
-                                style={{ width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)' }}>
-                                <img src="/lobby_vip.png" alt="VIP Lounge" className="absolute inset-0 w-full h-full" style={{ objectFit: 'cover', borderRadius: 16 }} />
-                            </button>
-
-                            {/* ── Promo card 3: Arena ── */}
+                            {/* ── Promo card 2: Arena ── */}
                             {arena && (
                                 <ArenaLobbyCard
                                     arena={arena}
@@ -462,7 +450,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 const toggle = (
                     <button onClick={() => setDockExpanded(v => !v)}
                         className="absolute flex items-center justify-center active:scale-95 transition-transform"
-                        style={{ width: 32, height: 28, right: 4, top: '50%', transform: 'translateY(-50%)', zIndex: 1 }}>
+                        style={{ width: 32, height: 28, right: 4, top: 'calc(50% + 8px)', transform: 'translateY(-50%)', zIndex: 1 }}>
                         <i className={`ti ${dockExpanded ? 'ti-chevron-down' : 'ti-chevron-up'}`} style={{ fontSize: 20, color: '#fff' }} />
                         {!dockExpanded && row2HasNotif && (
                             <div className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full"

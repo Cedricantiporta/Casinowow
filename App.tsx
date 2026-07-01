@@ -55,6 +55,8 @@ import { DragonPickGrid } from './components/DragonPickModal';
 import { NeonRouletteModal } from './components/NeonRouletteModal';
 import { CandyRouletteModal, CandyWildConfig } from './components/CandyRouletteModal';
 import { SpinCountRouletteModal } from './components/SpinCountRouletteModal';
+import { AngryFlockSpinCountModal } from './components/AngryFlockSpinCountModal';
+import { AngryFlockRouletteModal, AngryFlockWildColor } from './components/AngryFlockRouletteModal';
 import { ArcticPickGrid } from './components/ArcticPickGrid';
 
 // Interface for persisted game state
@@ -96,14 +98,14 @@ const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
 };
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
-// Mystery Symbol free-spins feature — shared by all four "creature" slots. During free
+// Mystery Symbol free-spins feature — shared by the "creature" slots. During free
 // spins, mystery tiles drop onto the reels and, once they stop, all reveal the SAME
-// randomly-chosen symbol at once for big matching combos.
-const MYSTERY_FEATURE_THEMES = new Set<GameTheme>(['FARM', 'BEAST', 'ANGRYFLOCK', 'PRINCESS']);
+// randomly-chosen symbol at once for big matching combos. Angry Flock has its own
+// dedicated bird-roulette wild bonus instead (see ANGRYFLOCK feature blocks below).
+const MYSTERY_FEATURE_THEMES = new Set<GameTheme>(['FARM', 'BEAST', 'PRINCESS']);
 const MYSTERY_IMG: Partial<Record<GameTheme, string>> = {
     FARM:       '/farm_mystery.png',
     BEAST:      '/beast_mystery.png',
-    ANGRYFLOCK: '/angryflock_mystery.png',
     PRINCESS:   '/princess_mystery.png',
 };
 
@@ -986,6 +988,13 @@ const App: React.FC = () => {
   const [candyShuffledCols, setCandyShuffledCols] = useState<{ col: number; seedRow: number }[] | null>(null);
   const [candyShuffledSingles, setCandyShuffledSingles] = useState<{ col: number; row: number }[] | null>(null);
 
+  // Angry Flock — two-stage bonus: spin count roulette (3-6) → bird color roulette
+  // → free spins with a per-color wild pattern (red's wilds are sticky for the session).
+  const [showAngryFlockSpinCount, setShowAngryFlockSpinCount] = useState(false);
+  const [showAngryFlockRoulette, setShowAngryFlockRoulette] = useState(false);
+  const angryFlockColorRef = useRef<AngryFlockWildColor | null>(null);
+  const angryFlockStickyWildsRef = useRef<{ col: number; row: number }[]>([]);
+
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
@@ -1353,7 +1362,7 @@ const App: React.FC = () => {
               // this can't loop into an endless receive/send cycle.
               const fromDevice = msg.meta;
               const backFriend = fromDevice ? friendsState.friends.find(f => f.id === fromDevice) : undefined;
-              if (fromDevice && backFriend && friendCanSend(backFriend) && sendsRemainingToday > 0) {
+              if (fromDevice && backFriend && friendCanSend(backFriend, Date.now()) && sendsRemainingToday > 0) {
                   sendGiftToFriend(meAsLocalPlayer(), fromDevice).then(ok => {
                       if (!ok) return;
                       recordGiftSent();
@@ -2506,8 +2515,10 @@ const App: React.FC = () => {
               if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && sym === SymbolType.SCATTER && Math.random() < 0.75) {
                   sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
               }
-              // JUNGLE: the oversized scatter only ever lands on reels 2, 3, 4 (cols 1-3).
-              if (selectedGame.theme === 'JUNGLE' && sym === SymbolType.SCATTER && (c < 1 || c > 3)) {
+              // JUNGLE: the scatter is one colossal icon that only ever appears dead-center
+              // on the grid (rendered spanning a 3x3 block as a separate overlay) — never
+              // anywhere else, so at most one can ever land per spin.
+              if (selectedGame.theme === 'JUNGLE' && sym === SymbolType.SCATTER && (c !== Math.floor(cols / 2) || r !== Math.floor(rows / 2))) {
                   do { sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus); } while (sym === SymbolType.SCATTER);
               }
               if (c === 2) {
@@ -2555,7 +2566,7 @@ const App: React.FC = () => {
       }
       // These themes never use full-column same-symbol matches (3-column "mega match").
       // Only GOLDEN_POT (untouched generic slot) keeps it among the lower-tier games.
-      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG'].includes(selectedGame.theme)) megaMatchActive = false;
+      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG','ANGRYFLOCK'].includes(selectedGame.theme)) megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -2886,6 +2897,57 @@ const App: React.FC = () => {
           }
       }
 
+      // ANGRYFLOCK: bird-roulette free spins. The chosen bird color governs the
+      // wild pattern for every spin of the session:
+      //   green:  3-4 scattered single wilds
+      //   blue:   1-2 wild reels + 2-3 scattered wilds, combined
+      //   purple: 2-3 wild reels
+      //   red:    1-2 NEW sticky wilds per spin that persist for the rest of the session
+      if (ft === 'ANGRYFLOCK' && isFreeSpin && angryFlockColorRef.current) {
+          const color = angryFlockColorRef.current;
+          const eligible = (c: number, r: number) => newGrid[c]?.[r] !== undefined && newGrid[c][r] !== SymbolType.SCATTER;
+          const scatterFew = (count: number, avoid?: Set<number>) => {
+              const placed: { c: number; r: number }[] = [];
+              let guard = 0;
+              while (placed.length < count && guard < 200) {
+                  const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
+                  if (eligible(c, r) && !(avoid && avoid.has(c)) && !placed.some(p => p.c === c && p.r === r)) placed.push({ c, r });
+                  guard++;
+              }
+              placed.forEach(p => { newGrid[p.c][p.r] = SymbolType.WILD; });
+          };
+          const wildReels = (numReels: number) => {
+              const chosen = new Set<number>();
+              let guard = 0;
+              while (chosen.size < Math.min(numReels, cols) && guard < 80) { chosen.add(Math.floor(Math.random() * cols)); guard++; }
+              chosen.forEach(c => { for (let r = 0; r < rows; r++) if (eligible(c, r)) newGrid[c][r] = SymbolType.WILD; });
+              return chosen;
+          };
+          if (color === 'green') {
+              scatterFew(3 + Math.floor(Math.random() * 2)); // 3-4
+          } else if (color === 'purple') {
+              wildReels(2 + Math.floor(Math.random() * 2)); // 2-3 reels
+          } else if (color === 'blue') {
+              const reelsChosen = wildReels(1 + Math.floor(Math.random() * 2)); // 1-2 reels
+              scatterFew(2 + Math.floor(Math.random() * 2), reelsChosen); // + 2-3 scattered wilds
+          } else if (color === 'red') {
+              const newCount = 1 + Math.floor(Math.random() * 2); // 1-2 new sticky wilds this spin
+              const existing = angryFlockStickyWildsRef.current;
+              const placed: { col: number; row: number }[] = [];
+              let guard = 0;
+              while (placed.length < newCount && guard < 200) {
+                  const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
+                  if (eligible(c, r) && !existing.some(p => p.col === c && p.row === r) && !placed.some(p => p.col === c && p.row === r)) {
+                      placed.push({ col: c, row: r });
+                  }
+                  guard++;
+              }
+              angryFlockStickyWildsRef.current = [...existing, ...placed];
+              // Never disappear — re-stamp every sticky wild placed so far onto this spin's grid.
+              angryFlockStickyWildsRef.current.forEach(p => { if (eligible(p.col, p.row)) newGrid[p.col][p.row] = SymbolType.WILD; });
+          }
+      }
+
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
       if (isFreeSpin && ft !== 'ARCTIC' && ft !== 'NEON' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
@@ -3115,6 +3177,7 @@ const App: React.FC = () => {
     if (showFreeSpinsPopup) return;
     if (showFreeSpinSummary) return;
     if (showCandyRoulette || showSpinCountRoulette) return;
+    if (showAngryFlockSpinCount || showAngryFlockRoulette) return;
     if (dragonPotShaking || showDragonTriggerPopup) return;
     if (showEgyptHoldWinPopup) return;
 
@@ -3219,7 +3282,7 @@ const App: React.FC = () => {
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
-  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, player.level, selectedGame.theme]);
+  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, player.level, selectedGame.theme]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -3470,6 +3533,24 @@ const App: React.FC = () => {
                      audioService.playScatterTrigger();
                      setSpinsWithoutBonus(0);
                      setTimeout(() => { audioService.playBonusTrigger(); setShowSpinCountRoulette(true); }, 1500);
+                 }
+                 return next;
+             }
+
+             // ANGRYFLOCK: two-stage bonus — spin count roulette (3-6) then bird color roulette.
+             if (ft === 'ANGRYFLOCK') {
+                 if (freeSpinsRemaining > 0) {
+                     // Retrigger mid-feature: add spins, keep the same bird color/wild pattern.
+                     const retrigerSpins = 3;
+                     setFreeSpinsWon(retrigerSpins);
+                     setTotalFreeSpins(prev => prev + retrigerSpins);
+                     setShowFreeSpinsPopup(true);
+                     audioService.playFreeSpinTrigger();
+                 } else {
+                     setStatus(GameStatus.SCATTER_SHOWCASE);
+                     audioService.playScatterTrigger();
+                     setSpinsWithoutBonus(0);
+                     setTimeout(() => { audioService.playBonusTrigger(); setShowAngryFlockSpinCount(true); }, 1500);
                  }
                  return next;
              }
@@ -3946,12 +4027,12 @@ const App: React.FC = () => {
       });
       setIncomingFriendRequests(prev => prev.filter(r => r.id !== req.id));
   };
-  // Gifting a friend is one-time only, forever — accepting a friend's gift (see
-  // handleClaimInbox) auto-sends one back, so there's no separate reply action
-  // and no receive→send loop.
+  // Gifting a friend is one-time per day — accepting a friend's gift (see
+  // handleClaimInbox) auto-sends one back, so there's no separate reply action,
+  // and the daily cooldown keeps it from bouncing back and forth all at once.
   const handleSendGift = async (friendId: string) => {
       const friend = friendsState.friends.find(f => f.id === friendId);
-      if (!friend || !friendCanSend(friend)) return;
+      if (!friend || !friendCanSend(friend, Date.now())) return;
       if (sendsRemainingToday <= 0) { setCelebrationMsg('Daily send limit reached (10/day)'); return; }
       // Only real friends can actually receive the gift — it lands in their Inbox.
       // Only spend the daily-send slot / mark this friend "sent" once the write succeeds.
@@ -4567,6 +4648,11 @@ const App: React.FC = () => {
           setCandyCols([]);
           setCandySingleWilds([]);
           setCandyConfig(null);
+          // Reset Angry Flock bird bonus state on game change
+          setShowAngryFlockSpinCount(false);
+          setShowAngryFlockRoulette(false);
+          angryFlockColorRef.current = null;
+          angryFlockStickyWildsRef.current = [];
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -4669,6 +4755,30 @@ const App: React.FC = () => {
       }, 900);
   };
 
+  const handleAngryFlockSpinCountComplete = (count: number) => {
+      setFreeSpinsWon(count);
+      setTotalFreeSpins(prev => prev + count);
+      setShowAngryFlockSpinCount(false);
+      setShowAngryFlockRoulette(true);
+  };
+
+  const handleAngryFlockRouletteComplete = (color: AngryFlockWildColor) => {
+      angryFlockColorRef.current = color;
+      angryFlockStickyWildsRef.current = [];
+      setShowAngryFlockRoulette(false);
+      savedAutoSpinRef.current = { active: player.autoSpin, remaining: autoSpinRemainingRef.current };
+      setReelTransitioning('out');
+      setTimeout(() => {
+          setFreeSpinsRemaining(prev => prev + freeSpinsWon);
+          savedFastSpinRef.current = fastSpin;
+          setStatus(GameStatus.IDLE);
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+              setReelTransitioning('in');
+              setTimeout(() => setReelTransitioning(false), 1100);
+          }));
+      }, 900);
+  };
+
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
       trackSlotQuest('BONUS_TRIGGER', 1);
@@ -4707,6 +4817,10 @@ const App: React.FC = () => {
       setCandyCols([]);
       setCandySingleWilds([]);
       setCandyConfig(null);
+      // The bird's wild pattern (and any accumulated red sticky wilds) only last
+      // for this one Angry Flock free-spin session.
+      angryFlockColorRef.current = null;
+      angryFlockStickyWildsRef.current = [];
       // Hard-reset pirate walk so Ghost Ship state never bleeds into normal spins
       pirateWalkRef.current = { active: false, shipCol: -1, ship2Col: -1 };
       pirateTriggerArmedRef.current = false;
@@ -4816,7 +4930,7 @@ const App: React.FC = () => {
   }, [status, reelTransitioning, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary, jackpotWinTier, pendingArcticFreePick, showArcticPickModal]);
 
   const handleHeaderBack = () => {
-    if (showCandyRoulette || showSpinCountRoulette) {
+    if (showCandyRoulette || showSpinCountRoulette || showAngryFlockSpinCount || showAngryFlockRoulette) {
         // Bonus roulettes must resolve — ignore back to avoid losing the awarded free spins.
         return;
     }
@@ -5610,6 +5724,21 @@ const App: React.FC = () => {
                             </div>
                         )}
 
+                        {/* JUNGLE colossal scatter — a single icon spanning a 3x3 block dead-center
+                            on the grid. Each reel clips its own column, so this has to be a separate
+                            overlay above the whole grid rather than something drawn inside one cell. */}
+                        {selectedGame.theme === 'JUNGLE' && status !== GameStatus.SPINNING && status !== GameStatus.STOPPING &&
+                         targetGrid.length > 0 && targetGrid[Math.floor(selectedGame.reels / 2)]?.[Math.floor(selectedGame.rows / 2)] === SymbolType.SCATTER && (
+                            <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center animate-pop-in">
+                                <img
+                                    src="/jungle_scatter.png"
+                                    alt=""
+                                    className="object-contain select-none"
+                                    style={{ width: `${3 / selectedGame.reels * 100}%`, height: '100%', filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.7))' }}
+                                />
+                            </div>
+                        )}
+
                         {/* Winning-cell viper borders — drawn in a top overlay so they're
                             never clipped/covered by neighbouring reels (shows on every side). */}
                         {winData && winData.winningCells.length > 0 && !holdWinActive &&
@@ -6051,7 +6180,7 @@ const App: React.FC = () => {
                       onPointerDown={handleSpinPointerDown}
                       onPointerUp={handleSpinPointerUp}
                       onPointerLeave={() => { if (spinButtonTimeoutRef.current) { clearTimeout(spinButtonTimeoutRef.current); spinButtonTimeoutRef.current = null; isLongPressRef.current = false; } }}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showSpinCountRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup || showEgyptHoldWinPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showSpinCountRoulette || showAngryFlockSpinCount || showAngryFlockRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup || showEgyptHoldWinPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                       style={{ touchAction: 'none' }}
                   >
                       <div className="flat-face" style={{ overflow: 'hidden' }}>
@@ -6344,6 +6473,17 @@ const App: React.FC = () => {
           isOpen={showCandyRoulette}
           freeSpins={freeSpinsWon}
           onComplete={handleCandyRouletteComplete}
+      />
+
+      <AngryFlockSpinCountModal
+          isOpen={showAngryFlockSpinCount}
+          onComplete={handleAngryFlockSpinCountComplete}
+      />
+
+      <AngryFlockRouletteModal
+          isOpen={showAngryFlockRoulette}
+          freeSpins={freeSpinsWon}
+          onComplete={handleAngryFlockRouletteComplete}
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />

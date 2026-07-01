@@ -333,7 +333,11 @@ const ReelCell: React.FC<{
                             style={{
                                 width:    `${85 * cellScale * (config.imageScale ?? 1)}%`,
                                 height:   `${85 * cellScale * (config.imageScale ?? 1)}%`,
-                                ...(theme === 'UNDERWATER' || ((theme === 'PIGGY' || theme === 'JUNGLE') && isScatter) ? { position: 'absolute', width: `${85 * cellScale * (config.imageScale ?? 1)}%`, height: `${85 * cellScale * (config.imageScale ?? 1)}%`, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', ...((theme === 'PIGGY' || theme === 'JUNGLE') ? { zIndex: 20 } : {}) } : {}),
+                                // JUNGLE's scatter is drawn as a separate 3x3 overlay above the whole
+                                // grid (each reel column clips its own overflow, so a single cell can
+                                // never visually bleed into neighboring reels) — hide the plain cell copy.
+                                ...(theme === 'JUNGLE' && isScatter ? { opacity: 0 } : {}),
+                                ...(theme === 'UNDERWATER' || (theme === 'PIGGY' && isScatter) ? { position: 'absolute', width: `${85 * cellScale * (config.imageScale ?? 1)}%`, height: `${85 * cellScale * (config.imageScale ?? 1)}%`, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', ...(theme === 'PIGGY' ? { zIndex: 20 } : {}) } : {}),
                             }}
                         />
                     ) : (
