@@ -11,7 +11,7 @@ interface SlotQuestPanelProps {
     onOpenQuestPath: () => void;
 }
 
-const TYPE_ICON: Record<string, string> = {
+export const TYPE_ICON: Record<string, string> = {
     WIN_COUNT:      'ti-trophy',
     SPIN_COUNT:     'ti-refresh',
     MAX_BET_SPIN:   'ti-bolt',

@@ -17,7 +17,7 @@ import { FreeSpinSummary } from './components/FreeSpinSummary';
 import { BankruptcyModal } from './components/BankruptcyModal';
 import { MissionPassModal } from './components/MissionPassModal';
 import { CardCollectionModal } from './components/CardCollectionModal';
-import { SlotQuestPanel } from './components/SlotQuestPanel';
+import { SlotQuestPanel, TYPE_ICON as QUEST_TYPE_ICON } from './components/SlotQuestPanel';
 import { QuestPathModal } from './components/QuestPathModal';
 import { SimpleCelebrationModal } from './components/SimpleCelebrationModal';
 import { TimeBonusModal } from './components/TimeBonusModal';
@@ -712,14 +712,19 @@ const App: React.FC = () => {
       setSlotQuestState(prev => {
           if (!prev.missions.length || prev.pathSlotIds[prev.currentPathIndex] !== selectedGame.id) return prev;
           let changed = false;
+          let justCompleted: SlotQuestMission | null = null;
           const updated = prev.missions.map(m => {
               if (m.type === matchType && m.current < m.target) {
                   changed = true;
-                  return { ...m, current: Math.min(m.target, m.current + delta) };
+                  const newCurrent = Math.min(m.target, m.current + delta);
+                  const next = { ...m, current: newCurrent };
+                  if (newCurrent >= m.target) justCompleted = next;
+                  return next;
               }
               return m;
           });
           if (!changed) return prev;
+          if (justCompleted) setTimeout(() => showQuestTaskComplete(justCompleted!), 0);
           const next = { ...prev, missions: updated };
           try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
           return next;
@@ -731,14 +736,19 @@ const App: React.FC = () => {
       setSlotQuestState(prev => {
           if (!prev.missions.length || prev.pathSlotIds[prev.currentPathIndex] !== selectedGame.id) return prev;
           let changed = false;
+          let justCompleted: SlotQuestMission | null = null;
           const updated = prev.missions.map(m => {
               if (m.type === 'REACH_LEVEL' && m.current < m.target) {
                   changed = true;
-                  return { ...m, current: Math.min(m.target, level) };
+                  const newCurrent = Math.min(m.target, level);
+                  const next = { ...m, current: newCurrent };
+                  if (newCurrent >= m.target) justCompleted = next;
+                  return next;
               }
               return m;
           });
           if (!changed) return prev;
+          if (justCompleted) setTimeout(() => showQuestTaskComplete(justCompleted!), 0);
           const next = { ...prev, missions: updated };
           try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
           return next;
@@ -771,6 +781,13 @@ const App: React.FC = () => {
   const [showArenaResults, setShowArenaResults] = useState(false);
   const [questCreditToast, setQuestCreditToast] = useState<null | 'dice' | 'mine'>(null);
   const questCreditToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [questTaskCompleteToast, setQuestTaskCompleteToast] = useState<SlotQuestMission | null>(null);
+  const questTaskCompleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showQuestTaskComplete = (mission: SlotQuestMission) => {
+      setQuestTaskCompleteToast(mission);
+      if (questTaskCompleteTimerRef.current) clearTimeout(questTaskCompleteTimerRef.current);
+      questTaskCompleteTimerRef.current = setTimeout(() => setQuestTaskCompleteToast(null), 3000);
+  };
   const arenaBetTierRef = useRef(0);          // last bet tier index, for AI scaling
   const arenaProcessedRef = useRef(0);        // last seasonId we ran end-of-season for
   // Arena unlocks once all quest stages are cleared OR the player reaches level 27.
@@ -2290,8 +2307,9 @@ const App: React.FC = () => {
               while (selectedGame.theme === 'PIGGY' && sym === SymbolType.SCATTER) {
                   sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
               }
-              // Mystery feature themes: scatter appears ~50% less often
-              if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && sym === SymbolType.SCATTER && Math.random() < 0.5) {
+              // Mystery feature themes: scatter appears ~75% less often overall
+              // (an additional 50% reduction stacked on top of the prior 50% cut).
+              if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && sym === SymbolType.SCATTER && Math.random() < 0.75) {
                   sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
               }
               if (c === 2) {
@@ -3781,8 +3799,8 @@ const App: React.FC = () => {
                   const slotUnlock = justUnlockedSlot(newLevel);
                   if (slotUnlock) {
                        setShownUnlocks(prev => new Set(prev).add(slotUnlock.lvl));
-                       if (newLevel > 40) {
-                           // After level 40: compact top-right toast + lobby NEW badge
+                       if (newLevel > 20) {
+                           // After level 20: compact top-right toast + lobby NEW badge
                            setNewSlotIds(prev => prev.includes(slotUnlock.id) ? prev : [...prev, slotUnlock.id]);
                            audioService.playUnlock();
                            const unlockConfig = GAMES_CONFIG.find(g => g.id === slotUnlock.id);
@@ -5190,6 +5208,19 @@ const App: React.FC = () => {
                             className="animate-pot-shake"
                             style={{ width: 96, height: 96, objectFit: 'contain', filter: 'drop-shadow(0 4px 18px rgba(0,0,0,0.85))' }}
                         />
+                    </div>
+                )}
+
+                {/* Quest task completed — brief banner, 3s auto-close */}
+                {questTaskCompleteToast && (
+                    <div className="absolute left-1/2 z-[60] pointer-events-none animate-pop-in" style={{ top: 8, transform: 'translateX(-50%)' }}>
+                        <div className="flex items-center gap-2 rounded-full px-3 py-1.5"
+                            style={{ background: 'linear-gradient(180deg,rgba(74,222,128,0.95),rgba(21,128,61,0.95))', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.4), 0 4px 14px rgba(0,0,0,0.5)' }}>
+                            <i className="ti ti-check text-white" style={{ fontSize: 14 }} />
+                            <span className="font-black text-white leading-none" style={{ fontSize: 11 }}>Task Complete</span>
+                            <i className={`ti ${QUEST_TYPE_ICON[questTaskCompleteToast.type] || 'ti-star'} text-white/90`} style={{ fontSize: 12 }} />
+                            <span className="font-bold text-white/90 leading-none" style={{ fontSize: 10 }}>{questTaskCompleteToast.description}</span>
+                        </div>
                     </div>
                 )}
 
