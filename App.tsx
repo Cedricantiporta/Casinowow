@@ -998,7 +998,7 @@ const App: React.FC = () => {
   // Jungle Rumble — a single colossal center symbol (spanning a 3x3 block).
   // Base game: only ever the SCATTER variant, and only it triggers 5 free spins.
   // During free spins: every spin guarantees one (any paytable symbol, weighted
-  // low-to-high, SCATTER rarest of all and retriggers +5 more free spins).
+  // low-to-high) — SCATTER never appears here, so free spins can't retrigger more.
   const [jungleBigIcon, setJungleBigIcon] = useState<SymbolType | null>(null);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
@@ -2543,12 +2543,13 @@ const App: React.FC = () => {
       // JUNGLE: the colossal center symbol. Base game — an explicit, fixed ~3.5%
       // chance per spin to place SCATTER dead-center (never via the shared symbol
       // table/pity-timer, which assumes a much rarer "3 simultaneous hits" bar).
-      // Free spins — every single spin guarantees one, weighted low-to-high value
-      // (SCATTER rarest of all, and retriggers +5 more free spins via the normal
-      // scatter-count trigger check below since it fills the center cell too).
+      // Free spins — every single spin guarantees one, weighted low-to-high value;
+      // SCATTER is excluded from that pool entirely, so free spins can never retrigger.
       if (selectedGame.theme === 'JUNGLE') {
           const centerCol = Math.floor(cols / 2), centerRow = Math.floor(rows / 2);
           if (isFreeSpin) {
+              // No SCATTER in this pool — free spins never retrigger more free spins,
+              // no matter which colossal symbol lands.
               const JUNGLE_BIG_ICON_POOL: { type: SymbolType; weight: number }[] = [
                   { type: SymbolType.TEN,     weight: 22 },
                   { type: SymbolType.JACK,    weight: 18 },
@@ -2561,7 +2562,6 @@ const App: React.FC = () => {
                   { type: SymbolType.CHERRY,  weight: 2.5 },
                   { type: SymbolType.SEVEN,   weight: 1.5 },
                   { type: SymbolType.WILD,    weight: 0.8 },
-                  { type: SymbolType.SCATTER, weight: 0.2 },
               ];
               const total = JUNGLE_BIG_ICON_POOL.reduce((a, p) => a + p.weight, 0);
               let roll = Math.random() * total;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Props {
     onOpenBattlePass: () => void;
@@ -10,10 +10,19 @@ const PAGES = [
     { img: '/lobby_vip.png', alt: 'VIP Lounge' },
 ];
 
+const AUTO_SWITCH_MS = 4000;
+
 // Mission Pass and VIP Lounge share one lobby card slot, swapped with page dots
-// instead of taking up two separate card slots.
+// (and auto-rotating on a timer) instead of taking up two separate card slots.
 export const PassVipLobbyCard: React.FC<Props> = ({ onOpenBattlePass, onOpenVipLounge }) => {
     const [page, setPage] = useState(0);
+
+    useEffect(() => {
+        const t = setInterval(() => setPage(p => (p + 1) % PAGES.length), AUTO_SWITCH_MS);
+        return () => clearInterval(t);
+        // Restart the auto-rotate timer fresh whenever the page changes (including
+        // manual dot taps), so a manual pick doesn't get flipped away too soon.
+    }, [page]);
 
     return (
         <div
