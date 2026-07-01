@@ -2580,6 +2580,16 @@ const App: React.FC = () => {
                   setJungleBigIcon(null);
               }
           }
+          // Hard safety net: no matter what set it, strip any stray SCATTER anywhere
+          // outside the exact center cell so it can never appear as a small individual
+          // icon or trigger the bonus from anywhere but the intended colossal spot.
+          for (let cc = 0; cc < cols; cc++) {
+              for (let rr = 0; rr < rows; rr++) {
+                  if ((cc !== centerCol || rr !== centerRow) && newGrid[cc][rr] === SymbolType.SCATTER) {
+                      newGrid[cc][rr] = SymbolType.TEN;
+                  }
+              }
+          }
       }
 
       if (Math.random() < 0.00001) {
