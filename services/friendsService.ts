@@ -17,12 +17,13 @@ export const DAILY_MS = 24 * 60 * 60 * 1000;
 // device on the other end to receive requests or gifts.
 export const isRealPlayerId = (id: string): boolean => id.startsWith('d_');
 
-// Players you can still add — anyone on the board who isn't you and isn't
-// already a friend.
+// Players you can still add — real devices only. AI/seed board entries have no
+// device on the other end, so a request to one can never be accepted; keeping
+// them out of search avoids the confusing "sent but never accepted" dead end.
 export async function getAddablePlayers(you: LocalPlayer, existingIds: string[]): Promise<LeaderboardEntry[]> {
     const board = await fetchTopPlayers(you, 'score');
     const existing = new Set(existingIds);
-    return board.filter(e => !e.isYou && !existing.has(e.id));
+    return board.filter(e => !e.isYou && !existing.has(e.id) && isRealPlayerId(e.id));
 }
 
 export function toFriend(e: LeaderboardEntry, now: number): Friend {
@@ -52,18 +53,21 @@ export interface IncomingRequest {
     createdAt: number;
 }
 
-export async function sendFriendRequest(you: LocalPlayer, toDeviceId: string): Promise<void> {
-    if (!supabase) return;
+export async function sendFriendRequest(you: LocalPlayer, toDeviceId: string): Promise<boolean> {
+    if (!supabase) return false;
     try {
-        await supabase.from('friend_requests').insert({
+        const { error } = await supabase.from('friend_requests').insert({
             from_device: getDeviceId(),
             to_device: toDeviceId,
             from_name: you.name || 'Player',
             from_avatar: you.avatar || '',
             from_level: you.level,
         });
+        if (error) { console.warn('[friends] request send failed — run supabase/friends.sql?', error.message); return false; }
+        return true;
     } catch (e) {
         console.warn('[friends] request send failed — run supabase/friends.sql?', e);
+        return false;
     }
 }
 
@@ -132,14 +136,17 @@ export async function ackSenderRequest(requestId: number): Promise<void> {
 // reward (3x their own max bet) client-side when they see it, so the amount
 // always reflects the RECEIVER's progression, not the sender's.
 
-export async function sendGiftToFriend(you: LocalPlayer, toDeviceId: string): Promise<void> {
-    if (!supabase) return;
+export async function sendGiftToFriend(you: LocalPlayer, toDeviceId: string): Promise<boolean> {
+    if (!supabase) return false;
     try {
-        await supabase.from('friend_gifts').insert({
+        const { error } = await supabase.from('friend_gifts').insert({
             from_device: getDeviceId(), to_device: toDeviceId, from_name: you.name || 'Player',
         });
+        if (error) { console.warn('[friends] gift send failed — run supabase/friends.sql?', error.message); return false; }
+        return true;
     } catch (e) {
         console.warn('[friends] gift send failed — run supabase/friends.sql?', e);
+        return false;
     }
 }
 

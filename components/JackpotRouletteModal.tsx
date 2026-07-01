@@ -169,7 +169,7 @@ function drawWheel(ctx: CanvasRenderingContext2D, angleDeg: number, bulbPhase: n
         ctx.font = `900 ${fs}px 'Titan One', cursive`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        ctx.strokeStyle = 'rgba(0,0,0,0.85)';
         ctx.lineWidth = 5;
         ctx.strokeText(label, 0, 0);
         if (is10) { ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 14; }

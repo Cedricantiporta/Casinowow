@@ -869,7 +869,7 @@ const App: React.FC = () => {
   const [cascadeNewCells, setCascadeNewCells] = useState<boolean[][] | null>(null);
   const [cascadeDissolving, setCascadeDissolving] = useState(false);
   const [reelTransitioning, setReelTransitioning] = useState<false | 'out' | 'in'>(false);
-  const runCascadeRef = useRef<(g: SymbolType[][], m: number, acc: number, wc: {col:number,row:number}[]) => void>();
+  const runCascadeRef = useRef<(g: SymbolType[][], m: number, acc: number, wc: {col:number,row:number}[], depth?: number) => void>();
 
   // Neon Vegas Scatter Roulette state
   const [showNeonRoulette, setShowNeonRoulette] = useState(false);
@@ -2265,7 +2265,7 @@ const App: React.FC = () => {
           const newCount = col.length - remaining.length;
           const newSyms = Array(newCount).fill(null).map(() => {
               // Arctic: wild chance on falling cells (boosted in free spins)
-              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.36 : 0.17;
+              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.20 : 0.12;
               if (featureThemeOf(selectedGame.theme) === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < arcticCascadeWildChance) {
                   return SymbolType.WILD;
               }
@@ -2314,14 +2314,18 @@ const App: React.FC = () => {
       return { payout: totalPayout, winningLines, winningCells };
   };
 
-  runCascadeRef.current = (currentCascadeGrid: SymbolType[][], mult: number, accWin: number, winCells: {col: number, row: number}[]) => {
+  // Hard safety cap on cascade chain length — the ARCTIC wild-refill chance can
+  // occasionally keep chaining wins for a very long time; force a stop so the
+  // sequence always ends instead of running away.
+  const MAX_CASCADE_STEPS = 20;
+  runCascadeRef.current = (currentCascadeGrid: SymbolType[][], mult: number, accWin: number, winCells: {col: number, row: number}[], depth: number = 1) => {
       const { grid: newGrid, newCells } = compactGrid(currentCascadeGrid, winCells);
       setCascadeGrid(newGrid);
       setCascadeNewCells(newCells);
       setCascadeDissolving(false);
       const bet = currentBetRef.current;
       const result = computeGridWins(newGrid, bet);
-      if (result.payout > 0) {
+      if (result.payout > 0 && depth < MAX_CASCADE_STEPS) {
           const inFreeSpins = freeSpinsRemaining > 0;
           const effectiveMult = inFreeSpins ? mult : 1;
           const cascadeWin = result.payout * effectiveMult;
@@ -2336,7 +2340,7 @@ const App: React.FC = () => {
           setTimeout(() => {
               setCascadeDissolving(true);
               audioService.playIceShatter();
-              setTimeout(() => runCascadeRef.current!(newGrid, nextMult, newAccWin, result.winningCells), 350);
+              setTimeout(() => runCascadeRef.current!(newGrid, nextMult, newAccWin, result.winningCells, depth + 1), 350);
           }, 500);
       } else {
           // No further wins — keep cascade grid visible until next spin(); clear it there
@@ -3854,14 +3858,15 @@ const App: React.FC = () => {
       score: player.balance, gems: player.diamonds, totalWon: player.stats?.totalCoinsWon || 0,
       maxJackpot: player.stats?.maxJackpotWin || 0, maxWin: player.stats?.maxSingleWin || 0,
   });
-  const handleAddFriend = (friend: Friend) => {
+  const handleAddFriend = async (friend: Friend) => {
       if (!isRealPlayerId(friend.id)) {
           setFriendsState(prev => prev.friends.some(f => f.id === friend.id) ? prev : { ...prev, friends: [...prev.friends, friend] });
           return;
       }
       if (pendingFriendRequestIds.includes(friend.id) || friendsState.friends.some(f => f.id === friend.id)) return;
-      sendFriendRequest(meAsLocalPlayer(), friend.id);
-      setPendingFriendRequestIds(prev => [...prev, friend.id]);
+      const ok = await sendFriendRequest(meAsLocalPlayer(), friend.id);
+      if (!ok) { setCelebrationMsg('Failed to send friend request'); return; }
+      setPendingFriendRequestIds(prev => prev.includes(friend.id) ? prev : [...prev, friend.id]);
   };
   const handleAcceptFriendRequest = (req: IncomingRequest) => {
       acceptFriendRequest(req.id);
@@ -3871,24 +3876,27 @@ const App: React.FC = () => {
       });
       setIncomingFriendRequests(prev => prev.filter(r => r.id !== req.id));
   };
-  const handleSendGift = (friendId: string) => {
+  const handleSendGift = async (friendId: string) => {
       const now = Date.now();
       const friend = friendsState.friends.find(f => f.id === friendId);
       if (!friend || !friendCanSend(friend, now)) return;
       if (sendsRemainingToday <= 0) { setCelebrationMsg('Daily send limit reached (10/day)'); return; }
-      setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastSentAt: now } : f) }));
       // Only real friends can actually receive the gift — it lands in their Inbox.
+      // Only spend the daily-send/cooldown slot once the write actually succeeds.
       if (isRealPlayerId(friendId)) {
-          sendGiftToFriend(meAsLocalPlayer(), friendId);
+          const ok = await sendGiftToFriend(meAsLocalPlayer(), friendId);
+          if (!ok) { setCelebrationMsg('Failed to send gift — try again'); return; }
           recordGiftSent();
       }
+      setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastSentAt: now } : f) }));
       setCelebrationMsg('Gift Sent!');
   };
 
   // Quick "send back" reply from a received gift's Inbox message.
-  const handleSendBackFromInbox = (toDevice: string) => {
+  const handleSendBackFromInbox = async (toDevice: string) => {
       if (sendsRemainingToday <= 0) { setCelebrationMsg('Daily send limit reached (10/day)'); return; }
-      sendGiftToFriend(meAsLocalPlayer(), toDevice);
+      const ok = await sendGiftToFriend(meAsLocalPlayer(), toDevice);
+      if (!ok) { setCelebrationMsg('Failed to send gift — try again'); return; }
       recordGiftSent();
       setFriendsState(prev => prev.friends.some(f => f.id === toDevice) ? { ...prev, friends: prev.friends.map(f => f.id === toDevice ? { ...f, lastSentAt: Date.now() } : f) } : prev);
       setCelebrationMsg('Gift Sent Back!');

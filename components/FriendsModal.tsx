@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Friend } from '../types';
 import { LeaderboardEntry, LocalPlayer } from '../services/leaderboardService';
-import { getAddablePlayers, toFriend, canSend, nextResetIn, isRealPlayerId, IncomingRequest } from '../services/friendsService';
+import { getAddablePlayers, toFriend, canSend, nextResetIn, IncomingRequest } from '../services/friendsService';
 
 interface FriendsModalProps {
     isOpen: boolean;
@@ -167,8 +167,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                             ) : filteredAddable.length === 0 ? (
                                 <div className="flex-1 flex items-center justify-center text-white/40 text-sm font-bold">No players found</div>
                             ) : filteredAddable.map(e => {
-                                const isReal = isRealPlayerId(e.id);
-                                const requestSent = isReal && pendingRequestIds.includes(e.id);
+                                const requestSent = pendingRequestIds.includes(e.id);
                                 return (
                                     <div key={e.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
                                         style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
@@ -183,7 +182,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                             className="pill-green shrink-0"
                                             style={{ opacity: requestSent ? 0.5 : 1 }}>
                                             <div className="pill-face" style={{ padding: '5px 14px', fontSize: '10px' }}>
-                                                {requestSent ? 'Request Sent' : isReal ? 'Add Friend' : 'Add'}
+                                                {requestSent ? 'Request Sent' : 'Add Friend'}
                                             </div>
                                         </button>
                                     </div>

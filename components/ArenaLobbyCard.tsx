@@ -48,26 +48,23 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
             className="row-span-2 relative overflow-hidden snap-center active:scale-95 transition-transform shrink-0 flex flex-col items-center"
             style={{
                 width: 116, alignSelf: 'stretch', borderRadius: 16, boxShadow: '0 6px 18px rgba(0,0,0,0.6)',
-                backgroundImage: `linear-gradient(180deg, rgba(74,29,122,0.55) 0%, rgba(26,8,56,0.75) 60%, rgba(26,8,56,0.92) 100%), url(/arenalobby_cardbg.png)`,
+                backgroundImage: `url(/arenalobby_cardbg.png)`,
                 backgroundSize: 'cover', backgroundPosition: 'center',
                 padding: '9px 7px',
             }}>
-            {/* solid rank-tinted header glow */}
-            <div className="absolute inset-x-0 top-0 pointer-events-none" style={{ height: 54, background: `linear-gradient(180deg, ${info.color}, transparent)`, opacity: 0.5 }} />
-
-            <span className="relative font-tanker text-white text-sm leading-none" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>Arena</span>
+            <span className="relative font-tanker text-white text-sm leading-none" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)' }}>Arena</span>
 
             <div className="relative my-1">
                 <ArenaBadge tierIndex={arena.tierIndex} size={46} />
             </div>
 
-            <span className="relative font-black text-white leading-tight text-center" style={{ fontSize: 11 }}>{info.label}</span>
+            <span className="relative font-black text-white leading-tight text-center" style={{ fontSize: 11, textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)' }}>{info.label}</span>
 
             {/* points + position */}
             <div className="relative flex items-center gap-1 mt-0.5">
-                <i className="ti ti-bolt" style={{ color: info.color, fontSize: 10 }} />
-                <span className="font-black text-white" style={{ fontSize: 10 }}>{formatK(arena.points)}</span>
-                {joined && <span className="text-white/55 font-bold" style={{ fontSize: 9 }}>#{pos}</span>}
+                <i className="ti ti-bolt" style={{ color: info.color, fontSize: 10, filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
+                <span className="font-black text-white" style={{ fontSize: 10, textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)' }}>{formatK(arena.points)}</span>
+                {joined && <span className="text-white/80 font-bold" style={{ fontSize: 9, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>#{pos}</span>}
             </div>
 
             {/* promotion / hold / demotion status — or spin-to-join prompt */}
@@ -86,10 +83,10 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
 
             {/* reward pool */}
             <div className="relative flex flex-col items-center mt-1">
-                <span className="text-white/50 font-bold leading-none" style={{ fontSize: 7.5 }}>Reward Pool</span>
+                <span className="text-white/80 font-bold leading-none" style={{ fontSize: 7.5, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>Reward Pool</span>
                 <div className="flex items-center gap-0.5">
-                    <img src="/new_coinicon.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />
-                    <span className="font-black text-amber-300 leading-none" style={{ fontSize: 10 }}>{formatK(pool, 9)}</span>
+                    <img src="/new_coinicon.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.9))' }} />
+                    <span className="font-black text-amber-300 leading-none" style={{ fontSize: 10, textShadow: '0 1px 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)' }}>{formatK(pool, 9)}</span>
                 </div>
             </div>
 
@@ -99,7 +96,7 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
                 <i className="ti ti-clock text-white/70" style={{ fontSize: 10 }} />
                 <span className="font-black text-white" style={{ fontSize: 10 }}>{formatCountdown(remaining)}</span>
             </div>
-            <span className="relative text-white/45" style={{ fontSize: 7.5 }}>{phase === 'active' ? 'Season ends' : 'Next season'}</span>
+            <span className="relative text-white/70" style={{ fontSize: 7.5, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{phase === 'active' ? 'Season ends' : 'Next season'}</span>
         </button>
     );
 };
