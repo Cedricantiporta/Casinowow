@@ -175,7 +175,10 @@ export function poolSizeForTier(tierIndex: number): number {
 // at their current bet tier, so the board reads consistently.
 function buildRoster(seasonId: number, tierIndex: number, refMult: number): AISeed[] {
     const rand = mulberry32(seasonId * 2654435761 + tierIndex * 40503 + 1);
-    const divMult = 1 + tierIndex * 0.20; // higher tier → noticeably tougher field
+    // Higher tier → tougher field. Since the roster is rebuilt from the CURRENT
+    // tierIndex every time, getting demoted automatically eases difficulty back
+    // down (and shrinks the pool back up) right along with the tier drop.
+    const divMult = 1 + tierIndex * 0.12;
     const poolSize = poolSizeForTier(tierIndex);
     const roster: AISeed[] = [];
     const used = new Set<number>();

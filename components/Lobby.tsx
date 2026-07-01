@@ -456,22 +456,19 @@ export const Lobby: React.FC<LobbyProps> = ({
                     || (!isPiggyLocked && piggyFull)
                     || !!loginRewardReady;
 
-                // The expand/collapse toggle always sits at the end of the
-                // bottom-most visible row (row1 alone when collapsed, row2 once
-                // row2 slides in below row1 when expanded).
+                // A single expand/collapse toggle, floating at the dock's right
+                // edge and vertically centered on the whole dock — not tied to
+                // either row, so it reads as one control regardless of state.
                 const toggle = (
-                    <>
-                        {sep}
-                        <button onClick={() => setDockExpanded(v => !v)}
-                            className="relative flex items-center justify-center active:scale-95 transition-transform"
-                            style={{ width: 32, height: 28, alignSelf: 'flex-end', marginBottom: '14px' }}>
-                            <i className={`ti ${dockExpanded ? 'ti-chevron-down' : 'ti-chevron-up'}`} style={{ fontSize: 20, color: '#fff' }} />
-                            {!dockExpanded && row2HasNotif && (
-                                <div className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full"
-                                    style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: '0 0 0 1.5px rgba(255,120,120,0.7), 0 1px 3px rgba(0,0,0,0.8)' }} />
-                            )}
-                        </button>
-                    </>
+                    <button onClick={() => setDockExpanded(v => !v)}
+                        className="absolute flex items-center justify-center active:scale-95 transition-transform"
+                        style={{ width: 32, height: 28, right: 4, top: '50%', transform: 'translateY(-50%)', zIndex: 1 }}>
+                        <i className={`ti ${dockExpanded ? 'ti-chevron-down' : 'ti-chevron-up'}`} style={{ fontSize: 20, color: '#fff' }} />
+                        {!dockExpanded && row2HasNotif && (
+                            <div className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full"
+                                style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: '0 0 0 1.5px rgba(255,120,120,0.7), 0 1px 3px rgba(0,0,0,0.8)' }} />
+                        )}
+                    </button>
                 );
 
                 return (
@@ -499,9 +496,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'35%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
                             </div>
 
-                            {/* Row 1 — always visible, sits on top */}
+                            {/* Row 1 — always visible, sits on top. Extra right padding
+                                reserves room for the floating toggle button. */}
                             <div className="relative flex items-end justify-center gap-0.5 overflow-visible"
-                                style={{ paddingLeft:'14px', paddingRight:'14px', paddingBottom: dockExpanded ? 0 : '4px', paddingTop:'8px' }}>
+                                style={{ paddingLeft:'14px', paddingRight:'38px', paddingBottom: dockExpanded ? 0 : '4px', paddingTop:'8px' }}>
 
                             {/* Mine (Coin Mine) */}
                             <button onClick={!isQuestLocked ? onOpenMine : undefined} className={iconBtn(isQuestLocked)}>
@@ -583,15 +581,12 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">VIP</span>
                             </button>
 
-                            {/* Toggle always sits at the end of row1, on both rows when expanded,
-                                so either row can be clicked to collapse and both stay aligned. */}
-                            {toggle}
                             </div>
 
                             {/* Row 2 — revealed below row 1 when expanded (no reveal animation) */}
                             {dockExpanded && (
                                 <div className="relative flex items-end justify-center gap-0.5 overflow-visible"
-                                    style={{ paddingLeft:'14px', paddingRight:'14px', paddingBottom:'4px', paddingTop:'4px' }}>
+                                    style={{ paddingLeft:'14px', paddingRight:'38px', paddingBottom:'4px', paddingTop:'4px' }}>
 
                                     {/* Dice */}
                                     <button onClick={!isQuestLocked ? () => { onOpenDice?.(); setDockExpanded(false); } : undefined} className={iconBtn(isQuestLocked)}>
@@ -671,10 +666,11 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">Ranking</span>
                                     </button>
 
-                                    {/* Toggle sits here (end of row2) while expanded */}
-                                    {toggle}
                                 </div>
                             )}
+
+                            {/* Single toggle, floating and centered on the full dock height */}
+                            {toggle}
                         </div>
                     </div>
                 );

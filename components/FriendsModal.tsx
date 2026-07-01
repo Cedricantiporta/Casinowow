@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Friend } from '../types';
 import { LeaderboardEntry, LocalPlayer } from '../services/leaderboardService';
-import { getAddablePlayers, toFriend, canSend, nextResetIn, IncomingRequest } from '../services/friendsService';
+import { getAddablePlayers, toFriend, canSend, IncomingRequest } from '../services/friendsService';
 
 interface FriendsModalProps {
     isOpen: boolean;
@@ -16,13 +16,6 @@ interface FriendsModalProps {
     onSendGift: (friendId: string) => void;
 }
 
-const fmtCountdown = (ms: number): string => {
-    const totalMin = Math.ceil(ms / 60000);
-    const h = Math.floor(totalMin / 60);
-    const m = totalMin % 60;
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
-};
-
 export const FriendsModal: React.FC<FriendsModalProps> = ({
     isOpen, onClose, friends, you, maxBet, incomingRequests, pendingRequestIds, onAddFriend, onAcceptRequest, onSendGift,
 }) => {
@@ -30,14 +23,6 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
     const [addable, setAddable] = useState<LeaderboardEntry[]>([]);
     const [loadingAdd, setLoadingAdd] = useState(false);
     const [search, setSearch] = useState('');
-    const [now, setNow] = useState(() => Date.now());
-
-    // Keep countdowns fresh while open.
-    useEffect(() => {
-        if (!isOpen) return;
-        const t = setInterval(() => setNow(Date.now()), 30000);
-        return () => clearInterval(t);
-    }, [isOpen]);
 
     useEffect(() => {
         if (!isOpen || tab !== 'ADD') return;
@@ -121,11 +106,11 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                             <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
                                 <i className="ti ti-users text-white/30" style={{ fontSize: 34 }} />
                                 <div className="text-white/50 text-sm font-bold">No friends yet</div>
-                                <div className="text-white/35" style={{ fontSize: 11 }}>Tap "Add Friends" to start sending daily gifts.</div>
+                                <div className="text-white/35" style={{ fontSize: 11 }}>Tap "Add Friends" to start sending gifts.</div>
                             </div>
                         )}
                         {friends.map(f => {
-                            const sendable = canSend(f, now);
+                            const sendable = canSend(f);
                             return (
                                 <div key={f.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
                                     style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
@@ -140,7 +125,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                         className="pill-blue shrink-0"
                                         style={{ opacity: sendable ? 1 : 0.45 }}>
                                         <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
-                                            {sendable ? 'Send Gift' : fmtCountdown(nextResetIn(f.lastSentAt, now))}
+                                            {sendable ? 'Send Gift' : 'Sent'}
                                         </div>
                                     </button>
                                 </div>

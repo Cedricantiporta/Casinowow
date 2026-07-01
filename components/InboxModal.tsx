@@ -10,7 +10,7 @@ export interface InboxMessage {
     claimed: boolean;
     createdAt: number;
     expiresAt?: number;
-    meta?: string; // FRIEND_GIFT: the sender's device id, for the reply "Send" button
+    meta?: string; // FRIEND_GIFT: the sender's device id — accepting auto-sends a gift back
 }
 
 interface InboxModalProps {
@@ -18,8 +18,6 @@ interface InboxModalProps {
     onClose: () => void;
     messages: InboxMessage[];
     onClaim: (id: string) => void;
-    onSendBack?: (toDevice: string) => void;
-    sendsRemainingToday?: number;
 }
 
 const MSG_ICONS: Record<string, string> = {
@@ -36,7 +34,7 @@ function daysLeft(expiresAt?: number): number | null {
     return Math.max(0, Math.ceil((expiresAt - Date.now()) / 86400000));
 }
 
-export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, messages, onClaim, onSendBack, sendsRemainingToday = 0 }) => {
+export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, messages, onClaim }) => {
     if (!isOpen) return null;
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none">
@@ -83,23 +81,14 @@ export const InboxModal: React.FC<InboxModalProps> = ({ isOpen, onClose, message
                                     ) : (
                                         <>
                                             <button onClick={() => onClaim(msg.id)} className="pill-green">
-                                                <div className="pill-face" style={{ padding: '6px 16px', fontSize: '12px' }}>Collect</div>
+                                                <div className="pill-face" style={{ padding: '6px 16px', fontSize: '12px' }}>
+                                                    {msg.type === 'FRIEND_GIFT' ? 'Accept' : 'Collect'}
+                                                </div>
                                             </button>
                                             {days !== null && (
                                                 <span className="text-white/50 font-black" style={{ fontSize: 9 }}>{days} day{days !== 1 ? 's' : ''}</span>
                                             )}
                                         </>
-                                    )}
-                                    {msg.type === 'FRIEND_GIFT' && msg.meta && onSendBack && (
-                                        <button
-                                            onClick={sendsRemainingToday > 0 ? () => onSendBack(msg.meta!) : undefined}
-                                            disabled={sendsRemainingToday <= 0}
-                                            className="pill-blue"
-                                            style={{ opacity: sendsRemainingToday > 0 ? 1 : 0.4 }}>
-                                            <div className="pill-face" style={{ padding: '4px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
-                                                {sendsRemainingToday > 0 ? 'Send' : 'Limit'}
-                                            </div>
-                                        </button>
                                     )}
                                 </div>
                             </div>

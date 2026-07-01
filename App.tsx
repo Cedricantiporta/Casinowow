@@ -1349,6 +1349,17 @@ const App: React.FC = () => {
               }
               const giftId = Number(msg.id.replace('friendgift_', ''));
               if (giftId) markGiftClaimed(giftId);
+              // Accepting sends one back automatically — one-time per friend, so
+              // this can't loop into an endless receive/send cycle.
+              const fromDevice = msg.meta;
+              const backFriend = fromDevice ? friendsState.friends.find(f => f.id === fromDevice) : undefined;
+              if (fromDevice && backFriend && friendCanSend(backFriend) && sendsRemainingToday > 0) {
+                  sendGiftToFriend(meAsLocalPlayer(), fromDevice).then(ok => {
+                      if (!ok) return;
+                      recordGiftSent();
+                      setFriendsState(p => ({ ...p, friends: p.friends.map(f => f.id === fromDevice ? { ...f, lastSentAt: Date.now() } : f) }));
+                  });
+              }
           }
           audioService.playWinBig();
           return prev.map(m => m.id === id ? { ...m, claimed: true } : m);
@@ -3925,30 +3936,22 @@ const App: React.FC = () => {
       });
       setIncomingFriendRequests(prev => prev.filter(r => r.id !== req.id));
   };
+  // Gifting a friend is one-time only, forever — accepting a friend's gift (see
+  // handleClaimInbox) auto-sends one back, so there's no separate reply action
+  // and no receive→send loop.
   const handleSendGift = async (friendId: string) => {
-      const now = Date.now();
       const friend = friendsState.friends.find(f => f.id === friendId);
-      if (!friend || !friendCanSend(friend, now)) return;
+      if (!friend || !friendCanSend(friend)) return;
       if (sendsRemainingToday <= 0) { setCelebrationMsg('Daily send limit reached (10/day)'); return; }
       // Only real friends can actually receive the gift — it lands in their Inbox.
-      // Only spend the daily-send/cooldown slot once the write actually succeeds.
+      // Only spend the daily-send slot / mark this friend "sent" once the write succeeds.
       if (isRealPlayerId(friendId)) {
           const ok = await sendGiftToFriend(meAsLocalPlayer(), friendId);
           if (!ok) { setCelebrationMsg('Failed to send gift — try again'); return; }
           recordGiftSent();
       }
-      setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastSentAt: now } : f) }));
+      setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastSentAt: Date.now() } : f) }));
       setCelebrationMsg('Gift Sent!');
-  };
-
-  // Quick "send back" reply from a received gift's Inbox message.
-  const handleSendBackFromInbox = async (toDevice: string) => {
-      if (sendsRemainingToday <= 0) { setCelebrationMsg('Daily send limit reached (10/day)'); return; }
-      const ok = await sendGiftToFriend(meAsLocalPlayer(), toDevice);
-      if (!ok) { setCelebrationMsg('Failed to send gift — try again'); return; }
-      recordGiftSent();
-      setFriendsState(prev => prev.friends.some(f => f.id === toDevice) ? { ...prev, friends: prev.friends.map(f => f.id === toDevice ? { ...f, lastSentAt: Date.now() } : f) } : prev);
-      setCelebrationMsg('Gift Sent Back!');
   };
 
   const gainQuestCredit = (type: 'dice' | 'mine') => {
@@ -6765,8 +6768,6 @@ const App: React.FC = () => {
           onClose={() => setShowInbox(false)}
           messages={inbox.filter((m: any) => !m.claimed)}
           onClaim={handleClaimInbox}
-          onSendBack={handleSendBackFromInbox}
-          sendsRemainingToday={sendsRemainingToday}
       />
 
       <LeaderboardModal
