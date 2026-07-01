@@ -3562,9 +3562,10 @@ const App: React.FC = () => {
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
 
-    // Mystery feature themes (Farm, Beast, AngryFlock, Princess): 20% win boost on line payouts
+    // Mystery feature themes (Farm, Beast, AngryFlock, Princess): 20% win boost,
+    // then reduced by 30% on top (net 1.2 * 0.7 = 0.84x line payouts)
     if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
-        totalPayout = Math.floor(totalPayout * 1.2);
+        totalPayout = Math.floor(totalPayout * 1.2 * 0.7);
     }
 
     // SPACE: Supernova progressive multiplier applies to line wins during free spins.

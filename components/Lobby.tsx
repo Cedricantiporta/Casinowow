@@ -580,7 +580,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                                     {/* Arena */}
                                     <button onClick={!isArenaLocked ? () => { onOpenArena?.(); setDockExpanded(false); } : undefined} className={iconBtn(isArenaLocked)}>
-                                        <img src="/questlobbyicon.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                        <img src="/Lobby_arena.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                         <span className="text-[8px] font-black text-white/90 tracking-wider leading-none -mt-2">Arena</span>
                                     </button>
 
@@ -605,7 +605,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     {/* Friends */}
                                     <button onClick={() => { onOpenFriends?.(); setDockExpanded(false); }} className={iconBtn(false)}>
                                         <div className="relative leading-none">
-                                            <i className="ti ti-users" style={{ fontSize: 56, color: '#fff', display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.7))' }} />
+                                            <img src="/Lobby_friends.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                             {(friendRequestCount ?? 0) > 0 && (
                                                 <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                                     style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
@@ -645,7 +645,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     {/* Login Rewards */}
                                     <button onClick={() => { onOpenLoginRewards?.(); setDockExpanded(false); }} className={iconBtn(false)}>
                                         <div className="relative leading-none">
-                                            <i className="ti ti-calendar-check" style={{ fontSize: 56, color: '#fff', display: 'block', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.7))' }} />
+                                            <img src="/Lobby_login.png" alt="" style={{ width: 72, height: 72, objectFit: 'contain' }} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                             {loginRewardReady && (
                                                 <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                                     style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>

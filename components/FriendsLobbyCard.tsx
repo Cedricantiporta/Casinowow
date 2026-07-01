@@ -31,7 +31,7 @@ export const FriendsLobbyCard: React.FC<Props> = ({ friends, requestCount, onOpe
 
             <span className="relative font-tanker text-white text-sm leading-none" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>Friends</span>
 
-            <img src="/ui/gift_mail.png" alt="" className="relative my-2" style={{ width: 56, height: 56, objectFit: 'contain', filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.6))' }} />
+            <img src="/Lobby_friends.png" alt="" className="relative my-2" style={{ width: 56, height: 56, objectFit: 'contain', filter: 'drop-shadow(0 3px 10px rgba(0,0,0,0.6))' }} />
 
             <span className="relative font-black text-white leading-tight text-center" style={{ fontSize: 11 }}>{friends.length} Friend{friends.length !== 1 ? 's' : ''}</span>
 
