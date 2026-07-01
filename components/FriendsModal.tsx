@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { formatK } from '../constants';
 import { Friend } from '../types';
 import { LeaderboardEntry, LocalPlayer } from '../services/leaderboardService';
-import { getAddablePlayers, toFriend, canSend, nextResetIn, sendGiftAmount, isRealPlayerId, IncomingRequest } from '../services/friendsService';
+import { getAddablePlayers, toFriend, canSend, nextResetIn, isRealPlayerId, IncomingRequest } from '../services/friendsService';
 
 interface FriendsModalProps {
     isOpen: boolean;
@@ -58,8 +57,6 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
     }, [addable, search]);
 
     if (!isOpen) return null;
-
-    const sendAmt = sendGiftAmount(maxBet);
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none"
@@ -143,7 +140,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                         className="pill-blue shrink-0"
                                         style={{ opacity: sendable ? 1 : 0.45 }}>
                                         <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
-                                            {sendable ? `Send +${formatK(sendAmt)}` : fmtCountdown(nextResetIn(f.lastSentAt, now))}
+                                            {sendable ? 'Send Gift' : fmtCountdown(nextResetIn(f.lastSentAt, now))}
                                         </div>
                                     </button>
                                 </div>

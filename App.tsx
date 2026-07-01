@@ -41,7 +41,7 @@ import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { FriendsModal } from './components/FriendsModal';
 import {
-    canSend as friendCanSend, sendGiftAmount, toFriend, isRealPlayerId,
+    canSend as friendCanSend, receivedGiftAmount, toFriend, isRealPlayerId,
     IncomingRequest, sendFriendRequest, fetchIncomingRequests, acceptFriendRequest,
     fetchAcceptedForSender, ackSenderRequest, sendGiftToFriend, fetchIncomingGifts, markGiftClaimed,
 } from './services/friendsService';
@@ -579,6 +579,8 @@ const App: React.FC = () => {
   const targetGridRef = useRef<SymbolType[][]>([]);
   const fastSpinRef = useRef(fastSpin);
   useEffect(() => { fastSpinRef.current = fastSpin; }, [fastSpin]);
+  const playerLevelRef = useRef(player.level);
+  useEffect(() => { playerLevelRef.current = player.level; }, [player.level]);
   useEffect(() => {
     if (currentView === 'LOBBY') audioService.playLobbyMusic();
     else if (currentView === 'HIGH_LIMIT') audioService.playHighLimitMusic();
@@ -808,6 +810,17 @@ const App: React.FC = () => {
   const [pendingFriendRequestIds, setPendingFriendRequestIds] = useState<string[]>(() => {
       try { return JSON.parse(localStorage.getItem('cw_pending_friend_reqs') || '[]'); } catch { return []; }
   });
+  // Global daily cap on friend-gift sends (10/day, across all friends + inbox replies).
+  const DAILY_SEND_LIMIT = 10;
+  const [sendsToday, setSendsToday] = useState<{ date: string; count: number }>(() => {
+      try { return JSON.parse(localStorage.getItem('cw_sends_today') || '{"date":"","count":0}'); } catch { return { date: '', count: 0 }; }
+  });
+  const todayKeyStr = () => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; };
+  const sendsRemainingToday = sendsToday.date === todayKeyStr() ? Math.max(0, DAILY_SEND_LIMIT - sendsToday.count) : DAILY_SEND_LIMIT;
+  const recordGiftSent = () => {
+      const today = todayKeyStr();
+      setSendsToday(prev => prev.date === today ? { date: today, count: prev.count + 1 } : { date: today, count: 1 });
+  };
   const [questCreditToast, setQuestCreditToast] = useState<null | 'dice' | 'mine'>(null);
   const questCreditToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [questTaskCompleteToast, setQuestTaskCompleteToast] = useState<SlotQuestMission | null>(null);
@@ -1618,6 +1631,9 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_pending_friend_reqs', JSON.stringify(pendingFriendRequestIds)); } catch {}
   }, [pendingFriendRequestIds]);
+  useEffect(() => {
+    try { localStorage.setItem('cw_sends_today', JSON.stringify(sendsToday)); } catch {}
+  }, [sendsToday]);
 
   // Friends network poll — incoming requests, requests you sent that got
   // accepted (so you also gain the friend), and gifts friends sent you (routed
@@ -1643,14 +1659,17 @@ const App: React.FC = () => {
             accepted.forEach(a => ackSenderRequest(a.id));
         }
         if (gifts.length > 0) {
+            // Reward is always 3x THIS device's own max bet, computed fresh here —
+            // never the sender's, so it scales with the recipient's progression.
+            const myAmount = receivedGiftAmount(MAX_BET_BY_LEVEL(playerLevelRef.current));
             setInbox(prev => {
                 const existingIds = new Set(prev.map(m => m.id));
                 const additions = gifts
                     .filter(g => !existingIds.has(`friendgift_${g.id}`))
                     .map(g => ({
                         id: `friendgift_${g.id}`, type: 'FRIEND_GIFT' as const,
-                        title: `Gift from ${g.fromName}`, body: `+${g.amount.toLocaleString()} Coins`,
-                        claimed: false, createdAt: g.createdAt,
+                        title: `Gift from ${g.fromName}`, body: `+${myAmount.toLocaleString()} Coins`,
+                        claimed: false, createdAt: g.createdAt, meta: g.fromDevice,
                     }));
                 return additions.length > 0 ? [...additions, ...prev] : prev;
             });
@@ -3836,13 +3855,23 @@ const App: React.FC = () => {
       const now = Date.now();
       const friend = friendsState.friends.find(f => f.id === friendId);
       if (!friend || !friendCanSend(friend, now)) return;
+      if (sendsRemainingToday <= 0) { setCelebrationMsg('Daily send limit reached (10/day)'); return; }
       setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastSentAt: now } : f) }));
       // Only real friends can actually receive the gift — it lands in their Inbox.
       if (isRealPlayerId(friendId)) {
-          const amt = sendGiftAmount(MAX_BET_BY_LEVEL(player.level));
-          sendGiftToFriend(meAsLocalPlayer(), friendId, amt);
+          sendGiftToFriend(meAsLocalPlayer(), friendId);
+          recordGiftSent();
       }
       setCelebrationMsg('Gift Sent!');
+  };
+
+  // Quick "send back" reply from a received gift's Inbox message.
+  const handleSendBackFromInbox = (toDevice: string) => {
+      if (sendsRemainingToday <= 0) { setCelebrationMsg('Daily send limit reached (10/day)'); return; }
+      sendGiftToFriend(meAsLocalPlayer(), toDevice);
+      recordGiftSent();
+      setFriendsState(prev => prev.friends.some(f => f.id === toDevice) ? { ...prev, friends: prev.friends.map(f => f.id === toDevice ? { ...f, lastSentAt: Date.now() } : f) } : prev);
+      setCelebrationMsg('Gift Sent Back!');
   };
 
   const gainQuestCredit = (type: 'dice' | 'mine') => {
@@ -6639,6 +6668,8 @@ const App: React.FC = () => {
           onClose={() => setShowInbox(false)}
           messages={inbox.filter((m: any) => !m.claimed)}
           onClaim={handleClaimInbox}
+          onSendBack={handleSendBackFromInbox}
+          sendsRemainingToday={sendsRemainingToday}
       />
 
       <LeaderboardModal

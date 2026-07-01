@@ -37,9 +37,9 @@ export function nextResetIn(timestamp: number | undefined, now: number): number 
     return Math.max(0, DAILY_MS - (now - timestamp));
 }
 
-// Gift size scales with the sender's own progression, like other social
-// rewards in the game (piggy bank, arena rewards, pass coins).
-export const sendGiftAmount = (maxBet: number) => Math.round(maxBet * 2);
+// A received gift is always worth 3x the RECIPIENT's own max bet — computed on
+// their side when the message is created, not baked in by the sender.
+export const receivedGiftAmount = (recipientMaxBet: number) => Math.round(recipientMaxBet * 3);
 
 // ---- Friend requests (real players only) ----
 
@@ -128,12 +128,15 @@ export async function ackSenderRequest(requestId: number): Promise<void> {
 }
 
 // ---- Gifting (real players only) ----
+// The gift row just records who sent it — the recipient computes their own
+// reward (3x their own max bet) client-side when they see it, so the amount
+// always reflects the RECEIVER's progression, not the sender's.
 
-export async function sendGiftToFriend(you: LocalPlayer, toDeviceId: string, amount: number): Promise<void> {
+export async function sendGiftToFriend(you: LocalPlayer, toDeviceId: string): Promise<void> {
     if (!supabase) return;
     try {
         await supabase.from('friend_gifts').insert({
-            from_device: getDeviceId(), to_device: toDeviceId, from_name: you.name || 'Player', amount: Math.round(amount),
+            from_device: getDeviceId(), to_device: toDeviceId, from_name: you.name || 'Player',
         });
     } catch (e) {
         console.warn('[friends] gift send failed — run supabase/friends.sql?', e);
@@ -142,8 +145,8 @@ export async function sendGiftToFriend(you: LocalPlayer, toDeviceId: string, amo
 
 export interface IncomingGift {
     id: number;
+    fromDevice: string;
     fromName: string;
-    amount: number;
     createdAt: number;
 }
 
@@ -153,7 +156,7 @@ export async function fetchIncomingGifts(): Promise<IncomingGift[]> {
         const { data, error } = await supabase.from('friend_gifts').select('*')
             .eq('to_device', getDeviceId()).eq('claimed', false);
         if (error || !data) return [];
-        return data.map((r: any) => ({ id: r.id, fromName: r.from_name || 'A friend', amount: Number(r.amount) || 0, createdAt: new Date(r.created_at).getTime() }));
+        return data.map((r: any) => ({ id: r.id, fromDevice: r.from_device, fromName: r.from_name || 'A friend', createdAt: new Date(r.created_at).getTime() }));
     } catch {
         return [];
     }
