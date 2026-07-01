@@ -2540,13 +2540,20 @@ const App: React.FC = () => {
           newGrid.push(colData);
       }
 
-      // JUNGLE: the colossal center symbol. Base game — an explicit, fixed ~3.5%
-      // chance per spin to place SCATTER dead-center (never via the shared symbol
-      // table/pity-timer, which assumes a much rarer "3 simultaneous hits" bar).
-      // Free spins — every single spin guarantees one, weighted low-to-high value;
-      // SCATTER is excluded from that pool entirely, so free spins can never retrigger.
+      // JUNGLE: the colossal center symbol fills the entire 3x3 block (all 9 cells),
+      // never just one cell. Base game — an explicit, fixed ~3.5% chance per spin to
+      // fill that block with SCATTER (scattersToTrigger is 3, so this comfortably
+      // clears the bar with 9 counted cells — never via the shared symbol table,
+      // which has its own pity-timer tuned for a much rarer natural 3-scatter spread).
+      // Free spins — every single spin guarantees the block fills with a weighted
+      // symbol; SCATTER is excluded from that pool, so free spins can never retrigger.
       if (selectedGame.theme === 'JUNGLE') {
           const centerCol = Math.floor(cols / 2), centerRow = Math.floor(rows / 2);
+          const fillBlock = (type: SymbolType) => {
+              for (let c = centerCol - 1; c <= centerCol + 1; c++) {
+                  for (let r = 0; r < rows; r++) newGrid[c][r] = type;
+              }
+          };
           if (isFreeSpin) {
               // No SCATTER in this pool — free spins never retrigger more free spins,
               // no matter which colossal symbol lands.
@@ -2567,25 +2574,23 @@ const App: React.FC = () => {
               let roll = Math.random() * total;
               let chosen = JUNGLE_BIG_ICON_POOL[JUNGLE_BIG_ICON_POOL.length - 1].type;
               for (const p of JUNGLE_BIG_ICON_POOL) { roll -= p.weight; if (roll <= 0) { chosen = p.type; break; } }
-              for (let c = centerCol - 1; c <= centerCol + 1; c++) {
-                  for (let r = 0; r < rows; r++) newGrid[c][r] = chosen;
-              }
+              fillBlock(chosen);
               setJungleBigIcon(chosen);
           } else {
               const JUNGLE_BASE_TRIGGER_CHANCE = 0.035;
               if (Math.random() < JUNGLE_BASE_TRIGGER_CHANCE) {
-                  newGrid[centerCol][centerRow] = SymbolType.SCATTER;
+                  fillBlock(SymbolType.SCATTER);
                   setJungleBigIcon(SymbolType.SCATTER);
               } else {
                   setJungleBigIcon(null);
               }
           }
-          // Hard safety net: no matter what set it, strip any stray SCATTER anywhere
-          // outside the exact center cell so it can never appear as a small individual
-          // icon or trigger the bonus from anywhere but the intended colossal spot.
+          // Hard safety net: strip any stray SCATTER anywhere outside the 3x3 block so
+          // it can never appear as a small individual icon or trigger from elsewhere.
           for (let cc = 0; cc < cols; cc++) {
               for (let rr = 0; rr < rows; rr++) {
-                  if ((cc !== centerCol || rr !== centerRow) && newGrid[cc][rr] === SymbolType.SCATTER) {
+                  const inBlock = cc >= centerCol - 1 && cc <= centerCol + 1;
+                  if (!inBlock && newGrid[cc][rr] === SymbolType.SCATTER) {
                       newGrid[cc][rr] = SymbolType.TEN;
                   }
               }
