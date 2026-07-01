@@ -113,6 +113,22 @@ const PlayerCard: React.FC<{
                             <div className="font-black text-white" style={{ fontSize: 15 }}>{entry.name}{entry.isYou ? ' (You)' : ''}</div>
                             <div className="text-white/55 font-bold" style={{ fontSize: 10 }}>Level {entry.level}</div>
                         </div>
+                        {/* Add friend — hidden for yourself */}
+                        {!entry.isYou && onAddFriend && (
+                            <button
+                                onClick={(isFriend || isPending) ? undefined : onAddFriend}
+                                disabled={isFriend || isPending}
+                                className={(isFriend || isPending) ? 'pill-green' : 'pill-blue'}
+                                style={{ opacity: (isFriend || isPending) ? 0.5 : 1 }}>
+                                <div className="pill-face" style={{ padding: '6px 16px', fontSize: '10px', background: (isFriend || isPending) ? undefined : 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
+                                    {isFriend
+                                        ? (<><i className="ti ti-check" style={{ marginRight: 4 }} />Friend</>)
+                                        : isPending
+                                        ? (<><i className="ti ti-clock" style={{ marginRight: 4 }} />Request Sent</>)
+                                        : (<><i className="ti ti-user-plus" style={{ marginRight: 4 }} />Add Friend</>)}
+                                </div>
+                            </button>
+                        )}
                     </div>
                 </div>
                 {/* Stats — hero tile + 2×2 grid of soft tiles, no borders */}
@@ -135,22 +151,6 @@ const PlayerCard: React.FC<{
                             </div>
                         ))}
                     </div>
-                    {/* Add friend — hidden for yourself */}
-                    {!entry.isYou && onAddFriend && (
-                        <button
-                            onClick={(isFriend || isPending) ? undefined : onAddFriend}
-                            disabled={isFriend || isPending}
-                            className={`w-full ${(isFriend || isPending) ? 'pill-green' : 'pill-blue'}`}
-                            style={{ opacity: (isFriend || isPending) ? 0.5 : 1 }}>
-                            <div className="pill-face" style={{ padding: '7px 12px', fontSize: '11px', background: (isFriend || isPending) ? undefined : 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
-                                {isFriend
-                                    ? (<><i className="ti ti-check" style={{ marginRight: 4 }} />Friend</>)
-                                    : isPending
-                                    ? (<><i className="ti ti-clock" style={{ marginRight: 4 }} />Request Sent</>)
-                                    : (<><i className="ti ti-user-plus" style={{ marginRight: 4 }} />Add Friend</>)}
-                            </div>
-                        </button>
-                    )}
                 </div>
             </div>
         </div>

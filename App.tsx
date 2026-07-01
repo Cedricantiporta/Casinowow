@@ -5169,7 +5169,8 @@ const App: React.FC = () => {
         {(currentView === 'LOBBY' || currentView === 'HIGH_LIMIT') ? (
             <Lobby
                 onSelectGame={handleGameSelect}
-                onOpenMiniGames={() => setShowMiniGamesHub(true)}
+                onOpenMine={handleWildQuestClaim}
+                onOpenDice={handleDiceQuestClaim}
                 onOpenQuestPath={() => setShowQuestPath(true)}
                 onOpenMissions={openMissionsModal}
                 onOpenBattlePass={openBattlePassModal}
@@ -5189,6 +5190,9 @@ const App: React.FC = () => {
                 onOpenFriends={() => setShowFriends(true)}
                 friends={friendsState.friends}
                 friendRequestCount={incomingFriendRequests.length}
+                onOpenLoginRewards={() => openModal('LOGIN_BONUS')}
+                loginRewardReady={!loginState.claimedToday}
+                onOpenGuild={() => setCelebrationMsg('Guild — Coming Soon!')}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
