@@ -2577,7 +2577,7 @@ const App: React.FC = () => {
               fillBlock(chosen);
               setJungleBigIcon(chosen);
           } else {
-              const JUNGLE_BASE_TRIGGER_CHANCE = 0.035;
+              const JUNGLE_BASE_TRIGGER_CHANCE = 0.035 * 0.3; // 70% reduction
               if (Math.random() < JUNGLE_BASE_TRIGGER_CHANCE) {
                   fillBlock(SymbolType.SCATTER);
                   setJungleBigIcon(SymbolType.SCATTER);
@@ -3838,6 +3838,11 @@ const App: React.FC = () => {
     // then reduced by 30% on top (net 1.2 * 0.7 = 0.84x line payouts)
     if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
         totalPayout = Math.floor(totalPayout * 1.2 * 0.7);
+    }
+
+    // JUNGLE: overall win amount cut by 50%.
+    if (selectedGame.theme === 'JUNGLE') {
+        totalPayout = Math.floor(totalPayout * 0.5);
     }
 
     // SPACE: Supernova progressive multiplier applies to line wins during free spins.
