@@ -42,6 +42,7 @@ interface LobbyProps {
     arenaMaxBet?: number;
     onOpenFriends?: () => void;
     friends?: Friend[];
+    friendRequestCount?: number;
     questState: QuestState;
     missionState: MissionState;
     nextTimeBonus: number;
@@ -81,6 +82,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     arenaMaxBet,
     onOpenFriends,
     friends,
+    friendRequestCount,
     questState,
     missionState,
     nextTimeBonus,
@@ -313,7 +315,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                             {/* ── Promo card 4: Friends ── */}
                             {friends && (
-                                <FriendsLobbyCard friends={friends} onOpen={() => onOpenFriends?.()} />
+                                <FriendsLobbyCard friends={friends} requestCount={friendRequestCount || 0} onOpen={() => onOpenFriends?.()} />
                             )}
 
                             {GAMES_CONFIG.map((game, idx) => {

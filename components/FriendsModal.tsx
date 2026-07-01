@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { formatK } from '../constants';
 import { Friend } from '../types';
 import { LeaderboardEntry, LocalPlayer } from '../services/leaderboardService';
-import { getAddablePlayers, toFriend, canSend, canCollect, nextResetIn, sendGiftAmount, collectGiftAmount } from '../services/friendsService';
+import { getAddablePlayers, toFriend, canSend, nextResetIn, sendGiftAmount, isRealPlayerId, IncomingRequest } from '../services/friendsService';
 
 interface FriendsModalProps {
     isOpen: boolean;
@@ -10,10 +10,11 @@ interface FriendsModalProps {
     friends: Friend[];
     you: LocalPlayer;
     maxBet: number;
+    incomingRequests: IncomingRequest[];
+    pendingRequestIds: string[];
     onAddFriend: (friend: Friend) => void;
+    onAcceptRequest: (req: IncomingRequest) => void;
     onSendGift: (friendId: string) => void;
-    onCollectGift: (friendId: string) => void;
-    onCollectAll: () => void;
 }
 
 const fmtCountdown = (ms: number): string => {
@@ -24,7 +25,7 @@ const fmtCountdown = (ms: number): string => {
 };
 
 export const FriendsModal: React.FC<FriendsModalProps> = ({
-    isOpen, onClose, friends, you, maxBet, onAddFriend, onSendGift, onCollectGift, onCollectAll,
+    isOpen, onClose, friends, you, maxBet, incomingRequests, pendingRequestIds, onAddFriend, onAcceptRequest, onSendGift,
 }) => {
     const [tab, setTab] = useState<'FRIENDS' | 'ADD'>('FRIENDS');
     const [addable, setAddable] = useState<LeaderboardEntry[]>([]);
@@ -58,9 +59,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
 
     if (!isOpen) return null;
 
-    const collectibleCount = friends.filter(f => canCollect(f, now)).length;
     const sendAmt = sendGiftAmount(maxBet);
-    const collectAmt = collectGiftAmount(maxBet);
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none"
@@ -85,8 +84,8 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                     className="flex-1 relative rounded-xl py-1.5 px-1 transition-all active:scale-95"
                                     style={{ background: active ? 'linear-gradient(180deg,#52c215,#35900a 50%,#246606)' : 'transparent' }}>
                                     <span className="font-black block leading-tight" style={{ fontSize: 10.5, color: active ? '#fff' : 'rgba(255,255,255,0.6)' }}>{t.label}</span>
-                                    {t.key === 'FRIENDS' && collectibleCount > 0 && (
-                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white flex items-center justify-center leading-none" style={{ fontSize: 8, fontWeight: 900 }}>{collectibleCount}</span>
+                                    {t.key === 'FRIENDS' && incomingRequests.length > 0 && (
+                                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-white flex items-center justify-center leading-none" style={{ fontSize: 8, fontWeight: 900 }}>{incomingRequests.length}</span>
                                     )}
                                 </button>
                             );
@@ -96,68 +95,61 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
 
                 {/* FRIENDS tab */}
                 {tab === 'FRIENDS' && (
-                    <>
-                        <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-2 flex flex-col gap-1.5">
-                            {friends.length === 0 && (
-                                <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
-                                    <i className="ti ti-users text-white/30" style={{ fontSize: 34 }} />
-                                    <div className="text-white/50 text-sm font-bold">No friends yet</div>
-                                    <div className="text-white/35" style={{ fontSize: 11 }}>Tap "Add Friends" to start sending and collecting daily gifts.</div>
+                    <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-3 flex flex-col gap-1.5">
+                        {/* Incoming friend requests — pinned at the top */}
+                        {incomingRequests.length > 0 && (
+                            <>
+                                <div className="flex items-center gap-1 px-1 pt-1 pb-0.5">
+                                    <i className="ti ti-user-plus text-white/50" style={{ fontSize: 11 }} />
+                                    <span className="font-black text-white/60 uppercase tracking-widest" style={{ fontSize: 9 }}>Friend Requests</span>
                                 </div>
-                            )}
-                            {friends.map(f => {
-                                const sendable = canSend(f, now);
-                                const collectable = canCollect(f, now);
-                                return (
-                                    <div key={f.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
-                                        style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
-                                        <img src={f.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 38, height: 38, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
+                                {incomingRequests.map(req => (
+                                    <div key={req.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
+                                        style={{ background: 'rgba(74,222,128,0.14)', boxShadow: 'inset 0 0 0 1px rgba(74,222,128,0.35)' }}>
+                                        <img src={req.fromAvatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 38, height: 38, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
                                         <div className="flex-1 min-w-0">
-                                            <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{f.name}</div>
-                                            <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {f.level}</div>
+                                            <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{req.fromName}</div>
+                                            <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {req.fromLevel} · wants to be friends</div>
                                         </div>
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                            <button
-                                                onClick={sendable ? () => onSendGift(f.id) : undefined}
-                                                disabled={!sendable}
-                                                className="pill-blue"
-                                                style={{ opacity: sendable ? 1 : 0.45 }}>
-                                                <div className="pill-face" style={{ padding: '5px 9px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
-                                                    {sendable ? 'Send' : fmtCountdown(nextResetIn(f.lastSentAt, now))}
-                                                </div>
-                                            </button>
-                                            <button
-                                                onClick={collectable ? () => onCollectGift(f.id) : undefined}
-                                                disabled={!collectable}
-                                                className="pill-gold"
-                                                style={{ opacity: collectable ? 1 : 0.45 }}>
-                                                <div className="pill-face" style={{ padding: '5px 9px', fontSize: '9px' }}>
-                                                    {collectable ? 'Collect' : fmtCountdown(nextResetIn(f.lastCollectedAt, now))}
-                                                </div>
-                                            </button>
-                                        </div>
+                                        <button onClick={() => onAcceptRequest(req)} className="pill-green shrink-0">
+                                            <div className="pill-face" style={{ padding: '5px 14px', fontSize: '10px' }}>Accept</div>
+                                        </button>
                                     </div>
-                                );
-                            })}
-                        </div>
-                        {friends.length > 0 && (
-                            <div className="shrink-0 px-3 pb-3 pt-1 flex items-center justify-center gap-3">
-                                <div className="flex items-center gap-1 text-white/55" style={{ fontSize: 10 }}>
-                                    <i className="ti ti-gift" style={{ fontSize: 12 }} />
-                                    Send +{formatK(sendAmt)} · Collect +{formatK(collectAmt)}
-                                </div>
-                                <button
-                                    onClick={collectibleCount > 0 ? onCollectAll : undefined}
-                                    disabled={collectibleCount === 0}
-                                    className="pill-gold"
-                                    style={{ opacity: collectibleCount === 0 ? 0.4 : 1 }}>
-                                    <div className="pill-face" style={{ padding: '7px 16px', fontSize: '11px' }}>
-                                        Collect All {collectibleCount > 0 ? `(${collectibleCount})` : ''}
-                                    </div>
-                                </button>
+                                ))}
+                                <div style={{ height: 1, margin: '4px 8px', background: 'rgba(255,255,255,0.1)' }} />
+                            </>
+                        )}
+
+                        {friends.length === 0 && incomingRequests.length === 0 && (
+                            <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
+                                <i className="ti ti-users text-white/30" style={{ fontSize: 34 }} />
+                                <div className="text-white/50 text-sm font-bold">No friends yet</div>
+                                <div className="text-white/35" style={{ fontSize: 11 }}>Tap "Add Friends" to start sending daily gifts.</div>
                             </div>
                         )}
-                    </>
+                        {friends.map(f => {
+                            const sendable = canSend(f, now);
+                            return (
+                                <div key={f.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
+                                    style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
+                                    <img src={f.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 38, height: 38, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{f.name}</div>
+                                        <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {f.level}{!f.isAI ? ' · Friend' : ''}</div>
+                                    </div>
+                                    <button
+                                        onClick={sendable ? () => onSendGift(f.id) : undefined}
+                                        disabled={!sendable}
+                                        className="pill-blue shrink-0"
+                                        style={{ opacity: sendable ? 1 : 0.45 }}>
+                                        <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
+                                            {sendable ? `Send +${formatK(sendAmt)}` : fmtCountdown(nextResetIn(f.lastSentAt, now))}
+                                        </div>
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
                 )}
 
                 {/* ADD tab */}
@@ -177,19 +169,29 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                 <div className="flex-1 flex items-center justify-center text-white/50 text-sm font-bold">Loading…</div>
                             ) : filteredAddable.length === 0 ? (
                                 <div className="flex-1 flex items-center justify-center text-white/40 text-sm font-bold">No players found</div>
-                            ) : filteredAddable.map(e => (
-                                <div key={e.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
-                                    style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
-                                    <img src={e.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 38, height: 38, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{e.name}</div>
-                                        <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {e.level}</div>
+                            ) : filteredAddable.map(e => {
+                                const isReal = isRealPlayerId(e.id);
+                                const requestSent = isReal && pendingRequestIds.includes(e.id);
+                                return (
+                                    <div key={e.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
+                                        style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
+                                        <img src={e.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 38, height: 38, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{e.name}</div>
+                                            <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {e.level}</div>
+                                        </div>
+                                        <button
+                                            onClick={requestSent ? undefined : () => onAddFriend(toFriend(e, Date.now()))}
+                                            disabled={requestSent}
+                                            className="pill-green shrink-0"
+                                            style={{ opacity: requestSent ? 0.5 : 1 }}>
+                                            <div className="pill-face" style={{ padding: '5px 14px', fontSize: '10px' }}>
+                                                {requestSent ? 'Request Sent' : isReal ? 'Add Friend' : 'Add'}
+                                            </div>
+                                        </button>
                                     </div>
-                                    <button onClick={() => onAddFriend(toFriend(e, Date.now()))} className="pill-green shrink-0">
-                                        <div className="pill-face" style={{ padding: '5px 14px', fontSize: '10px' }}>Add</div>
-                                    </button>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </>
                 )}

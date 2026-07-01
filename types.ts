@@ -74,6 +74,8 @@ export interface PlayerState {
   collectBoostEndTime?: number;
   arenaXpMultiplier?: number;     // Arena points multiplier while active
   arenaXpBoostEndTime?: number;
+  vipXpBoostMultiplier?: number;  // VIP level-progress multiplier while active
+  vipXpBoostEndTime?: number;
   freeStashClaimed: boolean;
   isVip?: boolean;
   freeVipClaimed?: boolean;

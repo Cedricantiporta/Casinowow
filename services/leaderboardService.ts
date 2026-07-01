@@ -130,7 +130,7 @@ const metricValue = (e: { score: number; level: number; maxJackpot: number; maxW
     m === 'level' ? e.level : m === 'maxJackpot' ? e.maxJackpot : m === 'maxWin' ? e.maxWin : e.score;
 
 // Stable anonymous identity for this device.
-function getDeviceId(): string {
+export function getDeviceId(): string {
     try {
         let id = localStorage.getItem('cw_device_id');
         if (!id) {

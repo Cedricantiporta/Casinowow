@@ -4,7 +4,7 @@ import { formatK } from '../constants';
 interface ShopModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onBuy: (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST' | 'ARENA_XP', amount: number, duration?: number, cost?: number) => void;
+    onBuy: (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST' | 'ARENA_XP' | 'VIP_XP_BOOST', amount: number, duration?: number, cost?: number) => void;
     onPay?: (productId: string, itemType: 'COIN' | 'DIAMOND', itemAmount: number, icon: string, label: string) => void;
     localPrices?: Record<string, string>;
     level: number;
@@ -117,7 +117,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, on
         { icon: '/ui/boost.png', label: 'XP Boost 12H',       sub: '2× XP',        gemCost: 500, color: 'from-fuchsia-700 to-purple-900',  action: () => onBuy('BOOST',         2, 43_200_000,  500) },
         { icon: '/ui/boost.png', label: 'Mission XP 30m',     sub: '2× Mission',   gemCost:  50, color: 'from-indigo-500 to-indigo-800',   action: () => onBuy('PASS_XP',       2, 1_800_000,    50) },
         { icon: '/bonus wheel shop.png', label: 'Collect Boost 12H', sub: '2× Collect', gemCost: 100, color: 'from-yellow-600 to-amber-900',    action: () => onBuy('COLLECT_BOOST', 2, 43_200_000,  100) },
-        { icon: '/ui/boost.png', label: 'Arena XP 12H',      sub: '2× Arena XP',  gemCost: 100, color: 'from-violet-600 to-purple-900',   action: () => onBuy('ARENA_XP',      2, 43_200_000,  100) },
+        { icon: '/ui/boost.png', label: 'Arena XP 6H',       sub: '2× Arena XP',  gemCost: 600, color: 'from-violet-600 to-purple-900',   action: () => onBuy('ARENA_XP',      2, 21_600_000,  600) },
+        { icon: '/ui/VIP.png',   label: 'VIP EXP 6H',        sub: '2× VIP EXP',   gemCost: 600, color: 'from-amber-500 to-yellow-800',    action: () => onBuy('VIP_XP_BOOST',  2, 21_600_000,  600) },
     ];
 
     const freeItem = {

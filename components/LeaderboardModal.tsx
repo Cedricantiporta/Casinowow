@@ -7,6 +7,7 @@ interface LeaderboardModalProps {
     onClose: () => void;
     player: LocalPlayer;
     friendIds?: string[];
+    pendingFriendIds?: string[];
     onAddFriend?: (entry: LeaderboardEntry) => void;
 }
 
@@ -82,8 +83,8 @@ const Avatar: React.FC<{ src: string; size: number; ring?: string }> = ({ src, s
 // Profile card for any player on the board (no recent slots — not available for others).
 const PlayerCard: React.FC<{
     entry: LeaderboardEntry; rank: number; onClose: () => void;
-    isFriend?: boolean; onAddFriend?: () => void;
-}> = ({ entry, rank, onClose, isFriend, onAddFriend }) => {
+    isFriend?: boolean; isPending?: boolean; onAddFriend?: () => void;
+}> = ({ entry, rank, onClose, isFriend, isPending, onAddFriend }) => {
     const hero = { icon: '/new_coinicon.png', label: 'Total Coins', value: entry.score };
     const rows: { icon: string; label: string; value: number }[] = [
         { icon: '/symbols/diamond.png', label: 'Total Gems', value: entry.gems },
@@ -137,12 +138,16 @@ const PlayerCard: React.FC<{
                     {/* Add friend — hidden for yourself */}
                     {!entry.isYou && onAddFriend && (
                         <button
-                            onClick={isFriend ? undefined : onAddFriend}
-                            disabled={isFriend}
-                            className={`w-full ${isFriend ? 'pill-green' : 'pill-blue'}`}
-                            style={{ opacity: isFriend ? 0.5 : 1 }}>
-                            <div className="pill-face" style={{ padding: '7px 12px', fontSize: '11px', background: isFriend ? undefined : 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
-                                {isFriend ? (<><i className="ti ti-check" style={{ marginRight: 4 }} />Friend</>) : (<><i className="ti ti-user-plus" style={{ marginRight: 4 }} />Add Friend</>)}
+                            onClick={(isFriend || isPending) ? undefined : onAddFriend}
+                            disabled={isFriend || isPending}
+                            className={`w-full ${(isFriend || isPending) ? 'pill-green' : 'pill-blue'}`}
+                            style={{ opacity: (isFriend || isPending) ? 0.5 : 1 }}>
+                            <div className="pill-face" style={{ padding: '7px 12px', fontSize: '11px', background: (isFriend || isPending) ? undefined : 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
+                                {isFriend
+                                    ? (<><i className="ti ti-check" style={{ marginRight: 4 }} />Friend</>)
+                                    : isPending
+                                    ? (<><i className="ti ti-clock" style={{ marginRight: 4 }} />Request Sent</>)
+                                    : (<><i className="ti ti-user-plus" style={{ marginRight: 4 }} />Add Friend</>)}
                             </div>
                         </button>
                     )}
@@ -152,7 +157,7 @@ const PlayerCard: React.FC<{
     );
 };
 
-export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, player, friendIds = [], onAddFriend }) => {
+export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, player, friendIds = [], pendingFriendIds = [], onAddFriend }) => {
     const [metric, setMetric] = useState<LeaderboardMetric>('score');
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -318,6 +323,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                     rank={selected.rank}
                     onClose={() => setSelected(null)}
                     isFriend={friendIds.includes(selected.entry.id)}
+                    isPending={pendingFriendIds.includes(selected.entry.id)}
                     onAddFriend={onAddFriend ? () => onAddFriend(selected.entry) : undefined}
                 />
             )}

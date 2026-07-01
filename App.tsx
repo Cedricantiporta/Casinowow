@@ -40,7 +40,11 @@ import { LeaderboardModal } from './components/LeaderboardModal';
 import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { FriendsModal } from './components/FriendsModal';
-import { canSend as friendCanSend, canCollect as friendCanCollect, sendGiftAmount, collectGiftAmount, toFriend } from './services/friendsService';
+import {
+    canSend as friendCanSend, sendGiftAmount, toFriend, isRealPlayerId,
+    IncomingRequest, sendFriendRequest, fetchIncomingRequests, acceptFriendRequest,
+    fetchAcceptedForSender, ackSenderRequest, sendGiftToFriend, fetchIncomingGifts, markGiftClaimed,
+} from './services/friendsService';
 import { ArenaResultsModal } from './components/ArenaResultsModal';
 import {
     initialArenaState, pointsForEvent, betTierMultiplier, getFinalBoard, positionOf,
@@ -791,6 +795,10 @@ const App: React.FC = () => {
       return { friends: [] };
   });
   const [showFriends, setShowFriends] = useState(false);
+  const [incomingFriendRequests, setIncomingFriendRequests] = useState<IncomingRequest[]>([]);
+  const [pendingFriendRequestIds, setPendingFriendRequestIds] = useState<string[]>(() => {
+      try { return JSON.parse(localStorage.getItem('cw_pending_friend_reqs') || '[]'); } catch { return []; }
+  });
   const [questCreditToast, setQuestCreditToast] = useState<null | 'dice' | 'mine'>(null);
   const questCreditToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [questTaskCompleteToast, setQuestTaskCompleteToast] = useState<SlotQuestMission | null>(null);
@@ -1247,6 +1255,16 @@ const App: React.FC = () => {
                   setPlayer(p => ({ ...p, diamonds: p.diamonds + gems }));
                   setCelebrationMsg(`+${gems.toLocaleString()} Gems`);
               }
+          } else if (msg.type === 'FRIEND_GIFT') {
+              const amtMatch = msg.body.match(/\+([\d,]+)/);
+              const amt = amtMatch ? Number(amtMatch[1].replace(/,/g, '')) : 0;
+              if (amt > 0) {
+                  setPlayer(p => ({ ...p, balance: p.balance + amt }));
+                  triggerCoinAnim(amt);
+                  setCelebrationMsg(`+${amt.toLocaleString()} Coins`);
+              }
+              const giftId = Number(msg.id.replace('friendgift_', ''));
+              if (giftId) markGiftClaimed(giftId);
           }
           audioService.playWinBig();
           return prev.map(m => m.id === id ? { ...m, claimed: true } : m);
@@ -1592,6 +1610,52 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_friends', JSON.stringify(friendsState)); } catch {}
   }, [friendsState]);
+  useEffect(() => {
+    try { localStorage.setItem('cw_pending_friend_reqs', JSON.stringify(pendingFriendRequestIds)); } catch {}
+  }, [pendingFriendRequestIds]);
+
+  // Friends network poll — incoming requests, requests you sent that got
+  // accepted (so you also gain the friend), and gifts friends sent you (routed
+  // into the Inbox for collection). Runs on mount and every 30s.
+  useEffect(() => {
+    let alive = true;
+    const poll = async () => {
+        const [incoming, accepted, gifts] = await Promise.all([
+            fetchIncomingRequests(),
+            fetchAcceptedForSender(),
+            fetchIncomingGifts(),
+        ]);
+        if (!alive) return;
+        setIncomingFriendRequests(incoming);
+        if (accepted.length > 0) {
+            setFriendsState(prev => {
+                const existing = new Set(prev.friends.map(f => f.id));
+                const additions = accepted.filter(a => !existing.has(a.toDevice))
+                    .map(a => ({ id: a.toDevice, name: a.toName, avatar: a.toAvatar, level: a.toLevel, isAI: false, addedAt: Date.now() }));
+                return additions.length > 0 ? { ...prev, friends: [...prev.friends, ...additions] } : prev;
+            });
+            setPendingFriendRequestIds(prev => prev.filter(id => !accepted.some(a => a.toDevice === id)));
+            accepted.forEach(a => ackSenderRequest(a.id));
+        }
+        if (gifts.length > 0) {
+            setInbox(prev => {
+                const existingIds = new Set(prev.map(m => m.id));
+                const additions = gifts
+                    .filter(g => !existingIds.has(`friendgift_${g.id}`))
+                    .map(g => ({
+                        id: `friendgift_${g.id}`, type: 'FRIEND_GIFT' as const,
+                        title: `Gift from ${g.fromName}`, body: `+${g.amount.toLocaleString()} Coins`,
+                        claimed: false, createdAt: g.createdAt,
+                    }));
+                return additions.length > 0 ? [...additions, ...prev] : prev;
+            });
+        }
+    };
+    poll();
+    const id = setInterval(poll, 30000);
+    return () => { alive = false; clearInterval(id); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Arena season clock — processes end-of-season and rolls into the next one.
   useEffect(() => {
@@ -3738,45 +3802,41 @@ const App: React.FC = () => {
       setArenaState(prev => seasonPhase(prev, Date.now()) === 'active' ? { ...prev, points: prev.points + total } : prev);
   };
 
-  // Grant a quest credit (dice or mine/pick) and flash its icon over the reels.
-  // Friends — add, send a daily gift, collect a daily gift.
+  // Friends — AI/top-player entries add instantly; real players (device ids)
+  // go through a genuine cross-device friend request via Supabase.
+  const meAsLocalPlayer = () => ({
+      name: playerName, avatar: profileEmoji, level: player.level, vipLevel: player.vipLevel ?? 0,
+      score: player.balance, gems: player.diamonds, totalWon: player.stats?.totalCoinsWon || 0,
+      maxJackpot: player.stats?.maxJackpotWin || 0, maxWin: player.stats?.maxSingleWin || 0,
+  });
   const handleAddFriend = (friend: Friend) => {
-      setFriendsState(prev => prev.friends.some(f => f.id === friend.id) ? prev : { ...prev, friends: [...prev.friends, friend] });
+      if (!isRealPlayerId(friend.id)) {
+          setFriendsState(prev => prev.friends.some(f => f.id === friend.id) ? prev : { ...prev, friends: [...prev.friends, friend] });
+          return;
+      }
+      if (pendingFriendRequestIds.includes(friend.id) || friendsState.friends.some(f => f.id === friend.id)) return;
+      sendFriendRequest(meAsLocalPlayer(), friend.id);
+      setPendingFriendRequestIds(prev => [...prev, friend.id]);
+  };
+  const handleAcceptFriendRequest = (req: IncomingRequest) => {
+      acceptFriendRequest(req.id);
+      setFriendsState(prev => prev.friends.some(f => f.id === req.fromDevice) ? prev : {
+          ...prev,
+          friends: [...prev.friends, { id: req.fromDevice, name: req.fromName, avatar: req.fromAvatar, level: req.fromLevel, isAI: false, addedAt: Date.now() }],
+      });
+      setIncomingFriendRequests(prev => prev.filter(r => r.id !== req.id));
   };
   const handleSendGift = (friendId: string) => {
       const now = Date.now();
-      const maxBet = MAX_BET_BY_LEVEL(player.level);
-      setFriendsState(prev => {
-          const friend = prev.friends.find(f => f.id === friendId);
-          if (!friend || !friendCanSend(friend, now)) return prev;
-          return { ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastSentAt: now } : f) };
-      });
       const friend = friendsState.friends.find(f => f.id === friendId);
-      if (friend && friendCanSend(friend, now)) {
-          const amt = sendGiftAmount(maxBet);
-          setPlayer(p => ({ ...p, balance: p.balance + amt }));
-          triggerCoinAnim(amt);
+      if (!friend || !friendCanSend(friend, now)) return;
+      setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastSentAt: now } : f) }));
+      // Only real friends can actually receive the gift — it lands in their Inbox.
+      if (isRealPlayerId(friendId)) {
+          const amt = sendGiftAmount(MAX_BET_BY_LEVEL(player.level));
+          sendGiftToFriend(meAsLocalPlayer(), friendId, amt);
       }
-  };
-  const handleCollectGift = (friendId: string) => {
-      const now = Date.now();
-      const maxBet = MAX_BET_BY_LEVEL(player.level);
-      const friend = friendsState.friends.find(f => f.id === friendId);
-      if (!friend || !friendCanCollect(friend, now)) return;
-      setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastCollectedAt: now } : f) }));
-      const amt = collectGiftAmount(maxBet);
-      setPlayer(p => ({ ...p, balance: p.balance + amt }));
-      triggerCoinAnim(amt);
-  };
-  const handleCollectAllGifts = () => {
-      const now = Date.now();
-      const maxBet = MAX_BET_BY_LEVEL(player.level);
-      const collectible = friendsState.friends.filter(f => friendCanCollect(f, now));
-      if (collectible.length === 0) return;
-      setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => friendCanCollect(f, now) ? { ...f, lastCollectedAt: now } : f) }));
-      const amt = collectGiftAmount(maxBet) * collectible.length;
-      setPlayer(p => ({ ...p, balance: p.balance + amt }));
-      triggerCoinAnim(amt);
+      setCelebrationMsg('Gift Sent!');
   };
 
   const gainQuestCredit = (type: 'dice' | 'mine') => {
@@ -3907,14 +3967,14 @@ const App: React.FC = () => {
                           });
                           setShownUnlocks(prev => new Set(prev).add(15));
                       } else if (newLevel === 20) {
-                          setFeatureUnlockData({ 
-                              name: 'Quest',
+                          setFeatureUnlockData({
+                              name: 'Mini Games',
                               icon: '/minigameslobbyicon.png',
-                              description: 'Embark on an adventure!',
-                              action: () => { 
+                              description: 'Play Dice & Coin Mine for rewards!',
+                              action: () => {
                                   setActiveModal('NONE');
                                   setTimeout(() => { openModal('MINIGAME'); audioService.playClick(); }, 50);
-                              } 
+                              }
                           });
                           setShownUnlocks(prev => new Set(prev).add(20));
                       } else if (newLevel === 30) {
@@ -3953,7 +4013,8 @@ const App: React.FC = () => {
 
   const addVipXp = (amount: number) => {
       setPlayer(prev => {
-          let newVipXp = (prev.vipXp ?? 0) + amount;
+          const boosted = (prev.vipXpBoostEndTime || 0) > Date.now() ? (prev.vipXpBoostMultiplier || 1) : 1;
+          let newVipXp = (prev.vipXp ?? 0) + Math.round(amount * boosted);
           let newVipLevel = prev.vipLevel ?? 1;
           let newVipXpToNext = 500 * newVipLevel;
           while (newVipXp >= newVipXpToNext) {
@@ -4681,15 +4742,16 @@ const App: React.FC = () => {
       setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + b.dice), wildCredits: Math.min(60, q.wildCredits + b.picks) }));
   };
 
-  const handleShopBuy = (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST' | 'ARENA_XP', amount: number, duration?: number, cost?: number) => {
+  const handleShopBuy = (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST' | 'ARENA_XP' | 'VIP_XP_BOOST', amount: number, duration?: number, cost?: number) => {
       if (cost) {
-          if (type === 'BOOST' || type === 'PASS_XP' || type === 'PACK_CREDIT' || type === 'COLLECT_BOOST' || type === 'ARENA_XP') {
+          if (type === 'BOOST' || type === 'PASS_XP' || type === 'PACK_CREDIT' || type === 'COLLECT_BOOST' || type === 'ARENA_XP' || type === 'VIP_XP_BOOST') {
              if (player.diamonds >= cost) {
                  setPlayer(p => ({...p, diamonds: p.diamonds - cost}));
                  if (type === 'BOOST') setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + (duration || 0) }));
                  if (type === 'PASS_XP') setMissionState(prev => ({ ...prev, passBoostMultiplier: amount, passBoostEndTime: Date.now() + (duration || 0) }));
                  if (type === 'COLLECT_BOOST') setPlayer(p => ({ ...p, collectBoostEndTime: Math.max(Date.now(), p.collectBoostEndTime || 0) + (duration || 0) }));
                  if (type === 'ARENA_XP') setPlayer(p => ({ ...p, arenaXpMultiplier: amount, arenaXpBoostEndTime: Math.max(Date.now(), p.arenaXpBoostEndTime || 0) + (duration || 0) }));
+                 if (type === 'VIP_XP_BOOST') setPlayer(p => ({ ...p, vipXpBoostMultiplier: amount, vipXpBoostEndTime: Math.max(Date.now(), p.vipXpBoostEndTime || 0) + (duration || 0) }));
                  if (type === 'PACK_CREDIT') {
                      setPlayer(p => ({ ...p, packCredits: p.packCredits + amount }));
                      setCelebrationMsg(`+${amount} Pack Credits`);
@@ -5126,6 +5188,7 @@ const App: React.FC = () => {
                 arenaMaxBet={MAX_BET_BY_LEVEL(player.level)}
                 onOpenFriends={() => setShowFriends(true)}
                 friends={friendsState.friends}
+                friendRequestCount={incomingFriendRequests.length}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
@@ -6584,6 +6647,7 @@ const App: React.FC = () => {
               maxWin: player.stats?.maxSingleWin || 0,
           }}
           friendIds={friendsState.friends.map(f => f.id)}
+          pendingFriendIds={pendingFriendRequestIds}
           onAddFriend={(entry) => handleAddFriend(toFriend(entry, Date.now()))}
       />
 
@@ -6620,10 +6684,11 @@ const App: React.FC = () => {
               maxWin: player.stats?.maxSingleWin || 0,
           }}
           maxBet={MAX_BET_BY_LEVEL(player.level)}
+          incomingRequests={incomingFriendRequests}
+          pendingRequestIds={pendingFriendRequestIds}
           onAddFriend={handleAddFriend}
+          onAcceptRequest={handleAcceptFriendRequest}
           onSendGift={handleSendGift}
-          onCollectGift={handleCollectGift}
-          onCollectAll={handleCollectAllGifts}
       />
 
       {/* Purchase Unavailable Popup */}
