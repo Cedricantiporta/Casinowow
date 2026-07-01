@@ -86,9 +86,9 @@ interface SavedGameState {
 //   Gold Rush (WESTERN)     → Pirate   : walking wilds
 //   Samurai Honor (SAMURAI) → Egypt    : hold & win respins
 //   Lucky Leprechaun        → Candy    : bonus wheel (distinct pot-of-gold variant)
-//   Jungle Rumble (JUNGLE)  → Space    : progressive-multiplier free spins
+// Jungle Rumble (JUNGLE) has its own dedicated feature (colossal center symbol/
+// scatter free spins) — no longer aliased to Space's Supernova mechanic.
 const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
-    JUNGLE: 'SPACE',
     WESTERN: 'PIRATE',
     LEPRECHAUN: 'CANDY',
     UNDERWATER: 'ARCTIC',
@@ -994,6 +994,12 @@ const App: React.FC = () => {
   const [showAngryFlockRoulette, setShowAngryFlockRoulette] = useState(false);
   const angryFlockColorRef = useRef<AngryFlockWildColor | null>(null);
   const angryFlockStickyWildsRef = useRef<{ col: number; row: number }[]>([]);
+
+  // Jungle Rumble — a single colossal center symbol (spanning a 3x3 block).
+  // Base game: only ever the SCATTER variant, and only it triggers 5 free spins.
+  // During free spins: every spin guarantees one (any paytable symbol, weighted
+  // low-to-high, SCATTER rarest of all and retriggers +5 more free spins).
+  const [jungleBigIcon, setJungleBigIcon] = useState<SymbolType | null>(null);
 
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
@@ -2533,6 +2539,41 @@ const App: React.FC = () => {
           newGrid.push(colData);
       }
 
+      // JUNGLE: the colossal center symbol. Base game — only ever SCATTER (already
+      // restricted to the exact center cell above), which triggers free spins.
+      // Free spins — every single spin guarantees one, weighted low-to-high value
+      // (SCATTER rarest of all, and retriggers +5 more free spins via the normal
+      // scatter-count trigger check below since it fills the center cell too).
+      if (selectedGame.theme === 'JUNGLE') {
+          const centerCol = Math.floor(cols / 2), centerRow = Math.floor(rows / 2);
+          if (isFreeSpin) {
+              const JUNGLE_BIG_ICON_POOL: { type: SymbolType; weight: number }[] = [
+                  { type: SymbolType.TEN,     weight: 22 },
+                  { type: SymbolType.JACK,    weight: 18 },
+                  { type: SymbolType.QUEEN,   weight: 15 },
+                  { type: SymbolType.KING,    weight: 12 },
+                  { type: SymbolType.ACE,     weight: 10 },
+                  { type: SymbolType.GRAPE,   weight: 8 },
+                  { type: SymbolType.BELL,    weight: 6 },
+                  { type: SymbolType.BAR,     weight: 4 },
+                  { type: SymbolType.CHERRY,  weight: 2.5 },
+                  { type: SymbolType.SEVEN,   weight: 1.5 },
+                  { type: SymbolType.WILD,    weight: 0.8 },
+                  { type: SymbolType.SCATTER, weight: 0.2 },
+              ];
+              const total = JUNGLE_BIG_ICON_POOL.reduce((a, p) => a + p.weight, 0);
+              let roll = Math.random() * total;
+              let chosen = JUNGLE_BIG_ICON_POOL[JUNGLE_BIG_ICON_POOL.length - 1].type;
+              for (const p of JUNGLE_BIG_ICON_POOL) { roll -= p.weight; if (roll <= 0) { chosen = p.type; break; } }
+              for (let c = centerCol - 1; c <= centerCol + 1; c++) {
+                  for (let r = 0; r < rows; r++) newGrid[c][r] = chosen;
+              }
+              setJungleBigIcon(chosen);
+          } else {
+              setJungleBigIcon(newGrid[centerCol][centerRow] === SymbolType.SCATTER ? SymbolType.SCATTER : null);
+          }
+      }
+
       if (Math.random() < 0.00001) {
            for(let c=0; c<cols; c++) {
                for(let r=0; r<rows; r++) {
@@ -2598,6 +2639,10 @@ const App: React.FC = () => {
                }
                // DRAGON: no full-column wild stacks, only single-cell wilds
                if (selectedGame.theme === 'DRAGON') wildStackChance = 0;
+               // JUNGLE: reels 2-4 are fully owned by the colossal center symbol mechanic —
+               // no generic wild-column stacking there (it would overwrite the base-game
+               // scatter-only-center restriction or the free-spin guaranteed big icon).
+               if (selectedGame.theme === 'JUNGLE' && c >= 1 && c <= 3) wildStackChance = 0;
 
                // DRAGON: scatter individual single-cell wilds across all columns
                if (selectedGame.theme === 'DRAGON' && !eventTriggered) {
@@ -2631,7 +2676,7 @@ const App: React.FC = () => {
                }
            }
            
-           if (!eventTriggered) {
+           if (!eventTriggered && !(selectedGame.theme === 'JUNGLE' && c >= 1 && c <= 3)) {
                const stackChance = isSmallGrid ? 0.01 : 0.05;
                if (Math.random() < stackChance) {
                    const colorRoll = Math.random();
@@ -2950,7 +2995,8 @@ const App: React.FC = () => {
 
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
-      if (isFreeSpin && ft !== 'ARCTIC' && ft !== 'NEON' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
+      // JUNGLE: the colossal center symbol occupies reels 2-4 every free spin, so no jackpot injection there.
+      if (isFreeSpin && ft !== 'ARCTIC' && ft !== 'NEON' && selectedGame.theme !== 'JUNGLE' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
           // CANDY gets 50% reduced jackpot spawn rates. PIGGY gets +30% jackpot
           // chance only during the guaranteed first (10th-spin) free-spin session.
           const jpScale = ft === 'CANDY' ? 0.5 : (ft === 'PIGGY' && piggyFirstFsBoostRef.current) ? 1.3 : 1.0;
@@ -3562,7 +3608,10 @@ const App: React.FC = () => {
                  : selectedGame.theme === 'JUNGLE'
                  ? 5
                  : 10;
-             const spinsWon = selectedGame.theme !== 'PIRATE' && scatterCount > 3
+             // JUNGLE's scatter count during a retrigger is always the whole 3x3 block (9
+             // cells at once), not a linear "more scatters = more spins" signal like other
+             // themes, so it always just awards the flat baseSpins amount.
+             const spinsWon = selectedGame.theme !== 'PIRATE' && selectedGame.theme !== 'JUNGLE' && scatterCount > 3
                  ? baseSpins + (scatterCount - 3) * 5
                  : baseSpins;
              setFreeSpinsWon(spinsWon);
@@ -4653,6 +4702,8 @@ const App: React.FC = () => {
           setShowAngryFlockRoulette(false);
           angryFlockColorRef.current = null;
           angryFlockStickyWildsRef.current = [];
+          // Reset Jungle Rumble colossal-symbol overlay on game change
+          setJungleBigIcon(null);
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -4821,6 +4872,8 @@ const App: React.FC = () => {
       // for this one Angry Flock free-spin session.
       angryFlockColorRef.current = null;
       angryFlockStickyWildsRef.current = [];
+      // Jungle's colossal symbol overlay only applies to the spin that just resolved.
+      setJungleBigIcon(null);
       // Hard-reset pirate walk so Ghost Ship state never bleeds into normal spins
       pirateWalkRef.current = { active: false, shipCol: -1, ship2Col: -1 };
       pirateTriggerArmedRef.current = false;
@@ -5724,17 +5777,20 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* JUNGLE colossal scatter — a single icon spanning a 3x3 block dead-center
-                            on the grid. Each reel clips its own column, so this has to be a separate
-                            overlay above the whole grid rather than something drawn inside one cell. */}
-                        {selectedGame.theme === 'JUNGLE' && status !== GameStatus.SPINNING && status !== GameStatus.STOPPING &&
-                         targetGrid.length > 0 && targetGrid[Math.floor(selectedGame.reels / 2)]?.[Math.floor(selectedGame.rows / 2)] === SymbolType.SCATTER && (
-                            <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center animate-pop-in">
+                        {/* JUNGLE colossal symbol — a single icon spanning a 3x3 block dead-center
+                            on the grid (base game: SCATTER only; free spins: any paytable symbol,
+                            guaranteed every spin). Each reel clips its own column, so this has to be
+                            a separate overlay above the whole grid, with a backdrop panel hiding the
+                            9 ordinary cells it's replacing, rather than drawn inside one cell. */}
+                        {selectedGame.theme === 'JUNGLE' && status !== GameStatus.SPINNING && status !== GameStatus.STOPPING && jungleBigIcon && (
+                            <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center animate-pop-in"
+                                style={{ left: `${1 / selectedGame.reels * 100}%`, width: `${3 / selectedGame.reels * 100}%` }}>
+                                <div className="absolute inset-0 rounded-2xl" style={{ background: jungleBigIcon === SymbolType.SCATTER ? 'rgba(6,30,10,0.94)' : 'rgba(10,10,10,0.88)', boxShadow: jungleBigIcon === SymbolType.SCATTER ? '0 0 30px rgba(74,222,128,0.6)' : '0 0 20px rgba(0,0,0,0.6)' }} />
                                 <img
-                                    src="/jungle_scatter.png"
+                                    src={GET_SYMBOLS(selectedGame.theme)[jungleBigIcon]?.icon}
                                     alt=""
-                                    className="object-contain select-none"
-                                    style={{ width: `${3 / selectedGame.reels * 100}%`, height: '100%', filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.7))' }}
+                                    className="relative object-contain select-none"
+                                    style={{ width: '78%', height: '78%', filter: 'drop-shadow(0 6px 20px rgba(0,0,0,0.7))' }}
                                 />
                             </div>
                         )}
@@ -5896,22 +5952,22 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* SPACE Supernova — progressive multiplier banner during free spins (reused by Jungle) */}
+                        {/* SPACE Supernova — progressive multiplier banner during free spins */}
                         {featureThemeOf(selectedGame.theme) === 'SPACE' && totalFreeSpins > 0 && (
                             <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
                                 <div style={{
-                                    background: selectedGame.theme === 'JUNGLE' ? 'linear-gradient(180deg,#1f5e1a,#0a2a08)' : 'linear-gradient(180deg,#3b1a6e,#1a0a3a)',
-                                    border: selectedGame.theme === 'JUNGLE' ? '2px solid #86efac' : '2px solid #c084fc',
+                                    background: 'linear-gradient(180deg,#3b1a6e,#1a0a3a)',
+                                    border: '2px solid #c084fc',
                                     borderRadius: 999,
                                     padding: '4px 14px',
-                                    boxShadow: selectedGame.theme === 'JUNGLE' ? '0 0 18px rgba(134,239,172,0.6), 0 4px 10px rgba(0,0,0,0.6)' : '0 0 18px rgba(192,132,252,0.6), 0 4px 10px rgba(0,0,0,0.6)',
+                                    boxShadow: '0 0 18px rgba(192,132,252,0.6), 0 4px 10px rgba(0,0,0,0.6)',
                                     whiteSpace: 'nowrap',
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     gap: 6,
                                 }}>
-                                    <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: selectedGame.theme === 'JUNGLE' ? '#dcfce7' : '#e9d5ff', textShadow: selectedGame.theme === 'JUNGLE' ? '0 0 8px rgba(134,239,172,0.9)' : '0 0 8px rgba(192,132,252,0.9)' }}>
-                                        <img src="/ui/star.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 3 }} />{selectedGame.theme === 'JUNGLE' ? 'Jungle Frenzy' : 'Supernova'}
+                                    <span className="font-black uppercase tracking-widest" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#e9d5ff', textShadow: '0 0 8px rgba(192,132,252,0.9)' }}>
+                                        <img src="/ui/star.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 3 }} />Supernova
                                     </span>
                                     <span className="font-black" style={{ fontSize: 'clamp(11px,3vw,16px)', color: '#fde68a', textShadow: '0 0 8px rgba(251,191,36,0.8)' }}>
                                         ×{spaceMultiplier}
