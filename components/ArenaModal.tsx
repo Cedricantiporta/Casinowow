@@ -45,6 +45,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
     const info = rankInfo(arena.tierIndex);
     const phase = seasonPhase(arena, now);
     const remaining = phaseTimeRemaining(arena, now);
+    const joined = arena.points > 0; // must spin to join the season
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none"
@@ -79,7 +80,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                                     <i className="ti ti-bolt" style={{ color: info.color, fontSize: 13 }} />
                                     <span className="font-black text-white text-sm">{formatK(arena.points)}</span>
                                 </div>
-                                <div className="text-white/60 text-[10px]">Rank #{myPos}</div>
+                                <div className="text-white/60 text-[10px]">{joined ? `Rank #${myPos}` : 'Not joined'}</div>
                             </div>
                         </div>
                     </div>
@@ -96,13 +97,19 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                     <span className="flex items-center gap-1 text-[10px] font-black text-rose-300">51+<i className="ti ti-arrow-down" /></span>
                 </div>
 
-                {/* Leaderboard — blank while a season is processing */}
+                {/* Leaderboard — blank while processing or before joining */}
                 <div ref={listRef} className="flex-1 overflow-y-auto no-scrollbar px-3 pb-3 flex flex-col gap-1 min-h-0">
                     {phase === 'processing' ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
                             <i className="ti ti-hourglass-high text-white/40" style={{ fontSize: 34 }} />
                             <div className="font-black text-white/80 text-sm">Season ended</div>
                             <div className="text-white/50" style={{ fontSize: 11 }}>Next arena begins in <span className="font-black text-white">{formatCountdown(remaining)}</span></div>
+                        </div>
+                    ) : !joined ? (
+                        <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
+                            <i className="ti ti-refresh text-white/50" style={{ fontSize: 34 }} />
+                            <div className="font-black text-white/80 text-sm">Spin to join</div>
+                            <div className="text-white/50" style={{ fontSize: 11 }}>Spin any slot to enter this season's Arena — no demotion until you play.</div>
                         </div>
                     ) : board.map((e, i) => {
                         const pos = i + 1;
@@ -183,12 +190,13 @@ export const ArenaSideWidget: React.FC<{
     const remaining = phaseTimeRemaining(arena, now);
     const pool = arenaRewardPool(maxBet, arena.tierIndex);
     const outcome = SIDE_OUTCOME[outcomeFor(arena.tierIndex, myIdx + 1)];
+    const joined = arena.points > 0; // must spin to join the season
 
     // 6-row window centred on the player, clamped so the top is visible when near it.
     const WINDOW = 6;
     let start = Math.max(0, myIdx - 2);
     start = Math.min(start, Math.max(0, board.length - WINDOW));
-    const rows = processing ? [] : board.slice(start, start + WINDOW);
+    const rows = (processing || !joined) ? [] : board.slice(start, start + WINDOW);
 
     return (
         <button onClick={onOpen}
@@ -216,14 +224,19 @@ export const ArenaSideWidget: React.FC<{
                 <span className="font-black text-amber-300 leading-none" style={{ fontSize: 12 }}>{formatK(pool, 9)}</span>
             </div>
 
-            {/* Live windowed leaderboard — blank while a season is processing */}
+            {/* Live windowed leaderboard — blank while processing or before joining */}
             <div className="flex flex-col justify-center" style={{ gap: 2, minHeight: 116 }}>
-                {processing && (
+                {processing ? (
                     <div className="flex flex-col items-center gap-1 text-center px-1 m-auto">
                         <i className="ti ti-hourglass-high text-white/40" style={{ fontSize: 20 }} />
                         <span className="text-white/55 font-bold leading-tight" style={{ fontSize: 8 }}>Season ended</span>
                     </div>
-                )}
+                ) : !joined ? (
+                    <div className="flex flex-col items-center gap-1 text-center px-1 m-auto">
+                        <i className="ti ti-refresh text-white/50" style={{ fontSize: 20 }} />
+                        <span className="text-white/70 font-black leading-tight" style={{ fontSize: 8.5 }}>Spin to join</span>
+                    </div>
+                ) : null}
                 {rows.map((e) => {
                     const pos = board.indexOf(e) + 1;
                     const tint = ROW_TINT[pos];
@@ -243,8 +256,8 @@ export const ArenaSideWidget: React.FC<{
                 })}
             </div>
 
-            {/* Promotion / hold / demotion status */}
-            {!processing && (
+            {/* Promotion / hold / demotion status — only once joined */}
+            {!processing && joined && (
                 <div className="flex items-center justify-center gap-0.5 rounded-full py-0.5"
                     style={{ background: `${outcome.color}26`, boxShadow: `inset 0 0 0 1px ${outcome.color}66` }}>
                     <i className={`ti ${outcome.icon}`} style={{ fontSize: 8, color: outcome.color }} />

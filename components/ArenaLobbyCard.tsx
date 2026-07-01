@@ -40,6 +40,7 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
     const remaining = phaseTimeRemaining(arena, now);
     const outcome = OUTCOME_META[outcomeFor(arena.tierIndex, pos)];
     const pool = arenaRewardPool(maxBet, arena.tierIndex);
+    const joined = arena.points > 0; // must spin to join the season
 
     return (
         <button
@@ -65,15 +66,22 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
             <div className="relative flex items-center gap-1 mt-0.5">
                 <i className="ti ti-bolt" style={{ color: info.color, fontSize: 10 }} />
                 <span className="font-black text-white" style={{ fontSize: 10 }}>{formatK(arena.points)}</span>
-                <span className="text-white/55 font-bold" style={{ fontSize: 9 }}>#{pos}</span>
+                {joined && <span className="text-white/55 font-bold" style={{ fontSize: 9 }}>#{pos}</span>}
             </div>
 
-            {/* promotion / hold / demotion status */}
-            <div className="relative flex items-center gap-0.5 rounded-full px-1.5 py-0.5 mt-1"
-                style={{ background: `${outcome.color}26`, boxShadow: `inset 0 0 0 1px ${outcome.color}66` }}>
-                <i className={`ti ${outcome.icon}`} style={{ fontSize: 9, color: outcome.color }} />
-                <span className="font-black leading-none" style={{ fontSize: 8.5, color: outcome.color }}>{outcome.label}</span>
-            </div>
+            {/* promotion / hold / demotion status — or spin-to-join prompt */}
+            {joined ? (
+                <div className="relative flex items-center gap-0.5 rounded-full px-1.5 py-0.5 mt-1"
+                    style={{ background: `${outcome.color}26`, boxShadow: `inset 0 0 0 1px ${outcome.color}66` }}>
+                    <i className={`ti ${outcome.icon}`} style={{ fontSize: 9, color: outcome.color }} />
+                    <span className="font-black leading-none" style={{ fontSize: 8.5, color: outcome.color }}>{outcome.label}</span>
+                </div>
+            ) : (
+                <div className="relative flex items-center gap-0.5 rounded-full px-1.5 py-0.5 mt-1" style={{ background: 'rgba(255,255,255,0.12)' }}>
+                    <i className="ti ti-refresh text-white/80" style={{ fontSize: 9 }} />
+                    <span className="font-black leading-none text-white/80" style={{ fontSize: 8.5 }}>Spin to join</span>
+                </div>
+            )}
 
             {/* reward pool */}
             <div className="relative flex flex-col items-center mt-1">

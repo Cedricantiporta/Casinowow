@@ -1592,6 +1592,9 @@ const App: React.FC = () => {
         if (elapsed >= SEASON_ACTIVE_MS && arenaProcessedRef.current !== prev.seasonId) {
           // Entering the 3-minute processing window — settle results.
           arenaProcessedRef.current = prev.seasonId;
+          // Only players who actually spun (points > 0) joined the season. AFK
+          // players are not ranked, promoted, demoted or rewarded.
+          if (prev.points <= 0) return prev;
           const board = getFinalBoard(prev, { id: 'you', name: playerName || 'You', avatar: profileEmoji, points: prev.points });
           const position = positionOf(board);
           const newTier = nextTier(prev.tierIndex, position);
