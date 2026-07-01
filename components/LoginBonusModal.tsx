@@ -7,9 +7,10 @@ interface LoginBonusModalProps {
     claimedToday?: boolean;
     maxBet?: number;
     onClaim: () => void;
+    onClose?: () => void;
 }
 
-export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, currentDay, claimedToday = false, maxBet, onClaim }) => {
+export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, currentDay, claimedToday = false, maxBet, onClaim, onClose }) => {
     if (!isOpen) return null;
 
     const row1 = DAILY_LOGIN_REWARDS.slice(0, 3);
@@ -110,9 +111,12 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                 }}
             >
                 {/* Header */}
-                <div className="shrink-0 px-4 pt-3 pb-1 text-center">
+                <div className="shrink-0 px-4 pt-3 pb-1 text-center relative">
                     <h2 className="font-tanker text-white text-base">Daily Login Bonus</h2>
                     <p className="text-purple-300/70 text-[10px] mt-0.5">Come back every day for bigger rewards!</p>
+                    {onClose && (
+                        <button className="round-btn cursor-pointer absolute top-1 right-2" onClick={onClose}><i className="ti ti-x" /></button>
+                    )}
                 </div>
 
                 {/* Day cards */}
