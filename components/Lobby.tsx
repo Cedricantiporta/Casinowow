@@ -437,10 +437,13 @@ export const Lobby: React.FC<LobbyProps> = ({
                     <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center select-none font-nunito">
                         <div className="relative flex flex-col items-stretch overflow-visible">
 
-                            {/* Single continuous background — auto-height matches whichever rows are rendered */}
+                            {/* Single continuous background — anchored to the bottom, shorter than the
+                                icon buttons so their artwork protrudes above the platform's top edge
+                                (matches the original single-row look). Height grows with each row. */}
                             <div className="absolute pointer-events-none"
                                 style={{
-                                    top: 0, left: 0, right: 0, bottom: 0,
+                                    bottom: 0, left: 0, right: 0,
+                                    height: dockExpanded ? '104px' : '52px',
                                     borderRadius:'28px 28px 0 0',
                                     background: barBg,
                                     border: `1.5px solid ${borderCol}`,
@@ -448,8 +451,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                                     boxShadow: isGolden ? barGlow : `${barGlow}, 0 -16px 60px rgba(0,0,0,0.98), 0 -6px 24px rgba(0,0,0,0.95), 0 -2px 8px rgba(0,0,0,1)`,
                                     zIndex: -1,
                                 }}>
-                                <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'30%', borderRadius:'18px 18px 0 0', background:'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }}></div>
-                                <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'20%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
+                                <div className="absolute top-0 left-0 right-0 pointer-events-none" style={{ height:'45%', borderRadius:'18px 18px 0 0', background:'linear-gradient(180deg,rgba(255,255,255,0.25),transparent)' }}></div>
+                                <div className="absolute bottom-0 left-0 right-0 pointer-events-none" style={{ height:'35%', background:'linear-gradient(0deg,rgba(0,0,0,0.38),transparent)' }}></div>
                             </div>
 
                             {/* Row 1 — always visible, sits on top */}

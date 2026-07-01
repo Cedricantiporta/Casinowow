@@ -4,11 +4,12 @@ import { DAILY_LOGIN_REWARDS, formatCommaNumber, formatKShort } from '../constan
 interface LoginBonusModalProps {
     isOpen: boolean;
     currentDay: number;
+    claimedToday?: boolean;
     maxBet?: number;
     onClaim: () => void;
 }
 
-export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, currentDay, maxBet, onClaim }) => {
+export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, currentDay, claimedToday = false, maxBet, onClaim }) => {
     if (!isOpen) return null;
 
     const row1 = DAILY_LOGIN_REWARDS.slice(0, 3);
@@ -20,7 +21,11 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
     };
 
     const renderDayCard = (reward: typeof DAILY_LOGIN_REWARDS[0]) => {
-        const isToday = reward.day === currentDay;
+        // currentDay advances the instant a claim happens, so "today" is only
+        // truly claimable while claimedToday is false — otherwise it's the
+        // upcoming day, locked until the next calendar day.
+        const isToday = reward.day === currentDay && !claimedToday;
+        const isPendingTomorrow = reward.day === currentDay && claimedToday;
         const isPast = reward.day < currentDay;
         const isGoldenDay = reward.day === 7;
         const coins = reward.multiplier * (maxBet ?? 0);
@@ -30,7 +35,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
 
         if (isPast) {
             cardStyle = { ...innerCardBase, opacity: 0.5, filter: 'grayscale(1)' };
-        } else if (isGoldenDay) {
+        } else if (isGoldenDay && !isPendingTomorrow) {
             cardStyle = {
                 background: 'linear-gradient(180deg,rgba(255,215,50,0.55) 0%,rgba(180,100,0,0.98) 100%)',
                 boxShadow: 'inset 0 1px 0 rgba(255,245,150,0.6), 0 3px 10px rgba(0,0,0,0.5)',
@@ -42,6 +47,8 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                 boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5), 0 0 0 2px rgba(160,220,255,0.5)',
                 transform: 'scale(1.05)',
             };
+        } else if (isPendingTomorrow) {
+            cardStyle = { ...innerCardBase, opacity: 0.6 };
         }
 
         return (
@@ -76,6 +83,12 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                     <button onClick={onClaim} className="pill-green w-full">
                         <div className="pill-face" style={{ padding: '5px 8px', fontSize: '9px' }}>Claim</div>
                     </button>
+                )}
+
+                {isPendingTomorrow && (
+                    <div className="w-full text-center rounded-full" style={{ background: 'rgba(0,0,0,0.35)', padding: '5px 8px' }}>
+                        <span className="font-black text-white/70" style={{ fontSize: 9 }}>Tomorrow</span>
+                    </div>
                 )}
 
                 {isPast && (
