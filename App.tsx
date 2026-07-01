@@ -1016,15 +1016,34 @@ const App: React.FC = () => {
   const [spinsWithoutBonus, setSpinsWithoutBonus] = useState(0);
 
   // Golden Lucky Pot — every 10th spin at the current bet spawns a pot worth a
-  // random 1x-10x of that bet. Changing the bet amount starts a fresh count of 10.
+  // random 1x-5x of that bet. Changing the bet amount starts a fresh count of 10.
+  // The spin plays out normally first; once it settles back to IDLE, the reels
+  // freeze for 2s before the pot popup animates in.
   const [goldenPotSpinCount, setGoldenPotSpinCount] = useState(0);
   const goldenPotLastBetRef = useRef<number | null>(null);
+  const goldenPotPendingRef = useRef<number | null>(null);
+  const [goldenPotFrozen, setGoldenPotFrozen] = useState(false);
   const [goldenPotWin, setGoldenPotWin] = useState<number | null>(null);
   useEffect(() => {
       if (goldenPotWin === null) return;
       const t = setTimeout(() => setGoldenPotWin(null), 3000);
       return () => clearTimeout(t);
   }, [goldenPotWin]);
+  // Once the triggering spin fully settles back to IDLE, freeze for 2s then award the pot.
+  useEffect(() => {
+      if (selectedGame.theme !== 'GOLDEN_POT' || status !== GameStatus.IDLE || goldenPotPendingRef.current === null) return;
+      const potWin = goldenPotPendingRef.current;
+      goldenPotPendingRef.current = null;
+      setGoldenPotFrozen(true);
+      const t = setTimeout(() => {
+          setPlayer(p => ({ ...p, balance: p.balance + potWin }));
+          triggerCoinAnim(potWin);
+          setGoldenPotWin(potWin);
+          audioService.playWinBig();
+          setGoldenPotFrozen(false);
+      }, 2000);
+      return () => clearTimeout(t);
+  }, [status, selectedGame.theme]);
 
   // Golden Treasury collect multiplier — builds with qualifying spins.
   // 50 qualifying spins per tier: 1x → 2x(50) → 3x(100) → 4x(150) → 5x(200) → 10x(250).
@@ -3259,6 +3278,7 @@ const App: React.FC = () => {
     if (showCandyRoulette || showSpinCountRoulette) return;
     if (showAngryFlockSpinCount || showAngryFlockRoulette) return;
     if (showBeastRoulette) return;
+    if (goldenPotFrozen) return;
     if (dragonPotShaking || showDragonTriggerPopup) return;
     if (showEgyptHoldWinPopup) return;
 
@@ -3304,20 +3324,17 @@ const App: React.FC = () => {
       }
       
       setSpinsWithoutBonus(prev => prev + 1);
-      // Golden Lucky Pot: every 10th spin at the current bet spawns a pot worth a
-      // random 1x-10x of that bet. Changing the bet amount restarts the count of 10.
+      // Golden Lucky Pot: every 10th spin at the current bet queues a pot worth a
+      // random 1x-5x of that bet. Changing the bet amount restarts the count of 10.
+      // The spin plays out normally; the pot is awarded (with a 2s freeze) once it settles.
       if (selectedGame.theme === 'GOLDEN_POT' && !isFreeSpin) {
           const betChanged = goldenPotLastBetRef.current !== null && goldenPotLastBetRef.current !== currentBet;
           goldenPotLastBetRef.current = currentBet;
           const nextCount = betChanged ? 1 : goldenPotSpinCount + 1;
           setGoldenPotSpinCount(nextCount % 10);
           if (nextCount % 10 === 0) {
-              const potMult = 1 + Math.floor(Math.random() * 10); // 1-10
-              const potWin = potMult * currentBet;
-              setPlayer(p => ({ ...p, balance: p.balance + potWin }));
-              triggerCoinAnim(potWin);
-              setGoldenPotWin(potWin);
-              audioService.playWinBig();
+              const potMult = 1 + Math.floor(Math.random() * 5); // 1-5
+              goldenPotPendingRef.current = potMult * currentBet;
           }
       }
       // Golden Treasury multiplier progress: full credit when bet ≥ 50% of max bet, else half.
@@ -3379,7 +3396,7 @@ const App: React.FC = () => {
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
-  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, player.level, selectedGame.theme]);
+  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, goldenPotFrozen, player.level, selectedGame.theme]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -6339,7 +6356,7 @@ const App: React.FC = () => {
                       onPointerDown={handleSpinPointerDown}
                       onPointerUp={handleSpinPointerUp}
                       onPointerLeave={() => { if (spinButtonTimeoutRef.current) { clearTimeout(spinButtonTimeoutRef.current); spinButtonTimeoutRef.current = null; isLongPressRef.current = false; } }}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showSpinCountRoulette || showAngryFlockSpinCount || showAngryFlockRoulette || showBeastRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup || showEgyptHoldWinPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showSpinCountRoulette || showAngryFlockSpinCount || showAngryFlockRoulette || showBeastRoulette || goldenPotFrozen || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup || showEgyptHoldWinPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                       style={{ touchAction: 'none' }}
                   >
                       <div className="flat-face" style={{ overflow: 'hidden' }}>

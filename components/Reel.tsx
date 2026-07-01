@@ -376,10 +376,10 @@ const ReelCell: React.FC<{
                         </div>
                     )}
                     {theme === 'BEAST' && isWild && !blur && inFreeSpins && !!beastMultiplier && (
-                        <div className="absolute top-0 w-full flex justify-center items-start pt-1 z-30 pointer-events-none">
+                        <div className="absolute top-0 w-full flex justify-center items-start pt-0.5 z-30 pointer-events-none">
                             <span
                                 className="block leading-none"
-                                style={{ fontSize: `${1.7 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 6px #000, 0 0 12px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                                style={{ fontSize: `${2.7 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
                             >{beastMultiplier}X</span>
                         </div>
                     )}
