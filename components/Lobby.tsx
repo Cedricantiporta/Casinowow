@@ -446,6 +446,13 @@ export const Lobby: React.FC<LobbyProps> = ({
                 const barGlow = topInset;
                 const isArenaLocked = !arena;
 
+                // Whether any row-2 icon currently has a pending notification —
+                // surfaced as a plain dot (no count) on the collapsed toggle.
+                const row2HasNotif = (!isQuestLocked && diceCredits > 0)
+                    || (friendRequestCount ?? 0) > 0
+                    || (!isPiggyLocked && piggyFull)
+                    || !!loginRewardReady;
+
                 // The expand/collapse toggle always sits at the end of the
                 // bottom-most visible row (row1 alone when collapsed, row2 once
                 // row2 slides in below row1 when expanded).
@@ -456,6 +463,10 @@ export const Lobby: React.FC<LobbyProps> = ({
                             className="relative flex items-center justify-center active:scale-95 transition-transform"
                             style={{ width: 32, height: 28, alignSelf: 'flex-end', marginBottom: '14px' }}>
                             <i className={`ti ${dockExpanded ? 'ti-chevron-down' : 'ti-chevron-up'}`} style={{ fontSize: 20, color: '#fff' }} />
+                            {!dockExpanded && row2HasNotif && (
+                                <div className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full"
+                                    style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: '0 0 0 1.5px rgba(255,120,120,0.7), 0 1px 3px rgba(0,0,0,0.8)' }} />
+                            )}
                         </button>
                     </>
                 );
