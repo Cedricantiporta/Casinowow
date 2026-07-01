@@ -193,6 +193,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     const isCardsLocked = playerLevel < 30;
     const isHighRollerLocked = playerLevel < 35;
     const isRankingLocked = playerLevel < 18;
+    const isVipLocked = playerLevel < 44;
 
     // Quest credit states
     const QUEST_MAX = 60;
@@ -472,8 +473,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                 );
 
                 return (
-                    <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center select-none font-nunito">
-                        <div className="relative flex flex-col items-stretch overflow-visible">
+                    <div className="fixed bottom-0 left-0 right-0 z-[50] flex items-end justify-center select-none font-nunito" style={{ pointerEvents: 'none' }}>
+                        <div className="relative flex flex-col items-stretch overflow-visible" style={{ pointerEvents: 'auto' }}>
 
                             {/* Single continuous background — anchored to the bottom, shorter than the
                                 icon buttons so their artwork protrudes above the platform's top edge
@@ -575,8 +576,8 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {sep}
 
                             {/* VIP */}
-                            <button onClick={() => { onOpenVipLounge(); }} className={iconBtn(false)}>
-                                <img src="/ui/VIP.png" alt="" style={iconStyle(false)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                            <button onClick={!isVipLocked ? () => { onOpenVipLounge(); } : undefined} className={iconBtn(isVipLocked)}>
+                                <img src="/ui/VIP.png" alt="" style={iconStyle(isVipLocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
                                 <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">VIP</span>
                             </button>
 

@@ -585,6 +585,15 @@ const App: React.FC = () => {
     else if (currentView === 'GAME') audioService.playSlotMusic(selectedGame.theme);
     else audioService.stopMusic();
   }, [currentView, selectedGame.theme]);
+
+  // VIP unlocks at level 44 — the first time the player reaches the lobby
+  // after unlocking it, gift a free 7-day VIP.
+  useEffect(() => {
+    if (currentView === 'LOBBY' && player.level >= 44 && !player.freeVipClaimed) {
+        setTimeout(() => setShowFreeVipPopup(true), 500);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView, player.level, player.freeVipClaimed]);
   useEffect(() => { autoSpinRemainingRef.current = autoSpinRemaining; }, [autoSpinRemaining]);
   useEffect(() => { targetGridRef.current = targetGrid; }, [targetGrid]);
   const [showWinPopup, setShowWinPopup] = useState(false);
@@ -1456,10 +1465,6 @@ const App: React.FC = () => {
           if (reward.gems > 0) msg += ` & ${reward.gems} Gems`;
           setCelebrationMsg(msg);
           audioService.playWinBig();
-          // First-ever daily claim → gift 7 days of free VIP.
-          if (!player.freeVipClaimed) {
-              setTimeout(() => setShowFreeVipPopup(true), 700);
-          }
       }
   };
 

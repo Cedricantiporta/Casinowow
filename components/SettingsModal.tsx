@@ -252,16 +252,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </div>
 
                     <div>
-                        <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Account</div>
-                        <div className="p-3 flex flex-col gap-2 rounded-2xl" style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
-                            <p className="text-white/70 text-[9px] leading-snug">Reset all progress including coins, gems, level, and history. This cannot be undone.</p>
-                            <button onClick={() => setShowResetConfirm(true)} className="pill-red w-full">
-                                <div className="pill-face" style={{ padding: '7px 14px', fontSize: '10px' }}>Reset Account</div>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
                         <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Transfer Progress</div>
                         <div className="p-3 flex flex-col gap-2.5 rounded-2xl" style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
                             <p className="text-white/70 text-[9px] leading-snug">Reinstalling wipes your progress. Generate a code here, then enter it on the new install to bring everything back.</p>
@@ -303,6 +293,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                     {transferMsg.text}
                                 </div>
                             )}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Account</div>
+                        <div className="p-3 flex flex-col gap-2 rounded-2xl" style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
+                            <p className="text-white/70 text-[9px] leading-snug">Reset all progress including coins, gems, level, and history. This cannot be undone.</p>
+                            <button onClick={() => setShowResetConfirm(true)} className="pill-red w-full">
+                                <div className="pill-face" style={{ padding: '7px 14px', fontSize: '10px' }}>Reset Account</div>
+                            </button>
                         </div>
                     </div>
 
