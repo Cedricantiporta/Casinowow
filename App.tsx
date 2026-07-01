@@ -40,7 +40,7 @@ import { LeaderboardModal } from './components/LeaderboardModal';
 import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { FriendsModal } from './components/FriendsModal';
-import { canSend as friendCanSend, canCollect as friendCanCollect, sendGiftAmount, collectGiftAmount } from './services/friendsService';
+import { canSend as friendCanSend, canCollect as friendCanCollect, sendGiftAmount, collectGiftAmount, toFriend } from './services/friendsService';
 import { ArenaResultsModal } from './components/ArenaResultsModal';
 import {
     initialArenaState, pointsForEvent, betTierMultiplier, getFinalBoard, positionOf,
@@ -3518,7 +3518,7 @@ const App: React.FC = () => {
     if (ft === 'ARCTIC') {
         setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: false, scattersFound: scatterCount, winType: undefined });
         // Award XP for arctic spins
-        const arcticVipMult = player.isVip ? 1.2 : 1.0;
+        const arcticVipMult = player.isVip ? 3.0 : 1.0;
         const arcticSpinsAtMax = Math.max(1, player.level * 1.1);
         const arcticBetFraction = currentBet / MAX_BET_BY_LEVEL(player.level);
         const arcticXp = Math.floor((player.xpToNextLevel / arcticSpinsAtMax) * arcticBetFraction * player.xpMultiplier * arcticVipMult);
@@ -3663,7 +3663,7 @@ const App: React.FC = () => {
     if (totalPayout > 0) {
        setPlayer(p => ({ ...p, balance: p.balance + totalPayout }));
 
-       const vipXpMult = player.isVip ? 1.2 : 1.0;
+       const vipXpMult = player.isVip ? 3.0 : 1.0;
        const level15Mult = player.level > 15 ? 1.6 : 1.0;
        const spinsAtMaxBet = Math.max(1, player.level * 1.1);
        // XP is capped at the NORMAL lobby max bet — high-limit (bigger) bets grant no extra XP.
@@ -3714,7 +3714,7 @@ const App: React.FC = () => {
            setLastWinAmount(0);
        }
        if (!creditOnly) {
-       const vipXpMultLoss = player.isVip ? 1.2 : 1.0;
+       const vipXpMultLoss = player.isVip ? 3.0 : 1.0;
        const level15MultLoss = player.level > 15 ? 1.6 : 1.0;
        const spinsAtMaxBetLoss = Math.max(1, player.level * 1.1);
        // XP capped at the NORMAL lobby max bet — high-limit bets grant no extra XP.
@@ -6583,6 +6583,8 @@ const App: React.FC = () => {
               maxJackpot: player.stats?.maxJackpotWin || 0,
               maxWin: player.stats?.maxSingleWin || 0,
           }}
+          friendIds={friendsState.friends.map(f => f.id)}
+          onAddFriend={(entry) => handleAddFriend(toFriend(entry, Date.now()))}
       />
 
       {/* Arena ranking */}

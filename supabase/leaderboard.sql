@@ -40,3 +40,8 @@ drop policy if exists "leaderboard update" on public.leaderboard;
 create policy "leaderboard read"   on public.leaderboard for select using (true);
 create policy "leaderboard insert" on public.leaderboard for insert with check (true);
 create policy "leaderboard update" on public.leaderboard for update using (true) with check (true);
+
+-- PostgREST caches the table schema and won't see new columns (e.g. vip_level)
+-- until it reloads. Force an immediate reload so the app doesn't 400 on writes
+-- right after running this migration.
+notify pgrst, 'reload schema';

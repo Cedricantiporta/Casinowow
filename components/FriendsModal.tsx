@@ -50,17 +50,17 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, tab, friends.length]);
 
-    if (!isOpen) return null;
-
-    const collectibleCount = friends.filter(f => canCollect(f, now)).length;
-    const sendAmt = sendGiftAmount(maxBet);
-    const collectAmt = collectGiftAmount(maxBet);
-
     const filteredAddable = useMemo(() => {
         const q = search.trim().toLowerCase();
         if (!q) return addable;
         return addable.filter(e => e.name.toLowerCase().includes(q));
     }, [addable, search]);
+
+    if (!isOpen) return null;
+
+    const collectibleCount = friends.filter(f => canCollect(f, now)).length;
+    const sendAmt = sendGiftAmount(maxBet);
+    const collectAmt = collectGiftAmount(maxBet);
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none"
