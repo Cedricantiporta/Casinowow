@@ -57,6 +57,7 @@ import { CandyRouletteModal, CandyWildConfig } from './components/CandyRouletteM
 import { SpinCountRouletteModal } from './components/SpinCountRouletteModal';
 import { AngryFlockSpinCountModal } from './components/AngryFlockSpinCountModal';
 import { AngryFlockRouletteModal, AngryFlockWildColor } from './components/AngryFlockRouletteModal';
+import { BeastRouletteModal } from './components/BeastRouletteModal';
 import { ArcticPickGrid } from './components/ArcticPickGrid';
 
 // Interface for persisted game state
@@ -100,12 +101,11 @@ const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
 // Mystery Symbol free-spins feature — shared by the "creature" slots. During free
 // spins, mystery tiles drop onto the reels and, once they stop, all reveal the SAME
-// randomly-chosen symbol at once for big matching combos. Angry Flock has its own
-// dedicated bird-roulette wild bonus instead (see ANGRYFLOCK feature blocks below).
-const MYSTERY_FEATURE_THEMES = new Set<GameTheme>(['FARM', 'BEAST', 'PRINCESS']);
+// randomly-chosen symbol at once for big matching combos. Angry Flock and Beast Rage
+// have their own dedicated roulette bonuses instead (see their feature blocks below).
+const MYSTERY_FEATURE_THEMES = new Set<GameTheme>(['FARM', 'PRINCESS']);
 const MYSTERY_IMG: Partial<Record<GameTheme, string>> = {
     FARM:       '/farm_mystery.png',
-    BEAST:      '/beast_mystery.png',
     PRINCESS:   '/princess_mystery.png',
 };
 
@@ -1001,6 +1001,12 @@ const App: React.FC = () => {
   // low-to-high) — SCATTER never appears here, so free spins can't retrigger more.
   const [jungleBigIcon, setJungleBigIcon] = useState<SymbolType | null>(null);
 
+  // Beast Rage — standard 3-scatter trigger for 10 free spins, then a roulette picks
+  // one wild multiplier (2x-5x, higher rarer) that applies for the whole session.
+  const [showBeastRoulette, setShowBeastRoulette] = useState(false);
+  const beastMultiplierRef = useRef<number | null>(null);
+  const [beastMultiplier, setBeastMultiplier] = useState<number | null>(null);
+
   const [freeSpinsRemaining, setFreeSpinsRemaining] = useState(0);
   const [totalFreeSpins, setTotalFreeSpins] = useState(0);
   const [freeSpinTotalWin, setFreeSpinTotalWin] = useState(0);
@@ -1008,6 +1014,17 @@ const App: React.FC = () => {
   useEffect(() => { freeSpinTotalWinRef.current = freeSpinTotalWin; }, [freeSpinTotalWin]);
   const [showFreeSpinSummary, setShowFreeSpinSummary] = useState(false);
   const [spinsWithoutBonus, setSpinsWithoutBonus] = useState(0);
+
+  // Golden Lucky Pot — every 10th spin at the current bet spawns a pot worth a
+  // random 1x-10x of that bet. Changing the bet amount starts a fresh count of 10.
+  const [goldenPotSpinCount, setGoldenPotSpinCount] = useState(0);
+  const goldenPotLastBetRef = useRef<number | null>(null);
+  const [goldenPotWin, setGoldenPotWin] = useState<number | null>(null);
+  useEffect(() => {
+      if (goldenPotWin === null) return;
+      const t = setTimeout(() => setGoldenPotWin(null), 3000);
+      return () => clearTimeout(t);
+  }, [goldenPotWin]);
 
   // Golden Treasury collect multiplier — builds with qualifying spins.
   // 50 qualifying spins per tier: 1x → 2x(50) → 3x(100) → 4x(150) → 5x(200) → 10x(250).
@@ -2630,7 +2647,7 @@ const App: React.FC = () => {
       }
       // These themes never use full-column same-symbol matches (3-column "mega match").
       // Only GOLDEN_POT (untouched generic slot) keeps it among the lower-tier games.
-      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG','ANGRYFLOCK'].includes(selectedGame.theme)) megaMatchActive = false;
+      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG','ANGRYFLOCK','BEAST'].includes(selectedGame.theme)) megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -3241,6 +3258,7 @@ const App: React.FC = () => {
     if (showFreeSpinSummary) return;
     if (showCandyRoulette || showSpinCountRoulette) return;
     if (showAngryFlockSpinCount || showAngryFlockRoulette) return;
+    if (showBeastRoulette) return;
     if (dragonPotShaking || showDragonTriggerPopup) return;
     if (showEgyptHoldWinPopup) return;
 
@@ -3286,6 +3304,22 @@ const App: React.FC = () => {
       }
       
       setSpinsWithoutBonus(prev => prev + 1);
+      // Golden Lucky Pot: every 10th spin at the current bet spawns a pot worth a
+      // random 1x-10x of that bet. Changing the bet amount restarts the count of 10.
+      if (selectedGame.theme === 'GOLDEN_POT' && !isFreeSpin) {
+          const betChanged = goldenPotLastBetRef.current !== null && goldenPotLastBetRef.current !== currentBet;
+          goldenPotLastBetRef.current = currentBet;
+          const nextCount = betChanged ? 1 : goldenPotSpinCount + 1;
+          setGoldenPotSpinCount(nextCount % 10);
+          if (nextCount % 10 === 0) {
+              const potMult = 1 + Math.floor(Math.random() * 10); // 1-10
+              const potWin = potMult * currentBet;
+              setPlayer(p => ({ ...p, balance: p.balance + potWin }));
+              triggerCoinAnim(potWin);
+              setGoldenPotWin(potWin);
+              audioService.playWinBig();
+          }
+      }
       // Golden Treasury multiplier progress: full credit when bet ≥ 50% of max bet, else half.
       {
           const maxBetNow = MAX_BET_BY_LEVEL(player.level) * (isHighLimit ? 10 : 1);
@@ -3345,7 +3379,7 @@ const App: React.FC = () => {
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
-  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, player.level, selectedGame.theme]);
+  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, player.level, selectedGame.theme]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -3618,6 +3652,25 @@ const App: React.FC = () => {
                  return next;
              }
 
+             // BEAST: standard scatter trigger, straight to a single wild-multiplier roulette.
+             if (selectedGame.theme === 'BEAST') {
+                 if (freeSpinsRemaining > 0) {
+                     // Retrigger mid-feature: add 10 more spins, keep the same wild multiplier.
+                     const retrigerSpins = 10;
+                     setFreeSpinsWon(retrigerSpins);
+                     setTotalFreeSpins(prev => prev + retrigerSpins);
+                     setShowFreeSpinsPopup(true);
+                     audioService.playFreeSpinTrigger();
+                 } else {
+                     setFreeSpinsWon(10);
+                     setStatus(GameStatus.SCATTER_SHOWCASE);
+                     audioService.playScatterTrigger();
+                     setSpinsWithoutBonus(0);
+                     setTimeout(() => { audioService.playBonusTrigger(); setShowBeastRoulette(true); }, 1500);
+                 }
+                 return next;
+             }
+
              const baseSpins = ft === 'ARCTIC'
                  ? 15
                  : selectedGame.theme === 'PIRATE'
@@ -3814,7 +3867,10 @@ const App: React.FC = () => {
             const neonMult = selectedGame.theme === 'NEON' ? 1.588 : 1.0;
             // PIGGY free spins: COIN as 2× wild — any COIN in the winning sequence doubles the line win
             const coinMult = (isPiggy && totalFreeSpins > 0 && symbols.slice(0, matchLen).some(s => s === SymbolType.COIN)) ? 2 : 1;
-            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * coinMult);
+            // BEAST free spins: any WILD in the winning sequence applies the roulette-picked multiplier
+            const beastMult = (selectedGame.theme === 'BEAST' && totalFreeSpins > 0 && beastMultiplierRef.current && symbols.slice(0, matchLen).some(s => s === SymbolType.WILD))
+                ? beastMultiplierRef.current : 1;
+            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * coinMult * beastMult);
             if (lineWin > 0) {
                 totalPayout += lineWin;
                 winningLines.push(line.id);
@@ -4726,6 +4782,10 @@ const App: React.FC = () => {
           angryFlockStickyWildsRef.current = [];
           // Reset Jungle Rumble colossal-symbol overlay on game change
           setJungleBigIcon(null);
+          // Reset Beast Rage wild-multiplier bonus state on game change
+          setShowBeastRoulette(false);
+          beastMultiplierRef.current = null;
+          setBeastMultiplier(null);
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -4852,6 +4912,23 @@ const App: React.FC = () => {
       }, 900);
   };
 
+  const handleBeastRouletteComplete = (mult: number) => {
+      beastMultiplierRef.current = mult;
+      setBeastMultiplier(mult);
+      setShowBeastRoulette(false);
+      savedAutoSpinRef.current = { active: player.autoSpin, remaining: autoSpinRemainingRef.current };
+      setReelTransitioning('out');
+      setTimeout(() => {
+          setFreeSpinsRemaining(prev => prev + freeSpinsWon);
+          savedFastSpinRef.current = fastSpin;
+          setStatus(GameStatus.IDLE);
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+              setReelTransitioning('in');
+              setTimeout(() => setReelTransitioning(false), 1100);
+          }));
+      }, 900);
+  };
+
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
       trackSlotQuest('BONUS_TRIGGER', 1);
@@ -4896,6 +4973,9 @@ const App: React.FC = () => {
       angryFlockStickyWildsRef.current = [];
       // Jungle's colossal symbol overlay only applies to the spin that just resolved.
       setJungleBigIcon(null);
+      // The wild multiplier only lasts for this one Beast Rage free-spin session.
+      beastMultiplierRef.current = null;
+      setBeastMultiplier(null);
       // Hard-reset pirate walk so Ghost Ship state never bleeds into normal spins
       pirateWalkRef.current = { active: false, shipCol: -1, ship2Col: -1 };
       pirateTriggerArmedRef.current = false;
@@ -5005,7 +5085,7 @@ const App: React.FC = () => {
   }, [status, reelTransitioning, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary, jackpotWinTier, pendingArcticFreePick, showArcticPickModal]);
 
   const handleHeaderBack = () => {
-    if (showCandyRoulette || showSpinCountRoulette || showAngryFlockSpinCount || showAngryFlockRoulette) {
+    if (showCandyRoulette || showSpinCountRoulette || showAngryFlockSpinCount || showAngryFlockRoulette || showBeastRoulette) {
         // Bonus roulettes must resolve — ignore back to avoid losing the awarded free spins.
         return;
     }
@@ -5765,6 +5845,7 @@ const App: React.FC = () => {
                                 anticipation={isAnticipating && i === stoppedReels}
                                 inFreeSpins={freeSpinsRemaining > 0}
                                 instantStop={instantStop}
+                                beastMultiplier={beastMultiplier}
                             />
                             ));
                         })()}
@@ -6258,7 +6339,7 @@ const App: React.FC = () => {
                       onPointerDown={handleSpinPointerDown}
                       onPointerUp={handleSpinPointerUp}
                       onPointerLeave={() => { if (spinButtonTimeoutRef.current) { clearTimeout(spinButtonTimeoutRef.current); spinButtonTimeoutRef.current = null; isLongPressRef.current = false; } }}
-                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showSpinCountRoulette || showAngryFlockSpinCount || showAngryFlockRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup || showEgyptHoldWinPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
+                      className={`flat ${isStop ? 'red' : 'green'} spinA shrink-0 ${activeModal !== 'NONE' || !!reelTransitioning || showFreeSpinsPopup || showFreeSpinSummary || showCandyRoulette || showSpinCountRoulette || showAngryFlockSpinCount || showAngryFlockRoulette || showBeastRoulette || showWinPopup || !!jackpotWinTier || holdWinActive || status === GameStatus.CASCADE || showDragonPickModal || dragonPotShaking || showDragonTriggerPopup || showArcticPickModal || showArcticTriggerPopup || showEgyptHoldWinPopup ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}`}
                       style={{ touchAction: 'none' }}
                   >
                       <div className="flat-face" style={{ overflow: 'hidden' }}>
@@ -6456,6 +6537,20 @@ const App: React.FC = () => {
           onClaim={handleSlotQuestClaim}
       />
 
+      {/* Golden Lucky Pot bonus — every 10th spin at the current bet, auto-dismisses */}
+      {goldenPotWin !== null && currentView === 'GAME' && (
+          <div className="absolute inset-0 z-[210] flex items-center justify-center pointer-events-none animate-pop-in">
+              <div className="rounded-3xl overflow-hidden flex flex-col items-center px-8 py-6"
+                  style={{ background: 'linear-gradient(180deg,#ffe85c 0%,#ffc224 30%,#ff9e10 65%,#f57c00 100%)', boxShadow: 'inset 0 2px 0 rgba(255,240,180,0.9), 0 8px 40px rgba(0,0,0,0.8)' }}>
+                  <span className="font-tanker text-[#5a2d00] uppercase" style={{ fontSize: 20, lineHeight: 1, textShadow: '0 1px 0 rgba(255,255,255,0.4)' }}>Golden Pot!</span>
+                  <div className="flex items-center gap-2 mt-2">
+                      <img src="/new_coinicon.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
+                      <span className="font-tanker text-[#5a2d00]" style={{ fontSize: 28, lineHeight: 1 }}>+{formatK(goldenPotWin)}</span>
+                  </div>
+              </div>
+          </div>
+      )}
+
       {/* Grand Prize claim popup — shown after completing all quest stages */}
       {grandPrizePopup !== null && (
           <div className="absolute inset-0 z-[210] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 animate-pop-in select-none">
@@ -6562,6 +6657,12 @@ const App: React.FC = () => {
           isOpen={showAngryFlockRoulette}
           freeSpins={freeSpinsWon}
           onComplete={handleAngryFlockRouletteComplete}
+      />
+
+      <BeastRouletteModal
+          isOpen={showBeastRoulette}
+          freeSpins={freeSpinsWon}
+          onComplete={handleBeastRouletteComplete}
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />

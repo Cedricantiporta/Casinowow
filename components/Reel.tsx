@@ -26,6 +26,7 @@ interface ReelProps {
   anticipation?: boolean;
   inFreeSpins?: boolean;
   instantStop?: boolean;
+  beastMultiplier?: number | null;
 }
 
 // JUNGLE's scatter trigger is entirely controlled by App.tsx's grid logic (fixed,
@@ -47,7 +48,7 @@ const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean, excludeSeven?
   return neon ? SymbolType.TEN : SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins, instantStop }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins, instantStop, beastMultiplier }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
   const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
@@ -146,6 +147,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                               gameRows={gameConfig.rows}
                               gameReels={gameConfig.reels}
                               inFreeSpins={inFreeSpins}
+                              beastMultiplier={beastMultiplier}
                           />
                       );
                   })}
@@ -200,6 +202,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                             gameRows={gameConfig.rows}
                             gameReels={gameConfig.reels}
                             inFreeSpins={inFreeSpins}
+                            beastMultiplier={beastMultiplier}
                         />
                     );
                 })}
@@ -248,7 +251,8 @@ const ReelCell: React.FC<{
     gameRows?: number,
     gameReels?: number,
     inFreeSpins?: boolean,
-}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6, inFreeSpins }) => {
+    beastMultiplier?: number | null,
+}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6, inFreeSpins, beastMultiplier }) => {
 
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
@@ -369,6 +373,14 @@ const ReelCell: React.FC<{
                             >
                                 WILD
                             </span>
+                        </div>
+                    )}
+                    {theme === 'BEAST' && isWild && !blur && inFreeSpins && !!beastMultiplier && (
+                        <div className="absolute top-0 w-full flex justify-center items-start pt-1 z-30 pointer-events-none">
+                            <span
+                                className="block leading-none"
+                                style={{ fontSize: `${1.7 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 6px #000, 0 0 12px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                            >{beastMultiplier}X</span>
                         </div>
                     )}
                     {theme === 'PIGGY' && symbol === SymbolType.COIN && !blur && inFreeSpins && (

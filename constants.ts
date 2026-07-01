@@ -285,7 +285,7 @@ const BEAST_SLOT: GameConfig = {
     rows: 3,
     reels: 5,
     scattersToTrigger: 3,
-    description: 'Mystery Symbols! 3 scatters for free spins where mystery tiles all reveal the same symbol.',
+    description: 'Rage Wilds! 3 scatters for 10 free spins with a roulette-picked wild multiplier.',
     color: 'from-amber-600 via-orange-800 to-stone-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #1c1917 100%)',
     reelBg: REEL_BGS.BEAST,
