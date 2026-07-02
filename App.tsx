@@ -3428,7 +3428,7 @@ const App: React.FC = () => {
               }
               buffaloCollectStackRef.current = 0;
               setBuffaloCollectStack(0);
-          } else if (isFreeSpin && buffaloCollectStackRef.current < 15 && Math.random() < 0.30) {
+          } else if (isFreeSpin && buffaloCollectStackRef.current < 15 && Math.random() < 0.45) {
               const eligible: { c: number; r: number }[] = [];
               for (let c = 0; c < cols; c++) {
                   for (let r = 0; r < rows; r++) {
@@ -3956,7 +3956,7 @@ const App: React.FC = () => {
                  : selectedGame.theme === 'JUNGLE'
                  ? 5
                  : selectedGame.theme === 'BUFFALO'
-                 ? 6
+                 ? 8
                  : 10;
              // JUNGLE's scatter count during a retrigger is always the whole 3x3 block (9
              // cells at once), not a linear "more scatters = more spins" signal like other
@@ -6113,11 +6113,11 @@ const App: React.FC = () => {
                             {selectedGame.theme === 'BUFFALO' ? (
                                 // Buffalo Thunder never has jackpot cells — show its Collect
                                 // progress here instead of an irrelevant jackpot ticker.
-                                <div className="flex items-center justify-center gap-1.5 rounded-full mx-auto px-3 py-1"
-                                    style={{ width: 'fit-content', background: 'rgba(0,0,0,0.4)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)' }}>
-                                    <img src="/buffalo_collect.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
-                                    <span className="font-black text-amber-300" style={{ fontSize: 12 }}>{buffaloCollectStack}/15</span>
-                                    <img src="/buffalo_wild.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+                                <div className="flex items-center justify-center gap-2 mx-auto px-4"
+                                    style={{ width: 'fit-content', height: 40, borderRadius: 8, background: 'rgba(0,0,0,0.45)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)' }}>
+                                    <span className="font-black text-white" style={{ fontSize: 16 }}>Collected</span>
+                                    <img src="/buffalo_collect.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                                    <span className="font-black text-amber-300" style={{ fontSize: 18 }}>{buffaloCollectStack}</span>
                                 </div>
                             ) : isCascadeTheme(featureThemeOf(selectedGame.theme)) ? (
                                 freeSpinsRemaining > 0
