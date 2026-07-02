@@ -334,8 +334,18 @@ export interface Deck {
     rewardClaimed: boolean;
 }
 
+// The classic 7-day cycle — claim-driven, loops forever (not a streak).
 export interface DailyLoginState {
-    currentDay: number; // 1-30, advances once per calendar day
-    claimedToday: boolean; // whether today's milestone (if any) has been claimed
+    currentDay: number; // 1-7
+    claimedToday: boolean;
     lastClaimTime: number;
+}
+
+// Separate consecutive-day login streak (5/10/15/20/25/30 milestones). Missing a
+// calendar day resets currentStreak to 0 and clears any unclaimed-this-run
+// progress toward the next milestone.
+export interface LoginStreakState {
+    currentStreak: number;
+    lastLoginDate: string; // Date.toDateString()
+    claimedMilestones: number[]; // milestone day-thresholds already claimed this run
 }

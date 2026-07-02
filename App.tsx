@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState, GuildDonationState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK } from './constants';
+import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, LoginStreakState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState, GuildDonationState } from './types';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -1361,30 +1361,62 @@ const App: React.FC = () => {
   // The streak advances one day per calendar day regardless of whether a
   // milestone reward was claimed — only days 5/10/15/20/25/30 actually have a
   // reward to claim; the days between just count toward the next milestone.
+  const todayDateStr = () => new Date().toDateString();
+  // Classic 7-day cycle — claim-driven, not a streak. currentDay only advances
+  // when the player actually claims; a missed day just resets claimedToday so
+  // that day's reward is claimable again (no penalty, no auto-advance).
   const [loginState, setLoginState] = useState<DailyLoginState>(() => {
       try {
           const saved = localStorage.getItem('cw_login');
           if (saved) {
               const parsed = JSON.parse(saved);
               const lastDate = new Date(parsed.lastClaimTime).toDateString();
-              const today = new Date().toDateString();
-              if (lastDate !== today) {
-                  let nextDay = parsed.currentDay + 1;
-                  if (nextDay > DAILY_LOGIN_TOTAL_DAYS) nextDay = 1;
-                  return { currentDay: nextDay, claimedToday: false, lastClaimTime: Date.now() };
-              }
+              if (lastDate !== todayDateStr()) return { ...parsed, claimedToday: false };
               return parsed;
           }
       } catch {}
-      return { currentDay: 1, claimedToday: false, lastClaimTime: Date.now() };
+      return { currentDay: 1, claimedToday: false, lastClaimTime: 0 };
   });
+
+  // Separate 30-day CONSECUTIVE login streak, shown above the 7-day rewards.
+  // Auto-advances once per calendar day (not claim-driven); missing a day
+  // resets the streak — and any milestones claimed toward it — back to 0.
+  const [loginStreakState, setLoginStreakState] = useState<LoginStreakState>(() => {
+      const today = todayDateStr();
+      try {
+          const saved = localStorage.getItem('cw_login_streak');
+          if (saved) {
+              const parsed = JSON.parse(saved);
+              if (parsed.lastLoginDate === today) return parsed;
+              const yesterday = new Date(Date.now() - 86400000).toDateString();
+              if (parsed.lastLoginDate === yesterday) {
+                  return { currentStreak: parsed.currentStreak + 1, lastLoginDate: today, claimedMilestones: parsed.claimedMilestones || [] };
+              }
+              return { currentStreak: 1, lastLoginDate: today, claimedMilestones: [] };
+          }
+      } catch {}
+      return { currentStreak: 1, lastLoginDate: today, claimedMilestones: [] };
+  });
+  useEffect(() => { try { localStorage.setItem('cw_login_streak', JSON.stringify(loginStreakState)); } catch {} }, [loginStreakState]);
+  const handleClaimStreakMilestone = (days: number) => {
+      const milestone = LOGIN_STREAK_MILESTONES.find(m => m.days === days);
+      if (!milestone || loginStreakState.currentStreak < days || loginStreakState.claimedMilestones.includes(days)) return;
+      const scaledCoins = milestone.multiplier * MAX_BET_BY_LEVEL(player.level);
+      setPlayer(p => ({ ...p, balance: p.balance + scaledCoins, diamonds: p.diamonds + milestone.gems }));
+      if (scaledCoins > 0) triggerCoinAnim(scaledCoins);
+      setLoginStreakState(prev => ({ ...prev, claimedMilestones: [...prev.claimedMilestones, days] }));
+      const parts: string[] = [];
+      if (scaledCoins > 0) parts.push(`+${formatCommaNumber(scaledCoins)} Coins`);
+      if (milestone.gems > 0) parts.push(`${milestone.gems} Gems`);
+      setCelebrationMsg(`${days}-Day Streak: ${parts.join(' & ')}`);
+      audioService.playWinBig();
+  };
 
   // Golden Treasury's Mega jackpot tile now needs 3 opens in a day before a
   // cooldown-ready spin actually plays for real — the first 2 ready-taps each
   // day just consume the tile (restarting its cooldown) and fill a dot; the
   // 3rd opens the real roulette.
   const MEGA_JACKPOT_OPENS_REQUIRED = 3;
-  const todayDateStr = () => new Date().toDateString();
   const [megaJackpotOpens, setMegaJackpotOpens] = useState<{ date: string; opens: number }>(() => {
       try {
           const saved = JSON.parse(localStorage.getItem('cw_mega_jackpot_opens') || 'null');
@@ -1894,9 +1926,13 @@ const App: React.FC = () => {
               diamonds: p.diamonds + reward.gems
           }));
           if (scaledCoins > 0) triggerCoinAnim(scaledCoins);
-          // Only the milestone is marked claimed — currentDay itself only advances
-          // on the next real calendar day (see loginState's init effect above).
-          setLoginState(prev => ({ ...prev, claimedToday: true }));
+          let nextDay = loginState.currentDay + 1;
+          if (nextDay > DAILY_LOGIN_TOTAL_DAYS) nextDay = 1;
+          setLoginState({
+              currentDay: nextDay,
+              claimedToday: true,
+              lastClaimTime: Date.now()
+          });
           const parts: string[] = [];
           if (scaledCoins > 0) parts.push(`+${formatCommaNumber(scaledCoins)} Coins`);
           if (reward.gems > 0) parts.push(`${reward.gems} Gems`);
@@ -6380,7 +6416,7 @@ const App: React.FC = () => {
                 friends={friendsState.friends}
                 friendRequestCount={incomingFriendRequests.length}
                 onOpenLoginRewards={() => openModal('LOGIN_BONUS')}
-                loginRewardReady={DAILY_LOGIN_REWARDS.some(r => r.day === loginState.currentDay) && !loginState.claimedToday}
+                loginRewardReady={!loginState.claimedToday || LOGIN_STREAK_MILESTONES.some(m => loginStreakState.currentStreak >= m.days && !loginStreakState.claimedMilestones.includes(m.days))}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
@@ -7312,7 +7348,8 @@ const App: React.FC = () => {
               awardArenaWin(amount);
           }} />
       
-      <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} claimedToday={loginState.claimedToday} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} onClose={() => setActiveModal('NONE')} />
+      <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} claimedToday={loginState.claimedToday} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} onClose={() => setActiveModal('NONE')}
+          currentStreak={loginStreakState.currentStreak} claimedMilestones={loginStreakState.claimedMilestones} onClaimMilestone={handleClaimStreakMilestone} />
       
     <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} onOpenGemShop={() => openShop('DIAMONDS')} eventPiggyBoost={EVENT_PIGGY_BOOST} />
 

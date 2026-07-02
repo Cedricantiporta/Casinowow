@@ -1354,18 +1354,30 @@ export const GENERATE_DECKS = (): Deck[] => {
     });
 };
 
-// 30-day streak with a reward only at each 5-day milestone (5/10/15/20/25/30) —
-// the days between milestones just count toward the streak, no popup/claim.
-// Milestones alternate coins/gems (+50% each successive coin or gem stop); the
-// final milestone (day 30) pays both.
-export const DAILY_LOGIN_DAYS_PER_STOP = 5;
-export const DAILY_LOGIN_STOPS = 6;
-export const DAILY_LOGIN_TOTAL_DAYS = DAILY_LOGIN_DAYS_PER_STOP * DAILY_LOGIN_STOPS;
+// Two INDEPENDENT systems on the same screen:
+//
+// 1) The classic 7-day Daily Login cycle. One reward claimed per day; after Day 7
+//    is claimed it loops back to Day 1. Not a streak — claiming any day (even with
+//    gaps) just advances to the next day in the cycle.
+export const DAILY_LOGIN_TOTAL_DAYS = 7;
 export const DAILY_LOGIN_REWARDS = [
-    { day: 5,  stop: 0, multiplier: 25,     gems: 0   },
-    { day: 10, stop: 1, multiplier: 0,      gems: 100 },
-    { day: 15, stop: 2, multiplier: 37.5,   gems: 0   },
-    { day: 20, stop: 3, multiplier: 0,      gems: 150 },
-    { day: 25, stop: 4, multiplier: 56.25,  gems: 0   },
-    { day: 30, stop: 5, multiplier: 84.375, gems: 200 },
+    { day: 1, multiplier: 25,  gems: 0   },
+    { day: 2, multiplier: 35,  gems: 0   },
+    { day: 3, multiplier: 45,  gems: 0   },
+    { day: 4, multiplier: 60,  gems: 0   },
+    { day: 5, multiplier: 75,  gems: 0   },
+    { day: 6, multiplier: 95,  gems: 0   },
+    { day: 7, multiplier: 150, gems: 200 },
+].map(r => ({ ...r, coins: r.multiplier }));
+
+// 2) A separate 30-day CONSECUTIVE login streak, shown above the 7-day rewards.
+// Milestones at days 3/8/15/22/30; missing a single calendar day resets the
+// streak to 0. Independent reward table, alternating coins/gems, final
+// milestone pays both.
+export const LOGIN_STREAK_MILESTONES = [
+    { days: 3,  multiplier: 25,     gems: 0   },
+    { days: 8,  multiplier: 0,      gems: 100 },
+    { days: 15, multiplier: 37.5,   gems: 0   },
+    { days: 22, multiplier: 0,      gems: 150 },
+    { days: 30, multiplier: 84.375, gems: 200 },
 ].map(r => ({ ...r, coins: r.multiplier }));
