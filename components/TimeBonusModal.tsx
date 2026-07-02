@@ -10,15 +10,11 @@ interface TimeBonusModalProps {
     onClaim: (id: number, reward: number) => void;
     collectMultiplier?: number;
     multProgress?: number;
-    jackpotLastTime?: number;
     jackpotBaseAmount?: number;
     onJackpotClaim?: (amount: number) => void;
     megaOpensToday?: number;
     megaOpensRequired?: number;
-    onMegaPracticeOpen?: () => void;
 }
-
-const JACKPOT_COOLDOWN = 3 * 60 * 60 * 1000; // 3 hours
 
 // Multiplier tiers — 50 qualifying spins per step
 const MULT_TIERS = [
@@ -33,8 +29,8 @@ const MULT_TIERS = [
 export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
     isOpen, onClose, timers, onClaim,
     collectMultiplier = 1, multProgress = 0,
-    jackpotLastTime = 0, jackpotBaseAmount = 0, onJackpotClaim,
-    megaOpensToday = 0, megaOpensRequired = 3, onMegaPracticeOpen,
+    jackpotBaseAmount = 0, onJackpotClaim,
+    megaOpensToday = 0, megaOpensRequired = 3,
 }) => {
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [showRoulette, setShowRoulette] = useState(false);
@@ -53,8 +49,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
 
     if (!isOpen) return null;
 
-    const jackpotRemaining = Math.max(0, JACKPOT_COOLDOWN - (currentTime - jackpotLastTime));
-    const jackpotReady = jackpotRemaining === 0;
+    const megaJackpotReady = megaOpensToday >= megaOpensRequired;
 
     const curIdx = MULT_TIERS.reduce((acc, t, i) => (multProgress >= t.at ? i : acc), 0);
     const nextTier = MULT_TIERS[curIdx + 1];
@@ -106,10 +101,24 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                 {timers.map((timer) => {
                     const timeLeft = Math.max(0, timer.endTime - currentTime);
                     const isReady = timeLeft === 0;
+                    const isMega = timer.id === 2;
 
                     return (
-                        <div key={timer.id} className="tcard flex flex-col items-center flex-1 gap-2 p-3">
-                            <div className={`transition-all duration-300 ${isReady ? 'scale-105' : 'brightness-50 grayscale'}`}>
+                        <div key={timer.id} className="tcard flex flex-col items-center flex-1 gap-2 p-3 relative">
+                            {/* Mega tile — 3 dots track how many times it's been collected
+                                today; collecting it 3 times unlocks the Jackpot tile. */}
+                            {isMega && (
+                                <div className="flex items-center gap-1 absolute" style={{ top: 6 }}>
+                                    {Array.from({ length: megaOpensRequired }, (_, i) => (
+                                        <div key={i} className="rounded-full" style={{
+                                            width: 6, height: 6,
+                                            background: i < megaOpensToday ? '#fde047' : 'rgba(255,255,255,0.25)',
+                                            boxShadow: i < megaOpensToday ? '0 0 4px rgba(253,224,71,0.9)' : 'none',
+                                        }} />
+                                    ))}
+                                </div>
+                            )}
+                            <div className={`transition-all duration-300 ${isMega ? 'mt-2' : ''} ${isReady ? 'scale-105' : 'brightness-50 grayscale'}`}>
                                 <img
                                     src={timer.id === 0 ? '/ui/double.png' : timer.id === 1 ? '/ui/roller.png' : '/ui/jackpot.png'}
                                     alt=""
@@ -132,37 +141,23 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                     );
                 })}
 
-                {/* Jackpot roulette tile — the real jackpot only unlocks once the tile has
-                    been opened megaOpensRequired times today; earlier ready-taps each
-                    just consume the tile (restarting its cooldown) and fill a dot. */}
-                <div className={`${jackpotReady ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center flex-1 gap-2 p-3 relative`}>
-                    <div className="flex items-center gap-1 absolute" style={{ top: 6 }}>
-                        {Array.from({ length: megaOpensRequired }, (_, i) => (
-                            <div key={i} className="rounded-full" style={{
-                                width: 6, height: 6,
-                                background: i < megaOpensToday ? '#fde047' : 'rgba(255,255,255,0.25)',
-                                boxShadow: i < megaOpensToday ? '0 0 4px rgba(253,224,71,0.9)' : 'none',
-                            }} />
-                        ))}
-                    </div>
-                    <div className={`transition-all duration-300 flex items-center justify-center mt-2 ${jackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
+                {/* Jackpot roulette tile — unlocks once Mega has been collected
+                    megaOpensRequired times today. */}
+                <div className={`${megaJackpotReady ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center flex-1 gap-2 p-3 relative`}>
+                    <div className={`transition-all duration-300 flex items-center justify-center ${megaJackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
                         <img src="/symbols/neon_bonus.png" alt=""
-                            style={{ width: 72, height: 72, objectFit: 'contain', filter: jackpotReady ? 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' : undefined }} />
+                            style={{ width: 72, height: 72, objectFit: 'contain', filter: megaJackpotReady ? 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' : undefined }} />
                     </div>
                     <div className="text-[10px] font-black text-yellow-200/90 tracking-wider text-center">Jackpot</div>
                     {/* jackpotBaseAmount already includes collect multiplier from App.tsx */}
                     <div className="text-sm font-black text-white text-center drop-shadow-md">{formatCommaNumber(jackpotBaseAmount)}</div>
                     <button
-                        onClick={() => {
-                            if (!jackpotReady) return;
-                            if (megaOpensToday < megaOpensRequired) onMegaPracticeOpen?.();
-                            else setShowRoulette(true);
-                        }}
-                        disabled={!jackpotReady}
-                        className={`pill-green w-full ${!jackpotReady ? 'opacity-40' : ''}`}
+                        onClick={() => megaJackpotReady && setShowRoulette(true)}
+                        disabled={!megaJackpotReady}
+                        className={`pill-green w-full ${!megaJackpotReady ? 'opacity-40' : ''}`}
                     >
                         <div className="pill-face" style={{ padding: '6px 10px', fontSize: '10px' }}>
-                            {!jackpotReady ? formatTime(jackpotRemaining) : megaOpensToday < megaOpensRequired ? `Open (${megaOpensToday}/${megaOpensRequired})` : 'Play'}
+                            {megaJackpotReady ? 'Play' : `Collect Mega (${megaOpensToday}/${megaOpensRequired})`}
                         </div>
                     </button>
                 </div>

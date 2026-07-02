@@ -1441,10 +1441,8 @@ const App: React.FC = () => {
       audioService.playWinBig();
   };
 
-  // Golden Treasury's Mega jackpot tile now needs 3 opens in a day before a
-  // cooldown-ready spin actually plays for real — the first 2 ready-taps each
-  // day just consume the tile (restarting its cooldown) and fill a dot; the
-  // 3rd opens the real roulette.
+  // Golden Treasury's Jackpot tile unlocks once the Mega tile has been
+  // collected 3 times in a day — collecting Jackpot resets the count.
   const MEGA_JACKPOT_OPENS_REQUIRED = 3;
   const [megaJackpotOpens, setMegaJackpotOpens] = useState<{ date: string; opens: number }>(() => {
       try {
@@ -1457,10 +1455,6 @@ const App: React.FC = () => {
       if (megaJackpotOpens.date !== todayDateStr()) { setMegaJackpotOpens({ date: todayDateStr(), opens: 0 }); return; }
       try { localStorage.setItem('cw_mega_jackpot_opens', JSON.stringify(megaJackpotOpens)); } catch {}
   }, [megaJackpotOpens]);
-  const handleMegaJackpotPracticeOpen = () => {
-      setMegaJackpotOpens(prev => ({ date: todayDateStr(), opens: Math.min(MEGA_JACKPOT_OPENS_REQUIRED, prev.opens + 1) }));
-      setPlayer(p => ({ ...p, jackpotRouletteLastTime: Date.now() }));
-  };
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
   const [newSlotIds, setNewSlotIds] = useState<string[]>(() => {
@@ -1934,6 +1928,13 @@ const App: React.FC = () => {
           }
           return t;
       }));
+
+      if (id === 2) {
+          setMegaJackpotOpens(prev => ({
+              date: todayDateStr(),
+              opens: Math.min(MEGA_JACKPOT_OPENS_REQUIRED, (prev.date === todayDateStr() ? prev.opens : 0) + 1),
+          }));
+      }
 
       setPlayer(p => ({ ...p, balance: p.balance + awardedReward }));
       triggerCoinAnim(awardedReward);
@@ -6478,7 +6479,7 @@ const App: React.FC = () => {
                 piggyMaxBet={MAX_BET_BY_LEVEL(player.level)}
                 packCredits={player.packCredits}
                 premiumPackCredits={player.premiumPackCredits ?? 0}
-                isJackpotReady={(Date.now() - (player.jackpotRouletteLastTime ?? 0)) >= 3 * 60 * 60 * 1000}
+                isJackpotReady={megaJackpotOpens.date === todayDateStr() && megaJackpotOpens.opens >= MEGA_JACKPOT_OPENS_REQUIRED}
                 questPathCurrentIndex={slotQuestState.currentPathIndex}
                 newSlotIds={newSlotIds}
                 bonusTimers={bonusTimers}
@@ -7383,13 +7384,11 @@ const App: React.FC = () => {
       <TimeBonusModal isOpen={activeModal === 'TIME_BONUS'} onClose={() => setActiveModal('NONE')} timers={bonusTimers} onClaim={handleClaimTimeBonus}
           collectMultiplier={treasuryMultiplier}
           multProgress={treasuryMultProgress}
-          jackpotLastTime={player.jackpotRouletteLastTime ?? 0}
           jackpotBaseAmount={MAX_BET_BY_LEVEL(player.level) * 7 * treasuryMultiplier}
           megaOpensToday={megaJackpotOpens.date === todayDateStr() ? megaJackpotOpens.opens : 0}
           megaOpensRequired={MEGA_JACKPOT_OPENS_REQUIRED}
-          onMegaPracticeOpen={handleMegaJackpotPracticeOpen}
           onJackpotClaim={(amount) => {
-              setPlayer(p => ({ ...p, balance: p.balance + amount, jackpotRouletteLastTime: Date.now() }));
+              setPlayer(p => ({ ...p, balance: p.balance + amount }));
               setMegaJackpotOpens({ date: todayDateStr(), opens: 0 });
               triggerCoinAnim(amount);
               audioService.playWinBig();
