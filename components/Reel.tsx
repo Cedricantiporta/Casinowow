@@ -393,17 +393,27 @@ const ReelCell: React.FC<{
                     )}
                     {theme === 'OLYMPUS' && !blur && orbValue != null && (
                         <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+                            <img
+                                src="/zeus_multiply.png"
+                                alt=""
+                                style={{ position: 'absolute', width: '82%', height: '82%', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(96,165,250,0.85))' }}
+                            />
                             <span
-                                className="block leading-none"
-                                style={{ fontSize: `${2.4 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                                className="relative block leading-none"
+                                style={{ fontSize: `${1.6 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
                             >{orbValue}X</span>
                         </div>
                     )}
                     {theme === 'BUFFALO' && !blur && isCollect && (
-                        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none">
+                            <img
+                                src="/buffalo_collect.png"
+                                alt=""
+                                style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.85))' }}
+                            />
                             <span
-                                className="block leading-none text-center"
-                                style={{ fontSize: `${0.85 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                                className="block leading-none absolute bottom-0 pb-0.5"
+                                style={{ fontSize: `${0.65 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 6px #000, 0 0 12px #000, 1px 1px 0 #000' }}
                             >COLLECT</span>
                         </div>
                     )}

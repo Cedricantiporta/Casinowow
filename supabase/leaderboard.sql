@@ -1,26 +1,40 @@
 -- CasinoWow anonymous leaderboard.
 -- Run this in your Supabase project: SQL Editor → New query → paste → Run.
 
+-- Score-like columns are "double precision" rather than "bigint": this game's bet
+-- scale runs well past bigint's ~9.22e18 ceiling, which made every write fail once
+-- a player's balance got big enough. double precision holds up to ~1.8e308 — past
+-- that point the app only ever needs the right order of magnitude for display
+-- (formatK abbreviates to K/M/B/.../No), not exact-to-the-coin precision, so the
+-- float rounding at extreme scale is a non-issue.
 create table if not exists public.leaderboard (
     device_id   text primary key,
     name        text        not null default 'Player',
     avatar      text        not null default '',
     level       int         not null default 1,
     vip_level   int         not null default 0,
-    score       bigint      not null default 0,
-    gems        bigint      not null default 0,
-    total_won   bigint      not null default 0,
-    max_jackpot bigint      not null default 0,
-    max_win     bigint      not null default 0,
+    score       double precision not null default 0,
+    gems        double precision not null default 0,
+    total_won   double precision not null default 0,
+    max_jackpot double precision not null default 0,
+    max_win     double precision not null default 0,
     updated_at  timestamptz not null default now()
 );
 
 -- Migration for an existing table created before these columns existed.
 alter table public.leaderboard add column if not exists vip_level   int    not null default 0;
-alter table public.leaderboard add column if not exists gems        bigint not null default 0;
-alter table public.leaderboard add column if not exists total_won   bigint not null default 0;
-alter table public.leaderboard add column if not exists max_jackpot bigint not null default 0;
-alter table public.leaderboard add column if not exists max_win     bigint not null default 0;
+alter table public.leaderboard add column if not exists gems        double precision not null default 0;
+alter table public.leaderboard add column if not exists total_won   double precision not null default 0;
+alter table public.leaderboard add column if not exists max_jackpot double precision not null default 0;
+alter table public.leaderboard add column if not exists max_win     double precision not null default 0;
+
+-- Migration for an existing table where these were created as bigint — widen them
+-- so writes stop failing once a player's numbers exceed bigint's range.
+alter table public.leaderboard alter column score       type double precision;
+alter table public.leaderboard alter column gems         type double precision;
+alter table public.leaderboard alter column total_won    type double precision;
+alter table public.leaderboard alter column max_jackpot  type double precision;
+alter table public.leaderboard alter column max_win      type double precision;
 
 -- Fast ordering for each ranked tab.
 create index if not exists leaderboard_score_idx       on public.leaderboard (score desc);

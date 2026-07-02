@@ -957,6 +957,7 @@ const App: React.FC = () => {
   const buffaloCollectMultRef = useRef(1);
   const buffaloCollectCountRef = useRef(0);
   const [buffaloCollectMult, setBuffaloCollectMult] = useState(1);
+  const [buffaloCollectCount, setBuffaloCollectCount] = useState(0);
 
   // Neon Vegas Scatter Roulette state
   const [showNeonRoulette, setShowNeonRoulette] = useState(false);
@@ -3922,6 +3923,7 @@ const App: React.FC = () => {
                      buffaloCollectMultRef.current = 1;
                      buffaloCollectCountRef.current = 0;
                      setBuffaloCollectMult(1);
+                     setBuffaloCollectCount(0);
                  }
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
@@ -4187,6 +4189,7 @@ const App: React.FC = () => {
         }
         if (collectedThisSpin > 0) {
             buffaloCollectCountRef.current += collectedThisSpin;
+            setBuffaloCollectCount(buffaloCollectCountRef.current);
             const newMult = Math.min(5, 1 + Math.floor(buffaloCollectCountRef.current / 3));
             if (newMult !== buffaloCollectMultRef.current) {
                 buffaloCollectMultRef.current = newMult;
@@ -6079,7 +6082,17 @@ const App: React.FC = () => {
                     };
                     return (
                         <div className="w-full z-10 p-0 m-0">
-                            {isCascadeTheme(featureThemeOf(selectedGame.theme)) ? (
+                            {selectedGame.theme === 'BUFFALO' ? (
+                                // Buffalo Thunder never has jackpot cells — show its Collect
+                                // progress here instead of an irrelevant jackpot ticker.
+                                <div className="flex items-center justify-center gap-2 rounded-full mx-auto px-3 py-1"
+                                    style={{ width: 'fit-content', background: 'rgba(0,0,0,0.4)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)' }}>
+                                    <img src="/buffalo_wild.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+                                    <span className="font-black text-white" style={{ fontSize: 12 }}>×{buffaloCollectMult}</span>
+                                    <img src="/buffalo_collect.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+                                    <span className="font-black text-amber-300" style={{ fontSize: 11 }}>{buffaloCollectCount % 3}/3</span>
+                                </div>
+                            ) : isCascadeTheme(featureThemeOf(selectedGame.theme)) ? (
                                 freeSpinsRemaining > 0
                                     ? <ArcticMultiplierBar
                                         mults={[2, 3, 4, 5, 10]}
@@ -6462,7 +6475,7 @@ const App: React.FC = () => {
                                 onWin={handleArcticPickWin}
                                 rows={selectedGame.rows}
                                 cols={selectedGame.reels}
-                                hiddenIcon={selectedGame.theme === 'OLYMPUS' ? '/zeus_scatter.png' : undefined}
+                                hiddenIcon={selectedGame.theme === 'OLYMPUS' ? '/zeus_multiply.png' : undefined}
                                 bgColor={selectedGame.theme === 'OLYMPUS' ? '#1a0a2e' : undefined}
                             />
                         )}

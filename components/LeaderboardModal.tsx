@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { formatCommaNumber } from '../constants';
+import { formatCommaNumber, formatK } from '../constants';
 import { fetchTopPlayers, LeaderboardEntry, LeaderboardMetric, LocalPlayer } from '../services/leaderboardService';
 
 interface LeaderboardModalProps {
@@ -57,12 +57,10 @@ const RewardChip: React.FC<{ tooltip: string; icon: React.ReactNode; label: stri
     );
 };
 
-const formatScore = (n: number) => {
-    if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(2)}B`;
-    if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
-    if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
-    return formatCommaNumber(n);
-};
+// Always abbreviate (K/M/B/T/Qd/Qi/Sx/Sp/Oc/No) — the leaderboard's whole point is
+// showing an at-a-glance scale, and raw scores here can run well past what a fixed
+// "B"-only formatter (the old version of this function) was built to handle.
+const formatScore = (n: number) => formatK(n, 3);
 
 const metricOf = (e: LeaderboardEntry, m: LeaderboardMetric) =>
     m === 'level' ? e.level : m === 'maxJackpot' ? e.maxJackpot : m === 'maxWin' ? e.maxWin : e.score;
