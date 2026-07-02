@@ -133,26 +133,28 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, on
         action: () => !isFreeStashClaimed && onBuy('COIN', freeCoinsAmount, 0, 0),
     };
 
-    // A native store price is only trusted if it actually contains a non-zero
-    // amount — a misconfigured/unpriced product can come back as "₱0" or "0.00",
-    // which would otherwise show as a free/zero price instead of the real cost.
-    const validLocalPrice = (raw: string | undefined): string | null => {
+    // A native store price is only trusted if it's a plausible amount for that
+    // pack — a misconfigured/unpriced product can come back as "₱0" or "₱1"
+    // (seen on the Jackpot pack), which would otherwise show and let the player
+    // buy a top-tier pack for next to nothing. Reject anything under half the
+    // pack's real listed price and fall back to that instead.
+    const validLocalPrice = (raw: string | undefined, expectedPeso: number): string | null => {
         if (!raw) return null;
         const n = parseFloat(raw.replace(/[^0-9.]/g, ''));
-        return n > 0 ? raw : null;
+        return (n > 0 && n >= expectedPeso * 0.5) ? raw : null;
     };
     const coinItems = dynamicPacks.map(item => ({
         ...item,
         isRealMoney: true,
         isClaimed: false,
-        price: validLocalPrice(localPrices?.[item.productId]) ?? `₱ ${item.pesosLabel}`,
+        price: validLocalPrice(localPrices?.[item.productId], parseFloat(item.pesosLabel)) ?? `₱ ${item.pesosLabel}`,
         gemCost: undefined as number | undefined,
     }));
     const gemItems = gemPacks.map(item => ({
         ...item,
         isRealMoney: true,
         isClaimed: false,
-        price: validLocalPrice(localPrices?.[item.productId]) ?? `₱ ${item.pesosLabel}`,
+        price: validLocalPrice(localPrices?.[item.productId], parseFloat(item.pesosLabel)) ?? `₱ ${item.pesosLabel}`,
         gemCost: undefined as number | undefined,
     }));
     const boostItems = boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false, price: `GEM:${item.gemCost}` }));

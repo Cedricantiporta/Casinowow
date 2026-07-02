@@ -109,7 +109,7 @@ const MYSTERY_FEATURE_THEMES = new Set<GameTheme>(['FARM', 'PRINCESS']);
 // climbing free-spin multiplier applies to each successive cascade step.
 // Olympus Ascend and Buffalo Thunder both reuse Arctic Freeze's cascade engine
 // (compactGrid/runCascadeRef) as their own dedicated identity, not an alias.
-const CASCADE_THEMES = new Set<GameTheme>(['ARCTIC', 'OLYMPUS', 'BUFFALO']);
+const CASCADE_THEMES = new Set<GameTheme>(['ARCTIC', 'OLYMPUS']);
 const isCascadeTheme = (t: GameTheme): boolean => CASCADE_THEMES.has(t);
 
 // Olympus Ascend: multiplier orb values that can land on the grid. Any win on a
@@ -204,8 +204,8 @@ const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive
     </div>
 );
 
-const ArcticProgressBar: React.FC<{ progress: number }> = ({ progress }) => {
-    const pct = Math.min((progress / 250) * 100, 100);
+const ArcticProgressBar: React.FC<{ progress: number; max?: number }> = ({ progress, max = 250 }) => {
+    const pct = Math.min((progress / max) * 100, 100);
     const full = pct >= 100;
     return (
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50, pointerEvents: 'none' }}>
@@ -948,6 +948,10 @@ const App: React.FC = () => {
   // mirrored into state right after so Reel.tsx can render the overlays.
   const olympusOrbGridRef = useRef<(number | null)[][] | null>(null);
   const [olympusOrbGrid, setOlympusOrbGrid] = useState<(number | null)[][] | null>(null);
+  // Olympus's jackpot-pick bonus triggers deterministically once collected orb
+  // values reach 100 (base game only), instead of Arctic's random-chance-once-full.
+  const olympusOrbCollectRef = useRef(0);
+  const [olympusOrbCollectProgress, setOlympusOrbCollectProgress] = useState(0);
 
   // Buffalo Thunder: Collect markers during free spins stack up (max 15, never
   // resets mid-round); on the round's last spin, every collected marker becomes a
@@ -959,6 +963,10 @@ const App: React.FC = () => {
   const [buffaloCollectStack, setBuffaloCollectStack] = useState(0);
   const buffaloWildMultGridRef = useRef<(number | null)[][] | null>(null);
   const [buffaloWildMultGrid, setBuffaloWildMultGrid] = useState<(number | null)[][] | null>(null);
+  // Last-spin collect payoff: land naturally first, then reveal the collected
+  // wilds one at a time instead of having them already present when it stops.
+  const buffaloRevealPendingRef = useRef(false);
+  const [buffaloWildRevealRemaining, setBuffaloWildRevealRemaining] = useState<number | null>(null);
 
   // Neon Vegas Scatter Roulette state
   const [showNeonRoulette, setShowNeonRoulette] = useState(false);
@@ -2480,7 +2488,7 @@ const App: React.FC = () => {
   // Buffalo Thunder's real win model: "Ways to Win" — matching symbols on
   // consecutive reels (starting from reel 1, any row) all pay together, scaled
   // by how many ways that match can be formed. WILD substitutes for all of them.
-  const waysToWinEvaluate = (grid: SymbolType[][], bet: number, theme: GameTheme, wildMultGrid?: (number | null)[][] | null): { payout: number; winningCells: {col:number,row:number}[] } => {
+  const waysToWinEvaluate = (grid: SymbolType[][], bet: number, theme: GameTheme): { payout: number; winningCells: {col:number,row:number}[] } => {
       const symbols = GET_SYMBOLS(theme);
       const cols = grid.length, rows = grid[0]?.length || 0;
       const candidates = [...PAYABLE_TYPES, SymbolType.WILD];
@@ -2488,19 +2496,12 @@ const App: React.FC = () => {
       const winningCells: {col:number,row:number}[] = [];
       for (const type of candidates) {
           let ways = 1, consecutive = 0;
-          let bestWildMult = 1;
           const matchedCells: {col:number,row:number}[] = [];
           for (let c = 0; c < cols; c++) {
               const rowsHere: number[] = [];
               for (let r = 0; r < rows; r++) {
                   const s = grid[c][r];
-                  if (s === type || s === SymbolType.WILD) {
-                      rowsHere.push(r);
-                      if (s === SymbolType.WILD) {
-                          const m = wildMultGrid?.[c]?.[r];
-                          if (m) bestWildMult = Math.max(bestWildMult, m);
-                      }
-                  }
+                  if (s === type || s === SymbolType.WILD) rowsHere.push(r);
               }
               if (rowsHere.length === 0) break;
               ways *= rowsHere.length;
@@ -2512,7 +2513,7 @@ const App: React.FC = () => {
               if (cfg) {
                   const lenMult = consecutive === 4 ? 2.0 : consecutive >= 5 ? 4.0 : 0.5;
                   const waysBonus = 1 + Math.min(ways - 1, 8) * 0.15;
-                  const win = Math.floor(bet * (cfg.value / 3) * lenMult * waysBonus * bestWildMult);
+                  const win = Math.floor(bet * (cfg.value / 3) * lenMult * waysBonus);
                   if (win > 0) { payout += win; winningCells.push(...matchedCells); }
               }
           }
@@ -2810,9 +2811,6 @@ const App: React.FC = () => {
       // Only GOLDEN_POT (untouched generic slot) keeps it among the lower-tier games.
       if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG','ANGRYFLOCK','BEAST','OLYMPUS','BUFFALO'].includes(selectedGame.theme)) megaMatchActive = false;
 
-      // BUFFALO: tracks whether any reel already landed a stacked wild/symbol this
-      // spin, so free spins can guarantee at least one if the generic chance rolls dry.
-      let buffaloStackedThisSpin = false;
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
            if (megaMatchActive && (cols > 3 ? (c >= 1 && c <= 3) : true)) {
@@ -2901,21 +2899,6 @@ const App: React.FC = () => {
                    }
                }
            }
-           if (eventTriggered && c > 0) buffaloStackedThisSpin = true;
-      }
-
-      // BUFFALO: Buffalo Thunder's signature moment — free spins guarantee a real
-      // Ways-to-Win hit by stacking a high-value animal symbol across reels 1-3
-      // (Ways to Win only pays runs starting from reel 1), instead of leaving it to
-      // the same generic chance every other slot uses. This is what actually sets
-      // it apart from Olympus Ascend's orb-multiplier free spins.
-      if (selectedGame.theme === 'BUFFALO' && isFreeSpin && !buffaloStackedThisSpin) {
-          const animalSymbols = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN];
-          const stackSymbol = animalSymbols[Math.floor(Math.random() * animalSymbols.length)];
-          const guaranteedRun = Math.min(3, cols);
-          for (let c = 0; c < guaranteedRun; c++) {
-              for (let r = 0; r < rows; r++) newGrid[c][r] = stackSymbol;
-          }
       }
 
       // PIRATE: ~4% base-game chance for a Ghost Ship to board on the rightmost reel.
@@ -3213,8 +3196,9 @@ const App: React.FC = () => {
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
       // JUNGLE: the colossal center symbol occupies reels 2-4 every free spin, so no jackpot injection there.
-      // Cascading slots (Olympus/Buffalo) skip jackpot cells too — they have their own progression mechanics.
-      if (isFreeSpin && !isCascadeTheme(ft) && ft !== 'NEON' && selectedGame.theme !== 'JUNGLE' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
+      // Olympus (cascading) and Buffalo (Ways to Win + its own Collect feature)
+      // both skip jackpot cells — they have their own progression mechanics.
+      if (isFreeSpin && !isCascadeTheme(ft) && selectedGame.theme !== 'BUFFALO' && ft !== 'NEON' && selectedGame.theme !== 'JUNGLE' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
           // CANDY gets 50% reduced jackpot spawn rates.
           const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
@@ -3370,19 +3354,21 @@ const App: React.FC = () => {
           try { localStorage.setItem('cw_first_fs_done', '1'); } catch {}
       }
 
-      // OLYMPUS: multiplier orbs — land on random non-wild/non-scatter cells. They only
-      // matter if this spin also wins (applied in calculateWin), so the spawn chance is
-      // independent of that outcome, same as every other decorative grid mechanic here.
+      // OLYMPUS: multiplier orbs — land on random non-scatter cells and turn that cell
+      // into a real WILD (not just a decorative overlay), so it actually substitutes
+      // in the Scatter Pays evaluation. They only matter for payout if this spin also
+      // wins (applied in calculateWin), so the spawn chance is independent of that
+      // outcome, same as every other decorative grid mechanic here.
       if (selectedGame.theme === 'OLYMPUS') {
           const orbGrid: (number | null)[][] = Array.from({ length: cols }, () => Array(rows).fill(null));
-          const orbChance = isFreeSpin ? 0.38 : 0.16;
+          const orbChance = isFreeSpin ? 0.55 : 0.25;
           if (Math.random() < orbChance) {
               const maxOrbs = isFreeSpin ? 5 : 3;
               const orbsToPlace = 1 + Math.floor(Math.random() * maxOrbs);
               const eligible: { c: number; r: number }[] = [];
               for (let c = 0; c < cols; c++) {
                   for (let r = 0; r < rows; r++) {
-                      if (newGrid[c][r] !== SymbolType.WILD && newGrid[c][r] !== SymbolType.SCATTER) {
+                      if (newGrid[c][r] !== SymbolType.SCATTER) {
                           eligible.push({ c, r });
                       }
                   }
@@ -3392,7 +3378,9 @@ const App: React.FC = () => {
                   [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
               }
               for (let i = 0; i < Math.min(orbsToPlace, eligible.length); i++) {
-                  orbGrid[eligible[i].c][eligible[i].r] = pickOlympusOrbValue();
+                  const { c, r } = eligible[i];
+                  newGrid[c][r] = SymbolType.WILD;
+                  orbGrid[c][r] = pickOlympusOrbValue();
               }
           }
           olympusOrbGridRef.current = orbGrid;
@@ -3410,25 +3398,11 @@ const App: React.FC = () => {
           const isLastFreeSpin = isFreeSpin && freeSpinsRemaining === 0;
           const collectGrid: boolean[][] = Array.from({ length: cols }, () => Array(rows).fill(false));
           if (isLastFreeSpin) {
-              const stackCount = buffaloCollectStackRef.current;
-              if (stackCount > 0) {
-                  const eligible: { c: number; r: number }[] = [];
-                  for (let c = 0; c < cols; c++) {
-                      for (let r = 0; r < rows; r++) {
-                          if (newGrid[c][r] !== SymbolType.SCATTER) eligible.push({ c, r });
-                      }
-                  }
-                  for (let i = eligible.length - 1; i > 0; i--) {
-                      const j = Math.floor(Math.random() * (i + 1));
-                      [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
-                  }
-                  for (let i = 0; i < Math.min(stackCount, eligible.length); i++) {
-                      newGrid[eligible[i].c][eligible[i].r] = SymbolType.WILD;
-                  }
-              }
-              buffaloCollectStackRef.current = 0;
-              setBuffaloCollectStack(0);
-          } else if (isFreeSpin && buffaloCollectStackRef.current < 15 && Math.random() < 0.45) {
+              // Don't place the payoff wilds yet — let this spin land naturally first,
+              // then reveal them one at a time (see the reel-stop handler) so it's
+              // obvious the collected wilds are being added, not just already there.
+              buffaloRevealPendingRef.current = buffaloCollectStackRef.current > 0;
+          } else if (isFreeSpin && buffaloCollectStackRef.current < 15 && Math.random() < 0.675) {
               const eligible: { c: number; r: number }[] = [];
               for (let c = 0; c < cols; c++) {
                   for (let r = 0; r < rows; r++) {
@@ -3949,14 +3923,12 @@ const App: React.FC = () => {
                  return next;
              }
 
-             const baseSpins = (ft === 'ARCTIC' || selectedGame.theme === 'OLYMPUS')
+             const baseSpins = ft === 'ARCTIC'
                  ? 15
                  : selectedGame.theme === 'PIRATE'
                  ? scatterCount
                  : selectedGame.theme === 'JUNGLE'
                  ? 5
-                 : selectedGame.theme === 'BUFFALO'
-                 ? 8
                  : 10;
              // JUNGLE's scatter count during a retrigger is always the whole 3x3 block (9
              // cells at once), not a linear "more scatters = more spins" signal like other
@@ -4042,10 +4014,9 @@ const App: React.FC = () => {
                 }
             }
         }
-        // Shared "fill a bar, then pick-and-win a jackpot tier" bonus — originally
-        // Arctic-only, now also Olympus Ascend's second layered mechanic (on top of
-        // its multiplier orbs), same as how Arctic itself pairs cascading with this.
-        if ((ft === 'ARCTIC' || selectedGame.theme === 'OLYMPUS') && freeSpinsRemaining === 0) {
+        // Arctic's own bonus: fill a bar over many spins, then a random chance per
+        // spin to trigger the pick-and-win jackpot.
+        if (ft === 'ARCTIC' && freeSpinsRemaining === 0) {
             arcticPickSpinsRef.current++;
             // Fill progress bar +1 to +5 per spin, cap at 250, stay full
             if (arcticProgressRef.current < 250) {
@@ -4082,6 +4053,47 @@ const App: React.FC = () => {
             }
         }
 
+        // Olympus's own bonus: collect the value of every multiplier orb landed
+        // (base game only) and once the running total hits 100, deterministically
+        // trigger the same pick-and-win jackpot popup sequence Arctic uses.
+        if (selectedGame.theme === 'OLYMPUS' && freeSpinsRemaining === 0) {
+            const orbGrid = olympusOrbGridRef.current;
+            let orbSumThisSpin = 0;
+            if (orbGrid) {
+                for (let c = 0; c < orbGrid.length; c++) {
+                    for (let r = 0; r < (orbGrid[c]?.length || 0); r++) {
+                        const v = orbGrid[c][r];
+                        if (v) orbSumThisSpin += v;
+                    }
+                }
+            }
+            if (orbSumThisSpin > 0) {
+                olympusOrbCollectRef.current += orbSumThisSpin;
+                setOlympusOrbCollectProgress(Math.min(olympusOrbCollectRef.current, 100));
+            }
+            if (olympusOrbCollectRef.current >= 100) {
+                olympusOrbCollectRef.current -= 100;
+                setOlympusOrbCollectProgress(0);
+                setPlayer(p => ({ ...p, autoSpin: false }));
+                setTimeout(() => {
+                    setShowArcticTriggerPopup(true);
+                    setInstantStop(true);
+                    audioService.playBonusTrigger();
+                    setTimeout(() => {
+                        setShowArcticTriggerPopup(false);
+                        setReelTransitioning('out');
+                        setTimeout(() => {
+                            setShowArcticPickModal(true);
+                            requestAnimationFrame(() => requestAnimationFrame(() => {
+                                setReelTransitioning('in');
+                                setTimeout(() => setReelTransitioning(false), 1100);
+                            }));
+                        }, 900);
+                    }, 3000);
+                }, 400);
+            }
+        }
+
         // MYSTERY reveal: hold on the mystery tiles briefly, then lift them to expose the
         // shared symbol underneath before scoring the spin.
         if (mysteryCellsRef.current.length > 0) {
@@ -4108,6 +4120,61 @@ const App: React.FC = () => {
                     calculateWin(targetGrid);
                 }
             }, revealDelay);
+            return next;
+        }
+
+        // BUFFALO: a wild landed with a bonus multiplier — let its spawn-in animation
+        // play (even during fast spin) before resolving the win, so it's actually seen.
+        if (selectedGame.theme === 'BUFFALO' && !buffaloRevealPendingRef.current) {
+            const wildMultGrid = buffaloWildMultGridRef.current;
+            let hasMult = false;
+            if (wildMultGrid) {
+                for (const col of wildMultGrid) for (const v of col) if (v) hasMult = true;
+            }
+            if (hasMult) {
+                setTimeout(() => calculateWin(targetGrid), 1000);
+                return next;
+            }
+        }
+
+        // BUFFALO: last-spin collect payoff — land naturally (already done, this is
+        // after the reel-stop), THEN reveal the collected wilds one at a time with a
+        // countdown, THEN calculate the win on the fully wild-augmented grid.
+        if (buffaloRevealPendingRef.current) {
+            buffaloRevealPendingRef.current = false;
+            const count = buffaloCollectStackRef.current;
+            const working = targetGrid.map(col => [...col]);
+            const eligible: { c: number; r: number }[] = [];
+            for (let c = 0; c < working.length; c++) {
+                for (let r = 0; r < working[c].length; r++) {
+                    if (working[c][r] !== SymbolType.SCATTER) eligible.push({ c, r });
+                }
+            }
+            for (let i = eligible.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+            }
+            const toPlace = eligible.slice(0, Math.min(count, eligible.length));
+            const stepDelay = fastSpinRef.current ? 120 : 350;
+            setBuffaloWildRevealRemaining(toPlace.length);
+            audioService.playBonusTrigger();
+            let idx = 0;
+            const revealStep = () => {
+                if (idx >= toPlace.length) {
+                    buffaloCollectStackRef.current = 0;
+                    setBuffaloCollectStack(0);
+                    setBuffaloWildRevealRemaining(null);
+                    calculateWin(working);
+                    return;
+                }
+                const { c, r } = toPlace[idx];
+                working[c][r] = SymbolType.WILD;
+                setTargetGrid(working.map(col => [...col]));
+                idx++;
+                setBuffaloWildRevealRemaining(toPlace.length - idx);
+                setTimeout(revealStep, stepDelay);
+            };
+            setTimeout(revealStep, 500);
             return next;
         }
 
@@ -4139,8 +4206,29 @@ const App: React.FC = () => {
         // Scatter Pays for Olympus, Ways to Win for Buffalo.
         const r = selectedGame.theme === 'OLYMPUS'
             ? scatterPaysEvaluate(finalGrid, currentBet, selectedGame.theme)
-            : waysToWinEvaluate(finalGrid, currentBet, selectedGame.theme, buffaloWildMultGridRef.current);
-        totalPayout += r.payout;
+            : waysToWinEvaluate(finalGrid, currentBet, selectedGame.theme);
+        let basePayout = r.payout;
+        if (selectedGame.theme === 'OLYMPUS') basePayout = Math.floor(basePayout * 1.3);
+        if (selectedGame.theme === 'BUFFALO') {
+            basePayout = Math.floor(basePayout * 1.5);
+            // Any wild's bonus multiplier (2x/3x/5x) applies to the whole spin's win
+            // whenever there's one — not just wins the specific wild happened to be
+            // part of — so it's always felt, same pattern as Olympus's orbs.
+            if (basePayout > 0) {
+                const wildMultGrid = buffaloWildMultGridRef.current;
+                let bestWildMult = 1;
+                if (wildMultGrid) {
+                    for (let c = 0; c < wildMultGrid.length; c++) {
+                        for (let r2 = 0; r2 < (wildMultGrid[c]?.length || 0); r2++) {
+                            const m = wildMultGrid[c][r2];
+                            if (m) bestWildMult = Math.max(bestWildMult, m);
+                        }
+                    }
+                }
+                if (bestWildMult > 1) basePayout = Math.floor(basePayout * bestWildMult);
+            }
+        }
+        totalPayout += basePayout;
         winningCells.push(...r.winningCells);
     } else {
     currentPaylines.forEach(line => {
@@ -6195,9 +6283,23 @@ const App: React.FC = () => {
                             ));
                         })()}
 
-                        {/* Pick-bonus progress bar — Arctic Freeze and Olympus Ascend share it */}
-                        {(featureThemeOf(selectedGame.theme) === 'ARCTIC' || selectedGame.theme === 'OLYMPUS') && freeSpinsRemaining === 0 && !showArcticPickModal && (
+                        {/* Pick-bonus progress bar — Arctic Freeze and Olympus Ascend each have their own meter */}
+                        {featureThemeOf(selectedGame.theme) === 'ARCTIC' && freeSpinsRemaining === 0 && !showArcticPickModal && (
                             <ArcticProgressBar progress={arcticSpinProgress} />
+                        )}
+                        {selectedGame.theme === 'OLYMPUS' && freeSpinsRemaining === 0 && !showArcticPickModal && (
+                            <ArcticProgressBar progress={olympusOrbCollectProgress} max={100} />
+                        )}
+
+                        {/* Buffalo collect payoff — counts down as each collected wild is revealed */}
+                        {buffaloWildRevealRemaining !== null && (
+                            <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
+                                <div className="flex flex-col items-center gap-1 rounded-2xl px-6 py-3"
+                                    style={{ background: 'rgba(0,0,0,0.55)', boxShadow: '0 0 24px rgba(251,191,36,0.5)' }}>
+                                    <span className="font-black text-white uppercase tracking-widest" style={{ fontSize: 13 }}>Adding Wilds</span>
+                                    <span className="font-black text-amber-300 leading-none" style={{ fontSize: 34, textShadow: '0 0 12px rgba(251,191,36,0.8)' }}>{buffaloWildRevealRemaining}</span>
+                                </div>
+                            </div>
                         )}
 
                         {/* Mystery tile overlay — covers the masked cells until they reveal. */}

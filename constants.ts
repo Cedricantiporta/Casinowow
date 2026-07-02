@@ -432,9 +432,9 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
     [SymbolType.WILD]: '/generic_WILD.png', [SymbolType.SCATTER]: '/leprechaun_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '🍀'
   },
   ARCTIC: {
-    [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
-    [SymbolType.GRAPE]: '/arctic_green.png', [SymbolType.BELL]: '/arctic_blue.png', [SymbolType.BAR]: '/arctic_purple.png', [SymbolType.CHERRY]: '/arctic_red.png', [SymbolType.SEVEN]: '/arctic/seal.png',
-    [SymbolType.WILD]: '/arctic_wild.png', [SymbolType.SCATTER]: '/arctic/snow.png', ...JP_ICONS
+    [SymbolType.TEN]: '/arcticnew_10.png', [SymbolType.JACK]: '/arcticnew_j.png', [SymbolType.QUEEN]: '/arcticnew_q.png', [SymbolType.KING]: '/arcticnew_k.png', [SymbolType.ACE]: '/arcticnew_a.png',
+    [SymbolType.GRAPE]: '/arcticnew_green.png', [SymbolType.BELL]: '/arcticnew_blue.png', [SymbolType.BAR]: '/arcticnew_purple.png', [SymbolType.CHERRY]: '/arcticnew_red.png', [SymbolType.SEVEN]: '/arcticnew_red.png',
+    [SymbolType.WILD]: '/arcticnew_wild.png', [SymbolType.SCATTER]: '/arcticnew_scatter.png', ...JP_ICONS
   },
   PETS: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
@@ -513,7 +513,7 @@ const getThemeFont = (theme: GameTheme) => {
 // are already custom images (NEON fruits, DRAGON, CANDY) are intentionally omitted.
 const REEL_FONT: Partial<Record<GameTheme, 'beveled' | 'carved' | 'cartoon'>> = {
   EGYPT: 'beveled', PIRATE: 'beveled', JUNGLE: 'beveled', WESTERN: 'beveled', SAMURAI: 'beveled', MMORPG: 'beveled',
-  SPACE: 'beveled', UNDERWATER: 'beveled', GOLDEN_POT: 'beveled', ARCTIC: 'beveled',
+  SPACE: 'beveled', UNDERWATER: 'beveled', GOLDEN_POT: 'beveled',
   PIGGY: 'beveled', LEPRECHAUN: 'beveled', PETS: 'beveled',
   FARM: 'beveled', BEAST: 'beveled', ANGRYFLOCK: 'beveled', PRINCESS: 'beveled',
 };
@@ -566,11 +566,11 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
   // All themes use image symbols now → always transparent tile bg
   const imgTheme = true;
   return {
-    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: letterIcon(SymbolType.TEN, icons.TEN),     value: 0.5,  ...LTR.TEN,  ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
-    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: letterIcon(SymbolType.JACK, icons.JACK),   value: 0.75, ...LTR.JACK, ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
-    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: letterIcon(SymbolType.QUEEN, icons.QUEEN), value: 1,    ...LTR.QUEEN, ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
-    [SymbolType.KING]:  { type: SymbolType.KING,  icon: letterIcon(SymbolType.KING, icons.KING),   value: 1.5,  ...LTR.KING, ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
-    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: letterIcon(SymbolType.ACE, icons.ACE),     value: 2,    ...LTR.ACE,  ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: letterIcon(SymbolType.TEN, icons.TEN),     value: 0.5,  ...LTR.TEN,  ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...((isCandy || isArctic) && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: letterIcon(SymbolType.JACK, icons.JACK),   value: 0.75, ...LTR.JACK, ...egyptLtr, ...((isCandy || isArctic) && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: letterIcon(SymbolType.QUEEN, icons.QUEEN), value: 1,    ...LTR.QUEEN, ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...((isCandy || isArctic) && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.KING]:  { type: SymbolType.KING,  icon: letterIcon(SymbolType.KING, icons.KING),   value: 1.5,  ...LTR.KING, ...egyptLtr, ...((isCandy || isArctic) && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: letterIcon(SymbolType.ACE, icons.ACE),     value: 2,    ...LTR.ACE,  ...egyptLtr, ...((isCandy || isArctic) && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
     [SymbolType.GRAPE]:   { type: SymbolType.GRAPE,   icon: icons.GRAPE, value: 2.5,  style: 'text-emerald-100 drop-shadow-md', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg || isOlympus || isBuffalo) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
     [SymbolType.BELL]:    { type: SymbolType.BELL,    icon: icons.BELL, value: 4.5,  style: 'text-blue-100 drop-shadow-[0_0_5px_#3b82f6]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg || isOlympus || isBuffalo) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
     [SymbolType.BAR]:     { type: SymbolType.BAR,     icon: icons.BAR, value: 7.5,  style: 'text-purple-100 drop-shadow-[0_0_5px_#a855f7]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg || isOlympus || isBuffalo) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
@@ -774,8 +774,8 @@ export const PICKS_COST_IN_CREDITS = 5;
 const GENERATE_SCALES = () => {
     const bets: number[] = [];
     const steps = 40;
-    const minBet = 10000;
-    const maxBet = 3e19; // 30 quintillion
+    const minBet = 5000;
+    const maxBet = 1.5e19; // 15 quintillion (bet scaling halved)
     const logMin = Math.log(minBet);
     const logMax = Math.log(maxBet);
     const scaleFactor = (logMax - logMin) / (steps - 1);
