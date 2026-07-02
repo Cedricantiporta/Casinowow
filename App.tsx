@@ -104,6 +104,27 @@ const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 // randomly-chosen symbol at once for big matching combos. Angry Flock and Beast Rage
 // have their own dedicated roulette bonuses instead (see their feature blocks below).
 const MYSTERY_FEATURE_THEMES = new Set<GameTheme>(['FARM', 'PRINCESS']);
+
+// Cascading/tumbling-reel slots — wins explode, new symbols drop in, and a
+// climbing free-spin multiplier applies to each successive cascade step.
+// Olympus Ascend and Buffalo Thunder both reuse Arctic Freeze's cascade engine
+// (compactGrid/runCascadeRef) as their own dedicated identity, not an alias.
+const CASCADE_THEMES = new Set<GameTheme>(['ARCTIC', 'OLYMPUS', 'BUFFALO']);
+const isCascadeTheme = (t: GameTheme): boolean => CASCADE_THEMES.has(t);
+
+// Olympus Ascend: multiplier orb values that can land on the grid. Any win on a
+// spin sums every orb currently on the board and multiplies that spin's payout.
+const OLYMPUS_ORB_POOL: { v: number; w: number }[] = [
+    { v: 2, w: 34 }, { v: 3, w: 24 }, { v: 4, w: 15 }, { v: 5, w: 10 }, { v: 6, w: 6 },
+    { v: 8, w: 4 }, { v: 10, w: 2.5 }, { v: 12, w: 1.2 }, { v: 15, w: 0.7 }, { v: 20, w: 0.3 },
+    { v: 25, w: 0.15 }, { v: 50, w: 0.08 }, { v: 100, w: 0.03 }, { v: 250, w: 0.015 }, { v: 500, w: 0.005 },
+];
+const pickOlympusOrbValue = (): number => {
+    const total = OLYMPUS_ORB_POOL.reduce((a, o) => a + o.w, 0);
+    let roll = Math.random() * total;
+    for (const o of OLYMPUS_ORB_POOL) { roll -= o.w; if (roll <= 0) return o.v; }
+    return 2;
+};
 const MYSTERY_IMG: Partial<Record<GameTheme, string>> = {
     FARM:       '/farm_mystery.png',
     PRINCESS:   '/princess_mystery.png',
@@ -921,6 +942,12 @@ const App: React.FC = () => {
   const [cascadeDissolving, setCascadeDissolving] = useState(false);
   const [reelTransitioning, setReelTransitioning] = useState<false | 'out' | 'in'>(false);
   const runCascadeRef = useRef<(g: SymbolType[][], m: number, acc: number, wc: {col:number,row:number}[], depth?: number) => void>();
+
+  // Olympus Ascend: multiplier orb grid for the current spin. Populated as a ref
+  // side-channel inside generateSmartGrid (same pattern as mysteryCellsRef), then
+  // mirrored into state right after so Reel.tsx can render the overlays.
+  const olympusOrbGridRef = useRef<(number | null)[][] | null>(null);
+  const [olympusOrbGrid, setOlympusOrbGrid] = useState<(number | null)[][] | null>(null);
 
   // Neon Vegas Scatter Roulette state
   const [showNeonRoulette, setShowNeonRoulette] = useState(false);
@@ -2459,7 +2486,11 @@ const App: React.FC = () => {
           // No further wins — keep cascade grid visible until next spin(); clear it there
           const winTier = getWinTier(accWin, bet);
           setWinData({ payout: accWin, winningLines: [], winningCells: [], isBigWin: !!winTier, scattersFound: 0, winType: winTier || undefined });
-          awardArenaWin(accWin);
+          // Arena points for this whole spin (every spin scores, wins score more) —
+          // awarded once the cascade chain fully resolves, same as a normal slot's
+          // per-spin award. A losing spin (winTier null) still earns the spin base,
+          // which is the piece that was missing for cascading slots before.
+          addArenaPoints(pointsForEvent(winTier, arenaBetTierRef.current));
           setCascadeMultiplier(1);
           setCascadeTotalWin(0);
           if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
@@ -2668,7 +2699,7 @@ const App: React.FC = () => {
       }
       // These themes never use full-column same-symbol matches (3-column "mega match").
       // Only GOLDEN_POT (untouched generic slot) keeps it among the lower-tier games.
-      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG','ANGRYFLOCK','BEAST'].includes(selectedGame.theme)) megaMatchActive = false;
+      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG','ANGRYFLOCK','BEAST','OLYMPUS','BUFFALO'].includes(selectedGame.theme)) megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -3051,7 +3082,8 @@ const App: React.FC = () => {
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
       // JUNGLE: the colossal center symbol occupies reels 2-4 every free spin, so no jackpot injection there.
-      if (isFreeSpin && ft !== 'ARCTIC' && ft !== 'NEON' && selectedGame.theme !== 'JUNGLE' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
+      // Cascading slots (Olympus/Buffalo) skip jackpot cells too — they have their own progression mechanics.
+      if (isFreeSpin && !isCascadeTheme(ft) && ft !== 'NEON' && selectedGame.theme !== 'JUNGLE' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
           // CANDY gets 50% reduced jackpot spawn rates.
           const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
@@ -3205,6 +3237,34 @@ const App: React.FC = () => {
           forceFreeSpinRef.current = false;
           firstFreeSpinDoneRef.current = true;
           try { localStorage.setItem('cw_first_fs_done', '1'); } catch {}
+      }
+
+      // OLYMPUS: multiplier orbs — land on random non-wild/non-scatter cells. They only
+      // matter if this spin also wins (applied in calculateWin), so the spawn chance is
+      // independent of that outcome, same as every other decorative grid mechanic here.
+      if (selectedGame.theme === 'OLYMPUS') {
+          const orbGrid: (number | null)[][] = Array.from({ length: cols }, () => Array(rows).fill(null));
+          const orbChance = isFreeSpin ? 0.38 : 0.16;
+          if (Math.random() < orbChance) {
+              const maxOrbs = isFreeSpin ? 5 : 3;
+              const orbsToPlace = 1 + Math.floor(Math.random() * maxOrbs);
+              const eligible: { c: number; r: number }[] = [];
+              for (let c = 0; c < cols; c++) {
+                  for (let r = 0; r < rows; r++) {
+                      if (newGrid[c][r] !== SymbolType.WILD && newGrid[c][r] !== SymbolType.SCATTER) {
+                          eligible.push({ c, r });
+                      }
+                  }
+              }
+              for (let i = eligible.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+              }
+              for (let i = 0; i < Math.min(orbsToPlace, eligible.length); i++) {
+                  orbGrid[eligible[i].c][eligible[i].r] = pickOlympusOrbValue();
+              }
+          }
+          olympusOrbGridRef.current = orbGrid;
       }
 
       return newGrid;
@@ -3396,11 +3456,14 @@ const App: React.FC = () => {
     setEgyptCoinMeta(null);
     setStoppedReels(0);
     setTargetGrid([]);
+    setOlympusOrbGrid(null);
   }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, goldenPotFrozen, player.level, selectedGame.theme]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
       setTargetGrid(generateSmartGrid());
+      // OLYMPUS: mirror this spin's orb placements from the ref into state for rendering.
+      setOlympusOrbGrid(selectedGame.theme === 'OLYMPUS' ? olympusOrbGridRef.current : null);
       // MYSTERY: arm the tile overlay for this spin (cleared each spin; populated only in free spins).
       setMysteryRevealed(false);
       setMysteryCells(mysteryCellsRef.current);
@@ -3688,12 +3751,14 @@ const App: React.FC = () => {
                  return next;
              }
 
-             const baseSpins = ft === 'ARCTIC'
+             const baseSpins = (ft === 'ARCTIC' || selectedGame.theme === 'OLYMPUS')
                  ? 15
                  : selectedGame.theme === 'PIRATE'
                  ? scatterCount
                  : selectedGame.theme === 'JUNGLE'
                  ? 5
+                 : selectedGame.theme === 'BUFFALO'
+                 ? 8
                  : 10;
              // JUNGLE's scatter count during a retrigger is always the whole 3x3 block (9
              // cells at once), not a linear "more scatters = more spins" signal like other
@@ -3929,8 +3994,27 @@ const App: React.FC = () => {
         }
     }
 
-    // ARCTIC: no jackpot logic — start cascade sequence (reused by Deep Blue)
-    if (ft === 'ARCTIC') {
+    // OLYMPUS: multiplier orbs on the grid sum together and multiply this spin's win.
+    if (selectedGame.theme === 'OLYMPUS' && totalPayout > 0) {
+        const orbGrid = olympusOrbGridRef.current;
+        let orbSum = 0;
+        if (orbGrid) {
+            for (let c = 0; c < orbGrid.length; c++) {
+                for (let r = 0; r < (orbGrid[c]?.length || 0); r++) {
+                    const v = orbGrid[c][r];
+                    if (v) orbSum += v;
+                }
+            }
+        }
+        if (orbSum > 0) totalPayout = Math.floor(totalPayout * orbSum);
+    }
+
+    // ARCTIC/OLYMPUS/BUFFALO: no jackpot logic — start cascade sequence
+    if (isCascadeTheme(ft)) {
+        // Arena points for the whole cascade chain are awarded once it fully resolves
+        // (see runCascadeRef's terminal branch) — stamp the bet tier now so that award
+        // reflects THIS spin's bet, not whatever the last non-cascade spin left behind.
+        arenaBetTierRef.current = betIndex;
         setWinData({ payout: totalPayout, winningLines, winningCells, isBigWin: false, scattersFound: scatterCount, winType: undefined });
         // Award XP for arctic spins
         const arcticVipMult = player.isVip ? 3.0 : 1.0;
@@ -3964,6 +4048,9 @@ const App: React.FC = () => {
             setTimeout(() => { setCascadeDissolving(true); audioService.playIceShatter(); }, 400);
             setTimeout(() => runCascadeRef.current!(finalGrid, 2, totalPayout, winningCells), 700);
         } else {
+            // No win at all on this spin (no cascade ever starts) — still counts as a
+            // spin for Arena, same as every other slot's guaranteed per-spin minimum.
+            addArenaPoints(pointsForEvent(null, arenaBetTierRef.current));
             const effectiveFastSpin = fastSpin;
             setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 50 : 500);
         }
@@ -4854,6 +4941,7 @@ const App: React.FC = () => {
               setWinData(null);
           }
           setTargetGrid([]);
+          setOlympusOrbGrid(null);
           setGameLoadingConfig(null);
       }, 700);
   };
@@ -4979,6 +5067,7 @@ const App: React.FC = () => {
       freeSpinTotalWinRef.current = 0;
       setFastSpin(savedFastSpinRef.current);
       setTargetGrid([]);
+      setOlympusOrbGrid(null);
       spaceFsMultRef.current = 1;
       setSpaceMultiplier(1);
       candyWildConfigRef.current = null;
@@ -5798,7 +5887,7 @@ const App: React.FC = () => {
                     };
                     return (
                         <div className="w-full z-10 p-0 m-0">
-                            {featureThemeOf(selectedGame.theme) === 'ARCTIC' ? (
+                            {isCascadeTheme(featureThemeOf(selectedGame.theme)) ? (
                                 freeSpinsRemaining > 0
                                     ? <ArcticMultiplierBar
                                         mults={[2, 3, 4, 5, 10]}
@@ -5867,6 +5956,7 @@ const App: React.FC = () => {
                                 inFreeSpins={freeSpinsRemaining > 0}
                                 instantStop={instantStop}
                                 beastMultiplier={beastMultiplier}
+                                orbValues={olympusOrbGrid ? olympusOrbGrid[i] : undefined}
                             />
                             ));
                         })()}
