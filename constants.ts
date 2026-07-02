@@ -116,6 +116,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-sky-400 via-indigo-600 to-purple-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #818cf8 0%, #2e1065 100%)',
     reelBg: REEL_BGS.OLYMPUS,
+    slotBg: '/zeus_bg.png',
     coverImage: '/Zeus_cover.png',
   },
   {
@@ -129,6 +130,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     color: 'from-amber-600 via-orange-800 to-stone-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #f97316 0%, #451a03 100%)',
     reelBg: REEL_BGS.BUFFALO,
+    slotBg: '/buffalo_bg.png',
     coverImage: '/buffalo_cover.png',
   },
   {
