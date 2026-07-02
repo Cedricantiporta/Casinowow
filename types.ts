@@ -164,6 +164,7 @@ export interface Friend {
     addedAt: number;
     lastSentAt?: number;      // last time you sent them a coin gift
     lastCollectedAt?: number; // last time you collected their daily gift
+    lastAutoGiftAt?: number;  // last time a bot friend auto-sent you a daily gift
 }
 
 export interface FriendsState {

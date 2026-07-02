@@ -14,6 +14,8 @@ interface FriendsModalProps {
     onAddFriend: (friend: Friend) => void;
     onAcceptRequest: (req: IncomingRequest) => void;
     onSendGift: (friendId: string) => void;
+    onRemoveFriend: (friendId: string) => void;
+    maxFriends: number;
 }
 
 const fmtCountdown = (ms: number): string => {
@@ -24,13 +26,14 @@ const fmtCountdown = (ms: number): string => {
 };
 
 export const FriendsModal: React.FC<FriendsModalProps> = ({
-    isOpen, onClose, friends, you, maxBet, incomingRequests, pendingRequestIds, onAddFriend, onAcceptRequest, onSendGift,
+    isOpen, onClose, friends, you, maxBet, incomingRequests, pendingRequestIds, onAddFriend, onAcceptRequest, onSendGift, onRemoveFriend, maxFriends,
 }) => {
     const [tab, setTab] = useState<'FRIENDS' | 'ADD'>('FRIENDS');
     const [addable, setAddable] = useState<LeaderboardEntry[]>([]);
     const [loadingAdd, setLoadingAdd] = useState(false);
     const [search, setSearch] = useState('');
     const [now, setNow] = useState(() => Date.now());
+    const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
 
     // Keep countdowns fresh while open.
     useEffect(() => {
@@ -74,7 +77,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                 {/* Tabs */}
                 <div className="shrink-0 px-3 pb-2">
                     <div className="flex gap-1.5 p-1 rounded-2xl" style={{ background: 'rgba(0,0,0,0.28)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.4)' }}>
-                        {([{ key: 'FRIENDS' as const, label: `My Friends (${friends.length})` }, { key: 'ADD' as const, label: 'Add Friends' }]).map(t => {
+                        {([{ key: 'FRIENDS' as const, label: `My Friends (${friends.length}/${maxFriends})` }, { key: 'ADD' as const, label: 'Add Friends' }]).map(t => {
                             const active = tab === t.key;
                             return (
                                 <button key={t.key} onClick={() => setTab(t.key)}
@@ -126,6 +129,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                         )}
                         {friends.map(f => {
                             const sendable = canSend(f, now);
+                            const confirming = confirmRemove === f.id;
                             return (
                                 <div key={f.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
                                     style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
@@ -134,6 +138,19 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                         <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{f.name}</div>
                                         <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {f.level}{!f.isAI ? ' · Friend' : ''}</div>
                                     </div>
+                                    {confirming ? (
+                                        <button
+                                            onClick={() => { onRemoveFriend(f.id); setConfirmRemove(null); }}
+                                            className="pill-red shrink-0">
+                                            <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#ff5555,#e01010,#b00000)' }}>
+                                                Confirm?
+                                            </div>
+                                        </button>
+                                    ) : (
+                                        <i className="ti ti-user-minus text-white/40 cursor-pointer shrink-0"
+                                            style={{ fontSize: 15, padding: 4 }}
+                                            onClick={() => setConfirmRemove(f.id)} />
+                                    )}
                                     <button
                                         onClick={sendable ? () => onSendGift(f.id) : undefined}
                                         disabled={!sendable}

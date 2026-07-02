@@ -41,7 +41,7 @@ import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { FriendsModal } from './components/FriendsModal';
 import {
-    canSend as friendCanSend, receivedGiftAmount, toFriend, isRealPlayerId,
+    canSend as friendCanSend, receivedGiftAmount, toFriend, isRealPlayerId, DAILY_MS,
     IncomingRequest, sendFriendRequest, fetchIncomingRequests, acceptFriendRequest,
     fetchAcceptedForSender, ackSenderRequest, sendGiftToFriend, fetchIncomingGifts, markGiftClaimed,
 } from './services/friendsService';
@@ -114,8 +114,9 @@ const isCascadeTheme = (t: GameTheme): boolean => CASCADE_THEMES.has(t);
 
 // Olympus Ascend: multiplier orb values that can land on the grid. Any win on a
 // spin sums every orb currently on the board and multiplies that spin's payout.
-// Olympus's jackpot-pick bonus fires the instant collected orb values reach this.
-const OLYMPUS_ORB_COLLECT_TARGET = 50;
+// Olympus's jackpot-pick bonus fires the instant collected orb VALUES (not just
+// orb count — an "8x" orb adds a full 8 toward this) reach this total.
+const OLYMPUS_ORB_COLLECT_TARGET = 450;
 const OLYMPUS_ORB_POOL: { v: number; w: number }[] = [
     { v: 2, w: 34 }, { v: 3, w: 24 }, { v: 4, w: 15 }, { v: 5, w: 10 }, { v: 6, w: 6 },
     { v: 8, w: 4 }, { v: 10, w: 2.5 }, { v: 12, w: 1.2 }, { v: 15, w: 0.7 }, { v: 20, w: 0.3 },
@@ -1813,6 +1814,35 @@ const App: React.FC = () => {
   useEffect(() => {
     try { localStorage.setItem('cw_pending_friend_reqs', JSON.stringify(pendingFriendRequestIds)); } catch {}
   }, [pendingFriendRequestIds]);
+
+  // Bot friends auto-send a daily coin gift — no claim needed, since there's no
+  // real device on the other end to gift back and forth with. Checked periodically
+  // so it fires shortly after becoming due, not just once at load.
+  useEffect(() => {
+    const checkBotGifts = () => {
+        const now = Date.now();
+        if (friendsState.friends.every(f => !f.isAI)) return;
+        const maxBet = MAX_BET_BY_LEVEL(player.level);
+        let totalGift = 0;
+        let count = 0;
+        const updatedFriends = friendsState.friends.map(f => {
+            if (!f.isAI) return f;
+            if (f.lastAutoGiftAt && now - f.lastAutoGiftAt < DAILY_MS) return f;
+            totalGift += receivedGiftAmount(maxBet);
+            count++;
+            return { ...f, lastAutoGiftAt: now };
+        });
+        if (count > 0) {
+            setFriendsState(prev => ({ ...prev, friends: updatedFriends }));
+            setPlayer(p => ({ ...p, balance: p.balance + totalGift }));
+            setCelebrationMsg(`${count} friend${count > 1 ? 's' : ''} sent you +${formatCommaNumber(totalGift)} Coins!`);
+        }
+    };
+    checkBotGifts();
+    const t = setInterval(checkBotGifts, 5 * 60_000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [friendsState.friends.length, player.level]);
   useEffect(() => {
     try { localStorage.setItem('cw_sends_today', JSON.stringify(sendsToday)); } catch {}
   }, [sendsToday]);
@@ -2937,8 +2967,13 @@ const App: React.FC = () => {
           const isArctic = ft === 'ARCTIC';
           const s1 = isSmallGrid ? 68 : (isArctic ? 50 : 60);
           const s2 = isSmallGrid ? 85.6 : (isArctic ? 72 : 82);
-          const s3 = isSmallGrid ? 99.2 : 99.0;
-          const s4 = isSmallGrid ? 99.8 : 99.75;
+          let s3 = isSmallGrid ? 99.2 : 99.0;
+          let s4 = isSmallGrid ? 99.8 : 99.75;
+          // Halve the chance of hitting the 3-scatter retrigger while already in free
+          // spins, and separately halve the chance of hitting the rarer 4-scatter
+          // bonus during normal (base game) spins.
+          if (isFreeSpin) s3 = 100 - (100 - s3) * 0.5;
+          if (!isFreeSpin) s4 = 100 - (100 - s4) * 0.5;
           if (scatterRoll >= s1) targetScatters = 1;
           if (scatterRoll >= s2) targetScatters = 2;
           if (scatterRoll >= s3) targetScatters = 3;
@@ -3411,10 +3446,11 @@ const App: React.FC = () => {
               // obvious the collected wilds are being added, not just already there.
               buffaloRevealPendingRef.current = buffaloCollectStackRef.current > 0;
           } else if (isFreeSpin && buffaloCollectStackRef.current < 15) {
-              // Up to 4 collect markers can land on a single spin — the more, the
-              // rarer (67.5% chance of at least 1, dropping off sharply after that).
+              // Up to 4 collect markers can land on a single spin. Chance of landing
+              // 2+ at once is cut 60% from before (23% -> ~9.2%) — that mass moves
+              // into the single-collect bucket, so "at least 1" stays ~67.5% overall.
               const roll = Math.random() * 100;
-              const count = roll >= 97.5 ? 4 : roll >= 92 ? 3 : roll >= 77 ? 2 : roll >= 32.5 ? 1 : 0;
+              const count = roll >= 99.0 ? 4 : roll >= 96.8 ? 3 : roll >= 90.8 ? 2 : roll >= 32.5 ? 1 : 0;
               if (count > 0) {
                   const eligible: { c: number; r: number }[] = [];
                   for (let c = 0; c < cols; c++) {
@@ -4166,17 +4202,6 @@ const App: React.FC = () => {
             buffaloRevealPendingRef.current = false;
             const count = buffaloCollectStackRef.current;
             const working = targetGrid.map(col => [...col]);
-            const eligible: { c: number; r: number }[] = [];
-            for (let c = 0; c < working.length; c++) {
-                for (let r = 0; r < working[c].length; r++) {
-                    if (working[c][r] !== SymbolType.SCATTER) eligible.push({ c, r });
-                }
-            }
-            for (let i = eligible.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
-            }
-            const toPlace = eligible.slice(0, Math.min(count, eligible.length));
             // ~1 second per wild so it's obvious each one is being added, even
             // during fast spin — that's the whole point of this animation.
             const stepDelay = 1000;
@@ -4188,14 +4213,27 @@ const App: React.FC = () => {
             // forcedSymbols path the cascade engine uses to force a direct redraw.
             let idx = 0;
             const revealStep = () => {
-                if (idx >= toPlace.length) {
+                if (idx >= count) {
                     buffaloCollectStackRef.current = 0;
                     setBuffaloCollectStack(0);
                     setTargetGrid(working.map(col => [...col]));
                     calculateWin(working);
                     return;
                 }
-                const { c, r } = toPlace[idx];
+                // 20% of the time, a collected wild deliberately lands back on a cell
+                // that's already wild — a wasted pick, same as the real thing landing
+                // somewhere it doesn't add anything new.
+                const wildCells: { c: number; r: number }[] = [];
+                const openCells: { c: number; r: number }[] = [];
+                for (let c = 0; c < working.length; c++) {
+                    for (let r = 0; r < working[c].length; r++) {
+                        if (working[c][r] === SymbolType.WILD) wildCells.push({ c, r });
+                        else if (working[c][r] !== SymbolType.SCATTER) openCells.push({ c, r });
+                    }
+                }
+                const wantsWaste = Math.random() < 0.2 && wildCells.length > 0;
+                const pool = wantsWaste ? wildCells : (openCells.length > 0 ? openCells : wildCells);
+                const { c, r } = pool[Math.floor(Math.random() * pool.length)];
                 working[c][r] = SymbolType.WILD;
                 // Small chance a payoff wild also carries a bonus multiplier, same odds
                 // as a naturally-landed one.
@@ -4248,6 +4286,16 @@ const App: React.FC = () => {
         let basePayout = r.payout;
         if (selectedGame.theme === 'OLYMPUS') basePayout = Math.floor(basePayout * 1.3);
         if (selectedGame.theme === 'BUFFALO') {
+            const isFullWildScreen = finalGrid.every(col => col.every(s => s === SymbolType.WILD));
+            if (isFullWildScreen) {
+                // Every cell wild — award the GRAND jackpot outright instead of the
+                // normal Ways to Win payout.
+                const grand = JP_META[4];
+                const jpAmount = jackpotService.getAmounts()[4];
+                basePayout = jpAmount;
+                audioService.playJackpotSound(grand.name);
+                setJackpotWinTier({ name: grand.name, color: grand.color, icon: grand.icon, amount: jpAmount });
+            } else {
             basePayout = Math.floor(basePayout * 1.5);
             // Any wild's bonus multiplier (2x/3x/5x) applies to the whole spin's win
             // whenever there's one — not just wins the specific wild happened to be
@@ -4264,6 +4312,7 @@ const App: React.FC = () => {
                     }
                 }
                 if (bestWildMult > 1) basePayout = Math.floor(basePayout * bestWildMult);
+            }
             }
         }
         totalPayout += basePayout;
@@ -4590,7 +4639,12 @@ const App: React.FC = () => {
       score: player.balance, gems: player.diamonds, totalWon: player.stats?.totalCoinsWon || 0,
       maxJackpot: player.stats?.maxJackpotWin || 0, maxWin: player.stats?.maxSingleWin || 0,
   });
+  const MAX_FRIENDS = 50;
   const handleAddFriend = async (friend: Friend) => {
+      if (friendsState.friends.length >= MAX_FRIENDS) {
+          setCelebrationMsg(`Friend list is full (max ${MAX_FRIENDS})`);
+          return;
+      }
       if (!isRealPlayerId(friend.id)) {
           if (pendingFriendRequestIds.includes(friend.id) || friendsState.friends.some(f => f.id === friend.id)) return;
           // Bots have no real backend to send a request to, but adding one INSTANTLY
@@ -4609,7 +4663,14 @@ const App: React.FC = () => {
       if (!ok) { setCelebrationMsg('Failed to send friend request'); return; }
       setPendingFriendRequestIds(prev => prev.includes(friend.id) ? prev : [...prev, friend.id]);
   };
+  const handleRemoveFriend = (friendId: string) => {
+      setFriendsState(prev => ({ ...prev, friends: prev.friends.filter(f => f.id !== friendId) }));
+  };
   const handleAcceptFriendRequest = (req: IncomingRequest) => {
+      if (friendsState.friends.length >= MAX_FRIENDS) {
+          setCelebrationMsg(`Friend list is full (max ${MAX_FRIENDS})`);
+          return;
+      }
       acceptFriendRequest(req.id);
       setFriendsState(prev => prev.friends.some(f => f.id === req.fromDevice) ? prev : {
           ...prev,
@@ -7653,6 +7714,8 @@ const App: React.FC = () => {
           onAddFriend={handleAddFriend}
           onAcceptRequest={handleAcceptFriendRequest}
           onSendGift={handleSendGift}
+          onRemoveFriend={handleRemoveFriend}
+          maxFriends={MAX_FRIENDS}
       />
 
       {/* Purchase Unavailable Popup */}
