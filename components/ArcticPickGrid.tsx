@@ -63,9 +63,13 @@ interface Cell { id: number; tier: Tier; state: CellState; }
 export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWin, rows, cols, hiddenIcon = '/arctic/snow.png', bgColor = '#000a14' }) => {
     const [winningTier] = useState<Tier>(rollWinningTier);
     const [cells, setCells] = useState<Cell[]>(() => {
+        // Fill the whole grid (whatever size the calling slot uses) — one cell per
+        // non-winning tier, the rest all the winning tier (need 3 of those to win).
+        const totalCells = Math.max(rows * cols, TIERS.length);
+        const fillerTiers = TIERS.filter(t => t !== winningTier);
         const tierList: Tier[] = [
-            ...Array(11).fill(winningTier),
-            ...TIERS.filter(t => t !== winningTier),
+            ...Array(totalCells - fillerTiers.length).fill(winningTier),
+            ...fillerTiers,
         ] as Tier[];
         return shuffle(tierList).map((tier, id) => ({ id, tier, state: 'hidden' as CellState }));
     });

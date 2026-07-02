@@ -872,9 +872,9 @@ const App: React.FC = () => {
           const saved = localStorage.getItem('cw_arena');
           if (saved) {
               const parsed = JSON.parse(saved);
-              // Grandfather in players who already had season progress before the
-              // explicit Join gate existed — only genuinely fresh players start unjoined.
-              return { ...initialArenaState(Date.now()), ...parsed, hasJoined: parsed.hasJoined ?? parsed.points > 0 };
+              // Everyone needs an explicit Join tap, even players with old season
+              // progress from before this gate existed — no auto-joining from prior points.
+              return { ...initialArenaState(Date.now()), ...parsed, hasJoined: !!parsed.hasJoined };
           }
       } catch {}
       return initialArenaState(Date.now());
@@ -2420,10 +2420,92 @@ const App: React.FC = () => {
       return { grid, newCells };
   };
 
-  // Pure payline win evaluation (used for cascade steps)
+  // Olympus Ascend's real win model: "Scatter Pays" — 8+ of the same symbol
+  // anywhere on the grid pays, no lines involved. WILD substitutes into every
+  // symbol's count (and can also form its own all-wild cluster).
+  const PAYABLE_TYPES: SymbolType[] = [
+      SymbolType.TEN, SymbolType.JACK, SymbolType.QUEEN, SymbolType.KING, SymbolType.ACE,
+      SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN,
+  ];
+  const scatterPaysEvaluate = (grid: SymbolType[][], bet: number, theme: GameTheme): { payout: number; winningCells: {col:number,row:number}[] } => {
+      const symbols = GET_SYMBOLS(theme);
+      const cols = grid.length, rows = grid[0]?.length || 0;
+      const wildCells: {col:number,row:number}[] = [];
+      const cellsByType = new Map<SymbolType, {col:number,row:number}[]>();
+      for (let c = 0; c < cols; c++) {
+          for (let r = 0; r < rows; r++) {
+              const s = grid[c][r];
+              if (s === SymbolType.WILD) { wildCells.push({ col: c, row: r }); continue; }
+              if (!PAYABLE_TYPES.includes(s)) continue;
+              if (!cellsByType.has(s)) cellsByType.set(s, []);
+              cellsByType.get(s)!.push({ col: c, row: r });
+          }
+      }
+      let payout = 0;
+      const winningCells: {col:number,row:number}[] = [];
+      const scoreCluster = (type: SymbolType, cells: {col:number,row:number}[]) => {
+          const total = cells.length;
+          if (total < 8) return;
+          const cfg = symbols[type];
+          if (!cfg) return;
+          const tierMult = total >= 12 ? 4.0 : total >= 10 ? 2.0 : 0.7;
+          const win = Math.floor(bet * (cfg.value / 3) * tierMult);
+          if (win > 0) { payout += win; winningCells.push(...cells); }
+      };
+      cellsByType.forEach((cells, type) => scoreCluster(type, [...cells, ...wildCells]));
+      scoreCluster(SymbolType.WILD, wildCells);
+      return { payout, winningCells };
+  };
+
+  // Buffalo Thunder's real win model: "Ways to Win" — matching symbols on
+  // consecutive reels (starting from reel 1, any row) all pay together, scaled
+  // by how many ways that match can be formed. WILD substitutes for all of them.
+  const waysToWinEvaluate = (grid: SymbolType[][], bet: number, theme: GameTheme): { payout: number; winningCells: {col:number,row:number}[] } => {
+      const symbols = GET_SYMBOLS(theme);
+      const cols = grid.length, rows = grid[0]?.length || 0;
+      const candidates = [...PAYABLE_TYPES, SymbolType.WILD];
+      let payout = 0;
+      const winningCells: {col:number,row:number}[] = [];
+      for (const type of candidates) {
+          let ways = 1, consecutive = 0;
+          const matchedCells: {col:number,row:number}[] = [];
+          for (let c = 0; c < cols; c++) {
+              const rowsHere: number[] = [];
+              for (let r = 0; r < rows; r++) {
+                  const s = grid[c][r];
+                  if (s === type || s === SymbolType.WILD) rowsHere.push(r);
+              }
+              if (rowsHere.length === 0) break;
+              ways *= rowsHere.length;
+              consecutive++;
+              rowsHere.forEach(r => matchedCells.push({ col: c, row: r }));
+          }
+          if (consecutive >= 3) {
+              const cfg = symbols[type];
+              if (cfg) {
+                  const lenMult = consecutive === 4 ? 2.0 : consecutive >= 5 ? 4.0 : 0.5;
+                  const waysBonus = 1 + Math.min(ways - 1, 8) * 0.15;
+                  const win = Math.floor(bet * (cfg.value / 3) * lenMult * waysBonus);
+                  if (win > 0) { payout += win; winningCells.push(...matchedCells); }
+              }
+          }
+      }
+      return { payout, winningCells };
+  };
+
+  // Pure win evaluation (used for cascade steps) — payline-based by default,
+  // Scatter Pays / Ways to Win for the slots that use those models instead.
   const computeGridWins = (finalGrid: SymbolType[][], bet: number): {
       payout: number; winningLines: number[]; winningCells: {col: number, row: number}[];
   } => {
+      if (selectedGame.theme === 'OLYMPUS') {
+          const r = scatterPaysEvaluate(finalGrid, bet, selectedGame.theme);
+          return { payout: r.payout, winningLines: [], winningCells: r.winningCells };
+      }
+      if (selectedGame.theme === 'BUFFALO') {
+          const r = waysToWinEvaluate(finalGrid, bet, selectedGame.theme);
+          return { payout: r.payout, winningLines: [], winningCells: r.winningCells };
+      }
       let totalPayout = 0;
       const winningLines: number[] = [];
       const winningCells: {col: number, row: number}[] = [];
@@ -2791,16 +2873,18 @@ const App: React.FC = () => {
            if (eventTriggered && c > 0) buffaloStackedThisSpin = true;
       }
 
-      // BUFFALO: Buffalo Thunder's signature moment — free spins guarantee at least
-      // one full-reel stack of a high-value animal symbol (its "ways to win" payoff
-      // biggest hitters), instead of leaving it to the same generic chance every
-      // other slot uses. This is what actually sets it apart from Olympus Ascend's
-      // orb-multiplier free spins rather than both just being "a cascade slot".
+      // BUFFALO: Buffalo Thunder's signature moment — free spins guarantee a real
+      // Ways-to-Win hit by stacking a high-value animal symbol across reels 1-3
+      // (Ways to Win only pays runs starting from reel 1), instead of leaving it to
+      // the same generic chance every other slot uses. This is what actually sets
+      // it apart from Olympus Ascend's orb-multiplier free spins.
       if (selectedGame.theme === 'BUFFALO' && isFreeSpin && !buffaloStackedThisSpin) {
           const animalSymbols = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN];
           const stackSymbol = animalSymbols[Math.floor(Math.random() * animalSymbols.length)];
-          const stackCol = 1 + Math.floor(Math.random() * (cols - 1));
-          for (let r = 0; r < rows; r++) newGrid[stackCol][r] = stackSymbol;
+          const guaranteedRun = Math.min(3, cols);
+          for (let c = 0; c < guaranteedRun; c++) {
+              for (let r = 0; r < rows; r++) newGrid[c][r] = stackSymbol;
+          }
       }
 
       // PIRATE: ~4% base-game chance for a Ghost Ship to board on the rightmost reel.
@@ -3945,6 +4029,15 @@ const App: React.FC = () => {
     // PIGGY: on normal spins, COIN scores as SEVEN (scatter coin counts toward seven paylines)
     const normalizePiggy = (sym: SymbolType): SymbolType =>
         (isPiggy && freeSpinsRemaining === 0 && sym === SymbolType.COIN) ? SymbolType.SEVEN : sym;
+    if (selectedGame.theme === 'OLYMPUS' || selectedGame.theme === 'BUFFALO') {
+        // These two use their own real win models instead of fixed paylines —
+        // Scatter Pays for Olympus, Ways to Win for Buffalo.
+        const r = selectedGame.theme === 'OLYMPUS'
+            ? scatterPaysEvaluate(finalGrid, currentBet, selectedGame.theme)
+            : waysToWinEvaluate(finalGrid, currentBet, selectedGame.theme);
+        totalPayout += r.payout;
+        winningCells.push(...r.winningCells);
+    } else {
     currentPaylines.forEach(line => {
       const symbols = line.indices.map((row, col) => normalizePiggy((finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN));
       let matchLen = 1;
@@ -3980,6 +4073,7 @@ const App: React.FC = () => {
         }
       }
     });
+    }
 
     let scatterCount = 0;
     const scatterCells: {col: number, row: number}[] = [];
