@@ -949,15 +949,16 @@ const App: React.FC = () => {
   const olympusOrbGridRef = useRef<(number | null)[][] | null>(null);
   const [olympusOrbGrid, setOlympusOrbGrid] = useState<(number | null)[][] | null>(null);
 
-  // Buffalo Thunder: Collect symbols during free spins bump a persistent multiplier
-  // (never resets mid-round, unlike the generic cascade-depth multiplier) — the
-  // feature the real Buffalo-family games are known for that was missing before.
+  // Buffalo Thunder: Collect markers during free spins stack up (max 15, never
+  // resets mid-round); on the round's last spin, every collected marker becomes a
+  // randomly-placed WILD for one big final spin. Separately, any WILD (natural or
+  // from the collect payoff) has an independent chance to carry a 2x/3x/5x bonus.
   const buffaloCollectGridRef = useRef<boolean[][] | null>(null);
   const [buffaloCollectGrid, setBuffaloCollectGrid] = useState<boolean[][] | null>(null);
-  const buffaloCollectMultRef = useRef(1);
-  const buffaloCollectCountRef = useRef(0);
-  const [buffaloCollectMult, setBuffaloCollectMult] = useState(1);
-  const [buffaloCollectCount, setBuffaloCollectCount] = useState(0);
+  const buffaloCollectStackRef = useRef(0);
+  const [buffaloCollectStack, setBuffaloCollectStack] = useState(0);
+  const buffaloWildMultGridRef = useRef<(number | null)[][] | null>(null);
+  const [buffaloWildMultGrid, setBuffaloWildMultGrid] = useState<(number | null)[][] | null>(null);
 
   // Neon Vegas Scatter Roulette state
   const [showNeonRoulette, setShowNeonRoulette] = useState(false);
@@ -2479,7 +2480,7 @@ const App: React.FC = () => {
   // Buffalo Thunder's real win model: "Ways to Win" — matching symbols on
   // consecutive reels (starting from reel 1, any row) all pay together, scaled
   // by how many ways that match can be formed. WILD substitutes for all of them.
-  const waysToWinEvaluate = (grid: SymbolType[][], bet: number, theme: GameTheme): { payout: number; winningCells: {col:number,row:number}[] } => {
+  const waysToWinEvaluate = (grid: SymbolType[][], bet: number, theme: GameTheme, wildMultGrid?: (number | null)[][] | null): { payout: number; winningCells: {col:number,row:number}[] } => {
       const symbols = GET_SYMBOLS(theme);
       const cols = grid.length, rows = grid[0]?.length || 0;
       const candidates = [...PAYABLE_TYPES, SymbolType.WILD];
@@ -2487,12 +2488,19 @@ const App: React.FC = () => {
       const winningCells: {col:number,row:number}[] = [];
       for (const type of candidates) {
           let ways = 1, consecutive = 0;
+          let bestWildMult = 1;
           const matchedCells: {col:number,row:number}[] = [];
           for (let c = 0; c < cols; c++) {
               const rowsHere: number[] = [];
               for (let r = 0; r < rows; r++) {
                   const s = grid[c][r];
-                  if (s === type || s === SymbolType.WILD) rowsHere.push(r);
+                  if (s === type || s === SymbolType.WILD) {
+                      rowsHere.push(r);
+                      if (s === SymbolType.WILD) {
+                          const m = wildMultGrid?.[c]?.[r];
+                          if (m) bestWildMult = Math.max(bestWildMult, m);
+                      }
+                  }
               }
               if (rowsHere.length === 0) break;
               ways *= rowsHere.length;
@@ -2504,7 +2512,7 @@ const App: React.FC = () => {
               if (cfg) {
                   const lenMult = consecutive === 4 ? 2.0 : consecutive >= 5 ? 4.0 : 0.5;
                   const waysBonus = 1 + Math.min(ways - 1, 8) * 0.15;
-                  const win = Math.floor(bet * (cfg.value / 3) * lenMult * waysBonus);
+                  const win = Math.floor(bet * (cfg.value / 3) * lenMult * waysBonus * bestWildMult);
                   if (win > 0) { payout += win; winningCells.push(...matchedCells); }
               }
           }
@@ -3386,11 +3394,33 @@ const App: React.FC = () => {
           olympusOrbGridRef.current = orbGrid;
       }
 
-      // BUFFALO: Collect markers during free spins — each one bumps the persistent
-      // collect multiplier once every 3 are gathered (see calculateWin).
+      // BUFFALO: Collect markers stack up during free spins (capped at 15 — a full
+      // screen's worth). On the round's last spin, every collected marker becomes
+      // a randomly-placed WILD instead of spawning a new marker — one big payoff
+      // spin instead of trickling value out over the round.
       if (selectedGame.theme === 'BUFFALO') {
+          const isLastFreeSpin = isFreeSpin && freeSpinsRemaining === 1;
           const collectGrid: boolean[][] = Array.from({ length: cols }, () => Array(rows).fill(false));
-          if (isFreeSpin && Math.random() < 0.30) {
+          if (isLastFreeSpin) {
+              const stackCount = buffaloCollectStackRef.current;
+              if (stackCount > 0) {
+                  const eligible: { c: number; r: number }[] = [];
+                  for (let c = 0; c < cols; c++) {
+                      for (let r = 0; r < rows; r++) {
+                          if (newGrid[c][r] !== SymbolType.SCATTER) eligible.push({ c, r });
+                      }
+                  }
+                  for (let i = eligible.length - 1; i > 0; i--) {
+                      const j = Math.floor(Math.random() * (i + 1));
+                      [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+                  }
+                  for (let i = 0; i < Math.min(stackCount, eligible.length); i++) {
+                      newGrid[eligible[i].c][eligible[i].r] = SymbolType.WILD;
+                  }
+              }
+              buffaloCollectStackRef.current = 0;
+              setBuffaloCollectStack(0);
+          } else if (isFreeSpin && buffaloCollectStackRef.current < 15 && Math.random() < 0.30) {
               const eligible: { c: number; r: number }[] = [];
               for (let c = 0; c < cols; c++) {
                   for (let r = 0; r < rows; r++) {
@@ -3402,9 +3432,24 @@ const App: React.FC = () => {
               if (eligible.length > 0) {
                   const pick = eligible[Math.floor(Math.random() * eligible.length)];
                   collectGrid[pick.c][pick.r] = true;
+                  buffaloCollectStackRef.current = Math.min(15, buffaloCollectStackRef.current + 1);
+                  setBuffaloCollectStack(buffaloCollectStackRef.current);
               }
           }
           buffaloCollectGridRef.current = collectGrid;
+
+          // Any WILD on the final grid (natural or from the collect payoff above) has
+          // an independent chance to carry a 2x/3x/5x bonus multiplier.
+          const wildMultGrid: (number | null)[][] = Array.from({ length: cols }, () => Array(rows).fill(null));
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  if (newGrid[c][r] === SymbolType.WILD && Math.random() < 0.25) {
+                      const roll = Math.random();
+                      wildMultGrid[c][r] = roll < 0.6 ? 2 : roll < 0.9 ? 3 : 5;
+                  }
+              }
+          }
+          buffaloWildMultGridRef.current = wildMultGrid;
       }
 
       return newGrid;
@@ -3598,6 +3643,7 @@ const App: React.FC = () => {
     setTargetGrid([]);
     setOlympusOrbGrid(null);
     setBuffaloCollectGrid(null);
+    setBuffaloWildMultGrid(null);
   }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, goldenPotFrozen, player.level, selectedGame.theme]);
 
   useEffect(() => {
@@ -3605,8 +3651,9 @@ const App: React.FC = () => {
       setTargetGrid(generateSmartGrid());
       // OLYMPUS: mirror this spin's orb placements from the ref into state for rendering.
       setOlympusOrbGrid(selectedGame.theme === 'OLYMPUS' ? olympusOrbGridRef.current : null);
-      // BUFFALO: mirror this spin's Collect marker placement from the ref into state.
+      // BUFFALO: mirror this spin's Collect marker + wild multiplier placement into state.
       setBuffaloCollectGrid(selectedGame.theme === 'BUFFALO' ? buffaloCollectGridRef.current : null);
+      setBuffaloWildMultGrid(selectedGame.theme === 'BUFFALO' ? buffaloWildMultGridRef.current : null);
       // MYSTERY: arm the tile overlay for this spin (cleared each spin; populated only in free spins).
       setMysteryRevealed(false);
       setMysteryCells(mysteryCellsRef.current);
@@ -3900,8 +3947,6 @@ const App: React.FC = () => {
                  ? scatterCount
                  : selectedGame.theme === 'JUNGLE'
                  ? 5
-                 : selectedGame.theme === 'BUFFALO'
-                 ? 8
                  : 10;
              // JUNGLE's scatter count during a retrigger is always the whole 3x3 block (9
              // cells at once), not a linear "more scatters = more spins" signal like other
@@ -3916,14 +3961,12 @@ const App: React.FC = () => {
                  setShowFreeSpinsPopup(true);
                  audioService.playFreeSpinTrigger();
              } else {
-                 // BUFFALO: fresh entry into free spins — reset the persistent collect
-                 // multiplier for the new round (a retrigger above just extends the
-                 // same round, so it doesn't reach this branch and keeps accumulating).
+                 // BUFFALO: fresh entry into free spins — reset the collect stack for
+                 // the new round (a retrigger above just extends the same round, so it
+                 // doesn't reach this branch and keeps accumulating toward the payoff).
                  if (selectedGame.theme === 'BUFFALO') {
-                     buffaloCollectMultRef.current = 1;
-                     buffaloCollectCountRef.current = 0;
-                     setBuffaloCollectMult(1);
-                     setBuffaloCollectCount(0);
+                     buffaloCollectStackRef.current = 0;
+                     setBuffaloCollectStack(0);
                  }
                  setStatus(GameStatus.SCATTER_SHOWCASE);
                  audioService.playScatterTrigger();
@@ -4086,7 +4129,7 @@ const App: React.FC = () => {
         // Scatter Pays for Olympus, Ways to Win for Buffalo.
         const r = selectedGame.theme === 'OLYMPUS'
             ? scatterPaysEvaluate(finalGrid, currentBet, selectedGame.theme)
-            : waysToWinEvaluate(finalGrid, currentBet, selectedGame.theme);
+            : waysToWinEvaluate(finalGrid, currentBet, selectedGame.theme, buffaloWildMultGridRef.current);
         totalPayout += r.payout;
         winningCells.push(...r.winningCells);
     } else {
@@ -4172,33 +4215,6 @@ const App: React.FC = () => {
             }
         }
         if (orbSum > 0) totalPayout = Math.floor(totalPayout * orbSum);
-    }
-
-    // BUFFALO: Collect markers landed this spin push a persistent multiplier that
-    // applies to every free-spin win for the rest of the round — it only ever goes
-    // up, unlike the generic cascade-depth multiplier which resets on a miss.
-    if (selectedGame.theme === 'BUFFALO' && totalFreeSpins > 0) {
-        const collectGrid = buffaloCollectGridRef.current;
-        let collectedThisSpin = 0;
-        if (collectGrid) {
-            for (let c = 0; c < collectGrid.length; c++) {
-                for (let r = 0; r < (collectGrid[c]?.length || 0); r++) {
-                    if (collectGrid[c][r]) collectedThisSpin++;
-                }
-            }
-        }
-        if (collectedThisSpin > 0) {
-            buffaloCollectCountRef.current += collectedThisSpin;
-            setBuffaloCollectCount(buffaloCollectCountRef.current);
-            const newMult = Math.min(5, 1 + Math.floor(buffaloCollectCountRef.current / 3));
-            if (newMult !== buffaloCollectMultRef.current) {
-                buffaloCollectMultRef.current = newMult;
-                setBuffaloCollectMult(newMult);
-            }
-        }
-        if (totalPayout > 0 && buffaloCollectMultRef.current > 1) {
-            totalPayout = Math.floor(totalPayout * buffaloCollectMultRef.current);
-        }
     }
 
     // ARCTIC/OLYMPUS/BUFFALO: no jackpot logic — start cascade sequence
@@ -5135,6 +5151,7 @@ const App: React.FC = () => {
           setTargetGrid([]);
           setOlympusOrbGrid(null);
     setBuffaloCollectGrid(null);
+    setBuffaloWildMultGrid(null);
           setGameLoadingConfig(null);
       }, 700);
   };
@@ -5262,6 +5279,7 @@ const App: React.FC = () => {
       setTargetGrid([]);
       setOlympusOrbGrid(null);
     setBuffaloCollectGrid(null);
+    setBuffaloWildMultGrid(null);
       spaceFsMultRef.current = 1;
       setSpaceMultiplier(1);
       candyWildConfigRef.current = null;
@@ -6085,12 +6103,11 @@ const App: React.FC = () => {
                             {selectedGame.theme === 'BUFFALO' ? (
                                 // Buffalo Thunder never has jackpot cells — show its Collect
                                 // progress here instead of an irrelevant jackpot ticker.
-                                <div className="flex items-center justify-center gap-2 rounded-full mx-auto px-3 py-1"
+                                <div className="flex items-center justify-center gap-1.5 rounded-full mx-auto px-3 py-1"
                                     style={{ width: 'fit-content', background: 'rgba(0,0,0,0.4)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)' }}>
-                                    <img src="/buffalo_wild.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
-                                    <span className="font-black text-white" style={{ fontSize: 12 }}>×{buffaloCollectMult}</span>
                                     <img src="/buffalo_collect.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
-                                    <span className="font-black text-amber-300" style={{ fontSize: 11 }}>{buffaloCollectCount % 3}/3</span>
+                                    <span className="font-black text-amber-300" style={{ fontSize: 12 }}>{buffaloCollectStack}/15</span>
+                                    <img src="/buffalo_wild.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
                                 </div>
                             ) : isCascadeTheme(featureThemeOf(selectedGame.theme)) ? (
                                 freeSpinsRemaining > 0
@@ -6163,6 +6180,7 @@ const App: React.FC = () => {
                                 beastMultiplier={beastMultiplier}
                                 orbValues={olympusOrbGrid ? olympusOrbGrid[i] : undefined}
                                 collectValues={buffaloCollectGrid ? buffaloCollectGrid[i] : undefined}
+                                wildMultValues={buffaloWildMultGrid ? buffaloWildMultGrid[i] : undefined}
                             />
                             ));
                         })()}
@@ -6476,6 +6494,7 @@ const App: React.FC = () => {
                                 rows={selectedGame.rows}
                                 cols={selectedGame.reels}
                                 hiddenIcon={selectedGame.theme === 'OLYMPUS' ? '/zeus_multiply.png' : undefined}
+                                hiddenIconSize={selectedGame.theme === 'OLYMPUS' ? 1 : undefined}
                                 bgColor={selectedGame.theme === 'OLYMPUS' ? '#1a0a2e' : undefined}
                             />
                         )}
@@ -6628,7 +6647,7 @@ const App: React.FC = () => {
                           )}
                       </span>
                       <span className="total-win">
-                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : pirateWalkActive ? 'GHOST SHIP' : showNeonRoulette ? 'ROULETTE' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}${selectedGame.theme === 'BUFFALO' && buffaloCollectMult > 1 ? `  COLLECT ×${buffaloCollectMult}` : ''}` : 'TOTAL WIN'}
+                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : pirateWalkActive ? 'GHOST SHIP' : showNeonRoulette ? 'ROULETTE' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}${selectedGame.theme === 'BUFFALO' && buffaloCollectStack > 0 ? `  COLLECT: ${buffaloCollectStack}/15` : ''}` : 'TOTAL WIN'}
                       </span>
                   </div>
 

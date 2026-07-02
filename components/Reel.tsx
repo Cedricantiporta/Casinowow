@@ -29,6 +29,7 @@ interface ReelProps {
   beastMultiplier?: number | null;
   orbValues?: (number | null)[];
   collectValues?: boolean[];
+  wildMultValues?: (number | null)[];
 }
 
 // JUNGLE's scatter trigger is entirely controlled by App.tsx's grid logic (fixed,
@@ -50,7 +51,7 @@ const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean, excludeSeven?
   return neon ? SymbolType.TEN : SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins, instantStop, beastMultiplier, orbValues, collectValues }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins, instantStop, beastMultiplier, orbValues, collectValues, wildMultValues }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
   const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
@@ -190,6 +191,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                     const isShowcase = inVisibleWindow && isScatterShowcase && s === SymbolType.SCATTER;
                     const orbValue = inVisibleWindow ? (orbValues?.[visibleRowIndex] ?? null) : null;
                     const isCollect = inVisibleWindow ? !!collectValues?.[visibleRowIndex] : false;
+                    const wildMultValue = inVisibleWindow ? (wildMultValues?.[visibleRowIndex] ?? null) : null;
 
                     return (
                         <ReelCell
@@ -209,6 +211,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                             beastMultiplier={beastMultiplier}
                             orbValue={orbValue}
                             isCollect={isCollect}
+                            wildMultValue={wildMultValue}
                         />
                     );
                 })}
@@ -260,7 +263,8 @@ const ReelCell: React.FC<{
     beastMultiplier?: number | null,
     orbValue?: number | null,
     isCollect?: boolean,
-}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6, inFreeSpins, beastMultiplier, orbValue, isCollect }) => {
+    wildMultValue?: number | null,
+}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6, inFreeSpins, beastMultiplier, orbValue, isCollect, wildMultValue }) => {
 
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
@@ -393,28 +397,27 @@ const ReelCell: React.FC<{
                     )}
                     {theme === 'OLYMPUS' && !blur && orbValue != null && (
                         <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-                            <img
-                                src="/zeus_multiply.png"
-                                alt=""
-                                style={{ position: 'absolute', width: '82%', height: '82%', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(96,165,250,0.85))' }}
-                            />
                             <span
-                                className="relative block leading-none"
-                                style={{ fontSize: `${1.6 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                                className="block leading-none"
+                                style={{ fontSize: `${2.4 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
                             >{orbValue}X</span>
                         </div>
                     )}
                     {theme === 'BUFFALO' && !blur && isCollect && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center z-30 pointer-events-none">
+                        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
                             <img
                                 src="/buffalo_collect.png"
                                 alt=""
-                                style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(251,191,36,0.85))' }}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             />
+                        </div>
+                    )}
+                    {theme === 'BUFFALO' && isWild && !blur && !!wildMultValue && (
+                        <div className="absolute top-0 w-full flex justify-center items-start pt-0.5 z-30 pointer-events-none">
                             <span
-                                className="block leading-none absolute bottom-0 pb-0.5"
-                                style={{ fontSize: `${0.65 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 6px #000, 0 0 12px #000, 1px 1px 0 #000' }}
-                            >COLLECT</span>
+                                className="block leading-none"
+                                style={{ fontSize: `${2.4 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                            >{wildMultValue}X</span>
                         </div>
                     )}
                     {theme === 'PIGGY' && symbol === SymbolType.COIN && !blur && inFreeSpins && (

@@ -9,6 +9,7 @@ interface ArcticPickGridProps {
     rows: number;
     cols: number;
     hiddenIcon?: string;
+    hiddenIconSize?: number; // fraction of the cell, 0-1
     bgColor?: string;
 }
 
@@ -60,7 +61,7 @@ const shuffle = <T,>(arr: T[]): T[] => {
 type CellState = 'hidden' | 'revealed';
 interface Cell { id: number; tier: Tier; state: CellState; }
 
-export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWin, rows, cols, hiddenIcon = '/arctic/snow.png', bgColor = '#000a14' }) => {
+export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWin, rows, cols, hiddenIcon = '/arctic/snow.png', hiddenIconSize = 0.7, bgColor = '#000a14' }) => {
     const [winningTier] = useState<Tier>(rollWinningTier);
     const [cells, setCells] = useState<Cell[]>(() => {
         // Fill the whole grid (whatever size the calling slot uses) — one cell per
@@ -154,7 +155,7 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
                                 <img
                                     src={hiddenIcon}
                                     alt=""
-                                    style={{ width: '70%', height: '70%', objectFit: 'contain', opacity: 0.55, filter: 'drop-shadow(0 1px 4px rgba(100,200,255,0.4))' }}
+                                    style={{ width: `${hiddenIconSize * 100}%`, height: `${hiddenIconSize * 100}%`, objectFit: 'contain', opacity: hiddenIconSize >= 1 ? 1 : 0.55, filter: 'drop-shadow(0 1px 4px rgba(100,200,255,0.4))' }}
                                 />
                             )}
                         </button>
