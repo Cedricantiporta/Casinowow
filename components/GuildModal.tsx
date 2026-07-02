@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Guild, GuildDonationState, GuildRole, GuildSummary, GuildTask } from '../types';
 import { GUILD_ICONS, GUILD_MAX_LEVEL, GUILD_MAX_MEMBERS, guildXpForNextLevel, rewardTierForRank, getGuildById } from '../services/guildService';
-import { formatKShort, formatCommaNumber } from '../constants';
+import { formatKShort, formatCommaNumber, formatNumber } from '../constants';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { GroupedList } from './GroupedList';
 import { RewardChip, fmtRewardDuration } from './RewardChip';
@@ -171,7 +171,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
 
     return (
         <div className="absolute inset-0 z-[150] flex flex-col select-none"
-            style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)' }}>
+            style={{ background: 'linear-gradient(180deg,#9e0cb3 0%,#7c14a8 12%,#601e96 28%,#481280 55%,#220450 100%)' }}>
 
             {/* Header — plain text, no pill container */}
             <div className="shrink-0 flex items-center justify-center px-4 pt-3 pb-2 relative">
@@ -542,45 +542,45 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                 );
                             })()}
 
-                            {rightTab === 'TASKS' && (
-                                <GroupedList
-                                    items={tasks}
-                                    keyFn={t => t.id}
-                                    renderRow={t => {
+                            {rightTab === 'TASKS' && tasks.map(t => {
                                 const cost = refreshCostFor(t);
+                                const pct = Math.min(100, (t.current / t.target) * 100);
                                 return (
-                                    <div className="flex items-center gap-2.5 px-3 py-2">
-                                        <i className="ti ti-clipboard-check text-white/50 shrink-0" style={{ fontSize: 20 }} />
+                                    <div key={t.id} className="tcard flex items-center gap-3 p-3">
+                                        <div className="shrink-0 rounded-2xl flex items-center justify-center" style={{ width: 40, height: 40, background: 'rgba(0,0,0,0.3)' }}>
+                                            <i className={`ti ${t.type === 'SPIN_COUNT' ? 'ti-disc' : t.type === 'WIN_COINS' ? 'ti-coin' : 'ti-bolt'} text-white`} style={{ fontSize: 20 }} />
+                                        </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className="font-black text-white truncate" style={{ fontSize: 11.5 }}>{t.description}</div>
-                                            <div className="relative rounded-full mt-1 overflow-hidden" style={{ height: 6, background: 'rgba(0,0,0,0.35)' }}>
-                                                <div className="h-full rounded-full" style={{ width: `${Math.min(100, (t.current / t.target) * 100)}%`, background: t.completed ? 'linear-gradient(90deg,#4ade80,#16a34a)' : 'linear-gradient(90deg,#38bdf8,#0ea5e9)' }} />
+                                            <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{t.description}</div>
+                                            <div className="relative h-5 rounded-full overflow-hidden mt-1.5" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                                                <div className="absolute inset-y-0 left-0 rounded-full transition-all" style={{ width: `${pct}%`, background: t.completed ? 'linear-gradient(180deg,#4ade80,#16a34a)' : 'linear-gradient(180deg,#60a5fa,#2563eb)' }} />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="font-black text-white leading-none" style={{ fontSize: 9, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                                                        {formatNumber(t.current)} / {formatNumber(t.target)}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <div className="font-bold mt-0.5" style={{ fontSize: 8.5, color: t.rewardKind === 'GUILD_XP' ? 'rgba(250,204,21,0.75)' : 'rgba(125,211,252,0.75)' }}>
+                                            <div className="font-bold mt-1" style={{ fontSize: 9, color: t.rewardKind === 'GUILD_XP' ? 'rgba(250,204,21,0.75)' : 'rgba(125,211,252,0.75)' }}>
                                                 +{formatKShort(t.coinReward)} Coins · +{t.pointsReward} {t.rewardKind === 'GUILD_XP' ? 'Guild XP' : 'Contribution'}
                                             </div>
                                         </div>
                                         {t.completed && !t.claimed ? (
                                             <button onClick={() => onClaimTask(t.id)} className="pill-green shrink-0">
-                                                <div className="pill-face flex flex-col items-center leading-tight" style={{ padding: '5px 10px', fontSize: '9.5px' }}>
-                                                    <span>Claim</span>
-                                                    <span style={{ fontSize: 8 }}>+{t.pointsReward} {t.rewardKind === 'GUILD_XP' ? 'XP' : 'Contrib.'}</span>
-                                                </div>
+                                                <div className="pill-face" style={{ padding: '7px 12px', fontSize: '10px' }}>Claim</div>
                                             </button>
                                         ) : t.claimed ? (
-                                            <i className="ti ti-check text-green-400 shrink-0" style={{ fontSize: 18 }} />
+                                            <i className="ti ti-check text-green-400 shrink-0" style={{ fontSize: 20 }} />
                                         ) : (
-                                            <button onClick={() => playerGems >= cost && onRefreshTask(t.id)} disabled={playerGems < cost}
-                                                className="shrink-0 flex flex-col items-center gap-0.5 rounded-xl px-2 py-1" style={{ background: 'rgba(255,255,255,0.08)', opacity: playerGems < cost ? 0.5 : 1 }}>
-                                                <i className="ti ti-refresh text-white/70" style={{ fontSize: 13 }} />
-                                                <span className="font-black text-white/60" style={{ fontSize: 8 }}>{cost} Gems</span>
+                                            <button onClick={() => playerGems >= cost && onRefreshTask(t.id)} disabled={playerGems < cost} className="pill-blue shrink-0" style={{ opacity: playerGems < cost ? 0.5 : 1 }}>
+                                                <div className="pill-face flex flex-col items-center leading-tight" style={{ padding: '5px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
+                                                    <i className="ti ti-refresh" style={{ fontSize: 12 }} />
+                                                    <span>{cost} Gems</span>
+                                                </div>
                                             </button>
                                         )}
                                     </div>
                                 );
-                                    }}
-                                />
-                            )}
+                            })}
 
                             {rightTab === 'TOP' && <TopGuildsList onSelect={setViewingGuildId} />}
                         </div>
@@ -605,7 +605,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
 
             {/* Public guild profile — opened from any Browse/Search/Rankings row */}
             {viewingGuildId && (
-                <div className="absolute inset-0 z-[200] flex flex-col select-none" style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)' }}>
+                <div className="absolute inset-0 z-[200] flex flex-col select-none" style={{ background: 'linear-gradient(180deg,#9e0cb3 0%,#7c14a8 12%,#601e96 28%,#481280 55%,#220450 100%)' }}>
                     <div className="shrink-0 flex items-center px-4 pt-3 pb-2 relative">
                         <div className="round-btn cursor-pointer" onClick={() => setViewingGuildId(null)}><i className="ti ti-arrow-left" /></div>
                         <h2 className="absolute left-0 right-0 text-center font-tanker text-white pointer-events-none" style={{ fontSize: 15 }}>Guild Profile</h2>
