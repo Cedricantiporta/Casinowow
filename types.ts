@@ -218,7 +218,7 @@ export interface GuildTask {
 
 export interface GuildTaskState {
     tasks: GuildTask[];
-    lastReset: number;
+    lastReset: string; // date key, e.g. "2026-6-2"
 }
 
 export interface GuildDonationState {

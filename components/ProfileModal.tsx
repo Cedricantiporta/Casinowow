@@ -133,22 +133,16 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                             {AVATARS.map((def) => {
                                 const pic = def.path;
                                 const unlocked = isAvatarUnlocked(def, avatarCtx);
-                                const isGem = def.unlock.type === 'gems';
-                                const buyable = !unlocked && isGem;
-                                const canAfford = isGem && (def.unlock as any).cost <= player.diamonds;
                                 const reqLabel = avatarRequirementLabel(def);
                                 return (
                                     <button key={pic}
-                                        onClick={() => {
-                                            if (unlocked) { onSetProfileEmoji?.(pic); setShowPicPicker(false); return; }
-                                            if (buyable && canAfford) onBuyAvatar?.(pic, (def.unlock as any).cost);
-                                        }}
-                                        className={`relative w-11 h-11 rounded-xl overflow-hidden transition-transform${unlocked || (buyable && canAfford) ? ' active:scale-90 hover:brightness-125' : ''}`}
-                                        style={{ border: profileEmoji === pic ? `2px solid ${vip ? '#fbbf24' : '#a855f7'}` : '2px solid transparent', cursor: unlocked || (buyable && canAfford) ? 'pointer' : 'default' }}>
+                                        onClick={() => { if (unlocked) { onSetProfileEmoji?.(pic); setShowPicPicker(false); } }}
+                                        className={`relative w-11 h-11 rounded-xl overflow-hidden transition-transform${unlocked ? ' active:scale-90 hover:brightness-125' : ''}`}
+                                        style={{ border: profileEmoji === pic ? `2px solid ${vip ? '#fbbf24' : '#a855f7'}` : '2px solid transparent', cursor: unlocked ? 'pointer' : 'default' }}>
                                         <img src={pic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         {!unlocked && (
                                             <span className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 text-white/90" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
-                                                {isGem ? <i className="ti ti-diamond" style={{ fontSize: 11 }} /> : <i className="ti ti-lock" style={{ fontSize: 11 }} />}
+                                                <i className="ti ti-lock" style={{ fontSize: 11 }} />
                                                 <span className="font-black leading-none" style={{ fontSize: 7.5 }}>{reqLabel}</span>
                                             </span>
                                         )}

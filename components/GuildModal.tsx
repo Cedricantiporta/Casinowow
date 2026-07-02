@@ -112,8 +112,6 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                     items={list}
                     keyFn={g => g.id}
                     emptyText="No ranked guilds yet"
-                    rowBackground={g => myGuild?.id === g.id ? 'rgba(74,222,128,0.14)' : undefined}
-                    rowBoxShadow={g => myGuild?.id === g.id ? 'inset 0 0 0 1px rgba(74,222,128,0.35)' : undefined}
                     renderRow={(g, i) => {
                         const rank = i + 1;
                         const badge = RANK_BADGE(rank);
@@ -384,7 +382,6 @@ export const GuildModal: React.FC<GuildModalProps> = ({
 
                         {/* Daily donations */}
                         <div className="tcard p-3 flex flex-col gap-2">
-                            <span className="font-black text-white/60 uppercase tracking-widest" style={{ fontSize: 9 }}>Daily Donation (+100 Contribution each)</span>
                             <div className="flex items-center gap-2">
                                 <img src="/new_coinicon.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
                                 <span className="flex-1 font-bold text-white/70" style={{ fontSize: 10.5 }}>Donate Coins</span>

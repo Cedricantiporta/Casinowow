@@ -644,6 +644,9 @@ const App: React.FC = () => {
   const lifetimeSpinsRef = useRef<number>(0);
   const firstFreeSpinDoneRef = useRef<boolean>(false);
   const forceFreeSpinRef = useRef<boolean>(false);
+  // Piggy Riches' guaranteed first-time-player free-spin round also guarantees a
+  // predetermined MAJOR jackpot partway through (not left to the normal per-cell chance).
+  const piggyGuaranteedJackpotRef = useRef<boolean>(false);
   useEffect(() => {
       try {
           lifetimeSpinsRef.current = JSON.parse(localStorage.getItem('cw_player') || '{}')?.stats?.totalSpins || 0;
@@ -969,6 +972,14 @@ const App: React.FC = () => {
       return freshGuildTasks();
   });
   useEffect(() => { try { localStorage.setItem('cw_guild_tasks', JSON.stringify(guildTaskState)); } catch {} }, [guildTaskState]);
+  // The state-init check only fires on a fresh page load — re-check on every
+  // Guild page open too, so missions still reset daily even in a long-lived tab.
+  useEffect(() => {
+      if (showGuild && guildTaskState.lastReset !== todayKeyOf(new Date())) {
+          setGuildTaskState(freshGuildTasks());
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showGuild]);
 
   // Guild donations — up to one coin donation + one gem donation per day.
   const [guildDonationState, setGuildDonationState] = useState<GuildDonationState>(() => {
@@ -3573,6 +3584,26 @@ const App: React.FC = () => {
           }
       }
 
+      // Piggy Riches: the guaranteed first-time free-spin round also guarantees a
+      // predetermined MAJOR jackpot midway through — 3 forced cells (a real win,
+      // not left to the per-cell chance above), fired exactly once per round.
+      if (ft === 'PIGGY' && isFreeSpin && piggyGuaranteedJackpotRef.current && freeSpinsRemaining === 5) {
+          const eligible: { c: number; r: number }[] = [];
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  if (newGrid[c][r] !== SymbolType.SCATTER && newGrid[c][r] !== SymbolType.WILD) eligible.push({ c, r });
+              }
+          }
+          for (let i = eligible.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+          }
+          for (let i = 0; i < Math.min(3, eligible.length); i++) {
+              newGrid[eligible[i].c][eligible[i].r] = SymbolType.JACKPOT_MAJOR;
+          }
+          piggyGuaranteedJackpotRef.current = false;
+      }
+
       // PIRATE: while the Ghost Ship is walking, force all active ship columns to full WILD stacks.
       if (ft === 'PIRATE' && pirateWalkRef.current.active) {
           const shipCol = pirateWalkRef.current.shipCol;
@@ -3678,6 +3709,7 @@ const App: React.FC = () => {
               for (let i = 0; i < Math.min(6, eligible.length); i++) {
                   newGrid[eligible[i].c][eligible[i].r] = SymbolType.COIN;
               }
+              piggyGuaranteedJackpotRef.current = true;
           } else if (ft !== 'EGYPT') {
               // All non-Egypt, non-Piggy slots: drop enough scatters in distinct columns.
               const need = Math.min(selectedGame.scattersToTrigger || 3, cols);
