@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS } from './constants';
+import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState } from './types';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, GENERATE_GUILD_TASKS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -39,6 +39,8 @@ import { InboxModal, InboxMessage } from './components/InboxModal';
 import { LeaderboardModal } from './components/LeaderboardModal';
 import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
+import { GuildModal } from './components/GuildModal';
+import { searchGuilds, getMyGuild, createGuild, joinGuild, leaveGuild, kickMember, setMemberRole, contributeGuildXp, GUILD_CREATE_COST } from './services/guildService';
 import { FriendsModal } from './components/FriendsModal';
 import {
     canSend as friendCanSend, receivedGiftAmount, toFriend, isRealPlayerId, DAILY_MS,
@@ -931,6 +933,95 @@ const App: React.FC = () => {
   const arenaProcessedRef = useRef(0);        // last seasonId we ran end-of-season for
   // Arena unlocks once all quest stages are cleared OR the player reaches level 27.
   const arenaUnlocked = player.level >= 27 || slotQuestState.currentPathIndex >= QUEST_PATH_IDS.length;
+
+  // Guild — real, Supabase-backed groups. Same unlock gate as Arena; the lobby's
+  // Arena icon now opens this instead (Arena itself moved to its own lobby card).
+  const guildUnlocked = arenaUnlocked;
+  const [showGuild, setShowGuild] = useState(false);
+  const [myGuild, setMyGuild] = useState<Guild | null>(null);
+  const [guildSearchResults, setGuildSearchResults] = useState<GuildSummary[]>([]);
+  const [guildLoading, setGuildLoading] = useState(false);
+  const [guildError, setGuildError] = useState('');
+  const [guildTaskState, setGuildTaskState] = useState<GuildTaskState>(() => {
+      try {
+          const saved = localStorage.getItem('cw_guild_tasks');
+          if (saved) {
+              const parsed = JSON.parse(saved);
+              const now = new Date();
+              const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+              if (parsed.lastReset !== todayKey) {
+                  return { lastReset: todayKey, tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)) };
+              }
+              return parsed;
+          }
+      } catch {}
+      const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; })();
+      return { lastReset: todayKey, tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)) };
+  });
+  useEffect(() => { try { localStorage.setItem('cw_guild_tasks', JSON.stringify(guildTaskState)); } catch {} }, [guildTaskState]);
+
+  const refreshMyGuild = () => { getMyGuild(getDeviceId()).then(setMyGuild); };
+  useEffect(() => { if (guildUnlocked) refreshMyGuild(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [guildUnlocked]);
+
+  const handleGuildSearch = (query: string) => {
+      setGuildLoading(true);
+      searchGuilds(query).then(res => { setGuildSearchResults(res); setGuildLoading(false); });
+  };
+  const handleGuildCreate = async (name: string, description: string, icon: string, color: string, isOpen: boolean) => {
+      if (player.balance < GUILD_CREATE_COST) return;
+      setGuildError('');
+      const you = { deviceId: getDeviceId(), name: playerName, avatar: profileEmoji };
+      const { guild, error } = await createGuild(name, description, icon, color, isOpen, you);
+      if (error || !guild) { setGuildError(error || 'Could not create guild.'); return; }
+      setPlayer(p => ({ ...p, balance: p.balance - GUILD_CREATE_COST }));
+      setMyGuild(guild);
+  };
+  const handleGuildJoin = async (guildId: string) => {
+      setGuildError('');
+      const you = { deviceId: getDeviceId(), name: playerName, avatar: profileEmoji };
+      const { error } = await joinGuild(guildId, you);
+      if (error) { setGuildError(error); return; }
+      refreshMyGuild();
+  };
+  const handleGuildLeave = async () => {
+      if (!myGuild) return;
+      await leaveGuild(myGuild.id, getDeviceId());
+      setMyGuild(null);
+  };
+  const handleGuildKick = async (targetDeviceId: string) => {
+      if (!myGuild) return;
+      await kickMember(myGuild.id, targetDeviceId);
+      refreshMyGuild();
+  };
+  const handleGuildSetRole = async (targetDeviceId: string, role: 'LEADER' | 'OFFICER' | 'MEMBER') => {
+      if (!myGuild) return;
+      await setMemberRole(myGuild.id, targetDeviceId, role);
+      refreshMyGuild();
+  };
+  const handleClaimGuildTask = async (taskId: string) => {
+      const task = guildTaskState.tasks.find(t => t.id === taskId);
+      if (!task || !task.completed || task.claimed) return;
+      setPlayer(p => ({ ...p, balance: p.balance + task.coinReward }));
+      triggerCoinAnim(task.coinReward);
+      setGuildTaskState(prev => ({ ...prev, tasks: prev.tasks.map(t => t.id === taskId ? { ...t, claimed: true } : t) }));
+      if (myGuild) {
+          const newLevel = await contributeGuildXp(myGuild.id, getDeviceId(), task.guildXpReward);
+          refreshMyGuild();
+          if (newLevel) setCelebrationMsg(`${myGuild.name} reached Level ${newLevel}!`);
+      }
+  };
+  // Guild tasks reuse the same event types Daily Missions already tracks.
+  const updateGuildTasks = (type: string, amount: number) => {
+      if (!guildUnlocked) return;
+      setGuildTaskState(prev => ({
+          ...prev,
+          tasks: prev.tasks.map(t => {
+              if (t.type !== type || t.completed) return t;
+              const newCurrent = t.current + amount;
+              return { ...t, current: newCurrent, completed: newCurrent >= t.target };
+          }),
+      }));
+  };
 
   // Hold and Win state (Egypt / Pharaoh's Tomb)
   const [holdWinActive, setHoldWinActive] = useState(false);
@@ -2028,6 +2119,7 @@ const App: React.FC = () => {
   }, [loginState]);
 
   const updateMissions = (type: MissionType, amount: number) => {
+      updateGuildTasks(type, amount);
       if (player.level < 15) return;
       setMissionState(prev => {
           const visibleIds = new Set<string>();
@@ -6130,6 +6222,8 @@ const App: React.FC = () => {
                 onOpenHighRoller={handleOpenHighRoller}
                 onOpenVipLounge={() => setShowVipLounge(true)}
                 onOpenArena={() => setShowArena(true)}
+                onOpenGuild={() => setShowGuild(true)}
+                guildUnlocked={guildUnlocked}
                 arena={arenaUnlocked ? arenaState : undefined}
                 arenaPlayerName={playerName}
                 arenaPlayerAvatar={profileEmoji}
@@ -7700,6 +7794,25 @@ const App: React.FC = () => {
           result={arenaState.lastResult || null}
           nextSeasonInMs={phaseTimeRemaining(arenaState, Date.now())}
           onClose={() => { setShowArenaResults(false); setArenaState(prev => ({ ...prev, lastResult: null })); }}
+      />
+      <GuildModal
+          isOpen={showGuild}
+          onClose={() => setShowGuild(false)}
+          deviceId={getDeviceId()}
+          myGuild={myGuild}
+          loading={guildLoading}
+          searchResults={guildSearchResults}
+          onSearch={handleGuildSearch}
+          onCreate={handleGuildCreate}
+          onJoin={handleGuildJoin}
+          onLeave={handleGuildLeave}
+          onKick={handleGuildKick}
+          onSetRole={handleGuildSetRole}
+          createCost={GUILD_CREATE_COST}
+          playerBalance={player.balance}
+          tasks={guildTaskState.tasks}
+          onClaimTask={handleClaimGuildTask}
+          errorMsg={guildError}
       />
 
       {/* Friends */}

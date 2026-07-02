@@ -37,6 +37,8 @@ interface LobbyProps {
     onOpenHighRoller: () => void;
     onOpenVipLounge: () => void;
     onOpenArena?: () => void;
+    onOpenGuild?: () => void;
+    guildUnlocked?: boolean;
     arena?: ArenaState;
     arenaPlayerName?: string;
     arenaPlayerAvatar?: string;
@@ -80,6 +82,8 @@ export const Lobby: React.FC<LobbyProps> = ({
     onOpenHighRoller,
     onOpenVipLounge,
     onOpenArena,
+    onOpenGuild,
+    guildUnlocked,
     arena,
     arenaPlayerName,
     arenaPlayerAvatar,
@@ -435,7 +439,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                     ? 'inset 0 2px 0 rgba(255,210,80,0.85)'
                     : 'inset 0 2px 0 rgba(220,170,255,0.95)';
                 const barGlow = topInset;
-                const isArenaLocked = !arena;
 
                 // Whether any row-2 icon currently has a pending notification —
                 // surfaced as a plain dot (no count) on the collapsed toggle.
@@ -592,10 +595,10 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                                     {sep}
 
-                                    {/* Arena */}
-                                    <button onClick={!isArenaLocked ? () => { onOpenArena?.(); setDockExpanded(false); } : undefined} className={iconBtn(isArenaLocked)}>
-                                        <img src="/Lobby_arena.png" alt="" style={iconStyle(isArenaLocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                        <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">Arena</span>
+                                    {/* Guild (reuses the Arena dock icon; Arena itself moved to its own lobby card) */}
+                                    <button onClick={guildUnlocked ? () => { onOpenGuild?.(); setDockExpanded(false); } : undefined} className={iconBtn(!guildUnlocked)}>
+                                        <img src="/Lobby_arena.png" alt="" style={iconStyle(!guildUnlocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                        <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">Guild</span>
                                     </button>
 
                                     {sep}

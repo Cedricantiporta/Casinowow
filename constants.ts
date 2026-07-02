@@ -962,6 +962,32 @@ export const GENERATE_REPLACEMENT_MISSION = (level: number, frequency: MissionFr
     };
 };
 
+// 3 daily guild tasks — completing one pays the player coins and adds guild XP.
+// Reuses the same event types Daily Missions already tracks (SPIN_COUNT, WIN_COINS,
+// BIG_WIN_COUNT) so tracking guild-task progress just piggybacks on updateMissions.
+export const GENERATE_GUILD_TASKS = (playerLevel: number, maxBet?: number): import('./types').GuildTask[] => {
+    const mb = maxBet && maxBet > 0 ? maxBet : 10000;
+    const templates: { type: import('./types').GuildTask['type']; base: number; desc: string }[] = [
+        { type: 'SPIN_COUNT',    base: 60,      desc: 'Spin the reels' },
+        { type: 'WIN_COINS',     base: mb * 8,  desc: 'Win total coins' },
+        { type: 'BIG_WIN_COUNT', base: 5,       desc: 'Hit Big Wins' },
+    ];
+    return templates.map((t, i) => {
+        const target = t.type === 'SPIN_COUNT' ? Math.round(t.base + playerLevel * 3) : t.type === 'WIN_COINS' ? Math.floor(t.base) : t.base;
+        return {
+            id: `guild-task-${Date.now()}-${i}`,
+            type: t.type,
+            description: `${t.desc} ${formatNumber(target)}${t.type === 'WIN_COINS' ? '' : ' times'}`,
+            target,
+            current: 0,
+            guildXpReward: 40 + i * 20,
+            coinReward: Math.floor(mb * (2 + i)),
+            completed: false,
+            claimed: false,
+        };
+    });
+};
+
 export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): Mission[] => {
     const multiplier = Math.max(1, playerLevel);
     const missions: Mission[] = [];

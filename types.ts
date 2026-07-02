@@ -171,6 +171,51 @@ export interface FriendsState {
     friends: Friend[];
 }
 
+export type GuildRole = 'LEADER' | 'OFFICER' | 'MEMBER';
+
+export interface GuildMember {
+    deviceId: string;
+    name: string;
+    avatar: string;
+    role: GuildRole;
+    contribution: number;
+    joinedAt: number;
+}
+
+export interface GuildSummary {
+    id: string;
+    name: string;
+    description: string;
+    icon: string;
+    color: string;
+    isOpen: boolean;
+    level: number;
+    xp: number;
+    memberCount: number;
+}
+
+export interface Guild extends GuildSummary {
+    leaderId: string;
+    members: GuildMember[];
+}
+
+export interface GuildTask {
+    id: string;
+    type: 'SPIN_COUNT' | 'WIN_COINS' | 'BIG_WIN_COUNT';
+    description: string;
+    target: number;
+    current: number;
+    guildXpReward: number;
+    coinReward: number;
+    completed: boolean;
+    claimed: boolean;
+}
+
+export interface GuildTaskState {
+    tasks: GuildTask[];
+    lastReset: number;
+}
+
 // --- Arena Ranking System ---
 
 export interface ArenaResult {
