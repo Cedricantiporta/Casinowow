@@ -302,7 +302,7 @@ const STARTUP_ASSETS = [
     '/topbar_mini.png', '/topbar_minor.png', '/topbar_major.png', '/topbar_mega.png', '/topbar_grand.png',
     '/asian_topbar_mini.png', '/asian_topbar_minor.png', '/asian_topbar_major.png', '/asian_topbar_mega.png', '/asian_topbar_grand.png',
     // profile pictures (player avatar selection)
-    ...Array.from({ length: 12 }, (_, i) => `/Profile_pic (${i + 1}).png`),
+    ...Array.from({ length: 15 }, (_, i) => `/profilepicsnew (${i + 2}).png`),
     // shop coin / gem bundle icons
     '/coin_1.png', '/coin_2.png', '/coin_3.png', '/coin_4.png', '/coin_5.png',
     '/gem_1.png', '/gem_2.png', '/gem_3.png',
@@ -6173,7 +6173,7 @@ const App: React.FC = () => {
                         onClick={currentView !== 'LOBBY' ? handleHeaderBack : () => setShowProfile(true)}
                         className="round-btn shrink-0 cursor-pointer"
                         style={{
-                            ...(currentView === 'LOBBY' && profileEmoji?.startsWith('/Profile_pic')
+                            ...(currentView === 'LOBBY' && profileEmoji?.startsWith('/profilepicsnew')
                                 ? { width: 32, height: 32, padding: 0, overflow: 'hidden', boxShadow: `inset 0 0 0 2px rgba(255,255,255,0.55), 0 0 0 2px ${player.isVip ? '#fbbf24' : '#a855f7'}, 0 1px 3px rgba(0,0,0,0.5)` }
                                 : {}),
                             ...(showGoldHeader ? { background:'linear-gradient(180deg,#ffec70 0%,#ffbe2a 50%,#ff8c12 100%)', boxShadow:'0 2px 0 #5a3800' } : {}),
@@ -6181,7 +6181,7 @@ const App: React.FC = () => {
                     >
                         {currentView !== 'LOBBY'
                             ? <i className="ti ti-arrow-left"></i>
-                            : (profileEmoji?.startsWith('/Profile_pic')
+                            : (profileEmoji?.startsWith('/profilepicsnew')
                                 ? <img src={profileEmoji} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                                 : <i className="ti ti-user" />)
                         }

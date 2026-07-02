@@ -43,6 +43,9 @@ interface GuildModalProps {
 }
 
 const RANK_BADGE = (rank: number) => rank <= 3 ? `/Rank (${rank}).png` : null;
+// Crests are full standalone icons now (no background chip) — this only feeds
+// the `color` column, which nothing renders with anymore.
+const GUILD_DEFAULT_COLOR = 'from-indigo-500 via-violet-600 to-purple-900';
 const ROLE_RANK: Record<GuildRole, number> = { LEADER: 0, OFFICER: 1, MEMBER: 2 };
 
 export const GuildModal: React.FC<GuildModalProps> = ({
@@ -56,7 +59,6 @@ export const GuildModal: React.FC<GuildModalProps> = ({
     const [topSubTab, setTopSubTab] = useState<'LEVEL' | 'CONTRIBUTION'>('CONTRIBUTION');
     const [search, setSearch] = useState('');
     const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
     const [iconIdx, setIconIdx] = useState(0);
     const [openJoin, setOpenJoin] = useState(true);
     const [confirmAction, setConfirmAction] = useState<string | null>(null);
@@ -122,17 +124,17 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                 <div className="w-7 flex items-center justify-center shrink-0">
                                     {badge ? <img src={badge} alt="" style={{ width: 27, height: 27, objectFit: 'contain' }} /> : <span className="font-black text-white/70" style={{ fontSize: 12 }}>{rank}</span>}
                                 </div>
-                                <div className={`shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 34, height: 34 }}>
-                                    <img src={g.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
-                                </div>
+                                <img src={g.icon} alt="" className="shrink-0" style={{ width: 34, height: 34, objectFit: 'contain' }} />
                                 <div className="flex-1 min-w-0">
                                     <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{g.name}{isMine && <span className="text-green-400" style={{ fontSize: 9 }}> (Yours)</span>}</div>
                                     <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>
-                                        {topSubTab === 'LEVEL' ? `Lvl ${g.level}/${GUILD_MAX_LEVEL}` : `${formatKShort(g.contributionPoints)} Contribution`} · {g.memberCount} members
+                                        {topSubTab === 'LEVEL' ? `Lvl ${g.level}/${GUILD_MAX_LEVEL}` : `${g.memberCount} members`}
                                     </div>
                                 </div>
                                 {tier && (
-                                    <div className="shrink-0 flex items-center gap-1">
+                                    <div className="shrink-0 flex flex-col items-end gap-1">
+                                        <span className="font-black text-yellow-300" style={{ fontSize: 16 }}>{formatKShort(g.contributionPoints)}</span>
+                                    <div className="flex items-center gap-1">
                                         <RewardChip
                                             tooltip={`${formatCommaNumber(Math.round(tier.betMult * maxBet))} Coins (${tier.betMult}× your max bet)`}
                                             icon={<img src="/new_coinicon.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
@@ -174,6 +176,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                             />
                                         )}
                                     </div>
+                                    </div>
                                 )}
                             </button>
                         );
@@ -203,10 +206,8 @@ export const GuildModal: React.FC<GuildModalProps> = ({
             {/* NO GUILD — 2-column: branding + Create on the left, a guild list on the right */}
             {!myGuild && (
                 <div className="flex-1 flex gap-2 overflow-hidden px-3 pb-3">
-                    <div className="w-[34%] shrink-0 flex flex-col items-center justify-center gap-3 rounded-2xl p-4 text-center" style={{ background: 'rgba(0,0,0,0.18)' }}>
-                        <div className="rounded-full flex items-center justify-center bg-gradient-to-br from-fuchsia-500 via-purple-600 to-indigo-900" style={{ width: 88, height: 88 }}>
-                            <img src="/Lobby_arena.png" alt="" style={{ width: '68%', height: '68%', objectFit: 'contain' }} />
-                        </div>
+                    <div className="tcard w-[34%] shrink-0 flex flex-col items-center justify-center gap-3 p-4 text-center">
+                        <img src="/Lobby_arena.png" alt="" style={{ width: 128, height: 128, objectFit: 'contain' }} />
                         <button onClick={() => setBrowseTab('CREATE')} className="pill-green w-full">
                             <div className="pill-face" style={{ padding: '8px 8px', fontSize: '12px' }}>Create</div>
                         </button>
@@ -240,9 +241,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                             emptyText='No guilds found — tap "Create" to start your own.'
                                             renderRow={g => (
                                                 <button onClick={() => setViewingGuildId(g.id)} className="w-full flex items-center gap-2.5 px-3 py-2 text-left">
-                                                    <div className={`shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 38, height: 38 }}>
-                                                        <img src={g.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
-                                                    </div>
+                                                    <img src={g.icon} alt="" className="shrink-0" style={{ width: 38, height: 38, objectFit: 'contain' }} />
                                                     <div className="flex-1 min-w-0">
                                                         <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{g.name}</div>
                                                         <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Lvl {g.level}/{GUILD_MAX_LEVEL} · {g.memberCount} members{!g.isOpen ? ' · Invite Only' : ''}</div>
@@ -276,13 +275,15 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         <h3 className="font-tanker text-white" style={{ fontSize: 14 }}>Create Guild</h3>
                         <div className="round-btn cursor-pointer" onClick={() => setBrowseTab('BROWSE')}><i className="ti ti-x" /></div>
                     </div>
-                    <div className="flex justify-center gap-2 flex-wrap">
+                    <div className="flex justify-center gap-3 flex-wrap">
                         {GUILD_ICONS.map((opt, i) => (
-                            <div key={i} onClick={() => setIconIdx(i)}
-                                className={`rounded-full flex items-center justify-center bg-gradient-to-br ${opt.color} cursor-pointer transition-transform`}
-                                style={{ width: 40, height: 40, transform: iconIdx === i ? 'scale(1.15)' : 'scale(1)', boxShadow: iconIdx === i ? '0 0 0 2px rgba(255,255,255,0.7)' : 'none' }}>
-                                <img src={opt.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
-                            </div>
+                            <img key={i} src={opt.icon} alt="" onClick={() => setIconIdx(i)}
+                                className="cursor-pointer transition-transform"
+                                style={{
+                                    width: 52, height: 52, objectFit: 'contain',
+                                    transform: iconIdx === i ? 'scale(1.2)' : 'scale(1)',
+                                    filter: iconIdx === i ? 'drop-shadow(0 0 8px rgba(255,255,255,0.85))' : 'drop-shadow(0 0 3px rgba(0,0,0,0.4))',
+                                }} />
                         ))}
                     </div>
                     <input
@@ -291,13 +292,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         className="w-full rounded-full px-3 py-2 text-white font-bold outline-none"
                         style={{ background: 'rgba(0,0,0,0.3)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)', fontSize: 12 }}
                     />
-                    <textarea
-                        value={description} onChange={e => setDescription(e.target.value.slice(0, 200))}
-                        placeholder="Guild banner — announcements, recruiting info, etc. (optional)"
-                        rows={3}
-                        className="w-full rounded-2xl px-3 py-2 text-white font-bold outline-none resize-none"
-                        style={{ background: 'rgba(0,0,0,0.3)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)', fontSize: 11.5 }}
-                    />
+                    <div className="text-center text-white/40 font-bold" style={{ fontSize: 9.5 }}>You can add an announcement once your guild is created.</div>
                     <div className="flex items-center justify-between rounded-2xl px-3 py-2" style={{ background: 'rgba(0,0,0,0.22)' }}>
                         <span className="font-bold text-white/80" style={{ fontSize: 11.5 }}>Anyone can join</span>
                         <div onClick={() => setOpenJoin(v => !v)} className="cursor-pointer rounded-full relative shrink-0" style={{ width: 38, height: 22, background: openJoin ? '#22c55e' : 'rgba(255,255,255,0.2)' }}>
@@ -305,7 +300,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         </div>
                     </div>
                     <button
-                        onClick={() => name.trim() && playerGems >= createCostGems && onCreate(name, description, GUILD_ICONS[iconIdx].icon, GUILD_ICONS[iconIdx].color, openJoin)}
+                        onClick={() => name.trim() && playerGems >= createCostGems && onCreate(name, '', GUILD_ICONS[iconIdx].icon, GUILD_DEFAULT_COLOR, openJoin)}
                         disabled={!name.trim() || playerGems < createCostGems}
                         className="pill-green w-full mt-1"
                         style={{ opacity: !name.trim() || playerGems < createCostGems ? 0.5 : 1 }}>
@@ -323,11 +318,9 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                     {/* Left column */}
                     <div className="w-[34%] shrink-0 flex flex-col gap-2 overflow-y-auto no-scrollbar">
                         {/* Guild identity card */}
-                        <div className="rounded-2xl p-3" style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)' }}>
+                        <div className="tcard p-3">
                             <div className="flex items-center gap-2.5">
-                                <div className={`shrink-0 rounded-2xl flex items-center justify-center bg-gradient-to-br ${myGuild.color}`} style={{ width: 48, height: 48 }}>
-                                    <img src={myGuild.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
-                                </div>
+                                <img src={myGuild.icon} alt="" className="shrink-0" style={{ width: 56, height: 56, objectFit: 'contain' }} />
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-1.5">
                                         <span className="font-black text-white truncate" style={{ fontSize: 14 }}>{myGuild.name}</span>
@@ -358,7 +351,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         </div>
 
                         {/* Description banner — announcement board, editable by Leader/Officers */}
-                        <div className="rounded-2xl p-3 flex-1" style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)', minHeight: 72 }}>
+                        <div className="tcard p-3 flex-1" style={{ minHeight: 72 }}>
                             {editingDesc ? (
                                 <div className="flex flex-col gap-2 h-full">
                                     <textarea
@@ -390,7 +383,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         </div>
 
                         {/* Daily donations */}
-                        <div className="rounded-2xl p-3 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)' }}>
+                        <div className="tcard p-3 flex flex-col gap-2">
                             <span className="font-black text-white/60 uppercase tracking-widest" style={{ fontSize: 9 }}>Daily Donation (+100 Contribution each)</span>
                             <div className="flex items-center gap-2">
                                 <img src="/new_coinicon.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
@@ -415,7 +408,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         </div>
 
                         {/* My Contribution / Guild Rank */}
-                        <div className="rounded-2xl p-3 flex" style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)' }}>
+                        <div className="tcard p-3 flex">
                             <div className="flex-1 flex flex-col items-center gap-0.5">
                                 <i className="ti ti-star text-yellow-300" style={{ fontSize: 16 }} />
                                 <span className="font-black text-white" style={{ fontSize: 14 }}>{formatKShort(me?.contribution || 0)}</span>
@@ -645,16 +638,13 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         const leader = g.members.find(mm => mm.role === 'LEADER');
                         const levelRank = topGuildsByLevel.findIndex(x => x.id === g.id);
                         const contribRank = topGuildsByContribution.findIndex(x => x.id === g.id);
-                        const PURPLE = 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)';
                         return (
                             <div className="flex-1 flex gap-2 overflow-hidden px-3 pb-3">
                                 {/* Left column — guild details */}
                                 <div className="w-[34%] shrink-0 flex flex-col gap-2 overflow-y-auto no-scrollbar">
-                                    <div className="rounded-2xl p-3" style={{ background: PURPLE }}>
+                                    <div className="tcard p-3">
                                         <div className="flex items-center gap-2.5">
-                                            <div className={`shrink-0 rounded-2xl flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 48, height: 48 }}>
-                                                <img src={g.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
-                                            </div>
+                                            <img src={g.icon} alt="" className="shrink-0" style={{ width: 56, height: 56, objectFit: 'contain' }} />
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="font-black text-white truncate" style={{ fontSize: 14 }}>{g.name}</span>
@@ -674,7 +664,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                         )}
                                     </div>
 
-                                    <div className="rounded-2xl p-3 grid grid-cols-2 gap-2" style={{ background: PURPLE }}>
+                                    <div className="tcard p-3 grid grid-cols-2 gap-2">
                                         <div className="flex items-center gap-2">
                                             <i className="ti ti-crown text-yellow-300" style={{ fontSize: 15 }} />
                                             <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Leader</div><div className="font-black text-white truncate" style={{ fontSize: 11 }}>{leader?.name || '—'}</div></div>
@@ -696,7 +686,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                     </div>
 
                                     {g.description && (
-                                        <div className="rounded-2xl p-3 flex-1" style={{ background: PURPLE, minHeight: 60 }}>
+                                        <div className="tcard p-3 flex-1" style={{ minHeight: 60 }}>
                                             <p className="text-white/80 font-bold" style={{ fontSize: 11, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>{g.description}</p>
                                         </div>
                                     )}

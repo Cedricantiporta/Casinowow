@@ -9,16 +9,15 @@ const MEMBERS_TABLE = 'guild_members';
 
 export { getDeviceId };
 
-// Crest artwork (uploaded assets) — icon is an image path, not a Tabler class.
-export const GUILD_ICONS: { icon: string; color: string }[] = [
-    { icon: '/crest.png',      color: 'from-indigo-500 via-violet-600 to-purple-900' },
-    { icon: '/crest (1).png',  color: 'from-red-500 via-rose-600 to-red-950' },
-    { icon: '/crest (2).png',  color: 'from-yellow-500 via-amber-600 to-orange-900' },
-    { icon: '/crest (3).png',  color: 'from-orange-500 via-red-600 to-rose-950' },
-    { icon: '/crest (4).png',  color: 'from-slate-500 via-slate-700 to-slate-950' },
-    { icon: '/crest (5).png',  color: 'from-cyan-400 via-sky-600 to-indigo-900' },
-    { icon: '/crest (6).png',  color: 'from-lime-500 via-green-600 to-emerald-900' },
-    { icon: '/crest (7).png',  color: 'from-fuchsia-500 via-purple-600 to-indigo-900' },
+// Crest artwork (uploaded assets) — full standalone icons, no background
+// container/color chip behind them. Only 5 of the uploaded crests are offered
+// as selections.
+export const GUILD_ICONS: { icon: string }[] = [
+    { icon: '/crest.png' },
+    { icon: '/crest (1).png' },
+    { icon: '/crest (2).png' },
+    { icon: '/crest (3).png' },
+    { icon: '/crest (4).png' },
 ];
 
 export const GUILD_CREATE_COST_GEMS = 500;
@@ -63,8 +62,8 @@ function rowToSummary(row: any): GuildSummary {
         id: row.id,
         name: row.name,
         description: row.description || '',
-        icon: row.icon || 'ti-shield',
-        color: row.color || GUILD_ICONS[0].color,
+        icon: row.icon || GUILD_ICONS[0].icon,
+        color: row.color || 'from-indigo-500 via-violet-600 to-purple-900',
         isOpen: row.is_open ?? true,
         level: row.level ?? 1,
         xp: Number(row.xp) || 0,

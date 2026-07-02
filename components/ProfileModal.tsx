@@ -41,13 +41,6 @@ interface ProfileModalProps {
     onBuyAvatar?: (path: string, cost: number) => void;
 }
 
-// Profile pics 1-12. Only the first four are unlocked; the rest are locked.
-const PROFILE_PICS = [
-    '/profilepicsnew (4).png', // penguin — first/default
-    ...Array.from({ length: 12 }, (_, i) => `/Profile_pic (${i + 1}).png`).filter(p => p !== '/profilepicsnew (4).png'),
-];
-const UNLOCKED_PIC_COUNT = 4;
-
 const THEME_ICONS: Record<string, string> = {
     PIGGY: '🐷', NEON: '🎰', EGYPT: '🦂', DRAGON: '🐉', PIRATE: '🏴‍☠️',
     SPACE: '👽', CANDY: '🧁', JUNGLE: '🦍', UNDERWATER: '🦈', WESTERN: '🤠',
@@ -110,7 +103,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
     const xpBarBorder = vip ? '#8b5e00' : '#38106e';
 
     // profileEmoji now stores either a pic path or empty
-    const isPic = profileEmoji.startsWith('/Profile_pic');
+    const isPic = profileEmoji.startsWith('/profilepicsnew');
 
     return (
         <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-pop-in select-none">
@@ -135,8 +128,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                         }
                     </button>
                     {showPicPicker && (
-                        <div className="absolute top-14 left-0 z-50 rounded-2xl p-2 shadow-2xl flex flex-wrap gap-1.5"
-                            style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 200 }}>
+                        <div className="absolute top-14 left-0 z-50 rounded-2xl p-2 shadow-2xl grid grid-cols-4 gap-1.5"
+                            style={{ background: 'rgba(20,5,40,0.97)', border: '1px solid rgba(255,255,255,0.15)', width: 216 }}>
                             {AVATARS.map((def) => {
                                 const pic = def.path;
                                 const unlocked = isAvatarUnlocked(def, avatarCtx);
@@ -152,7 +145,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                                         }}
                                         className={`relative w-11 h-11 rounded-xl overflow-hidden transition-transform${unlocked || (buyable && canAfford) ? ' active:scale-90 hover:brightness-125' : ''}`}
                                         style={{ border: profileEmoji === pic ? `2px solid ${vip ? '#fbbf24' : '#a855f7'}` : '2px solid transparent', cursor: unlocked || (buyable && canAfford) ? 'pointer' : 'default' }}>
-                                        <img src={pic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', filter: unlocked ? undefined : 'grayscale(1) brightness(0.4)' }} />
+                                        <img src={pic} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         {!unlocked && (
                                             <span className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 text-white/90" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
                                                 {isGem ? <i className="ti ti-diamond" style={{ fontSize: 11 }} /> : <i className="ti ti-lock" style={{ fontSize: 11 }} />}

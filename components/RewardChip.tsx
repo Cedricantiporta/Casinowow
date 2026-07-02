@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 
-// A small reward icon+label that reveals its full detail in a tap/hover popup —
+// A small reward icon+label that reveals its full detail in a tap popup —
 // shared between the Top Players leaderboard and the Guild rankings list so
-// reward previews look consistent everywhere.
+// reward previews look consistent everywhere. Tap-only (no hover) since this
+// is a touch-first UI.
 export const RewardChip: React.FC<{ tooltip: string; icon: React.ReactNode; label: string; labelColor?: string }> = ({ tooltip, icon, label, labelColor }) => {
     const [show, setShow] = useState(false);
     return (
-        <div className="relative flex-shrink-0 flex items-center gap-0.5 cursor-pointer" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}
+        <div className="relative flex-shrink-0 flex items-center gap-0.5 cursor-pointer"
             onClick={(e) => { e.stopPropagation(); setShow(v => !v); }}>
             {icon}
             {label && <span className="font-black" style={{ fontSize: 10, color: labelColor ?? 'rgba(255,255,255,0.75)' }}>{label}</span>}

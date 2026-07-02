@@ -28,6 +28,9 @@ export const AVATARS: AvatarDef[] = [
     { path: '/profilepicsnew (11).png', unlock: { type: 'arena', tier: 15, rank: 'Mythic' } },
     { path: '/profilepicsnew (12).png', unlock: { type: 'gems', cost: 5000 } },
     { path: '/profilepicsnew (13).png', unlock: { type: 'gems', cost: 12000 } },
+    { path: '/profilepicsnew (14).png', unlock: { type: 'gems', cost: 20000 } },
+    { path: '/profilepicsnew (15).png', unlock: { type: 'gems', cost: 30000 } },
+    { path: '/profilepicsnew (16).png', unlock: { type: 'gems', cost: 45000 } },
 ];
 
 export interface AvatarContext {

@@ -17,7 +17,7 @@ export const SEASON_TOTAL_MS = SEASON_ACTIVE_MS + SEASON_PROCESSING_MS;
 // ── Ranks & divisions ──
 // 6 ranks × 3 divisions = 18 tiers. tierIndex 0 = lowest (Warrior III),
 // tierIndex 17 = highest (Mythic I). Future ranks can be appended to RANK_NAMES.
-export const RANK_NAMES = ['Warrior', 'Master', 'Grand Master', 'Epic', 'Legend', 'Mythic'];
+export const RANK_NAMES = ['Warrior', 'Master', 'G.Master', 'Epic', 'Legend', 'Mythic'];
 const DIVISION_LABELS = ['III', 'II', 'I']; // index 0 = lowest division of a rank
 export const MAX_TIER = RANK_NAMES.length * 3 - 1;
 
@@ -25,7 +25,7 @@ export const MAX_TIER = RANK_NAMES.length * 3 - 1;
 export const RANK_COLORS: Record<string, string> = {
     'Warrior':      '#9ca3af', // steel
     'Master':       '#4ade80', // green
-    'Grand Master': '#38bdf8', // cyan
+    'G.Master':     '#38bdf8', // cyan
     'Epic':         '#c084fc', // purple
     'Legend':       '#fb923c', // orange
     'Mythic':       '#fbbf24', // gold
