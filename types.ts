@@ -329,6 +329,7 @@ export interface Deck {
     gameId: string;
     gameName: string;
     theme: GameTheme;
+    coverImage: string;
     cards: Card[];
     isCompleted: boolean;
     rewardClaimed: boolean;

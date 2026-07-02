@@ -2585,15 +2585,12 @@ const App: React.FC = () => {
   const RARITY_TIERS: string[][] = [
       ['RARE'],
       ['RARE','RARE'],
-      ['RARE','RARE','RARE'],
       ['RARE','RARE','EPIC'],
       ['RARE','RARE','RARE','EPIC'],
       ['RARE','EPIC','EPIC'],
       ['RARE','RARE','EPIC','EPIC'],
-      ['RARE','RARE','RARE','EPIC','EPIC'],
       ['RARE','RARE','RARE','EPIC','LEGENDARY'],
       ['RARE','RARE','RARE','EPIC','EPIC','LEGENDARY'],
-      ['RARE','RARE','RARE','EPIC','EPIC','EPIC','LEGENDARY'],
   ];
 
   const handleBuyPack = (packId: string, drawCount: number): Card[] => {
@@ -2636,10 +2633,7 @@ const App: React.FC = () => {
 
               const allCardsInTemp: { deckId: string, cardIndex: number, card: Card }[] = [];
               tempDecks.forEach(d => d.cards.forEach((c, idx) => {
-                  const st = String(c.symbolType);
-                  if (!['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && st !== 'COIN') {
-                      allCardsInTemp.push({ deckId: d.gameId, cardIndex: idx, card: c });
-                  }
+                  allCardsInTemp.push({ deckId: d.gameId, cardIndex: idx, card: c });
               }));
               
               const hasAnyCards = tempDecks.some(d => d.cards.some(c => c.count > 0));
@@ -6132,7 +6126,7 @@ const App: React.FC = () => {
 
 
   const getDeckReward = (deckId: string, level: number) => {
-      const idx = GAMES_CONFIG.findIndex(g => g.id === deckId);
+      const idx = decks.findIndex(d => d.gameId === deckId);
       const pct = 0.5 + Math.max(0, idx) * 0.10;
       return Math.round(MAX_BET_BY_LEVEL(level) * 100 * pct);
   };

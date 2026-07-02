@@ -1273,86 +1273,75 @@ export const PACK_COSTS = {
     ULTRA: { creditCost: 10, cardCount: 1 },
 };
 
-const determineRarity = (symbol: SymbolType): CardRarity => {
-    if ([SymbolType.SCATTER].includes(symbol)) return 'LEGENDARY';
-    if ([SymbolType.WILD, SymbolType.SEVEN].includes(symbol)) return 'EPIC';
-    if ([SymbolType.BAR, SymbolType.BELL, SymbolType.CHERRY].includes(symbol)) return 'RARE';
-    return 'COMMON';
-};
+// 8 fixed collectible albums, 8 dedicated-art cards each (not tied to any slot's
+// own symbols) — art files are named "Album {n} ({card}).png", 1-indexed.
+interface AlbumCardDef { name: string; rarity: CardRarity; }
+interface AlbumDef { id: string; name: string; cover: string; cards: AlbumCardDef[]; }
+const ALBUM_DEFS: AlbumDef[] = [
+    { id: 'album-1', name: 'Lucky Beginnings', cover: '/lucky.png', cards: [
+        { name: 'Lucky Coin', rarity: 'COMMON' }, { name: 'Cherry', rarity: 'COMMON' }, { name: 'Horseshoe', rarity: 'COMMON' },
+        { name: 'Four Leaf Clover', rarity: 'COMMON' }, { name: 'Lucky Dice', rarity: 'COMMON' }, { name: 'Gold Bell', rarity: 'COMMON' },
+        { name: 'Lucky Key', rarity: 'COMMON' }, { name: 'Golden Piggy', rarity: 'RARE' },
+    ]},
+    { id: 'album-2', name: 'Casino Nights', cover: '/casino_nights.png', cards: [
+        { name: 'Slot Machine', rarity: 'COMMON' }, { name: 'Poker Chips', rarity: 'COMMON' }, { name: 'Roulette Wheel', rarity: 'COMMON' },
+        { name: 'Playing Cards', rarity: 'COMMON' }, { name: 'Cocktail Glass', rarity: 'COMMON' }, { name: 'Diamond Ring', rarity: 'COMMON' },
+        { name: 'VIP Lounge', rarity: 'RARE' }, { name: 'Jackpot Bell', rarity: 'RARE' },
+    ]},
+    { id: 'album-3', name: 'High Roller Life', cover: '/high_roller.png', cards: [
+        { name: 'Money Stack', rarity: 'COMMON' }, { name: 'Luxury Watch', rarity: 'COMMON' }, { name: 'Gold Briefcase', rarity: 'COMMON' },
+        { name: 'Safe Vault', rarity: 'COMMON' }, { name: 'Champagne Bucket', rarity: 'COMMON' },
+        { name: 'Sports Car', rarity: 'RARE' }, { name: 'Penthouse', rarity: 'RARE' }, { name: 'Private Jet', rarity: 'RARE' },
+    ]},
+    { id: 'album-4', name: 'Animal Fortune', cover: '/animal.png', cards: [
+        { name: 'Lucky Cat', rarity: 'COMMON' }, { name: 'Panda', rarity: 'COMMON' }, { name: 'Owl', rarity: 'COMMON' }, { name: 'Fox', rarity: 'COMMON' },
+        { name: 'Lion', rarity: 'RARE' }, { name: 'Wolf', rarity: 'RARE' }, { name: 'Eagle', rarity: 'RARE' },
+        { name: 'Golden Dragon', rarity: 'EPIC' },
+    ]},
+    { id: 'album-5', name: 'Around the World', cover: '/around.png', cards: [
+        { name: 'Eiffel Tower', rarity: 'COMMON' }, { name: 'Big Ben', rarity: 'COMMON' }, { name: 'Statue of Liberty', rarity: 'COMMON' },
+        { name: 'Burj Khalifa', rarity: 'RARE' }, { name: 'Las Vegas Sign', rarity: 'RARE' }, { name: 'Tokyo Gate', rarity: 'RARE' },
+        { name: 'Santorini', rarity: 'EPIC' }, { name: 'Northern Lights', rarity: 'EPIC' },
+    ]},
+    { id: 'album-6', name: 'Ancient Treasures', cover: '/ancient.png', cards: [
+        { name: 'Ancient Coin', rarity: 'COMMON' }, { name: 'Stone Idol', rarity: 'COMMON' }, { name: 'Pharaoh Mask', rarity: 'COMMON' },
+        { name: 'Aztec Calendar', rarity: 'RARE' }, { name: 'Viking Axe', rarity: 'RARE' },
+        { name: 'Crystal Skull', rarity: 'EPIC' }, { name: 'Sun Temple', rarity: 'EPIC' },
+        { name: 'Lost Golden City', rarity: 'LEGENDARY' },
+    ]},
+    { id: 'album-7', name: 'Mythical Legends', cover: '/mythical.png', cards: [
+        { name: 'Unicorn', rarity: 'COMMON' }, { name: 'Griffin', rarity: 'COMMON' },
+        { name: 'Phoenix', rarity: 'RARE' }, { name: 'Kraken', rarity: 'RARE' }, { name: 'Minotaur', rarity: 'RARE' },
+        { name: 'Pegasus', rarity: 'EPIC' }, { name: 'Cerberus', rarity: 'EPIC' },
+        { name: 'Zeus', rarity: 'LEGENDARY' },
+    ]},
+    { id: 'album-8', name: 'Casino Empire', cover: '/casino_empire.png', cards: [
+        { name: 'VIP Card', rarity: 'COMMON' },
+        { name: 'Diamond Crown', rarity: 'RARE' }, { name: 'Royal Vault', rarity: 'RARE' }, { name: 'Lucky Throne', rarity: 'RARE' },
+        { name: 'Million Dollar Chip', rarity: 'EPIC' }, { name: 'Infinite Jackpot', rarity: 'EPIC' }, { name: 'Casino Palace', rarity: 'EPIC' },
+        { name: 'King of Fortune', rarity: 'LEGENDARY' },
+    ]},
+];
 
-const getSymbolDescription = (symbol: SymbolType): string => {
-    switch(symbol) {
-        case SymbolType.SCATTER: return "Triggers the bonus feature.";
-        case SymbolType.WILD: return "Substitutes for other symbols.";
-        case SymbolType.SEVEN: return "A classic lucky number.";
-        case SymbolType.CHERRY: return "Sweet and valuable.";
-        case SymbolType.BAR: return "High value stacked symbol.";
-        case SymbolType.BELL: return "Rings in the wins.";
-        case SymbolType.GRAPE: return "Juicy rewards.";
-        default: return "A standard reel symbol.";
-    }
-};
-
-export const GENERATE_DECKS = (): Deck[] => {
-    // Symbols ordered low→high value: GRAPE, BELL, BAR, CHERRY, SEVEN, WILD, SCATTER
-    const VALID_CARD_SYMBOLS = [
-        SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR,
-        SymbolType.CHERRY, SymbolType.SEVEN, SymbolType.WILD, SymbolType.SCATTER
-    ];
-    // Per-game rarity distribution (index matches GAMES_CONFIG order).
-    // Higher-value symbols get rarer rarities as albums progress.
-    const GAME_RARITIES: CardRarity[][] = [
-        // 0 Piggy Riches:   1 rare, 6 common
-        ['COMMON','COMMON','COMMON','COMMON','COMMON','COMMON','RARE'],
-        // 1 Neon Vegas:     2 rares, 5 common
-        ['COMMON','COMMON','COMMON','COMMON','COMMON','RARE','RARE'],
-        // 2 Pharaoh's Tomb: 3 rares, 4 common
-        ['COMMON','COMMON','COMMON','COMMON','RARE','RARE','RARE'],
-        // 3 Dragon's Fortune: 2 rares + 1 epic, 4 common
-        ['COMMON','COMMON','COMMON','COMMON','RARE','RARE','EPIC'],
-        // 4 Pirate's Bounty: 3 rares + 1 epic, 3 common
-        ['COMMON','COMMON','COMMON','RARE','RARE','RARE','EPIC'],
-        // 5 Cosmic Cash:    1 rare + 2 epics, 4 common
-        ['COMMON','COMMON','COMMON','COMMON','RARE','EPIC','EPIC'],
-        // 6 Sugar Rush:     2 rares + 2 epics, 3 common
-        ['COMMON','COMMON','COMMON','RARE','RARE','EPIC','EPIC'],
-        // 7 Jungle Rumble:  3 rares + 2 epics, 2 common
-        ['COMMON','COMMON','RARE','RARE','RARE','EPIC','EPIC'],
-        // 8 Deep Blue:      3 rares + 1 epic + 1 legendary, 2 common
-        ['COMMON','COMMON','RARE','RARE','RARE','EPIC','LEGENDARY'],
-        // 9 Gold Rush:      3 rares + 2 epics + 1 legendary, 1 common
-        ['COMMON','RARE','RARE','RARE','EPIC','EPIC','LEGENDARY'],
-        // 10 Samurai Honor: 3 rares + 3 epics + 1 legendary, 0 common
-        ['RARE','RARE','RARE','EPIC','EPIC','EPIC','LEGENDARY'],
-    ];
-    return GAMES_CONFIG.map((game, gameIdx) => {
-        const symbols = SYMBOL_MAP[game.theme];
-        const gameRarities = GAME_RARITIES[Math.min(gameIdx, GAME_RARITIES.length - 1)];
-        const cards: Card[] = VALID_CARD_SYMBOLS.map((type, symbolIdx) => {
-            const icon = symbols[type];
-            if (!icon) return null;
-
-            return {
-                id: `${game.id}-${type}`,
-                symbolType: type,
-                name: type.charAt(0) + type.slice(1).toLowerCase(),
-                rarity: gameRarities[symbolIdx],
-                count: 0,
-                icon: icon,
-                description: getSymbolDescription(type)
-            };
-        }).filter(c => c !== null) as Card[];
-
-        return {
-            gameId: game.id,
-            gameName: game.name,
-            theme: game.theme,
-            cards: cards,
-            isCompleted: false,
-            rewardClaimed: false
-        };
-    });
-};
+export const GENERATE_DECKS = (): Deck[] => ALBUM_DEFS.map((album, albumIdx) => ({
+    gameId: album.id,
+    gameName: album.name,
+    // theme/symbolType below are unused placeholders — every card here has its
+    // own dedicated art, none of it derived from a slot's symbol set.
+    theme: 'PIGGY',
+    coverImage: album.cover,
+    cards: album.cards.map((c, cardIdx) => ({
+        id: `${album.id}-${cardIdx + 1}`,
+        symbolType: SymbolType.SEVEN,
+        name: c.name,
+        rarity: c.rarity,
+        count: 0,
+        icon: `/Album ${albumIdx + 1} (${cardIdx + 1}).png`,
+        description: `${album.name} collectible.`,
+    })),
+    isCompleted: false,
+    rewardClaimed: false,
+}));
 
 // Two INDEPENDENT systems on the same screen:
 //

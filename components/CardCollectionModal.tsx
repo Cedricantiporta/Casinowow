@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Deck, Card, CardRarity } from '../types';
-import { formatNumber, PACK_COSTS, formatCommaNumber, formatK, GAMES_CONFIG } from '../constants';
+import { formatNumber, PACK_COSTS, formatCommaNumber, formatK } from '../constants';
 import { audioService } from '../services/audioService';
 
 interface CardCollectionModalProps {
@@ -191,10 +191,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         deck.cards.forEach((card, idx) => {
             const extraCopies = (card.count || 0) - 1;
             if (extraCopies > 0) {
-                const st = String(card.symbolType);
-                if (!['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && card.icon !== '🪙') {
-                    allDuplicates.push({ deckId: deck.gameId, cardIdx: idx, card, extraCount: extraCopies });
-                }
+                allDuplicates.push({ deckId: deck.gameId, cardIdx: idx, card, extraCount: extraCopies });
             }
         });
     });
@@ -220,10 +217,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         if (exchanges.length > 0) onExchangeCards?.(exchanges);
         setShowExchangePanel(false);
         setSelectedDuplicateIds(new Set());
-    };
-
-    const getDeckThemeEmoji = (theme: string) => {
-        return theme === 'NEON' ? '🎰' : theme === 'EGYPT' ? '🦂' : theme === 'DRAGON' ? '🐉' : theme === 'PIRATE' ? '🏴‍☠️' : theme === 'SPACE' ? '👽' : theme === 'PIGGY' ? '🐷' : theme === 'CANDY' ? '🧁' : theme === 'JUNGLE' ? '🦍' : theme === 'UNDERWATER' ? '🦈' : theme === 'WESTERN' ? '🤠' : theme === 'SAMURAI' ? '⚔️' : '🃏';
     };
 
     const getDeckThemeBg = (theme: string) => {
@@ -324,7 +317,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     {packStage === 'REVEAL' && (
                         <div className="w-full h-full flex flex-col items-center justify-center animate-pop-in relative py-4">
                             <div className="flex-1 w-full max-w-2xl px-2 overflow-y-auto grid grid-cols-5 gap-2 content-center justify-items-center">
-                                {openedCards.filter(card => { const st = String(card.symbolType); return !['TEN','JACK','QUEEN','KING','ACE'].includes(st) && !st.startsWith('JACKPOT') && card.icon !== '🪙'; }).map((card, i) => (
+                                {openedCards.map((card, i) => (
                                     <div key={i} className="relative w-full max-w-[80px] animate-pop-in"
                                         style={{ animationDelay: `${i * 30}ms`, aspectRatio: '2/3', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column',
                                                  background: CARD_TIER[card.rarity].bg, boxShadow: CARD_TIER[card.rarity].shadow }}>
@@ -431,8 +424,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             style={{ transform: 'perspective(700px) rotateX(6deg)', transformOrigin: 'center bottom' }}>
                             <div className="flex gap-3" style={{ minWidth: 'max-content', paddingBottom: 14, paddingLeft: 16, paddingRight: 16 }}>
                                 {decks.map(deck => {
+                                    const total = deck.cards.length;
                                     const collected = deck.cards.filter(c => c.count > 0).length;
-                                    const isComplete = collected === 7;
+                                    const isComplete = collected === total;
                                     return (
                                         <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 118 }}>
                                             <button onClick={() => setSelectedDeckId(deck.gameId)}
@@ -440,21 +434,15 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 style={{ height: 138, background: 'linear-gradient(180deg,rgba(160,60,255,0.55) 0%,rgba(10,0,50,0.92) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.5), 0 3px 10px rgba(0,0,0,0.6)' }}>
                                                 <div className="w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0"
                                                     style={{ background: getDeckThemeBg(deck.theme) }}>
-                                                    {(() => {
-                                                        const gameConf = GAMES_CONFIG.find(g => g.id === deck.gameId);
-                                                        return gameConf?.coverImage
-                                                            ? <img src={gameConf.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                                                            : <div className="text-[3.5rem] drop-shadow-2xl leading-none">{getDeckThemeEmoji(deck.theme)}</div>;
-                                                    })()}
+                                                    <img src={deck.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
                                                     {isComplete && <div className="absolute top-0.5 right-0.5 text-xs z-10">✅</div>}
                                                 </div>
                                                 <div className="mt-1 text-center w-full">
-                                                    <h3 className="text-white font-black font-display text-[11px] truncate leading-none">{deck.gameName}</h3>
                                                     <div className="rtrack mt-1" style={{ height: 15, minWidth: 0, padding: '0 6px' }}>
                                                         <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
                                                             <div style={{
                                                                 position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12,
-                                                                width: (deck.rewardClaimed || isComplete) ? '100%' : `${(collected / 7) * 100}%`,
+                                                                width: (deck.rewardClaimed || isComplete) ? '100%' : `${(collected / total) * 100}%`,
                                                                 background: deck.rewardClaimed
                                                                     ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'
                                                                     : isComplete
@@ -464,7 +452,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                             }} />
                                                         </div>
                                                         <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
-                                                            {deck.rewardClaimed ? 'Claimed' : isComplete ? 'Claim' : `${collected}/7`}
+                                                            {deck.rewardClaimed ? 'Claimed' : isComplete ? 'Claim' : `${collected}/${total}`}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -559,13 +547,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <div ref={deckCardsScrollRef} className="flex-1 overflow-x-auto no-scrollbar">
                             <div className="flex gap-2 h-full items-stretch min-w-max py-0.5">
                                 {decks.find(d => d.gameId === selectedDeckId)?.cards
-                                    .filter(card => {
-                                        const st = String(card.symbolType);
-                                        if (['TEN','JACK','QUEEN','KING','ACE'].includes(st)) return false;
-                                        if (st.startsWith('JACKPOT')) return false;
-                                        if (card.icon === '🪙') return false;
-                                        return true;
-                                    })
                                     .map((card, i) => {
                                     const isLocked = card.count === 0;
                                     return (
