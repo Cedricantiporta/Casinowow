@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { formatCommaNumber, formatK } from '../constants';
 import { fetchTopPlayers, LeaderboardEntry, LeaderboardMetric, LocalPlayer } from '../services/leaderboardService';
 import { PlayerProfileModal } from './PlayerProfileModal';
+import { GroupedList } from './GroupedList';
 
 interface LeaderboardModalProps {
     isOpen: boolean;
@@ -109,20 +110,11 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
     const youRank = entries.findIndex(e => e.isYou) + 1;
     const you = entries.find(e => e.isYou);
 
-    const Row: React.FC<{ e: LeaderboardEntry; rank: number; pinned?: boolean }> = ({ e, rank, pinned }) => {
+    const RowContent: React.FC<{ e: LeaderboardEntry; rank: number; pinned?: boolean }> = ({ e, rank, pinned }) => {
         const m = medal(rank);
         const reward = metric === 'score' && !pinned ? RANK_REWARDS[rank] : undefined;
         return (
-            <button onClick={() => setSelected({ entry: e, rank })}
-                className="w-full flex items-center gap-2.5 rounded-2xl px-3 py-2 text-left active:scale-[0.99] transition-transform"
-                style={{
-                    background: e.isYou
-                        ? 'linear-gradient(90deg,rgba(255,205,70,0.30),rgba(255,150,40,0.10))'
-                        : 'linear-gradient(90deg,rgba(255,255,255,0.10),rgba(255,255,255,0.035))',
-                    boxShadow: e.isYou
-                        ? 'inset 0 1px 0 rgba(255,235,170,0.35), 0 2px 10px rgba(255,180,40,0.15)'
-                        : 'inset 0 1px 0 rgba(255,255,255,0.06)',
-                }}>
+            <>
                 {rank <= 3 ? (
                     <img src={`/Rank (${rank}).png`} alt="" className="shrink-0" style={{ width: 36, height: 36, objectFit: 'contain' }} />
                 ) : (
@@ -187,7 +179,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                         </div>
                     )}
                 </div>
-            </button>
+            </>
         );
     };
 
@@ -223,22 +215,37 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 </div>
             </div>
 
-            {/* List */}
+            {/* List — one continuous inbox-style group instead of separate cards */}
             <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-2">
                 {loading ? (
                     <div className="h-full flex items-center justify-center text-white/55 text-sm">Loading…</div>
                 ) : (
-                    <div className="flex flex-col gap-1.5 max-w-[640px] mx-auto w-full">
-                        {entries.map((e, i) => <Row key={e.id} e={e} rank={i + 1} />)}
+                    <div className="max-w-[640px] mx-auto w-full">
+                        <GroupedList
+                            items={entries}
+                            keyFn={e => e.id}
+                            rowBackground={e => e.isYou ? 'linear-gradient(90deg,rgba(255,205,70,0.30),rgba(255,150,40,0.10))' : undefined}
+                            rowBoxShadow={e => e.isYou ? 'inset 0 1px 0 rgba(255,235,170,0.35), 0 2px 10px rgba(255,180,40,0.15)' : undefined}
+                            renderRow={(e, i) => (
+                                <button onClick={() => setSelected({ entry: e, rank: i + 1 })}
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-left active:scale-[0.99] transition-transform">
+                                    <RowContent e={e} rank={i + 1} />
+                                </button>
+                            )}
+                        />
                     </div>
                 )}
             </div>
 
-            {/* Your standing — pinned summary */}
+            {/* Your standing — pinned summary, kept as its own card outside the list */}
             {!loading && you && (
                 <div className="shrink-0 px-3 pt-1.5 pb-3">
-                    <div className="max-w-[640px] mx-auto">
-                        <Row e={you} rank={youRank} pinned />
+                    <div className="max-w-[640px] mx-auto rounded-2xl px-3 py-2 flex items-center gap-2.5"
+                        style={{
+                            background: 'linear-gradient(90deg,rgba(255,205,70,0.30),rgba(255,150,40,0.10))',
+                            boxShadow: 'inset 0 1px 0 rgba(255,235,170,0.35), 0 2px 10px rgba(255,180,40,0.15)',
+                        }}>
+                        <RowContent e={you} rank={youRank} pinned />
                     </div>
                 </div>
             )}

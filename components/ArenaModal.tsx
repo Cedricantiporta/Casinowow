@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatK } from '../constants';
 import { ArenaState } from '../types';
+import { GroupedList } from './GroupedList';
 import {
     getArenaBoard, positionOf, rankInfo, phaseTimeRemaining, seasonPhase,
     formatCountdown, arenaReward, arenaRewardPool, outcomeFor, ArenaEntry, RANK_NAMES, MAX_TIER,
@@ -115,47 +116,49 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                                 <div className="pill-face" style={{ padding: '9px 12px', fontSize: '12px' }}>Join Arena</div>
                             </button>
                         </div>
-                    ) : board.map((e, i) => {
-                        const pos = i + 1;
-                        const inPromo = pos <= 10;
-                        const inDemo = pos >= 51;
-                        const reward = arenaReward(pos, maxBet, arena.tierIndex);
-                        return (
-                            <div
-                                key={e.id}
-                                ref={e.isYou ? youRowRef : undefined}
-                                className="flex items-center gap-2 rounded-2xl px-2 py-1.5"
-                                style={{
-                                    background: e.isYou ? 'linear-gradient(90deg,rgba(168,85,247,0.55),rgba(124,58,237,0.35))' : 'rgba(0,0,0,0.22)',
-                                    boxShadow: e.isYou ? 'inset 0 1px 0 rgba(220,170,255,0.5), 0 0 0 1.5px rgba(216,180,254,0.7)' : 'inset 0 1px 0 rgba(255,255,255,0.06)',
-                                }}>
-                                {/* Position */}
-                                <div className="w-7 flex items-center justify-center shrink-0">
-                                    {pos <= 3 ? (
-                                        <img src={`/Rank (${pos}).png`} alt="" style={{ width: 27, height: 27, objectFit: 'contain' }} />
-                                    ) : (
-                                        <span className="font-black text-white/70" style={{ fontSize: 12 }}>{pos}</span>
-                                    )}
-                                </div>
-                                {/* Avatar */}
-                                <img src={e.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 30, height: 30, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
-                                {/* Name + zone tag */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="font-bold text-white truncate" style={{ fontSize: 12 }}>{e.name}{e.isYou ? ' (You)' : ''}</div>
-                                    {(inPromo || inDemo) && (
-                                        <div className={`font-black ${inPromo ? 'text-green-300' : 'text-rose-300'}`} style={{ fontSize: 8 }}>
-                                            {inPromo ? (reward > 0 ? `+${formatK(reward)} reward` : 'Promotion') : 'Demotion'}
+                    ) : (
+                        <GroupedList
+                            items={board}
+                            keyFn={e => e.id}
+                            rowRef={e => e.isYou ? youRowRef : undefined}
+                            rowBackground={e => e.isYou ? 'linear-gradient(90deg,rgba(168,85,247,0.55),rgba(124,58,237,0.35))' : undefined}
+                            rowBoxShadow={e => e.isYou ? 'inset 0 1px 0 rgba(220,170,255,0.5), 0 0 0 1.5px rgba(216,180,254,0.7)' : undefined}
+                            renderRow={(e, i) => {
+                                const pos = i + 1;
+                                const inPromo = pos <= 10;
+                                const inDemo = pos >= 51;
+                                const reward = arenaReward(pos, maxBet, arena.tierIndex);
+                                return (
+                                    <div className="flex items-center gap-2 px-3 py-2">
+                                        {/* Position */}
+                                        <div className="w-7 flex items-center justify-center shrink-0">
+                                            {pos <= 3 ? (
+                                                <img src={`/Rank (${pos}).png`} alt="" style={{ width: 27, height: 27, objectFit: 'contain' }} />
+                                            ) : (
+                                                <span className="font-black text-white/70" style={{ fontSize: 12 }}>{pos}</span>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                                {/* Points */}
-                                <div className="flex items-center gap-1 shrink-0">
-                                    <i className="ti ti-bolt text-fuchsia-300" style={{ fontSize: 11 }} />
-                                    <span className="font-black text-white" style={{ fontSize: 12 }}>{formatK(e.points)}</span>
-                                </div>
-                            </div>
-                        );
-                    })}
+                                        {/* Avatar */}
+                                        <img src={e.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 30, height: 30, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
+                                        {/* Name + zone tag */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="font-bold text-white truncate" style={{ fontSize: 12 }}>{e.name}{e.isYou ? ' (You)' : ''}</div>
+                                            {(inPromo || inDemo) && (
+                                                <div className={`font-black ${inPromo ? 'text-green-300' : 'text-rose-300'}`} style={{ fontSize: 8 }}>
+                                                    {inPromo ? (reward > 0 ? `+${formatK(reward)} reward` : 'Promotion') : 'Demotion'}
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Points */}
+                                        <div className="flex items-center gap-1 shrink-0">
+                                            <i className="ti ti-bolt text-fuchsia-300" style={{ fontSize: 11 }} />
+                                            <span className="font-black text-white" style={{ fontSize: 12 }}>{formatK(e.points)}</span>
+                                        </div>
+                                    </div>
+                                );
+                            }}
+                        />
+                    )}
                 </div>
             </div>
         </div>

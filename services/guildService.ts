@@ -125,6 +125,25 @@ export async function searchGuilds(query: string, limit = 30): Promise<GuildSumm
     }
 }
 
+// Public read-only lookup — for viewing any guild's profile (members, leader,
+// level, contribution) from Browse/Search/Rankings, not just your own.
+export async function getGuildById(guildId: string): Promise<Guild | null> {
+    if (!supabase) return null;
+    try {
+        const { data: guildRow, error: gErr } = await supabase.from(GUILDS_TABLE).select('*').eq('id', guildId).maybeSingle();
+        if (gErr || !guildRow) return null;
+        const { data: members } = await supabase
+            .from(MEMBERS_TABLE).select('*').eq('guild_id', guildId).order('joined_at', { ascending: true });
+        return {
+            ...rowToSummary(guildRow),
+            leaderId: guildRow.leader_id,
+            members: (members || []).map(memberRowToMember),
+        };
+    } catch {
+        return null;
+    }
+}
+
 export async function getMyGuild(deviceId: string = getDeviceId()): Promise<Guild | null> {
     if (!supabase) return null;
     try {
