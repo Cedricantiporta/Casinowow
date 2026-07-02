@@ -179,8 +179,8 @@ const SIDE_OUTCOME: Record<string, { label: string; color: string; icon: string 
 };
 
 export const ArenaSideWidget: React.FC<{
-    arena: ArenaState; playerName: string; playerAvatar: string; maxBet: number; onOpen: () => void;
-}> = ({ arena, playerName, playerAvatar, maxBet, onOpen }) => {
+    arena: ArenaState; playerName: string; playerAvatar: string; maxBet: number; onOpen: () => void; onJoin: () => void;
+}> = ({ arena, playerName, playerAvatar, maxBet, onOpen, onJoin }) => {
     const [now, setNow] = useState(() => Date.now());
     useEffect(() => {
         const t = setInterval(() => setNow(Date.now()), 1000);
@@ -203,8 +203,9 @@ export const ArenaSideWidget: React.FC<{
     const rows = (processing || !joined) ? [] : board.slice(start, start + WINDOW);
 
     return (
-        <button onClick={onOpen}
-            className="flex flex-col items-stretch active:scale-[0.98] transition-transform select-none"
+        <div onClick={onOpen}
+            role="button"
+            className="flex flex-col items-stretch active:scale-[0.98] transition-transform select-none cursor-pointer"
             style={{
                 width: 92, padding: 5, borderRadius: 16, gap: 4,
                 background: 'linear-gradient(180deg,rgba(124,63,181,0.94),rgba(58,18,104,0.94))',
@@ -236,9 +237,14 @@ export const ArenaSideWidget: React.FC<{
                         <span className="text-white/55 font-bold leading-tight" style={{ fontSize: 8 }}>Season ended</span>
                     </div>
                 ) : !joined ? (
-                    <div className="flex flex-col items-center gap-1 text-center px-1 m-auto">
-                        <i className="ti ti-refresh text-white/50" style={{ fontSize: 20 }} />
-                        <span className="text-white/70 font-black leading-tight" style={{ fontSize: 8.5 }}>Spin to join</span>
+                    <div className="flex flex-col items-center gap-1.5 text-center px-1 m-auto">
+                        <i className="ti ti-swords text-white/50" style={{ fontSize: 20 }} />
+                        <button
+                            onClick={(e) => { e.stopPropagation(); onJoin(); }}
+                            className="pill-green"
+                            style={{ width: '100%' }}>
+                            <div className="pill-face" style={{ padding: '5px 4px', fontSize: '9px' }}>Join Arena</div>
+                        </button>
                     </div>
                 ) : null}
                 {rows.map((e) => {
@@ -274,7 +280,7 @@ export const ArenaSideWidget: React.FC<{
                 <i className="ti ti-clock text-white/70" style={{ fontSize: 8 }} />
                 <span className="font-black text-white leading-none" style={{ fontSize: 8 }}>{formatCountdown(remaining)}</span>
             </div>
-        </button>
+        </div>
     );
 };
 

@@ -28,6 +28,7 @@ interface ReelProps {
   instantStop?: boolean;
   beastMultiplier?: number | null;
   orbValues?: (number | null)[];
+  collectValues?: boolean[];
 }
 
 // JUNGLE's scatter trigger is entirely controlled by App.tsx's grid logic (fixed,
@@ -49,7 +50,7 @@ const makeRandomSymbol = (excludeScatter: boolean, neon?: boolean, excludeSeven?
   return neon ? SymbolType.TEN : SymbolType.TEN;
 };
 
-export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins, instantStop, beastMultiplier, orbValues }) => {
+export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping, stopDelay, duration, onStop, winningIndices, gameConfig, isScatterShowcase, forcedSymbols, newCells, dissolving, anticipation, inFreeSpins, instantStop, beastMultiplier, orbValues, collectValues }) => {
   const [strip, setStrip] = useState<SymbolType[]>([]);
   const [landing, setLanding] = useState(false);
   const SYMBOL_CONFIGS = GET_SYMBOLS(gameConfig.theme);
@@ -188,6 +189,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                     const isWinner = inVisibleWindow && winningIndices.includes(visibleRowIndex);
                     const isShowcase = inVisibleWindow && isScatterShowcase && s === SymbolType.SCATTER;
                     const orbValue = inVisibleWindow ? (orbValues?.[visibleRowIndex] ?? null) : null;
+                    const isCollect = inVisibleWindow ? !!collectValues?.[visibleRowIndex] : false;
 
                     return (
                         <ReelCell
@@ -206,6 +208,7 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                             inFreeSpins={inFreeSpins}
                             beastMultiplier={beastMultiplier}
                             orbValue={orbValue}
+                            isCollect={isCollect}
                         />
                     );
                 })}
@@ -256,7 +259,8 @@ const ReelCell: React.FC<{
     inFreeSpins?: boolean,
     beastMultiplier?: number | null,
     orbValue?: number | null,
-}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6, inFreeSpins, beastMultiplier, orbValue }) => {
+    isCollect?: boolean,
+}> = React.memo(({ symbol, blur, highlight, config, heightPercent, isScatterShowcase, theme, isLastCell, isNewCell, dissolving, gameRows = 3, gameReels = 6, inFreeSpins, beastMultiplier, orbValue, isCollect }) => {
 
     const isScatter = symbol === SymbolType.SCATTER;
     const isWild = symbol === SymbolType.WILD;
@@ -393,6 +397,14 @@ const ReelCell: React.FC<{
                                 className="block leading-none"
                                 style={{ fontSize: `${2.4 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
                             >{orbValue}X</span>
+                        </div>
+                    )}
+                    {theme === 'BUFFALO' && !blur && isCollect && (
+                        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+                            <span
+                                className="block leading-none text-center"
+                                style={{ fontSize: `${0.85 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                            >COLLECT</span>
                         </div>
                     )}
                     {theme === 'PIGGY' && symbol === SymbolType.COIN && !blur && inFreeSpins && (

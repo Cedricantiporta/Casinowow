@@ -206,6 +206,13 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
 /**
  * Pushes the local device's stats to the backend (no-op when unconfigured).
  */
+// Postgres bigint tops out at 9,223,372,036,854,775,807 — this game's economy
+// (bets scale up to 3e19) can exceed that, which made every write fail once a
+// player's balance/stats got big enough. Clamp to a safe ceiling well under the
+// real limit so a leaderboard sync can never fail on magnitude again.
+const BIGINT_SAFE_MAX = 9_000_000_000_000_000_000;
+const clampBigint = (n: number): number => Math.min(Math.round(n) || 0, BIGINT_SAFE_MAX);
+
 export async function submitScore(you: LocalPlayer): Promise<void> {
     if (!supabase) return;
     const deviceId = getDeviceId();
@@ -214,16 +221,16 @@ export async function submitScore(you: LocalPlayer): Promise<void> {
         name: you.name || 'Player',
         avatar: you.avatar || '',
         level: you.level,
-        score: Math.round(you.score),
+        score: clampBigint(you.score),
         updated_at: new Date().toISOString(),
     };
     const full = {
         ...core,
         vip_level: you.vipLevel ?? 0,
-        gems: Math.round(you.gems),
-        total_won: Math.round(you.totalWon),
-        max_jackpot: Math.round(you.maxJackpot),
-        max_win: Math.round(you.maxWin),
+        gems: clampBigint(you.gems),
+        total_won: clampBigint(you.totalWon),
+        max_jackpot: clampBigint(you.maxJackpot),
+        max_win: clampBigint(you.maxWin),
     };
     try {
         const { error } = await supabase.from(TABLE).upsert(full, { onConflict: 'device_id' });

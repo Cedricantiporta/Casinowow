@@ -122,7 +122,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     id: 'buffalo-thunder',
     name: 'Buffalo Thunder',
     theme: 'BUFFALO',
-    rows: 3,
+    rows: 4,
     reels: 5,
     scattersToTrigger: 3,
     description: 'Tumbling Reels! Stacked wilds and a climbing multiplier across free spins.',

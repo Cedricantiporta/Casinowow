@@ -110,6 +110,17 @@ export function outcomeFor(tierIndex: number, position: number): Outcome {
     return 'held';
 }
 
+// Demotion protection — without any AFK/heartbeat detection, a player who spun a
+// little early in the season and then genuinely stopped would still get bumped to
+// the bottom bracket purely because bots keep climbing on a timer the whole time.
+// Rather than trying to detect "away", only let a demotion actually apply once the
+// player has put in a meaningful amount of real play this season; below that floor
+// the outcome downgrades to a hold instead. Promotion is untouched — climbing to
+// the top 10 already requires real points, so this never makes promotion easier.
+const MIN_DEMOTION_PARTICIPATION_SPINS = 5;
+export const isProtectedFromDemotion = (points: number, refMult: number): boolean =>
+    points < ARENA_BASE_POINTS.spin * refMult * MIN_DEMOTION_PARTICIPATION_SPINS;
+
 // ── AI roster ──
 // Shared AI username pool — casual handles, anime/meme tags, PascalCase gamer
 // names, and a few auto-generated "PlayerNNNN" defaults. Used by both the Arena
