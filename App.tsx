@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, DAILY_LOGIN_DAYS_PER_STOP, DAILY_LOGIN_STOPS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -783,11 +783,14 @@ const App: React.FC = () => {
       };
       // Each cycle reset scales every target/coin-multiplier up to 20% harder,
       // capped at 200% harder overall (difficultyMult caps at 3).
+      // Stage 4's bonus slot: finish a Bonus trigger OR finish Free Spins — one
+      // or the other, picked at random when the stage is generated, for variety.
+      const bonusOrFreeSpin = Math.random() < 0.5 ? M.bonus(scale(1)) : M.freespin(scale(5));
       const stages: SlotQuestMission[][] = [
           [M.reach(scale(10)),  M.win(scale(20)),    M.spin(scale(30))],
           [M.spin(scale(40)),   M.level(scale(5)),   M.bet(scale(80))],
           [M.win(scale(25)),    M.maxbet(scale(10)), M.coins(scale(70))],
-          [M.bonus(scale(1)),   M.spin(scale(50)),   M.bet(scale(120))],
+          [bonusOrFreeSpin,     M.spin(scale(50)),   M.bet(scale(120))],
           [M.win(scale(30)),    M.level(scale(2)),   M.coins(scale(90))],
           [M.maxbet(scale(30)), M.big(scale(3)),     M.bet(scale(38))],
           [M.win(scale(35)),    M.spin(scale(60)),   M.coins(scale(110))],

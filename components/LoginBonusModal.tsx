@@ -1,5 +1,5 @@
 import React from 'react';
-import { DAILY_LOGIN_REWARDS, DAILY_LOGIN_DAYS_PER_STOP, DAILY_LOGIN_STOPS, DAILY_LOGIN_TOTAL_DAYS, formatKShort } from '../constants';
+import { DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, formatKShort } from '../constants';
 
 interface LoginBonusModalProps {
     isOpen: boolean;
@@ -19,16 +19,11 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
     // currentDay has already advanced to tomorrow's (locked) day.
     const isPendingTomorrow = claimedToday;
     const activeDay = currentDay;
-    const activeReward = DAILY_LOGIN_REWARDS.find(r => r.day === activeDay) ?? DAILY_LOGIN_REWARDS[0];
-    const stopIndex = activeReward.stop; // 0-based, 0..DAILY_LOGIN_STOPS-1
-    const dayInStop = ((activeDay - 1) % DAILY_LOGIN_DAYS_PER_STOP) + 1;
+    const daysCompleted = isPendingTomorrow ? activeDay : activeDay - 1;
+    const fillPct = Math.min(100, (daysCompleted / (DAILY_LOGIN_TOTAL_DAYS - 1)) * 100);
 
-    // Continuous fill across the full 30-day track — a stop's icon only lights up
-    // once that stop's last day is actually claimed, not the instant it's entered.
-    const daysCompleted = isPendingTomorrow ? activeDay - 1 : activeDay - 1 + (dayInStop - 1) / DAILY_LOGIN_DAYS_PER_STOP;
-    const fillPct = Math.min(100, (daysCompleted / DAILY_LOGIN_TOTAL_DAYS) * 100);
-
-    const stopDays = DAILY_LOGIN_REWARDS.slice(stopIndex * DAILY_LOGIN_DAYS_PER_STOP, stopIndex * DAILY_LOGIN_DAYS_PER_STOP + DAILY_LOGIN_DAYS_PER_STOP);
+    const row1 = DAILY_LOGIN_REWARDS.slice(0, 3);
+    const row2 = DAILY_LOGIN_REWARDS.slice(3, 7);
 
     const innerCardBase: React.CSSProperties = {
         background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)',
@@ -63,7 +58,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
         return (
             <div
                 key={reward.day}
-                className="relative rounded-xl p-1.5 flex flex-col items-center justify-between overflow-hidden transition-all h-36 w-full"
+                className="relative rounded-xl p-1.5 flex flex-col items-center justify-between overflow-hidden transition-all h-24 md:h-28 w-full"
                 style={cardStyle}
             >
                 <div className={`text-[8px] font-black px-2 rounded-full mb-0.5 shadow-sm ${isGoldenDay ? 'bg-black text-yellow-400' : isToday ? 'bg-white text-black' : 'bg-black/40 text-white'}`}>
@@ -107,7 +102,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
     return (
         <div className="absolute inset-0 z-[250] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-pop-in">
             <div
-                className="w-full max-w-[360px] flex flex-col rounded-3xl overflow-hidden"
+                className="w-full max-w-[380px] flex flex-col rounded-3xl overflow-hidden"
                 style={{
                     background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)',
                     boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
@@ -121,38 +116,40 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                     <h2 className="font-tanker text-white text-base">Daily Login Bonus</h2>
                 </div>
 
-                {/* 6-stop streak progress bar — icons only, day number on the icon itself */}
-                <div className="px-6 pt-2 pb-1">
-                    <div className="relative flex items-center justify-between" style={{ height: 32 }}>
+                {/* 7-day streak progress bar — icons only, day number on the icon itself */}
+                <div className="px-5 pt-2 pb-1">
+                    <div className="relative flex items-center justify-between" style={{ height: 30 }}>
                         <div className="absolute left-0 right-0 rounded-full" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.35)' }} />
                         <div className="absolute left-0 rounded-full" style={{
                             top: '50%', height: 3, transform: 'translateY(-50%)',
                             width: `${fillPct}%`,
                             background: 'linear-gradient(90deg,#facc15,#fde047)',
                         }} />
-                        {Array.from({ length: DAILY_LOGIN_STOPS }, (_, i) => {
-                            const stopDay = (i + 1) * DAILY_LOGIN_DAYS_PER_STOP;
-                            const isDone = daysCompleted >= stopDay;
+                        {DAILY_LOGIN_REWARDS.map(reward => {
+                            const isDone = daysCompleted >= reward.day;
                             return (
-                                <div key={i} className="relative flex items-center justify-center shrink-0" style={{ zIndex: 1, width: 28, height: 28 }}>
+                                <div key={reward.day} className="relative flex items-center justify-center shrink-0" style={{ zIndex: 1, width: 26, height: 26 }}>
                                     <img src={GIFT_ICON} alt="" style={{
                                         width: '100%', height: '100%', objectFit: 'contain',
                                         filter: isDone ? 'drop-shadow(0 0 8px rgba(250,204,21,0.7))' : 'grayscale(1)',
                                     }} />
                                     <span className="absolute font-black text-white" style={{
-                                        fontSize: 9, bottom: 0, right: -2,
+                                        fontSize: 8, bottom: 0, right: -1,
                                         textShadow: '0 0 3px #000, 0 1px 2px #000, 0 0 6px #000',
-                                    }}>{stopDay}</span>
+                                    }}>{reward.day}</span>
                                 </div>
                             );
                         })}
                     </div>
                 </div>
 
-                {/* Current stop's 5 days — full grid, claim button on today */}
-                <div className="px-3 pb-4 pt-2">
-                    <div className="grid grid-cols-5 gap-1.5 w-full">
-                        {stopDays.map(reward => renderDayCard(reward))}
+                {/* Day cards */}
+                <div className="px-3 pb-4 pt-2 flex flex-col gap-1.5">
+                    <div className="grid grid-cols-3 gap-1.5 w-full">
+                        {row1.map(reward => renderDayCard(reward))}
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5 w-full">
+                        {row2.map(reward => renderDayCard(reward))}
                     </div>
                 </div>
             </div>
