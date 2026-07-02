@@ -116,7 +116,7 @@ const isCascadeTheme = (t: GameTheme): boolean => CASCADE_THEMES.has(t);
 // spin sums every orb currently on the board and multiplies that spin's payout.
 // Olympus's jackpot-pick bonus fires the instant collected orb VALUES (not just
 // orb count — an "8x" orb adds a full 8 toward this) reach this total.
-const OLYMPUS_ORB_COLLECT_TARGET = 450;
+const OLYMPUS_ORB_COLLECT_TARGET = 300;
 const OLYMPUS_ORB_POOL: { v: number; w: number }[] = [
     { v: 2, w: 34 }, { v: 3, w: 24 }, { v: 4, w: 15 }, { v: 5, w: 10 }, { v: 6, w: 6 },
     { v: 8, w: 4 }, { v: 10, w: 2.5 }, { v: 12, w: 1.2 }, { v: 15, w: 0.7 }, { v: 20, w: 0.3 },
@@ -6715,6 +6715,39 @@ const App: React.FC = () => {
                     </div>
                         );
                     })()}
+
+                    {/* EXPERIMENT: Piggy Riches scatter icon rendered oversized and allowed to
+                        protrude past its cell — every reel (and the grid wrapper itself) clips
+                        its own contents with overflow-hidden, so this has to live here, outside
+                        that boundary, as its own overlay positioned by percentage to match each
+                        scatter cell. Biased upward so it spills over the top/sides; the bottom
+                        stays roughly at the cell's natural footprint. */}
+                    {selectedGame.theme === 'PIGGY' && status !== GameStatus.SPINNING && status !== GameStatus.STOPPING && targetGrid.length > 0 && (
+                        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 25 }}>
+                            {targetGrid.map((col, c) => col.map((sym, r) => {
+                                if (sym !== SymbolType.SCATTER) return null;
+                                const cellW = 100 / selectedGame.reels;
+                                const cellH = 100 / selectedGame.rows;
+                                const centerX = (c + 0.5) * cellW;
+                                const centerY = (r + 0.5) * cellH;
+                                return (
+                                    <img
+                                        key={`piggy-scatter-${c}-${r}`}
+                                        src={GET_SYMBOLS(selectedGame.theme)[SymbolType.SCATTER]?.icon}
+                                        alt=""
+                                        className="absolute select-none"
+                                        style={{
+                                            left: `${centerX}%`, top: `${centerY}%`,
+                                            width: `${cellW * 2.1}%`, height: `${cellH * 2.1}%`,
+                                            transform: 'translate(-50%, -60%)',
+                                            objectFit: 'contain',
+                                            filter: 'drop-shadow(0 6px 16px rgba(0,0,0,0.65))',
+                                        }}
+                                    />
+                                );
+                            }))}
+                        </div>
+                    )}
 
                     {/* Dragon pot — absolute right so reel grid stays centered */}
                     {selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0 && (
