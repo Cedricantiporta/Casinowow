@@ -389,20 +389,10 @@ const ReelCell: React.FC<{
                     )}
                     {theme === 'OLYMPUS' && !blur && orbValue != null && (
                         <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-                            <div
-                                className="flex items-center justify-center rounded-full"
-                                style={{
-                                    width: '78%', height: '78%',
-                                    background: 'radial-gradient(circle at 35% 30%, #fff7cc 0%, #fbbf24 35%, #b45309 80%, #78350f 100%)',
-                                    boxShadow: '0 0 14px rgba(251,191,36,0.85), inset 0 2px 6px rgba(255,255,255,0.6), inset 0 -4px 8px rgba(0,0,0,0.4)',
-                                    border: '2px solid rgba(255,237,180,0.9)',
-                                }}
-                            >
-                                <span
-                                    className="block leading-none"
-                                    style={{ fontSize: `${1.35 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#4a1d0a', textShadow: '0 1px 0 rgba(255,255,255,0.5)' }}
-                                >{orbValue}X</span>
-                            </div>
+                            <span
+                                className="block leading-none"
+                                style={{ fontSize: `${2.4 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                            >{orbValue}X</span>
                         </div>
                     )}
                     {theme === 'PIGGY' && symbol === SymbolType.COIN && !blur && inFreeSpins && (

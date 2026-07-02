@@ -2701,6 +2701,9 @@ const App: React.FC = () => {
       // Only GOLDEN_POT (untouched generic slot) keeps it among the lower-tier games.
       if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG','ANGRYFLOCK','BEAST','OLYMPUS','BUFFALO'].includes(selectedGame.theme)) megaMatchActive = false;
 
+      // BUFFALO: tracks whether any reel already landed a stacked wild/symbol this
+      // spin, so free spins can guarantee at least one if the generic chance rolls dry.
+      let buffaloStackedThisSpin = false;
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
            if (megaMatchActive && (cols > 3 ? (c >= 1 && c <= 3) : true)) {
@@ -2760,24 +2763,24 @@ const App: React.FC = () => {
                     if (Math.random() < wildStackChance) {
                        eventTriggered = true;
                        const typeRoll = Math.random();
-                       let wildsCount = rows; 
+                       let wildsCount = rows;
                        for(let i=0; i<wildsCount; i++) {
                            newGrid[c][i] = SymbolType.WILD;
                        }
                     }
                }
            }
-           
+
            if (!eventTriggered && !(selectedGame.theme === 'JUNGLE' && c >= 1 && c <= 3)) {
                const stackChance = isSmallGrid ? 0.01 : 0.05;
                if (Math.random() < stackChance) {
                    const colorRoll = Math.random();
                    let chosenSymbol = SymbolType.GRAPE;
-                   if (colorRoll < 0.40) chosenSymbol = SymbolType.GRAPE; 
-                   else if (colorRoll < 0.60) chosenSymbol = SymbolType.BAR; 
-                   else if (colorRoll < 0.80) chosenSymbol = SymbolType.CHERRY; 
-                   else if (colorRoll < 0.90) chosenSymbol = SymbolType.SEVEN; 
-                   else chosenSymbol = SymbolType.BELL; 
+                   if (colorRoll < 0.40) chosenSymbol = SymbolType.GRAPE;
+                   else if (colorRoll < 0.60) chosenSymbol = SymbolType.BAR;
+                   else if (colorRoll < 0.80) chosenSymbol = SymbolType.CHERRY;
+                   else if (colorRoll < 0.90) chosenSymbol = SymbolType.SEVEN;
+                   else chosenSymbol = SymbolType.BELL;
 
                    eventTriggered = true;
                    for(let i=0; i<rows; i++) {
@@ -2785,6 +2788,19 @@ const App: React.FC = () => {
                    }
                }
            }
+           if (eventTriggered && c > 0) buffaloStackedThisSpin = true;
+      }
+
+      // BUFFALO: Buffalo Thunder's signature moment — free spins guarantee at least
+      // one full-reel stack of a high-value animal symbol (its "ways to win" payoff
+      // biggest hitters), instead of leaving it to the same generic chance every
+      // other slot uses. This is what actually sets it apart from Olympus Ascend's
+      // orb-multiplier free spins rather than both just being "a cascade slot".
+      if (selectedGame.theme === 'BUFFALO' && isFreeSpin && !buffaloStackedThisSpin) {
+          const animalSymbols = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.CHERRY, SymbolType.SEVEN];
+          const stackSymbol = animalSymbols[Math.floor(Math.random() * animalSymbols.length)];
+          const stackCol = 1 + Math.floor(Math.random() * (cols - 1));
+          for (let r = 0; r < rows; r++) newGrid[stackCol][r] = stackSymbol;
       }
 
       // PIRATE: ~4% base-game chance for a Ghost Ship to board on the rightmost reel.

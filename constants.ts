@@ -111,7 +111,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     theme: 'OLYMPUS',
     rows: 3,
     reels: 5,
-    scattersToTrigger: 4,
+    scattersToTrigger: 3,
     description: 'Tumbling Reels! Multiplier orbs sum together on every win. 4 temples for free spins!',
     color: 'from-sky-400 via-indigo-600 to-purple-950',
     bgImage: 'radial-gradient(circle at 50% 0%, #818cf8 0%, #2e1065 100%)',
@@ -564,11 +564,11 @@ export const GET_SYMBOLS = (theme: GameTheme): Record<SymbolType, SymbolConfig> 
   // All themes use image symbols now → always transparent tile bg
   const imgTheme = true;
   return {
-    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: letterIcon(SymbolType.TEN, icons.TEN),     value: 0.5,  ...LTR.TEN,  ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...((isCandy || isOlympus || isBuffalo) && { imageScale: 1.3 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
-    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: letterIcon(SymbolType.JACK, icons.JACK),   value: 0.75, ...LTR.JACK, ...egyptLtr, ...((isCandy || isOlympus || isBuffalo) && { imageScale: 1.3 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
-    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: letterIcon(SymbolType.QUEEN, icons.QUEEN), value: 1,    ...LTR.QUEEN, ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...((isCandy || isOlympus || isBuffalo) && { imageScale: 1.3 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
-    [SymbolType.KING]:  { type: SymbolType.KING,  icon: letterIcon(SymbolType.KING, icons.KING),   value: 1.5,  ...LTR.KING, ...egyptLtr, ...((isCandy || isOlympus || isBuffalo) && { imageScale: 1.3 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
-    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: letterIcon(SymbolType.ACE, icons.ACE),     value: 2,    ...LTR.ACE,  ...egyptLtr, ...((isCandy || isOlympus || isBuffalo) && { imageScale: 1.3 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.TEN]:   { type: SymbolType.TEN,   icon: letterIcon(SymbolType.TEN, icons.TEN),     value: 0.5,  ...LTR.TEN,  ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.JACK]:  { type: SymbolType.JACK,  icon: letterIcon(SymbolType.JACK, icons.JACK),   value: 0.75, ...LTR.JACK, ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.QUEEN]: { type: SymbolType.QUEEN, icon: letterIcon(SymbolType.QUEEN, icons.QUEEN), value: 1,    ...LTR.QUEEN, ...egyptLtr, ...(isDragon && { imageScale: 0.85 }), ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.KING]:  { type: SymbolType.KING,  icon: letterIcon(SymbolType.KING, icons.KING),   value: 1.5,  ...LTR.KING, ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
+    [SymbolType.ACE]:   { type: SymbolType.ACE,   icon: letterIcon(SymbolType.ACE, icons.ACE),     value: 2,    ...LTR.ACE,  ...egyptLtr, ...(isCandy && { imageScale: 1.3 }), ...((isOlympus || isBuffalo) && { imageScale: 0.92 }), ...(reelFont && { imageScale: isUnderwater ? 0.62 : 0.85 }) },
     [SymbolType.GRAPE]:   { type: SymbolType.GRAPE,   icon: icons.GRAPE, value: 2.5,  style: 'text-emerald-100 drop-shadow-md', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg || isOlympus || isBuffalo) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
     [SymbolType.BELL]:    { type: SymbolType.BELL,    icon: icons.BELL, value: 4.5,  style: 'text-blue-100 drop-shadow-[0_0_5px_#3b82f6]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg || isOlympus || isBuffalo) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
     [SymbolType.BAR]:     { type: SymbolType.BAR,     icon: icons.BAR, value: 7.5,  style: 'text-purple-100 drop-shadow-[0_0_5px_#a855f7]', bg: T, highlightClass: 'shadow-[0_0_50px_rgba(255,255,255,0.6)] border-white/50', ...(isUnderwater ? { imageScale: 1.7 } : isMystery ? { imageScale: 1.65 } : (isPirate || isArctic || isCandy || isEgypt || isSpace || isJungle || isWestern || isSamurai || isLeprechaun || isGoldenPot || isPets || isMmorpg || isOlympus || isBuffalo) ? { imageScale: 1.45 } : isPiggy ? { imageScale: 1.74 } : {}) },
