@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { formatCommaNumber, formatK } from '../constants';
 import { fetchTopPlayers, LeaderboardEntry, LeaderboardMetric, LocalPlayer } from '../services/leaderboardService';
+import { PlayerProfileModal } from './PlayerProfileModal';
 
 interface LeaderboardModalProps {
     isOpen: boolean;
@@ -77,87 +78,6 @@ const Avatar: React.FC<{ src: string; size: number; ring?: string }> = ({ src, s
     <img src={src} alt="" className="shrink-0 rounded-full object-cover"
         style={{ width: size, height: size, boxShadow: ring || '0 2px 6px rgba(0,0,0,0.45)' }} />
 );
-
-// Profile card for any player on the board (no recent slots — not available for others).
-const PlayerCard: React.FC<{
-    entry: LeaderboardEntry; rank: number; onClose: () => void;
-    isFriend?: boolean; isPending?: boolean; onAddFriend?: () => void;
-}> = ({ entry, rank, onClose, isFriend, isPending, onAddFriend }) => {
-    const hero = { icon: '/new_coinicon.png', label: 'Total Coins', value: entry.score };
-    const rows: { icon: string; label: string; value: number }[] = [
-        { icon: '/symbols/diamond.png', label: 'Total Gems', value: entry.gems },
-        { icon: '/new_coinicon.png', label: 'Total Won', value: entry.totalWon },
-        { icon: '/ui/high_roller.png', label: 'Max Jackpot', value: entry.maxJackpot },
-        { icon: '/ui/high_roller.png', label: 'Max Win', value: entry.maxWin },
-    ];
-    const m = medal(rank);
-    return (
-        <div className="absolute inset-0 z-[210] flex items-center justify-center bg-black/65 backdrop-blur-md p-4 animate-pop-in"
-            onClick={onClose}>
-            <div className="w-full max-w-[330px] rounded-3xl overflow-hidden font-nunito"
-                style={{ background: 'linear-gradient(170deg,#5a18a0 0%,#40108a 55%,#28085e 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.45), 0 12px 40px rgba(0,0,0,0.7)' }}
-                onClick={e => e.stopPropagation()}>
-                {/* Header */}
-                <div className="relative px-4 pt-4 pb-4"
-                    style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.10),transparent)' }}>
-                    <div className="round-btn cursor-pointer absolute top-3 right-3" onClick={onClose}><i className="ti ti-x" /></div>
-                    <div className="flex flex-col items-center gap-2">
-                        <div className="relative">
-                            <Avatar src={entry.avatar} size={64} ring="0 0 0 3px rgba(255,255,255,0.18), 0 4px 12px rgba(0,0,0,0.5)" />
-                            {rank <= 3 ? (
-                                <img src={`/Rank (${rank}).png`} alt="" className="absolute -bottom-1 -right-1" style={{ width: 30, height: 30, objectFit: 'contain' }} />
-                            ) : (
-                                <div className="absolute -bottom-1 -right-1 flex items-center justify-center font-black rounded-full"
-                                    style={{ width: 24, height: 24, fontSize: 11, ...{ background: m.bg, color: m.color }, boxShadow: m.glow || '0 2px 4px rgba(0,0,0,0.5)' }}>{rank}</div>
-                            )}
-                        </div>
-                        <div className="text-center">
-                            <div className="font-black text-white" style={{ fontSize: 15 }}>{entry.name}{entry.isYou ? ' (You)' : ''}</div>
-                            <div className="text-white/55 font-bold" style={{ fontSize: 10 }}>Level {entry.level}</div>
-                        </div>
-                        {/* Add friend — hidden for yourself */}
-                        {!entry.isYou && onAddFriend && (
-                            <button
-                                onClick={(isFriend || isPending) ? undefined : onAddFriend}
-                                disabled={isFriend || isPending}
-                                className={(isFriend || isPending) ? 'pill-green' : 'pill-blue'}
-                                style={{ opacity: (isFriend || isPending) ? 0.5 : 1 }}>
-                                <div className="pill-face" style={{ padding: '6px 16px', fontSize: '10px', background: (isFriend || isPending) ? undefined : 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
-                                    {isFriend
-                                        ? (<><i className="ti ti-check" style={{ marginRight: 4 }} />Friend</>)
-                                        : isPending
-                                        ? (<><i className="ti ti-clock" style={{ marginRight: 4 }} />Request Sent</>)
-                                        : (<><i className="ti ti-user-plus" style={{ marginRight: 4 }} />Add Friend</>)}
-                                </div>
-                            </button>
-                        )}
-                    </div>
-                </div>
-                {/* Stats — hero tile + 2×2 grid of soft tiles, no borders */}
-                <div className="px-3 pb-4 flex flex-col gap-2">
-                    <div className="rounded-2xl px-3 py-2.5 flex items-center gap-2"
-                        style={{ background: 'linear-gradient(90deg,rgba(255,205,70,0.20),rgba(255,150,40,0.06))', boxShadow: 'inset 0 1px 0 rgba(255,235,170,0.18)' }}>
-                        <img src={hero.icon} alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
-                        <span className="flex-1 font-bold text-white/70" style={{ fontSize: 11 }}>{hero.label}</span>
-                        <span className="font-black text-yellow-300" style={{ fontSize: 17 }}>{formatScore(hero.value)}</span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                        {rows.map((r, i) => (
-                            <div key={i} className="rounded-2xl px-3 py-2.5 flex flex-col gap-1"
-                                style={{ background: 'rgba(0,0,0,0.28)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)' }}>
-                                <span className="font-bold text-white/55" style={{ fontSize: 9.5 }}>{r.label}</span>
-                                <div className="flex items-center gap-1.5">
-                                    <img src={r.icon} alt="" style={{ width: 15, height: 15, objectFit: 'contain' }} />
-                                    <span className="font-black text-yellow-300" style={{ fontSize: 14 }}>{formatScore(r.value)}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, player, friendIds = [], pendingFriendIds = [], onAddFriend }) => {
     const [metric, setMetric] = useState<LeaderboardMetric>('score');
@@ -324,9 +244,14 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             )}
 
             {selected && (
-                <PlayerCard
-                    entry={selected.entry}
+                <PlayerProfileModal
+                    isOpen
+                    id={selected.entry.id}
+                    name={selected.entry.name}
+                    avatar={selected.entry.avatar}
+                    level={selected.entry.level}
                     rank={selected.rank}
+                    isYou={selected.entry.isYou}
                     onClose={() => setSelected(null)}
                     isFriend={friendIds.includes(selected.entry.id)}
                     isPending={pendingFriendIds.includes(selected.entry.id)}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState, GuildDonationState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, GENERATE_GUILD_TASKS } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -41,9 +41,9 @@ import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { GuildModal } from './components/GuildModal';
 import {
-    searchGuilds, getMyGuild, getTopGuilds, createGuild, joinGuild, leaveGuild, transferLeadership, disbandGuild,
-    kickMember, setMemberRole, contributeGuildXp, updateGuildDescription, rewardTierForRank,
-    GUILD_CREATE_COST_GEMS, GUILD_DONATE_GEMS, GUILD_DONATE_BET_PCT, GUILD_DONATE_XP,
+    searchGuilds, getMyGuild, getTopGuildsByLevel, getTopGuildsByContribution, createGuild, joinGuild, leaveGuild, transferLeadership, disbandGuild,
+    kickMember, setMemberRole, contributeGuildXp, contributeGuildPoints, updateGuildDescription, rewardTierForRank,
+    GUILD_CREATE_COST_GEMS, GUILD_DONATE_GEMS, GUILD_DONATE_BET_PCT, GUILD_DONATE_CONTRIBUTION,
     GUILD_TASK_REFRESH_BASE_COST, GUILD_TASK_REFRESH_MAX_MULT,
 } from './services/guildService';
 import { FriendsModal } from './components/FriendsModal';
@@ -944,7 +944,8 @@ const App: React.FC = () => {
   const guildUnlocked = arenaUnlocked;
   const [showGuild, setShowGuild] = useState(false);
   const [myGuild, setMyGuild] = useState<Guild | null>(null);
-  const [topGuilds, setTopGuilds] = useState<GuildSummary[]>([]);
+  const [topGuildsByLevel, setTopGuildsByLevel] = useState<GuildSummary[]>([]);
+  const [topGuildsByContribution, setTopGuildsByContribution] = useState<GuildSummary[]>([]);
   const [guildSearchResults, setGuildSearchResults] = useState<GuildSummary[]>([]);
   const [guildLoading, setGuildLoading] = useState(false);
   const [guildError, setGuildError] = useState('');
@@ -955,12 +956,12 @@ const App: React.FC = () => {
           if (saved) {
               const parsed = JSON.parse(saved);
               if (parsed.lastReset !== todayKeyOf(new Date())) {
-                  return { lastReset: todayKeyOf(new Date()), tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)), refreshCount: 0 };
+                  return { lastReset: todayKeyOf(new Date()), tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)) };
               }
-              return { refreshCount: 0, ...parsed };
+              return parsed;
           }
       } catch {}
-      return { lastReset: todayKeyOf(new Date()), tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)), refreshCount: 0 };
+      return { lastReset: todayKeyOf(new Date()), tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)) };
   });
   useEffect(() => { try { localStorage.setItem('cw_guild_tasks', JSON.stringify(guildTaskState)); } catch {} }, [guildTaskState]);
 
@@ -980,8 +981,10 @@ const App: React.FC = () => {
 
   // Monthly top-10 guild rewards — approximated client-side (no server cron):
   // whenever a member opens the game in a new calendar month, their device checks
-  // the current top-10 guilds and self-grants the tier reward if their guild
-  // placed, then marks the month done so it only ever applies once per device.
+  // the current top-10-by-CONTRIBUTION guilds and self-grants the tier reward if
+  // their guild placed, then marks the month done so it only ever applies once
+  // per device. Contribution (not level) decides this so every guild has a shot,
+  // not just the oldest/highest-level ones.
   const [guildRewardMonthKey, setGuildRewardMonthKey] = useState<string>(() => {
       try { return localStorage.getItem('cw_guild_reward_month') || ''; } catch { return ''; }
   });
@@ -993,7 +996,7 @@ const App: React.FC = () => {
       try { localStorage.setItem('cw_guild_reward_month', monthKey); } catch {}
       const guild = await getMyGuild(getDeviceId());
       if (!guild) return;
-      const top10 = await getTopGuilds(10);
+      const top10 = await getTopGuildsByContribution(10);
       const rank = top10.findIndex(g => g.id === guild.id);
       if (rank < 0) return;
       const tier = rewardTierForRank(rank + 1);
@@ -1017,7 +1020,11 @@ const App: React.FC = () => {
 
   const refreshMyGuild = () => { getMyGuild(getDeviceId()).then(g => { setMyGuild(g); if (g) applyGuildMonthlyReward(); }); };
   useEffect(() => { if (guildUnlocked) refreshMyGuild(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [guildUnlocked]);
-  useEffect(() => { if (showGuild) getTopGuilds(10).then(setTopGuilds); }, [showGuild]);
+  useEffect(() => {
+      if (!showGuild) return;
+      getTopGuildsByLevel(10).then(setTopGuildsByLevel);
+      getTopGuildsByContribution(10).then(setTopGuildsByContribution);
+  }, [showGuild]);
 
   const handleGuildSearch = (query: string) => {
       setGuildLoading(true);
@@ -1076,23 +1083,35 @@ const App: React.FC = () => {
       if (!task || !task.completed || task.claimed) return;
       setPlayer(p => ({ ...p, balance: p.balance + task.coinReward }));
       triggerCoinAnim(task.coinReward);
+      // Claiming only flips this task's own claimed flag — it does not touch
+      // current/target, so there's no way to re-claim the same completion.
       setGuildTaskState(prev => ({ ...prev, tasks: prev.tasks.map(t => t.id === taskId ? { ...t, claimed: true } : t) }));
       if (myGuild) {
-          const newLevel = await contributeGuildXp(myGuild.id, getDeviceId(), task.guildXpReward);
+          if (task.rewardKind === 'GUILD_XP') {
+              const newLevel = await contributeGuildXp(myGuild.id, task.pointsReward);
+              if (newLevel) setCelebrationMsg(`${myGuild.name} reached Level ${newLevel}!`);
+          } else {
+              await contributeGuildPoints(myGuild.id, getDeviceId(), task.pointsReward);
+          }
           refreshMyGuild();
-          if (newLevel) setCelebrationMsg(`${myGuild.name} reached Level ${newLevel}!`);
       }
   };
-  // Refreshing the 3 daily guild tasks costs gems, escalating 20% per refresh
-  // today, capped at 500% of the base cost (i.e. 6x).
-  const guildTaskRefreshCost = Math.round(GUILD_TASK_REFRESH_BASE_COST * Math.min(1 + GUILD_TASK_REFRESH_MAX_MULT, 1 + guildTaskState.refreshCount * 0.2));
-  const handleRefreshGuildTasks = () => {
-      if (player.diamonds < guildTaskRefreshCost) return;
-      setPlayer(p => ({ ...p, diamonds: p.diamonds - guildTaskRefreshCost }));
+  // Refreshing a single task rerolls JUST that task (new type/target/rewards,
+  // reset progress) — it does not touch the other two, and costs gems that
+  // escalate 20% per refresh of THAT task today, capped at 500% of base (6x).
+  const guildTaskRefreshCost = (task: GuildTask) => Math.round(GUILD_TASK_REFRESH_BASE_COST * Math.min(1 + GUILD_TASK_REFRESH_MAX_MULT, 1 + task.refreshCount * 0.2));
+  const handleRefreshGuildTask = (taskId: string) => {
+      const idx = guildTaskState.tasks.findIndex(t => t.id === taskId);
+      if (idx < 0) return;
+      const task = guildTaskState.tasks[idx];
+      const cost = guildTaskRefreshCost(task);
+      if (player.diamonds < cost) return;
+      setPlayer(p => ({ ...p, diamonds: p.diamonds - cost }));
       setGuildTaskState(prev => ({
-          lastReset: prev.lastReset,
-          refreshCount: prev.refreshCount + 1,
-          tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)),
+          ...prev,
+          tasks: prev.tasks.map((t, i) => i === idx
+              ? { ...GENERATE_ONE_GUILD_TASK(player.level, MAX_BET_BY_LEVEL(player.level), idx, t.refreshCount + 1), refreshCount: t.refreshCount + 1 }
+              : t),
       }));
   };
   const handleGuildDonate = async (kind: 'COINS' | 'GEMS') => {
@@ -1109,9 +1128,11 @@ const App: React.FC = () => {
           setPlayer(p => ({ ...p, diamonds: p.diamonds - GUILD_DONATE_GEMS }));
           setGuildDonationState(prev => ({ ...prev, gemsDonated: true }));
       }
-      const newLevel = await contributeGuildXp(myGuild.id, getDeviceId(), GUILD_DONATE_XP);
+      // Donations only ever feed contribution points, never guild level XP —
+      // that's the whole point of the split (every guild has a shot at monthly
+      // rewards, not just whichever happens to be highest-level).
+      await contributeGuildPoints(myGuild.id, getDeviceId(), GUILD_DONATE_CONTRIBUTION);
       refreshMyGuild();
-      if (newLevel) setCelebrationMsg(`${myGuild.name} reached Level ${newLevel}!`);
   };
   // Guild tasks reuse the same event types Daily Missions already tracks.
   const updateGuildTasks = (type: string, amount: number) => {
@@ -7931,7 +7952,8 @@ const App: React.FC = () => {
           onClose={() => setShowGuild(false)}
           deviceId={getDeviceId()}
           myGuild={myGuild}
-          topGuilds={topGuilds}
+          topGuildsByLevel={topGuildsByLevel}
+          topGuildsByContribution={topGuildsByContribution}
           loading={guildLoading}
           searchResults={guildSearchResults}
           onSearch={handleGuildSearch}
@@ -7948,13 +7970,16 @@ const App: React.FC = () => {
           playerGems={player.diamonds}
           tasks={guildTaskState.tasks}
           onClaimTask={handleClaimGuildTask}
-          refreshCost={guildTaskRefreshCost}
-          onRefreshTasks={handleRefreshGuildTasks}
+          refreshCostFor={guildTaskRefreshCost}
+          onRefreshTask={handleRefreshGuildTask}
           donationState={guildDonationState}
           donateCoinAmount={Math.round(MAX_BET_BY_LEVEL(player.level) * GUILD_DONATE_BET_PCT)}
           donateGemAmount={GUILD_DONATE_GEMS}
           onDonate={handleGuildDonate}
           errorMsg={guildError}
+          friendIds={friendsState.friends.map(f => f.id)}
+          pendingFriendIds={pendingFriendRequestIds}
+          onAddFriend={(m) => handleAddFriend({ id: m.id, name: m.name, avatar: m.avatar, level: m.level, isAI: false, addedAt: Date.now() })}
       />
 
       {/* Friends */}

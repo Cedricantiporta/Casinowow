@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Friend } from '../types';
 import { LeaderboardEntry, LocalPlayer } from '../services/leaderboardService';
 import { getAddablePlayers, toFriend, canSend, nextResetIn, IncomingRequest } from '../services/friendsService';
+import { PlayerProfileModal } from './PlayerProfileModal';
 
 interface FriendsModalProps {
     isOpen: boolean;
@@ -34,6 +35,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
     const [search, setSearch] = useState('');
     const [now, setNow] = useState(() => Date.now());
     const [confirmRemove, setConfirmRemove] = useState<string | null>(null);
+    const [profileTarget, setProfileTarget] = useState<{ id: string; name: string; avatar: string; level: number; isFriend?: boolean; isPending?: boolean } | null>(null);
 
     // Keep countdowns fresh while open.
     useEffect(() => {
@@ -134,7 +136,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                 <div key={f.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
                                     style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
                                     <img src={f.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 38, height: 38, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
-                                    <div className="flex-1 min-w-0">
+                                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setProfileTarget({ id: f.id, name: f.name, avatar: f.avatar, level: f.level, isFriend: true })}>
                                         <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{f.name}</div>
                                         <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {f.level}{!f.isAI ? ' · Friend' : ''}</div>
                                     </div>
@@ -189,7 +191,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                     <div key={e.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
                                         style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
                                         <img src={e.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 38, height: 38, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
-                                        <div className="flex-1 min-w-0">
+                                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setProfileTarget({ id: e.id, name: e.name, avatar: e.avatar, level: e.level, isPending: requestSent })}>
                                             <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{e.name}</div>
                                             <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {e.level}</div>
                                         </div>
@@ -209,6 +211,23 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                     </>
                 )}
             </div>
+
+            {profileTarget && (
+                <PlayerProfileModal
+                    isOpen
+                    id={profileTarget.id}
+                    name={profileTarget.name}
+                    avatar={profileTarget.avatar}
+                    level={profileTarget.level}
+                    isFriend={profileTarget.isFriend}
+                    isPending={profileTarget.isPending}
+                    onClose={() => setProfileTarget(null)}
+                    onAddFriend={profileTarget.isFriend ? undefined : () => {
+                        const entry = addable.find(a => a.id === profileTarget.id);
+                        if (entry) onAddFriend(toFriend(entry, Date.now()));
+                    }}
+                />
+            )}
         </div>
     );
 };

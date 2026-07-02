@@ -22,11 +22,11 @@ export const GUILD_ICONS: { icon: string; color: string }[] = [
 
 export const GUILD_CREATE_COST_GEMS = 500;
 export const GUILD_MAX_MEMBERS = 50;
-export const GUILD_MAX_LEVEL = 100;
+export const GUILD_MAX_LEVEL = 10;
 export const GUILD_DONATIONS_PER_DAY = 2;
 export const GUILD_DONATE_GEMS = 100;
 export const GUILD_DONATE_BET_PCT = 0.10;
-export const GUILD_DONATE_XP = 100;
+export const GUILD_DONATE_CONTRIBUTION = 100;
 export const GUILD_TASK_REFRESH_BASE_COST = 10;
 export const GUILD_TASK_REFRESH_MAX_MULT = 5; // cost caps at 500% of base (6x total)
 
@@ -67,6 +67,7 @@ function rowToSummary(row: any): GuildSummary {
         isOpen: row.is_open ?? true,
         level: row.level ?? 1,
         xp: Number(row.xp) || 0,
+        contributionPoints: Number(row.contribution_points) || 0,
         memberCount: row.member_count ?? 1,
     };
 }
@@ -82,11 +83,26 @@ function memberRowToMember(row: any): GuildMember {
     };
 }
 
-export async function getTopGuilds(limit = 10): Promise<GuildSummary[]> {
+export async function getTopGuildsByLevel(limit = 10): Promise<GuildSummary[]> {
     if (!supabase) return [];
     try {
         const { data, error } = await supabase.from(GUILDS_TABLE).select('*')
             .order('level', { ascending: false }).order('xp', { ascending: false }).limit(limit);
+        if (error || !data) return [];
+        return data.map(rowToSummary);
+    } catch {
+        return [];
+    }
+}
+
+// Contribution points (from donations + CONTRIBUTION-kind tasks) are what monthly
+// rank rewards are based on — a guild doesn't need to be high-level to place, so
+// every guild has a real shot regardless of how long it's existed.
+export async function getTopGuildsByContribution(limit = 10): Promise<GuildSummary[]> {
+    if (!supabase) return [];
+    try {
+        const { data, error } = await supabase.from(GUILDS_TABLE).select('*')
+            .order('contribution_points', { ascending: false }).limit(limit);
         if (error || !data) return [];
         return data.map(rowToSummary);
     } catch {
@@ -229,9 +245,10 @@ export async function updateGuildDescription(guildId: string, description: strin
     try { await supabase.from(GUILDS_TABLE).update({ description: description.slice(0, 200) }).eq('id', guildId); } catch { /* best-effort */ }
 }
 
-// Adds XP to the guild and this member's lifetime contribution, returning the
-// guild's new level so the caller can show a level-up celebration.
-export async function contributeGuildXp(guildId: string, deviceId: string, amount: number): Promise<number | null> {
+// Adds XP to the guild's LEVEL (capped at GUILD_MAX_LEVEL) — from task
+// GUILD_XP rewards only. Returns the guild's new level so the caller can show
+// a level-up celebration, or null if it didn't level up.
+export async function contributeGuildXp(guildId: string, amount: number): Promise<number | null> {
     if (!supabase || amount <= 0) return null;
     try {
         const { data: guildRow } = await supabase.from(GUILDS_TABLE).select('xp, level').eq('id', guildId).maybeSingle();
@@ -241,10 +258,21 @@ export async function contributeGuildXp(guildId: string, deviceId: string, amoun
         while (level < GUILD_MAX_LEVEL && xp >= guildXpForNextLevel(level)) { xp -= guildXpForNextLevel(level); level++; }
         if (level >= GUILD_MAX_LEVEL) { level = GUILD_MAX_LEVEL; xp = 0; }
         await supabase.from(GUILDS_TABLE).update({ xp, level }).eq('id', guildId);
-        const { data: memberRow } = await supabase.from(MEMBERS_TABLE).select('contribution').eq('guild_id', guildId).eq('device_id', deviceId).maybeSingle();
-        await supabase.from(MEMBERS_TABLE).update({ contribution: (Number(memberRow?.contribution) || 0) + amount }).eq('guild_id', guildId).eq('device_id', deviceId);
         return level > (guildRow.level ?? 1) ? level : null;
     } catch {
         return null;
     }
+}
+
+// Adds to the guild's CONTRIBUTION POINTS pool (separate from level XP) and this
+// member's own contribution total — from donations and CONTRIBUTION-kind tasks.
+// This is the number monthly top-guild rank rewards are based on.
+export async function contributeGuildPoints(guildId: string, deviceId: string, amount: number): Promise<void> {
+    if (!supabase || amount <= 0) return;
+    try {
+        const { data: guildRow } = await supabase.from(GUILDS_TABLE).select('contribution_points').eq('id', guildId).maybeSingle();
+        await supabase.from(GUILDS_TABLE).update({ contribution_points: (Number(guildRow?.contribution_points) || 0) + amount }).eq('id', guildId);
+        const { data: memberRow } = await supabase.from(MEMBERS_TABLE).select('contribution').eq('guild_id', guildId).eq('device_id', deviceId).maybeSingle();
+        await supabase.from(MEMBERS_TABLE).update({ contribution: (Number(memberRow?.contribution) || 0) + amount }).eq('guild_id', guildId).eq('device_id', deviceId);
+    } catch { /* best-effort */ }
 }

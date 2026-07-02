@@ -965,28 +965,39 @@ export const GENERATE_REPLACEMENT_MISSION = (level: number, frequency: MissionFr
 // 3 daily guild tasks — completing one pays the player coins and adds guild XP.
 // Reuses the same event types Daily Missions already tracks (SPIN_COUNT, WIN_COINS,
 // BIG_WIN_COUNT) so tracking guild-task progress just piggybacks on updateMissions.
-export const GENERATE_GUILD_TASKS = (playerLevel: number, maxBet?: number): import('./types').GuildTask[] => {
+// Each task rewards EITHER guild level XP or guild contribution points (never
+// both, picked at random) plus always some coins — refreshing a single task
+// rerolls all of this (and can come out bigger or smaller than before).
+const GUILD_TASK_TEMPLATES: { type: import('./types').GuildTask['type']; base: number; desc: string }[] = [
+    { type: 'SPIN_COUNT',    base: 60, desc: 'Spin the reels' },
+    { type: 'WIN_COINS',     base: 8,  desc: 'Win total coins' },
+    { type: 'BIG_WIN_COUNT', base: 5,  desc: 'Hit Big Wins' },
+];
+export const GENERATE_ONE_GUILD_TASK = (playerLevel: number, maxBet: number | undefined, slotIndex: number, refreshCount: number): import('./types').GuildTask => {
     const mb = maxBet && maxBet > 0 ? maxBet : 10000;
-    const templates: { type: import('./types').GuildTask['type']; base: number; desc: string }[] = [
-        { type: 'SPIN_COUNT',    base: 60,      desc: 'Spin the reels' },
-        { type: 'WIN_COINS',     base: mb * 8,  desc: 'Win total coins' },
-        { type: 'BIG_WIN_COUNT', base: 5,       desc: 'Hit Big Wins' },
-    ];
-    return templates.map((t, i) => {
-        const target = t.type === 'SPIN_COUNT' ? Math.round(t.base + playerLevel * 3) : t.type === 'WIN_COINS' ? Math.floor(t.base) : t.base;
-        return {
-            id: `guild-task-${Date.now()}-${i}`,
-            type: t.type,
-            description: `${t.desc} ${formatNumber(target)}${t.type === 'WIN_COINS' ? '' : ' times'}`,
-            target,
-            current: 0,
-            guildXpReward: 40 + i * 20,
-            coinReward: Math.floor(mb * (2 + i)),
-            completed: false,
-            claimed: false,
-        };
-    });
+    const t = GUILD_TASK_TEMPLATES[slotIndex % GUILD_TASK_TEMPLATES.length];
+    // Variance widens slightly with each refresh so re-rolling stays interesting.
+    const variance = 0.7 + Math.random() * (0.6 + Math.min(0.4, refreshCount * 0.05));
+    const target = t.type === 'SPIN_COUNT' ? Math.round((t.base + playerLevel * 3) * variance)
+        : t.type === 'WIN_COINS' ? Math.floor(t.base * mb * variance)
+        : Math.max(1, Math.round(t.base * variance));
+    const rewardKind: import('./types').GuildTask['rewardKind'] = Math.random() < 0.5 ? 'GUILD_XP' : 'CONTRIBUTION';
+    return {
+        id: `guild-task-${Date.now()}-${slotIndex}-${refreshCount}-${Math.floor(Math.random() * 1e6)}`,
+        type: t.type,
+        description: `${t.desc} ${formatNumber(target)}${t.type === 'WIN_COINS' ? '' : ' times'}`,
+        target,
+        current: 0,
+        rewardKind,
+        pointsReward: Math.round((40 + slotIndex * 20) * variance),
+        coinReward: Math.floor(mb * (2 + slotIndex) * variance),
+        completed: false,
+        claimed: false,
+        refreshCount: 0,
+    };
 };
+export const GENERATE_GUILD_TASKS = (playerLevel: number, maxBet?: number): import('./types').GuildTask[] =>
+    GUILD_TASK_TEMPLATES.map((_, i) => GENERATE_ONE_GUILD_TASK(playerLevel, maxBet, i, 0));
 
 export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): Mission[] => {
     const multiplier = Math.max(1, playerLevel);

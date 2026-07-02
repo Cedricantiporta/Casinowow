@@ -152,6 +152,32 @@ function seededBoard(you: LocalPlayer, metric: LeaderboardMetric): LeaderboardEn
     return merged.slice(0, LIMIT);
 }
 
+// Best-effort single-player lookup for profile popups opened from Friends/Guild
+// lists (which only know a name/avatar locally) — fills in full stats when the
+// id is a real device that's ever submitted a score. Returns null rather than
+// guessing when there's nothing to show (e.g. an AI friend with a synthetic id).
+export async function getPlayerById(id: string): Promise<LeaderboardEntry | null> {
+    if (!supabase || !id) return null;
+    try {
+        const { data, error } = await supabase.from(TABLE).select('*').eq('device_id', id).maybeSingle();
+        if (error || !data) return null;
+        return {
+            id: data.device_id,
+            name: data.name || 'Player',
+            avatar: data.avatar || '/Profile_pic (3).png',
+            level: data.level ?? 1,
+            vipLevel: data.vip_level ?? 0,
+            score: Number(data.score) || 0,
+            gems: Number(data.gems) || 0,
+            totalWon: Number(data.total_won) || 0,
+            maxJackpot: Number(data.max_jackpot) || 0,
+            maxWin: Number(data.max_win) || 0,
+        };
+    } catch {
+        return null;
+    }
+}
+
 /**
  * Upserts this device's stats, then returns the live board ranked by `metric`.
  * Falls back to the seeded board if Supabase is unconfigured or the request fails.

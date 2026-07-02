@@ -178,7 +178,7 @@ export interface GuildMember {
     name: string;
     avatar: string;
     role: GuildRole;
-    contribution: number;
+    contribution: number; // donation/task-earned CONTRIBUTION points (separate from guild level XP)
     joinedAt: number;
 }
 
@@ -189,8 +189,9 @@ export interface GuildSummary {
     icon: string;
     color: string;
     isOpen: boolean;
-    level: number;
+    level: number; // capped at GUILD_MAX_LEVEL, driven by task GUILD_XP rewards
     xp: number;
+    contributionPoints: number; // separate pool, driven by donations + task CONTRIBUTION rewards — what monthly rank rewards are based on
     memberCount: number;
 }
 
@@ -199,22 +200,25 @@ export interface Guild extends GuildSummary {
     members: GuildMember[];
 }
 
+// Each task rewards EITHER guild level XP or guild contribution points (never
+// both) — picked when the task is generated/refreshed — plus always some coins.
 export interface GuildTask {
     id: string;
     type: 'SPIN_COUNT' | 'WIN_COINS' | 'BIG_WIN_COUNT';
     description: string;
     target: number;
     current: number;
-    guildXpReward: number;
+    rewardKind: 'GUILD_XP' | 'CONTRIBUTION';
+    pointsReward: number;
     coinReward: number;
     completed: boolean;
     claimed: boolean;
+    refreshCount: number; // per-task, drives this task's own escalating refresh cost
 }
 
 export interface GuildTaskState {
     tasks: GuildTask[];
     lastReset: number;
-    refreshCount: number; // resets daily with tasks; drives escalating refresh cost
 }
 
 export interface GuildDonationState {
