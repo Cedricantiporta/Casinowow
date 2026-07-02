@@ -151,6 +151,9 @@ export const Reel: React.FC<ReelProps> = ({ id, symbols = [], spinning, stopping
                               gameReels={gameConfig.reels}
                               inFreeSpins={inFreeSpins}
                               beastMultiplier={beastMultiplier}
+                              orbValue={orbValues?.[i] ?? null}
+                              isCollect={!!collectValues?.[i]}
+                              wildMultValue={wildMultValues?.[i] ?? null}
                           />
                       );
                   })}
@@ -400,11 +403,11 @@ const ReelCell: React.FC<{
                             <img
                                 src="/zeus_multiply.png"
                                 alt=""
-                                style={{ position: 'absolute', width: '86%', height: '86%', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(96,165,250,0.85))' }}
+                                style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(96,165,250,0.85))' }}
                             />
                             <span
                                 className="relative block leading-none"
-                                style={{ fontSize: `${1.6 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                                style={{ fontSize: `${2.2 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
                             >{orbValue}X</span>
                         </div>
                     )}
@@ -422,10 +425,10 @@ const ReelCell: React.FC<{
                             <span
                                 className="block leading-none"
                                 style={{
-                                    fontSize: `${2.4 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900,
+                                    fontSize: `${3.2 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900,
                                     color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em',
-                                    // Starts invisible/tiny, zooms up to full size, then pulsates forever.
-                                    animation: 'wildMultZoom 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards, wildMultPulse 1s ease-in-out 0.4s infinite',
+                                    // Starts invisible/tiny, zooms up to full size, then pulsates forever with a big swing.
+                                    animation: 'wildMultZoom 0.2s cubic-bezier(0.34,1.56,0.64,1) forwards, wildMultPulse 0.5s ease-in-out 0.2s infinite',
                                 }}
                             >{wildMultValue}X</span>
                         </div>

@@ -114,6 +114,8 @@ const isCascadeTheme = (t: GameTheme): boolean => CASCADE_THEMES.has(t);
 
 // Olympus Ascend: multiplier orb values that can land on the grid. Any win on a
 // spin sums every orb currently on the board and multiplies that spin's payout.
+// Olympus's jackpot-pick bonus fires the instant collected orb values reach this.
+const OLYMPUS_ORB_COLLECT_TARGET = 50;
 const OLYMPUS_ORB_POOL: { v: number; w: number }[] = [
     { v: 2, w: 34 }, { v: 3, w: 24 }, { v: 4, w: 15 }, { v: 5, w: 10 }, { v: 6, w: 6 },
     { v: 8, w: 4 }, { v: 10, w: 2.5 }, { v: 12, w: 1.2 }, { v: 15, w: 0.7 }, { v: 20, w: 0.3 },
@@ -204,6 +206,8 @@ const ArcticMultiplierBar: React.FC<{ mults: number[]; stepIdx: number; isActive
     </div>
 );
 
+// 30% less than the original 250 — the pick-jackpot bar fills in fewer spins now.
+const ARCTIC_PROGRESS_TARGET = 175;
 const ArcticProgressBar: React.FC<{ progress: number; max?: number }> = ({ progress, max = 250 }) => {
     const pct = Math.min((progress / max) * 100, 100);
     const full = pct >= 100;
@@ -966,7 +970,6 @@ const App: React.FC = () => {
   // Last-spin collect payoff: land naturally first, then reveal the collected
   // wilds one at a time instead of having them already present when it stops.
   const buffaloRevealPendingRef = useRef(false);
-  const [buffaloWildRevealRemaining, setBuffaloWildRevealRemaining] = useState<number | null>(null);
 
   // Neon Vegas Scatter Roulette state
   const [showNeonRoulette, setShowNeonRoulette] = useState(false);
@@ -4031,14 +4034,15 @@ const App: React.FC = () => {
         // spin to trigger the pick-and-win jackpot.
         if (ft === 'ARCTIC' && freeSpinsRemaining === 0) {
             arcticPickSpinsRef.current++;
-            // Fill progress bar +1 to +5 per spin, cap at 250, stay full
-            if (arcticProgressRef.current < 250) {
+            // Fill progress bar +1 to +5 per spin, cap at ARCTIC_PROGRESS_TARGET (30%
+            // less than before), stay full
+            if (arcticProgressRef.current < ARCTIC_PROGRESS_TARGET) {
                 const gain = Math.floor(Math.random() * 5) + 1;
-                arcticProgressRef.current = Math.min(arcticProgressRef.current + gain, 250);
+                arcticProgressRef.current = Math.min(arcticProgressRef.current + gain, ARCTIC_PROGRESS_TARGET);
                 setArcticSpinProgress(arcticProgressRef.current);
             }
-            // When full (250), each spin has a chance to trigger pick jackpot
-            if (arcticProgressRef.current >= 250) {
+            // When full, each spin has a chance to trigger pick jackpot
+            if (arcticProgressRef.current >= ARCTIC_PROGRESS_TARGET) {
                 const extraMult = Math.floor(arcticPickSpinsRef.current / 100);
                 const chance = Math.min(0.025 + extraMult * 0.0125, 0.2375);
                 if (Math.random() < chance) {
@@ -4082,10 +4086,10 @@ const App: React.FC = () => {
             }
             if (orbSumThisSpin > 0) {
                 olympusOrbCollectRef.current += orbSumThisSpin;
-                setOlympusOrbCollectProgress(Math.min(olympusOrbCollectRef.current, 100));
+                setOlympusOrbCollectProgress(Math.min(olympusOrbCollectRef.current, OLYMPUS_ORB_COLLECT_TARGET));
             }
-            if (olympusOrbCollectRef.current >= 100) {
-                olympusOrbCollectRef.current -= 100;
+            if (olympusOrbCollectRef.current >= OLYMPUS_ORB_COLLECT_TARGET) {
+                olympusOrbCollectRef.current -= OLYMPUS_ORB_COLLECT_TARGET;
                 setOlympusOrbCollectProgress(0);
                 setPlayer(p => ({ ...p, autoSpin: false }));
                 setTimeout(() => {
@@ -4145,7 +4149,7 @@ const App: React.FC = () => {
                 for (const col of wildMultGrid) for (const v of col) if (v) hasMult = true;
             }
             if (hasMult) {
-                setTimeout(() => calculateWin(targetGrid), 1000);
+                setTimeout(() => calculateWin(targetGrid), 500);
                 return next;
             }
         }
@@ -4171,8 +4175,7 @@ const App: React.FC = () => {
             // ~1 second per wild so it's obvious each one is being added, even
             // during fast spin — that's the whole point of this animation.
             const stepDelay = 1000;
-            setBuffaloWildRevealRemaining(toPlace.length);
-            audioService.playBonusTrigger();
+            const workingWildMult = (buffaloWildMultGridRef.current || Array.from({ length: working.length }, () => Array(working[0]?.length || 0).fill(null))).map(col => [...col]);
             // A reel that has already finished landing doesn't re-sync its display
             // from the `symbols` prop any more (that only happens during the spin/stop
             // sequence) — updating targetGrid alone here would compute the right win
@@ -4183,19 +4186,25 @@ const App: React.FC = () => {
                 if (idx >= toPlace.length) {
                     buffaloCollectStackRef.current = 0;
                     setBuffaloCollectStack(0);
-                    setBuffaloWildRevealRemaining(null);
                     setTargetGrid(working.map(col => [...col]));
                     calculateWin(working);
                     return;
                 }
                 const { c, r } = toPlace[idx];
                 working[c][r] = SymbolType.WILD;
+                // Small chance a payoff wild also carries a bonus multiplier, same odds
+                // as a naturally-landed one.
+                if (Math.random() < 0.15) {
+                    const roll = Math.random();
+                    workingWildMult[c][r] = roll < 0.6 ? 2 : roll < 0.9 ? 3 : 5;
+                    buffaloWildMultGridRef.current = workingWildMult.map(col => [...col]);
+                    setBuffaloWildMultGrid(workingWildMult.map(col => [...col]));
+                }
                 const newCellsMask = working.map((col, ci) => col.map((_, ri) => ci === c && ri === r));
                 setCascadeGrid(working.map(col => [...col]));
                 setCascadeNewCells(newCellsMask);
                 setCascadeDissolving(false);
                 idx++;
-                setBuffaloWildRevealRemaining(toPlace.length - idx);
                 setTimeout(revealStep, stepDelay);
             };
             setTimeout(revealStep, 500);
@@ -6314,21 +6323,10 @@ const App: React.FC = () => {
 
                         {/* Pick-bonus progress bar — Arctic Freeze and Olympus Ascend each have their own meter */}
                         {featureThemeOf(selectedGame.theme) === 'ARCTIC' && freeSpinsRemaining === 0 && !showArcticPickModal && (
-                            <ArcticProgressBar progress={arcticSpinProgress} />
+                            <ArcticProgressBar progress={arcticSpinProgress} max={ARCTIC_PROGRESS_TARGET} />
                         )}
                         {selectedGame.theme === 'OLYMPUS' && freeSpinsRemaining === 0 && !showArcticPickModal && (
-                            <ArcticProgressBar progress={olympusOrbCollectProgress} max={100} />
-                        )}
-
-                        {/* Buffalo collect payoff — counts down as each collected wild is revealed */}
-                        {buffaloWildRevealRemaining !== null && (
-                            <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-                                <div className="flex flex-col items-center gap-1 rounded-2xl px-6 py-3"
-                                    style={{ background: 'rgba(0,0,0,0.55)', boxShadow: '0 0 24px rgba(251,191,36,0.5)' }}>
-                                    <span className="font-black text-white uppercase tracking-widest" style={{ fontSize: 13 }}>Adding Wilds</span>
-                                    <span className="font-black text-amber-300 leading-none" style={{ fontSize: 34, textShadow: '0 0 12px rgba(251,191,36,0.8)' }}>{buffaloWildRevealRemaining}</span>
-                                </div>
-                            </div>
+                            <ArcticProgressBar progress={olympusOrbCollectProgress} max={OLYMPUS_ORB_COLLECT_TARGET} />
                         )}
 
                         {/* Mystery tile overlay — covers the masked cells until they reveal. */}
