@@ -606,9 +606,6 @@ const App: React.FC = () => {
   const lifetimeSpinsRef = useRef<number>(0);
   const firstFreeSpinDoneRef = useRef<boolean>(false);
   const forceFreeSpinRef = useRef<boolean>(false);
-  // Piggy Riches: the guaranteed first free-spin trigger (10th spin) gets a
-  // +30% jackpot chance for that free-spin session only, then expires.
-  const piggyFirstFsBoostRef = useRef<boolean>(false);
   useEffect(() => {
       try {
           lifetimeSpinsRef.current = JSON.parse(localStorage.getItem('cw_player') || '{}')?.stats?.totalSpins || 0;
@@ -3055,9 +3052,8 @@ const App: React.FC = () => {
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
       // JUNGLE: the colossal center symbol occupies reels 2-4 every free spin, so no jackpot injection there.
       if (isFreeSpin && ft !== 'ARCTIC' && ft !== 'NEON' && selectedGame.theme !== 'JUNGLE' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
-          // CANDY gets 50% reduced jackpot spawn rates. PIGGY gets +30% jackpot
-          // chance only during the guaranteed first (10th-spin) free-spin session.
-          const jpScale = ft === 'CANDY' ? 0.5 : (ft === 'PIGGY' && piggyFirstFsBoostRef.current) ? 1.3 : 1.0;
+          // CANDY gets 50% reduced jackpot spawn rates.
+          const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
               { type: SymbolType.JACKPOT_MINI,  prob: 0.072 * jpScale },
               { type: SymbolType.JACKPOT_MINOR, prob: 0.048 * jpScale },
@@ -3175,7 +3171,6 @@ const App: React.FC = () => {
       // PIGGY uses 6+ COIN cells to trigger (not SCATTER); all other slots use SCATTER.
       if (forceFreeSpinRef.current && !isFreeSpin) {
           if (selectedGame.theme === 'PIGGY') {
-              piggyFirstFsBoostRef.current = true;
               // Place 6 coins in random eligible (non-wild, non-scatter) cells.
               const eligible: {c: number; r: number}[] = [];
               for (let c = 0; c < cols; c++) {
@@ -4960,8 +4955,6 @@ const App: React.FC = () => {
   const handleFreeSpinSummaryClose = () => {
       setShowFreeSpinSummary(false);
       trackSlotQuest('BONUS_TRIGGER', 1);
-      // The guaranteed first free-spin's jackpot boost only lasts for that one session.
-      piggyFirstFsBoostRef.current = false;
       const currentBet = availableBets[betIndex];
       const latestTotalWin = freeSpinTotalWinRef.current;
       const tier = latestTotalWin > 0 ? (getWinTier(latestTotalWin, currentBet) || 'BIG WIN') : null;

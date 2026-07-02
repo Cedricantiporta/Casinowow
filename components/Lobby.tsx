@@ -450,7 +450,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                 const toggle = (
                     <button onClick={() => setDockExpanded(v => !v)}
                         className="absolute flex items-center justify-center active:scale-95 transition-transform"
-                        style={{ width: 32, height: 28, right: 4, top: 'calc(50% + 8px)', transform: 'translateY(-50%)', zIndex: 1 }}>
+                        style={{ width: 32, height: 28, right: 4, top: 'calc(50% + 16px)', transform: 'translateY(-50%)', zIndex: 1 }}>
                         <i className={`ti ${dockExpanded ? 'ti-chevron-down' : 'ti-chevron-up'}`} style={{ fontSize: 20, color: '#fff' }} />
                         {!dockExpanded && row2HasNotif && (
                             <div className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full"
