@@ -2843,6 +2843,10 @@ const App: React.FC = () => {
                }
                // DRAGON: no full-column wild stacks, only single-cell wilds
                if (selectedGame.theme === 'DRAGON') wildStackChance = 0;
+               // OLYMPUS: a full-reel wild stack would count toward every symbol's
+               // Scatter Pays cluster at once, blowing out the win model — no full-reel
+               // wilds here, just whatever wilds land naturally per-cell.
+               if (selectedGame.theme === 'OLYMPUS') wildStackChance = 0;
                // JUNGLE: reels 2-4 are fully owned by the colossal center symbol mechanic —
                // no generic wild-column stacking there (it would overwrite the base-game
                // scatter-only-center restriction or the free-spin guaranteed big icon).
@@ -3399,7 +3403,11 @@ const App: React.FC = () => {
       // a randomly-placed WILD instead of spawning a new marker — one big payoff
       // spin instead of trickling value out over the round.
       if (selectedGame.theme === 'BUFFALO') {
-          const isLastFreeSpin = isFreeSpin && freeSpinsRemaining === 1;
+          // freeSpinsRemaining is already the POST-decrement value by the time this
+          // runs (spin() decrements it before this effect fires — see
+          // isCurrentFreeSpinRef's comment above), so "0 remaining after this spin"
+          // is what actually means "this is the last spin", not "1 remaining".
+          const isLastFreeSpin = isFreeSpin && freeSpinsRemaining === 0;
           const collectGrid: boolean[][] = Array.from({ length: cols }, () => Array(rows).fill(false));
           if (isLastFreeSpin) {
               const stackCount = buffaloCollectStackRef.current;
@@ -3947,6 +3955,8 @@ const App: React.FC = () => {
                  ? scatterCount
                  : selectedGame.theme === 'JUNGLE'
                  ? 5
+                 : selectedGame.theme === 'BUFFALO'
+                 ? 6
                  : 10;
              // JUNGLE's scatter count during a retrigger is always the whole 3x3 block (9
              // cells at once), not a linear "more scatters = more spins" signal like other
