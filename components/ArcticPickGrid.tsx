@@ -64,14 +64,19 @@ interface Cell { id: number; tier: Tier; state: CellState; }
 export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWin, rows, cols, hiddenIcon = '/arctic/snow.png', hiddenIconSize = 0.7, bgColor = '#000a14' }) => {
     const [winningTier] = useState<Tier>(rollWinningTier);
     const [cells, setCells] = useState<Cell[]>(() => {
-        // Fill the whole grid (whatever size the calling slot uses) — one cell per
-        // non-winning tier, the rest all the winning tier (need 3 of those to win).
+        // Spread all 5 tiers roughly evenly across the grid instead of stacking the
+        // board with the winning tier — that made it possible to complete 3-of-a-kind
+        // in the first couple of taps. With an even split, finding the 3rd match of
+        // whichever tier actually won takes real exploration (seeing a good mix of
+        // every tier along the way) instead of being a near-certain quick hit.
         const totalCells = Math.max(rows * cols, TIERS.length);
-        const fillerTiers = TIERS.filter(t => t !== winningTier);
-        const tierList: Tier[] = [
-            ...Array(totalCells - fillerTiers.length).fill(winningTier),
-            ...fillerTiers,
-        ] as Tier[];
+        const perTier = Math.floor(totalCells / TIERS.length);
+        const remainder = totalCells - perTier * TIERS.length;
+        const tierList: Tier[] = [];
+        TIERS.forEach((t, i) => {
+            const count = perTier + (i < remainder ? 1 : 0);
+            for (let k = 0; k < count; k++) tierList.push(t);
+        });
         return shuffle(tierList).map((tier, id) => ({ id, tier, state: 'hidden' as CellState }));
     });
 

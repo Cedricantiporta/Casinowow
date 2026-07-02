@@ -121,7 +121,12 @@ const OLYMPUS_ORB_POOL: { v: number; w: number }[] = [
     { v: 8, w: 4 }, { v: 10, w: 2.5 }, { v: 12, w: 1.2 }, { v: 15, w: 0.7 }, { v: 20, w: 0.3 },
     { v: 25, w: 0.15 }, { v: 50, w: 0.08 }, { v: 100, w: 0.03 }, { v: 250, w: 0.015 }, { v: 500, w: 0.005 },
 ];
-const pickOlympusOrbValue = (): number => {
+// Free-spin orbs use a simple, capped 2x/4x/6x pool instead of the full base-game
+// weighted pool (which runs up to 500x) — keeps free spins predictable/fast to
+// resolve instead of chasing rare huge multipliers on every spin.
+const OLYMPUS_FS_ORB_VALUES = [2, 4, 6];
+const pickOlympusOrbValue = (isFreeSpin: boolean): number => {
+    if (isFreeSpin) return OLYMPUS_FS_ORB_VALUES[Math.floor(Math.random() * OLYMPUS_FS_ORB_VALUES.length)];
     const total = OLYMPUS_ORB_POOL.reduce((a, o) => a + o.w, 0);
     let roll = Math.random() * total;
     for (const o of OLYMPUS_ORB_POOL) { roll -= o.w; if (roll <= 0) return o.v; }
@@ -3364,7 +3369,7 @@ const App: React.FC = () => {
       // outcome, same as every other decorative grid mechanic here.
       if (selectedGame.theme === 'OLYMPUS') {
           const orbGrid: (number | null)[][] = Array.from({ length: cols }, () => Array(rows).fill(null));
-          const orbChance = isFreeSpin ? 0.55 : 0.25;
+          const orbChance = isFreeSpin ? 0.825 : 0.25;
           if (Math.random() < orbChance) {
               const maxOrbs = isFreeSpin ? 5 : 3;
               const orbsToPlace = 1 + Math.floor(Math.random() * maxOrbs);
@@ -3383,7 +3388,7 @@ const App: React.FC = () => {
               for (let i = 0; i < Math.min(orbsToPlace, eligible.length); i++) {
                   const { c, r } = eligible[i];
                   newGrid[c][r] = SymbolType.WILD;
-                  orbGrid[c][r] = pickOlympusOrbValue();
+                  orbGrid[c][r] = pickOlympusOrbValue(isFreeSpin);
               }
           }
           olympusOrbGridRef.current = orbGrid;
@@ -4587,7 +4592,16 @@ const App: React.FC = () => {
   });
   const handleAddFriend = async (friend: Friend) => {
       if (!isRealPlayerId(friend.id)) {
-          setFriendsState(prev => prev.friends.some(f => f.id === friend.id) ? prev : { ...prev, friends: [...prev.friends, friend] });
+          if (pendingFriendRequestIds.includes(friend.id) || friendsState.friends.some(f => f.id === friend.id)) return;
+          // Bots have no real backend to send a request to, but adding one INSTANTLY
+          // while the UI still says "Request Sent" reads as broken/inconsistent with
+          // how a real request behaves. Simulate the same pending-then-added flow.
+          setPendingFriendRequestIds(prev => prev.includes(friend.id) ? prev : [...prev, friend.id]);
+          const delay = 3000 + Math.random() * 5000;
+          setTimeout(() => {
+              setPendingFriendRequestIds(prev => prev.filter(id => id !== friend.id));
+              setFriendsState(prev => prev.friends.some(f => f.id === friend.id) ? prev : { ...prev, friends: [...prev.friends, friend] });
+          }, delay);
           return;
       }
       if (pendingFriendRequestIds.includes(friend.id) || friendsState.friends.some(f => f.id === friend.id)) return;
