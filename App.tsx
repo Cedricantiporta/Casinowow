@@ -3454,9 +3454,10 @@ const App: React.FC = () => {
           } else if (isFreeSpin && buffaloCollectStackRef.current < 15) {
               // Up to 4 collect markers can land on a single spin. Chance of landing
               // 2+ at once is cut 60% from before (23% -> ~9.2%) — that mass moves
-              // into the single-collect bucket, so "at least 1" stays ~67.5% overall.
+              // into the single-collect bucket. Overall "at least 1" chance is then
+              // cut a further 30% on top of that (67.5% -> ~47.25%).
               const roll = Math.random() * 100;
-              const count = roll >= 99.0 ? 4 : roll >= 96.8 ? 3 : roll >= 90.8 ? 2 : roll >= 32.5 ? 1 : 0;
+              const count = roll >= 99.3 ? 4 : roll >= 97.76 ? 3 : roll >= 93.56 ? 2 : roll >= 52.75 ? 1 : 0;
               if (count > 0) {
                   const eligible: { c: number; r: number }[] = [];
                   for (let c = 0; c < cols; c++) {
@@ -4226,7 +4227,7 @@ const App: React.FC = () => {
                     calculateWin(working);
                     return;
                 }
-                // 20% of the time, a collected wild deliberately lands back on a cell
+                // 35% of the time, a collected wild deliberately lands back on a cell
                 // that's already wild — a wasted pick, same as the real thing landing
                 // somewhere it doesn't add anything new.
                 const wildCells: { c: number; r: number }[] = [];
@@ -4237,7 +4238,7 @@ const App: React.FC = () => {
                         else if (working[c][r] !== SymbolType.SCATTER) openCells.push({ c, r });
                     }
                 }
-                const wantsWaste = Math.random() < 0.2 && wildCells.length > 0;
+                const wantsWaste = Math.random() < 0.35 && wildCells.length > 0;
                 const pool = wantsWaste ? wildCells : (openCells.length > 0 ? openCells : wildCells);
                 const { c, r } = pool[Math.floor(Math.random() * pool.length)];
                 working[c][r] = SymbolType.WILD;

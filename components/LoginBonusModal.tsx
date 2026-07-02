@@ -63,7 +63,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
         return (
             <div
                 key={reward.day}
-                className="relative rounded-xl p-1.5 flex flex-col items-center justify-between overflow-hidden transition-all h-28 w-full"
+                className="relative rounded-xl p-1.5 flex flex-col items-center justify-between overflow-hidden transition-all h-36 w-full"
                 style={cardStyle}
             >
                 <div className={`text-[8px] font-black px-2 rounded-full mb-0.5 shadow-sm ${isGoldenDay ? 'bg-black text-yellow-400' : isToday ? 'bg-white text-black' : 'bg-black/40 text-white'}`}>
@@ -107,27 +107,26 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
     return (
         <div className="absolute inset-0 z-[250] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-pop-in">
             <div
-                className="w-full max-w-[460px] flex flex-col rounded-3xl overflow-hidden"
+                className="w-full max-w-[360px] flex flex-col rounded-3xl overflow-hidden"
                 style={{
                     background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)',
                     boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
                 }}
             >
                 {/* Header */}
-                <div className="relative shrink-0 px-4 pt-4 pb-1 text-center">
+                <div className="relative shrink-0 px-4 pt-3 pb-0 text-center">
                     {onClose && (
-                        <button className="round-btn cursor-pointer absolute top-3 right-3" onClick={onClose}><i className="ti ti-x" /></button>
+                        <button className="round-btn cursor-pointer absolute top-2 right-3" onClick={onClose}><i className="ti ti-x" /></button>
                     )}
                     <h2 className="font-tanker text-white text-base">Daily Login Bonus</h2>
-                    <p className="text-purple-300/70 text-[10px] mt-0.5">Come back every day for bigger rewards!</p>
                 </div>
 
                 {/* 6-stop streak progress bar — icons only, day number on the icon itself */}
-                <div className="px-6 pt-4 pb-2">
-                    <div className="relative flex items-center justify-between" style={{ height: 46 }}>
-                        <div className="absolute left-0 right-0 rounded-full" style={{ top: '50%', height: 4, transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.35)' }} />
+                <div className="px-6 pt-2 pb-1">
+                    <div className="relative flex items-center justify-between" style={{ height: 32 }}>
+                        <div className="absolute left-0 right-0 rounded-full" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.35)' }} />
                         <div className="absolute left-0 rounded-full" style={{
-                            top: '50%', height: 4, transform: 'translateY(-50%)',
+                            top: '50%', height: 3, transform: 'translateY(-50%)',
                             width: `${fillPct}%`,
                             background: 'linear-gradient(90deg,#facc15,#fde047)',
                         }} />
@@ -135,13 +134,13 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                             const stopDay = (i + 1) * DAILY_LOGIN_DAYS_PER_STOP;
                             const isDone = daysCompleted >= stopDay;
                             return (
-                                <div key={i} className="relative flex items-center justify-center shrink-0" style={{ zIndex: 1, width: 40, height: 40 }}>
+                                <div key={i} className="relative flex items-center justify-center shrink-0" style={{ zIndex: 1, width: 28, height: 28 }}>
                                     <img src={GIFT_ICON} alt="" style={{
                                         width: '100%', height: '100%', objectFit: 'contain',
-                                        opacity: isDone ? 1 : 0.45, filter: isDone ? 'drop-shadow(0 0 8px rgba(250,204,21,0.7))' : 'grayscale(1)',
+                                        filter: isDone ? 'drop-shadow(0 0 8px rgba(250,204,21,0.7))' : 'grayscale(1)',
                                     }} />
                                     <span className="absolute font-black text-white" style={{
-                                        fontSize: 11, bottom: 0, right: -2,
+                                        fontSize: 9, bottom: 0, right: -2,
                                         textShadow: '0 0 3px #000, 0 1px 2px #000, 0 0 6px #000',
                                     }}>{stopDay}</span>
                                 </div>
