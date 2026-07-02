@@ -13,6 +13,9 @@ interface TimeBonusModalProps {
     jackpotLastTime?: number;
     jackpotBaseAmount?: number;
     onJackpotClaim?: (amount: number) => void;
+    megaOpensToday?: number;
+    megaOpensRequired?: number;
+    onMegaPracticeOpen?: () => void;
 }
 
 const JACKPOT_COOLDOWN = 3 * 60 * 60 * 1000; // 3 hours
@@ -31,6 +34,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
     isOpen, onClose, timers, onClaim,
     collectMultiplier = 1, multProgress = 0,
     jackpotLastTime = 0, jackpotBaseAmount = 0, onJackpotClaim,
+    megaOpensToday = 0, megaOpensRequired = 3, onMegaPracticeOpen,
 }) => {
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [showRoulette, setShowRoulette] = useState(false);
@@ -128,9 +132,20 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                     );
                 })}
 
-                {/* Jackpot roulette tile */}
-                <div className={`${jackpotReady ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center flex-1 gap-2 p-3`}>
-                    <div className={`transition-all duration-300 flex items-center justify-center ${jackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
+                {/* Jackpot roulette tile — the real jackpot only unlocks once the tile has
+                    been opened megaOpensRequired times today; earlier ready-taps each
+                    just consume the tile (restarting its cooldown) and fill a dot. */}
+                <div className={`${jackpotReady ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center flex-1 gap-2 p-3 relative`}>
+                    <div className="flex items-center gap-1 absolute" style={{ top: 6 }}>
+                        {Array.from({ length: megaOpensRequired }, (_, i) => (
+                            <div key={i} className="rounded-full" style={{
+                                width: 6, height: 6,
+                                background: i < megaOpensToday ? '#fde047' : 'rgba(255,255,255,0.25)',
+                                boxShadow: i < megaOpensToday ? '0 0 4px rgba(253,224,71,0.9)' : 'none',
+                            }} />
+                        ))}
+                    </div>
+                    <div className={`transition-all duration-300 flex items-center justify-center mt-2 ${jackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
                         <img src="/symbols/neon_bonus.png" alt=""
                             style={{ width: 72, height: 72, objectFit: 'contain', filter: jackpotReady ? 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' : undefined }} />
                     </div>
@@ -138,12 +153,16 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                     {/* jackpotBaseAmount already includes collect multiplier from App.tsx */}
                     <div className="text-sm font-black text-white text-center drop-shadow-md">{formatCommaNumber(jackpotBaseAmount)}</div>
                     <button
-                        onClick={() => jackpotReady && setShowRoulette(true)}
+                        onClick={() => {
+                            if (!jackpotReady) return;
+                            if (megaOpensToday < megaOpensRequired) onMegaPracticeOpen?.();
+                            else setShowRoulette(true);
+                        }}
                         disabled={!jackpotReady}
                         className={`pill-green w-full ${!jackpotReady ? 'opacity-40' : ''}`}
                     >
                         <div className="pill-face" style={{ padding: '6px 10px', fontSize: '10px' }}>
-                            {jackpotReady ? 'Play' : formatTime(jackpotRemaining)}
+                            {!jackpotReady ? formatTime(jackpotRemaining) : megaOpensToday < megaOpensRequired ? `Open (${megaOpensToday}/${megaOpensRequired})` : 'Play'}
                         </div>
                     </button>
                 </div>

@@ -1358,6 +1358,28 @@ const App: React.FC = () => {
       return { currentDay: 1, claimedToday: false, lastClaimTime: Date.now() };
   });
 
+  // Golden Treasury's Mega jackpot tile now needs 3 opens in a day before a
+  // cooldown-ready spin actually plays for real — the first 2 ready-taps each
+  // day just consume the tile (restarting its cooldown) and fill a dot; the
+  // 3rd opens the real roulette.
+  const MEGA_JACKPOT_OPENS_REQUIRED = 3;
+  const todayDateStr = () => new Date().toDateString();
+  const [megaJackpotOpens, setMegaJackpotOpens] = useState<{ date: string; opens: number }>(() => {
+      try {
+          const saved = JSON.parse(localStorage.getItem('cw_mega_jackpot_opens') || 'null');
+          if (saved && saved.date === todayDateStr()) return saved;
+      } catch {}
+      return { date: todayDateStr(), opens: 0 };
+  });
+  useEffect(() => {
+      if (megaJackpotOpens.date !== todayDateStr()) { setMegaJackpotOpens({ date: todayDateStr(), opens: 0 }); return; }
+      try { localStorage.setItem('cw_mega_jackpot_opens', JSON.stringify(megaJackpotOpens)); } catch {}
+  }, [megaJackpotOpens]);
+  const handleMegaJackpotPracticeOpen = () => {
+      setMegaJackpotOpens(prev => ({ date: todayDateStr(), opens: Math.min(MEGA_JACKPOT_OPENS_REQUIRED, prev.opens + 1) }));
+      setPlayer(p => ({ ...p, jackpotRouletteLastTime: Date.now() }));
+  };
+
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
   const [newSlotIds, setNewSlotIds] = useState<string[]>(() => {
       try { return JSON.parse(localStorage.getItem('cw_new_slots') || '[]'); } catch { return []; }
@@ -7257,8 +7279,12 @@ const App: React.FC = () => {
           multProgress={treasuryMultProgress}
           jackpotLastTime={player.jackpotRouletteLastTime ?? 0}
           jackpotBaseAmount={MAX_BET_BY_LEVEL(player.level) * 7 * treasuryMultiplier}
+          megaOpensToday={megaJackpotOpens.date === todayDateStr() ? megaJackpotOpens.opens : 0}
+          megaOpensRequired={MEGA_JACKPOT_OPENS_REQUIRED}
+          onMegaPracticeOpen={handleMegaJackpotPracticeOpen}
           onJackpotClaim={(amount) => {
               setPlayer(p => ({ ...p, balance: p.balance + amount, jackpotRouletteLastTime: Date.now() }));
+              setMegaJackpotOpens({ date: todayDateStr(), opens: 0 });
               triggerCoinAnim(amount);
               audioService.playWinBig();
               setCelebrationMsg(`+${formatCommaNumber(amount)} Coins`);
