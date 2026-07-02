@@ -401,7 +401,7 @@ const ReelCell: React.FC<{
                     {theme === 'OLYMPUS' && !blur && orbValue != null && (
                         <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
                             <img
-                                src="/zeus_multiply.png"
+                                src="/zeus_newmultiplier.png"
                                 alt=""
                                 style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 0 8px rgba(96,165,250,0.85))' }}
                             />

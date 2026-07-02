@@ -104,8 +104,12 @@ const PlayerCard: React.FC<{
                     <div className="flex flex-col items-center gap-2">
                         <div className="relative">
                             <Avatar src={entry.avatar} size={64} ring="0 0 0 3px rgba(255,255,255,0.18), 0 4px 12px rgba(0,0,0,0.5)" />
-                            <div className="absolute -bottom-1 -right-1 flex items-center justify-center font-black rounded-full"
-                                style={{ width: 24, height: 24, fontSize: 11, ...{ background: m.bg, color: m.color }, boxShadow: m.glow || '0 2px 4px rgba(0,0,0,0.5)' }}>{rank}</div>
+                            {rank <= 3 ? (
+                                <img src={`/Rank (${rank}).png`} alt="" className="absolute -bottom-1 -right-1" style={{ width: 24, height: 24, objectFit: 'contain' }} />
+                            ) : (
+                                <div className="absolute -bottom-1 -right-1 flex items-center justify-center font-black rounded-full"
+                                    style={{ width: 24, height: 24, fontSize: 11, ...{ background: m.bg, color: m.color }, boxShadow: m.glow || '0 2px 4px rgba(0,0,0,0.5)' }}>{rank}</div>
+                            )}
                         </div>
                         <div className="text-center">
                             <div className="font-black text-white" style={{ fontSize: 15 }}>{entry.name}{entry.isYou ? ' (You)' : ''}</div>
@@ -199,8 +203,12 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                         ? 'inset 0 1px 0 rgba(255,235,170,0.35), 0 2px 10px rgba(255,180,40,0.15)'
                         : 'inset 0 1px 0 rgba(255,255,255,0.06)',
                 }}>
-                <div className="shrink-0 flex items-center justify-center font-black rounded-full"
-                    style={{ width: 28, height: 28, fontSize: 12, background: m.bg, color: m.color, boxShadow: m.glow }}>{rank}</div>
+                {rank <= 3 ? (
+                    <img src={`/Rank (${rank}).png`} alt="" className="shrink-0" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                ) : (
+                    <div className="shrink-0 flex items-center justify-center font-black rounded-full"
+                        style={{ width: 28, height: 28, fontSize: 12, background: m.bg, color: m.color, boxShadow: m.glow }}>{rank}</div>
+                )}
                 <Avatar src={e.avatar} size={34} ring={rank <= 3 ? `0 0 0 2px ${rank === 1 ? '#ffd24a' : rank === 2 ? '#cdd6e2' : '#d68a48'}, 0 2px 6px rgba(0,0,0,0.45)` : undefined} />
                 <div className="flex-1 min-w-0">
                     <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{pinned ? 'Your rank' : e.name}{e.isYou && !pinned ? ' (You)' : ''}</div>

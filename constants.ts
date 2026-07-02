@@ -1318,12 +1318,26 @@ export const GENERATE_DECKS = (): Deck[] => {
     });
 };
 
-export const DAILY_LOGIN_REWARDS = [
-    { day: 1, multiplier: 5,  gems: 0, coins: 5  },
-    { day: 2, multiplier: 10, gems: 0, coins: 10 },
-    { day: 3, multiplier: 15, gems: 0, coins: 15 },
-    { day: 4, multiplier: 20, gems: 0, coins: 20 },
-    { day: 5, multiplier: 25, gems: 0, coins: 25 },
-    { day: 6, multiplier: 35, gems: 0, coins: 35 },
-    { day: 7, multiplier: 50, gems: 0, coins: 50 },
+// 6 stops of 5 days each (30 days total). Odd stops pay coins (starting at the
+// old Day 5 amount, +50% each subsequent coin stop); even stops pay a flat gem
+// amount (+50 each subsequent gem stop). The final stop pays both.
+export const DAILY_LOGIN_DAYS_PER_STOP = 5;
+export const DAILY_LOGIN_STOPS = 6;
+export const DAILY_LOGIN_TOTAL_DAYS = DAILY_LOGIN_DAYS_PER_STOP * DAILY_LOGIN_STOPS;
+const DAILY_LOGIN_STOP_DEFS: { multiplier: number; gems: number }[] = [
+    { multiplier: 25,     gems: 0   },
+    { multiplier: 0,      gems: 100 },
+    { multiplier: 37.5,   gems: 0   },
+    { multiplier: 0,      gems: 150 },
+    { multiplier: 56.25,  gems: 0   },
+    { multiplier: 84.375, gems: 200 },
 ];
+export const DAILY_LOGIN_REWARDS = DAILY_LOGIN_STOP_DEFS.flatMap((stop, stopIdx) =>
+    Array.from({ length: DAILY_LOGIN_DAYS_PER_STOP }, (_, i) => ({
+        day: stopIdx * DAILY_LOGIN_DAYS_PER_STOP + i + 1,
+        stop: stopIdx,
+        multiplier: stop.multiplier,
+        gems: stop.gems,
+        coins: stop.multiplier,
+    }))
+);

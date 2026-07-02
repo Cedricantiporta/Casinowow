@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, DAILY_LOGIN_DAYS_PER_STOP, DAILY_LOGIN_STOPS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -1646,18 +1646,19 @@ const App: React.FC = () => {
               balance: p.balance + scaledCoins,
               diamonds: p.diamonds + reward.gems
           }));
-          triggerCoinAnim(scaledCoins);
+          if (scaledCoins > 0) triggerCoinAnim(scaledCoins);
           let nextDay = loginState.currentDay + 1;
-          if (nextDay > 7) nextDay = 1;
+          if (nextDay > DAILY_LOGIN_TOTAL_DAYS) nextDay = 1;
           setLoginState({
               currentDay: nextDay,
               claimedToday: true,
               lastClaimTime: Date.now()
           });
           setActiveModal('NONE');
-          let msg = `Day ${reward.day}: +${formatCommaNumber(scaledCoins)} Coins`;
-          if (reward.gems > 0) msg += ` & ${reward.gems} Gems`;
-          setCelebrationMsg(msg);
+          const parts: string[] = [];
+          if (scaledCoins > 0) parts.push(`+${formatCommaNumber(scaledCoins)} Coins`);
+          if (reward.gems > 0) parts.push(`${reward.gems} Gems`);
+          setCelebrationMsg(`Day ${reward.day}: ${parts.join(' & ')}`);
           audioService.playWinBig();
       }
   };
@@ -6707,7 +6708,7 @@ const App: React.FC = () => {
                                 onWin={handleArcticPickWin}
                                 rows={selectedGame.rows}
                                 cols={selectedGame.reels}
-                                hiddenIcon={selectedGame.theme === 'OLYMPUS' ? '/zeus_multiply.png' : undefined}
+                                hiddenIcon={selectedGame.theme === 'OLYMPUS' ? '/zeus_newmultiplier.png' : undefined}
                                 hiddenIconSize={selectedGame.theme === 'OLYMPUS' ? 1 : undefined}
                                 bgColor={selectedGame.theme === 'OLYMPUS' ? '#1a0a2e' : undefined}
                             />
@@ -6716,24 +6717,26 @@ const App: React.FC = () => {
                         );
                     })()}
 
-                    {/* EXPERIMENT: Piggy Riches scatter icon rendered oversized and allowed to
-                        protrude past its cell — every reel (and the grid wrapper itself) clips
-                        its own contents with overflow-hidden, so this has to live here, outside
-                        that boundary, as its own overlay positioned by percentage to match each
-                        scatter cell. Biased upward so it spills over the top/sides; the bottom
-                        stays roughly at the cell's natural footprint. */}
+                    {/* EXPERIMENT: Piggy Riches' COIN symbol (its real "6 to trigger free
+                        spins" / "2X WILD during free spins" icon — not literal SCATTER,
+                        which Piggy barely ever generates) rendered oversized and allowed to
+                        protrude past its cell. Every reel (and the grid wrapper itself)
+                        clips its own contents with overflow-hidden, so this has to live
+                        here, outside that boundary, as its own overlay positioned by
+                        percentage to match each coin cell. Biased upward so it spills over
+                        the top/sides; the bottom stays roughly at the cell's footprint. */}
                     {selectedGame.theme === 'PIGGY' && status !== GameStatus.SPINNING && status !== GameStatus.STOPPING && targetGrid.length > 0 && (
                         <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 25 }}>
                             {targetGrid.map((col, c) => col.map((sym, r) => {
-                                if (sym !== SymbolType.SCATTER) return null;
+                                if (sym !== SymbolType.COIN) return null;
                                 const cellW = 100 / selectedGame.reels;
                                 const cellH = 100 / selectedGame.rows;
                                 const centerX = (c + 0.5) * cellW;
                                 const centerY = (r + 0.5) * cellH;
                                 return (
                                     <img
-                                        key={`piggy-scatter-${c}-${r}`}
-                                        src={GET_SYMBOLS(selectedGame.theme)[SymbolType.SCATTER]?.icon}
+                                        key={`piggy-coin-${c}-${r}`}
+                                        src={GET_SYMBOLS(selectedGame.theme)[SymbolType.COIN]?.icon}
                                         alt=""
                                         className="absolute select-none"
                                         style={{
@@ -6894,7 +6897,7 @@ const App: React.FC = () => {
                           )}
                       </span>
                       <span className="total-win">
-                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : pirateWalkActive ? 'GHOST SHIP' : showNeonRoulette ? 'ROULETTE' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}${selectedGame.theme === 'BUFFALO' && buffaloCollectStack > 0 ? `  COLLECT: ${buffaloCollectStack}/15` : ''}` : 'TOTAL WIN'}
+                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : pirateWalkActive ? 'GHOST SHIP' : showNeonRoulette ? 'ROULETTE' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
                       </span>
                   </div>
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { DAILY_LOGIN_REWARDS, formatCommaNumber, formatKShort } from '../constants';
+import { DAILY_LOGIN_REWARDS, DAILY_LOGIN_DAYS_PER_STOP, DAILY_LOGIN_STOPS, formatKShort } from '../constants';
 
 interface LoginBonusModalProps {
     isOpen: boolean;
@@ -10,96 +10,21 @@ interface LoginBonusModalProps {
     onClose?: () => void;
 }
 
+const GIFT_ICON = '/ui/gift_store.png';
+
 export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, currentDay, claimedToday = false, maxBet, onClaim, onClose }) => {
     if (!isOpen) return null;
 
-    const row1 = DAILY_LOGIN_REWARDS.slice(0, 3);
-    const row2 = DAILY_LOGIN_REWARDS.slice(3, 7);
+    // "Today" is only truly claimable while claimedToday is false — once claimed,
+    // currentDay has already advanced to tomorrow's (locked) day.
+    const isPendingTomorrow = claimedToday;
+    const activeDay = currentDay;
+    const reward = DAILY_LOGIN_REWARDS.find(r => r.day === activeDay) ?? DAILY_LOGIN_REWARDS[0];
+    const stopIndex = reward.stop; // 0-based, 0..DAILY_LOGIN_STOPS-1
+    const dayInStop = ((activeDay - 1) % DAILY_LOGIN_DAYS_PER_STOP) + 1;
+    const coins = reward.multiplier * (maxBet ?? 0);
 
-    const innerCardBase: React.CSSProperties = {
-        background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)',
-        boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5)',
-    };
-
-    const renderDayCard = (reward: typeof DAILY_LOGIN_REWARDS[0]) => {
-        // currentDay advances the instant a claim happens, so "today" is only
-        // truly claimable while claimedToday is false — otherwise it's the
-        // upcoming day, locked until the next calendar day.
-        const isToday = reward.day === currentDay && !claimedToday;
-        const isPendingTomorrow = reward.day === currentDay && claimedToday;
-        const isPast = reward.day < currentDay;
-        const isGoldenDay = reward.day === 7;
-        const coins = reward.multiplier * (maxBet ?? 0);
-
-        let cardStyle: React.CSSProperties = { ...innerCardBase };
-        let cardExtra = '';
-
-        if (isPast) {
-            cardStyle = { ...innerCardBase, opacity: 0.5, filter: 'grayscale(1)' };
-        } else if (isGoldenDay && !isPendingTomorrow) {
-            cardStyle = {
-                background: 'linear-gradient(180deg,rgba(255,215,50,0.55) 0%,rgba(180,100,0,0.98) 100%)',
-                boxShadow: 'inset 0 1px 0 rgba(255,245,150,0.6), 0 3px 10px rgba(0,0,0,0.5)',
-            };
-            cardExtra = '';
-        } else if (isToday) {
-            cardStyle = {
-                ...innerCardBase,
-                boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 3px 10px rgba(0,0,0,0.5), 0 0 0 2px rgba(160,220,255,0.5)',
-                transform: 'scale(1.05)',
-            };
-        } else if (isPendingTomorrow) {
-            cardStyle = { ...innerCardBase, opacity: 0.6 };
-        }
-
-        return (
-            <div
-                key={reward.day}
-                className={`relative rounded-xl p-1.5 flex flex-col items-center justify-between overflow-hidden transition-all h-24 md:h-28 w-full ${cardExtra}`}
-                style={cardStyle}
-            >
-                <div className={`text-[8px] font-black px-2 rounded-full mb-0.5 shadow-sm ${isGoldenDay ? 'bg-black text-yellow-400' : isToday ? 'bg-white text-black' : 'bg-black/40 text-white'}`}>
-                    Day {reward.day}
-                </div>
-
-                <div className="flex-1 flex flex-col items-center justify-center w-full">
-                    <div className="mb-0.5 drop-shadow-md">
-                        <img
-                            src={reward.day === 7 ? '/ui/VIP.png' : '/ui/collect.png'}
-                            alt=""
-                            style={{ width: 36, height: 36, objectFit: 'contain' }}
-                        />
-                    </div>
-                    <div className={`font-black text-[10px] md:text-sm leading-tight ${isGoldenDay ? 'text-yellow-300' : isToday ? 'text-white' : 'text-indigo-100'}`}>
-                        {formatKShort(coins)}
-                    </div>
-                    {reward.gems > 0 && (
-                        <div className={`font-bold text-[8px] md:text-[9px] mt-0.5 ${isGoldenDay ? 'text-yellow-200' : isToday ? 'text-cyan-200' : 'text-cyan-400'}`}>
-                            + {reward.gems} Gems
-                        </div>
-                    )}
-                </div>
-
-                {isToday && (
-                    <button onClick={onClaim} className="pill-green w-full">
-                        <div className="pill-face" style={{ padding: '5px 8px', fontSize: '9px' }}>Claim</div>
-                    </button>
-                )}
-
-                {isPendingTomorrow && (
-                    <div className="w-full text-center rounded-full" style={{ background: 'rgba(0,0,0,0.35)', padding: '5px 8px' }}>
-                        <span className="font-black text-white/70" style={{ fontSize: 9 }}>Tomorrow</span>
-                    </div>
-                )}
-
-                {isPast && (
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <span className="text-2xl">✅</span>
-                    </div>
-                )}
-            </div>
-        );
-    };
+    const stopHasCoins = (stopMultiplier: number) => stopMultiplier > 0;
 
     return (
         <div className="absolute inset-0 z-[250] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-pop-in">
@@ -110,22 +35,88 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({ isOpen, curren
                     boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)',
                 }}
             >
-                {/* Header */}
-                <div className="shrink-0 px-4 pt-3 pb-1 text-center relative">
-                    <h2 className="font-tanker text-white text-base">Daily Login Bonus</h2>
-                    <p className="text-purple-300/70 text-[10px] mt-0.5">Come back every day for bigger rewards!</p>
+                {/* Header — no title/text, just the close button */}
+                <div className="shrink-0 flex justify-end px-3 pt-3">
                     {onClose && (
-                        <button className="round-btn cursor-pointer absolute top-1 right-2" onClick={onClose}><i className="ti ti-x" /></button>
+                        <button className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></button>
                     )}
                 </div>
 
-                {/* Day cards */}
-                <div className="px-3 pb-4 pt-2 flex flex-col gap-1.5">
-                    <div className="grid grid-cols-3 gap-1.5 w-full">
-                        {row1.map(reward => renderDayCard(reward))}
+                {/* 6-stop streak progress bar */}
+                <div className="px-5 pt-1 pb-3">
+                    <div className="relative flex items-center justify-between">
+                        {/* Track line, behind the icons */}
+                        <div className="absolute left-0 right-0 rounded-full" style={{ top: '50%', height: 4, transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.35)' }} />
+                        <div className="absolute left-0 rounded-full" style={{
+                            top: '50%', height: 4, transform: 'translateY(-50%)',
+                            width: `${(Math.min(stopIndex, DAILY_LOGIN_STOPS - 1) / (DAILY_LOGIN_STOPS - 1)) * 100}%`,
+                            background: 'linear-gradient(90deg,#facc15,#fde047)',
+                        }} />
+                        {Array.from({ length: DAILY_LOGIN_STOPS }, (_, i) => {
+                            const stopDef = DAILY_LOGIN_REWARDS[i * DAILY_LOGIN_DAYS_PER_STOP];
+                            const isDone = i < stopIndex;
+                            const isCurrent = i === stopIndex;
+                            const isFuture = i > stopIndex;
+                            return (
+                                <div key={i} className="relative flex flex-col items-center gap-1" style={{ zIndex: 1 }}>
+                                    <div
+                                        className={`relative rounded-full flex items-center justify-center ${isCurrent ? 'animate-bounce-sm' : ''}`}
+                                        style={{
+                                            width: isCurrent ? 40 : 32, height: isCurrent ? 40 : 32,
+                                            background: isDone
+                                                ? 'linear-gradient(180deg,#4ade80,#16a34a)'
+                                                : isCurrent
+                                                ? 'linear-gradient(180deg,#fde047,#f59e0b)'
+                                                : 'rgba(0,0,0,0.35)',
+                                            boxShadow: isCurrent ? '0 0 14px rgba(250,204,21,0.8)' : 'inset 0 1px 2px rgba(0,0,0,0.4)',
+                                            opacity: isFuture ? 0.5 : 1,
+                                        }}
+                                    >
+                                        {isDone ? (
+                                            <i className="ti ti-check text-white" style={{ fontSize: 16 }} />
+                                        ) : (
+                                            <img src={GIFT_ICON} alt="" style={{ width: '68%', height: '68%', objectFit: 'contain' }} />
+                                        )}
+                                    </div>
+                                    <span className="font-black text-white/70" style={{ fontSize: 8 }}>
+                                        Day {stopDef.day + DAILY_LOGIN_DAYS_PER_STOP - 1}
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </div>
-                    <div className="grid grid-cols-4 gap-1.5 w-full">
-                        {row2.map(reward => renderDayCard(reward))}
+                </div>
+
+                {/* Current stop reward + claim */}
+                <div className="px-4 pb-4">
+                    <div className="rounded-2xl p-4 flex flex-col items-center gap-2"
+                        style={{ background: 'rgba(0,0,0,0.25)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)' }}>
+                        <span className="font-black text-white/70 uppercase tracking-widest" style={{ fontSize: 9 }}>
+                            Day {activeDay} of {DAILY_LOGIN_DAYS_PER_STOP * DAILY_LOGIN_STOPS} · Stop {stopIndex + 1}/{DAILY_LOGIN_STOPS} ({dayInStop}/{DAILY_LOGIN_DAYS_PER_STOP})
+                        </span>
+                        <div className="flex items-center gap-4">
+                            {stopHasCoins(reward.multiplier) && (
+                                <div className="flex flex-col items-center gap-0.5">
+                                    <img src="/ui/collect.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+                                    <span className="font-black text-white" style={{ fontSize: 13 }}>{formatKShort(coins)}</span>
+                                </div>
+                            )}
+                            {reward.gems > 0 && (
+                                <div className="flex flex-col items-center gap-0.5">
+                                    <img src="/symbols/diamond.png" alt="" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+                                    <span className="font-black text-cyan-200" style={{ fontSize: 13 }}>{reward.gems}</span>
+                                </div>
+                            )}
+                        </div>
+                        {isPendingTomorrow ? (
+                            <div className="w-full text-center rounded-full mt-1" style={{ background: 'rgba(0,0,0,0.35)', padding: '7px 8px' }}>
+                                <span className="font-black text-white/70" style={{ fontSize: 10 }}>Come back tomorrow</span>
+                            </div>
+                        ) : (
+                            <button onClick={onClaim} className="pill-green w-full mt-1">
+                                <div className="pill-face" style={{ padding: '7px 8px', fontSize: '11px' }}>Claim</div>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
