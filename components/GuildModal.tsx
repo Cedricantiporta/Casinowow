@@ -545,39 +545,40 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                             {rightTab === 'TASKS' && tasks.map(t => {
                                 const cost = refreshCostFor(t);
                                 const pct = Math.min(100, (t.current / t.target) * 100);
+                                const isMax = t.current >= t.target;
                                 return (
-                                    <div key={t.id} className="tcard flex items-center gap-3 p-3">
+                                    <div key={t.id} className={`${isMax ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center gap-2 p-3`}>
                                         <div className="shrink-0 rounded-2xl flex items-center justify-center" style={{ width: 40, height: 40, background: 'rgba(0,0,0,0.3)' }}>
                                             <i className={`ti ${t.type === 'SPIN_COUNT' ? 'ti-disc' : t.type === 'WIN_COINS' ? 'ti-coin' : 'ti-bolt'} text-white`} style={{ fontSize: 20 }} />
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{t.description}</div>
-                                            <div className="relative h-5 rounded-full overflow-hidden mt-1.5" style={{ background: 'rgba(0,0,0,0.5)' }}>
-                                                <div className="absolute inset-y-0 left-0 rounded-full transition-all" style={{ width: `${pct}%`, background: t.completed ? 'linear-gradient(180deg,#4ade80,#16a34a)' : 'linear-gradient(180deg,#60a5fa,#2563eb)' }} />
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <span className="font-black text-white leading-none" style={{ fontSize: 9, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
-                                                        {formatNumber(t.current)} / {formatNumber(t.target)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="font-bold mt-1" style={{ fontSize: 9, color: t.rewardKind === 'GUILD_XP' ? 'rgba(250,204,21,0.75)' : 'rgba(125,211,252,0.75)' }}>
-                                                +{formatKShort(t.coinReward)} Coins · +{t.pointsReward} {t.rewardKind === 'GUILD_XP' ? 'Guild XP' : 'Contribution'}
+                                        <div className="font-black text-white text-center" style={{ fontSize: 12.5 }}>{t.description}</div>
+                                        <div className="relative h-5 rounded-full overflow-hidden w-full" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                                            <div className="absolute inset-y-0 left-0 rounded-full transition-all" style={{ width: `${pct}%`, background: t.completed ? 'linear-gradient(180deg,#4ade80,#16a34a)' : 'linear-gradient(180deg,#60a5fa,#2563eb)' }} />
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <span className="font-black text-white leading-none" style={{ fontSize: 10, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+                                                    {formatNumber(t.current)} / {formatNumber(t.target)}
+                                                </span>
                                             </div>
                                         </div>
-                                        {t.completed && !t.claimed ? (
-                                            <button onClick={() => onClaimTask(t.id)} className="pill-green shrink-0">
-                                                <div className="pill-face" style={{ padding: '7px 12px', fontSize: '10px' }}>Claim</div>
-                                            </button>
-                                        ) : t.claimed ? (
-                                            <i className="ti ti-check text-green-400 shrink-0" style={{ fontSize: 20 }} />
-                                        ) : (
-                                            <button onClick={() => playerGems >= cost && onRefreshTask(t.id)} disabled={playerGems < cost} className="pill-blue shrink-0" style={{ opacity: playerGems < cost ? 0.5 : 1 }}>
-                                                <div className="pill-face flex flex-col items-center leading-tight" style={{ padding: '5px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
-                                                    <i className="ti ti-refresh" style={{ fontSize: 12 }} />
-                                                    <span>{cost} Gems</span>
-                                                </div>
-                                            </button>
-                                        )}
+                                        <div className="font-bold" style={{ fontSize: 9, color: t.rewardKind === 'GUILD_XP' ? 'rgba(250,204,21,0.75)' : 'rgba(125,211,252,0.75)' }}>
+                                            +{formatKShort(t.coinReward)} Coins · +{t.pointsReward} {t.rewardKind === 'GUILD_XP' ? 'Guild XP' : 'Contribution'}
+                                        </div>
+                                        <div className="w-full">
+                                            {t.completed && !t.claimed ? (
+                                                <button onClick={() => onClaimTask(t.id)} className="pill-green w-full">
+                                                    <div className="pill-face" style={{ padding: '6px 12px', fontSize: '10px' }}>Claim</div>
+                                                </button>
+                                            ) : t.claimed ? (
+                                                <div className="flex justify-center"><i className="ti ti-check text-green-400" style={{ fontSize: 20 }} /></div>
+                                            ) : (
+                                                <button onClick={() => playerGems >= cost && onRefreshTask(t.id)} disabled={playerGems < cost} className="pill-blue w-full" style={{ opacity: playerGems < cost ? 0.5 : 1 }}>
+                                                    <div className="pill-face flex items-center justify-center gap-1" style={{ padding: '6px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
+                                                        <i className="ti ti-refresh" style={{ fontSize: 12 }} />
+                                                        <span>{cost} Gems</span>
+                                                    </div>
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })}
