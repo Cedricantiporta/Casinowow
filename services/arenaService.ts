@@ -143,8 +143,8 @@ export const AI_NAMES = [
     'Player4455667788', 'Player7263548190', 'Player3948571026',
 ];
 
-const PROFILE_PICS = ['/Profile_pic (1).png', '/Profile_pic (2).png', '/Profile_pic (3).png', '/Profile_pic (4).png'];
-const DEFAULT_PIC = '/Profile_pic (3).png';
+const PROFILE_PICS = ['/profilepicsnew (2).png', '/profilepicsnew (3).png', '/profilepicsnew (4).png', '/profilepicsnew (5).png'];
+const DEFAULT_PIC = '/profilepicsnew (4).png';
 
 // Deterministic PRNG (mulberry32) so a season's roster is stable.
 function mulberry32(seed: number) {

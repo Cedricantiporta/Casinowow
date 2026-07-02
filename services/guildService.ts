@@ -9,15 +9,16 @@ const MEMBERS_TABLE = 'guild_members';
 
 export { getDeviceId };
 
+// Crest artwork (uploaded assets) — icon is an image path, not a Tabler class.
 export const GUILD_ICONS: { icon: string; color: string }[] = [
-    { icon: 'ti-shield',        color: 'from-indigo-500 via-violet-600 to-purple-900' },
-    { icon: 'ti-sword',         color: 'from-red-500 via-rose-600 to-red-950' },
-    { icon: 'ti-crown',         color: 'from-yellow-500 via-amber-600 to-orange-900' },
-    { icon: 'ti-flame',         color: 'from-orange-500 via-red-600 to-rose-950' },
-    { icon: 'ti-skull',         color: 'from-slate-500 via-slate-700 to-slate-950' },
-    { icon: 'ti-diamond',       color: 'from-cyan-400 via-sky-600 to-indigo-900' },
-    { icon: 'ti-paw',           color: 'from-lime-500 via-green-600 to-emerald-900' },
-    { icon: 'ti-bolt',          color: 'from-fuchsia-500 via-purple-600 to-indigo-900' },
+    { icon: '/crest.png',      color: 'from-indigo-500 via-violet-600 to-purple-900' },
+    { icon: '/crest (1).png',  color: 'from-red-500 via-rose-600 to-red-950' },
+    { icon: '/crest (2).png',  color: 'from-yellow-500 via-amber-600 to-orange-900' },
+    { icon: '/crest (3).png',  color: 'from-orange-500 via-red-600 to-rose-950' },
+    { icon: '/crest (4).png',  color: 'from-slate-500 via-slate-700 to-slate-950' },
+    { icon: '/crest (5).png',  color: 'from-cyan-400 via-sky-600 to-indigo-900' },
+    { icon: '/crest (6).png',  color: 'from-lime-500 via-green-600 to-emerald-900' },
+    { icon: '/crest (7).png',  color: 'from-fuchsia-500 via-purple-600 to-indigo-900' },
 ];
 
 export const GUILD_CREATE_COST_GEMS = 500;

@@ -20,7 +20,7 @@ const TABS: { key: LeaderboardMetric; label: string }[] = [
     { key: 'maxWin',     label: 'Max Win' },
 ];
 
-const EXCLUSIVE_AVATAR = '/Profile_pic (12).png';
+const EXCLUSIVE_AVATAR = '/profilepicsnew (13).png';
 
 interface RankReward { gems: number; collectDays?: number; expDays?: number; missionExpHours?: number; exclusiveAvatar?: boolean }
 const RANK_REWARDS: Record<number, RankReward> = {

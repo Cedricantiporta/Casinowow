@@ -131,7 +131,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                     {badge ? <img src={badge} alt="" style={{ width: 27, height: 27, objectFit: 'contain' }} /> : <span className="font-black text-white/70" style={{ fontSize: 12 }}>{rank}</span>}
                                 </div>
                                 <div className={`shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 34, height: 34 }}>
-                                    <i className={`ti ${g.icon} text-white`} style={{ fontSize: 16 }} />
+                                    <img src={g.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{g.name}{isMine && <span className="text-green-400" style={{ fontSize: 9 }}> (Yours)</span>}</div>
@@ -169,22 +169,15 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                 </div>
             )}
 
-            {/* NO GUILD — 2-column: branding + Create/Search on the left, a guild list on the right */}
-            {!myGuild && browseTab !== 'CREATE' && (
+            {/* NO GUILD — 2-column: branding + Create on the left, a guild list on the right */}
+            {!myGuild && (
                 <div className="flex-1 flex gap-2 overflow-hidden px-3 pb-3">
                     <div className="w-[34%] shrink-0 flex flex-col items-center justify-center gap-3 rounded-2xl p-4 text-center" style={{ background: 'rgba(0,0,0,0.18)' }}>
-                        <div className="rounded-full flex items-center justify-center bg-gradient-to-br from-fuchsia-500 via-purple-600 to-indigo-900" style={{ width: 72, height: 72 }}>
-                            <i className="ti ti-shield-check text-white" style={{ fontSize: 36 }} />
-                        </div>
-                        <div>
-                            <div className="font-tanker text-white" style={{ fontSize: 15, lineHeight: 1.3 }}>Play Together!</div>
-                            <div className="font-tanker text-yellow-300" style={{ fontSize: 15, lineHeight: 1.3 }}>Win Together!</div>
+                        <div className="rounded-full flex items-center justify-center bg-gradient-to-br from-fuchsia-500 via-purple-600 to-indigo-900" style={{ width: 88, height: 88 }}>
+                            <img src="/Lobby_arena.png" alt="" style={{ width: '68%', height: '68%', objectFit: 'contain' }} />
                         </div>
                         <button onClick={() => setBrowseTab('CREATE')} className="pill-green w-full">
                             <div className="pill-face" style={{ padding: '8px 8px', fontSize: '12px' }}>Create</div>
-                        </button>
-                        <button onClick={() => setRightBrowseTab('RECOMMENDED')} className="pill-blue w-full">
-                            <div className="pill-face" style={{ padding: '8px 8px', fontSize: '12px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>Search</div>
                         </button>
                     </div>
 
@@ -217,7 +210,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                             renderRow={g => (
                                                 <button onClick={() => setViewingGuildId(g.id)} className="w-full flex items-center gap-2.5 px-3 py-2 text-left">
                                                     <div className={`shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 38, height: 38 }}>
-                                                        <i className={`ti ${g.icon} text-white`} style={{ fontSize: 18 }} />
+                                                        <img src={g.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{g.name}</div>
@@ -241,18 +234,23 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                 </div>
             )}
 
-            {/* CREATE — full width */}
+            {/* CREATE — popup modal, not a full-page swap */}
             {!myGuild && browseTab === 'CREATE' && (
-                <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4 flex flex-col gap-3">
-                    <button onClick={() => setBrowseTab('BROWSE')} className="self-start flex items-center gap-1 text-white/50 font-bold" style={{ fontSize: 11 }}>
-                        <i className="ti ti-arrow-left" style={{ fontSize: 13 }} />Back
-                    </button>
+                <div className="absolute inset-0 z-[220] flex items-center justify-center bg-black/65 backdrop-blur-md p-4 animate-pop-in"
+                    onClick={() => setBrowseTab('BROWSE')}>
+                <div className="w-full max-w-[320px] rounded-3xl overflow-y-auto no-scrollbar p-4 flex flex-col gap-3"
+                    onClick={e => e.stopPropagation()}
+                    style={{ maxHeight: '85%', background: 'linear-gradient(170deg,#5a18a0 0%,#40108a 55%,#28085e 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.45), 0 12px 40px rgba(0,0,0,0.7)' }}>
+                    <div className="flex items-center justify-between">
+                        <h3 className="font-tanker text-white" style={{ fontSize: 14 }}>Create Guild</h3>
+                        <div className="round-btn cursor-pointer" onClick={() => setBrowseTab('BROWSE')}><i className="ti ti-x" /></div>
+                    </div>
                     <div className="flex justify-center gap-2 flex-wrap">
                         {GUILD_ICONS.map((opt, i) => (
                             <div key={i} onClick={() => setIconIdx(i)}
                                 className={`rounded-full flex items-center justify-center bg-gradient-to-br ${opt.color} cursor-pointer transition-transform`}
                                 style={{ width: 40, height: 40, transform: iconIdx === i ? 'scale(1.15)' : 'scale(1)', boxShadow: iconIdx === i ? '0 0 0 2px rgba(255,255,255,0.7)' : 'none' }}>
-                                <i className={`ti ${opt.icon} text-white`} style={{ fontSize: 18 }} />
+                                <img src={opt.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
                             </div>
                         ))}
                     </div>
@@ -283,6 +281,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         <div className="pill-face" style={{ padding: '8px 8px', fontSize: '12px' }}>Create — {formatCommaNumber(createCostGems)} Gems</div>
                     </button>
                 </div>
+                </div>
             )}
 
             {/* IN A GUILD — 2-column: details/donations/leadership on the left,
@@ -293,10 +292,10 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                     {/* Left column */}
                     <div className="w-[34%] shrink-0 flex flex-col gap-2 overflow-y-auto no-scrollbar">
                         {/* Guild identity card */}
-                        <div className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.22)' }}>
+                        <div className="rounded-2xl p-3" style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)' }}>
                             <div className="flex items-center gap-2.5">
                                 <div className={`shrink-0 rounded-2xl flex items-center justify-center bg-gradient-to-br ${myGuild.color}`} style={{ width: 48, height: 48 }}>
-                                    <i className={`ti ${myGuild.icon} text-white`} style={{ fontSize: 22 }} />
+                                    <img src={myGuild.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-1.5">
@@ -311,7 +310,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between mt-2.5 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                            <div className="flex items-center justify-between mt-2.5 pt-2">
                                 <div className="flex items-center gap-1">
                                     <i className="ti ti-users text-white/50" style={{ fontSize: 12 }} />
                                     <span className="font-bold text-white/70" style={{ fontSize: 9.5 }}>{myGuild.memberCount}/{GUILD_MAX_MEMBERS}</span>
@@ -328,11 +327,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         </div>
 
                         {/* Description banner — announcement board, editable by Leader/Officers */}
-                        <div className="rounded-2xl p-3 flex-1" style={{ background: 'rgba(0,0,0,0.18)', minHeight: 72 }}>
-                            <div className="flex items-center gap-1.5 mb-1.5">
-                                <i className="ti ti-info-circle text-white/40" style={{ fontSize: 11 }} />
-                                <span className="font-black text-white/50 uppercase tracking-widest" style={{ fontSize: 8.5 }}>About</span>
-                            </div>
+                        <div className="rounded-2xl p-3 flex-1" style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)', minHeight: 72 }}>
                             {editingDesc ? (
                                 <div className="flex flex-col gap-2 h-full">
                                     <textarea
@@ -364,7 +359,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         </div>
 
                         {/* Daily donations */}
-                        <div className="rounded-2xl p-3 flex flex-col gap-2" style={{ background: 'rgba(0,0,0,0.18)' }}>
+                        <div className="rounded-2xl p-3 flex flex-col gap-2" style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)' }}>
                             <span className="font-black text-white/60 uppercase tracking-widest" style={{ fontSize: 9 }}>Daily Donation (+100 Contribution each)</span>
                             <div className="flex items-center gap-2">
                                 <img src="/new_coinicon.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
@@ -389,7 +384,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         </div>
 
                         {/* My Contribution / Guild Rank */}
-                        <div className="rounded-2xl p-3 flex" style={{ background: 'rgba(0,0,0,0.18)' }}>
+                        <div className="rounded-2xl p-3 flex" style={{ background: 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)' }}>
                             <div className="flex-1 flex flex-col items-center gap-0.5">
                                 <i className="ti ti-star text-yellow-300" style={{ fontSize: 16 }} />
                                 <span className="font-black text-white" style={{ fontSize: 14 }}>{formatKShort(me?.contribution || 0)}</span>
@@ -627,7 +622,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                             <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4 flex flex-col gap-2">
                                 <div className="rounded-2xl p-3 flex items-center gap-3" style={{ background: 'rgba(0,0,0,0.22)' }}>
                                     <div className={`shrink-0 rounded-2xl flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 56, height: 56 }}>
-                                        <i className={`ti ${g.icon} text-white`} style={{ fontSize: 26 }} />
+                                        <img src={g.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1.5">

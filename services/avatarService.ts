@@ -16,18 +16,18 @@ export interface AvatarDef {
 
 // Arena tier thresholds: Master III = 3, Epic III = 9, Legend III = 12, Mythic III = 15.
 export const AVATARS: AvatarDef[] = [
-    { path: '/Profile_pic (3).png',  unlock: { type: 'default' } },
-    { path: '/Profile_pic (1).png',  unlock: { type: 'level', level: 10 } },
-    { path: '/Profile_pic (2).png',  unlock: { type: 'level', level: 25 } },
-    { path: '/Profile_pic (4).png',  unlock: { type: 'level', level: 45 } },
-    { path: '/Profile_pic (5).png',  unlock: { type: 'level', level: 70 } },
-    { path: '/Profile_pic (6).png',  unlock: { type: 'vip' } },
-    { path: '/Profile_pic (7).png',  unlock: { type: 'arena', tier: 3,  rank: 'Master' } },
-    { path: '/Profile_pic (8).png',  unlock: { type: 'arena', tier: 9,  rank: 'Epic' } },
-    { path: '/Profile_pic (9).png',  unlock: { type: 'arena', tier: 12, rank: 'Legend' } },
-    { path: '/Profile_pic (10).png', unlock: { type: 'arena', tier: 15, rank: 'Mythic' } },
-    { path: '/Profile_pic (11).png', unlock: { type: 'gems', cost: 5000 } },
-    { path: '/Profile_pic (12).png', unlock: { type: 'gems', cost: 12000 } },
+    { path: '/profilepicsnew (4).png',  unlock: { type: 'default' } },
+    { path: '/profilepicsnew (2).png',  unlock: { type: 'level', level: 10 } },
+    { path: '/profilepicsnew (3).png',  unlock: { type: 'level', level: 25 } },
+    { path: '/profilepicsnew (5).png',  unlock: { type: 'level', level: 45 } },
+    { path: '/profilepicsnew (6).png',  unlock: { type: 'level', level: 70 } },
+    { path: '/profilepicsnew (7).png',  unlock: { type: 'vip' } },
+    { path: '/profilepicsnew (8).png',  unlock: { type: 'arena', tier: 3,  rank: 'Master' } },
+    { path: '/profilepicsnew (9).png',  unlock: { type: 'arena', tier: 9,  rank: 'Epic' } },
+    { path: '/profilepicsnew (10).png',  unlock: { type: 'arena', tier: 12, rank: 'Legend' } },
+    { path: '/profilepicsnew (11).png', unlock: { type: 'arena', tier: 15, rank: 'Mythic' } },
+    { path: '/profilepicsnew (12).png', unlock: { type: 'gems', cost: 5000 } },
+    { path: '/profilepicsnew (13).png', unlock: { type: 'gems', cost: 12000 } },
 ];
 
 export interface AvatarContext {

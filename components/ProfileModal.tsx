@@ -43,8 +43,8 @@ interface ProfileModalProps {
 
 // Profile pics 1-12. Only the first four are unlocked; the rest are locked.
 const PROFILE_PICS = [
-    '/Profile_pic (3).png', // penguin — first/default
-    ...Array.from({ length: 12 }, (_, i) => `/Profile_pic (${i + 1}).png`).filter(p => p !== '/Profile_pic (3).png'),
+    '/profilepicsnew (4).png', // penguin — first/default
+    ...Array.from({ length: 12 }, (_, i) => `/Profile_pic (${i + 1}).png`).filter(p => p !== '/profilepicsnew (4).png'),
 ];
 const UNLOCKED_PIC_COUNT = 4;
 

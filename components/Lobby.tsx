@@ -306,7 +306,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                 <ArenaLobbyCard
                                     arena={arena}
                                     playerName={arenaPlayerName || 'You'}
-                                    playerAvatar={arenaPlayerAvatar || '/Profile_pic (3).png'}
+                                    playerAvatar={arenaPlayerAvatar || '/profilepicsnew (4).png'}
                                     maxBet={arenaMaxBet || 0}
                                     onOpen={() => onOpenArena?.()}
                                 />

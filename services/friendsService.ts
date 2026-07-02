@@ -82,7 +82,7 @@ export async function fetchIncomingRequests(): Promise<IncomingRequest[]> {
         if (error || !data) return [];
         return data.map((r: any) => ({
             id: r.id, fromDevice: r.from_device, fromName: r.from_name || 'Player',
-            fromAvatar: r.from_avatar || '/Profile_pic (3).png', fromLevel: r.from_level ?? 1,
+            fromAvatar: r.from_avatar || '/profilepicsnew (4).png', fromLevel: r.from_level ?? 1,
             createdAt: new Date(r.created_at).getTime(),
         }));
     } catch {
@@ -121,7 +121,7 @@ export async function fetchAcceptedForSender(): Promise<AcceptedForSender[]> {
             const p = byId.get(r.to_device);
             return {
                 id: r.id, toDevice: r.to_device,
-                toName: p?.name || 'Player', toAvatar: p?.avatar || '/Profile_pic (3).png', toLevel: p?.level ?? 1,
+                toName: p?.name || 'Player', toAvatar: p?.avatar || '/profilepicsnew (4).png', toLevel: p?.level ?? 1,
             };
         });
     } catch {

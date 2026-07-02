@@ -1471,7 +1471,7 @@ const App: React.FC = () => {
   const [showPurchaseModal, setShowPurchaseModal] = useState<'VIP' | 'PASS' | null>(null);
   const [purchaseConfirm, setPurchaseConfirm] = useState<'VIP' | 'PASS' | null>(null);
   const [showNopay, setShowNopay] = useState(false);
-  const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '/Profile_pic (3).png');
+  const [profileEmoji, setProfileEmoji] = useState(() => localStorage.getItem('cw_profile_emoji') || '/profilepicsnew (4).png');
   // Player display name. On first run we mint a unique default like "Player38217645"
   // so the leaderboard isn't full of identical "Player" entries.
   const [playerName, setPlayerNameState] = useState<string>(() => {
