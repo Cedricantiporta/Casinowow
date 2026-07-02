@@ -105,7 +105,7 @@ const PlayerCard: React.FC<{
                         <div className="relative">
                             <Avatar src={entry.avatar} size={64} ring="0 0 0 3px rgba(255,255,255,0.18), 0 4px 12px rgba(0,0,0,0.5)" />
                             {rank <= 3 ? (
-                                <img src={`/Rank (${rank}).png`} alt="" className="absolute -bottom-1 -right-1" style={{ width: 24, height: 24, objectFit: 'contain' }} />
+                                <img src={`/Rank (${rank}).png`} alt="" className="absolute -bottom-1 -right-1" style={{ width: 30, height: 30, objectFit: 'contain' }} />
                             ) : (
                                 <div className="absolute -bottom-1 -right-1 flex items-center justify-center font-black rounded-full"
                                     style={{ width: 24, height: 24, fontSize: 11, ...{ background: m.bg, color: m.color }, boxShadow: m.glow || '0 2px 4px rgba(0,0,0,0.5)' }}>{rank}</div>
@@ -204,7 +204,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                         : 'inset 0 1px 0 rgba(255,255,255,0.06)',
                 }}>
                 {rank <= 3 ? (
-                    <img src={`/Rank (${rank}).png`} alt="" className="shrink-0" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                    <img src={`/Rank (${rank}).png`} alt="" className="shrink-0" style={{ width: 36, height: 36, objectFit: 'contain' }} />
                 ) : (
                     <div className="shrink-0 flex items-center justify-center font-black rounded-full"
                         style={{ width: 28, height: 28, fontSize: 12, background: m.bg, color: m.color, boxShadow: m.glow }}>{rank}</div>

@@ -132,7 +132,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                                 {/* Position */}
                                 <div className="w-7 flex items-center justify-center shrink-0">
                                     {pos <= 3 ? (
-                                        <img src={`/Rank (${pos}).png`} alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+                                        <img src={`/Rank (${pos}).png`} alt="" style={{ width: 27, height: 27, objectFit: 'contain' }} />
                                     ) : (
                                         <span className="font-black text-white/70" style={{ fontSize: 12 }}>{pos}</span>
                                     )}
