@@ -64,19 +64,19 @@ interface Cell { id: number; tier: Tier; state: CellState; }
 export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWin, rows, cols, hiddenIcon = '/arctic/snow.png', hiddenIconSize = 0.7, bgColor = '#000a14' }) => {
     const [winningTier] = useState<Tier>(rollWinningTier);
     const [cells, setCells] = useState<Cell[]>(() => {
-        // Spread all 5 tiers roughly evenly across the grid instead of stacking the
-        // board with the winning tier — that made it possible to complete 3-of-a-kind
-        // in the first couple of taps. With an even split, finding the 3rd match of
-        // whichever tier actually won takes real exploration (seeing a good mix of
-        // every tier along the way) instead of being a near-certain quick hit.
+        // Only the predetermined winning tier is ever allowed to reach 3 copies —
+        // every OTHER tier is capped at 2, so it's physically impossible to reveal
+        // 3-of-a-kind of a tier that isn't the winner (which previously looked like
+        // a broken/missed win). The board still shows a mix of all 5 tiers along the
+        // way; only the winning one can ever complete.
         const totalCells = Math.max(rows * cols, TIERS.length);
-        const perTier = Math.floor(totalCells / TIERS.length);
-        const remainder = totalCells - perTier * TIERS.length;
-        const tierList: Tier[] = [];
-        TIERS.forEach((t, i) => {
-            const count = perTier + (i < remainder ? 1 : 0);
-            for (let k = 0; k < count; k++) tierList.push(t);
-        });
+        const otherTiers = TIERS.filter(t => t !== winningTier);
+        const perOtherTier = 2;
+        const winningCount = Math.max(3, totalCells - otherTiers.length * perOtherTier);
+        const tierList: Tier[] = [
+            ...Array(winningCount).fill(winningTier),
+            ...otherTiers.flatMap(t => Array(perOtherTier).fill(t)),
+        ] as Tier[];
         return shuffle(tierList).map((tier, id) => ({ id, tier, state: 'hidden' as CellState }));
     });
 
