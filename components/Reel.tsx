@@ -347,7 +347,7 @@ const ReelCell: React.FC<{
                                 className="w-full h-full object-contain pointer-events-none select-none"
                             />
                         ) : null
-                    ) : isImageIcon ? (
+                    ) : isImageIcon && !(theme === 'OLYMPUS' && isWild && orbValue != null) ? (
                         <img
                             src={config.icon}
                             alt=""
@@ -358,7 +358,7 @@ const ReelCell: React.FC<{
                                 ...(theme === 'UNDERWATER' || (theme === 'PIGGY' && isScatter) ? { position: 'absolute', width: `${85 * cellScale * (config.imageScale ?? 1)}%`, height: `${85 * cellScale * (config.imageScale ?? 1)}%`, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', ...(theme === 'PIGGY' ? { zIndex: 20 } : {}) } : {}),
                             }}
                         />
-                    ) : (
+                    ) : isImageIcon ? null : (
                         <div
                             className={`select-none transform ${config?.style || ''}`}
                             style={{

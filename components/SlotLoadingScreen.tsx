@@ -23,6 +23,8 @@ const THEME_IMG_ICON: Partial<Record<string, string>> = {
     BEAST:      '/beast_scatter.png',
     ANGRYFLOCK: '/angryflock_scatter.png',
     PRINCESS:   '/princess_scatter.png',
+    OLYMPUS:    '/zeus_scatter.png',
+    BUFFALO:    '/buffalo_scatter.png',
 };
 
 function getImagesToPreload(game: GameConfig): string[] {

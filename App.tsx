@@ -3405,10 +3405,15 @@ const App: React.FC = () => {
       // outcome, same as every other decorative grid mechanic here.
       if (selectedGame.theme === 'OLYMPUS') {
           const orbGrid: (number | null)[][] = Array.from({ length: cols }, () => Array(rows).fill(null));
-          const orbChance = isFreeSpin ? 0.825 : 0.25;
+          const orbChance = isFreeSpin ? 0.825 : 0.4;
           if (Math.random() < orbChance) {
-              const maxOrbs = isFreeSpin ? 5 : 3;
-              const orbsToPlace = 1 + Math.floor(Math.random() * maxOrbs);
+              // Weighted toward a single wild landing — more, smaller orb hits feel
+              // frequent without flooding the grid with multi-wild spins every time.
+              const COUNT_WEIGHTS = isFreeSpin ? [40, 28, 16, 10, 6] : [60, 28, 12];
+              const totalCW = COUNT_WEIGHTS.reduce((a, b) => a + b, 0);
+              let cwRoll = Math.random() * totalCW;
+              let orbsToPlace = 1;
+              for (let i = 0; i < COUNT_WEIGHTS.length; i++) { cwRoll -= COUNT_WEIGHTS[i]; if (cwRoll <= 0) { orbsToPlace = i + 1; break; } }
               const eligible: { c: number; r: number }[] = [];
               for (let c = 0; c < cols; c++) {
                   for (let r = 0; r < rows; r++) {
@@ -6716,41 +6721,6 @@ const App: React.FC = () => {
                     </div>
                         );
                     })()}
-
-                    {/* EXPERIMENT: Piggy Riches' COIN symbol (its real "6 to trigger free
-                        spins" / "2X WILD during free spins" icon — not literal SCATTER,
-                        which Piggy barely ever generates) rendered oversized and allowed to
-                        protrude past its cell. Every reel (and the grid wrapper itself)
-                        clips its own contents with overflow-hidden, so this has to live
-                        here, outside that boundary, as its own overlay positioned by
-                        percentage to match each coin cell. Biased upward so it spills over
-                        the top/sides; the bottom stays roughly at the cell's footprint. */}
-                    {selectedGame.theme === 'PIGGY' && status !== GameStatus.SPINNING && status !== GameStatus.STOPPING && targetGrid.length > 0 && (
-                        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 25 }}>
-                            {targetGrid.map((col, c) => col.map((sym, r) => {
-                                if (sym !== SymbolType.COIN) return null;
-                                const cellW = 100 / selectedGame.reels;
-                                const cellH = 100 / selectedGame.rows;
-                                const centerX = (c + 0.5) * cellW;
-                                const centerY = (r + 0.5) * cellH;
-                                return (
-                                    <img
-                                        key={`piggy-coin-${c}-${r}`}
-                                        src={GET_SYMBOLS(selectedGame.theme)[SymbolType.COIN]?.icon}
-                                        alt=""
-                                        className="absolute select-none"
-                                        style={{
-                                            left: `${centerX}%`, top: `${centerY}%`,
-                                            width: `${cellW * 2.1}%`, height: `${cellH * 2.1}%`,
-                                            transform: 'translate(-50%, -60%)',
-                                            objectFit: 'contain',
-                                            filter: 'drop-shadow(0 6px 16px rgba(0,0,0,0.65))',
-                                        }}
-                                    />
-                                );
-                            }))}
-                        </div>
-                    )}
 
                     {/* Dragon pot — absolute right so reel grid stays centered */}
                     {selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0 && (
