@@ -219,10 +219,6 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         setSelectedDuplicateIds(new Set());
     };
 
-    const getDeckThemeBg = (theme: string) => {
-        return theme === 'NEON' ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : theme === 'EGYPT' ? 'linear-gradient(135deg,#b45309,#78350f)' : theme === 'DRAGON' ? 'linear-gradient(135deg,#dc2626,#7f1d1d)' : theme === 'PIRATE' ? 'linear-gradient(135deg,#0369a1,#0c4a6e)' : theme === 'SPACE' ? 'linear-gradient(135deg,#1d4ed8,#0f172a)' : theme === 'CANDY' ? 'linear-gradient(135deg,#db2777,#9d174d)' : theme === 'JUNGLE' ? 'linear-gradient(135deg,#15803d,#14532d)' : theme === 'UNDERWATER' ? 'linear-gradient(135deg,#0891b2,#164e63)' : theme === 'WESTERN' ? 'linear-gradient(135deg,#ca8a04,#713f12)' : theme === 'SAMURAI' ? 'linear-gradient(135deg,#9f1239,#4c0519)' : theme === 'PIGGY' ? 'linear-gradient(135deg,#ec4899,#9d174d)' : 'linear-gradient(135deg,#475569,#1e293b)';
-    };
-
     return (
         <div className="absolute inset-0 z-[150] flex flex-col" style={{ background: '#0a0020 url(/cards_bg.png) center/cover no-repeat', transform: 'translateZ(0)', willChange: 'transform', isolation: 'isolate' }}>
             {/* Duplicate Exchange — centered modal */}
@@ -319,25 +315,10 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <div className="flex-1 w-full max-w-2xl px-2 overflow-y-auto grid grid-cols-5 gap-2 content-center justify-items-center">
                                 {openedCards.map((card, i) => (
                                     <div key={i} className="relative w-full max-w-[80px] animate-pop-in"
-                                        style={{ animationDelay: `${i * 30}ms`, aspectRatio: '2/3', borderRadius: 12, overflow: 'hidden', display: 'flex', flexDirection: 'column',
-                                                 background: CARD_TIER[card.rarity].bg, boxShadow: CARD_TIER[card.rarity].shadow }}>
-                                        <div style={{ padding: '4px 4px 0', display: 'flex', justifyContent: 'center', position: 'relative' }}>
-                                            <span style={{ fontSize: 6, fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase', background: CARD_TIER[card.rarity].badge, color: CARD_TIER[card.rarity].badgeText, padding: '1px 5px', borderRadius: 9999, lineHeight: 1.5 }}>
-                                                {card.rarity}
-                                            </span>
-                                            {card.isNew && <div className="absolute top-0 right-0 bg-red-600 text-white text-[6px] font-black px-0.5 rounded">NEW</div>}
-                                        </div>
-                                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            {card.icon.startsWith('/') ? (
-                                                <img src={card.icon} alt="" style={{ width: '2.8rem', height: '2.8rem', objectFit: 'contain', filter: 'drop-shadow(0 1px 6px rgba(0,0,0,0.8))' }} />
-                                            ) : (
-                                                <span style={{ fontSize: '2.8rem', lineHeight: 1 }}>{card.icon}</span>
-                                            )}
-                                        </div>
-                                        <div style={{ padding: '0 3px 4px' }}>
-                                            <div style={{ background: CARD_TIER[card.rarity].nameBg, borderRadius: 4, padding: '2px 4px', textAlign: 'center', fontSize: 7, fontWeight: 900, color: CARD_TIER[card.rarity].nameText, textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{card.name}</div>
-                                            {card.isDuplicate && <div style={{ textAlign: 'center', color: '#fde047', fontSize: 6, fontWeight: 900, textTransform: 'uppercase', marginTop: 1 }}>Dup</div>}
-                                        </div>
+                                        style={{ animationDelay: `${i * 30}ms`, aspectRatio: '2/3', borderRadius: 12, overflow: 'hidden' }}>
+                                        <img src={card.icon} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                                        {card.isNew && <div className="absolute top-1 left-1 bg-red-600 text-white text-[6px] font-black px-1 rounded z-10">NEW</div>}
+                                        {card.isDuplicate && <div className="absolute top-1 right-1 bg-black/70 text-yellow-300 text-[8px] font-black px-1 rounded z-10">DUP</div>}
                                     </div>
                                 ))}
                             </div>
@@ -428,33 +409,30 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     const collected = deck.cards.filter(c => c.count > 0).length;
                                     const isComplete = collected === total;
                                     return (
-                                        <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 118 }}>
+                                        <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 100 }}>
                                             <button onClick={() => setSelectedDeckId(deck.gameId)}
-                                                className="w-full flex flex-col items-center p-2 rounded-xl active:scale-95 transition-transform"
-                                                style={{ height: 138, background: 'linear-gradient(180deg,rgba(160,60,255,0.55) 0%,rgba(10,0,50,0.92) 100%)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.5), 0 3px 10px rgba(0,0,0,0.6)' }}>
-                                                <div className="w-full flex-1 rounded-lg flex items-center justify-center overflow-hidden relative min-h-0"
-                                                    style={{ background: getDeckThemeBg(deck.theme) }}>
+                                                className="w-full flex flex-col items-center active:scale-95 transition-transform">
+                                                <div className="w-full rounded-lg overflow-hidden relative"
+                                                    style={{ aspectRatio: '5/6' }}>
                                                     <img src={deck.coverImage} alt="" className="absolute inset-0 w-full h-full object-cover" />
                                                     {isComplete && <div className="absolute top-0.5 right-0.5 text-xs z-10">✅</div>}
                                                 </div>
-                                                <div className="mt-1 text-center w-full">
-                                                    <div className="rtrack mt-1" style={{ height: 15, minWidth: 0, padding: '0 6px' }}>
-                                                        <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
-                                                            <div style={{
-                                                                position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12,
-                                                                width: (deck.rewardClaimed || isComplete) ? '100%' : `${(collected / total) * 100}%`,
-                                                                background: deck.rewardClaimed
-                                                                    ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'
-                                                                    : isComplete
-                                                                    ? 'linear-gradient(180deg,#4ade80,#16a34a 60%,#15803d)'
-                                                                    : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)',
-                                                                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease',
-                                                            }} />
-                                                        </div>
-                                                        <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
-                                                            {deck.rewardClaimed ? 'Claimed' : isComplete ? 'Claim' : `${collected}/${total}`}
-                                                        </span>
+                                                <div className="rtrack mt-1 w-full" style={{ height: 15, minWidth: 0, padding: '0 6px' }}>
+                                                    <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                                                        <div style={{
+                                                            position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12,
+                                                            width: (deck.rewardClaimed || isComplete) ? '100%' : `${(collected / total) * 100}%`,
+                                                            background: deck.rewardClaimed
+                                                                ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'
+                                                                : isComplete
+                                                                ? 'linear-gradient(180deg,#4ade80,#16a34a 60%,#15803d)'
+                                                                : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)',
+                                                            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)', transition: 'width 0.4s ease',
+                                                        }} />
                                                     </div>
+                                                    <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>
+                                                        {deck.rewardClaimed ? 'Claimed' : isComplete ? 'Claim' : `${collected}/${total}`}
+                                                    </span>
                                                 </div>
                                             </button>
                                         </div>
@@ -550,33 +528,14 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     .map((card, i) => {
                                     const isLocked = card.count === 0;
                                     return (
-                                        <div key={i} className="flex-none"
-                                            style={{ width: 140, height: 220, borderRadius: 16, flexShrink: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column',
-                                                     background: isLocked ? CARD_TIER[card.rarity].bgLocked : CARD_TIER[card.rarity].bg,
-                                                     boxShadow: isLocked ? '0 3px 12px rgba(0,0,0,0.5)' : CARD_TIER[card.rarity].shadow }}>
-                                            {/* Top: tier badge + count */}
-                                            <div style={{ padding: '8px 10px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase', background: isLocked ? 'rgba(255,255,255,0.08)' : CARD_TIER[card.rarity].badge, color: isLocked ? 'rgba(255,255,255,0.25)' : CARD_TIER[card.rarity].badgeText, padding: '2px 7px', borderRadius: 9999, lineHeight: 1.5 }}>
-                                                    {card.rarity}
-                                                </span>
-                                                {card.count > 0 && (
-                                                    <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.65)', background: 'rgba(0,0,0,0.5)', padding: '1px 5px', borderRadius: 4 }}>×{card.count}</span>
-                                                )}
-                                            </div>
-                                            {/* Middle: symbol */}
-                                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                {isLocked ? null : card.icon.startsWith('/') ? (
-                                                    <img src={card.icon} alt="" style={{ width: '7rem', height: '7rem', objectFit: 'contain', filter: 'drop-shadow(0 2px 12px rgba(0,0,0,0.9))' }} />
-                                                ) : (
-                                                    <span style={{ fontSize: '7rem', lineHeight: 1 }}>{card.icon}</span>
-                                                )}
-                                            </div>
-                                            {/* Bottom: name plate */}
-                                            <div style={{ padding: '0 8px 10px' }}>
-                                                <div style={{ background: isLocked ? 'rgba(255,255,255,0.04)' : CARD_TIER[card.rarity].nameBg, borderRadius: 7, padding: '5px 8px', textAlign: 'center', fontSize: 11, fontWeight: 900, color: isLocked ? 'rgba(255,255,255,0.18)' : CARD_TIER[card.rarity].nameText, letterSpacing: '0.05em', textTransform: 'uppercase', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                    {card.name}
-                                                </div>
-                                            </div>
+                                        <div key={i} className="flex-none relative"
+                                            style={{ width: 140, height: 220, borderRadius: 16, flexShrink: 0, overflow: 'hidden' }}>
+                                            <img src={card.icon} alt="" className="absolute inset-0 w-full h-full object-cover"
+                                                style={isLocked ? { filter: 'grayscale(1) brightness(0.35)' } : undefined} />
+                                            {card.count > 1 && (
+                                                <span className="absolute top-1.5 right-1.5 z-10 font-black text-white"
+                                                    style={{ fontSize: 13, textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>×{card.count}</span>
+                                            )}
                                         </div>
                                     );
                                 })}
