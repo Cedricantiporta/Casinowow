@@ -141,7 +141,9 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, on
     const validLocalPrice = (raw: string | undefined, expectedPeso: number): string | null => {
         if (!raw) return null;
         const n = parseFloat(raw.replace(/[^0-9.]/g, ''));
-        return (n > 0 && n >= expectedPeso * 0.5) ? raw : null;
+        if (!(n > 0 && n >= expectedPeso * 0.5)) return null;
+        // Never show cents on a price, no matter what the native store string looks like.
+        return `₱ ${Math.round(n).toLocaleString('en-US')}`;
     };
     const coinItems = dynamicPacks.map(item => ({
         ...item,
@@ -256,8 +258,10 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, on
                                         handleBuy(item.action);
                                     };
                                     const showVipDiscount = isVip && discount > 0 && item.isRealMoney;
-                                    const pesoMatch = item.price.match(/₱\s*(\d+)/);
-                                    const originalPeso = pesoMatch ? parseInt(pesoMatch[1], 10) : null;
+                                    // Capture commas too — a price like "₱1,149" would
+                                    // otherwise only match "1" and stop at the comma.
+                                    const pesoMatch = item.price.match(/₱\s*([\d,]+)/);
+                                    const originalPeso = pesoMatch ? parseInt(pesoMatch[1].replace(/,/g, ''), 10) : null;
                                     const discountedPeso = (showVipDiscount && originalPeso !== null)
                                         ? Math.floor(originalPeso * (1 - discount / 100))
                                         : null;

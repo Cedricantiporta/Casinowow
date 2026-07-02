@@ -4173,18 +4173,27 @@ const App: React.FC = () => {
             const stepDelay = 1000;
             setBuffaloWildRevealRemaining(toPlace.length);
             audioService.playBonusTrigger();
+            // A reel that has already finished landing doesn't re-sync its display
+            // from the `symbols` prop any more (that only happens during the spin/stop
+            // sequence) — updating targetGrid alone here would compute the right win
+            // but never actually show the wilds appearing. Route through the same
+            // forcedSymbols path the cascade engine uses to force a direct redraw.
             let idx = 0;
             const revealStep = () => {
                 if (idx >= toPlace.length) {
                     buffaloCollectStackRef.current = 0;
                     setBuffaloCollectStack(0);
                     setBuffaloWildRevealRemaining(null);
+                    setTargetGrid(working.map(col => [...col]));
                     calculateWin(working);
                     return;
                 }
                 const { c, r } = toPlace[idx];
                 working[c][r] = SymbolType.WILD;
-                setTargetGrid(working.map(col => [...col]));
+                const newCellsMask = working.map((col, ci) => col.map((_, ri) => ci === c && ri === r));
+                setCascadeGrid(working.map(col => [...col]));
+                setCascadeNewCells(newCellsMask);
+                setCascadeDissolving(false);
                 idx++;
                 setBuffaloWildRevealRemaining(toPlace.length - idx);
                 setTimeout(revealStep, stepDelay);
@@ -6213,15 +6222,20 @@ const App: React.FC = () => {
                     };
                     return (
                         <div className="w-full z-10 p-0 m-0">
-                            {selectedGame.theme === 'BUFFALO' ? (
-                                // Buffalo Thunder never has jackpot cells — show its Collect
-                                // progress here instead of an irrelevant jackpot ticker.
+                            {selectedGame.theme === 'BUFFALO' && freeSpinsRemaining > 0 ? (
+                                // Buffalo Thunder never has jackpot cells during free spins —
+                                // show Collect progress there instead. Normal (base game)
+                                // spins still show the regular jackpot ticker like every
+                                // other slot, since that's just the shared jackpot pool
+                                // display, unrelated to jackpot cells landing on the reels.
                                 <div className="flex items-center justify-center gap-2 mx-auto px-4"
                                     style={{ width: 'fit-content', height: 40, borderRadius: 8, background: 'rgba(0,0,0,0.45)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.6)' }}>
                                     <span className="font-black text-white" style={{ fontSize: 16 }}>Collected</span>
                                     <img src="/buffalo_collect.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
                                     <span className="font-black text-amber-300" style={{ fontSize: 18 }}>{buffaloCollectStack}</span>
                                 </div>
+                            ) : selectedGame.theme === 'BUFFALO' ? (
+                                <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} theme={selectedGame.theme} />
                             ) : isCascadeTheme(featureThemeOf(selectedGame.theme)) ? (
                                 freeSpinsRemaining > 0
                                     ? <ArcticMultiplierBar
