@@ -214,6 +214,13 @@ export interface GuildTask {
 export interface GuildTaskState {
     tasks: GuildTask[];
     lastReset: number;
+    refreshCount: number; // resets daily with tasks; drives escalating refresh cost
+}
+
+export interface GuildDonationState {
+    date: string;
+    coinsDonated: boolean;
+    gemsDonated: boolean;
 }
 
 // --- Arena Ranking System ---
@@ -324,7 +331,7 @@ export interface Deck {
 }
 
 export interface DailyLoginState {
-    currentDay: number; // 1-7
-    claimedToday: boolean;
+    currentDay: number; // 1-30, advances once per calendar day
+    claimedToday: boolean; // whether today's milestone (if any) has been claimed
     lastClaimTime: number;
 }

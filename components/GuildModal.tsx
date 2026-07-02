@@ -1,40 +1,61 @@
 import React, { useEffect, useState } from 'react';
-import { Guild, GuildRole, GuildSummary, GuildTask } from '../types';
+import { Guild, GuildDonationState, GuildRole, GuildSummary, GuildTask } from '../types';
 import { GUILD_ICONS, guildXpForNextLevel } from '../services/guildService';
-import { formatKShort } from '../constants';
+import { formatKShort, formatCommaNumber } from '../constants';
 
 interface GuildModalProps {
     isOpen: boolean;
     onClose: () => void;
     deviceId: string;
     myGuild: Guild | null;
+    topGuilds: GuildSummary[];
     loading: boolean;
     searchResults: GuildSummary[];
     onSearch: (query: string) => void;
     onCreate: (name: string, description: string, icon: string, color: string, isOpen: boolean) => void;
     onJoin: (guildId: string) => void;
     onLeave: () => void;
+    onDisband: () => void;
+    onTransferLeadership: (toDeviceId: string) => void;
     onKick: (deviceId: string) => void;
-    onSetRole: (deviceId: string, role: GuildRole) => void;
-    createCost: number;
+    onSetRole: (deviceId: string, role: 'OFFICER' | 'MEMBER') => void;
+    onUpdateDescription: (description: string) => void;
+    createCostGems: number;
     playerBalance: number;
+    playerGems: number;
     tasks: GuildTask[];
     onClaimTask: (taskId: string) => void;
+    refreshCost: number;
+    onRefreshTasks: () => void;
+    donationState: GuildDonationState;
+    donateCoinAmount: number;
+    donateGemAmount: number;
+    onDonate: (kind: 'COINS' | 'GEMS') => void;
     errorMsg?: string;
 }
 
+const RANK_BADGE = (rank: number) => rank <= 3 ? `/Rank (${rank}).png` : null;
+
 export const GuildModal: React.FC<GuildModalProps> = ({
-    isOpen, onClose, deviceId, myGuild, loading, searchResults, onSearch, onCreate, onJoin, onLeave, onKick, onSetRole,
-    createCost, playerBalance, tasks, onClaimTask, errorMsg,
+    isOpen, onClose, deviceId, myGuild, topGuilds, loading, searchResults, onSearch, onCreate, onJoin, onLeave, onDisband,
+    onTransferLeadership, onKick, onSetRole, onUpdateDescription, createCostGems, playerBalance, playerGems,
+    tasks, onClaimTask, refreshCost, onRefreshTasks, donationState, donateCoinAmount, donateGemAmount, onDonate, errorMsg,
 }) => {
-    const [view, setView] = useState<'BROWSE' | 'CREATE'>('BROWSE');
-    const [tab, setTab] = useState<'MEMBERS' | 'TASKS'>('MEMBERS');
+    const [tab, setTab] = useState<'GUILD' | 'MEMBERS' | 'TASKS' | 'TOP' | 'CREATE'>('GUILD');
     const [search, setSearch] = useState('');
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [iconIdx, setIconIdx] = useState(0);
     const [openJoin, setOpenJoin] = useState(true);
     const [confirmAction, setConfirmAction] = useState<string | null>(null);
+    const [editingDesc, setEditingDesc] = useState(false);
+    const [descDraft, setDescDraft] = useState('');
+    const [pickingSuccessor, setPickingSuccessor] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        setTab(myGuild ? 'GUILD' : 'GUILD');
+    }, [isOpen, !!myGuild]);
 
     useEffect(() => {
         if (!isOpen || myGuild) return;
@@ -47,84 +68,90 @@ export const GuildModal: React.FC<GuildModalProps> = ({
 
     const me = myGuild?.members.find(m => m.deviceId === deviceId);
     const myRole: GuildRole = me?.role || 'MEMBER';
-    const canManage = myRole === 'LEADER' || myRole === 'OFFICER';
-
     const xpNeeded = myGuild ? guildXpForNextLevel(myGuild.level) : 0;
     const xpPct = myGuild ? Math.min(100, (myGuild.xp / xpNeeded) * 100) : 0;
 
+    const tabsForGuild: { key: typeof tab; label: string }[] = myGuild
+        ? [{ key: 'GUILD', label: 'Guild' }, { key: 'MEMBERS', label: `Members (${myGuild.memberCount})` }, { key: 'TASKS', label: 'Tasks' }, { key: 'TOP', label: 'Top Guilds' }]
+        : [{ key: 'GUILD', label: 'Browse' }, { key: 'CREATE', label: 'Create' }, { key: 'TOP', label: 'Top Guilds' }];
+
     return (
-        <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none"
-            onClick={onClose}>
-            <div className="w-full max-w-[420px] flex flex-col rounded-3xl overflow-hidden"
-                onClick={e => e.stopPropagation()}
-                style={{ height: 'min(88%, 560px)', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+        <div className="absolute inset-0 z-[150] flex flex-col select-none"
+            style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)' }}>
 
-                {/* Header */}
-                <div className="shrink-0 flex items-center px-4 pt-3 pb-2 relative">
-                    <h2 className="absolute left-0 right-0 text-center font-tanker text-white text-base pointer-events-none">Guild</h2>
-                    {!myGuild && view === 'CREATE' && (
-                        <div className="round-btn cursor-pointer z-10" onClick={() => setView('BROWSE')}><i className="ti ti-arrow-left" /></div>
-                    )}
-                    <div className="ml-auto round-btn cursor-pointer z-10" onClick={onClose}><i className="ti ti-x" /></div>
+            {/* Header */}
+            <div className="shrink-0 flex items-center px-4 pt-3 pb-2 relative">
+                <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-arrow-left" /></div>
+                <h2 className="absolute left-0 right-0 text-center font-tanker text-white text-base pointer-events-none">Guild</h2>
+            </div>
+
+            {errorMsg && (
+                <div className="shrink-0 mx-3 mb-2 rounded-xl px-3 py-1.5 text-center" style={{ background: 'rgba(239,68,68,0.25)' }}>
+                    <span className="font-bold text-white" style={{ fontSize: 10.5 }}>{errorMsg}</span>
                 </div>
+            )}
 
-                {errorMsg && (
-                    <div className="shrink-0 mx-3 mb-2 rounded-xl px-3 py-1.5 text-center" style={{ background: 'rgba(239,68,68,0.25)' }}>
-                        <span className="font-bold text-white" style={{ fontSize: 10.5 }}>{errorMsg}</span>
-                    </div>
-                )}
-
-                {/* NO GUILD — browse / create */}
-                {!myGuild && view === 'BROWSE' && (
-                    <>
-                        <div className="shrink-0 px-3 pb-2 flex gap-1.5">
-                            <input
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                placeholder="Search guilds…"
-                                className="flex-1 rounded-full px-3 py-1.5 text-white font-bold outline-none"
-                                style={{ background: 'rgba(0,0,0,0.3)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)', fontSize: 12 }}
-                            />
-                            <button onClick={() => setView('CREATE')} className="pill-green shrink-0">
-                                <div className="pill-face" style={{ padding: '6px 12px', fontSize: '10px' }}>Create</div>
+            {/* Tabs */}
+            <div className="shrink-0 px-3 pb-2">
+                <div className="flex gap-1.5 p-1 rounded-2xl" style={{ background: 'rgba(0,0,0,0.28)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.4)' }}>
+                    {tabsForGuild.map(t => {
+                        const active = tab === t.key;
+                        return (
+                            <button key={t.key} onClick={() => setTab(t.key)}
+                                className="flex-1 relative rounded-xl py-1.5 px-1 transition-all active:scale-95"
+                                style={{ background: active ? 'linear-gradient(180deg,#52c215,#35900a 50%,#246606)' : 'transparent' }}>
+                                <span className="font-black block leading-tight" style={{ fontSize: 10, color: active ? '#fff' : 'rgba(255,255,255,0.6)' }}>{t.label}</span>
                             </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-3 flex flex-col gap-1.5">
-                            {loading ? (
-                                <div className="flex-1 flex items-center justify-center text-white/50 text-sm font-bold">Loading…</div>
-                            ) : searchResults.length === 0 ? (
-                                <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
-                                    <i className="ti ti-shield text-white/30" style={{ fontSize: 34 }} />
-                                    <div className="text-white/50 text-sm font-bold">No guilds found</div>
-                                    <div className="text-white/35" style={{ fontSize: 11 }}>Be the first — tap "Create".</div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4 flex flex-col gap-1.5">
+
+                {/* BROWSE (no guild) */}
+                {!myGuild && tab === 'GUILD' && (
+                    <>
+                        <input
+                            value={search} onChange={e => setSearch(e.target.value)}
+                            placeholder="Search guilds…"
+                            className="w-full rounded-full px-3 py-1.5 text-white font-bold outline-none mb-1.5"
+                            style={{ background: 'rgba(0,0,0,0.3)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)', fontSize: 12 }}
+                        />
+                        {loading ? (
+                            <div className="flex-1 flex items-center justify-center text-white/50 text-sm font-bold py-10">Loading…</div>
+                        ) : searchResults.length === 0 ? (
+                            <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
+                                <i className="ti ti-shield text-white/30" style={{ fontSize: 34 }} />
+                                <div className="text-white/50 text-sm font-bold">No guilds found</div>
+                                <div className="text-white/35" style={{ fontSize: 11 }}>Tap "Create" to start your own.</div>
+                            </div>
+                        ) : searchResults.map(g => (
+                            <div key={g.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
+                                style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
+                                <div className={`shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 38, height: 38 }}>
+                                    <i className={`ti ${g.icon} text-white`} style={{ fontSize: 18 }} />
                                 </div>
-                            ) : searchResults.map(g => (
-                                <div key={g.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
-                                    style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
-                                    <div className={`shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 38, height: 38 }}>
-                                        <i className={`ti ${g.icon} text-white`} style={{ fontSize: 18 }} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{g.name}</div>
-                                        <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Lvl {g.level} · {g.memberCount} members{!g.isOpen ? ' · Invite Only' : ''}</div>
-                                    </div>
-                                    <button
-                                        onClick={g.isOpen ? () => onJoin(g.id) : undefined}
-                                        disabled={!g.isOpen}
-                                        className="pill-green shrink-0"
-                                        style={{ opacity: g.isOpen ? 1 : 0.4 }}>
-                                        <div className="pill-face" style={{ padding: '5px 14px', fontSize: '10px' }}>Join</div>
-                                    </button>
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{g.name}</div>
+                                    <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Lvl {g.level} · {g.memberCount} members{!g.isOpen ? ' · Invite Only' : ''}</div>
                                 </div>
-                            ))}
-                        </div>
+                                <button
+                                    onClick={g.isOpen ? () => onJoin(g.id) : undefined}
+                                    disabled={!g.isOpen}
+                                    className="pill-green shrink-0"
+                                    style={{ opacity: g.isOpen ? 1 : 0.4 }}>
+                                    <div className="pill-face" style={{ padding: '5px 14px', fontSize: '10px' }}>Join</div>
+                                </button>
+                            </div>
+                        ))}
                     </>
                 )}
 
-                {/* CREATE */}
-                {!myGuild && view === 'CREATE' && (
-                    <div className="flex-1 overflow-y-auto no-scrollbar px-4 pb-3 flex flex-col gap-3">
-                        <div className="flex justify-center gap-2 flex-wrap pt-1">
+                {/* CREATE (no guild) */}
+                {!myGuild && tab === 'CREATE' && (
+                    <div className="flex flex-col gap-3 pt-1">
+                        <div className="flex justify-center gap-2 flex-wrap">
                             {GUILD_ICONS.map((opt, i) => (
                                 <div key={i} onClick={() => setIconIdx(i)}
                                     className={`rounded-full flex items-center justify-center bg-gradient-to-br ${opt.color} cursor-pointer transition-transform`}
@@ -140,9 +167,9 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                             style={{ background: 'rgba(0,0,0,0.3)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)', fontSize: 12 }}
                         />
                         <textarea
-                            value={description} onChange={e => setDescription(e.target.value.slice(0, 80))}
-                            placeholder="Short description (optional)"
-                            rows={2}
+                            value={description} onChange={e => setDescription(e.target.value.slice(0, 200))}
+                            placeholder="Guild banner — announcements, recruiting info, etc. (optional)"
+                            rows={3}
                             className="w-full rounded-2xl px-3 py-2 text-white font-bold outline-none resize-none"
                             style={{ background: 'rgba(0,0,0,0.3)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.5)', fontSize: 11.5 }}
                         />
@@ -153,127 +180,232 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                             </div>
                         </div>
                         <button
-                            onClick={() => name.trim() && playerBalance >= createCost && onCreate(name, description, GUILD_ICONS[iconIdx].icon, GUILD_ICONS[iconIdx].color, openJoin)}
-                            disabled={!name.trim() || playerBalance < createCost}
+                            onClick={() => name.trim() && playerGems >= createCostGems && onCreate(name, description, GUILD_ICONS[iconIdx].icon, GUILD_ICONS[iconIdx].color, openJoin)}
+                            disabled={!name.trim() || playerGems < createCostGems}
                             className="pill-green w-full mt-1"
-                            style={{ opacity: !name.trim() || playerBalance < createCost ? 0.5 : 1 }}>
-                            <div className="pill-face" style={{ padding: '8px 8px', fontSize: '12px' }}>Create — {formatKShort(createCost)} Coins</div>
+                            style={{ opacity: !name.trim() || playerGems < createCostGems ? 0.5 : 1 }}>
+                            <div className="pill-face" style={{ padding: '8px 8px', fontSize: '12px' }}>Create — {formatCommaNumber(createCostGems)} Gems</div>
                         </button>
                     </div>
                 )}
 
-                {/* IN GUILD — guild page */}
-                {myGuild && (
+                {/* TOP GUILDS — always available */}
+                {tab === 'TOP' && (
                     <>
-                        <div className="shrink-0 px-4 pb-2 flex items-center gap-3">
+                        {topGuilds.length === 0 ? (
+                            <div className="flex-1 flex items-center justify-center text-white/40 text-sm font-bold py-10">No ranked guilds yet</div>
+                        ) : topGuilds.map((g, i) => {
+                            const rank = i + 1;
+                            const badge = RANK_BADGE(rank);
+                            const isMine = myGuild?.id === g.id;
+                            return (
+                                <div key={g.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
+                                    style={{ background: isMine ? 'rgba(74,222,128,0.14)' : 'rgba(0,0,0,0.22)', boxShadow: isMine ? 'inset 0 0 0 1px rgba(74,222,128,0.35)' : 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
+                                    <div className="w-7 flex items-center justify-center shrink-0">
+                                        {badge ? <img src={badge} alt="" style={{ width: 27, height: 27, objectFit: 'contain' }} /> : <span className="font-black text-white/70" style={{ fontSize: 12 }}>{rank}</span>}
+                                    </div>
+                                    <div className={`shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 34, height: 34 }}>
+                                        <i className={`ti ${g.icon} text-white`} style={{ fontSize: 16 }} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{g.name}{isMine && <span className="text-green-400" style={{ fontSize: 9 }}> (Yours)</span>}</div>
+                                        <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Lvl {g.level} · {g.memberCount} members</div>
+                                    </div>
+                                    {rank <= 10 && <i className="ti ti-gift text-yellow-300 shrink-0" style={{ fontSize: 16 }} title="Earns monthly rewards" />}
+                                </div>
+                            );
+                        })}
+                        <div className="text-center text-white/35 font-bold pt-1" style={{ fontSize: 9 }}>Top 10 guilds each month earn rewards for every member</div>
+                    </>
+                )}
+
+                {/* GUILD banner + info (in a guild) */}
+                {myGuild && tab === 'GUILD' && (
+                    <>
+                        <div className="flex items-center gap-3 rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.22)' }}>
                             <div className={`shrink-0 rounded-full flex items-center justify-center bg-gradient-to-br ${myGuild.color}`} style={{ width: 46, height: 46 }}>
                                 <i className={`ti ${myGuild.icon} text-white`} style={{ fontSize: 22 }} />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="font-black text-white truncate" style={{ fontSize: 14 }}>{myGuild.name}</div>
-                                <div className="text-white/50 font-bold truncate" style={{ fontSize: 10 }}>{myGuild.description || `${myGuild.memberCount} members`}</div>
                                 <div className="relative rounded-full mt-1 overflow-hidden" style={{ height: 8, background: 'rgba(0,0,0,0.35)' }}>
                                     <div className="h-full rounded-full" style={{ width: `${xpPct}%`, background: 'linear-gradient(90deg,#facc15,#fde047)' }} />
                                 </div>
+                                <div className="text-white/40 font-bold mt-0.5" style={{ fontSize: 8.5 }}>{formatKShort(myGuild.xp)} / {formatKShort(xpNeeded)} XP</div>
                             </div>
                             <div className="shrink-0 text-center">
                                 <div className="font-black text-yellow-300" style={{ fontSize: 14 }}>Lv{myGuild.level}</div>
                             </div>
                         </div>
 
-                        <div className="shrink-0 px-3 pb-2">
-                            <div className="flex gap-1.5 p-1 rounded-2xl" style={{ background: 'rgba(0,0,0,0.28)', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.4)' }}>
-                                {([{ key: 'MEMBERS' as const, label: `Members (${myGuild.memberCount})` }, { key: 'TASKS' as const, label: 'Guild Tasks' }]).map(t => {
-                                    const active = tab === t.key;
-                                    return (
-                                        <button key={t.key} onClick={() => setTab(t.key)}
-                                            className="flex-1 relative rounded-xl py-1.5 px-1 transition-all active:scale-95"
-                                            style={{ background: active ? 'linear-gradient(180deg,#52c215,#35900a 50%,#246606)' : 'transparent' }}>
-                                            <span className="font-black block leading-tight" style={{ fontSize: 10.5, color: active ? '#fff' : 'rgba(255,255,255,0.6)' }}>{t.label}</span>
+                        {/* Description banner — announcement board, editable by Leader/Officers */}
+                        <div className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.18)', minHeight: 64 }}>
+                            {editingDesc ? (
+                                <div className="flex flex-col gap-2">
+                                    <textarea
+                                        value={descDraft} onChange={e => setDescDraft(e.target.value.slice(0, 200))}
+                                        rows={3} autoFocus
+                                        className="w-full rounded-xl px-2.5 py-2 text-white font-bold outline-none resize-none"
+                                        style={{ background: 'rgba(0,0,0,0.3)', fontSize: 11 }}
+                                    />
+                                    <div className="flex gap-1.5">
+                                        <button onClick={() => setEditingDesc(false)} className="flex-1 rounded-full py-1.5" style={{ background: 'rgba(255,255,255,0.12)' }}>
+                                            <span className="font-black text-white/70" style={{ fontSize: 10 }}>Cancel</span>
                                         </button>
-                                    );
-                                })}
+                                        <button onClick={() => { onUpdateDescription(descDraft); setEditingDesc(false); }} className="pill-green flex-1">
+                                            <div className="pill-face" style={{ padding: '5px 8px', fontSize: '10px' }}>Save</div>
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-start gap-2">
+                                    <p className="flex-1 text-white/80 font-bold" style={{ fontSize: 11, lineHeight: 1.4, minHeight: 44, whiteSpace: 'pre-wrap' }}>
+                                        {myGuild.description || 'No announcement yet.'}
+                                    </p>
+                                    {(myRole === 'LEADER' || myRole === 'OFFICER') && (
+                                        <i className="ti ti-pencil text-white/40 cursor-pointer shrink-0" style={{ fontSize: 15 }}
+                                            onClick={() => { setDescDraft(myGuild.description); setEditingDesc(true); }} />
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Daily donations */}
+                        <div className="rounded-2xl p-3 flex flex-col gap-2" style={{ background: 'rgba(0,0,0,0.18)' }}>
+                            <span className="font-black text-white/60 uppercase tracking-widest" style={{ fontSize: 9 }}>Daily Donation (+100 Guild XP each)</span>
+                            <div className="flex gap-2">
+                                <button onClick={() => !donationState.coinsDonated && onDonate('COINS')} disabled={donationState.coinsDonated}
+                                    className="flex-1 rounded-2xl py-2 flex flex-col items-center gap-0.5" style={{ background: donationState.coinsDonated ? 'rgba(74,222,128,0.15)' : 'rgba(0,0,0,0.25)' }}>
+                                    <img src="/ui/collect.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', opacity: donationState.coinsDonated ? 0.5 : 1 }} />
+                                    <span className="font-black" style={{ fontSize: 9.5, color: donationState.coinsDonated ? '#4ade80' : '#fff' }}>
+                                        {donationState.coinsDonated ? 'Donated' : `${formatCommaNumber(donateCoinAmount)} Coins`}
+                                    </span>
+                                </button>
+                                <button onClick={() => !donationState.gemsDonated && onDonate('GEMS')} disabled={donationState.gemsDonated}
+                                    className="flex-1 rounded-2xl py-2 flex flex-col items-center gap-0.5" style={{ background: donationState.gemsDonated ? 'rgba(74,222,128,0.15)' : 'rgba(0,0,0,0.25)' }}>
+                                    <img src="/symbols/diamond.png" alt="" style={{ width: 26, height: 26, objectFit: 'contain', opacity: donationState.gemsDonated ? 0.5 : 1 }} />
+                                    <span className="font-black" style={{ fontSize: 9.5, color: donationState.gemsDonated ? '#4ade80' : '#fff' }}>
+                                        {donationState.gemsDonated ? 'Donated' : `${donateGemAmount} Gems`}
+                                    </span>
+                                </button>
                             </div>
                         </div>
 
-                        {tab === 'MEMBERS' && (
-                            <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-3 flex flex-col gap-1.5">
-                                {[...myGuild.members].sort((a, b) => (a.role === 'LEADER' ? -1 : b.role === 'LEADER' ? 1 : a.role === 'OFFICER' ? -1 : b.role === 'OFFICER' ? 1 : 0)).map(m => {
-                                    const isMe = m.deviceId === deviceId;
-                                    const confirming = confirmAction === `kick-${m.deviceId}`;
-                                    const iCanKick = myRole === 'LEADER' ? m.role !== 'LEADER' : myRole === 'OFFICER' ? m.role === 'MEMBER' : false;
-                                    const iCanPromote = myRole === 'LEADER' && m.role === 'MEMBER';
-                                    const iCanDemote = myRole === 'LEADER' && m.role === 'OFFICER';
-                                    return (
-                                        <div key={m.deviceId} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
-                                            style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
-                                            <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 34, height: 34, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
-                                            <div className="flex-1 min-w-0">
-                                                <div className="font-black text-white truncate flex items-center gap-1" style={{ fontSize: 12 }}>
-                                                    {m.name}{isMe && <span className="text-white/40 font-bold" style={{ fontSize: 9 }}>(You)</span>}
-                                                </div>
-                                                <div className="font-bold" style={{ fontSize: 9, color: m.role === 'LEADER' ? '#facc15' : m.role === 'OFFICER' ? '#7dd3fc' : 'rgba(255,255,255,0.45)' }}>
-                                                    {m.role === 'LEADER' ? 'Leader' : m.role === 'OFFICER' ? 'Officer' : 'Member'} · {formatKShort(m.contribution)} XP
-                                                </div>
-                                            </div>
-                                            {!isMe && (iCanPromote || iCanDemote) && (
-                                                <i className={`ti ${iCanPromote ? 'ti-arrow-up' : 'ti-arrow-down'} text-white/40 cursor-pointer shrink-0`}
-                                                    style={{ fontSize: 15, padding: 4 }}
-                                                    onClick={() => onSetRole(m.deviceId, iCanPromote ? 'OFFICER' : 'MEMBER')} />
-                                            )}
-                                            {!isMe && iCanKick && (
-                                                confirming ? (
-                                                    <button onClick={() => { onKick(m.deviceId); setConfirmAction(null); }} className="pill-red shrink-0">
-                                                        <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#ff5555,#e01010,#b00000)' }}>Confirm?</div>
-                                                    </button>
-                                                ) : (
-                                                    <i className="ti ti-user-minus text-white/40 cursor-pointer shrink-0" style={{ fontSize: 15, padding: 4 }}
-                                                        onClick={() => setConfirmAction(`kick-${m.deviceId}`)} />
-                                                )
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                                <div style={{ height: 1, margin: '4px 8px', background: 'rgba(255,255,255,0.1)' }} />
-                                {confirmAction === 'leave' ? (
-                                    <button onClick={onLeave} className="pill-red w-full">
-                                        <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px', background: 'linear-gradient(180deg,#ff5555,#e01010,#b00000)' }}>
-                                            {myRole === 'LEADER' && myGuild.memberCount === 1 ? 'Confirm — Disband Guild' : 'Confirm — Leave Guild'}
-                                        </div>
+                        {/* Leadership / membership actions */}
+                        <div className="flex flex-col gap-1.5 pt-1">
+                            {myRole === 'LEADER' && myGuild.memberCount > 1 && (
+                                pickingSuccessor ? (
+                                    <div className="rounded-2xl p-2.5 flex flex-col gap-1.5" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                                        <span className="font-black text-white/60" style={{ fontSize: 9.5 }}>Choose a new leader:</span>
+                                        {myGuild.members.filter(m => m.deviceId !== deviceId).map(m => (
+                                            <button key={m.deviceId} onClick={() => { onTransferLeadership(m.deviceId); setPickingSuccessor(false); }}
+                                                className="flex items-center gap-2 rounded-xl px-2.5 py-1.5" style={{ background: 'rgba(0,0,0,0.25)' }}>
+                                                <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 24, height: 24 }} />
+                                                <span className="font-bold text-white flex-1 text-left" style={{ fontSize: 11 }}>{m.name}</span>
+                                            </button>
+                                        ))}
+                                        <button onClick={() => setPickingSuccessor(false)} className="text-center py-1">
+                                            <span className="font-bold text-white/40" style={{ fontSize: 9.5 }}>Cancel</span>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button onClick={() => setPickingSuccessor(true)} className="w-full text-center py-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                        <span className="font-black text-white/60" style={{ fontSize: 10.5 }}>Delegate Leadership</span>
+                                    </button>
+                                )
+                            )}
+                            {myRole === 'LEADER' ? (
+                                confirmAction === 'disband' ? (
+                                    <button onClick={onDisband} className="pill-red w-full">
+                                        <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px', background: 'linear-gradient(180deg,#ff5555,#e01010,#b00000)' }}>Confirm — Disband Guild</div>
                                     </button>
                                 ) : (
-                                    <button onClick={() => setConfirmAction('leave')} className="w-full text-center py-2">
-                                        <span className="font-bold text-white/40" style={{ fontSize: 10.5 }}>
-                                            {myRole === 'LEADER' && myGuild.memberCount === 1 ? 'Disband Guild' : 'Leave Guild'}
-                                        </span>
+                                    <button onClick={() => setConfirmAction('disband')} className="w-full text-center py-1.5">
+                                        <span className="font-bold text-white/40" style={{ fontSize: 10.5 }}>Disband Guild</span>
                                     </button>
+                                )
+                            ) : (
+                                confirmAction === 'leave' ? (
+                                    <button onClick={onLeave} className="pill-red w-full">
+                                        <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px', background: 'linear-gradient(180deg,#ff5555,#e01010,#b00000)' }}>Confirm — Leave Guild</div>
+                                    </button>
+                                ) : (
+                                    <button onClick={() => setConfirmAction('leave')} className="w-full text-center py-1.5">
+                                        <span className="font-bold text-white/40" style={{ fontSize: 10.5 }}>Leave Guild</span>
+                                    </button>
+                                )
+                            )}
+                        </div>
+                    </>
+                )}
+
+                {/* MEMBERS (in a guild) */}
+                {myGuild && tab === 'MEMBERS' && (
+                    [...myGuild.members].sort((a, b) => (a.role === 'LEADER' ? -1 : b.role === 'LEADER' ? 1 : a.role === 'OFFICER' ? -1 : b.role === 'OFFICER' ? 1 : 0)).map(m => {
+                        const isMe = m.deviceId === deviceId;
+                        const confirming = confirmAction === `kick-${m.deviceId}`;
+                        const iCanKick = myRole === 'LEADER' ? m.role !== 'LEADER' : myRole === 'OFFICER' ? m.role === 'MEMBER' : false;
+                        const iCanPromote = myRole === 'LEADER' && m.role === 'MEMBER';
+                        const iCanDemote = myRole === 'LEADER' && m.role === 'OFFICER';
+                        return (
+                            <div key={m.deviceId} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
+                                style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
+                                <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 34, height: 34, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-black text-white truncate flex items-center gap-1" style={{ fontSize: 12 }}>
+                                        {m.name}{isMe && <span className="text-white/40 font-bold" style={{ fontSize: 9 }}>(You)</span>}
+                                    </div>
+                                    <div className="font-bold" style={{ fontSize: 9, color: m.role === 'LEADER' ? '#facc15' : m.role === 'OFFICER' ? '#7dd3fc' : 'rgba(255,255,255,0.45)' }}>
+                                        {m.role === 'LEADER' ? 'Leader' : m.role === 'OFFICER' ? 'Officer' : 'Member'} · {formatKShort(m.contribution)} XP
+                                    </div>
+                                </div>
+                                {!isMe && (iCanPromote || iCanDemote) && (
+                                    <i className={`ti ${iCanPromote ? 'ti-arrow-up' : 'ti-arrow-down'} text-white/40 cursor-pointer shrink-0`}
+                                        style={{ fontSize: 15, padding: 4 }}
+                                        onClick={() => onSetRole(m.deviceId, iCanPromote ? 'OFFICER' : 'MEMBER')} />
+                                )}
+                                {!isMe && iCanKick && (
+                                    confirming ? (
+                                        <button onClick={() => { onKick(m.deviceId); setConfirmAction(null); }} className="pill-red shrink-0">
+                                            <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9px', background: 'linear-gradient(180deg,#ff5555,#e01010,#b00000)' }}>Confirm?</div>
+                                        </button>
+                                    ) : (
+                                        <i className="ti ti-user-minus text-white/40 cursor-pointer shrink-0" style={{ fontSize: 15, padding: 4 }}
+                                            onClick={() => setConfirmAction(`kick-${m.deviceId}`)} />
+                                    )
                                 )}
                             </div>
-                        )}
+                        );
+                    })
+                )}
 
-                        {tab === 'TASKS' && (
-                            <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-3 flex flex-col gap-1.5">
-                                {tasks.map(t => (
-                                    <div key={t.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
-                                        style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
-                                        <i className="ti ti-clipboard-check text-white/50 shrink-0" style={{ fontSize: 20 }} />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="font-black text-white truncate" style={{ fontSize: 11.5 }}>{t.description}</div>
-                                            <div className="relative rounded-full mt-1 overflow-hidden" style={{ height: 6, background: 'rgba(0,0,0,0.35)' }}>
-                                                <div className="h-full rounded-full" style={{ width: `${Math.min(100, (t.current / t.target) * 100)}%`, background: t.completed ? 'linear-gradient(90deg,#4ade80,#16a34a)' : 'linear-gradient(90deg,#38bdf8,#0ea5e9)' }} />
-                                            </div>
-                                            <div className="text-white/40 font-bold mt-0.5" style={{ fontSize: 8.5 }}>+{formatKShort(t.coinReward)} Coins · +{t.guildXpReward} Guild XP</div>
-                                        </div>
-                                        {t.completed && !t.claimed && (
-                                            <button onClick={() => onClaimTask(t.id)} className="pill-green shrink-0">
-                                                <div className="pill-face" style={{ padding: '5px 12px', fontSize: '9.5px' }}>Claim</div>
-                                            </button>
-                                        )}
-                                        {t.claimed && <i className="ti ti-check text-green-400 shrink-0" style={{ fontSize: 18 }} />}
+                {/* TASKS (in a guild) */}
+                {myGuild && tab === 'TASKS' && (
+                    <>
+                        <button onClick={() => playerGems >= refreshCost && onRefreshTasks()} disabled={playerGems < refreshCost}
+                            className="w-full flex items-center justify-center gap-1.5 rounded-2xl py-2 mb-1" style={{ background: 'rgba(0,0,0,0.2)', opacity: playerGems < refreshCost ? 0.5 : 1 }}>
+                            <i className="ti ti-refresh text-white/70" style={{ fontSize: 13 }} />
+                            <span className="font-black text-white/70" style={{ fontSize: 10.5 }}>Refresh Tasks — {refreshCost} Gems</span>
+                        </button>
+                        {tasks.map(t => (
+                            <div key={t.id} className="flex items-center gap-2.5 rounded-2xl px-3 py-2"
+                                style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
+                                <i className="ti ti-clipboard-check text-white/50 shrink-0" style={{ fontSize: 20 }} />
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-black text-white truncate" style={{ fontSize: 11.5 }}>{t.description}</div>
+                                    <div className="relative rounded-full mt-1 overflow-hidden" style={{ height: 6, background: 'rgba(0,0,0,0.35)' }}>
+                                        <div className="h-full rounded-full" style={{ width: `${Math.min(100, (t.current / t.target) * 100)}%`, background: t.completed ? 'linear-gradient(90deg,#4ade80,#16a34a)' : 'linear-gradient(90deg,#38bdf8,#0ea5e9)' }} />
                                     </div>
-                                ))}
+                                    <div className="text-white/40 font-bold mt-0.5" style={{ fontSize: 8.5 }}>+{formatKShort(t.coinReward)} Coins · +{t.guildXpReward} Guild XP</div>
+                                </div>
+                                {t.completed && !t.claimed && (
+                                    <button onClick={() => onClaimTask(t.id)} className="pill-green shrink-0">
+                                        <div className="pill-face" style={{ padding: '5px 12px', fontSize: '9.5px' }}>Claim</div>
+                                    </button>
+                                )}
+                                {t.claimed && <i className="ti ti-check text-green-400 shrink-0" style={{ fontSize: 18 }} />}
                             </div>
-                        )}
+                        ))}
                     </>
                 )}
             </div>

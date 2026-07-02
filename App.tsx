@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState } from './types';
+import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState, GuildDonationState } from './types';
 import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, GENERATE_GUILD_TASKS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
@@ -40,7 +40,12 @@ import { LeaderboardModal } from './components/LeaderboardModal';
 import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { GuildModal } from './components/GuildModal';
-import { searchGuilds, getMyGuild, createGuild, joinGuild, leaveGuild, kickMember, setMemberRole, contributeGuildXp, GUILD_CREATE_COST } from './services/guildService';
+import {
+    searchGuilds, getMyGuild, getTopGuilds, createGuild, joinGuild, leaveGuild, transferLeadership, disbandGuild,
+    kickMember, setMemberRole, contributeGuildXp, updateGuildDescription, rewardTierForRank,
+    GUILD_CREATE_COST_GEMS, GUILD_DONATE_GEMS, GUILD_DONATE_BET_PCT, GUILD_DONATE_XP,
+    GUILD_TASK_REFRESH_BASE_COST, GUILD_TASK_REFRESH_MAX_MULT,
+} from './services/guildService';
 import { FriendsModal } from './components/FriendsModal';
 import {
     canSend as friendCanSend, receivedGiftAmount, toFriend, isRealPlayerId, DAILY_MS,
@@ -939,41 +944,92 @@ const App: React.FC = () => {
   const guildUnlocked = arenaUnlocked;
   const [showGuild, setShowGuild] = useState(false);
   const [myGuild, setMyGuild] = useState<Guild | null>(null);
+  const [topGuilds, setTopGuilds] = useState<GuildSummary[]>([]);
   const [guildSearchResults, setGuildSearchResults] = useState<GuildSummary[]>([]);
   const [guildLoading, setGuildLoading] = useState(false);
   const [guildError, setGuildError] = useState('');
+  const todayKeyOf = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
   const [guildTaskState, setGuildTaskState] = useState<GuildTaskState>(() => {
       try {
           const saved = localStorage.getItem('cw_guild_tasks');
           if (saved) {
               const parsed = JSON.parse(saved);
-              const now = new Date();
-              const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-              if (parsed.lastReset !== todayKey) {
-                  return { lastReset: todayKey, tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)) };
+              if (parsed.lastReset !== todayKeyOf(new Date())) {
+                  return { lastReset: todayKeyOf(new Date()), tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)), refreshCount: 0 };
               }
-              return parsed;
+              return { refreshCount: 0, ...parsed };
           }
       } catch {}
-      const todayKey = (() => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; })();
-      return { lastReset: todayKey, tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)) };
+      return { lastReset: todayKeyOf(new Date()), tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)), refreshCount: 0 };
   });
   useEffect(() => { try { localStorage.setItem('cw_guild_tasks', JSON.stringify(guildTaskState)); } catch {} }, [guildTaskState]);
 
-  const refreshMyGuild = () => { getMyGuild(getDeviceId()).then(setMyGuild); };
+  // Guild donations — up to one coin donation + one gem donation per day.
+  const [guildDonationState, setGuildDonationState] = useState<GuildDonationState>(() => {
+      try {
+          const saved = JSON.parse(localStorage.getItem('cw_guild_donations') || 'null');
+          if (saved && saved.date === todayKeyOf(new Date())) return saved;
+      } catch {}
+      return { date: todayKeyOf(new Date()), coinsDonated: false, gemsDonated: false };
+  });
+  useEffect(() => {
+      const today = todayKeyOf(new Date());
+      if (guildDonationState.date !== today) setGuildDonationState({ date: today, coinsDonated: false, gemsDonated: false });
+      try { localStorage.setItem('cw_guild_donations', JSON.stringify(guildDonationState)); } catch {}
+  }, [guildDonationState]);
+
+  // Monthly top-10 guild rewards — approximated client-side (no server cron):
+  // whenever a member opens the game in a new calendar month, their device checks
+  // the current top-10 guilds and self-grants the tier reward if their guild
+  // placed, then marks the month done so it only ever applies once per device.
+  const [guildRewardMonthKey, setGuildRewardMonthKey] = useState<string>(() => {
+      try { return localStorage.getItem('cw_guild_reward_month') || ''; } catch { return ''; }
+  });
+  const applyGuildMonthlyReward = async () => {
+      const now = new Date();
+      const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
+      if (guildRewardMonthKey === monthKey || !guildUnlocked) return;
+      setGuildRewardMonthKey(monthKey);
+      try { localStorage.setItem('cw_guild_reward_month', monthKey); } catch {}
+      const guild = await getMyGuild(getDeviceId());
+      if (!guild) return;
+      const top10 = await getTopGuilds(10);
+      const rank = top10.findIndex(g => g.id === guild.id);
+      if (rank < 0) return;
+      const tier = rewardTierForRank(rank + 1);
+      if (!tier) return;
+      const maxBet = MAX_BET_BY_LEVEL(player.level);
+      const coinReward = Math.round(tier.betMult * maxBet);
+      const nowMs = Date.now();
+      const HR = 3600000;
+      setPlayer(p => ({
+          ...p,
+          balance: p.balance + coinReward,
+          diamonds: p.diamonds + tier.gems,
+          collectBoostEndTime: Math.max(nowMs, p.collectBoostEndTime || 0) + tier.collectHours * HR,
+          xpMultiplier: 2, xpBoostEndTime: Math.max(nowMs, p.xpBoostEndTime || 0) + tier.xpHours * HR,
+          arenaXpMultiplier: 2, arenaXpBoostEndTime: Math.max(nowMs, p.arenaXpBoostEndTime || 0) + tier.arenaHours * HR,
+      }));
+      setMissionState(prev => ({ ...prev, passBoostMultiplier: 2, passBoostEndTime: Math.max(nowMs, prev.passBoostEndTime || 0) + tier.missionHours * HR }));
+      triggerCoinAnim(coinReward);
+      setCelebrationMsg(`${guild.name} placed #${rank + 1} last month! Rewards granted.`);
+  };
+
+  const refreshMyGuild = () => { getMyGuild(getDeviceId()).then(g => { setMyGuild(g); if (g) applyGuildMonthlyReward(); }); };
   useEffect(() => { if (guildUnlocked) refreshMyGuild(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [guildUnlocked]);
+  useEffect(() => { if (showGuild) getTopGuilds(10).then(setTopGuilds); }, [showGuild]);
 
   const handleGuildSearch = (query: string) => {
       setGuildLoading(true);
       searchGuilds(query).then(res => { setGuildSearchResults(res); setGuildLoading(false); });
   };
   const handleGuildCreate = async (name: string, description: string, icon: string, color: string, isOpen: boolean) => {
-      if (player.balance < GUILD_CREATE_COST) return;
+      if (player.diamonds < GUILD_CREATE_COST_GEMS) { setGuildError('Not enough gems.'); return; }
       setGuildError('');
       const you = { deviceId: getDeviceId(), name: playerName, avatar: profileEmoji };
       const { guild, error } = await createGuild(name, description, icon, color, isOpen, you);
       if (error || !guild) { setGuildError(error || 'Could not create guild.'); return; }
-      setPlayer(p => ({ ...p, balance: p.balance - GUILD_CREATE_COST }));
+      setPlayer(p => ({ ...p, diamonds: p.diamonds - GUILD_CREATE_COST_GEMS }));
       setMyGuild(guild);
   };
   const handleGuildJoin = async (guildId: string) => {
@@ -985,17 +1041,34 @@ const App: React.FC = () => {
   };
   const handleGuildLeave = async () => {
       if (!myGuild) return;
-      await leaveGuild(myGuild.id, getDeviceId());
+      setGuildError('');
+      const { error } = await leaveGuild(myGuild.id, getDeviceId());
+      if (error) { setGuildError(error); return; }
       setMyGuild(null);
+  };
+  const handleGuildDisband = async () => {
+      if (!myGuild) return;
+      await disbandGuild(myGuild.id);
+      setMyGuild(null);
+  };
+  const handleGuildTransferLeadership = async (toDeviceId: string) => {
+      if (!myGuild) return;
+      await transferLeadership(myGuild.id, getDeviceId(), toDeviceId);
+      refreshMyGuild();
   };
   const handleGuildKick = async (targetDeviceId: string) => {
       if (!myGuild) return;
       await kickMember(myGuild.id, targetDeviceId);
       refreshMyGuild();
   };
-  const handleGuildSetRole = async (targetDeviceId: string, role: 'LEADER' | 'OFFICER' | 'MEMBER') => {
+  const handleGuildSetRole = async (targetDeviceId: string, role: 'OFFICER' | 'MEMBER') => {
       if (!myGuild) return;
       await setMemberRole(myGuild.id, targetDeviceId, role);
+      refreshMyGuild();
+  };
+  const handleGuildUpdateDescription = async (description: string) => {
+      if (!myGuild) return;
+      await updateGuildDescription(myGuild.id, description);
       refreshMyGuild();
   };
   const handleClaimGuildTask = async (taskId: string) => {
@@ -1009,6 +1082,36 @@ const App: React.FC = () => {
           refreshMyGuild();
           if (newLevel) setCelebrationMsg(`${myGuild.name} reached Level ${newLevel}!`);
       }
+  };
+  // Refreshing the 3 daily guild tasks costs gems, escalating 20% per refresh
+  // today, capped at 500% of the base cost (i.e. 6x).
+  const guildTaskRefreshCost = Math.round(GUILD_TASK_REFRESH_BASE_COST * Math.min(1 + GUILD_TASK_REFRESH_MAX_MULT, 1 + guildTaskState.refreshCount * 0.2));
+  const handleRefreshGuildTasks = () => {
+      if (player.diamonds < guildTaskRefreshCost) return;
+      setPlayer(p => ({ ...p, diamonds: p.diamonds - guildTaskRefreshCost }));
+      setGuildTaskState(prev => ({
+          lastReset: prev.lastReset,
+          refreshCount: prev.refreshCount + 1,
+          tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)),
+      }));
+  };
+  const handleGuildDonate = async (kind: 'COINS' | 'GEMS') => {
+      if (!myGuild) return;
+      if (kind === 'COINS') {
+          if (guildDonationState.coinsDonated) return;
+          const amount = Math.round(MAX_BET_BY_LEVEL(player.level) * GUILD_DONATE_BET_PCT);
+          if (player.balance < amount) return;
+          setPlayer(p => ({ ...p, balance: p.balance - amount }));
+          setGuildDonationState(prev => ({ ...prev, coinsDonated: true }));
+      } else {
+          if (guildDonationState.gemsDonated) return;
+          if (player.diamonds < GUILD_DONATE_GEMS) return;
+          setPlayer(p => ({ ...p, diamonds: p.diamonds - GUILD_DONATE_GEMS }));
+          setGuildDonationState(prev => ({ ...prev, gemsDonated: true }));
+      }
+      const newLevel = await contributeGuildXp(myGuild.id, getDeviceId(), GUILD_DONATE_XP);
+      refreshMyGuild();
+      if (newLevel) setCelebrationMsg(`${myGuild.name} reached Level ${newLevel}!`);
   };
   // Guild tasks reuse the same event types Daily Missions already tracks.
   const updateGuildTasks = (type: string, amount: number) => {
@@ -1234,6 +1337,9 @@ const App: React.FC = () => {
   // Effective spin progress rate: VIP adds +50%, store 2x boost adds +100% (additive)
   const treasuryProgressRate = 1 + (player.isVip ? 0.5 : 0) + (collectBoostActive ? 1 : 0);
 
+  // The streak advances one day per calendar day regardless of whether a
+  // milestone reward was claimed — only days 5/10/15/20/25/30 actually have a
+  // reward to claim; the days between just count toward the next milestone.
   const [loginState, setLoginState] = useState<DailyLoginState>(() => {
       try {
           const saved = localStorage.getItem('cw_login');
@@ -1241,11 +1347,15 @@ const App: React.FC = () => {
               const parsed = JSON.parse(saved);
               const lastDate = new Date(parsed.lastClaimTime).toDateString();
               const today = new Date().toDateString();
-              if (lastDate !== today) return { ...parsed, claimedToday: false };
+              if (lastDate !== today) {
+                  let nextDay = parsed.currentDay + 1;
+                  if (nextDay > DAILY_LOGIN_TOTAL_DAYS) nextDay = 1;
+                  return { currentDay: nextDay, claimedToday: false, lastClaimTime: Date.now() };
+              }
               return parsed;
           }
       } catch {}
-      return { currentDay: 1, claimedToday: false, lastClaimTime: 0 };
+      return { currentDay: 1, claimedToday: false, lastClaimTime: Date.now() };
   });
 
   const [celebrationMsg, setCelebrationMsg] = useState<string>("");
@@ -1733,7 +1843,7 @@ const App: React.FC = () => {
   
   const handleClaimLoginBonus = () => {
       const reward = DAILY_LOGIN_REWARDS.find(r => r.day === loginState.currentDay);
-      if (reward) {
+      if (reward && !loginState.claimedToday) {
           const scaledCoins = reward.multiplier * MAX_BET_BY_LEVEL(player.level);
           setPlayer(p => ({
               ...p,
@@ -1741,14 +1851,9 @@ const App: React.FC = () => {
               diamonds: p.diamonds + reward.gems
           }));
           if (scaledCoins > 0) triggerCoinAnim(scaledCoins);
-          let nextDay = loginState.currentDay + 1;
-          if (nextDay > DAILY_LOGIN_TOTAL_DAYS) nextDay = 1;
-          setLoginState({
-              currentDay: nextDay,
-              claimedToday: true,
-              lastClaimTime: Date.now()
-          });
-          setActiveModal('NONE');
+          // Only the milestone is marked claimed — currentDay itself only advances
+          // on the next real calendar day (see loginState's init effect above).
+          setLoginState(prev => ({ ...prev, claimedToday: true }));
           const parts: string[] = [];
           if (scaledCoins > 0) parts.push(`+${formatCommaNumber(scaledCoins)} Coins`);
           if (reward.gems > 0) parts.push(`${reward.gems} Gems`);
@@ -6232,7 +6337,7 @@ const App: React.FC = () => {
                 friends={friendsState.friends}
                 friendRequestCount={incomingFriendRequests.length}
                 onOpenLoginRewards={() => openModal('LOGIN_BONUS')}
-                loginRewardReady={!loginState.claimedToday}
+                loginRewardReady={DAILY_LOGIN_REWARDS.some(r => r.day === loginState.currentDay) && !loginState.claimedToday}
                 questState={quest}
                 missionState={missionState}
                 nextTimeBonus={nextBonusTime}
@@ -7800,18 +7905,29 @@ const App: React.FC = () => {
           onClose={() => setShowGuild(false)}
           deviceId={getDeviceId()}
           myGuild={myGuild}
+          topGuilds={topGuilds}
           loading={guildLoading}
           searchResults={guildSearchResults}
           onSearch={handleGuildSearch}
           onCreate={handleGuildCreate}
           onJoin={handleGuildJoin}
           onLeave={handleGuildLeave}
+          onDisband={handleGuildDisband}
+          onTransferLeadership={handleGuildTransferLeadership}
           onKick={handleGuildKick}
           onSetRole={handleGuildSetRole}
-          createCost={GUILD_CREATE_COST}
+          onUpdateDescription={handleGuildUpdateDescription}
+          createCostGems={GUILD_CREATE_COST_GEMS}
           playerBalance={player.balance}
+          playerGems={player.diamonds}
           tasks={guildTaskState.tasks}
           onClaimTask={handleClaimGuildTask}
+          refreshCost={guildTaskRefreshCost}
+          onRefreshTasks={handleRefreshGuildTasks}
+          donationState={guildDonationState}
+          donateCoinAmount={Math.round(MAX_BET_BY_LEVEL(player.level) * GUILD_DONATE_BET_PCT)}
+          donateGemAmount={GUILD_DONATE_GEMS}
+          onDonate={handleGuildDonate}
           errorMsg={guildError}
       />
 
