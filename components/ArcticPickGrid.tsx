@@ -8,6 +8,8 @@ interface ArcticPickGridProps {
     onWin: (tier: string, amount: number) => void;
     rows: number;
     cols: number;
+    hiddenIcon?: string;
+    bgColor?: string;
 }
 
 const TIERS = ['MINI', 'MINOR', 'MAJOR', 'MEGA', 'GRAND'] as const;
@@ -58,7 +60,7 @@ const shuffle = <T,>(arr: T[]): T[] => {
 type CellState = 'hidden' | 'revealed';
 interface Cell { id: number; tier: Tier; state: CellState; }
 
-export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWin, rows, cols }) => {
+export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWin, rows, cols, hiddenIcon = '/arctic/snow.png', bgColor = '#000a14' }) => {
     const [winningTier] = useState<Tier>(rollWinningTier);
     const [cells, setCells] = useState<Cell[]>(() => {
         const tierList: Tier[] = [
@@ -98,7 +100,7 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
 
     return (
         <div className="absolute inset-0 z-30 flex flex-col overflow-hidden"
-            style={{ background: '#000a14' }}>
+            style={{ background: bgColor }}>
 
             <div style={{
                 flex: 1,
@@ -146,7 +148,7 @@ export const ArcticPickGrid: React.FC<ArcticPickGridProps> = ({ currentBet, onWi
                                 />
                             ) : (
                                 <img
-                                    src="/arctic/snow.png"
+                                    src={hiddenIcon}
                                     alt=""
                                     style={{ width: '70%', height: '70%', objectFit: 'contain', opacity: 0.55, filter: 'drop-shadow(0 1px 4px rgba(100,200,255,0.4))' }}
                                 />

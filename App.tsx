@@ -3853,7 +3853,10 @@ const App: React.FC = () => {
                 }
             }
         }
-        if (ft === 'ARCTIC' && freeSpinsRemaining === 0) {
+        // Shared "fill a bar, then pick-and-win a jackpot tier" bonus — originally
+        // Arctic-only, now also Olympus Ascend's second layered mechanic (on top of
+        // its multiplier orbs), same as how Arctic itself pairs cascading with this.
+        if ((ft === 'ARCTIC' || selectedGame.theme === 'OLYMPUS') && freeSpinsRemaining === 0) {
             arcticPickSpinsRef.current++;
             // Fill progress bar +1 to +5 per spin, cap at 250, stay full
             if (arcticProgressRef.current < 250) {
@@ -5977,8 +5980,8 @@ const App: React.FC = () => {
                             ));
                         })()}
 
-                        {/* Arctic pick bonus progress bar — absolute overlay at top of reel area */}
-                        {featureThemeOf(selectedGame.theme) === 'ARCTIC' && freeSpinsRemaining === 0 && !showArcticPickModal && (
+                        {/* Pick-bonus progress bar — Arctic Freeze and Olympus Ascend share it */}
+                        {(featureThemeOf(selectedGame.theme) === 'ARCTIC' || selectedGame.theme === 'OLYMPUS') && freeSpinsRemaining === 0 && !showArcticPickModal && (
                             <ArcticProgressBar progress={arcticSpinProgress} />
                         )}
 
@@ -6277,14 +6280,16 @@ const App: React.FC = () => {
                             />
                         )}
 
-                        {/* Arctic Pick-and-Win grid — same layout as Dragon, ice cube theme */}
-                        {showArcticPickModal && featureThemeOf(selectedGame.theme) === 'ARCTIC' && (
+                        {/* Pick-and-Win grid — Arctic Freeze (ice cube theme) and Olympus Ascend (Zeus theme) */}
+                        {showArcticPickModal && (featureThemeOf(selectedGame.theme) === 'ARCTIC' || selectedGame.theme === 'OLYMPUS') && (
                             <ArcticPickGrid
                                 jackpotAmounts={jackpotService.getAmounts()}
                                 currentBet={availableBets[betIndex]}
                                 onWin={handleArcticPickWin}
                                 rows={selectedGame.rows}
                                 cols={selectedGame.reels}
+                                hiddenIcon={selectedGame.theme === 'OLYMPUS' ? '/zeus_scatter.png' : undefined}
+                                bgColor={selectedGame.theme === 'OLYMPUS' ? '#1a0a2e' : undefined}
                             />
                         )}
                     </div>
@@ -6740,17 +6745,22 @@ const App: React.FC = () => {
           </div>
       )}
 
-      {showArcticTriggerPopup && (
+      {showArcticTriggerPopup && (() => {
+          const isOlympusPick = selectedGame.theme === 'OLYMPUS';
+          return (
           <div className="absolute inset-0 z-[250] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
-                  style={{ background: 'linear-gradient(180deg,#1a6a8c 0%,#0a3a5a 35%,#001828 100%)', boxShadow: 'inset 0 1px 0 rgba(150,230,255,0.5), 0 8px 40px rgba(34,211,238,0.45)', maxWidth: 300, textAlign: 'center' }}>
-                  <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>❄️</span>
-                  <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: '0 0 12px rgba(34,211,238,0.8)' }}>
+                  style={isOlympusPick
+                      ? { background: 'linear-gradient(180deg,#6d28d9 0%,#3b0764 35%,#1a0a2e 100%)', boxShadow: 'inset 0 1px 0 rgba(250,204,21,0.5), 0 8px 40px rgba(250,204,21,0.45)', maxWidth: 300, textAlign: 'center' }
+                      : { background: 'linear-gradient(180deg,#1a6a8c 0%,#0a3a5a 35%,#001828 100%)', boxShadow: 'inset 0 1px 0 rgba(150,230,255,0.5), 0 8px 40px rgba(34,211,238,0.45)', maxWidth: 300, textAlign: 'center' }}>
+                  <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>{isOlympusPick ? '⚡' : '❄️'}</span>
+                  <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: isOlympusPick ? '0 0 12px rgba(250,204,21,0.8)' : '0 0 12px rgba(34,211,238,0.8)' }}>
                       JACKPOT PICK<br />TRIGGERED!
                   </div>
               </div>
           </div>
-      )}
+          );
+      })()}
 
 
       <NeonRouletteModal
