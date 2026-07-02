@@ -513,8 +513,8 @@ const App: React.FC = () => {
   // Effect to update Golden Treasury rewards when level changes
   useEffect(() => {
       const maxBet = MAX_BET_BY_LEVEL(player.level);
-      // Quick = 50% maxBet, Super = 250% maxBet, Mega = 1000% maxBet
-      const pcts = [0.5, 2.5, 10.0];
+      // Quick = 50% maxBet, Super = 250% maxBet, Mega = 1000% maxBet, all ×100
+      const pcts = [0.5, 2.5, 10.0].map(p => p * 100);
       setBonusTimers(prev => prev.map(t => ({
           ...t,
           reward: Math.floor(maxBet * pcts[t.id])
@@ -852,7 +852,12 @@ const App: React.FC = () => {
   const [arenaState, setArenaState] = useState<ArenaState>(() => {
       try {
           const saved = localStorage.getItem('cw_arena');
-          if (saved) return { ...initialArenaState(Date.now()), ...JSON.parse(saved) };
+          if (saved) {
+              const parsed = JSON.parse(saved);
+              // Grandfather in players who already had season progress before the
+              // explicit Join gate existed — only genuinely fresh players start unjoined.
+              return { ...initialArenaState(Date.now()), ...parsed, hasJoined: parsed.hasJoined ?? parsed.points > 0 };
+          }
       } catch {}
       return initialArenaState(Date.now());
   });
@@ -4136,14 +4141,20 @@ const App: React.FC = () => {
     }
   };
 
-  // Add Arena points — but only during a season's active phase. While a season is
+  // Add Arena points — only once the player has explicitly joined (see
+  // handleJoinArena), and only during a season's active phase. While a season is
   // processing (the 3-minute window before the next one) accrual is frozen.
   const addArenaPoints = (pts: number) => {
       if (pts <= 0) return;
+      if (!arenaState.hasJoined) return;
       // Apply an active Arena XP buff (from purchases / shop).
       const arenaMult = (player.arenaXpBoostEndTime || 0) > Date.now() ? (player.arenaXpMultiplier || 1) : 1;
       const total = Math.round(pts * arenaMult);
       setArenaState(prev => seasonPhase(prev, Date.now()) === 'active' ? { ...prev, points: prev.points + total } : prev);
+  };
+
+  const handleJoinArena = () => {
+      setArenaState(prev => ({ ...prev, hasJoined: true }));
   };
 
   // Friends — AI/top-player entries add instantly; real players (device ids)
@@ -5517,7 +5528,7 @@ const App: React.FC = () => {
                                     {/* Header — current level + XP numbers (no bar / % ) */}
                                     <div className="flex items-center justify-between">
                                         <span style={{ color: 'white', fontSize: 12, fontWeight: 900, letterSpacing: '0.04em' }}>Level {player.level}</span>
-                                        <span style={{ color: '#d6b8ff', fontSize: 10, fontWeight: 700 }}>{player.xp.toLocaleString()} / {player.xpToNextLevel.toLocaleString()} XP</span>
+                                        <span style={{ color: '#d6b8ff', fontSize: 10, fontWeight: 700 }}>{formatK(player.xp, 9)} / {formatK(player.xpToNextLevel, 9)} XP</span>
                                     </div>
 
                                     <div style={{ height: 1, background: 'rgba(255,255,255,0.1)', marginLeft: 2, marginRight: 2 }} />
@@ -5527,7 +5538,7 @@ const App: React.FC = () => {
                                         <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 10, fontWeight: 700 }}>Next Reward · Lv.{nextLevel}</span>
                                         <span className="flex items-center gap-1" style={{ color: '#ffe066', fontSize: 11, fontWeight: 900 }}>
                                             <img src="/new_coinicon.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />
-                                            {formatK(nextReward)}
+                                            {formatK(nextReward, 9)}
                                         </span>
                                     </div>
 
@@ -7143,6 +7154,7 @@ const App: React.FC = () => {
           playerName={playerName}
           playerAvatar={profileEmoji}
           maxBet={MAX_BET_BY_LEVEL(player.level)}
+          onJoin={handleJoinArena}
       />
       <ArenaResultsModal
           isOpen={showArenaResults && !!arenaState.lastResult}

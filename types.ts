@@ -189,6 +189,7 @@ export interface ArenaState {
     points: number;           // player's arena points this season
     refMult: number;          // bet-tier multiplier snapshot for AI scaling
     lastResult?: ArenaResult | null; // pending results popup, if any
+    hasJoined?: boolean;      // explicit opt-in — spins only score points once true
 }
 
 export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'DICE_CREDITS' | 'BACK' | 'PACKS' | 'STAR';

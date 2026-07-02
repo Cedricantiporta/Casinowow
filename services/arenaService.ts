@@ -253,5 +253,5 @@ export function formatCountdown(ms: number): string {
 
 // Fresh state for a brand-new player.
 export function initialArenaState(nowMs: number): ArenaState {
-    return { tierIndex: 0, seasonId: 1, seasonStart: nowMs, points: 0, refMult: 1, lastResult: null };
+    return { tierIndex: 0, seasonId: 1, seasonStart: nowMs, points: 0, refMult: 1, lastResult: null, hasJoined: false };
 }

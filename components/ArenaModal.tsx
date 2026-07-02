@@ -13,9 +13,10 @@ interface ArenaModalProps {
     playerName: string;
     playerAvatar: string;
     maxBet: number;
+    onJoin: () => void;
 }
 
-export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, playerName, playerAvatar, maxBet }) => {
+export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, playerName, playerAvatar, maxBet, onJoin }) => {
     const [now, setNow] = useState(() => Date.now());
     const listRef = useRef<HTMLDivElement>(null);
     const youRowRef = useRef<HTMLDivElement>(null);
@@ -45,7 +46,7 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
     const info = rankInfo(arena.tierIndex);
     const phase = seasonPhase(arena, now);
     const remaining = phaseTimeRemaining(arena, now);
-    const joined = arena.points > 0; // must spin to join the season
+    const joined = !!arena.hasJoined;
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none"
@@ -106,10 +107,13 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                             <div className="text-white/50" style={{ fontSize: 11 }}>Next arena begins in <span className="font-black text-white">{formatCountdown(remaining)}</span></div>
                         </div>
                     ) : !joined ? (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center gap-2 py-10">
-                            <i className="ti ti-refresh text-white/50" style={{ fontSize: 34 }} />
-                            <div className="font-black text-white/80 text-sm">Spin to join</div>
-                            <div className="text-white/50" style={{ fontSize: 11 }}>Spin any slot to enter this season's Arena — no demotion until you play.</div>
+                        <div className="flex-1 flex flex-col items-center justify-center text-center gap-3 py-10">
+                            <i className="ti ti-swords text-white/50" style={{ fontSize: 34 }} />
+                            <div className="font-black text-white/80 text-sm">You haven't joined this season</div>
+                            <div className="text-white/50 px-6" style={{ fontSize: 11 }}>Join to start earning points as you spin. You can also just watch — no pressure.</div>
+                            <button onClick={onJoin} className="pill-green mt-1" style={{ width: 160 }}>
+                                <div className="pill-face" style={{ padding: '9px 12px', fontSize: '12px' }}>Join Arena</div>
+                            </button>
                         </div>
                     ) : board.map((e, i) => {
                         const pos = i + 1;
@@ -190,7 +194,7 @@ export const ArenaSideWidget: React.FC<{
     const remaining = phaseTimeRemaining(arena, now);
     const pool = arenaRewardPool(maxBet, arena.tierIndex);
     const outcome = SIDE_OUTCOME[outcomeFor(arena.tierIndex, myIdx + 1)];
-    const joined = arena.points > 0; // must spin to join the season
+    const joined = !!arena.hasJoined;
 
     // 6-row window centred on the player, clamped so the top is visible when near it.
     const WINDOW = 6;
@@ -221,7 +225,7 @@ export const ArenaSideWidget: React.FC<{
             {/* Prize pool — prominent, on top of the list */}
             <div className="flex items-center justify-center gap-1 rounded-lg py-0.5" style={{ background: 'rgba(0,0,0,0.3)' }}>
                 <img src="/new_coinicon.png" alt="" style={{ width: 15, height: 15, objectFit: 'contain' }} />
-                <span className="font-black text-amber-300 leading-none" style={{ fontSize: 12 }}>{formatK(pool, 9)}</span>
+                <span className="font-black text-amber-300 leading-none" style={{ fontSize: 12 }}>{formatK(pool, 6)}</span>
             </div>
 
             {/* Live windowed leaderboard — blank while processing or before joining */}

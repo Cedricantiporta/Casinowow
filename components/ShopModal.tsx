@@ -133,18 +133,26 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, on
         action: () => !isFreeStashClaimed && onBuy('COIN', freeCoinsAmount, 0, 0),
     };
 
+    // A native store price is only trusted if it actually contains a non-zero
+    // amount — a misconfigured/unpriced product can come back as "₱0" or "0.00",
+    // which would otherwise show as a free/zero price instead of the real cost.
+    const validLocalPrice = (raw: string | undefined): string | null => {
+        if (!raw) return null;
+        const n = parseFloat(raw.replace(/[^0-9.]/g, ''));
+        return n > 0 ? raw : null;
+    };
     const coinItems = dynamicPacks.map(item => ({
         ...item,
         isRealMoney: true,
         isClaimed: false,
-        price: (localPrices && localPrices[item.productId]) ? localPrices[item.productId] : `₱ ${item.pesosLabel}`,
+        price: validLocalPrice(localPrices?.[item.productId]) ?? `₱ ${item.pesosLabel}`,
         gemCost: undefined as number | undefined,
     }));
     const gemItems = gemPacks.map(item => ({
         ...item,
         isRealMoney: true,
         isClaimed: false,
-        price: (localPrices && localPrices[item.productId]) ? localPrices[item.productId] : `₱ ${item.pesosLabel}`,
+        price: validLocalPrice(localPrices?.[item.productId]) ?? `₱ ${item.pesosLabel}`,
         gemCost: undefined as number | undefined,
     }));
     const boostItems = boostPacks.map(item => ({ ...item, isRealMoney: false, isClaimed: false, price: `GEM:${item.gemCost}` }));

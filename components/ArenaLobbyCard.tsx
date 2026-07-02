@@ -40,7 +40,7 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
     const remaining = phaseTimeRemaining(arena, now);
     const outcome = OUTCOME_META[outcomeFor(arena.tierIndex, pos)];
     const pool = arenaRewardPool(maxBet, arena.tierIndex);
-    const joined = arena.points > 0; // must spin to join the season
+    const joined = !!arena.hasJoined;
 
     return (
         <button
@@ -68,17 +68,12 @@ export const ArenaLobbyCard: React.FC<Props> = ({ arena, playerName, playerAvata
                 {joined && <span className="text-white/90 font-bold leading-none" style={{ fontSize: 9 }}>#{pos}</span>}
             </div>
 
-            {/* promotion / hold / demotion status — or spin-to-join prompt — solid pill, white text */}
-            {joined ? (
+            {/* promotion / hold / demotion status — solid pill, white text (nothing shown until joined) */}
+            {joined && (
                 <div className="relative flex items-center gap-0.5 rounded-full px-1.5 py-0.5 mt-1"
                     style={{ background: outcome.color, boxShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>
                     <i className={`ti ${outcome.icon} text-white`} style={{ fontSize: 9 }} />
                     <span className="font-black text-white leading-none" style={{ fontSize: 8.5 }}>{outcome.label}</span>
-                </div>
-            ) : (
-                <div className="relative flex items-center gap-0.5 rounded-full px-1.5 py-0.5 mt-1" style={{ background: '#64748b', boxShadow: '0 2px 6px rgba(0,0,0,0.4)' }}>
-                    <i className="ti ti-refresh text-white" style={{ fontSize: 9 }} />
-                    <span className="font-black leading-none text-white" style={{ fontSize: 8.5 }}>Spin to join</span>
                 </div>
             )}
 
