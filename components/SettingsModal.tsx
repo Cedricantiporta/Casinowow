@@ -342,7 +342,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             <div className="flex items-center gap-2">
                                 <span className="text-lg">🎰</span>
                                 <div>
-                                    <div className="text-white font-black text-xs">CasinoWow</div>
+                                    <div className="text-white font-black text-xs">Cozy Casino</div>
                                     <div className="text-white/60 text-[9px]">For entertainment only · No real money</div>
                                 </div>
                             </div>

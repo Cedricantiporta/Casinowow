@@ -1,6 +1,6 @@
 {
   "appId": "com.casinowow.app",
-  "appName": "CasinoWow",
+  "appName": "Cozy Casino",
   "webDir": "dist",
   "android": {
     "backgroundColor": "#0a0015"

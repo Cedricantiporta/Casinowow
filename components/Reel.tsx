@@ -418,10 +418,15 @@ const ReelCell: React.FC<{
                         </div>
                     )}
                     {theme === 'BUFFALO' && isWild && !blur && !!wildMultValue && (
-                        <div className="absolute top-0 w-full flex justify-center items-start pt-0.5 z-30 pointer-events-none animate-pop-in">
+                        <div className="absolute top-0 w-full flex justify-center items-start pt-0.5 z-30 pointer-events-none">
                             <span
                                 className="block leading-none"
-                                style={{ fontSize: `${2.4 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900, color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em' }}
+                                style={{
+                                    fontSize: `${2.4 * cellScale}rem`, fontFamily: "'Arial Black', 'Impact', sans-serif", fontWeight: 900,
+                                    color: '#fde047', textShadow: '0 0 8px #000, 0 0 16px #000, 2px 2px 0 #000, -1px -1px 0 #000', letterSpacing: '-0.02em',
+                                    // Starts invisible/tiny, zooms up to full size, then pulsates forever.
+                                    animation: 'wildMultZoom 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards, wildMultPulse 1s ease-in-out 0.4s infinite',
+                                }}
                             >{wildMultValue}X</span>
                         </div>
                     )}

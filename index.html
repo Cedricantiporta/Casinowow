@@ -7,9 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="preload" href="/initialload_bg.jpg" as="image" fetchpriority="high" />
+    <link rel="preload" href="/new_initialload_bg.png" as="image" fetchpriority="high" />
     <link rel="preload" href="/cards_bg.png" as="image" />
-    <title>CasinoWow</title>
+    <title>Cozy Casino</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Audiowide&family=Boogaloo&family=Bubblegum+Sans&family=Cinzel+Decorative:wght@700;900&family=Exo+2:wght@700;900&family=Fredoka:wght@600;700&family=Germania+One&family=Luckiest+Guy&family=Noto+Serif+JP:wght@700;900&family=Nunito:wght@800;900&family=Orbitron:wght@700;900&family=Pirata+One&family=Rye&family=Titan+One&display=swap" rel="stylesheet">
@@ -91,6 +91,15 @@
               'collect-bounce': 'collectBounce 4s ease-in-out infinite',
             },
             keyframes: {
+              wildMultZoom: {
+                '0%': { transform: 'scale(0)', opacity: '0' },
+                '70%': { transform: 'scale(1.25)', opacity: '1' },
+                '100%': { transform: 'scale(1)', opacity: '1' },
+              },
+              wildMultPulse: {
+                '0%, 100%': { transform: 'scale(1)' },
+                '50%': { transform: 'scale(1.15)' },
+              },
               spinReel: {
                 '0%': { transform: 'translateY(-50%)' },
                 '100%': { transform: 'translateY(0%)' },
@@ -582,7 +591,7 @@
       </svg>
       <div style="font-family:'Titan One',cursive;font-size:30px;color:#fff;letter-spacing:1px;">Rotate Device</div>
       <div style="font-size:15px;color:rgba(255,255,255,0.55);max-width:260px;line-height:1.6;">
-        CasinoWow is designed for landscape mode.<br>Please rotate your phone horizontally to play.
+        Cozy Casino is designed for landscape mode.<br>Please rotate your phone horizontally to play.
       </div>
       <div style="margin-top:8px;background:rgba(255,255,255,0.06);border-radius:16px;padding:16px 20px;max-width:280px;">
         <div style="font-size:11px;font-weight:900;color:#a855f7;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Install as App</div>

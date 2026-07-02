@@ -186,7 +186,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                         <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-lg"
                             style={{ background: 'rgba(74,222,128,0.18)' }}>
                             <i className="ti ti-tag" style={{ fontSize: 9, color: '#4ade80' }} />
-                            <span style={{ fontSize: 9, fontWeight: 700, color: '#4ade80' }}>First Purchase</span>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: '#ffffff' }}>First Purchase</span>
                         </div>
                         <div className="shrink-0 px-4 pt-8 pb-2">
                             <div className="flex items-center gap-2 mb-1">
@@ -221,7 +221,7 @@ export const PremiumModal: React.FC<PremiumModalProps> = ({ isOpen, onClose, isV
                         <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded-lg"
                             style={{ background: 'rgba(74,222,128,0.18)' }}>
                             <i className="ti ti-tag" style={{ fontSize: 9, color: '#4ade80' }} />
-                            <span style={{ fontSize: 9, fontWeight: 700, color: '#4ade80' }}>First Purchase</span>
+                            <span style={{ fontSize: 9, fontWeight: 700, color: '#ffffff' }}>First Purchase</span>
                         </div>
                         <div className="shrink-0 px-4 pt-8 pb-2">
                             <div className="flex items-center gap-2 mb-1">

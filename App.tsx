@@ -237,7 +237,7 @@ const SCATTER_JP_IMGS: Record<string, string> = {
 
 const STARTUP_ASSETS = [
     // initial load splash background
-    '/initialload_bg.jpg',
+    '/new_initialload_bg.png',
     // lobby backgrounds
     '/lobby-bg.jpg', '/lobby-bg-vip.jpg',
     // slot loading screen background (shown while a game loads in)
@@ -3402,20 +3402,33 @@ const App: React.FC = () => {
               // then reveal them one at a time (see the reel-stop handler) so it's
               // obvious the collected wilds are being added, not just already there.
               buffaloRevealPendingRef.current = buffaloCollectStackRef.current > 0;
-          } else if (isFreeSpin && buffaloCollectStackRef.current < 15 && Math.random() < 0.675) {
-              const eligible: { c: number; r: number }[] = [];
-              for (let c = 0; c < cols; c++) {
-                  for (let r = 0; r < rows; r++) {
-                      if (newGrid[c][r] !== SymbolType.WILD && newGrid[c][r] !== SymbolType.SCATTER) {
-                          eligible.push({ c, r });
+          } else if (isFreeSpin && buffaloCollectStackRef.current < 15) {
+              // Up to 4 collect markers can land on a single spin — the more, the
+              // rarer (67.5% chance of at least 1, dropping off sharply after that).
+              const roll = Math.random() * 100;
+              const count = roll >= 97.5 ? 4 : roll >= 92 ? 3 : roll >= 77 ? 2 : roll >= 32.5 ? 1 : 0;
+              if (count > 0) {
+                  const eligible: { c: number; r: number }[] = [];
+                  for (let c = 0; c < cols; c++) {
+                      for (let r = 0; r < rows; r++) {
+                          if (newGrid[c][r] !== SymbolType.WILD && newGrid[c][r] !== SymbolType.SCATTER) {
+                              eligible.push({ c, r });
+                          }
                       }
                   }
-              }
-              if (eligible.length > 0) {
-                  const pick = eligible[Math.floor(Math.random() * eligible.length)];
-                  collectGrid[pick.c][pick.r] = true;
-                  buffaloCollectStackRef.current = Math.min(15, buffaloCollectStackRef.current + 1);
-                  setBuffaloCollectStack(buffaloCollectStackRef.current);
+                  for (let i = eligible.length - 1; i > 0; i--) {
+                      const j = Math.floor(Math.random() * (i + 1));
+                      [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+                  }
+                  const room = 15 - buffaloCollectStackRef.current;
+                  const toPlace = Math.min(count, eligible.length, room);
+                  for (let i = 0; i < toPlace; i++) {
+                      collectGrid[eligible[i].c][eligible[i].r] = true;
+                  }
+                  if (toPlace > 0) {
+                      buffaloCollectStackRef.current = Math.min(15, buffaloCollectStackRef.current + toPlace);
+                      setBuffaloCollectStack(buffaloCollectStackRef.current);
+                  }
               }
           }
           buffaloCollectGridRef.current = collectGrid;
@@ -4155,7 +4168,9 @@ const App: React.FC = () => {
                 [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
             }
             const toPlace = eligible.slice(0, Math.min(count, eligible.length));
-            const stepDelay = fastSpinRef.current ? 120 : 350;
+            // ~1 second per wild so it's obvious each one is being added, even
+            // during fast spin — that's the whole point of this animation.
+            const stepDelay = 1000;
             setBuffaloWildRevealRemaining(toPlace.length);
             audioService.playBonusTrigger();
             let idx = 0;
@@ -5696,7 +5711,7 @@ const App: React.FC = () => {
   if (!appReady) {
       return (
           <div className="bg-[#0a0015] flex items-center justify-center overflow-hidden" style={{ position: 'fixed', inset: 0 }}>
-              <div style={{ width: 844, height: 390, transform: `scale(${mobileScale.x}, ${mobileScale.y})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/initialload_bg.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              <div style={{ width: 844, height: 390, transform: `scale(${mobileScale.x}, ${mobileScale.y})`, transformOrigin: 'center center', position: 'relative', overflow: 'hidden', backgroundImage: 'url(/new_initialload_bg.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
                   <div style={{ position: 'absolute', bottom: '13%', left: 0, right: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5 }}>
                       <div style={{ width: 220, height: 16, borderRadius: 9999, background: 'rgba(0,0,0,0.55)', border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden', position: 'relative' }}>
                           <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${loadProgress}%`, background: 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)', boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)', transition: 'width 0.2s ease', borderRadius: 9999 }} />
