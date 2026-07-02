@@ -103,9 +103,11 @@ export async function getTopGuildsByContribution(limit = 10): Promise<GuildSumma
     try {
         const { data, error } = await supabase.from(GUILDS_TABLE).select('*')
             .order('contribution_points', { ascending: false }).limit(limit);
-        if (error || !data) return [];
+        if (error) { console.warn('[guild] top-by-contribution read failed — run supabase/guilds.sql?', error.message); return []; }
+        if (!data) return [];
         return data.map(rowToSummary);
-    } catch {
+    } catch (e) {
+        console.warn('[guild] getTopGuildsByContribution exception:', e);
         return [];
     }
 }
@@ -270,9 +272,13 @@ export async function contributeGuildXp(guildId: string, amount: number): Promis
 export async function contributeGuildPoints(guildId: string, deviceId: string, amount: number): Promise<void> {
     if (!supabase || amount <= 0) return;
     try {
-        const { data: guildRow } = await supabase.from(GUILDS_TABLE).select('contribution_points').eq('id', guildId).maybeSingle();
-        await supabase.from(GUILDS_TABLE).update({ contribution_points: (Number(guildRow?.contribution_points) || 0) + amount }).eq('id', guildId);
+        const { data: guildRow, error: gReadErr } = await supabase.from(GUILDS_TABLE).select('contribution_points').eq('id', guildId).maybeSingle();
+        if (gReadErr) console.warn('[guild] contribution_points read failed — run supabase/guilds.sql?', gReadErr.message);
+        const { error: gWriteErr } = await supabase.from(GUILDS_TABLE).update({ contribution_points: (Number(guildRow?.contribution_points) || 0) + amount }).eq('id', guildId);
+        if (gWriteErr) console.warn('[guild] contribution_points write failed — run supabase/guilds.sql?', gWriteErr.message);
         const { data: memberRow } = await supabase.from(MEMBERS_TABLE).select('contribution').eq('guild_id', guildId).eq('device_id', deviceId).maybeSingle();
         await supabase.from(MEMBERS_TABLE).update({ contribution: (Number(memberRow?.contribution) || 0) + amount }).eq('guild_id', guildId).eq('device_id', deviceId);
-    } catch { /* best-effort */ }
+    } catch (e) {
+        console.warn('[guild] contributeGuildPoints exception:', e);
+    }
 }

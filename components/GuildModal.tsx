@@ -435,7 +435,10 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                         </div>
                                         {t.completed && !t.claimed ? (
                                             <button onClick={() => onClaimTask(t.id)} className="pill-green shrink-0">
-                                                <div className="pill-face" style={{ padding: '5px 12px', fontSize: '9.5px' }}>Claim</div>
+                                                <div className="pill-face flex flex-col items-center leading-tight" style={{ padding: '5px 10px', fontSize: '9.5px' }}>
+                                                    <span>Claim</span>
+                                                    <span style={{ fontSize: 8 }}>+{t.pointsReward} {t.rewardKind === 'GUILD_XP' ? 'XP' : 'Contrib.'}</span>
+                                                </div>
                                             </button>
                                         ) : t.claimed ? (
                                             <i className="ti ti-check text-green-400 shrink-0" style={{ fontSize: 18 }} />

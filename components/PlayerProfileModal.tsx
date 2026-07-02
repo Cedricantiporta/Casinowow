@@ -58,26 +58,28 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
                 <div className="relative px-4 pt-4 pb-4" style={{ background: 'linear-gradient(180deg,rgba(255,255,255,0.10),transparent)' }}>
                     <div className="round-btn cursor-pointer absolute top-3 right-3" onClick={onClose}><i className="ti ti-x" /></div>
                     <div className="flex flex-col items-center gap-2">
-                        <div className="relative">
-                            <img src={avatar} alt="" className="shrink-0 rounded-full object-cover" style={{ width: 64, height: 64, boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 4px 12px rgba(0,0,0,0.5)' }} />
-                            {rank ? (
-                                rank <= 3 ? (
-                                    <img src={`/Rank (${rank}).png`} alt="" className="absolute -bottom-1 -right-1" style={{ width: 30, height: 30, objectFit: 'contain' }} />
-                                ) : (
-                                    <div className="absolute -bottom-1 -right-1 flex items-center justify-center font-black rounded-full"
-                                        style={{ width: 24, height: 24, fontSize: 11, background: m.bg, color: m.color, boxShadow: m.glow || '0 2px 4px rgba(0,0,0,0.5)' }}>{rank}</div>
-                                )
-                            ) : null}
-                        </div>
-                        <div className="text-center">
-                            <div className="font-black text-white" style={{ fontSize: 15 }}>{name}{isYou ? ' (You)' : ''}</div>
-                            <div className="text-white/55 font-bold" style={{ fontSize: 10 }}>Level {displayLevel}</div>
-                            {guildName && (
-                                <div className="flex items-center justify-center gap-1 mt-0.5">
-                                    <i className="ti ti-shield text-white/45" style={{ fontSize: 10 }} />
-                                    <span className="text-white/45 font-bold" style={{ fontSize: 9.5 }}>{guildName}</span>
-                                </div>
-                            )}
+                        <div className="flex items-center gap-3">
+                            <div className="relative shrink-0">
+                                <img src={avatar} alt="" className="shrink-0 rounded-full object-cover" style={{ width: 64, height: 64, boxShadow: '0 0 0 3px rgba(255,255,255,0.18), 0 4px 12px rgba(0,0,0,0.5)' }} />
+                                {rank ? (
+                                    rank <= 3 ? (
+                                        <img src={`/Rank (${rank}).png`} alt="" className="absolute -bottom-1 -right-1" style={{ width: 30, height: 30, objectFit: 'contain' }} />
+                                    ) : (
+                                        <div className="absolute -bottom-1 -right-1 flex items-center justify-center font-black rounded-full"
+                                            style={{ width: 24, height: 24, fontSize: 11, background: m.bg, color: m.color, boxShadow: m.glow || '0 2px 4px rgba(0,0,0,0.5)' }}>{rank}</div>
+                                    )
+                                ) : null}
+                            </div>
+                            <div className="flex flex-col items-start gap-1 min-w-0">
+                                <div className="font-black text-white truncate" style={{ fontSize: 15 }}>{name}{isYou ? ' (You)' : ''}</div>
+                                <div className="text-white/55 font-bold" style={{ fontSize: 10 }}>Level {displayLevel}</div>
+                                {guildName && (
+                                    <div className="flex items-center gap-1">
+                                        <i className="ti ti-shield text-white/45" style={{ fontSize: 10 }} />
+                                        <span className="text-white/45 font-bold" style={{ fontSize: 9.5 }}>{guildName}</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         {!isYou && onAddFriend && (
                             <button

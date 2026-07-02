@@ -950,18 +950,23 @@ const App: React.FC = () => {
   const [guildLoading, setGuildLoading] = useState(false);
   const [guildError, setGuildError] = useState('');
   const todayKeyOf = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  const freshGuildTasks = () => ({ lastReset: todayKeyOf(new Date()), tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)) });
   const [guildTaskState, setGuildTaskState] = useState<GuildTaskState>(() => {
       try {
           const saved = localStorage.getItem('cw_guild_tasks');
           if (saved) {
               const parsed = JSON.parse(saved);
-              if (parsed.lastReset !== todayKeyOf(new Date())) {
-                  return { lastReset: todayKeyOf(new Date()), tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)) };
-              }
-              return parsed;
+              // A save from before rewardKind/pointsReward/refreshCount existed (or any
+              // other corrupt shape) would otherwise surface as "NaN Gems" on refresh —
+              // regenerate today's tasks from scratch rather than trust a stale shape.
+              const valid = parsed.lastReset === todayKeyOf(new Date())
+                  && Array.isArray(parsed.tasks)
+                  && parsed.tasks.every((t: any) => (t.rewardKind === 'GUILD_XP' || t.rewardKind === 'CONTRIBUTION') && Number.isFinite(t.pointsReward) && Number.isFinite(t.refreshCount));
+              if (valid) return parsed;
+              return freshGuildTasks();
           }
       } catch {}
-      return { lastReset: todayKeyOf(new Date()), tasks: GENERATE_GUILD_TASKS(player.level, MAX_BET_BY_LEVEL(player.level)) };
+      return freshGuildTasks();
   });
   useEffect(() => { try { localStorage.setItem('cw_guild_tasks', JSON.stringify(guildTaskState)); } catch {} }, [guildTaskState]);
 
@@ -1025,6 +1030,21 @@ const App: React.FC = () => {
       getTopGuildsByLevel(10).then(setTopGuildsByLevel);
       getTopGuildsByContribution(10).then(setTopGuildsByContribution);
   }, [showGuild]);
+
+  // Per-spin guild contribution (1 point per bet tier) is buffered here and
+  // flushed periodically as one call instead of a Supabase round-trip per spin.
+  const guildSpinPointsBufferRef = useRef(0);
+  useEffect(() => {
+      const flush = () => {
+          const amount = guildSpinPointsBufferRef.current;
+          if (amount <= 0 || !myGuild) return;
+          guildSpinPointsBufferRef.current = 0;
+          contributeGuildPoints(myGuild.id, getDeviceId(), amount).then(() => { if (showGuild) refreshMyGuild(); });
+      };
+      const t = setInterval(flush, 10000);
+      return () => { clearInterval(t); flush(); };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myGuild?.id]);
 
   const handleGuildSearch = (query: string) => {
       setGuildLoading(true);
@@ -1099,7 +1119,7 @@ const App: React.FC = () => {
   // Refreshing a single task rerolls JUST that task (new type/target/rewards,
   // reset progress) — it does not touch the other two, and costs gems that
   // escalate 20% per refresh of THAT task today, capped at 500% of base (6x).
-  const guildTaskRefreshCost = (task: GuildTask) => Math.round(GUILD_TASK_REFRESH_BASE_COST * Math.min(1 + GUILD_TASK_REFRESH_MAX_MULT, 1 + task.refreshCount * 0.2));
+  const guildTaskRefreshCost = (task: GuildTask) => Math.round(GUILD_TASK_REFRESH_BASE_COST * Math.min(1 + GUILD_TASK_REFRESH_MAX_MULT, 1 + (task.refreshCount || 0) * 0.2));
   const handleRefreshGuildTask = (taskId: string) => {
       const idx = guildTaskState.tasks.findIndex(t => t.id === taskId);
       if (idx < 0) return;
@@ -3872,9 +3892,14 @@ const App: React.FC = () => {
           setCelebrationMsg("Not Enough Coins!");
           audioService.playStoneBreak();
       }
-      setPlayer(p => ({ ...p, autoSpin: false })); 
+      setPlayer(p => ({ ...p, autoSpin: false }));
       return;
     }
+
+    // Every spin contributes guild points: 1 point at the lowest bet, +1 per bet
+    // tier up to max bet. Buffered and flushed periodically (see the interval
+    // below) instead of one Supabase round-trip per spin.
+    if (myGuild) guildSpinPointsBufferRef.current += betIndex + 1;
 
     if (!isFreeSpin && !isHoldWinRespin && !isPirateWalk) {
       // Piggy Bank Logic: 5% of Bet (10% if VIP), Capped. Only saves if Level >= 5.
