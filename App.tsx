@@ -8014,6 +8014,7 @@ const App: React.FC = () => {
           onClose={() => setShowGuild(false)}
           deviceId={getDeviceId()}
           myGuild={myGuild}
+          maxBet={MAX_BET_BY_LEVEL(player.level)}
           topGuildsByLevel={topGuildsByLevel}
           topGuildsByContribution={topGuildsByContribution}
           loading={guildLoading}

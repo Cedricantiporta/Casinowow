@@ -4,22 +4,14 @@ import { GUILD_ICONS, GUILD_MAX_LEVEL, GUILD_MAX_MEMBERS, guildXpForNextLevel, r
 import { formatKShort, formatCommaNumber } from '../constants';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { GroupedList } from './GroupedList';
-
-const timeAgo = (ms: number): string => {
-    const diff = Date.now() - ms;
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return 'just now';
-    if (m < 60) return `${m}m ago`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
-    return `${Math.floor(h / 24)}d ago`;
-};
+import { RewardChip, fmtRewardDuration } from './RewardChip';
 
 interface GuildModalProps {
     isOpen: boolean;
     onClose: () => void;
     deviceId: string;
     myGuild: Guild | null;
+    maxBet: number;
     topGuildsByLevel: GuildSummary[];
     topGuildsByContribution: GuildSummary[];
     loading: boolean;
@@ -54,7 +46,7 @@ const RANK_BADGE = (rank: number) => rank <= 3 ? `/Rank (${rank}).png` : null;
 const ROLE_RANK: Record<GuildRole, number> = { LEADER: 0, OFFICER: 1, MEMBER: 2 };
 
 export const GuildModal: React.FC<GuildModalProps> = ({
-    isOpen, onClose, deviceId, myGuild, topGuildsByLevel, topGuildsByContribution, loading, searchResults, onSearch, onCreate, onJoin, onLeave, onDisband,
+    isOpen, onClose, deviceId, myGuild, maxBet, topGuildsByLevel, topGuildsByContribution, loading, searchResults, onSearch, onCreate, onJoin, onLeave, onDisband,
     onTransferLeadership, onKick, onSetRole, onUpdateDescription, createCostGems, playerBalance, playerGems,
     tasks, onClaimTask, refreshCostFor, onRefreshTask, donationState, donateCoinAmount, donateGemAmount, onDonate, errorMsg,
     friendIds, pendingFriendIds, onAddFriend,
@@ -138,12 +130,51 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                     <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>
                                         {topSubTab === 'LEVEL' ? `Lvl ${g.level}/${GUILD_MAX_LEVEL}` : `${formatKShort(g.contributionPoints)} Contribution`} · {g.memberCount} members
                                     </div>
-                                    {tier && (
-                                        <div className="font-bold text-yellow-300/80 mt-0.5" style={{ fontSize: 8.5 }}>
-                                            Reward: {tier.betMult}x Bet + {formatCommaNumber(tier.gems)} Gems
-                                        </div>
-                                    )}
                                 </div>
+                                {tier && (
+                                    <div className="shrink-0 flex items-center gap-1">
+                                        <RewardChip
+                                            tooltip={`${formatCommaNumber(Math.round(tier.betMult * maxBet))} Coins (${tier.betMult}× your max bet)`}
+                                            icon={<img src="/new_coinicon.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
+                                            label={formatKShort(Math.round(tier.betMult * maxBet))}
+                                            labelColor="#fbbf24"
+                                        />
+                                        <RewardChip
+                                            tooltip={`${formatCommaNumber(tier.gems)} Gems`}
+                                            icon={<img src="/symbols/diamond.png" alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />}
+                                            label={tier.gems >= 1000 ? `${tier.gems / 1000}K` : String(tier.gems)}
+                                            labelColor="#7dd3fc"
+                                        />
+                                        {tier.collectHours > 0 && (
+                                            <RewardChip
+                                                tooltip={`${fmtRewardDuration(tier.collectHours)} 2× Collect Bonus`}
+                                                icon={<img src="/ui/exp_multiplier.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
+                                                label={fmtRewardDuration(tier.collectHours)}
+                                            />
+                                        )}
+                                        {tier.xpHours > 0 && (
+                                            <RewardChip
+                                                tooltip={`${fmtRewardDuration(tier.xpHours)} 2× XP`}
+                                                icon={<img src="/topbar_levelstar.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
+                                                label={fmtRewardDuration(tier.xpHours)}
+                                            />
+                                        )}
+                                        {tier.missionHours > 0 && (
+                                            <RewardChip
+                                                tooltip={`${fmtRewardDuration(tier.missionHours)} 2× Mission XP`}
+                                                icon={<img src="/ui/missions_new.png" alt="" style={{ width: 13, height: 13, objectFit: 'contain' }} />}
+                                                label={fmtRewardDuration(tier.missionHours)}
+                                            />
+                                        )}
+                                        {tier.arenaHours > 0 && (
+                                            <RewardChip
+                                                tooltip={`${fmtRewardDuration(tier.arenaHours)} 2× Arena XP`}
+                                                icon={<i className="ti ti-swords" style={{ fontSize: 12, color: '#f472b6' }} />}
+                                                label={fmtRewardDuration(tier.arenaHours)}
+                                            />
+                                        )}
+                                    </div>
+                                )}
                             </button>
                         );
                     }}
@@ -465,7 +496,6 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                     const roleDiff = ROLE_RANK[a.role] - ROLE_RANK[b.role];
                                     return roleDiff !== 0 ? roleDiff : b.contribution - a.contribution;
                                 });
-                                const maxContribution = Math.max(1, ...sorted.map(m => m.contribution));
                                 return (
                                 <GroupedList
                                     items={sorted}
@@ -482,25 +512,22 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                             <div className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
                                                 onClick={(e) => { e.stopPropagation(); setProfileTarget({ id: m.deviceId, name: m.name, avatar: m.avatar, level: 1 }); }}>
                                                 <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 36, height: 36, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="font-black text-white truncate flex items-center gap-1.5" style={{ fontSize: 12 }}>
-                                                        {m.name}
-                                                        {isMe && <span className="text-white/40 font-bold" style={{ fontSize: 9 }}>(You)</span>}
-                                                        <span className="shrink-0 px-1.5 py-0.5 rounded-full font-black flex items-center gap-0.5" style={{
-                                                            fontSize: 7.5,
-                                                            color: m.role === 'LEADER' ? '#3a2600' : m.role === 'OFFICER' ? '#082f49' : 'rgba(255,255,255,0.7)',
-                                                            background: m.role === 'LEADER' ? 'linear-gradient(180deg,#ffe27a,#e8a200)' : m.role === 'OFFICER' ? 'linear-gradient(180deg,#7dd3fc,#0ea5e9)' : 'rgba(255,255,255,0.12)',
-                                                        }}>
-                                                            {m.role === 'LEADER' ? <><i className="ti ti-crown" style={{ fontSize: 8 }} />Leader</> : m.role === 'OFFICER' ? <><i className="ti ti-shield" style={{ fontSize: 8 }} />Officer</> : 'Member'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="relative rounded-full mt-1 overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,0.35)' }}>
-                                                        <div className="h-full rounded-full" style={{ width: `${(m.contribution / maxContribution) * 100}%`, background: 'linear-gradient(90deg,#4ade80,#16a34a)' }} />
-                                                    </div>
-                                                    <div className="text-white/45 font-bold mt-0.5" style={{ fontSize: 8.5 }}>{formatKShort(m.contribution)} Contribution</div>
+                                                <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                                                    <span className="font-black text-white truncate" style={{ fontSize: 12 }}>{m.name}</span>
+                                                    {isMe && <span className="text-white/40 font-bold shrink-0" style={{ fontSize: 9 }}>(You)</span>}
+                                                    <span className="shrink-0 px-1.5 py-0.5 rounded-full font-black flex items-center gap-0.5" style={{
+                                                        fontSize: 7.5,
+                                                        color: m.role === 'LEADER' ? '#3a2600' : m.role === 'OFFICER' ? '#082f49' : 'rgba(255,255,255,0.7)',
+                                                        background: m.role === 'LEADER' ? 'linear-gradient(180deg,#ffe27a,#e8a200)' : m.role === 'OFFICER' ? 'linear-gradient(180deg,#7dd3fc,#0ea5e9)' : 'rgba(255,255,255,0.12)',
+                                                    }}>
+                                                        {m.role === 'LEADER' ? <><i className="ti ti-crown" style={{ fontSize: 8 }} />Leader</> : m.role === 'OFFICER' ? <><i className="ti ti-shield" style={{ fontSize: 8 }} />Officer</> : 'Member'}
+                                                    </span>
                                                 </div>
                                             </div>
-                                            <div className="text-white/35 font-bold shrink-0" style={{ fontSize: 8 }}>Joined {timeAgo(m.joinedAt)}</div>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <i className="ti ti-star text-yellow-300" style={{ fontSize: 12 }} />
+                                                <span className="font-black text-white" style={{ fontSize: 12 }}>{formatKShort(m.contribution)}</span>
+                                            </div>
                                             {hasActions && (
                                                 <div className="relative shrink-0">
                                                     <i className="ti ti-dots-vertical text-white/50 cursor-pointer" style={{ fontSize: 16, padding: 4 }}
@@ -618,74 +645,88 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         const leader = g.members.find(mm => mm.role === 'LEADER');
                         const levelRank = topGuildsByLevel.findIndex(x => x.id === g.id);
                         const contribRank = topGuildsByContribution.findIndex(x => x.id === g.id);
+                        const PURPLE = 'linear-gradient(135deg,rgba(168,85,247,0.35) 0%,rgba(107,33,168,0.55) 100%)';
                         return (
-                            <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-4 flex flex-col gap-2">
-                                <div className="rounded-2xl p-3 flex items-center gap-3" style={{ background: 'rgba(0,0,0,0.22)' }}>
-                                    <div className={`shrink-0 rounded-2xl flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 56, height: 56 }}>
-                                        <img src={g.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="font-black text-white truncate" style={{ fontSize: 15 }}>{g.name}</span>
-                                            <span className="shrink-0 px-1.5 py-0.5 rounded-full font-black text-white" style={{ fontSize: 8, background: 'linear-gradient(180deg,#a855f7,#7e22ce)' }}>Lv.{g.level}</span>
-                                        </div>
-                                        <div className="relative rounded-full mt-1 overflow-hidden" style={{ height: 7, background: 'rgba(0,0,0,0.35)' }}>
-                                            <div className="h-full rounded-full" style={{ width: `${gXpPct}%`, background: 'linear-gradient(90deg,#60a5fa,#3b82f6)' }} />
-                                        </div>
-                                        <div className="text-white/40 font-bold mt-0.5" style={{ fontSize: 8 }}>{formatKShort(g.xp)} / {formatKShort(gXpNeeded)} XP</div>
-                                    </div>
-                                    {!myGuild && (
-                                        <button onClick={g.isOpen ? () => { onJoin(g.id); setViewingGuildId(null); } : undefined} disabled={!g.isOpen}
-                                            className="pill-green shrink-0" style={{ opacity: g.isOpen ? 1 : 0.4 }}>
-                                            <div className="pill-face" style={{ padding: '6px 14px', fontSize: '10.5px' }}>{g.isOpen ? 'Join' : 'Invite Only'}</div>
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="rounded-2xl p-3 grid grid-cols-2 gap-2" style={{ background: 'rgba(0,0,0,0.18)' }}>
-                                    <div className="flex items-center gap-2">
-                                        <i className="ti ti-crown text-yellow-300" style={{ fontSize: 15 }} />
-                                        <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Leader</div><div className="font-black text-white truncate" style={{ fontSize: 11 }}>{leader?.name || '—'}</div></div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <i className="ti ti-users text-white/60" style={{ fontSize: 15 }} />
-                                        <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Members</div><div className="font-black text-white" style={{ fontSize: 11 }}>{g.memberCount}/{GUILD_MAX_MEMBERS}</div></div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <i className="ti ti-star text-yellow-300" style={{ fontSize: 15 }} />
-                                        <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Contribution</div><div className="font-black text-white" style={{ fontSize: 11 }}>{formatKShort(g.contributionPoints)}</div></div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <i className="ti ti-trophy text-yellow-300" style={{ fontSize: 15 }} />
-                                        <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Ranking</div><div className="font-black text-white" style={{ fontSize: 11 }}>
-                                            {contribRank >= 0 ? `#${contribRank + 1} Contrib.` : levelRank >= 0 ? `#${levelRank + 1} Level` : 'Unranked'}
-                                        </div></div>
-                                    </div>
-                                </div>
-
-                                {g.description && (
-                                    <div className="rounded-2xl p-3" style={{ background: 'rgba(0,0,0,0.18)' }}>
-                                        <p className="text-white/80 font-bold" style={{ fontSize: 11, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>{g.description}</p>
-                                    </div>
-                                )}
-
-                                <span className="font-black text-white/50 uppercase tracking-widest px-1" style={{ fontSize: 8.5 }}>Members</span>
-                                <GroupedList
-                                    items={[...g.members].sort((a, b) => (ROLE_RANK[a.role] - ROLE_RANK[b.role]) || (b.contribution - a.contribution))}
-                                    keyFn={m => m.deviceId}
-                                    renderRow={m => (
-                                        <div className="flex items-center gap-2.5 px-3 py-2">
-                                            <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 32, height: 32 }} />
-                                            <div className="flex-1 min-w-0">
-                                                <div className="font-black text-white truncate" style={{ fontSize: 11.5 }}>{m.name}</div>
-                                                <div className="font-bold" style={{ fontSize: 8.5, color: m.role === 'LEADER' ? '#facc15' : m.role === 'OFFICER' ? '#7dd3fc' : 'rgba(255,255,255,0.45)' }}>
-                                                    {m.role === 'LEADER' ? 'Leader' : m.role === 'OFFICER' ? 'Officer' : 'Member'}
-                                                </div>
+                            <div className="flex-1 flex gap-2 overflow-hidden px-3 pb-3">
+                                {/* Left column — guild details */}
+                                <div className="w-[34%] shrink-0 flex flex-col gap-2 overflow-y-auto no-scrollbar">
+                                    <div className="rounded-2xl p-3" style={{ background: PURPLE }}>
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={`shrink-0 rounded-2xl flex items-center justify-center bg-gradient-to-br ${g.color}`} style={{ width: 48, height: 48 }}>
+                                                <img src={g.icon} alt="" style={{ width: '65%', height: '65%', objectFit: 'contain' }} />
                                             </div>
-                                            <div className="text-white/50 font-bold shrink-0" style={{ fontSize: 9.5 }}>{formatKShort(m.contribution)} pts</div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="font-black text-white truncate" style={{ fontSize: 14 }}>{g.name}</span>
+                                                    <span className="shrink-0 px-1.5 py-0.5 rounded-full font-black text-white" style={{ fontSize: 8, background: 'linear-gradient(180deg,#a855f7,#7e22ce)' }}>Lv.{g.level}</span>
+                                                </div>
+                                                <div className="relative rounded-full mt-1 overflow-hidden" style={{ height: 7, background: 'rgba(0,0,0,0.35)' }}>
+                                                    <div className="h-full rounded-full" style={{ width: `${gXpPct}%`, background: 'linear-gradient(90deg,#60a5fa,#3b82f6)' }} />
+                                                </div>
+                                                <div className="text-white/40 font-bold mt-0.5" style={{ fontSize: 8 }}>{formatKShort(g.xp)} / {formatKShort(gXpNeeded)} XP</div>
+                                            </div>
+                                        </div>
+                                        {!myGuild && (
+                                            <button onClick={g.isOpen ? () => { onJoin(g.id); setViewingGuildId(null); } : undefined} disabled={!g.isOpen}
+                                                className="pill-green w-full mt-2.5" style={{ opacity: g.isOpen ? 1 : 0.4 }}>
+                                                <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10.5px' }}>{g.isOpen ? 'Join' : 'Invite Only'}</div>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="rounded-2xl p-3 grid grid-cols-2 gap-2" style={{ background: PURPLE }}>
+                                        <div className="flex items-center gap-2">
+                                            <i className="ti ti-crown text-yellow-300" style={{ fontSize: 15 }} />
+                                            <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Leader</div><div className="font-black text-white truncate" style={{ fontSize: 11 }}>{leader?.name || '—'}</div></div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <i className="ti ti-users text-white/60" style={{ fontSize: 15 }} />
+                                            <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Members</div><div className="font-black text-white" style={{ fontSize: 11 }}>{g.memberCount}/{GUILD_MAX_MEMBERS}</div></div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <i className="ti ti-star text-yellow-300" style={{ fontSize: 15 }} />
+                                            <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Contribution</div><div className="font-black text-white" style={{ fontSize: 11 }}>{formatKShort(g.contributionPoints)}</div></div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <i className="ti ti-trophy text-yellow-300" style={{ fontSize: 15 }} />
+                                            <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Ranking</div><div className="font-black text-white" style={{ fontSize: 11 }}>
+                                                {contribRank >= 0 ? `#${contribRank + 1} Contrib.` : levelRank >= 0 ? `#${levelRank + 1} Level` : 'Unranked'}
+                                            </div></div>
+                                        </div>
+                                    </div>
+
+                                    {g.description && (
+                                        <div className="rounded-2xl p-3 flex-1" style={{ background: PURPLE, minHeight: 60 }}>
+                                            <p className="text-white/80 font-bold" style={{ fontSize: 11, lineHeight: 1.4, whiteSpace: 'pre-wrap' }}>{g.description}</p>
                                         </div>
                                     )}
-                                />
+                                </div>
+
+                                {/* Right column — full-height member list */}
+                                <div className="flex-1 flex flex-col gap-1.5 overflow-hidden">
+                                    <span className="shrink-0 font-black text-white/50 uppercase tracking-widest px-1" style={{ fontSize: 8.5 }}>Members ({g.memberCount})</span>
+                                    <div className="flex-1 overflow-y-auto no-scrollbar">
+                                        <GroupedList
+                                            items={[...g.members].sort((a, b) => (ROLE_RANK[a.role] - ROLE_RANK[b.role]) || (b.contribution - a.contribution))}
+                                            keyFn={m => m.deviceId}
+                                            renderRow={m => (
+                                                <div className="flex items-center gap-2.5 px-3 py-2">
+                                                    <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 32, height: 32 }} />
+                                                    <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                                                        <span className="font-black text-white truncate" style={{ fontSize: 11.5 }}>{m.name}</span>
+                                                        <span className="shrink-0 font-bold" style={{ fontSize: 8.5, color: m.role === 'LEADER' ? '#facc15' : m.role === 'OFFICER' ? '#7dd3fc' : 'rgba(255,255,255,0.45)' }}>
+                                                            {m.role === 'LEADER' ? 'Leader' : m.role === 'OFFICER' ? 'Officer' : 'Member'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 shrink-0">
+                                                        <i className="ti ti-star text-yellow-300" style={{ fontSize: 12 }} />
+                                                        <span className="font-black text-white" style={{ fontSize: 12 }}>{formatKShort(m.contribution)}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         );
                     })()}

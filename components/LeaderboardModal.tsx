@@ -3,6 +3,7 @@ import { formatCommaNumber, formatK } from '../constants';
 import { fetchTopPlayers, LeaderboardEntry, LeaderboardMetric, LocalPlayer } from '../services/leaderboardService';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { GroupedList } from './GroupedList';
+import { RewardChip, fmtRewardDuration } from './RewardChip';
 
 interface LeaderboardModalProps {
     isOpen: boolean;
@@ -32,32 +33,7 @@ const RANK_REWARDS: Record<number, RankReward> = {
     6:  { gems: 200 }, 7: { gems: 200 }, 8: { gems: 200 }, 9: { gems: 200 }, 10: { gems: 200 },
 };
 
-const fmtDuration = (hours: number) => hours >= 24 ? `${hours / 24}D` : `${hours}H`;
-
-const RewardChip: React.FC<{ tooltip: string; icon: React.ReactNode; label: string; labelColor?: string }> = ({ tooltip, icon, label, labelColor }) => {
-    const [show, setShow] = useState(false);
-    return (
-        <div className="relative flex-shrink-0 flex items-center gap-0.5 cursor-default" onMouseEnter={() => setShow(true)} onMouseLeave={() => setShow(false)}>
-            {icon}
-            {label && <span className="font-black" style={{ fontSize: 10, color: labelColor ?? 'rgba(255,255,255,0.75)' }}>{label}</span>}
-            {show && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-[500] pointer-events-none whitespace-nowrap"
-                    style={{
-                        background: 'linear-gradient(180deg,#6a1eb0 0%,#380870 100%)',
-                        boxShadow: 'inset 0 1px 0 rgba(180,100,255,0.4), 0 4px 12px rgba(0,0,0,0.85)',
-                        borderRadius: 8,
-                        padding: '4px 9px',
-                        fontSize: 10,
-                        fontWeight: 700,
-                        color: '#e9d5ff',
-                        letterSpacing: '0.03em',
-                    }}>
-                    {tooltip}
-                </div>
-            )}
-        </div>
-    );
-};
+const fmtDuration = fmtRewardDuration;
 
 // Always abbreviate (K/M/B/T/Qd/Qi/Sx/Sp/Oc/No) — the leaderboard's whole point is
 // showing an at-a-glance scale, and raw scores here can run well past what a fixed
