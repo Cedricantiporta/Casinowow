@@ -46,11 +46,11 @@ export interface GuildRewardTier {
     arenaHours: number;
 }
 export const GUILD_MONTHLY_REWARDS: Record<number, GuildRewardTier> = {
-    1: { betMult: 100, gems: 3000, collectHours: 240, xpHours: 168, missionHours: 72, arenaHours: 24 },
-    2: { betMult: 60,  gems: 2000, collectHours: 168, xpHours: 72,  missionHours: 48, arenaHours: 12 },
-    3: { betMult: 30,  gems: 1000, collectHours: 72,  xpHours: 48,  missionHours: 24, arenaHours: 6  },
+    1: { betMult: 50, gems: 3000, collectHours: 240, xpHours: 168, missionHours: 72, arenaHours: 24 },
+    2: { betMult: 30, gems: 2000, collectHours: 168, xpHours: 72,  missionHours: 48, arenaHours: 12 },
+    3: { betMult: 15, gems: 1000, collectHours: 72,  xpHours: 48,  missionHours: 24, arenaHours: 6  },
 };
-export const GUILD_MONTHLY_REWARD_4_TO_10: GuildRewardTier = { betMult: 10, gems: 500, collectHours: 24, xpHours: 24, missionHours: 12, arenaHours: 0 };
+export const GUILD_MONTHLY_REWARD_4_TO_10: GuildRewardTier = { betMult: 5, gems: 500, collectHours: 24, xpHours: 24, missionHours: 12, arenaHours: 0 };
 export function rewardTierForRank(rank1Based: number): GuildRewardTier | null {
     if (rank1Based <= 3) return GUILD_MONTHLY_REWARDS[rank1Based];
     if (rank1Based <= 10) return GUILD_MONTHLY_REWARD_4_TO_10;

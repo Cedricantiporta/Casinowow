@@ -41,7 +41,7 @@ import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { GuildModal } from './components/GuildModal';
 import {
-    searchGuilds, getMyGuild, getTopGuildsByLevel, getTopGuildsByContribution, createGuild, joinGuild, leaveGuild, transferLeadership, disbandGuild,
+    searchGuilds, getMyGuild, getTopGuildsByContribution, createGuild, joinGuild, leaveGuild, transferLeadership, disbandGuild,
     kickMember, setMemberRole, contributeGuildXp, contributeGuildPoints, updateGuildDescription, rewardTierForRank,
     GUILD_CREATE_COST_GEMS, GUILD_DONATE_GEMS, GUILD_DONATE_BET_PCT, GUILD_DONATE_CONTRIBUTION,
     GUILD_TASK_REFRESH_BASE_COST, GUILD_TASK_REFRESH_MAX_MULT,
@@ -947,7 +947,6 @@ const App: React.FC = () => {
   const guildUnlocked = arenaUnlocked;
   const [showGuild, setShowGuild] = useState(false);
   const [myGuild, setMyGuild] = useState<Guild | null>(null);
-  const [topGuildsByLevel, setTopGuildsByLevel] = useState<GuildSummary[]>([]);
   const [topGuildsByContribution, setTopGuildsByContribution] = useState<GuildSummary[]>([]);
   const [guildSearchResults, setGuildSearchResults] = useState<GuildSummary[]>([]);
   const [guildLoading, setGuildLoading] = useState(false);
@@ -1038,7 +1037,6 @@ const App: React.FC = () => {
   useEffect(() => { if (guildUnlocked) refreshMyGuild(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [guildUnlocked]);
   useEffect(() => {
       if (!showGuild) return;
-      getTopGuildsByLevel(10).then(setTopGuildsByLevel);
       getTopGuildsByContribution(10).then(setTopGuildsByContribution);
   }, [showGuild]);
 
@@ -8047,7 +8045,6 @@ const App: React.FC = () => {
           deviceId={getDeviceId()}
           myGuild={myGuild}
           maxBet={MAX_BET_BY_LEVEL(player.level)}
-          topGuildsByLevel={topGuildsByLevel}
           topGuildsByContribution={topGuildsByContribution}
           loading={guildLoading}
           searchResults={guildSearchResults}

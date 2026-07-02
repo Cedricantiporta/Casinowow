@@ -12,7 +12,6 @@ interface GuildModalProps {
     deviceId: string;
     myGuild: Guild | null;
     maxBet: number;
-    topGuildsByLevel: GuildSummary[];
     topGuildsByContribution: GuildSummary[];
     loading: boolean;
     searchResults: GuildSummary[];
@@ -49,14 +48,13 @@ const GUILD_DEFAULT_COLOR = 'from-indigo-500 via-violet-600 to-purple-900';
 const ROLE_RANK: Record<GuildRole, number> = { LEADER: 0, OFFICER: 1, MEMBER: 2 };
 
 export const GuildModal: React.FC<GuildModalProps> = ({
-    isOpen, onClose, deviceId, myGuild, maxBet, topGuildsByLevel, topGuildsByContribution, loading, searchResults, onSearch, onCreate, onJoin, onLeave, onDisband,
+    isOpen, onClose, deviceId, myGuild, maxBet, topGuildsByContribution, loading, searchResults, onSearch, onCreate, onJoin, onLeave, onDisband,
     onTransferLeadership, onKick, onSetRole, onUpdateDescription, createCostGems, playerBalance, playerGems,
     tasks, onClaimTask, refreshCostFor, onRefreshTask, donationState, donateCoinAmount, donateGemAmount, onDonate, errorMsg,
     friendIds, pendingFriendIds, onAddFriend,
 }) => {
     const [browseTab, setBrowseTab] = useState<'BROWSE' | 'CREATE' | 'TOP'>('BROWSE');
     const [rightTab, setRightTab] = useState<'MEMBERS' | 'TASKS' | 'TOP'>('MEMBERS');
-    const [topSubTab, setTopSubTab] = useState<'LEVEL' | 'CONTRIBUTION'>('CONTRIBUTION');
     const [search, setSearch] = useState('');
     const [name, setName] = useState('');
     const [iconIdx, setIconIdx] = useState(0);
@@ -94,29 +92,17 @@ export const GuildModal: React.FC<GuildModalProps> = ({
     const atMaxLevel = !!myGuild && myGuild.level >= GUILD_MAX_LEVEL;
 
     const TopGuildsList: React.FC<{ onSelect?: (id: string) => void }> = ({ onSelect }) => {
-        const list = topSubTab === 'LEVEL' ? topGuildsByLevel : topGuildsByContribution;
         return (
             <div className="flex flex-col gap-1.5">
-                <div className="flex gap-1.5 p-1 rounded-2xl" style={{ background: 'rgba(0,0,0,0.28)' }}>
-                    {(['CONTRIBUTION', 'LEVEL'] as const).map(k => (
-                        <button key={k} onClick={() => setTopSubTab(k)}
-                            className="flex-1 rounded-xl py-1 px-1 transition-all active:scale-95"
-                            style={{ background: topSubTab === k ? 'linear-gradient(180deg,#52c215,#35900a 50%,#246606)' : 'transparent' }}>
-                            <span className="font-black block" style={{ fontSize: 9.5, color: topSubTab === k ? '#fff' : 'rgba(255,255,255,0.6)' }}>
-                                {k === 'LEVEL' ? 'Top Level' : 'Top Contribution'}
-                            </span>
-                        </button>
-                    ))}
-                </div>
                 <GroupedList
-                    items={list}
+                    items={topGuildsByContribution}
                     keyFn={g => g.id}
                     emptyText="No ranked guilds yet"
                     renderRow={(g, i) => {
                         const rank = i + 1;
                         const badge = RANK_BADGE(rank);
                         const isMine = myGuild?.id === g.id;
-                        const tier = topSubTab === 'CONTRIBUTION' ? rewardTierForRank(rank) : null;
+                        const tier = rewardTierForRank(rank);
                         return (
                             <button onClick={() => onSelect?.(g.id)} className="w-full flex items-center gap-2.5 px-3 py-2 text-left">
                                 <div className="w-7 flex items-center justify-center shrink-0">
@@ -125,9 +111,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                 <img src={g.icon} alt="" className="shrink-0" style={{ width: 34, height: 34, objectFit: 'contain' }} />
                                 <div className="flex-1 min-w-0">
                                     <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{g.name}{isMine && <span className="text-green-400" style={{ fontSize: 9 }}> (Yours)</span>}</div>
-                                    <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>
-                                        {topSubTab === 'LEVEL' ? `Lvl ${g.level}/${GUILD_MAX_LEVEL}` : `${g.memberCount} members`}
-                                    </div>
+                                    <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>{g.memberCount} members</div>
                                 </div>
                                 {tier && (
                                     <div className="shrink-0 flex flex-col items-end gap-1">
@@ -633,7 +617,6 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                         const gXpNeeded = guildXpForNextLevel(g.level);
                         const gXpPct = Math.min(100, (g.xp / gXpNeeded) * 100);
                         const leader = g.members.find(mm => mm.role === 'LEADER');
-                        const levelRank = topGuildsByLevel.findIndex(x => x.id === g.id);
                         const contribRank = topGuildsByContribution.findIndex(x => x.id === g.id);
                         return (
                             <div className="flex-1 flex gap-2 overflow-hidden px-3 pb-3">
@@ -677,7 +660,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                         <div className="flex items-center gap-2">
                                             <i className="ti ti-trophy text-yellow-300" style={{ fontSize: 15 }} />
                                             <div className="min-w-0"><div className="text-white/40 font-bold" style={{ fontSize: 8 }}>Ranking</div><div className="font-black text-white" style={{ fontSize: 11 }}>
-                                                {contribRank >= 0 ? `#${contribRank + 1} Contrib.` : levelRank >= 0 ? `#${levelRank + 1} Level` : 'Unranked'}
+                                                {contribRank >= 0 ? `#${contribRank + 1}` : 'Unranked'}
                                             </div></div>
                                         </div>
                                     </div>
