@@ -3,7 +3,7 @@
 // When Supabase is configured (VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY) this
 // upserts the local device's stats and reads the live top players. When it is not
 // configured, it falls back to a deterministic seeded board so the UI always works.
-import { supabase } from './supabaseClient';
+import { supabase, ensureAuthId } from './supabaseClient';
 import { AI_NAMES } from './arenaService';
 
 // Ranking metrics the board can be sorted by.
@@ -239,6 +239,10 @@ const safeNum = (n: number): number => (isFinite(n) ? n : 0);
 
 export async function submitScore(you: LocalPlayer): Promise<void> {
     if (!supabase) return;
+    // Ensure the anonymous auth session exists first — RLS now requires the
+    // written device_id to equal auth.uid(), and ensureAuthId() mirrors the uid
+    // into cw_device_id so getDeviceId() returns it.
+    await ensureAuthId();
     const deviceId = getDeviceId();
     const core = {
         device_id: deviceId,

@@ -1,6 +1,6 @@
 // Guild data layer — mirrors leaderboardService.ts's pattern: real rows in Supabase
 // when configured, graceful no-op/local fallback when it isn't.
-import { supabase } from './supabaseClient';
+import { supabase, ensureAuthId } from './supabaseClient';
 import { getDeviceId } from './leaderboardService';
 import { Guild, GuildMember, GuildRole, GuildSummary } from '../types';
 
@@ -165,22 +165,39 @@ export async function getMyGuild(deviceId: string = getDeviceId()): Promise<Guil
     }
 }
 
+// All guild MUTATIONS go through SECURITY DEFINER RPCs (see supabase/guilds.sql)
+// that verify the caller's auth.uid() and role server-side — the tables are not
+// directly writable by clients. Each awaits ensureAuthId() so the session exists.
+// A friendlier message is mapped from the RPC's raised-exception text.
+
+const GUILD_ERR: Record<string, string> = {
+    'already in a guild': 'You are already in a guild.',
+    'guild full': 'That guild is full.',
+    'leader must transfer or disband': 'Delegate leadership to another member before leaving, or disband the guild.',
+    'not the leader': 'Only the leader can do that.',
+    'insufficient rank': 'You do not have permission to do that.',
+};
+function guildError(msg: string | undefined, fallback: string): string {
+    if (!msg) return fallback;
+    if (msg.includes('duplicate') || msg.includes('unique') || msg.toLowerCase().includes('guilds_name')) return 'That name is taken.';
+    for (const key of Object.keys(GUILD_ERR)) if (msg.includes(key)) return GUILD_ERR[key];
+    return fallback;
+}
+
 export async function createGuild(
     name: string, description: string, icon: string, color: string, isOpen: boolean,
     you: { deviceId: string; name: string; avatar: string },
 ): Promise<{ guild?: Guild; error?: string }> {
     if (!supabase) return { error: 'Guilds are unavailable right now.' };
+    await ensureAuthId();
     try {
-        const { data: guildRow, error } = await supabase
-            .from(GUILDS_TABLE)
-            .insert({ name: name.trim(), description: description.trim(), icon, color, is_open: isOpen, leader_id: you.deviceId, member_count: 1 })
-            .select('*').single();
-        if (error || !guildRow) return { error: error?.code === '23505' ? 'That name is taken.' : 'Could not create guild.' };
-        const { error: mErr } = await supabase.from(MEMBERS_TABLE).insert({
-            guild_id: guildRow.id, device_id: you.deviceId, name: you.name, avatar: you.avatar, role: 'LEADER',
+        const { data: gid, error } = await supabase.rpc('guild_create', {
+            p_name: name.trim(), p_description: description.trim(), p_icon: icon, p_color: color,
+            p_is_open: isOpen, p_player_name: you.name, p_avatar: you.avatar,
         });
-        if (mErr) return { error: 'Could not join your own guild.' };
-        return { guild: { ...rowToSummary(guildRow), leaderId: you.deviceId, members: [{ deviceId: you.deviceId, name: you.name, avatar: you.avatar, role: 'LEADER', contribution: 0, joinedAt: Date.now() }] } };
+        if (error || !gid) return { error: guildError(error?.message, 'Could not create guild.') };
+        const guild = await getGuildById(gid as string);
+        return guild ? { guild } : { error: 'Could not create guild.' };
     } catch {
         return { error: 'Could not create guild.' };
     }
@@ -188,115 +205,86 @@ export async function createGuild(
 
 export async function joinGuild(guildId: string, you: { deviceId: string; name: string; avatar: string }): Promise<{ error?: string }> {
     if (!supabase) return { error: 'Guilds are unavailable right now.' };
+    await ensureAuthId();
     try {
-        const { data: g } = await supabase.from(GUILDS_TABLE).select('member_count').eq('id', guildId).maybeSingle();
-        if ((g?.member_count ?? 0) >= GUILD_MAX_MEMBERS) return { error: 'That guild is full.' };
-        const { error } = await supabase.from(MEMBERS_TABLE).insert({
-            guild_id: guildId, device_id: you.deviceId, name: you.name, avatar: you.avatar, role: 'MEMBER',
-        });
-        if (error) return { error: 'Could not join guild — it may be full or you already belong to one.' };
-        await supabase.from(GUILDS_TABLE).update({ member_count: (g?.member_count ?? 1) + 1 }).eq('id', guildId);
+        const { error } = await supabase.rpc('guild_join', { p_guild_id: guildId, p_player_name: you.name, p_avatar: you.avatar });
+        if (error) return { error: guildError(error.message, 'Could not join guild — it may be full or you already belong to one.') };
         return {};
     } catch {
         return { error: 'Could not join guild.' };
     }
 }
 
-// The leader can't just walk away and leave the guild leaderless — they must
-// delegate leadership to someone else first, or disband the guild outright.
-// Solo leaders (last member) can always leave, since that's equivalent to disbanding.
-export async function leaveGuild(guildId: string, deviceId: string): Promise<{ error?: string }> {
+// The leader can't just walk away and leave the guild leaderless — the RPC
+// blocks it unless they've transferred leadership or are the last member.
+export async function leaveGuild(guildId: string, _deviceId: string): Promise<{ error?: string }> {
     if (!supabase) return {};
+    await ensureAuthId();
     try {
-        const { data: members } = await supabase.from(MEMBERS_TABLE).select('*').eq('guild_id', guildId);
-        const me = members?.find(m => m.device_id === deviceId);
-        const rest = (members || []).filter(m => m.device_id !== deviceId);
-        if (me?.role === 'LEADER' && rest.length > 0) {
-            return { error: 'Delegate leadership to another member before leaving, or disband the guild.' };
-        }
-        await supabase.from(MEMBERS_TABLE).delete().eq('guild_id', guildId).eq('device_id', deviceId);
-        if (rest.length === 0) {
-            await supabase.from(GUILDS_TABLE).delete().eq('id', guildId);
-            return {};
-        }
-        await supabase.from(GUILDS_TABLE).update({ member_count: rest.length }).eq('id', guildId);
+        const { error } = await supabase.rpc('guild_leave', { p_guild_id: guildId });
+        if (error) return { error: guildError(error.message, 'Could not leave guild.') };
         return {};
     } catch {
         return { error: 'Could not leave guild.' };
     }
 }
 
-// Leader-only: hand leadership to another member, demoting the outgoing leader
-// to Officer so there's never more than one LEADER row.
-export async function transferLeadership(guildId: string, fromDeviceId: string, toDeviceId: string): Promise<void> {
+// Leader-only (enforced server-side): hand leadership to another member,
+// demoting the outgoing leader to Officer.
+export async function transferLeadership(guildId: string, _fromDeviceId: string, toDeviceId: string): Promise<void> {
     if (!supabase) return;
-    try {
-        await supabase.from(MEMBERS_TABLE).update({ role: 'OFFICER' }).eq('guild_id', guildId).eq('device_id', fromDeviceId);
-        await supabase.from(MEMBERS_TABLE).update({ role: 'LEADER' }).eq('guild_id', guildId).eq('device_id', toDeviceId);
-        await supabase.from(GUILDS_TABLE).update({ leader_id: toDeviceId }).eq('id', guildId);
-    } catch { /* best-effort */ }
+    await ensureAuthId();
+    try { await supabase.rpc('guild_transfer_leadership', { p_guild_id: guildId, p_to: toDeviceId }); } catch { /* best-effort */ }
 }
 
 export async function kickMember(guildId: string, targetDeviceId: string): Promise<void> {
     if (!supabase) return;
-    try {
-        await supabase.from(MEMBERS_TABLE).delete().eq('guild_id', guildId).eq('device_id', targetDeviceId);
-        const { data: members } = await supabase.from(MEMBERS_TABLE).select('device_id').eq('guild_id', guildId);
-        await supabase.from(GUILDS_TABLE).update({ member_count: members?.length ?? 0 }).eq('id', guildId);
-    } catch { /* best-effort */ }
+    await ensureAuthId();
+    try { await supabase.rpc('guild_kick', { p_guild_id: guildId, p_target: targetDeviceId }); } catch { /* best-effort */ }
 }
 
-// Promote/demote between Officer and Member only — leadership changes go
-// through transferLeadership so there's never more than one LEADER row.
+// Promote/demote between Officer and Member only (leader-only, server-enforced).
 export async function setMemberRole(guildId: string, targetDeviceId: string, role: 'OFFICER' | 'MEMBER'): Promise<void> {
     if (!supabase) return;
-    try {
-        await supabase.from(MEMBERS_TABLE).update({ role }).eq('guild_id', guildId).eq('device_id', targetDeviceId);
-    } catch { /* best-effort */ }
+    await ensureAuthId();
+    try { await supabase.rpc('guild_set_role', { p_guild_id: guildId, p_target: targetDeviceId, p_role: role }); } catch { /* best-effort */ }
 }
 
 export async function disbandGuild(guildId: string): Promise<void> {
     if (!supabase) return;
-    try { await supabase.from(GUILDS_TABLE).delete().eq('id', guildId); } catch { /* best-effort */ }
+    await ensureAuthId();
+    try { await supabase.rpc('guild_disband', { p_guild_id: guildId }); } catch { /* best-effort */ }
 }
 
 // The description doubles as an announcement banner — Leader/Officers can edit it.
 export async function updateGuildDescription(guildId: string, description: string): Promise<void> {
     if (!supabase) return;
-    try { await supabase.from(GUILDS_TABLE).update({ description: description.slice(0, 200) }).eq('id', guildId); } catch { /* best-effort */ }
+    await ensureAuthId();
+    try { await supabase.rpc('guild_update_description', { p_guild_id: guildId, p_description: description.slice(0, 200) }); } catch { /* best-effort */ }
 }
 
-// Adds XP to the guild's LEVEL (capped at GUILD_MAX_LEVEL) — from task
-// GUILD_XP rewards only. Returns the guild's new level so the caller can show
-// a level-up celebration, or null if it didn't level up.
+// Adds XP to the guild's LEVEL (capped at GUILD_MAX_LEVEL server-side). Returns
+// the guild's new level if it leveled up, else null.
 export async function contributeGuildXp(guildId: string, amount: number): Promise<number | null> {
     if (!supabase || amount <= 0) return null;
+    await ensureAuthId();
     try {
-        const { data: guildRow } = await supabase.from(GUILDS_TABLE).select('xp, level').eq('id', guildId).maybeSingle();
-        if (!guildRow) return null;
-        let xp = (Number(guildRow.xp) || 0) + amount;
-        let level = guildRow.level ?? 1;
-        while (level < GUILD_MAX_LEVEL && xp >= guildXpForNextLevel(level)) { xp -= guildXpForNextLevel(level); level++; }
-        if (level >= GUILD_MAX_LEVEL) { level = GUILD_MAX_LEVEL; xp = 0; }
-        await supabase.from(GUILDS_TABLE).update({ xp, level }).eq('id', guildId);
-        return level > (guildRow.level ?? 1) ? level : null;
+        const { data, error } = await supabase.rpc('guild_contribute_xp', { p_guild_id: guildId, p_amount: amount });
+        if (error) { console.warn('[guild] contribute_xp failed — run supabase/guilds.sql?', error.message); return null; }
+        return (typeof data === 'number') ? data : null;
     } catch {
         return null;
     }
 }
 
 // Adds to the guild's CONTRIBUTION POINTS pool (separate from level XP) and this
-// member's own contribution total — from donations and CONTRIBUTION-kind tasks.
-// This is the number monthly top-guild rank rewards are based on.
-export async function contributeGuildPoints(guildId: string, deviceId: string, amount: number): Promise<void> {
+// member's own contribution total. This is what monthly rank rewards use.
+export async function contributeGuildPoints(guildId: string, _deviceId: string, amount: number): Promise<void> {
     if (!supabase || amount <= 0) return;
+    await ensureAuthId();
     try {
-        const { data: guildRow, error: gReadErr } = await supabase.from(GUILDS_TABLE).select('contribution_points').eq('id', guildId).maybeSingle();
-        if (gReadErr) console.warn('[guild] contribution_points read failed — run supabase/guilds.sql?', gReadErr.message);
-        const { error: gWriteErr } = await supabase.from(GUILDS_TABLE).update({ contribution_points: (Number(guildRow?.contribution_points) || 0) + amount }).eq('id', guildId);
-        if (gWriteErr) console.warn('[guild] contribution_points write failed — run supabase/guilds.sql?', gWriteErr.message);
-        const { data: memberRow } = await supabase.from(MEMBERS_TABLE).select('contribution').eq('guild_id', guildId).eq('device_id', deviceId).maybeSingle();
-        await supabase.from(MEMBERS_TABLE).update({ contribution: (Number(memberRow?.contribution) || 0) + amount }).eq('guild_id', guildId).eq('device_id', deviceId);
+        const { error } = await supabase.rpc('guild_contribute_points', { p_guild_id: guildId, p_amount: amount });
+        if (error) console.warn('[guild] contribute_points failed — run supabase/guilds.sql?', error.message);
     } catch (e) {
         console.warn('[guild] contributeGuildPoints exception:', e);
     }

@@ -36,7 +36,7 @@ create policy "service role full access"
 -- and returns exactly the rows this call claimed. SECURITY DEFINER so it runs
 -- with the owner's rights and bypasses the locked-down table RLS; the client
 -- passes only its own device id.
-create or replace function claim_payment_credits(p_device_id text)
+create or replace function claim_payment_credits()
 returns table (type text, amount bigint)
 language sql
 security definer
@@ -44,10 +44,10 @@ set search_path = public
 as $$
     update payment_credits
        set claimed = true
-     where device_id = p_device_id
+     where device_id = auth.uid()::text
        and claimed = false
     returning type, amount;
 $$;
 
-revoke all on function claim_payment_credits(text) from public;
-grant execute on function claim_payment_credits(text) to anon, authenticated;
+revoke all on function claim_payment_credits() from public;
+grant execute on function claim_payment_credits() to anon, authenticated;

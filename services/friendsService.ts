@@ -6,7 +6,7 @@
 // polls for it, accepts, and both sides end up with each other as a friend.
 // Sending a gift to a real friend writes a row the recipient claims from their
 // Inbox — there is no "collect" action inside the Friends list itself.
-import { supabase } from './supabaseClient';
+import { supabase, ensureAuthId } from './supabaseClient';
 import { fetchTopPlayers, getDeviceId, LeaderboardEntry, LocalPlayer } from './leaderboardService';
 import { Friend } from '../types';
 
@@ -58,6 +58,7 @@ export interface IncomingRequest {
 
 export async function sendFriendRequest(you: LocalPlayer, toDeviceId: string): Promise<boolean> {
     if (!supabase) return false;
+    await ensureAuthId(); // RLS requires from_device = auth.uid()
     try {
         const { error } = await supabase.from('friend_requests').insert({
             from_device: getDeviceId(),
@@ -141,6 +142,7 @@ export async function ackSenderRequest(requestId: number): Promise<void> {
 
 export async function sendGiftToFriend(you: LocalPlayer, toDeviceId: string): Promise<boolean> {
     if (!supabase) return false;
+    await ensureAuthId(); // RLS requires from_device = auth.uid()
     try {
         const { error } = await supabase.from('friend_gifts').insert({
             from_device: getDeviceId(), to_device: toDeviceId, from_name: you.name || 'Player',

@@ -8,7 +8,7 @@ import { LeftSidebar } from './components/LeftSidebar';
 import { ShopModal } from './components/ShopModal';
 import { PaymentModal, PaymentItem } from './components/PaymentModal';
 import { detectCurrency, CurrencyInfo, PRODUCT_USD_CENTS, toStripeAmount, formatLocalPrice, getDeviceId } from './services/paymentService';
-import { supabase } from './services/supabaseClient';
+import { supabase, ensureAuthId } from './services/supabaseClient';
 import { MiniGameModal } from './components/MiniGameModal';
 import { Lobby } from './components/Lobby';
 import { FreeSpinsWonPopup } from './components/FreeSpinsWonPopup';
@@ -466,6 +466,11 @@ const App: React.FC = () => {
       jackpotService.setMaxBet(MAX_BET_BY_LEVEL(player.level));
   }, [player.level]);
 
+  // Establish the anonymous Supabase auth session as early as possible so the
+  // device's uid (== its server identity) is ready before any leaderboard/guild/
+  // friends/credit write fires. Individual write paths also await it defensively.
+  useEffect(() => { ensureAuthId(); }, []);
+
   // Detect currency from IP and build local price table
   useEffect(() => {
       detectCurrency().then(c => {
@@ -486,8 +491,10 @@ const App: React.FC = () => {
   // it claimed, so overlapping calls can't double-credit.
   const claimPendingCredits = useCallback(async () => {
       if (typeof window === 'undefined' || !supabase) return;
-      const deviceId = getDeviceId();
-      const { data, error } = await supabase.rpc('claim_payment_credits', { p_device_id: deviceId });
+      await ensureAuthId();
+      // Claims strictly the caller's own credits — the RPC keys off auth.uid(),
+      // not a client-passed id.
+      const { data, error } = await supabase.rpc('claim_payment_credits');
       if (error || !data || data.length === 0) return;
       const rows = data as { type: string; amount: number }[];
       const totalCoins = rows.filter(r => r.type === 'COIN').reduce((s, r) => s + Number(r.amount), 0);

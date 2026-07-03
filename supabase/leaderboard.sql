@@ -42,9 +42,11 @@ create index if not exists leaderboard_total_won_idx   on public.leaderboard (to
 create index if not exists leaderboard_max_jackpot_idx on public.leaderboard (max_jackpot desc);
 create index if not exists leaderboard_max_win_idx     on public.leaderboard (max_win desc);
 
--- Row Level Security: this is an anonymous game board (no user accounts), so the
--- anon key may read every row and upsert its own device row. Note this is
--- inherently spoofable by a determined client — fine for a casual leaderboard.
+-- Row Level Security. The board is publicly READABLE, but a device can only
+-- write ITS OWN row: the row's device_id must equal the caller's anonymous
+-- auth uid. This stops the old exploit where anyone could upsert with a
+-- victim's device_id and overwrite their name/score. Identity comes from the
+-- app's anonymous Supabase auth session (see supabaseClient.ensureAuthId).
 alter table public.leaderboard enable row level security;
 
 drop policy if exists "leaderboard read"   on public.leaderboard;
@@ -52,8 +54,11 @@ drop policy if exists "leaderboard insert" on public.leaderboard;
 drop policy if exists "leaderboard update" on public.leaderboard;
 
 create policy "leaderboard read"   on public.leaderboard for select using (true);
-create policy "leaderboard insert" on public.leaderboard for insert with check (true);
-create policy "leaderboard update" on public.leaderboard for update using (true) with check (true);
+create policy "leaderboard insert" on public.leaderboard for insert
+    with check (auth.uid() is not null and device_id = auth.uid()::text);
+create policy "leaderboard update" on public.leaderboard for update
+    using (device_id = auth.uid()::text)
+    with check (device_id = auth.uid()::text);
 
 -- Sanity bounds on the numeric columns. These do NOT make the board tamper-proof
 -- (that needs server-authoritative score submission — see the auth note), but
