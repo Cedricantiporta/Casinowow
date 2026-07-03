@@ -8,64 +8,67 @@ const SLOT_VARS = [1.00, 0.88, 1.14, 1.08, 0.93, 1.19, 0.96, 1.07, 1.12, 0.87, 1
 
 export { SLOT_VARS };
 
+// Average per-120ms-tick increment for tier i, matching the old randomized
+// tick's mean (uniform 0..(30+i*21) plus a flat +9) — used to derive a smooth,
+// deterministic "growth since epoch" curve instead of an actual repeating timer.
+const avgIncrement = (i: number) => (30 + i * 21) / 2 + 9;
+
 class JackpotService {
     private baseMaxBet: number = 10000;
-    private growth: number[] = [0, 0, 0, 0, 0];
+    private epoch: number = Date.now();
     private listeners: Set<() => void> = new Set();
-    private tickerHandle: ReturnType<typeof setInterval> | null = null;
+    private notifyHandle: ReturnType<typeof setInterval> | null = null;
     private saveHandle: ReturnType<typeof setInterval> | null = null;
 
     constructor() {
-        this.loadGrowth();
-        this.startTicker();
+        this.loadState();
     }
 
-    private loadGrowth() {
+    private loadState() {
         try {
             const raw = localStorage.getItem(KEY);
             if (raw) {
-                const { g, t, b } = JSON.parse(raw);
-                if (Array.isArray(g) && g.length === 5) {
-                    const elapsed = Date.now() - Number(t);
-                    const ticks = Math.min(Math.floor(elapsed / 120), 240_000);
-                    this.baseMaxBet = b || 10000;
-                    this.growth = g.map((v: number, i: number) =>
-                        Math.floor(v + ticks * (24 + i * 18))
-                    );
+                const parsed = JSON.parse(raw);
+                if (Number.isFinite(parsed.e)) {
+                    this.epoch = parsed.e;
+                    this.baseMaxBet = parsed.b || 10000;
+                    return;
+                }
+                // Legacy shape ({g,t,b}) from before this was time-based — treat
+                // the old timestamp as the new epoch, growth continues from "now".
+                if (Number.isFinite(parsed.t)) {
+                    this.epoch = parsed.t;
+                    this.baseMaxBet = parsed.b || 10000;
                     return;
                 }
             }
         } catch { /* ignore */ }
-        this.growth = [0, 0, 0, 0, 0];
+        this.epoch = Date.now();
     }
 
-    private saveGrowth() {
+    private saveState() {
         try {
-            localStorage.setItem(KEY, JSON.stringify({ g: this.growth, t: Date.now(), b: this.baseMaxBet }));
+            localStorage.setItem(KEY, JSON.stringify({ e: this.epoch, b: this.baseMaxBet }));
         } catch { /* ignore */ }
     }
 
-    private startTicker() {
-        if (this.tickerHandle) return;
-        // Tick at 120ms (half the listener notifications) with ~0.6x increment → ~30% growth rate.
-        this.tickerHandle = setInterval(() => {
-            this.growth = this.growth.map((v, i) =>
-                v + Math.floor(Math.random() * (30 + i * 21) + 9)
-            );
-            this.listeners.forEach(fn => fn());
-        }, 120);
-        this.saveHandle = setInterval(() => this.saveGrowth(), 8000);
+    private growth(): number[] {
+        const elapsed = Math.max(0, Date.now() - this.epoch);
+        const ticks = elapsed / 120;
+        return TIER_MULTIPLIERS.map((_, i) => Math.floor(ticks * avgIncrement(i)));
     }
 
     setMaxBet(maxBet: number) {
         if (maxBet === this.baseMaxBet) return;
         this.baseMaxBet = maxBet;
-        this.growth = [0, 0, 0, 0, 0];
+        this.epoch = Date.now();
+        this.saveState();
         this.listeners.forEach(fn => fn());
     }
 
     getAmounts(): number[] {
-        return TIER_MULTIPLIERS.map((m, i) => Math.floor(m * this.baseMaxBet + this.growth[i]));
+        const growth = this.growth();
+        return TIER_MULTIPLIERS.map((m, i) => Math.floor(m * this.baseMaxBet + growth[i]));
     }
 
     getSlotAmounts(slotIdx: number): number[] {
@@ -73,16 +76,35 @@ class JackpotService {
         return this.getAmounts().map(a => Math.floor(a * v));
     }
 
-    // Lobby counter shows Grand jackpot (100x maxBet × slotVar)
+    // Lobby counter shows Grand jackpot (1000x maxBet × slotVar)
     getSlotTotal(slotIdx: number): number {
         const v = SLOT_VARS[slotIdx % SLOT_VARS.length];
-        const grand = Math.floor(TIER_MULTIPLIERS[4] * this.baseMaxBet + this.growth[4]);
+        const grand = Math.floor(TIER_MULTIPLIERS[4] * this.baseMaxBet + this.growth()[4]);
         return Math.floor(grand * v);
     }
 
+    // Notifies subscribers periodically so a VISIBLE jackpot display can animate
+    // its climb — but the interval only exists while at least one subscriber is
+    // mounted (i.e. only while the lobby list or a jackpot ticker is actually on
+    // screen), not for the app's entire lifetime. This used to be a permanent
+    // setInterval(…, 120) created once in the constructor and running forever —
+    // 8 ticks/sec, notifying listeners, for the whole session regardless of
+    // whether anything was even visible to show it. The interval is now created
+    // lazily on first subscribe and torn down when the last one unsubscribes.
     subscribe(fn: () => void): () => void {
         this.listeners.add(fn);
-        return () => { this.listeners.delete(fn); };
+        if (!this.notifyHandle) {
+            this.notifyHandle = setInterval(() => this.listeners.forEach(l => l()), 1000);
+            this.saveHandle = setInterval(() => this.saveState(), 8000);
+        }
+        return () => {
+            this.listeners.delete(fn);
+            if (this.listeners.size === 0) {
+                if (this.notifyHandle) { clearInterval(this.notifyHandle); this.notifyHandle = null; }
+                if (this.saveHandle) { clearInterval(this.saveHandle); this.saveHandle = null; }
+                this.saveState();
+            }
+        };
     }
 }
 

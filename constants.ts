@@ -1323,6 +1323,10 @@ const ALBUM_DEFS: AlbumDef[] = [
     ]},
 ];
 
+// Exposed standalone so App.tsx can preload cover art at app boot without
+// building the full deck objects just to read the cover paths.
+export const ALBUM_COVER_ASSETS: string[] = ALBUM_DEFS.map(a => a.cover);
+
 export const GENERATE_DECKS = (): Deck[] => ALBUM_DEFS.map((album, albumIdx) => ({
     gameId: album.id,
     gameName: album.name,

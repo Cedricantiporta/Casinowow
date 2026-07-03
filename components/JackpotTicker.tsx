@@ -22,7 +22,7 @@ interface JackpotTickerProps {
     theme?: string;
 }
 
-export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet }) => {
+export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet, isSpinning }) => {
     const [growth, setGrowth] = useState<number[]>([0, 0, 0, 0, 0]);
 
     useEffect(() => {
@@ -30,16 +30,19 @@ export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet }) => {
     }, [currentBet]);
 
     useEffect(() => {
-        // 1s tick (was 120ms) — 8 re-renders/sec for a cosmetic counter was a
-        // measurable constant CPU drain during play. Growth per tick is scaled
-        // up to keep the same visual climb rate.
+        // Only tick while a spin is actually in flight — the ticker was running
+        // a 1s interval nonstop for as long as the slot view was open (idle at
+        // the lobby, idle looking at the reels), which is most of a session.
+        // The visual "still climbing" idle feel isn't worth a permanent timer;
+        // it now only animates during the few seconds a spin/cascade is live.
+        if (!isSpinning) return;
         const id = setInterval(() => {
             setGrowth(prev => prev.map((v) =>
                 v + Math.floor((Math.random() * currentBet * 0.0012 + currentBet * 0.0006) * 8)
             ));
         }, 1000);
         return () => clearInterval(id);
-    }, [currentBet]);
+    }, [currentBet, isSpinning]);
 
     const amounts = JP_MULTIPLIERS.map((m, i) => Math.floor(currentBet * m + growth[i]));
 
