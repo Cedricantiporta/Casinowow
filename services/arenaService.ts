@@ -78,14 +78,17 @@ export function winBonusPoints(winType: string | null, betIndex: number): number
 }
 
 // ── Rewards ──  position (1-based) → coins = factor × maxBet × rank multiplier.
-// Each rank tier above the lowest increases all rewards by 50% (compounding).
-const REWARD_FACTORS: Record<number, number> = { 1: 100, 2: 60, 3: 30, 4: 10, 5: 10 };
-export const rankRewardMultiplier = (tierIndex: number): number => Math.pow(1.5, Math.max(0, tierIndex));
+// Each rank tier above the lowest increases all rewards by 25% (compounding).
+// Seasons cycle every ~13 minutes, so these are deliberately modest per-season —
+// the old 100×/1.5^tier factors let a top player out-earn every other system
+// in the game combined.
+const REWARD_FACTORS: Record<number, number> = { 1: 25, 2: 15, 3: 8, 4: 4, 5: 4 };
+export const rankRewardMultiplier = (tierIndex: number): number => Math.pow(1.25, Math.max(0, tierIndex));
 
 export function arenaReward(position: number, maxBet: number, tierIndex: number = 0): number {
     let factor = 0;
     if (position in REWARD_FACTORS) factor = REWARD_FACTORS[position];
-    else if (position >= 6 && position <= 10) factor = 5;
+    else if (position >= 6 && position <= 10) factor = 2;
     return Math.round(factor * maxBet * rankRewardMultiplier(tierIndex));
 }
 

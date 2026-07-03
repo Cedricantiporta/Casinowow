@@ -122,17 +122,17 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const mouseIsDownRef = useRef(false);
 
     // Stage prizes locked at stage-start; not recalculated when maxBet changes mid-stage
-    const [lockedWildPrize, setLockedWildPrize] = useState(() => Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage)));
-    const [lockedDicePrize, setLockedDicePrize] = useState(() => Math.floor((maxBet || 10000) * (1.8 + 0.06 * diceStage)));
-    useEffect(() => { setLockedWildPrize(Math.floor((maxBet || 10000) * (1.8 + 0.06 * wildStage))); }, [wildStage]); // eslint-disable-line react-hooks/exhaustive-deps
-    useEffect(() => { setLockedDicePrize(Math.floor((maxBet || 10000) * (1.8 + 0.06 * diceStage))); }, [diceStage]); // eslint-disable-line react-hooks/exhaustive-deps
+    const [lockedWildPrize, setLockedWildPrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * wildStage)));
+    const [lockedDicePrize, setLockedDicePrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * diceStage)));
+    useEffect(() => { setLockedWildPrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * wildStage))); }, [wildStage]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => { setLockedDicePrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * diceStage))); }, [diceStage]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const boardLength = Math.round((10 + ((diceStage - 1) * 5)) * 1.4);
     const boardContainerRef = useRef<HTMLDivElement>(null);
 
     const initGrid = useCallback(() => {
         const cells: WildGridCell[] = Array(totalCells).fill(null).map(() => ({ revealed: false, content: 'BLANK' as const }));
-        const baseCoin = Math.floor((maxBet || 10000) * 0.125 * Math.pow(1.10, wildStage - 1));
+        const baseCoin = Math.floor((maxBet || 10000) * 0.06 * Math.pow(1.10, wildStage - 1));
         for (let i = 0; i < totalCells; i++) {
             const r = Math.random();
             if (r < 0.50) {
@@ -214,7 +214,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
 
     const initBoard = useCallback(() => {
         const newBoard: BoardStep[] = [];
-        const baseCoin = Math.floor((maxBet || 10000) * 0.1 * Math.pow(1.10, diceStage - 1));
+        const baseCoin = Math.floor((maxBet || 10000) * 0.05 * Math.pow(1.10, diceStage - 1));
         const preGoalIndex = boardLength - 1;
         for (let i = 0; i <= boardLength; i++) {
             let reward: MiniGameReward | undefined;

@@ -30,11 +30,14 @@ export const JackpotTicker: React.FC<JackpotTickerProps> = ({ currentBet }) => {
     }, [currentBet]);
 
     useEffect(() => {
+        // 1s tick (was 120ms) — 8 re-renders/sec for a cosmetic counter was a
+        // measurable constant CPU drain during play. Growth per tick is scaled
+        // up to keep the same visual climb rate.
         const id = setInterval(() => {
             setGrowth(prev => prev.map((v) =>
-                v + Math.floor(Math.random() * currentBet * 0.0012 + currentBet * 0.0006)
+                v + Math.floor((Math.random() * currentBet * 0.0012 + currentBet * 0.0006) * 8)
             ));
-        }, 120);
+        }, 1000);
         return () => clearInterval(id);
     }, [currentBet]);
 

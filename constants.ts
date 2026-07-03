@@ -1044,8 +1044,8 @@ export const GENERATE_DAILY_MISSIONS = (playerLevel: number, maxBet?: number): M
         // XP decreases by 30% each successive mission; golden 4th gets 5× on top
         const baseXp = Math.floor(60 * Math.pow(0.7, i));
         const xpReward = isGolden ? baseXp * 5 : baseXp;
-        // Coin reward: 1 max bet per 20 pass XP earned
-        const coinReward = Math.floor((xpReward / 20) * mb);
+        // Coin reward: 1 max bet per 12 pass XP earned
+        const coinReward = Math.floor((xpReward / 12) * mb);
         const finalTarget = isGolden ? Math.floor(target * 4) : Math.floor(target);
 
         missions.push({
@@ -1217,7 +1217,7 @@ export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
         if (i % 10 === 0) {
             typeFree = 'DIAMONDS'; valueFree = 100; labelFree = '100 💎';
         } else if (i % 2 === 1) {
-            const v = Math.round(maxBet * i * 0.4);
+            const v = Math.round(maxBet * i * 0.6);
             typeFree = 'COINS'; valueFree = v; labelFree = formatNumber(v);
         } else {
             const spec = freeSpecials[1 + ((i / 2 - 1) % (freeSpecials.length - 1))];

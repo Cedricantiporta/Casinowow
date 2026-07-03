@@ -528,14 +528,6 @@ const App: React.FC = () => {
       });
   }, []);
 
-  // Toggle XP mult display between multiplier and countdown every 15s when boost active
-  useEffect(() => {
-      const boostActive = (player.xpMultiplier || 1) > 1 && (player.xpBoostEndTime || 0) > Date.now();
-      if (!boostActive) { setShowXpTimer(false); return; }
-      const interval = setInterval(() => setShowXpTimer(prev => !prev), 15000);
-      return () => clearInterval(interval);
-  }, [player.xpMultiplier, player.xpBoostEndTime]);
-
   // Instantly dismiss level toast when leaving game view
   useEffect(() => {
       if (currentView !== 'GAME') setShowLevelUp(false);
@@ -683,16 +675,6 @@ const App: React.FC = () => {
   const pendingHoldWinSummaryRef = useRef<{ total: number; bet: number } | null>(null);
   const [gemsClaimedPopup, setGemsClaimedPopup] = useState<number | null>(null);
   const [piggyGlow, setPiggyGlow] = useState(false);
-  const [piggyShaking, setPiggyShaking] = useState(false);
-  // Topbar piggy bank icon does an attention-grab shake every 10 seconds.
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setPiggyShaking(true);
-      setTimeout(() => setPiggyShaking(false), 800);
-    }, 10000);
-    return () => clearInterval(iv);
-  }, []);
-  const [showXpTimer, setShowXpTimer] = useState(false);
   const [showXpPct, setShowXpPct] = useState(false);
   const [showXpPopup, setShowXpPopup] = useState(false);
   const [showCollectPopup, setShowCollectPopup] = useState(false);
@@ -1554,13 +1536,6 @@ const App: React.FC = () => {
   useEffect(() => {
       try { localStorage.setItem('cw_bonus_timers', JSON.stringify(bonusTimers)); } catch {}
   }, [bonusTimers]);
-  // Keep displayed timer rewards in sync with player level so display = claimed amount
-  useEffect(() => {
-      const mults = [5.0, 25.0, 100.0];
-      const base = CALCULATE_TIME_BONUS(player.level);
-      setBonusTimers(prev => prev.map(t => ({ ...t, reward: Math.floor(base * mults[t.id]) })));
-  }, [player.level]);
-
   // Generate daily inbox messages on mount
   useEffect(() => {
       const todayStr = new Date().toDateString();
@@ -1915,9 +1890,11 @@ const App: React.FC = () => {
       // Award exactly what was displayed: base × treasury multiplier
       const awardedReward = Math.floor(_reward * treasuryMultiplier);
 
-      // Refresh for the next countdown cycle using fresh level calculation
-      const mults = [5.0, 25.0, 100.0];
-      const freshBase = Math.floor(CALCULATE_TIME_BONUS(player.level) * mults[id]);
+      // Refresh for the next countdown cycle — same max-bet-scaled formula the
+      // level-change effect uses (Quick 50×, Super 250×, Mega 1000× max bet),
+      // so the next displayed reward matches what a claim actually pays.
+      const mults = [50, 250, 1000];
+      const freshBase = Math.floor(MAX_BET_BY_LEVEL(player.level) * mults[id]);
 
       setBonusTimers(prev => prev.map(t => {
           if (t.id === id) {
@@ -2734,14 +2711,6 @@ const App: React.FC = () => {
       });
   }, []);
 
-  useEffect(() => {
-      const interval = setInterval(() => {
-          setPiggyShaking(true);
-          setTimeout(() => setPiggyShaking(false), 800);
-      }, 40000);
-      return () => clearInterval(interval);
-  }, []);
-
   const getHoldWinCoinValue = (bet: number): number => {
       const roll = Math.random();
       if (roll < 0.40) return bet * 1;
@@ -2773,10 +2742,16 @@ const App: React.FC = () => {
           const winRows = new Set(winCells.filter(wc => wc.col === c).map(wc => wc.row));
           const remaining = col.filter((_, r) => !winRows.has(r));
           const newCount = col.length - remaining.length;
+          // Wilds not on the winning line survive every cascade, so unconditionally
+          // re-seeding wilds each refill lets the middle reels saturate with wilds —
+          // the same wild-substituted line then re-pays every step until the cascade
+          // cap. Only inject a refill wild into a column with no surviving wild.
+          let columnHasWild = remaining.includes(SymbolType.WILD);
           const newSyms = Array(newCount).fill(null).map(() => {
               // Arctic: wild chance on falling cells (boosted in free spins)
               const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.20 : 0.12;
-              if (featureThemeOf(selectedGame.theme) === 'ARCTIC' && c >= 1 && c <= 3 && Math.random() < arcticCascadeWildChance) {
+              if (featureThemeOf(selectedGame.theme) === 'ARCTIC' && c >= 1 && c <= 3 && !columnHasWild && Math.random() < arcticCascadeWildChance) {
+                  columnHasWild = true;
                   return SymbolType.WILD;
               }
               let sym: SymbolType;
@@ -3151,7 +3126,7 @@ const App: React.FC = () => {
       }
       // These themes never use full-column same-symbol matches (3-column "mega match").
       // Only GOLDEN_POT (untouched generic slot) keeps it among the lower-tier games.
-      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG','ANGRYFLOCK','BEAST','OLYMPUS','BUFFALO'].includes(selectedGame.theme)) megaMatchActive = false;
+      if (['NEON','PIGGY','LEPRECHAUN','EGYPT','ARCTIC','PIRATE','SPACE','CANDY','UNDERWATER','WESTERN','SAMURAI','JUNGLE','PETS','MMORPG','ANGRYFLOCK','BEAST','OLYMPUS','BUFFALO','DRAGON'].includes(selectedGame.theme)) megaMatchActive = false;
 
       for(let c=0; c<cols; c++) {
            let eventTriggered = false;
@@ -3194,7 +3169,7 @@ const App: React.FC = () => {
 
                // DRAGON: scatter individual single-cell wilds across all columns
                if (selectedGame.theme === 'DRAGON' && !eventTriggered) {
-                   const dragonWildChance = isFreeSpin ? 0.06 : 0.04;
+                   const dragonWildChance = isFreeSpin ? 0.04 : 0.02;
                    for (let r = 0; r < rows; r++) {
                        if (newGrid[c][r] !== SymbolType.WILD && Math.random() < dragonWildChance) {
                            newGrid[c][r] = SymbolType.WILD;
@@ -3875,7 +3850,7 @@ const App: React.FC = () => {
       }
       if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
       if (isFinish) {
-          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (1.8 + 0.06 * quest.diceStage));
+          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (1.0 + 0.04 * quest.diceStage));
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
           const currentStage = quest.diceStage;
           setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
@@ -3927,10 +3902,10 @@ const App: React.FC = () => {
     if (myGuild) guildSpinPointsBufferRef.current += betIndex + 1;
 
     if (!isFreeSpin && !isHoldWinRespin && !isPirateWalk) {
-      // Piggy Bank Logic: 5% of Bet (10% if VIP), Capped. Only saves if Level >= 5.
+      // Piggy Bank Logic: 8% of Bet (15% if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
-          const savings = currentBet * (player.isVip ? 0.10 : 0.05);
-          const cap = Math.floor(MAX_BET_BY_LEVEL(player.level) * 5 * (1 + EVENT_PIGGY_BOOST));
+          const savings = currentBet * (player.isVip ? 0.15 : 0.08);
+          const cap = Math.floor(MAX_BET_BY_LEVEL(player.level) * 8 * (1 + EVENT_PIGGY_BOOST));
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
@@ -6246,8 +6221,8 @@ const App: React.FC = () => {
                     <div className="relative shrink-0" style={{ width: 34, height: 34 }} onClick={handleOpenPiggyBank}>
                         <img src="/ui/piggy.png" alt=""
                             style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer' }}
-                            className={`active:scale-90 transition-transform ${piggyShaking ? 'animate-piggy-shake' : ''}`} />
-                        {player.level >= 10 && player.piggyBank >= Math.floor(MAX_BET_BY_LEVEL(player.level) * 5 * (1 + EVENT_PIGGY_BOOST)) && (
+                            className="active:scale-90 transition-transform animate-piggy-shake-loop" />
+                        {player.level >= 10 && player.piggyBank >= Math.floor(MAX_BET_BY_LEVEL(player.level) * 8 * (1 + EVENT_PIGGY_BOOST)) && (
                             <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
                                 style={{ bottom: 2, background: '#e01c1c', borderRadius: 6, padding: '1px 5px', fontSize: 7, fontWeight: 900, color: '#fff', letterSpacing: '0.06em', lineHeight: 1.4, whiteSpace: 'nowrap' }}>
                                 FULL
@@ -7687,7 +7662,7 @@ const App: React.FC = () => {
                   </div>
                   <div className="flex flex-col gap-1.5 w-full text-left">
                       {(showPurchaseModal === 'VIP'
-                          ? ['10% Piggy Bank savings', '2× XP from spins', 'High-Limit Room access', 'VIP gold UI theme', '5% daily cashback (Inbox)', '+Weekly gems']
+                          ? ['15% Piggy Bank savings', '2× XP from spins', 'High-Limit Room access', 'VIP gold UI theme', '5% daily cashback (Inbox)', '+Weekly gems']
                           : ['Premium reward track', 'Exclusive gem rewards', 'XP mission booster', 'Monthly bonus coins', 'Prestige profile badge', 'Unlimited daily bonus']
                       ).map((b, i) => (
                           <div key={i} className="flex items-center gap-2">
@@ -8128,7 +8103,7 @@ const App: React.FC = () => {
                   <div className="px-4 pb-3 flex flex-col gap-1.5">
                       {(purchaseConfirm === 'VIP' ? [
                           { icon: '🏷️', text: '20% Off Store' },
-                          { icon: '🐷', text: '+10% Piggy Bank savings' },
+                          { icon: '🐷', text: '+15% Piggy Bank savings' },
                           { icon: '🎰', text: 'High Limit Room access' },
                           { icon: '💰', text: '5% Daily Cashback via Inbox' },
                           { icon: '💎', text: '+Weekly Gems' },

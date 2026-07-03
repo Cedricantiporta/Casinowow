@@ -29,7 +29,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
     if (!isOpen) return null;
 
-    const cap = Math.floor(maxBet * 5 * (1 + eventPiggyBoost));
+    const cap = Math.floor(maxBet * 8 * (1 + eventPiggyBoost));
 
     const GEM_BREAK_COST = 50;
 
@@ -106,7 +106,7 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 </button>
 
                 <p className="text-white/30 text-[9px] text-center max-w-xs">
-                    Gains 5% of each bet (10% with VIP) · Max {formatK(Math.floor(cap))} coins
+                    Gains 8% of each bet (15% with VIP) · Max {formatK(Math.floor(cap))} coins
                 </p>
                 {eventPiggyBoost > 0 && (
                     <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
