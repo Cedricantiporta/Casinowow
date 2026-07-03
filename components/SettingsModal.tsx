@@ -335,6 +335,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         </div>
                     </div>
 
+                    {/* Support */}
+                    <div>
+                        <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Support</div>
+                        <div className="p-3 flex flex-col gap-1.5 rounded-2xl" style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
+                            {[
+                                { icon: 'ti-headset', label: 'Contact Support', href: 'https://cozycasino.netlify.app/' },
+                                { icon: 'ti-shield-lock', label: 'Privacy Policy', href: 'https://cozycasino.netlify.app/' },
+                                { icon: 'ti-file-text', label: 'Terms of Service', href: 'https://cozycasino.netlify.app/' },
+                            ].map(link => (
+                                <a key={link.label} href={link.href} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center justify-between px-1 py-1.5 rounded-lg active:scale-[0.98] transition-transform">
+                                    <span className="flex items-center gap-2 text-white font-black text-xs">
+                                        <i className={`ti ${link.icon}`} style={{ fontSize: 15, color: 'rgba(255,255,255,0.6)' }} />
+                                        {link.label}
+                                    </span>
+                                    <i className="ti ti-external-link" style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }} />
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* About */}
                     <div>
                         <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">About</div>
