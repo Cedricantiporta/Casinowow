@@ -81,11 +81,13 @@ export async function redeemSaveCode(code: string): Promise<RedeemSaveCodeResult
     const normalized = code.trim().toUpperCase();
     if (!normalized) return { success: false, error: 'Enter a code.' };
     try {
-        const { data: row, error } = await supabase.from('save_codes').select('*').eq('code', normalized).maybeSingle();
+        // Exact-code lookup via RPC — the save_codes table is not directly
+        // readable (no SELECT policy), so it can't be dumped. The RPC filters
+        // out expired codes and returns just the data blob.
+        const { data, error } = await supabase.rpc('redeem_save_code', { p_code: normalized });
         if (error) return { success: false, error: 'Could not reach the server.' };
-        if (!row) return { success: false, error: 'Code not found.' };
-        if (new Date(row.expires_at).getTime() < Date.now()) return { success: false, error: 'This code has expired.' };
-        applySaveData(row.data as Record<string, string>);
+        if (!data) return { success: false, error: 'Code not found or expired.' };
+        applySaveData(data as Record<string, string>);
         return { success: true };
     } catch {
         return { success: false, error: 'Could not reach the server.' };

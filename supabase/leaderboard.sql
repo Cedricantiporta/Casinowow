@@ -55,6 +55,23 @@ create policy "leaderboard read"   on public.leaderboard for select using (true)
 create policy "leaderboard insert" on public.leaderboard for insert with check (true);
 create policy "leaderboard update" on public.leaderboard for update using (true) with check (true);
 
+-- Sanity bounds on the numeric columns. These do NOT make the board tamper-proof
+-- (that needs server-authoritative score submission — see the auth note), but
+-- they reject the pathological injections a raw PostgREST call can otherwise
+-- write: negatives and Infinity/near-float-overflow values like 1e308 that would
+-- permanently pin the top of every ranked tab. 1e300 is astronomically above any
+-- reachable in-game value, so no legitimate player is ever clipped.
+do $$ begin
+    alter table public.leaderboard add constraint leaderboard_sane_values check (
+        level >= 0 and vip_level >= 0
+        and score >= 0 and score < 1e300
+        and gems >= 0 and gems < 1e300
+        and total_won >= 0 and total_won < 1e300
+        and max_jackpot >= 0 and max_jackpot < 1e300
+        and max_win >= 0 and max_win < 1e300
+    );
+exception when duplicate_object then null; end $$;
+
 -- PostgREST caches the table schema and won't see new columns (e.g. vip_level)
 -- until it reloads. Force an immediate reload so the app doesn't 400 on writes
 -- right after running this migration.

@@ -62,4 +62,20 @@ create policy "guild_members insert" on public.guild_members for insert with che
 create policy "guild_members update" on public.guild_members for update using (true) with check (true);
 create policy "guild_members delete" on public.guild_members for delete using (true);
 
+-- Sanity bounds — reject negatives and float-overflow injections on the
+-- contribution pools that drive monthly rank rewards. Not full anti-tamper
+-- (see the auth note), just a floor/ceiling no legit guild reaches.
+do $$ begin
+    alter table public.guilds add constraint guilds_sane_values check (
+        level >= 0 and member_count >= 0
+        and xp >= 0 and xp < 1e300
+        and contribution_points >= 0 and contribution_points < 1e300
+    );
+exception when duplicate_object then null; end $$;
+do $$ begin
+    alter table public.guild_members add constraint guild_members_sane_values check (
+        contribution >= 0 and contribution < 1e300
+    );
+exception when duplicate_object then null; end $$;
+
 notify pgrst, 'reload schema';
