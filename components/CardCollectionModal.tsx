@@ -61,6 +61,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     const packStoreScrollRef = React.useRef<HTMLDivElement>(null);
     const packStorePremiumRef = React.useRef<HTMLDivElement>(null);
     const drawPackScrollRef = React.useRef<HTMLDivElement>(null);
+    const revealScrollRef = React.useRef<HTMLDivElement>(null);
 
     const scrollPackStore = (section: 'standard' | 'premium') => {
         if (!packStoreScrollRef.current) return;
@@ -70,6 +71,12 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
             packStoreScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' });
         }
     };
+
+    const [isOpeningPack, setIsOpeningPack] = useState(false);
+    const [lastPackId, setLastPackId] = useState<string | null>(null);
+    const [openedCards, setOpenedCards] = useState<Card[]>([]);
+    const [packStage, setPackStage] = useState<'SHAKING' | 'BURST' | 'REVEAL' | 'DONE'>('DONE');
+    const [skipAnimation, setSkipAnimation] = useState(false);
 
     React.useEffect(() => {
         if (!isOpen) return;
@@ -82,14 +89,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         const r1 = addWheel(albumScrollRef.current);
         const r2 = addWheel(deckCardsScrollRef.current);
         const r3 = addWheel(drawPackScrollRef.current);
-        return () => { r1(); r2(); r3(); };
-    }, [isOpen, selectedDeckId, activeTab, showDrawPopup]);
-
-    const [isOpeningPack, setIsOpeningPack] = useState(false);
-    const [lastPackId, setLastPackId] = useState<string | null>(null);
-    const [openedCards, setOpenedCards] = useState<Card[]>([]);
-    const [packStage, setPackStage] = useState<'SHAKING' | 'BURST' | 'REVEAL' | 'DONE'>('DONE');
-    const [skipAnimation, setSkipAnimation] = useState(false);
+        const r4 = addWheel(revealScrollRef.current);
+        return () => { r1(); r2(); r3(); r4(); };
+    }, [isOpen, selectedDeckId, activeTab, showDrawPopup, packStage]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -281,15 +283,17 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                     )}
                     {packStage === 'REVEAL' && (
                         <div className="w-full h-full flex flex-col items-center justify-center animate-pop-in relative py-4">
-                            <div className="flex-1 w-full max-w-2xl px-2 overflow-y-auto grid grid-cols-5 gap-2 content-center justify-items-center">
-                                {openedCards.map((card, i) => (
-                                    <div key={i} className="relative animate-pop-in flex items-center justify-center"
-                                        style={{ animationDelay: `${i * 30}ms`, height: 100, width: 'fit-content' }}>
-                                        <img src={card.icon} alt="" style={{ height: '100%', width: 'auto', maxWidth: '100%', borderRadius: 10, display: 'block' }} />
-                                        {card.isNew && <div className="absolute top-1 left-1 bg-red-600 text-white text-[6px] font-black px-1 rounded z-10">NEW</div>}
-                                        {card.isDuplicate && <div className="absolute top-1 right-1 bg-black/70 text-yellow-300 text-[8px] font-black px-1 rounded z-10">DUP</div>}
-                                    </div>
-                                ))}
+                            <div ref={revealScrollRef} className="flex-1 w-full max-w-4xl overflow-x-auto overflow-y-hidden no-scrollbar flex items-center">
+                                <div className="flex gap-3 px-4 items-center" style={{ minWidth: 'max-content' }}>
+                                    {openedCards.map((card, i) => (
+                                        <div key={i} className="relative animate-pop-in flex items-center justify-center shrink-0"
+                                            style={{ animationDelay: `${i * 30}ms`, height: 200, width: 'fit-content' }}>
+                                            <img src={card.icon} alt="" style={{ height: '100%', width: 'auto', borderRadius: 14, display: 'block' }} />
+                                            {card.isNew && <div className="absolute top-1.5 left-1.5 bg-red-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">NEW</div>}
+                                            {card.isDuplicate && <div className="absolute top-1.5 right-1.5 bg-black/70 text-yellow-300 text-[9px] font-black px-1.5 py-0.5 rounded z-10">DUP</div>}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                             <div className="shrink-0 mt-4 flex flex-col sm:flex-row gap-2 z-50 items-center bg-black/70 p-2.5 rounded-xl">
                                 <button onClick={closePack} className="pill-green">
