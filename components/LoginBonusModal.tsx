@@ -133,6 +133,12 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({
                         <span className="font-black text-yellow-300" style={{ fontSize: 9.5 }}>{currentStreak} Day{currentStreak !== 1 ? 's' : ''}</span>
                     </div>
                     <div className="relative flex items-center justify-between" style={{ height: 34 }}>
+                        <div className="absolute left-0 right-0 rounded-full" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.35)' }} />
+                        <div className="absolute left-0 rounded-full" style={{
+                            top: '50%', height: 3, transform: 'translateY(-50%)',
+                            width: `${Math.min(100, (currentStreak / LOGIN_STREAK_MILESTONES[LOGIN_STREAK_MILESTONES.length - 1].days) * 100)}%`,
+                            background: 'linear-gradient(90deg,#facc15,#fde047)',
+                        }} />
                         {LOGIN_STREAK_MILESTONES.map(m => {
                             const done = claimedMilestones.includes(m.days);
                             const ready = currentStreak >= m.days && !done;
@@ -191,8 +197,6 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({
                         })}
                     </div>
                 </div>
-
-                <div style={{ height: 1, margin: '0 16px', background: 'rgba(255,255,255,0.12)' }} />
 
                 {/* SYSTEM 1: classic 7-day loop */}
                 <div className="px-3 pb-4 pt-3 flex flex-col gap-1.5">
