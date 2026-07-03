@@ -30,6 +30,7 @@ export interface PaymentItem {
 interface PaymentModalProps {
     item: PaymentItem | null;
     currency: CurrencyInfo;
+    maxBet: number;
     onClose: () => void;
     onSuccess: (item: PaymentItem) => void;
 }
@@ -110,7 +111,7 @@ const CheckoutForm: React.FC<{
 };
 
 // ─── Outer modal (creates PaymentIntent, wraps Elements) ─────────────────────
-export const PaymentModal: React.FC<PaymentModalProps> = ({ item, currency, onClose, onSuccess }) => {
+export const PaymentModal: React.FC<PaymentModalProps> = ({ item, currency, maxBet, onClose, onSuccess }) => {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [initError, setInitError] = useState('');
     const [localPrice, setLocalPrice] = useState('');
@@ -123,8 +124,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ item, currency, onCl
         const usdCents = PRODUCT_USD_CENTS[item.productId];
         if (!usdCents) { setInitError('Unknown product.'); return; }
 
-        const stripeAmount = toStripeAmount(usdCents, currency);
-        const price = formatLocalPrice(stripeAmount, currency);
+        // Display price only — the actual amount charged is computed server-side
+        // in the edge function from the productId + currency (never trusted from
+        // the client). We send only which product, which currency, and maxBet
+        // (used server-side to scale coin-pack quantity, clamped there).
+        const price = formatLocalPrice(toStripeAmount(usdCents, currency), currency);
         setLocalPrice(price);
 
         const deviceId = getDeviceId();
@@ -139,10 +143,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ item, currency, onCl
             body: JSON.stringify({
                 deviceId,
                 productId: item.productId,
-                itemType: item.itemType,
-                itemAmount: item.itemAmount,
                 currency: currency.code,
-                stripeAmount,
+                maxBet,
             }),
         })
             .then(r => r.json())
@@ -153,7 +155,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ item, currency, onCl
             .catch(err => {
                 setInitError(`Could not initialise payment: ${err.message}`);
             });
-    }, [item, currency]);
+    }, [item, currency, maxBet]);
 
     if (!item) return null;
 

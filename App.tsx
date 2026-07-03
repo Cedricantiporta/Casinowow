@@ -478,38 +478,36 @@ const App: React.FC = () => {
       });
   }, []);
 
-  // Claim any pending payment credits (from Stripe webhook) on app focus / mount
+  // Claim any pending payment credits (written by the Stripe webhook) on mount
+  // and window focus. All crediting for real-money purchases happens HERE, from
+  // the server-verified payment_credits rows — never optimistically on the
+  // client — so a forged confirm can't grant currency. The claim runs through
+  // an atomic, idempotent RPC that flips claimed=true and returns only the rows
+  // it claimed, so overlapping calls can't double-credit.
+  const claimPendingCredits = useCallback(async () => {
+      if (typeof window === 'undefined' || !supabase) return;
+      const deviceId = getDeviceId();
+      const { data, error } = await supabase.rpc('claim_payment_credits', { p_device_id: deviceId });
+      if (error || !data || data.length === 0) return;
+      const rows = data as { type: string; amount: number }[];
+      const totalCoins = rows.filter(r => r.type === 'COIN').reduce((s, r) => s + Number(r.amount), 0);
+      const totalGems = rows.filter(r => r.type === 'DIAMOND').reduce((s, r) => s + Number(r.amount), 0);
+      if (totalCoins > 0) {
+          setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
+          triggerCoinAnim?.(totalCoins);
+          setCelebrationMsg(`+${formatCommaNumber(totalCoins)} Coins added!`);
+      }
+      if (totalGems > 0) {
+          setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems }));
+          if (totalCoins <= 0) setCelebrationMsg(`+${totalGems} Gems added!`);
+      }
+      audioService.playWinBig();
+  }, []);
   useEffect(() => {
-      const claimPendingCredits = async () => {
-          if (typeof window === 'undefined') return;
-          if (!supabase) return;
-          const deviceId = getDeviceId();
-          const { data, error } = await supabase
-              .from('payment_credits')
-              .select('id, type, amount')
-              .eq('device_id', deviceId)
-              .eq('claimed', false);
-          if (error || !data || data.length === 0) return;
-          for (const row of data) {
-              if (row.type === 'COIN') {
-                  setPlayer(p => ({ ...p, balance: p.balance + row.amount }));
-                  triggerCoinAnim?.(row.amount);
-              } else if (row.type === 'DIAMOND') {
-                  setPlayer(p => ({ ...p, diamonds: p.diamonds + row.amount }));
-              }
-              await supabase.from('payment_credits').update({ claimed: true }).eq('id', row.id);
-          }
-          if (data.length > 0) {
-              const totalCoins = data.filter(r => r.type === 'COIN').reduce((s, r) => s + r.amount, 0);
-              const totalGems = data.filter(r => r.type === 'DIAMOND').reduce((s, r) => s + r.amount, 0);
-              if (totalCoins > 0) setCelebrationMsg(`+${formatCommaNumber(totalCoins)} Coins added!`);
-              else if (totalGems > 0) setCelebrationMsg(`+${totalGems} Gems added!`);
-          }
-      };
       claimPendingCredits();
       window.addEventListener('focus', claimPendingCredits);
       return () => window.removeEventListener('focus', claimPendingCredits);
-  }, []);
+  }, [claimPendingCredits]);
 
   // Preload all startup assets
   useEffect(() => {
@@ -6064,23 +6062,18 @@ const App: React.FC = () => {
 
   const handlePaymentSuccess = (item: PaymentItem) => {
       setPaymentItem(null);
-      // Optimistically credit — webhook will also fire but the DB unique constraint
-      // on stripe_payment_intent_id prevents double-credit.
-      if (item.itemType === 'COIN') {
-          setPlayer(p => ({ ...p, balance: p.balance + item.itemAmount }));
-          triggerCoinAnim(item.itemAmount);
-          setCelebrationMsg(`+${formatCommaNumber(item.itemAmount)} Coins!`);
-      } else {
-          setPlayer(p => ({ ...p, diamonds: p.diamonds + item.itemAmount }));
-          setCelebrationMsg(`+${item.itemAmount} Gems!`);
-      }
-      // Bonus buffs scaled by pack tier (parsed from productId, e.g. coin_5 / gem_3).
+      // Do NOT credit coins/gems here — currency is granted only by
+      // claimPendingCredits() from the server-verified payment_credits row the
+      // Stripe webhook writes, so a forged onSuccess can't mint currency. The
+      // webhook is async, so poll the claim a few times to credit promptly.
+      [0, 1500, 3500, 6000].forEach(delay => setTimeout(() => { claimPendingCredits(); }, delay));
+      // Purchase buffs are non-currency (XP/collect boosts); tier is derived from
+      // the productId. Harmless even if the confirm were spoofed.
       const packNum = parseInt((item.productId.split('_')[1] || '1'), 10) || 1;
       const tier = item.itemType === 'DIAMOND'
-          ? (item.itemAmount >= 2500 ? 3 : item.itemAmount >= 500 ? 2 : 1)
+          ? (packNum >= 3 ? 3 : packNum >= 2 ? 2 : 1)
           : (packNum >= 5 ? 3 : packNum >= 3 ? 2 : 1);
       grantPurchaseBuffs(tier);
-      audioService.playWinBig();
   };
 
   const handleClaimShopItem = (label: string) => {
@@ -7302,7 +7295,7 @@ const App: React.FC = () => {
         }
     }} onBuy={handleShopBuy} onPay={handlePay} localPrices={localPrices} level={player.level} isFreeStashClaimed={!freeCoinsAvailable} freeCoinsAmount={freeCoinsAmount} freeCoinsAvailable={freeCoinsAvailable} initialTab={shopInitialTab} balance={player.balance} diamonds={player.diamonds} maxBet={MAX_BET_BY_LEVEL(player.level)} claimedItems={player.shopClaimedItems || []} onClaimItem={handleClaimShopItem} isVip={!!player.isVip} vipLevel={player.vipLevel || 1} />}
 
-    <PaymentModal item={paymentItem} currency={currency} onClose={() => setPaymentItem(null)} onSuccess={handlePaymentSuccess} />
+    <PaymentModal item={paymentItem} currency={currency} maxBet={MAX_BET_BY_LEVEL(player.level)} onClose={() => setPaymentItem(null)} onSuccess={handlePaymentSuccess} />
 
       {activeModal === 'COLLECTION' && <CardCollectionModal
           isOpen
