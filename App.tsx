@@ -9,6 +9,7 @@ import { ShopModal } from './components/ShopModal';
 import { PaymentModal, PaymentItem } from './components/PaymentModal';
 import { detectCurrency, CurrencyInfo, PRODUCT_USD_CENTS, toStripeAmount, formatLocalPrice, getDeviceId } from './services/paymentService';
 import { supabase, ensureAuthId } from './services/supabaseClient';
+import { purchaseRoute, playPurchase } from './services/billingService';
 import { MiniGameModal } from './components/MiniGameModal';
 import { Lobby } from './components/Lobby';
 import { FreeSpinsWonPopup } from './components/FreeSpinsWonPopup';
@@ -6064,7 +6065,20 @@ const App: React.FC = () => {
   };
 
   const handlePay = (productId: string, itemType: 'COIN' | 'DIAMOND', itemAmount: number, icon: string, label: string) => {
-      setPaymentItem({ productId, itemType, itemAmount, icon, label });
+      const route = purchaseRoute();
+      if (route === 'stripe') {
+          // Web / PWA: Stripe checkout (server-authoritative pricing).
+          setPaymentItem({ productId, itemType, itemAmount, icon, label });
+      } else if (route === 'play') {
+          // Native Android: Google Play Billing. Crediting still flows through the
+          // server-verified payment_credits row + claim RPC (never client-granted).
+          playPurchase(productId).then(res => {
+              if (res.success) [0, 1500, 3500].forEach(d => setTimeout(() => claimPendingCredits(), d));
+              else if (res.error) setCelebrationMsg(res.error);
+          });
+      }
+      // 'unavailable' can't happen from the UI — the shop hides real-money packs
+      // on platforms where realMoneyPurchasesEnabled() is false.
   };
 
   const handlePaymentSuccess = (item: PaymentItem) => {

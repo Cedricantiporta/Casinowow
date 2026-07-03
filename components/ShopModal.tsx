@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { formatK } from '../constants';
+import { realMoneyPurchasesEnabled } from '../services/billingService';
 
 interface ShopModalProps {
     isOpen: boolean;
@@ -145,14 +146,19 @@ export const ShopModal: React.FC<ShopModalProps> = ({ isOpen, onClose, onBuy, on
         // Never show cents on a price, no matter what the native store string looks like.
         return `₱ ${Math.round(n).toLocaleString('en-US')}`;
     };
-    const coinItems = dynamicPacks.map(item => ({
+    // Real-money packs are hidden on platforms where we can't legally sell them
+    // (native Android before Play Billing is wired — Stripe for digital goods
+    // isn't allowed there). Free coins, gameplay coins, and gem-bought boosts
+    // stay available.
+    const showRealMoney = realMoneyPurchasesEnabled();
+    const coinItems = !showRealMoney ? [] : dynamicPacks.map(item => ({
         ...item,
         isRealMoney: true,
         isClaimed: false,
         price: validLocalPrice(localPrices?.[item.productId], parseFloat(item.pesosLabel)) ?? `₱ ${item.pesosLabel}`,
         gemCost: undefined as number | undefined,
     }));
-    const gemItems = gemPacks.map(item => ({
+    const gemItems = !showRealMoney ? [] : gemPacks.map(item => ({
         ...item,
         isRealMoney: true,
         isClaimed: false,
