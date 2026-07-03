@@ -60,6 +60,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
     const deckCardsScrollRef = React.useRef<HTMLDivElement>(null);
     const packStoreScrollRef = React.useRef<HTMLDivElement>(null);
     const packStorePremiumRef = React.useRef<HTMLDivElement>(null);
+    const drawPackScrollRef = React.useRef<HTMLDivElement>(null);
 
     const scrollPackStore = (section: 'standard' | 'premium') => {
         if (!packStoreScrollRef.current) return;
@@ -80,8 +81,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
         };
         const r1 = addWheel(albumScrollRef.current);
         const r2 = addWheel(deckCardsScrollRef.current);
-        return () => { r1(); r2(); };
-    }, [isOpen, selectedDeckId, activeTab]);
+        const r3 = addWheel(drawPackScrollRef.current);
+        return () => { r1(); r2(); r3(); };
+    }, [isOpen, selectedDeckId, activeTab, showDrawPopup]);
 
     const [isOpeningPack, setIsOpeningPack] = useState(false);
     const [lastPackId, setLastPackId] = useState<string | null>(null);
@@ -376,7 +378,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     const collected = deck.cards.filter(c => c.count > 0).length;
                                     const isComplete = collected === total;
                                     return (
-                                        <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 100 }}>
+                                        <div key={deck.gameId} className="flex-none flex flex-col items-center" style={{ width: 130 }}>
                                             <button onClick={() => setSelectedDeckId(deck.gameId)}
                                                 className="w-full flex flex-col items-center active:scale-95 transition-transform">
                                                 <div className="w-full relative flex items-center justify-center" style={{ aspectRatio: '1/1' }}>
@@ -517,7 +519,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 <div className="absolute inset-0 z-[165] flex items-center justify-center bg-black/10 backdrop-blur-md animate-pop-in"
                     onClick={() => setShowDrawPopup(false)}>
                     <div className="rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
-                        style={{ width: 680, maxWidth: '94%', height: 320, maxHeight: '88%', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
+                        style={{ width: 680, maxWidth: '94%', height: 380, maxHeight: '88%', background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                         {/* Seamless topbar */}
                         <div className="shrink-0 flex items-center gap-2 px-3 py-2">
@@ -539,36 +541,38 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                             <button onClick={() => setShowDrawPopup(false)} className="round-btn shrink-0"><i className="ti ti-x" /></button>
                         </div>
 
-                        {/* Content — draw packs centered */}
-                        <div className="flex-1 min-h-0 flex p-3 gap-3 items-stretch justify-center">
-                            {packOptions.map(pack => {
-                                    const canDrawOne = pack.credits >= 1;
-                                    const canDrawTen = pack.credits >= 9;
-                                    return (
-                                        <div key={pack.id} className="flex flex-col items-center justify-between" style={{ width: 160 }}>
-                                            {/* Card image */}
-                                            <div className="flex-1 min-h-0 flex items-center justify-center w-full relative">
-                                                <img src={pack.img} alt={pack.name}
-                                                    style={{ height: '100%', maxHeight: 160, width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.55))' }} />
+                        {/* Content — one scrollable row, cards bigger */}
+                        <div ref={drawPackScrollRef} className="flex-1 min-h-0 overflow-x-auto no-scrollbar">
+                            <div className="flex h-full p-3 gap-4 items-stretch justify-center" style={{ minWidth: 'max-content' }}>
+                                {packOptions.map(pack => {
+                                        const canDrawOne = pack.credits >= 1;
+                                        const canDrawTen = pack.credits >= 9;
+                                        return (
+                                            <div key={pack.id} className="flex flex-col items-center justify-between shrink-0" style={{ width: 220 }}>
+                                                {/* Card image */}
+                                                <div className="flex-1 min-h-0 flex items-center justify-center w-full relative">
+                                                    <img src={pack.img} alt={pack.name}
+                                                        style={{ height: '100%', maxHeight: 220, width: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 4px 14px rgba(0,0,0,0.55))' }} />
+                                                </div>
+                                                <div className="text-center mt-1 shrink-0">
+                                                    <div className="font-black text-white text-base tracking-wide leading-none">{pack.name}</div>
+                                                    <div className="font-bold text-white/50 text-[12px] mt-0.5">{pack.credits} packs</div>
+                                                </div>
+                                                <div className="flex flex-col gap-1.5 mt-2 w-full shrink-0">
+                                                    <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
+                                                        className={`pill-green w-full${!canDrawOne ? ' opacity-40' : ''}`}>
+                                                        <div className="pill-face" style={{ padding: '7px 10px', fontSize: '11px' }}>Draw 1×</div>
+                                                    </button>
+                                                    <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
+                                                        className={`pill-green w-full relative${!canDrawTen ? ' opacity-40' : ''}`}>
+                                                        <div className="pill-face" style={{ padding: '7px 10px', fontSize: '11px' }}>Draw 10×</div>
+                                                        {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white z-10">-10%</div>}
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <div className="text-center mt-1 shrink-0">
-                                                <div className="font-black text-white text-sm tracking-wide leading-none">{pack.name}</div>
-                                                <div className="font-bold text-white/50 text-[11px] mt-0.5">{pack.credits} packs</div>
-                                            </div>
-                                            <div className="flex flex-col gap-1.5 mt-2 w-full shrink-0">
-                                                <button onClick={() => handleDraw(pack.id, 1)} disabled={!canDrawOne}
-                                                    className={`pill-green w-full${!canDrawOne ? ' opacity-40' : ''}`}>
-                                                    <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>Draw 1×</div>
-                                                </button>
-                                                <button onClick={() => handleDraw(pack.id, 10)} disabled={!canDrawTen}
-                                                    className={`pill-green w-full relative${!canDrawTen ? ' opacity-40' : ''}`}>
-                                                    <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>Draw 10×</div>
-                                                    {canDrawTen && <div className="absolute top-0 right-0 bg-red-600 text-[6px] px-0.5 font-black text-white z-10">-10%</div>}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                        );
+                                    })}
+                            </div>
                         </div>
                     </div>
                 </div>

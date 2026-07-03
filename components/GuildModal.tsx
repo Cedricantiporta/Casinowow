@@ -547,7 +547,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                     {tasks.map(t => {
                                         const cost = refreshCostFor(t);
                                         const pct = Math.min(100, (t.current / t.target) * 100);
-                                        const isMaxReward = t.pointsReward >= 100;
+                                        const isMaxReward = t.pointsReward >= 90;
                                         return (
                                             <div key={t.id} className={`${isMaxReward ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center gap-2 p-2.5`}>
                                                 <div className="shrink-0 flex items-center justify-center" style={{ width: '2.6rem', height: '2.6rem' }}>
