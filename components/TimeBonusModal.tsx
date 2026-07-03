@@ -118,7 +118,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                                     ))}
                                 </div>
                             )}
-                            <div className={`transition-all duration-300 ${isMega ? 'mt-2' : ''} ${isReady ? 'scale-105' : 'brightness-50 grayscale'}`}>
+                            <div className={`transition-all duration-300 mt-2 ${isReady ? 'scale-105' : 'brightness-50 grayscale'}`}>
                                 <img
                                     src={timer.id === 0 ? '/ui/double.png' : timer.id === 1 ? '/ui/roller.png' : '/ui/jackpot.png'}
                                     alt=""
@@ -144,7 +144,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                 {/* Jackpot roulette tile — unlocks once Mega has been collected
                     megaOpensRequired times today. */}
                 <div className={`${megaJackpotReady ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center flex-1 gap-2 p-3 relative`}>
-                    <div className={`transition-all duration-300 flex items-center justify-center ${megaJackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
+                    <div className={`transition-all duration-300 mt-2 flex items-center justify-center ${megaJackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
                         <img src="/symbols/neon_bonus.png" alt=""
                             style={{ width: 72, height: 72, objectFit: 'contain', filter: megaJackpotReady ? 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' : undefined }} />
                     </div>
@@ -157,7 +157,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                         className={`pill-green w-full ${!megaJackpotReady ? 'opacity-40' : ''}`}
                     >
                         <div className="pill-face" style={{ padding: '6px 10px', fontSize: '10px' }}>
-                            {megaJackpotReady ? 'Play' : `Collect Mega (${megaOpensToday}/${megaOpensRequired})`}
+                            {megaJackpotReady ? 'Play' : 'Collect Mega'}
                         </div>
                     </button>
                 </div>
