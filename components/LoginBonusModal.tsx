@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, formatKShort } from '../constants';
 
 interface LoginBonusModalProps {
@@ -20,6 +20,12 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({
     currentStreak, claimedMilestones, onClaimMilestone,
 }) => {
     const [openMilestone, setOpenMilestone] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (openMilestone === null) return;
+        const timeout = setTimeout(() => setOpenMilestone(null), 3000);
+        return () => clearTimeout(timeout);
+    }, [openMilestone]);
 
     if (!isOpen) return null;
 
@@ -90,12 +96,6 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({
                     <button onClick={onClaim} className="pill-green w-full">
                         <div className="pill-face" style={{ padding: '5px 8px', fontSize: '9px' }}>Claim</div>
                     </button>
-                )}
-
-                {isPendingTomorrow && (
-                    <div className="w-full text-center rounded-full" style={{ background: 'rgba(0,0,0,0.35)', padding: '5px 8px' }}>
-                        <span className="font-black text-white/70" style={{ fontSize: 9 }}>Tomorrow</span>
-                    </div>
                 )}
 
                 {isPast && (

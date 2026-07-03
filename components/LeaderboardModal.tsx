@@ -21,10 +21,10 @@ const TABS: { key: LeaderboardMetric; label: string }[] = [
     { key: 'maxWin',     label: 'Max Win' },
 ];
 
-const EXCLUSIVE_AVATAR = '/profilepicsnew (13).png';
+export const EXCLUSIVE_AVATAR = '/profilepicsnew (13).png';
 
-interface RankReward { gems: number; collectDays?: number; expDays?: number; missionExpHours?: number; exclusiveAvatar?: boolean }
-const RANK_REWARDS: Record<number, RankReward> = {
+export interface RankReward { gems: number; collectDays?: number; expDays?: number; missionExpHours?: number; exclusiveAvatar?: boolean }
+export const RANK_REWARDS: Record<number, RankReward> = {
     1:  { gems: 10000, collectDays: 30, expDays: 7,  missionExpHours: 72, exclusiveAvatar: true },
     2:  { gems: 5000,  collectDays: 15, expDays: 3,  missionExpHours: 24 },
     3:  { gems: 2000,  collectDays: 7,  expDays: 1,  missionExpHours: 12 },

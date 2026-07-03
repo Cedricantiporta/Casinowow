@@ -36,7 +36,7 @@ import { SlotLoadingScreen } from './components/SlotLoadingScreen';
 import { PremiumModal } from './components/PremiumModal';
 import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
-import { LeaderboardModal } from './components/LeaderboardModal';
+import { LeaderboardModal, RANK_REWARDS, EXCLUSIVE_AVATAR } from './components/LeaderboardModal';
 import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { GuildModal } from './components/GuildModal';
@@ -985,6 +985,10 @@ const App: React.FC = () => {
   const [guildRewardMonthKey, setGuildRewardMonthKey] = useState<string>(() => {
       try { return localStorage.getItem('cw_guild_reward_month') || ''; } catch { return ''; }
   });
+  // Delivers the reward as an Inbox message rather than applying it instantly —
+  // coins/gems AND every boost activate together the moment the player claims
+  // it (see the GUILD_RANK branch in handleClaimInbox), matching how every
+  // other reward in the game is granted.
   const applyGuildMonthlyReward = async () => {
       const now = new Date();
       const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
@@ -998,21 +1002,21 @@ const App: React.FC = () => {
       if (rank < 0) return;
       const tier = rewardTierForRank(rank + 1);
       if (!tier) return;
-      const maxBet = MAX_BET_BY_LEVEL(player.level);
-      const coinReward = Math.round(tier.betMult * maxBet);
-      const nowMs = Date.now();
-      const HR = 3600000;
-      setPlayer(p => ({
-          ...p,
-          balance: p.balance + coinReward,
-          diamonds: p.diamonds + tier.gems,
-          collectBoostEndTime: Math.max(nowMs, p.collectBoostEndTime || 0) + tier.collectHours * HR,
-          xpMultiplier: 2, xpBoostEndTime: Math.max(nowMs, p.xpBoostEndTime || 0) + tier.xpHours * HR,
-          arenaXpMultiplier: 2, arenaXpBoostEndTime: Math.max(nowMs, p.arenaXpBoostEndTime || 0) + tier.arenaHours * HR,
-      }));
-      setMissionState(prev => ({ ...prev, passBoostMultiplier: 2, passBoostEndTime: Math.max(nowMs, prev.passBoostEndTime || 0) + tier.missionHours * HR }));
-      triggerCoinAnim(coinReward);
-      setCelebrationMsg(`${guild.name} placed #${rank + 1} last month! Rewards granted.`);
+      const monthName = new Date(now.getFullYear(), now.getMonth() - 1).toLocaleString('default', { month: 'long' });
+      const msgId = `guild_rank_${monthKey}`;
+      setInbox(prev => {
+          if (prev.some(m => m.id === msgId)) return prev;
+          return [...prev, {
+              id: msgId,
+              type: 'GUILD_RANK' as const,
+              title: `${monthName} Guild Rewards`,
+              body: `${guild.name} placed #${rank + 1} last month! +${tier.betMult}× Max Bet · +${tier.gems.toLocaleString()} Gems · ${tier.collectHours}h Collect Boost · ${tier.xpHours}h XP Boost · ${tier.missionHours}h Mission Boost${tier.arenaHours > 0 ? ` · ${tier.arenaHours}h Arena Boost` : ''}`,
+              claimed: false,
+              createdAt: Date.now(),
+              expiresAt: Date.now() + 7 * 86400000,
+              meta: JSON.stringify({ rank: rank + 1 }),
+          }];
+      });
   };
 
   const refreshMyGuild = () => { getMyGuild(getDeviceId()).then(g => { setMyGuild(g); if (g) applyGuildMonthlyReward(); }); };
@@ -1603,7 +1607,9 @@ const App: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Monthly rank rewards: check on mount if a new month has started and deliver gem rewards
+  // Monthly rank rewards: check on mount if a new month has started and deliver
+  // the full reward tier (gems + coins/boosts) as an Inbox message — every
+  // component activates together the moment the player claims it.
   useEffect(() => {
       try {
           const now = new Date();
@@ -1611,21 +1617,26 @@ const App: React.FC = () => {
           const lastRewardMonth = localStorage.getItem('cw_last_reward_month') || '';
           if (lastRewardMonth && lastRewardMonth !== thisMonth) {
               const lastRank = Number(localStorage.getItem('cw_last_rank') || '0');
-              const MONTHLY_GEMS: Record<number, number> = { 1: 10000, 2: 5000, 3: 2000 };
-              const gems = MONTHLY_GEMS[lastRank] || 0;
-              if (gems > 0) {
+              const tier = RANK_REWARDS[lastRank];
+              if (tier) {
                   const monthName = new Date(now.getFullYear(), now.getMonth() - 1).toLocaleString('default', { month: 'long' });
                   const msgId = `monthly_rank_${lastRewardMonth}`;
+                  const parts = [`+${tier.gems.toLocaleString()} Gems`];
+                  if (tier.collectDays) parts.push(`${tier.collectDays}D Collect Boost`);
+                  if (tier.expDays) parts.push(`${tier.expDays}D XP Boost`);
+                  if (tier.missionExpHours) parts.push(`${tier.missionExpHours}h Mission Boost`);
+                  if (tier.exclusiveAvatar) parts.push('Exclusive Avatar');
                   setInbox(prev => {
                       if (prev.some(m => m.id === msgId)) return prev;
                       return [...prev, {
                           id: msgId,
                           type: 'MONTHLY_RANK' as const,
                           title: `${monthName} Rankings Reward`,
-                          body: `You placed #${lastRank} last month! +${gems.toLocaleString()} Gems`,
+                          body: `You placed #${lastRank} last month! ${parts.join(' · ')}`,
                           claimed: false,
                           createdAt: Date.now(),
                           expiresAt: Date.now() + 7 * 86400000,
+                          meta: JSON.stringify({ rank: lastRank }),
                       }];
                   });
               }
@@ -1718,11 +1729,43 @@ const App: React.FC = () => {
                   setCelebrationMsg(`+${cashback.toLocaleString()} VIP Cashback`);
               }
           } else if (msg.type === 'MONTHLY_RANK') {
-              const gemsMatch = msg.body.match(/\+([\d,]+) Gems/);
-              const gems = gemsMatch ? Number(gemsMatch[1].replace(/,/g, '')) : 0;
-              if (gems > 0) {
-                  setPlayer(p => ({ ...p, diamonds: p.diamonds + gems }));
-                  setCelebrationMsg(`+${gems.toLocaleString()} Gems`);
+              const rank = msg.meta ? (JSON.parse(msg.meta).rank as number) : 0;
+              const tier = RANK_REWARDS[rank];
+              if (tier) {
+                  const nowMs = Date.now();
+                  const DAY = 86400000, HR = 3600000;
+                  setPlayer(p => ({
+                      ...p,
+                      diamonds: p.diamonds + tier.gems,
+                      collectBoostEndTime: Math.max(nowMs, p.collectBoostEndTime || 0) + (tier.collectDays || 0) * DAY,
+                      xpMultiplier: tier.expDays ? 2 : p.xpMultiplier,
+                      xpBoostEndTime: tier.expDays ? Math.max(nowMs, p.xpBoostEndTime || 0) + tier.expDays * DAY : p.xpBoostEndTime,
+                      unlockedAvatars: tier.exclusiveAvatar && !(p.unlockedAvatars || []).includes(EXCLUSIVE_AVATAR)
+                          ? [...(p.unlockedAvatars || []), EXCLUSIVE_AVATAR] : p.unlockedAvatars,
+                  }));
+                  if (tier.missionExpHours) {
+                      setMissionState(prev => ({ ...prev, passBoostMultiplier: 2, passBoostEndTime: Math.max(nowMs, prev.passBoostEndTime || 0) + tier.missionExpHours! * HR }));
+                  }
+                  setCelebrationMsg(`+${tier.gems.toLocaleString()} Gems & boosts activated!`);
+              }
+          } else if (msg.type === 'GUILD_RANK') {
+              const rank = msg.meta ? (JSON.parse(msg.meta).rank as number) : 0;
+              const tier = rewardTierForRank(rank);
+              if (tier) {
+                  const coinReward = Math.round(tier.betMult * MAX_BET_BY_LEVEL(player.level));
+                  const nowMs = Date.now();
+                  const HR = 3600000;
+                  setPlayer(p => ({
+                      ...p,
+                      balance: p.balance + coinReward,
+                      diamonds: p.diamonds + tier.gems,
+                      collectBoostEndTime: Math.max(nowMs, p.collectBoostEndTime || 0) + tier.collectHours * HR,
+                      xpMultiplier: 2, xpBoostEndTime: Math.max(nowMs, p.xpBoostEndTime || 0) + tier.xpHours * HR,
+                      arenaXpMultiplier: 2, arenaXpBoostEndTime: Math.max(nowMs, p.arenaXpBoostEndTime || 0) + tier.arenaHours * HR,
+                  }));
+                  setMissionState(prev => ({ ...prev, passBoostMultiplier: 2, passBoostEndTime: Math.max(nowMs, prev.passBoostEndTime || 0) + tier.missionHours * HR }));
+                  triggerCoinAnim(coinReward);
+                  setCelebrationMsg(`+${formatCommaNumber(coinReward)} Coins & boosts activated!`);
               }
           } else if (msg.type === 'FRIEND_GIFT') {
               const amtMatch = msg.body.match(/\+([\d,]+)/);

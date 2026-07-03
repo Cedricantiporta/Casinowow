@@ -259,7 +259,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         <button
                                             onClick={() => onSelectGame(game, true)}
                                             className={`relative overflow-hidden ${isLocked ? 'cursor-not-allowed' : 'active:scale-95 transition-transform'}`}
-                                            style={{ width: '130px', height: '195px', borderRadius: '6px', boxShadow: 'inset 0 3px 0 rgba(255,240,100,0.9), inset 0 -3px 0 rgba(120,60,0,0.8), inset 3px 0 0 rgba(255,200,50,0.3), inset -3px 0 0 rgba(120,60,0,0.4), 0 8px 24px rgba(0,0,0,0.7)', filter: isLocked ? 'brightness(0.55)' : undefined }}
+                                            style={{ width: '130px', height: '195px', borderRadius: '6px', boxShadow: 'inset 0 3px 0 rgba(255,240,100,0.9), inset 0 -3px 0 rgba(120,60,0,0.8), inset 3px 0 0 rgba(255,200,50,0.3), inset -3px 0 0 rgba(120,60,0,0.4)', filter: isLocked ? 'brightness(0.55)' : undefined }}
                                         >
                                             <div className={`absolute inset-0 bg-gradient-to-br ${game.color}`}></div>
                                             {game.coverImage && (
@@ -347,7 +347,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                                         <button
                                             onClick={() => onSelectGame(game, false)}
                                             className={`relative group w-[90px] h-[90px] md:w-[106px] md:h-[106px] ${isLocked ? 'cursor-not-allowed' : ''}`}
-                                            style={{ borderRadius: 18, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4), 0 6px 18px rgba(0,0,0,0.6)', filter: isLocked ? 'brightness(0.55)' : undefined }}
+                                            style={{ borderRadius: 18, boxShadow: 'inset 0 3px 0 rgba(220,170,255,0.9), inset 0 -3px 0 rgba(50,0,120,0.8), inset 3px 0 0 rgba(180,120,255,0.3), inset -3px 0 0 rgba(50,0,120,0.4)', filter: isLocked ? 'brightness(0.55)' : undefined }}
                                         >
                                             <div className={`absolute inset-0 overflow-hidden bg-gradient-to-br ${game.color} transition-opacity`} style={{ borderRadius: 14 }}></div>
                                             {game.coverImage && (

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type InboxMessageType = 'WELCOME' | 'DAILY_COINS' | 'DAILY_PACK' | 'VIP_CASHBACK' | 'MONTHLY_RANK' | 'FRIEND_GIFT';
+export type InboxMessageType = 'WELCOME' | 'DAILY_COINS' | 'DAILY_PACK' | 'VIP_CASHBACK' | 'MONTHLY_RANK' | 'GUILD_RANK' | 'FRIEND_GIFT';
 
 export interface InboxMessage {
     id: string;
@@ -10,7 +10,7 @@ export interface InboxMessage {
     claimed: boolean;
     createdAt: number;
     expiresAt?: number;
-    meta?: string; // FRIEND_GIFT: the sender's device id — accepting auto-sends a gift back
+    meta?: string; // FRIEND_GIFT: sender's device id. MONTHLY_RANK/GUILD_RANK: JSON `{ rank }` used to look up the reward tier fresh at claim time
 }
 
 interface InboxModalProps {
@@ -26,6 +26,7 @@ const MSG_ICONS: Record<string, string> = {
     DAILY_PACK:   '/ui/gift_mail.png',
     VIP_CASHBACK: '/new_coinicon.png',
     MONTHLY_RANK: '/symbols/diamond.png',
+    GUILD_RANK:   '/symbols/diamond.png',
     FRIEND_GIFT:  '/ui/gift_mail.png',
 };
 

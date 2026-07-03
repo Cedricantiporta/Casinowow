@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // A small reward icon+label that reveals its full detail in a tap popup —
 // shared between the Top Players leaderboard and the Guild rankings list so
 // reward previews look consistent everywhere. Tap-only (no hover) since this
-// is a touch-first UI.
+// is a touch-first UI. The popup dismisses on: a 3s timeout, tapping the chip
+// again, or tapping anywhere outside it.
 export const RewardChip: React.FC<{ tooltip: string; icon: React.ReactNode; label: string; labelColor?: string }> = ({ tooltip, icon, label, labelColor }) => {
     const [show, setShow] = useState(false);
+    const rootRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!show) return;
+        const timeout = setTimeout(() => setShow(false), 3000);
+        const onOutside = (e: MouseEvent) => {
+            if (rootRef.current && !rootRef.current.contains(e.target as Node)) setShow(false);
+        };
+        document.addEventListener('mousedown', onOutside);
+        return () => { clearTimeout(timeout); document.removeEventListener('mousedown', onOutside); };
+    }, [show]);
+
     return (
-        <div className="relative flex-shrink-0 flex items-center gap-0.5 cursor-pointer"
+        <div ref={rootRef} className="relative flex-shrink-0 flex items-center gap-0.5 cursor-pointer"
             onClick={(e) => { e.stopPropagation(); setShow(v => !v); }}>
             {icon}
             {label && <span className="font-black" style={{ fontSize: 10, color: labelColor ?? 'rgba(255,255,255,0.75)' }}>{label}</span>}
