@@ -550,8 +550,9 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                         const isMaxReward = t.pointsReward >= 100;
                                         return (
                                             <div key={t.id} className={`${isMaxReward ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center gap-2 p-2.5`}>
-                                                <div className="shrink-0 rounded-2xl flex items-center justify-center" style={{ width: 36, height: 36, background: 'rgba(0,0,0,0.3)' }}>
-                                                    <i className={`ti ${t.type === 'SPIN_COUNT' ? 'ti-disc' : t.type === 'WIN_COINS' ? 'ti-coin' : 'ti-bolt'} text-white`} style={{ fontSize: 18 }} />
+                                                <div className="shrink-0 flex items-center justify-center" style={{ width: '2.6rem', height: '2.6rem' }}>
+                                                    <img src={t.type === 'SPIN_COUNT' ? '/mission-spin.png' : '/mission-wincoin.png'} alt=""
+                                                        style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                                 </div>
                                                 <div className="font-black text-white text-center" style={{ fontSize: 11 }}>{t.description}</div>
                                                 <div className="relative h-5 rounded-full overflow-hidden w-full" style={{ background: 'rgba(0,0,0,0.5)' }}>
