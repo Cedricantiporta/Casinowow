@@ -373,9 +373,12 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
 
                         <div className="flex-1" />
 
-                        {/* Album scroll strip — perspective curve */}
-                        <div ref={albumScrollRef} className="overflow-x-auto no-scrollbar shrink-0"
-                            style={{ transform: 'perspective(700px) rotateX(6deg)', transformOrigin: 'center bottom' }}>
+                        {/* Album scroll strip — flat (no 3D tilt). The perspective(700px)
+                            rotateX(6deg) this used to have forces the browser to rasterize
+                            every cover as a texture layer and resample it at an angle, which
+                            visibly softens/blurs the art on Android WebView — that shelf
+                            effect wasn't worth the quality hit on the app's main artwork. */}
+                        <div ref={albumScrollRef} className="overflow-x-auto no-scrollbar shrink-0">
                             <div className="flex gap-3" style={{ minWidth: 'max-content', paddingBottom: 14, paddingLeft: 16, paddingRight: 16 }}>
                                 {decks.map(deck => {
                                     const total = deck.cards.length;
