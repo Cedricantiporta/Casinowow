@@ -30,6 +30,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { VipLoungeModal } from './components/VipLoungeModal';
 import { MiniGamesHub } from './components/MiniGamesHub';
 import { audioService } from './services/audioService';
+import { hapticsService, isHapticsEnabled, setHapticsEnabled } from './services/hapticsService';
 import { jackpotService } from './services/jackpotService';
 import { JackpotCelebration } from './components/JackpotCelebration';
 import { StageCompleteModal } from './components/StageCompleteModal';
@@ -638,6 +639,7 @@ const App: React.FC = () => {
   const [autoMaxBet, setAutoMaxBet] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
+  const [hapticsOn, setHapticsOn] = useState(() => isHapticsEnabled());
   const [showSettings, setShowSettings] = useState(false);
   const [showEventsPopup, setShowEventsPopup] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -6145,6 +6147,7 @@ const App: React.FC = () => {
           audioService.playClick();
       } else {
           if (status === GameStatus.IDLE || (status === GameStatus.FREE_SPIN_INTRO && freeSpinsRemaining > 0)) {
+              hapticsService.medium();
               spin();
           } else if (status === GameStatus.SPINNING || status === GameStatus.STOPPING) {
               setInstantStop(true);
@@ -7801,6 +7804,9 @@ const App: React.FC = () => {
           onToggleMute={() => setIsMuted(audioService.toggleSfxMute())}
           isMusicMuted={isMusicMuted}
           onToggleMusic={() => setIsMusicMuted(audioService.toggleMusicMute())}
+          isHapticsOn={hapticsOn}
+          onToggleHaptics={() => { const next = !hapticsOn; setHapticsEnabled(next); setHapticsOn(next); if (next) hapticsService.light(); }}
+          deviceId={getDeviceId()}
           redeemedCodes={redeemedCodes}
           onRedeem={(code) => {
               if (code === 'reset') {

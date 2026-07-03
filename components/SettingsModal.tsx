@@ -8,6 +8,9 @@ interface SettingsModalProps {
     onToggleMute: () => void;
     isMusicMuted: boolean;
     onToggleMusic: () => void;
+    isHapticsOn: boolean;
+    onToggleHaptics: () => void;
+    deviceId: string;
     onRedeem: (code: string) => void;
     redeemedCodes: string[];
     onReset: () => void;
@@ -135,12 +138,35 @@ const Toggle: React.FC<{ on: boolean; onToggle: () => void; label: string; sub?:
 );
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
-    isOpen, onClose, isMuted, onToggleMute, isMusicMuted, onToggleMusic, onRedeem, redeemedCodes, onReset
+    isOpen, onClose, isMuted, onToggleMute, isMusicMuted, onToggleMusic, isHapticsOn, onToggleHaptics, deviceId, onRedeem, redeemedCodes, onReset
 }) => {
     const [redeemInput, setRedeemInput] = useState('');
     const [pendingCode, setPendingCode] = useState<string | null>(null);
     const [redeemMsg, setRedeemMsg] = useState<{ text: string; type: 'error' | 'warn' } | null>(null);
     const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [copiedDeviceId, setCopiedDeviceId] = useState(false);
+    const [cacheCleared, setCacheCleared] = useState(false);
+
+    const handleCopyDeviceId = () => {
+        navigator.clipboard?.writeText(deviceId).then(() => {
+            setCopiedDeviceId(true);
+            setTimeout(() => setCopiedDeviceId(false), 2000);
+        }).catch(() => {});
+    };
+
+    // Clears cached image assets (album covers, slot art, etc.) without
+    // touching saved progress — useful if art ever looks corrupted/stale.
+    // Player data lives in localStorage/Supabase, untouched here.
+    const handleClearCache = async () => {
+        try {
+            if ('caches' in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map(k => caches.delete(k)));
+            }
+        } catch { /* ignore */ }
+        setCacheCleared(true);
+        setTimeout(() => window.location.reload(), 900);
+    };
 
     // Save/transfer code (migrate progress to a new device / after reinstall)
     const [generatedCode, setGeneratedCode] = useState<string | null>(null);
@@ -248,6 +274,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <div className="flex flex-col gap-1.5">
                             <Toggle on={!isMuted} onToggle={onToggleMute} icon="🔊" label="Sound Effects" sub="Button clicks, wins, SFX" />
                             <Toggle on={!isMusicMuted} onToggle={onToggleMusic} icon="🎵" label="Music" sub="Background music" />
+                            <Toggle on={isHapticsOn} onToggle={onToggleHaptics} icon="📳" label="Vibration" sub="Spin & win feedback" />
                         </div>
                     </div>
 
@@ -299,9 +326,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <div>
                         <div className="text-white/70 text-[8px] font-black mb-1.5 px-0.5">Account</div>
                         <div className="p-3 flex flex-col gap-2 rounded-2xl" style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
-                            <p className="text-white/70 text-[9px] leading-snug">Reset all progress including coins, gems, level, and history. This cannot be undone.</p>
+                            <div className="flex items-center gap-2 px-1 py-1.5 rounded-xl" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-white/50 text-[8px] font-black uppercase tracking-wide">Device ID</div>
+                                    <div className="text-white/80 font-mono text-[9px] truncate">{deviceId}</div>
+                                </div>
+                                <button onClick={handleCopyDeviceId} className="round-btn cursor-pointer shrink-0" style={{ width: 24, height: 24 }}>
+                                    <i className={`ti ${copiedDeviceId ? 'ti-check' : 'ti-copy'}`} style={{ fontSize: 11 }} />
+                                </button>
+                            </div>
+                            <p className="text-white/45 text-[8px] px-0.5 -mt-1">Include this if you contact support about your account.</p>
+
+                            <button onClick={handleClearCache} className="pill-blue w-full">
+                                <div className="pill-face" style={{ padding: '6px 14px', fontSize: '10px', background: 'linear-gradient(180deg,#38bdf8,#0ea5e9,#0369a1)' }}>
+                                    {cacheCleared ? 'Clearing…' : 'Clear Cache'}
+                                </div>
+                            </button>
+                            <p className="text-white/45 text-[8px] px-0.5 -mt-1">Redownloads game art. Your progress is not affected.</p>
+
+                            <p className="text-white/70 text-[9px] leading-snug mt-1">Permanently delete all your data — coins, gems, level, and history — from this device and our servers. This cannot be undone.</p>
                             <button onClick={() => setShowResetConfirm(true)} className="pill-red w-full">
-                                <div className="pill-face" style={{ padding: '7px 14px', fontSize: '10px' }}>Reset Account</div>
+                                <div className="pill-face" style={{ padding: '7px 14px', fontSize: '10px' }}>Delete My Data</div>
                             </button>
                         </div>
                     </div>
@@ -383,8 +428,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
                         <div className="px-5 py-5 flex flex-col items-center gap-3">
                             <div className="text-center">
-                                <div className="text-white font-black text-base tracking-wide">Reset Account?</div>
-                                <div className="text-red-200/80 text-[10px] mt-1 leading-snug">All coins, gems, level, and game history will be permanently deleted.</div>
+                                <div className="text-white font-black text-base tracking-wide">Delete My Data?</div>
+                                <div className="text-red-200/80 text-[10px] mt-1 leading-snug">All coins, gems, level, and game history will be permanently deleted from this device and our servers.</div>
                             </div>
                             <div className="flex gap-2 w-full mt-1">
                                 <button onClick={() => setShowResetConfirm(false)} className="pill-purple flex-1">
