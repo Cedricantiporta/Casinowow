@@ -37,6 +37,7 @@ import { PremiumModal } from './components/PremiumModal';
 import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
 import { LeaderboardModal, RANK_REWARDS, EXCLUSIVE_AVATAR } from './components/LeaderboardModal';
+import { AnimatedBalance, AnimatedBalanceHandle } from './components/AnimatedBalance';
 import { submitScore } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { GuildModal } from './components/GuildModal';
@@ -702,9 +703,9 @@ const App: React.FC = () => {
   const [showWelcomeGift, setShowWelcomeGift] = useState(() => !localStorage.getItem('cw_welcome_claimed') && !localStorage.getItem('cw_player'));
   const [giftCountDone, setGiftCountDone] = useState(false);
   const [giftDisplayAmount, setGiftDisplayAmount] = useState(0);
-  const [animBalance, setAnimBalance] = useState<number | null>(null);
-  const [coinAnimating, setCoinAnimating] = useState(false);
-  const coinAnimIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // The coins-pill count-up lives inside <AnimatedBalance>, driven imperatively,
+  // so it no longer re-renders the whole App tree ~20× per win.
+  const balanceDisplayRef = useRef<AnimatedBalanceHandle>(null);
   const pendingLoginBonusRef = useRef(false);
   const hasLeftLobbyRef = useRef(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -1670,27 +1671,11 @@ const App: React.FC = () => {
 
   const triggerCoinAnim = (addAmount: number) => {
       if (addAmount <= 0) return;
+      // playerRef.current.balance is the pre-add value here (setPlayer is async),
+      // so this counts from the old balance up to the new total. The animation
+      // itself runs entirely inside <AnimatedBalance>, off the App render path.
       const start = playerRef.current.balance;
-      const end = start + addAmount;
-      if (coinAnimIntervalRef.current) clearInterval(coinAnimIntervalRef.current);
-      setCoinAnimating(true);
-      setAnimBalance(start);
-      const steps = 20;
-      const stepDuration = 1000 / steps;
-      let step = 0;
-      coinAnimIntervalRef.current = setInterval(() => {
-          step++;
-          audioService.playCoinTick();
-          const progress = step / steps;
-          const eased = 1 - Math.pow(1 - progress, 2);
-          setAnimBalance(Math.round(start + (end - start) * eased));
-          if (step >= steps) {
-              clearInterval(coinAnimIntervalRef.current!);
-              coinAnimIntervalRef.current = null;
-              setAnimBalance(null);
-              setCoinAnimating(false);
-          }
-      }, stepDuration);
+      balanceDisplayRef.current?.animate(start, start + addAmount);
   };
 
   const handleClaimInbox = (id: string) => {
@@ -6232,10 +6217,7 @@ const App: React.FC = () => {
 
                     {/* Coins + Gems pills */}
                     <div className="flex items-center gap-[3px] md:gap-1.5 min-w-0 flex-1">
-                        <div className="currency-pill flex items-center gap-1 flex-1" style={{ overflow: 'visible', minWidth: '130px', maxWidth: 'none', ...(coinAnimating ? { boxShadow: '0 0 10px 2px rgba(255,220,0,0.6)', transition: 'box-shadow 0.2s' } : {}) }}>
-                            <img src="/new_coinicon.png" alt="" style={{ width: 30, height: 30, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
-                            <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(animBalance !== null ? animBalance : player.balance)}</span>
-                        </div>
+                        <AnimatedBalance ref={balanceDisplayRef} balance={player.balance} />
                         <div className="currency-pill flex items-center gap-1 shrink-0" style={{ overflow: 'visible', minWidth: '72px', maxWidth: '110px' }}>
                             <img src="/symbols/diamond.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain', flexShrink: 0, marginLeft: '-6px' }} />
                             <span className="num flex-1" style={{ paddingRight: '4px' }}>{formatK(player.diamonds)}</span>
@@ -7749,26 +7731,11 @@ const App: React.FC = () => {
                 try { localStorage.setItem('cw_welcome_claimed', '1'); } catch {}
                 setShowWelcomeGift(false);
                 const target = 10000000;
-                const duration = 1500;
-                const start = Date.now();
-                let lastTick2 = 0;
-                const iv = setInterval(() => {
-                    const elapsed = Date.now() - start;
-                    if (elapsed >= duration) {
-                        setAnimBalance(null);
-                        setPlayer(p => ({ ...p, balance: p.balance + target }));
-                        clearInterval(iv);
-                        handleGameSelect(GAMES_CONFIG[0]);
-                        return;
-                    }
-                    const p2 = 1 - Math.pow(1 - elapsed / duration, 3);
-                    setAnimBalance(Math.floor(target * p2));
-                    const spd = 1 + p2 * 1.5;
-                    if (elapsed - lastTick2 >= Math.max(120, 200 / spd)) {
-                        audioService.playCoinTick(spd);
-                        lastTick2 = elapsed;
-                    }
-                }, 16);
+                const start = playerRef.current.balance;
+                balanceDisplayRef.current?.animate(start, start + target, 1500, () => {
+                    setPlayer(p => ({ ...p, balance: p.balance + target }));
+                    handleGameSelect(GAMES_CONFIG[0]);
+                });
               }}
               className="pill-green w-full"
               style={{ opacity: giftCountDone ? 1 : 0.5, pointerEvents: giftCountDone ? 'auto' : 'none', transition: 'opacity 0.3s' }}>
