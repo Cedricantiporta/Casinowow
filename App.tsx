@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, LoginStreakState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState, GuildDonationState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, PICKS_COST_IN_CREDITS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
-import { LeftSidebar } from './components/LeftSidebar';
 import { ShopModal } from './components/ShopModal';
 import { PaymentModal, PaymentItem } from './components/PaymentModal';
 import { detectCurrency, CurrencyInfo, PRODUCT_USD_CENTS, toStripeAmount, formatLocalPrice, getDeviceId } from './services/paymentService';
@@ -755,12 +754,23 @@ const App: React.FC = () => {
 
   // Quest state initialized with separate stages, persisted to localStorage
   const [quest, setQuest] = useState<QuestState>(() => {
-      const defaults: QuestState = { credits: 5, picks: 5, diceCredits: 5, wildCredits: 5, wildStage: 1, diceStage: 1, max: 60, dicePosition: 0, activeGame: 'NONE', wildGrid: [] };
+      const defaults: QuestState = { miniGameCredits: 5, wildStage: 1, diceStage: 1, wheelStage: 1, max: 60, dicePosition: 0, activeGame: 'WILD', wildGrid: [] };
       try {
           const saved = localStorage.getItem('cw_quest');
           if (saved) {
               const parsed = JSON.parse(saved);
-              return { ...defaults, wildStage: parsed.wildStage || 1, diceStage: parsed.diceStage || 1, dicePosition: parsed.dicePosition || 0, wildGrid: parsed.wildGrid || [], diceCredits: parsed.diceCredits ?? 5, wildCredits: parsed.wildCredits ?? 5 };
+              // Migrate legacy separate wildCredits/diceCredits wallets into the single shared pool.
+              const migratedCredits = parsed.miniGameCredits ?? (((parsed.wildCredits ?? 0) + (parsed.diceCredits ?? 0)) || 5);
+              return {
+                  ...defaults,
+                  wildStage: parsed.wildStage || 1,
+                  diceStage: parsed.diceStage || 1,
+                  wheelStage: parsed.wheelStage || 1,
+                  dicePosition: parsed.dicePosition || 0,
+                  wildGrid: parsed.wildGrid || [],
+                  miniGameCredits: migratedCredits,
+                  activeGame: parsed.activeGame || 'WILD',
+              };
           }
       } catch {}
       return defaults;
@@ -888,7 +898,6 @@ const App: React.FC = () => {
       });
   }, [currentView]);
   const [showQuestPath, setShowQuestPath] = useState(false);
-  const [showQuestSidebar, setShowQuestSidebar] = useState(false);
   const [grandPrizePopup, setGrandPrizePopup] = useState<number | null>(null);
 
   // Arena ranking system
@@ -931,7 +940,7 @@ const App: React.FC = () => {
       const today = todayKeyStr();
       setSendsToday(prev => prev.date === today ? { date: today, count: prev.count + 1 } : { date: today, count: 1 });
   };
-  const [questCreditToast, setQuestCreditToast] = useState<null | 'dice' | 'mine'>(null);
+  const [questCreditToast, setQuestCreditToast] = useState(false);
   const questCreditToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // A slot-quest task just completed — bump this to briefly re-show the
   // SlotQuestPanel sidebar (instead of a standalone popup) for 3 seconds.
@@ -1466,7 +1475,7 @@ const App: React.FC = () => {
   const [newSlotIds, setNewSlotIds] = useState<string[]>(() => {
       try { return JSON.parse(localStorage.getItem('cw_new_slots') || '[]'); } catch { return []; }
   });
-  const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE'; stage: number; coins: number; diamonds: number; autoAdvance?: boolean } | null>(null);
+  const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE' | 'WHEEL'; stage: number; coins: number; diamonds: number; autoAdvance?: boolean } | null>(null);
   const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
   const [pendingBigWin, setPendingBigWin] = useState(false);
   type ActiveToast = { type: 'LEVEL_UP'; level: number; reward: number; maxBetIncreased: boolean; newMaxBet: number } | { type: 'PACK' } | { type: 'CARD'; rarity: 'COMMON' | 'RARE'; cardName: string } | null;
@@ -2298,8 +2307,8 @@ const App: React.FC = () => {
   }, [savedGameStates]);
 
   useEffect(() => {
-    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, diceCredits: quest.diceCredits, wildCredits: quest.wildCredits })); } catch {}
-  }, [quest.wildStage, quest.diceStage, quest.dicePosition, quest.wildGrid]);
+    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, wheelStage: quest.wheelStage, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, miniGameCredits: quest.miniGameCredits, activeGame: quest.activeGame })); } catch {}
+  }, [quest.wildStage, quest.diceStage, quest.wheelStage, quest.dicePosition, quest.wildGrid, quest.miniGameCredits, quest.activeGame]);
 
   // When all slot quest missions complete, stop auto-spin and open the quest path modal.
   // If a bonus is still running, defer until it ends.
@@ -2476,12 +2485,9 @@ const App: React.FC = () => {
                   setPlayer(p => ({ ...p, packCredits: p.packCredits + reward.value }));
                   msg = `+${reward.value} Card Packs`;
               }
-          } else if (reward.type === 'PICKS') {
-              setQuest(q => ({ ...q, wildCredits: (q.wildCredits ?? 0) + reward.value }));
-              msg = `+${reward.value} Picks`;
-          } else if (reward.type === 'DICE_CREDITS') {
-              setQuest(q => ({ ...q, diceCredits: (q.diceCredits ?? 0) + reward.value }));
-              msg = `+${reward.value} Dice`;
+          } else if (reward.type === 'MINI_CREDITS') {
+              setQuest(q => ({ ...q, miniGameCredits: (q.miniGameCredits ?? 0) + reward.value }));
+              msg = `+${reward.value} Mini Game Tokens`;
           }
       }
       setCelebrationMsg(msg);
@@ -2500,8 +2506,7 @@ const App: React.FC = () => {
       let totalDiamonds = 0;
       let totalPackCredits = 0;
       let totalPremPackCredits = 0;
-      let totalPicks = 0;
-      let totalDice = 0;
+      let totalMiniCredits = 0;
       let xpBoostApplied = false;
 
       rewardsToClaim.forEach(r => {
@@ -2511,8 +2516,7 @@ const App: React.FC = () => {
               if (r.tier === 'PREMIUM') totalPremPackCredits += r.value;
               else totalPackCredits += r.value;
           }
-          else if (r.type === 'PICKS') totalPicks += r.value;
-          else if (r.type === 'DICE_CREDITS') totalDice += r.value;
+          else if (r.type === 'MINI_CREDITS') totalMiniCredits += r.value;
           else if (r.type === 'XP_BOOST') {
               setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 }));
               xpBoostApplied = true;
@@ -2526,11 +2530,8 @@ const App: React.FC = () => {
           packCredits: p.packCredits + totalPackCredits,
           premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPremPackCredits,
       }));
-      if (totalPicks > 0) {
-          setQuest(q => ({ ...q, wildCredits: (q.wildCredits ?? 0) + totalPicks }));
-      }
-      if (totalDice > 0) {
-          setQuest(q => ({ ...q, diceCredits: (q.diceCredits ?? 0) + totalDice }));
+      if (totalMiniCredits > 0) {
+          setQuest(q => ({ ...q, miniGameCredits: (q.miniGameCredits ?? 0) + totalMiniCredits }));
       }
       
       const claimedMap = new Map(rewardsToClaim.map(r => [
@@ -3847,10 +3848,6 @@ const App: React.FC = () => {
       return newGrid;
   }, [selectedGame, freeSpinsRemaining, freeSpinsWon, spinsWithoutBonus]);
 
-  const handleQuestModeSelect = (mode: 'NONE' | 'WILD' | 'DICE') => {
-        setQuest(q => ({ ...q, activeGame: mode }));
-  };
-
   const handleStageComplete = (gameType: 'WILD' | 'DICE', bonusCoins: number, bonusDiamonds: number, autoAdvance?: boolean) => {
       setPlayer(p => ({ ...p, balance: p.balance + bonusCoins, diamonds: p.diamonds + bonusDiamonds }));
 
@@ -3871,17 +3868,17 @@ const App: React.FC = () => {
   };
 
   const handleDiceRoll = (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean, cost: number = 1) => {
-      setQuest(q => ({ ...q, diceCredits: Math.max(0, q.diceCredits - cost), dicePosition: newPosition }));
+      setQuest(q => ({ ...q, miniGameCredits: Math.max(0, q.miniGameCredits - cost), dicePosition: newPosition }));
       const msgParts: string[] = [];
       let totalCoins = 0;
       let totalGems = 0;
       let totalPacks = 0;
-      let diceGained = 0;
+      let creditsGained = 0;
       rewards.forEach(r => {
           if (r.type === 'COINS' || r.type === 'STAR') totalCoins += r.value;
           else if (r.type === 'DIAMONDS') totalGems += r.value;
           else if (r.type === 'PACKS') totalPacks += r.value;
-          else if (r.type === 'PICKS') diceGained += r.value;
+          else if (r.type === 'MINI_CREDITS') creditsGained += r.value;
       });
       if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
       if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
@@ -3895,7 +3892,7 @@ const App: React.FC = () => {
               msgParts.push(`+${totalPacks} 🃏`);
           }
       }
-      if (diceGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + diceGained })); msgParts.push(`+${diceGained} 🎲`); }
+      if (creditsGained > 0) { setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + creditsGained })); msgParts.push(`+${creditsGained} 🎫`); }
       if (isFinish) {
           const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (1.0 + 0.04 * quest.diceStage));
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
@@ -3904,6 +3901,31 @@ const App: React.FC = () => {
           setStageCompletePopup({ gameType: 'DICE', stage: currentStage, coins: bonusCoins, diamonds: 0 });
       }
       if (msgParts.length > 0) { setCelebrationMsg(msgParts.join(' · ')); audioService.playWinBig(); }
+  };
+
+  const handleWheelSpin = (rewards: MiniGameReward[], cost: number, isJackpot: boolean) => {
+      setQuest(q => ({ ...q, miniGameCredits: Math.max(0, q.miniGameCredits - cost) }));
+      const msgParts: string[] = [];
+      let totalCoins = 0;
+      let totalGems = 0;
+      let creditsGained = 0;
+      rewards.forEach(r => {
+          if (r.type === 'COINS') totalCoins += r.value;
+          else if (r.type === 'DIAMONDS') totalGems += r.value;
+          else if (r.type === 'MINI_CREDITS') creditsGained += r.value;
+      });
+      if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
+      if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
+      if (creditsGained > 0) { setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + creditsGained })); msgParts.push(`+${creditsGained} 🎫`); }
+      if (isJackpot) {
+          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (1.0 + 0.04 * quest.wheelStage));
+          setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
+          const currentStage = quest.wheelStage;
+          setQuest(q => ({ ...q, wheelStage: q.wheelStage + 1 }));
+          setStageCompletePopup({ gameType: 'WHEEL', stage: currentStage, coins: bonusCoins, diamonds: 0 });
+      } else if (msgParts.length > 0) {
+          setCelebrationMsg(msgParts.join(' · ')); audioService.playWinBig();
+      }
   };
 
   const spin = useCallback(() => {
@@ -4809,7 +4831,7 @@ const App: React.FC = () => {
         const arcticMaxBetIdx = availableBets.length - 1;
         const arcticQuestChance = Math.max(0.005, (0.10 - (arcticMaxBetIdx - betIndex) * 0.01) * 1.3 * 0.8) * 0.5;
         if (player.level >= 20 && Math.random() < arcticQuestChance) {
-            gainQuestCredit(Math.random() < 0.5 ? 'dice' : 'mine');
+            gainQuestCredit();
         }
         if (player.level >= 30) {
             const cardRoll = Math.random();
@@ -4898,7 +4920,7 @@ const App: React.FC = () => {
     const maxBetIdx = availableBets.length - 1;
     const questChance = Math.max(0.005, (0.10 - (maxBetIdx - betIndex) * 0.01) * 1.3 * 0.8) * 0.5;
     if (player.level >= 20 && Math.random() < questChance) {
-        gainQuestCredit(Math.random() < 0.5 ? 'dice' : 'mine');
+        gainQuestCredit();
     }
     if (player.level >= 30) {
         const cardRoll = Math.random();
@@ -5054,12 +5076,11 @@ const App: React.FC = () => {
       setCelebrationMsg('Gift Sent!');
   };
 
-  const gainQuestCredit = (type: 'dice' | 'mine') => {
-      if (type === 'dice') setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + 1) }));
-      else setQuest(q => ({ ...q, wildCredits: Math.min(60, q.wildCredits + 1) }));
-      setQuestCreditToast(type);
+  const gainQuestCredit = () => {
+      setQuest(q => ({ ...q, miniGameCredits: Math.min(60, q.miniGameCredits + 1) }));
+      setQuestCreditToast(true);
       if (questCreditToastTimer.current) clearTimeout(questCreditToastTimer.current);
-      questCreditToastTimer.current = setTimeout(() => setQuestCreditToast(null), 2000);
+      questCreditToastTimer.current = setTimeout(() => setQuestCreditToast(false), 2000);
   };
 
   // Award Arena win-tier points for a feature win (jackpot, roulette, cascade,
@@ -5431,16 +5452,6 @@ const App: React.FC = () => {
           setShowWinPopup(true);
       }
   };
-  const handleQuestClaim = () => {
-      if (player.level < 20) {
-           setCelebrationMsg("Quest Unlocks at Level 20!");
-           audioService.playStoneBreak();
-           return;
-      }
-      openModal('MINIGAME');
-      audioService.playClick();
-  };
-
   const handleWildQuestClaim = () => {
       if (player.level < 20) {
           setCelebrationMsg("Quest Unlocks at Level 20!");
@@ -5462,29 +5473,26 @@ const App: React.FC = () => {
       openModal('MINIGAME');
       audioService.playClick();
   };
-  const handleBuyPicks = (amount: number, cost: number, currency: 'CREDITS' | 'GEMS') => {
-      if (currency === 'GEMS') {
-          if (player.diamonds >= cost) {
-              setPlayer(p => ({ ...p, diamonds: p.diamonds - cost }));
-              if (quest.activeGame === 'DICE') {
-                  setQuest(q => ({ ...q, diceCredits: q.diceCredits + amount }));
-              } else {
-                  setQuest(q => ({ ...q, wildCredits: q.wildCredits + amount }));
-              }
-              audioService.playClick();
-          }
+
+  const handleWheelQuestClaim = () => {
+      if (player.level < 20) {
+          setCelebrationMsg("Quest Unlocks at Level 20!");
+          audioService.playStoneBreak();
+          return;
       }
+      setQuest(q => ({ ...q, activeGame: 'WHEEL' }));
+      openModal('MINIGAME');
+      audioService.playClick();
   };
-  const handleBuyQuestBundle = (type: 'PICKS' | 'DICE', picks: number, dice: number, coins: number, gemCost: number, bonusGems: number = 0) => {
+  const handleBuyQuestBundle = (amount: number, coins: number, gemCost: number, bonusGems: number = 0) => {
       if (player.diamonds < gemCost) { setCelebrationMsg('Not Enough Gems!'); audioService.playStoneBreak(); return; }
       setPlayer(p => ({ ...p, diamonds: p.diamonds - gemCost + bonusGems, balance: p.balance + coins }));
-      if (picks > 0) setQuest(q => ({ ...q, wildCredits: q.wildCredits + picks }));
-      if (dice > 0) setQuest(q => ({ ...q, diceCredits: q.diceCredits + dice }));
+      setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + amount }));
       audioService.playWinBig();
       setCelebrationMsg(`Bundle claimed!`);
   };
   const handleMiniGamePick = (isGem: boolean, reward: MiniGameReward | null) => {
-      setQuest(q => ({ ...q, wildCredits: Math.max(0, q.wildCredits - 1) }));
+      setQuest(q => ({ ...q, miniGameCredits: Math.max(0, q.miniGameCredits - 1) }));
       if (reward) {
           if (reward.type === 'COINS') {
               setPlayer(p => ({ ...p, balance: p.balance + reward.value }));
@@ -5492,7 +5500,7 @@ const App: React.FC = () => {
           }
           else if (reward.type === 'DIAMONDS') { setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value })); setCelebrationMsg(`+${reward.value} Gems`); }
           else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 })); setCelebrationMsg(`2× XP Boost!`); }
-          else if (reward.type === 'PICKS') { setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value })); setCelebrationMsg(`+${reward.value} Credits`); }
+          else if (reward.type === 'MINI_CREDITS') { setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + reward.value })); setCelebrationMsg(`+${reward.value} Credits`); }
           else if (reward.type === 'CREDIT_BACK') {
               const premChance = Math.min(0.20, 0.10 + Math.floor(player.level / 5) * 0.01);
               if (Math.random() < premChance) {
@@ -5507,11 +5515,11 @@ const App: React.FC = () => {
   };
 
   const handleBatchPick = (picksUsed: number, rewards: MiniGameReward[]) => {
-      setQuest(q => ({ ...q, wildCredits: Math.max(0, q.wildCredits - picksUsed) }));
+      setQuest(q => ({ ...q, miniGameCredits: Math.max(0, q.miniGameCredits - picksUsed) }));
 
       let totalCoins = 0;
       let totalGems = 0;
-      let totalPicksFound = 0;
+      let totalCreditsFound = 0;
       let xpBoostFound = false;
       let totalPacks = 0;
       let totalPremPacks = 0;
@@ -5519,7 +5527,7 @@ const App: React.FC = () => {
       rewards.forEach(r => {
           if (r.type === 'COINS') totalCoins += r.value;
           else if (r.type === 'DIAMONDS') totalGems += r.value;
-          else if (r.type === 'PICKS') totalPicksFound += r.value;
+          else if (r.type === 'MINI_CREDITS') totalCreditsFound += r.value;
           else if (r.type === 'XP_BOOST') xpBoostFound = true;
           else if (r.type === 'CREDIT_BACK') {
               const premChance = Math.min(0.20, 0.10 + Math.floor(player.level / 5) * 0.01);
@@ -5530,7 +5538,7 @@ const App: React.FC = () => {
 
       if (totalCoins > 0) setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
       if (totalGems > 0) setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems }));
-      if (totalPicksFound > 0) setQuest(q => ({ ...q, wildCredits: q.wildCredits + totalPicksFound }));
+      if (totalCreditsFound > 0) setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + totalCreditsFound }));
       if (xpBoostFound) setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 }));
       if (totalPacks > 0) setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks }));
       if (totalPremPacks > 0) setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPremPacks }));
@@ -5538,7 +5546,7 @@ const App: React.FC = () => {
       const parts = [];
       if (totalCoins > 0) parts.push(`${formatCommaNumber(totalCoins)} Coins`);
       if (totalGems > 0) parts.push(`${totalGems} Gems`);
-      if (totalPicksFound > 0) parts.push(`${totalPicksFound} Credits`);
+      if (totalCreditsFound > 0) parts.push(`${totalCreditsFound} Credits`);
       if (xpBoostFound) parts.push("XP Boost");
       if (totalPacks > 0) parts.push(`${totalPacks} 🃏 Packs`);
       if (totalPremPacks > 0) parts.push(`${totalPremPacks} 🎴 Prem Packs`);
@@ -6034,7 +6042,7 @@ const App: React.FC = () => {
           arenaXpMultiplier: 2, arenaXpBoostEndTime: Math.max(now, p.arenaXpBoostEndTime || 0) + b.arenaDays * DAY,
           packCredits: p.packCredits + b.packs,
       }));
-      setQuest(q => ({ ...q, diceCredits: Math.min(60, q.diceCredits + b.dice), wildCredits: Math.min(60, q.wildCredits + b.picks) }));
+      setQuest(q => ({ ...q, miniGameCredits: Math.min(60, q.miniGameCredits + b.dice + b.picks) }));
   };
 
   const handleShopBuy = (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST' | 'ARENA_XP' | 'VIP_XP_BOOST', amount: number, duration?: number, cost?: number) => {
@@ -6470,8 +6478,7 @@ const App: React.FC = () => {
         {(currentView === 'LOBBY' || currentView === 'HIGH_LIMIT') ? (
             <Lobby
                 onSelectGame={handleGameSelect}
-                onOpenMine={handleWildQuestClaim}
-                onOpenDice={handleDiceQuestClaim}
+                onOpenMiniGames={() => setShowMiniGamesHub(true)}
                 onOpenQuestPath={() => setShowQuestPath(true)}
                 onOpenMissions={openMissionsModal}
                 onOpenBattlePass={openBattlePassModal}
@@ -6544,9 +6551,10 @@ const App: React.FC = () => {
                                         <div style={{ width:'100%', textAlign:'center', fontSize:8, fontWeight:900, background:'linear-gradient(180deg,#2a2a2a,#111)', boxShadow:'inset 0 1px 1px rgba(255,255,255,0.12),0 2px 0 #000', color:'#fde68a', borderRadius:8, padding:'2px 0', marginTop:'-6px' }}>LV.{missionState.passLevel}</div>
                                     </button>
                                 );
+                                const miniGameIcon = quest.activeGame === 'DICE' ? '/ui/dice.png' : quest.activeGame === 'WHEEL' ? '/ui/wheel.png' : '/ui/coinmine.png';
                                 return sidebarPage === 0 ? (<>
-                                    {/* Slot 1: Quest when in progress, else Pass */}
-                                    {questInProgress ? (
+                                    {/* Quest — shown only while a quest path run is in progress */}
+                                    {questInProgress && (
                                         <button onClick={() => setShowQuestPath(true)} className="relative flex flex-col items-center active:scale-95 transition-transform">
                                             <img src="/questlobbyicon.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                             {(() => {
@@ -6564,36 +6572,23 @@ const App: React.FC = () => {
                                                 );
                                             })()}
                                         </button>
-                                    ) : passBtn}
-                                    {/* Mine */}
+                                    )}
+                                    {/* Pass — always on page 0 */}
+                                    {passBtn}
+                                    {/* Mini Games — Coin Mine, Dice Roll, Prize Wheel, one at a time */}
                                     <button
-                                        onClick={!isQuestLocked ? handleWildQuestClaim : undefined}
+                                        onClick={!isQuestLocked ? () => setShowMiniGamesHub(true) : undefined}
                                         className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                                     >
-                                        {quest.wildCredits > 0 && !isQuestLocked && (
+                                        {quest.miniGameCredits > 0 && !isQuestLocked && (
                                             <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.wildCredits}
+                                                {quest.miniGameCredits}
                                             </div>
                                         )}
-                                        <img src="/ui/coinmine.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
-                                        <div style={pillStyle}>Play</div>
-                                    </button>
-                                    {/* Dice */}
-                                    <button
-                                        onClick={!isQuestLocked ? handleDiceQuestClaim : undefined}
-                                        className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
-                                    >
-                                        {quest.diceCredits > 0 && !isQuestLocked && (
-                                            <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.diceCredits}
-                                            </div>
-                                        )}
-                                        <img src="/ui/dice.png" alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
+                                        <img src={miniGameIcon} alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                         <div style={pillStyle}>Play</div>
                                     </button>
                                 </>) : (<>
-                                    {/* Pass moves here when Quest is on page 0 */}
-                                    {questInProgress && passBtn}
                                     {/* Missions */}
                                     <button onClick={openMissionsModal} className="relative flex flex-col items-center active:scale-95 transition-transform">
                                         {missReady > 0 && (
@@ -7367,23 +7362,22 @@ const App: React.FC = () => {
 
       {activeModal === 'MINIGAME' && <MiniGameModal
         isOpen
-        diceCredits={quest.diceCredits}
-        wildCredits={quest.wildCredits}
+        credits={quest.miniGameCredits}
         wildStage={quest.wildStage}
         diceStage={quest.diceStage}
+        wheelStage={quest.wheelStage}
         dicePosition={quest.dicePosition}
         activeGame={quest.activeGame}
         savedGrid={quest.wildGrid}
         balance={player.balance}
         diamonds={player.diamonds}
-        onSelectMode={handleQuestModeSelect}
-        onBuyPicks={handleBuyPicks}
         onBuyQuestBundle={handleBuyQuestBundle}
         onPickTile={handleMiniGamePick}
         onBatchPick={handleBatchPick}
         onStageComplete={(bonusCoins, bonusDiamonds, autoAdvance) => handleStageComplete(quest.activeGame === 'DICE' ? 'DICE' : 'WILD', bonusCoins, bonusDiamonds, autoAdvance)}
         onGridUpdate={handleWildGridUpdate}
         onDiceRoll={handleDiceRoll}
+        onWheelSpin={handleWheelSpin}
         onClose={() => setActiveModal('NONE')}
         playerLevel={player.level}
         maxBet={MAX_BET_BY_LEVEL(player.level)}
@@ -7964,8 +7958,9 @@ const App: React.FC = () => {
           onClose={() => setShowMiniGamesHub(false)}
           onOpenWildQuest={() => { setShowMiniGamesHub(false); setTimeout(handleWildQuestClaim, 50); }}
           onOpenDiceQuest={() => { setShowMiniGamesHub(false); setTimeout(handleDiceQuestClaim, 50); }}
-          wildCredits={quest.wildCredits}
-          diceCredits={quest.diceCredits}
+          onOpenWheelQuest={() => { setShowMiniGamesHub(false); setTimeout(handleWheelQuestClaim, 50); }}
+          credits={quest.miniGameCredits}
+          selectedGame={quest.activeGame}
           isQuestLocked={player.level < 20}
       />
 

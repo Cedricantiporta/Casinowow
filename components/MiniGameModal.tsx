@@ -2,28 +2,26 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MiniGameReward, WildGridCell } from '../types';
 import { formatNumber, formatCommaNumber } from '../constants';
 import { audioService } from '../services/audioService';
+import { PrizeWheel, PrizeWheelHandle } from './PrizeWheel';
 
 interface MiniGameModalProps {
     isOpen: boolean;
-    credits?: number;
-    picks?: number;
-    diceCredits?: number;
-    wildCredits?: number;
+    credits: number;
     wildStage: number;
     diceStage: number;
+    wheelStage: number;
     dicePosition: number;
-    activeGame: 'NONE' | 'WILD' | 'DICE';
+    activeGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL';
     savedGrid?: WildGridCell[];
     balance?: number;
     diamonds?: number;
-    onSelectMode: (mode: 'NONE' | 'WILD' | 'DICE') => void;
-    onBuyPicks: (amount: number, cost: number, currency: 'CREDITS' | 'GEMS') => void;
-    onBuyQuestBundle?: (type: 'PICKS' | 'DICE', picks: number, dice: number, coins: number, gemCost: number, bonusGems: number) => void;
+    onBuyQuestBundle?: (amount: number, coins: number, gemCost: number, bonusGems: number) => void;
     onPickTile: (isGem: boolean, reward: MiniGameReward | null) => void;
     onBatchPick: (picksUsed: number, rewards: MiniGameReward[]) => void;
     onStageComplete: (bonusCoins: number, bonusDiamonds: number, autoAdvance?: boolean) => void;
     onGridUpdate?: (grid: WildGridCell[]) => void;
     onDiceRoll: (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean, cost?: number) => void;
+    onWheelSpin: (rewards: MiniGameReward[], cost: number, isJackpot: boolean) => void;
     onClose: () => void;
     playerLevel: number;
     maxBet?: number;
@@ -84,12 +82,14 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 );
 
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
-    isOpen, diceCredits: diceCreditsRaw, wildCredits: wildCreditsRaw, wildStage, diceStage, dicePosition = 0, activeGame, savedGrid,
+    isOpen, credits: creditsRaw, wildStage, diceStage, wheelStage, dicePosition = 0, activeGame, savedGrid,
     balance = 0, diamonds = 0,
-    onSelectMode, onBuyPicks, onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onClose, playerLevel, maxBet, onOpenGemShop
+    onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onWheelSpin, onClose, playerLevel, maxBet, onOpenGemShop
 }) => {
-    const diceCredits = diceCreditsRaw ?? 0;
-    const wildCredits = wildCreditsRaw ?? 0;
+    const credits = creditsRaw ?? 0;
+    // Both games draw from the same shared token wallet.
+    const diceCredits = credits;
+    const wildCredits = credits;
     const { cols: gridCols, rows: gridRows } = getGridDimensions(wildStage);
     const totalCells = gridCols * gridRows;
 
@@ -98,7 +98,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [stagePending, setStagePending] = useState(false);
     const [stageClearData, setStageClearData] = useState<{coins: number; gems: number} | null>(null);
     const [noPicksMsg, setNoPicksMsg] = useState(false);
-    const [showBuyPopup, setShowBuyPopup] = useState<'PICKS' | 'DICE' | null>(null);
+    const [showBuyPopup, setShowBuyPopup] = useState(false);
     const [explodingCells, setExplodingCells] = useState<Set<number>>(new Set());
     const [shatteringCells, setShatteringCells] = useState<Set<number>>(new Set());
     const [starBuff, setStarBuff] = useState(false);
@@ -120,12 +120,16 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const rollButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isLongPressRef = useRef(false);
     const mouseIsDownRef = useRef(false);
+    const [wheelSpinning, setWheelSpinning] = useState(false);
+    const prizeWheelRef = useRef<PrizeWheelHandle>(null);
 
     // Stage prizes locked at stage-start; not recalculated when maxBet changes mid-stage
     const [lockedWildPrize, setLockedWildPrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * wildStage)));
     const [lockedDicePrize, setLockedDicePrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * diceStage)));
+    const [lockedWheelPrize, setLockedWheelPrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * wheelStage)));
     useEffect(() => { setLockedWildPrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * wildStage))); }, [wildStage]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => { setLockedDicePrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * diceStage))); }, [diceStage]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => { setLockedWheelPrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * wheelStage))); }, [wheelStage]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const boardLength = Math.round((10 + ((diceStage - 1) * 5)) * 1.4);
     const boardContainerRef = useRef<HTMLDivElement>(null);
@@ -140,9 +144,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             } else if (r < 0.83) {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'COINS', value: baseCoin, label: formatNumber(baseCoin) } };
             } else if (r < 0.915) {
-                cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'PICKS', value: 1, label: '+1 Pick' } };
+                cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'MINI_CREDITS', value: 1, label: '+1 Token' } };
             } else if (r < 0.97) {
-                cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'PICKS', value: 2, label: '+2 Picks' } };
+                cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'MINI_CREDITS', value: 2, label: '+2 Tokens' } };
             } else {
                 cells[i] = { revealed: false, content: 'REWARD', reward: { type: 'DIAMONDS', value: 5, label: '+5 Gems' } };
             }
@@ -161,7 +165,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         const blockCandidates = cells.map((c, i) => (c.content === 'BLANK' || c.content === 'REWARD') ? i : -1).filter(i => i !== -1);
         const relabel = (r: MiniGameReward, v: number): string =>
             r.type === 'COINS' ? formatNumber(v)
-            : r.type === 'PICKS' ? `+${v} Pick${v > 1 ? 's' : ''}`
+            : r.type === 'MINI_CREDITS' ? `+${v} Token${v > 1 ? 's' : ''}`
             : r.type === 'DIAMONDS' ? `+${v} Gems`
             : r.label;
         const placeBlock = (mult: 2 | 3 | 4) => {
@@ -230,9 +234,9 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         const v = Math.floor(baseCoin * (0.5 + Math.random()));
                         reward = { type: 'COINS', value: v, label: formatNumber(v) };
                     } else if (r < 0.44) {
-                        reward = { type: 'PICKS', value: 1, label: '×1' };
+                        reward = { type: 'MINI_CREDITS', value: 1, label: '×1' };
                     } else if (r < 0.505) {
-                        reward = { type: 'PICKS', value: 2, label: '×2' };
+                        reward = { type: 'MINI_CREDITS', value: 2, label: '×2' };
                     } else if (r < 0.595) {
                         const gems = Math.floor(Math.random() * 46) + 5;
                         reward = { type: 'DIAMONDS', value: gems, label: `+${gems}` };
@@ -629,7 +633,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     if (!isOpen) return null;
 
     const isWild = activeGame === 'WILD';
-    const questTitle = isWild ? 'CoinMine' : 'Fortune Trail';
+    const questTitle = isWild ? 'CoinMine' : activeGame === 'DICE' ? 'Fortune Trail' : 'Prize Wheel';
 
     return (
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
@@ -659,7 +663,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 {/* RIGHT — stage prize + X */}
                 {activeGame !== 'NONE' && (
                     <span className="font-black text-white font-mono text-sm ml-auto mr-2 z-10 leading-none">
-                        {formatCommaNumber(activeGame === 'WILD' ? lockedWildPrize : lockedDicePrize)}
+                        {formatCommaNumber(isWild ? lockedWildPrize : activeGame === 'DICE' ? lockedDicePrize : lockedWheelPrize)}
                     </span>
                 )}
                 <div className="round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x"></i></div>
@@ -719,7 +723,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         : isGem ? '/coinmine_stageclearicon.png'
                                         : isBomb ? '/coinmine_bombicon.png'
                                         : isReward && cell.reward?.type === 'COINS' ? '/coinmine_coinicon.png'
-                                        : isReward && cell.reward?.type === 'PICKS' ? '/coinmine_pickaxe.png'
+                                        : isReward && cell.reward?.type === 'MINI_CREDITS' ? '/coinmine_pickaxe.png'
                                         : isReward ? '/coinmine_gemicon.png'
                                         : null;
 
@@ -776,7 +780,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             <span className="font-black text-white text-xl leading-none mt-0.5">{wildCredits}</span>
                             <span className="text-white/50 text-[8px] font-black">Picks</span>
                         </div>
-                        <button onClick={() => setShowBuyPopup('PICKS')} className="pill-green w-full">
+                        <button onClick={() => setShowBuyPopup(true)} className="pill-green w-full">
                             <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
                         </button>
                     </div>
@@ -811,7 +815,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         : step.reward?.type === 'BACK' ? '/dice_backicon.png'
                                         : isFiveX ? '/dice_staricon.png'
                                         : step.reward?.type === 'COINS' ? '/coinmine_coinicon.png'
-                                        : step.reward?.type === 'PICKS' ? '/coinmine_pickaxe.png'
+                                        : step.reward?.type === 'MINI_CREDITS' ? '/coinmine_pickaxe.png'
                                         : step.reward?.type === 'DIAMONDS' ? '/coinmine_gemicon.png'
                                         : step.reward?.type === 'PACKS' ? '/coinmine_gemicon.png'
                                         : '/dice_blankicon.png';
@@ -880,7 +884,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             <span className="font-black text-white text-xl leading-none mt-0.5">{diceCredits}</span>
                             <span className="text-white/50 text-[8px] font-black">Dice</span>
                         </div>
-                        <button onClick={() => setShowBuyPopup('DICE')} className="pill-green w-full">
+                        <button onClick={() => setShowBuyPopup(true)} className="pill-green w-full">
                             <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
                         </button>
                         <div className="flex-1" />
@@ -938,6 +942,47 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 </div>
             )}
 
+            {/* ── PRIZE WHEEL ── */}
+            {activeGame === 'WHEEL' && (
+                <div className="flex-1 flex overflow-hidden">
+                    <PrizeWheel
+                        ref={prizeWheelRef}
+                        credits={credits}
+                        stage={wheelStage}
+                        maxBet={maxBet || 10000}
+                        onSpinResult={(rewards, cost, isJackpot) => onWheelSpin(rewards, cost, isJackpot)}
+                        onSpinningChange={setWheelSpinning}
+                    />
+
+                    {/* Right sidebar — stage, token counter, buy, spin (mirrors the Dice roll button) */}
+                    <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
+                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 90, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
+                        <div className="flex flex-col items-center leading-none">
+                            <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
+                            <span className="font-black text-white text-2xl leading-none">{wheelStage}</span>
+                        </div>
+                        <div className="w-full h-px bg-white/10" />
+                        <div className="flex flex-col items-center leading-none">
+                            <img src="/coinmine_pickaxe.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
+                            <span className="font-black text-white text-xl leading-none mt-0.5">{credits}</span>
+                            <span className="text-white/50 text-[8px] font-black">Tokens</span>
+                        </div>
+                        <button onClick={() => setShowBuyPopup(true)} className="pill-green w-full">
+                            <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
+                        </button>
+                        <div className="flex-1" />
+                        <button
+                            onClick={() => prizeWheelRef.current?.spin()}
+                            disabled={credits <= 0 || wheelSpinning}
+                            className={`${credits <= 0 || wheelSpinning ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
+                            <div className="pill-face" style={{ padding: '7px 8px', fontSize: '10px' }}>
+                                {wheelSpinning ? 'Spinning…' : 'Spin'}
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Stage clear reward modal — centered, shown for both WILD and DICE */}
             {stageWinning && stageClearData && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -955,43 +1000,35 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 </div>
             )}
 
-            {/* Buy Picks/Dice Popup */}
+            {/* Buy Tokens Popup */}
             {showBuyPopup && (
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-md"
-                    onClick={() => setShowBuyPopup(null)}>
+                    onClick={() => setShowBuyPopup(false)}>
                     <div className="rounded-3xl overflow-hidden shadow-2xl" style={{ width: 300, background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}
                         onClick={e => e.stopPropagation()}>
                         {/* Header */}
                         <div className="px-4 pt-3 pb-2 flex items-center gap-2">
                             <div className="flex-1">
-                                <div className="text-white font-black text-sm leading-none">
-                                    {showBuyPopup === 'PICKS' ? 'Buy Picks' : 'Buy Dice'}
-                                </div>
+                                <div className="text-white font-black text-sm leading-none">Buy Tokens</div>
                                 <div className="text-purple-300/60 text-[10px] mt-0.5">Bundles include coin bonus</div>
                             </div>
                             <div className="currency-pill flex items-center gap-1 shrink-0" style={{ background: 'rgba(0,0,0,0.55)' }}>
                                 <img src="/symbols/diamond.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', marginLeft: '-2px' }} />
                                 <span className="num text-xs">{diamonds}</span>
                                 {onOpenGemShop && (
-                                    <button onClick={() => { setShowBuyPopup(null); onClose(); setTimeout(onOpenGemShop, 50); }} className="pill-green">
+                                    <button onClick={() => { setShowBuyPopup(false); onClose(); setTimeout(onOpenGemShop, 50); }} className="pill-green">
                                         <div className="pill-face" style={{ padding: '2px 6px', fontSize: '9px' }}>Buy</div>
                                     </button>
                                 )}
                             </div>
-                            <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowBuyPopup(null)}><i className="ti ti-x" /></div>
+                            <div className="round-btn cursor-pointer shrink-0" onClick={() => setShowBuyPopup(false)}><i className="ti ti-x" /></div>
                         </div>
                         {/* Bundle options */}
                         <div className="px-3 pb-3 flex gap-2">
-                            {(showBuyPopup === 'PICKS'
-                                ? [
-                                    { label: 'Starter', picks: 5,  dice: 0,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 300 },
-                                    { label: 'Pro',     picks: 20, dice: 0,  coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 1000 },
-                                ]
-                                : [
-                                    { label: 'Starter', picks: 0,  dice: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 300 },
-                                    { label: 'Pro',     picks: 0,  dice: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 1000 },
-                                ]
-                            ).map(opt => {
+                            {[
+                                { label: 'Starter', amount: 5,  coins: Math.round((maxBet || 10000) * 25),  bonusGems: 0, gemCost: 300 },
+                                { label: 'Pro',     amount: 20, coins: Math.round((maxBet || 10000) * 100), bonusGems: 0, gemCost: 1000 },
+                            ].map(opt => {
                                 const canAfford = diamonds >= opt.gemCost;
                                 return (
                                     <div key={opt.label}
@@ -1000,8 +1037,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                         <div className="text-white font-black text-sm">{opt.label}</div>
                                         <div className="w-full flex flex-col gap-1 my-1">
                                             <div className="flex items-center gap-1.5 text-white text-xs font-bold">
-                                                {showBuyPopup === 'PICKS' ? <img src="/ui/pick.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle' }} /> : <span>🎲</span>}
-                                                <span>+{showBuyPopup === 'PICKS' ? opt.picks : opt.dice} {showBuyPopup === 'PICKS' ? 'Picks' : 'Dice'}</span>
+                                                <img src="/ui/pick.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', display: 'inline-block', verticalAlign: 'middle' }} />
+                                                <span>+{opt.amount} Tokens</span>
                                             </div>
                                             <div className="flex items-center gap-1.5 text-yellow-200 text-xs font-bold">
                                                 <img src="/new_coinicon.png" alt="" style={{ width: '1em', height: '1em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
@@ -1009,7 +1046,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => { if (!canAfford) return; onBuyQuestBundle?.(showBuyPopup, opt.picks, opt.dice, opt.coins, opt.gemCost, opt.bonusGems); setShowBuyPopup(null); }}
+                                            onClick={() => { if (!canAfford) return; onBuyQuestBundle?.(opt.amount, opt.coins, opt.gemCost, opt.bonusGems); setShowBuyPopup(false); }}
                                             className={`pill-green w-full ${!canAfford ? 'opacity-40' : ''}`}>
                                             <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>
                                                 <img src="/symbols/diamond.png" alt="" style={{ width: '0.9em', height: '0.9em', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block', marginRight: 3 }} />{opt.gemCost}

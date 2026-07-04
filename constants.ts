@@ -768,7 +768,6 @@ export const INITIAL_GEMS = 0;
 export const BASE_XP_PER_SPIN = 1000; 
 export const XP_BASE_REQ = 2000;
 export const AUTO_SPIN_DELAY = 1500;
-export const PICKS_COST_IN_CREDITS = 5; 
 
 const GENERATE_SCALES = () => {
     const bets: number[] = [];
@@ -1192,21 +1191,19 @@ export const GENERATE_MONTHLY_MISSIONS = (playerLevel: number, maxBet?: number):
 
 export const GENERATE_PASS_REWARDS = (maxBet: number = 10000): PassReward[] => {
     const rewards: PassReward[] = [];
-    // FREE tier special pattern (cycles): Gems, Picks, Dice, Card Packs, XP
+    // FREE tier special pattern (cycles): Gems, Mini Game Tokens, Card Packs, XP
     const freeSpecials: { type: RewardType; fn: (i: number) => [number, string] }[] = [
-        { type: 'DIAMONDS',    fn: (i) => { const v = i * 4; return [v, `${v} 💎`]; } },
-        { type: 'PICKS',       fn: (_) => [1, '+1 Picks'] },
-        { type: 'DICE_CREDITS',fn: (_) => [1, '+1 Dice'] },
-        { type: 'CREDIT_BACK', fn: (_) => [5, '+5 Card Packs'] },
-        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP 1h'] },
+        { type: 'DIAMONDS',     fn: (i) => { const v = i * 4; return [v, `${v} 💎`]; } },
+        { type: 'MINI_CREDITS', fn: (_) => [2, '+2 Tokens'] },
+        { type: 'CREDIT_BACK',  fn: (_) => [5, '+5 Card Packs'] },
+        { type: 'XP_BOOST',     fn: (_) => [2, '2x XP 1h'] },
     ];
-    // PREMIUM tier special pattern (cycles): Gems, Picks, Dice, Card Packs, XP
+    // PREMIUM tier special pattern (cycles): Gems, Mini Game Tokens, Card Packs, XP
     const premSpecials: { type: RewardType; fn: (i: number) => [number, string] }[] = [
-        { type: 'DIAMONDS',    fn: (i) => { const v = i * 20; return [v, `${v} 💎`]; } },
-        { type: 'PICKS',       fn: (_) => [3, '+3 Picks'] },
-        { type: 'DICE_CREDITS',fn: (_) => [3, '+3 Dice'] },
-        { type: 'CREDIT_BACK', fn: (_) => [2, '+2 Premium Packs'] },
-        { type: 'XP_BOOST',    fn: (_) => [2, '2x XP 1h'] },
+        { type: 'DIAMONDS',     fn: (i) => { const v = i * 20; return [v, `${v} 💎`]; } },
+        { type: 'MINI_CREDITS', fn: (_) => [6, '+6 Tokens'] },
+        { type: 'CREDIT_BACK',  fn: (_) => [2, '+2 Premium Packs'] },
+        { type: 'XP_BOOST',     fn: (_) => [2, '2x XP 1h'] },
     ];
 
     for (let i = 1; i <= 50; i++) {

@@ -5,35 +5,42 @@ interface MiniGamesHubProps {
     onClose: () => void;
     onOpenWildQuest: () => void;
     onOpenDiceQuest: () => void;
-    wildCredits: number;
-    diceCredits: number;
+    onOpenWheelQuest: () => void;
+    credits: number;
+    selectedGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL';
     isQuestLocked: boolean;
 }
 
 export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
-    isOpen, onClose, onOpenWildQuest, onOpenDiceQuest,
-    wildCredits, diceCredits, isQuestLocked,
+    isOpen, onClose, onOpenWildQuest, onOpenDiceQuest, onOpenWheelQuest,
+    credits, selectedGame, isQuestLocked,
 }) => {
     if (!isOpen) return null;
 
     const games = [
         {
-            key: 'wild',
+            key: 'WILD' as const,
             icon: '/ui/coinmine.png',
             label: 'Coin Mine',
             blurb: 'Dig for coins, gems and multipliers',
-            credits: wildCredits,
             glow: 'rgba(168,85,247,0.55)',
             onOpen: onOpenWildQuest,
         },
         {
-            key: 'dice',
+            key: 'DICE' as const,
             icon: '/ui/dice.png',
             label: 'Dice Roll',
             blurb: 'Roll across the board for big rewards',
-            credits: diceCredits,
             glow: 'rgba(56,189,248,0.55)',
             onOpen: onOpenDiceQuest,
+        },
+        {
+            key: 'WHEEL' as const,
+            icon: '/ui/wheel.png',
+            label: 'Prize Wheel',
+            blurb: 'Spin for coins, gems and a jackpot',
+            glow: 'rgba(217,119,6,0.55)',
+            onOpen: onOpenWheelQuest,
         },
     ];
 
@@ -53,39 +60,58 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
                     <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={onClose}><i className="ti ti-x" /></button>
                 </div>
 
-                {/* Tiles */}
-                <div className="flex gap-2.5 px-4 pb-5 pt-1">
-                    {games.map(game => (
-                        <div key={game.key} className="tcard flex flex-col items-center flex-1 gap-2.5 p-3 relative">
-                            {/* Credit badge */}
-                            {!isQuestLocked && game.credits > 0 && (
-                                <div className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
-                                    style={{
-                                        background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)',
-                                        boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)',
+                {/* Shared token wallet — the one progress bar design, reused everywhere */}
+                {!isQuestLocked && (() => {
+                    const capped = Math.min(credits, 60);
+                    const pct = (capped / 60) * 100;
+                    const complete = capped >= 60;
+                    return (
+                        <div className="px-4 pb-2">
+                            <div className="rtrack" style={{ height: 16, minWidth: 0, padding: '0 6px' }}>
+                                <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
+                                    <div style={{
+                                        position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12,
+                                        width: `${pct}%`,
+                                        background: complete
+                                            ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'
+                                            : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)',
+                                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
+                                        transition: 'width 0.4s ease',
                                     }}>
-                                    <span className="font-black text-white leading-none" style={{ fontSize: 9 }}>{game.credits > 60 ? 60 : game.credits}</span>
+                                        <div className="absolute inset-y-0 w-5 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
+                                    </div>
                                 </div>
-                            )}
-
-                            <div className={`flex items-center justify-center ${isQuestLocked ? 'grayscale opacity-60' : ''}`} style={{ width: 80, height: 80 }}>
-                                <img src={game.icon} alt=""
-                                    style={{ width: 80, height: 80, objectFit: 'contain', filter: isQuestLocked ? undefined : `drop-shadow(0 0 12px ${game.glow})` }} />
+                                <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{capped}/60 tokens</span>
                             </div>
-
-                            <div className="font-black text-white text-center" style={{ fontSize: 13 }}>{game.label}</div>
-                            <div className="text-white/55 text-center" style={{ fontSize: 10, lineHeight: 1.3, minHeight: 26 }}>{game.blurb}</div>
-
-                            <button
-                                onClick={() => { if (!isQuestLocked) { onClose(); setTimeout(game.onOpen, 50); } }}
-                                disabled={isQuestLocked}
-                                className={`pill-green w-full ${isQuestLocked ? 'opacity-40' : ''}`}>
-                                <div className="pill-face" style={{ padding: '6px 10px', fontSize: '10px' }}>
-                                    {isQuestLocked ? 'Lv.20' : !isQuestLocked && game.credits > 0 ? `Play ${game.credits}/60` : 'Play'}
-                                </div>
-                            </button>
                         </div>
-                    ))}
+                    );
+                })()}
+
+                {/* Tiles */}
+                <div className="flex gap-2 px-4 pb-5 pt-1">
+                    {games.map(game => {
+                        const isSelected = selectedGame === game.key;
+                        return (
+                            <div key={game.key} className={isSelected && !isQuestLocked ? 'tcard-gold flex flex-col items-center flex-1 gap-2 p-2.5' : 'tcard flex flex-col items-center flex-1 gap-2 p-2.5'}>
+                                <div className={`flex items-center justify-center ${isQuestLocked ? 'grayscale opacity-60' : ''}`} style={{ width: 64, height: 64 }}>
+                                    <img src={game.icon} alt=""
+                                        style={{ width: 64, height: 64, objectFit: 'contain', filter: isQuestLocked ? undefined : `drop-shadow(0 0 12px ${game.glow})` }} />
+                                </div>
+
+                                <div className="font-black text-white text-center" style={{ fontSize: 12 }}>{game.label}</div>
+                                <div className="text-white/55 text-center" style={{ fontSize: 9, lineHeight: 1.3, minHeight: 24 }}>{game.blurb}</div>
+
+                                <button
+                                    onClick={() => { if (!isQuestLocked) { onClose(); setTimeout(game.onOpen, 50); } }}
+                                    disabled={isQuestLocked}
+                                    className={`${isSelected && !isQuestLocked ? 'pill-gold' : 'pill-green'} w-full ${isQuestLocked ? 'opacity-40' : ''}`}>
+                                    <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px' }}>
+                                        {isQuestLocked ? 'Lv.20' : isSelected ? 'Selected' : 'Play'}
+                                    </div>
+                                </button>
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {isQuestLocked && (

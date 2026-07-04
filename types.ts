@@ -120,16 +120,14 @@ export interface WildGridCell {
 }
 
 export interface QuestState {
-  credits: number;
-  picks: number;
   wildStage: number; // Separated Stage
   diceStage: number; // Separated Stage
+  wheelStage: number; // Separated Stage
   max: 60;
   dicePosition: number;
-  activeGame: 'NONE' | 'WILD' | 'DICE';
+  activeGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL';
   wildGrid: WildGridCell[]; // Persistence for Wild Quest
-  wildCredits: number;
-  diceCredits: number;
+  miniGameCredits: number; // Shared token wallet across all mini games
 }
 
 export interface SlotQuestMission {
@@ -248,7 +246,7 @@ export interface ArenaState {
     hasJoined?: boolean;      // explicit opt-in — spins only score points once true
 }
 
-export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'PICKS' | 'GEM' | 'DICE_CREDITS' | 'BACK' | 'PACKS' | 'STAR';
+export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'MINI_CREDITS' | 'GEM' | 'BACK' | 'PACKS' | 'STAR';
 
 export interface MiniGameReward {
   type: RewardType;

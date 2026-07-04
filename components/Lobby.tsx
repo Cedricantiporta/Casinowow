@@ -23,8 +23,7 @@ const THEME_ICON_SIZE: Partial<Record<string, string>> = {
 
 interface LobbyProps {
     onSelectGame: (game: GameConfig, isHighLimit: boolean) => void;
-    onOpenMine?: () => void;
-    onOpenDice?: () => void;
+    onOpenMiniGames?: () => void;
     onOpenQuestPath?: () => void;
     onOpenMissions: () => void;
     onOpenBattlePass: () => void;
@@ -68,8 +67,7 @@ interface LobbyProps {
 
 export const Lobby: React.FC<LobbyProps> = ({
     onSelectGame,
-    onOpenMine,
-    onOpenDice,
+    onOpenMiniGames,
     onOpenQuestPath,
     onOpenMissions,
     onOpenBattlePass,
@@ -160,13 +158,6 @@ export const Lobby: React.FC<LobbyProps> = ({
     const passRewardsReady = missionState.passRewards.filter(r => r.level <= missionState.passLevel && !r.claimed && (r.tier === 'FREE' || missionState.isPremium)).length;
     const totalMissionNotifs = passRewardsReady;
     const missionsNotifs = missionState.activeMissions.filter(m => m.frequency === 'DAILY' && m.completed && !m.claimed).length;
-    const questReady = (questState.diceCredits ?? 0) > 0 || (questState.wildCredits ?? 0) > 0;
-
-    const getQuestIcon = () => {
-        if (questState.activeGame === 'DICE') return '🎲';
-        if (questState.activeGame === 'WILD') return '🗿';
-        return '🗺️';
-    };
 
     const getFontClass = (theme: string) => {
         switch(theme) {
@@ -200,12 +191,8 @@ export const Lobby: React.FC<LobbyProps> = ({
     const isRankingLocked = playerLevel < 18;
     const isVipLocked = playerLevel < 44;
 
-    // Quest credit states
-    const QUEST_MAX = 60;
-    const wildFull = (questState.wildCredits ?? 0) >= QUEST_MAX;
-    const diceFull = (questState.diceCredits ?? 0) >= QUEST_MAX;
-    const wildCredits = Math.floor(questState.wildCredits ?? 0);
-    const diceCredits = Math.floor(questState.diceCredits ?? 0);
+    // Shared mini-game token wallet
+    const miniGameCredits = Math.floor(questState.miniGameCredits ?? 0);
 
     // Piggy full state
     const piggyCap = (piggyMaxBet ?? 0) * 5;
@@ -442,8 +429,7 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                 // Whether any row-2 icon currently has a pending notification —
                 // surfaced as a plain dot (no count) on the collapsed toggle.
-                const row2HasNotif = (!isQuestLocked && diceCredits > 0)
-                    || (friendRequestCount ?? 0) > 0
+                const row2HasNotif = (friendRequestCount ?? 0) > 0
                     || (!isPiggyLocked && piggyFull)
                     || !!loginRewardReady;
 
@@ -492,18 +478,18 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <div className="relative flex items-end justify-center gap-0.5 overflow-visible"
                                 style={{ paddingLeft:'14px', paddingRight:'38px', paddingBottom: dockExpanded ? 0 : '4px', paddingTop:'8px' }}>
 
-                            {/* Mine (Coin Mine) */}
-                            <button onClick={!isQuestLocked ? onOpenMine : undefined} className={iconBtn(isQuestLocked)}>
+                            {/* Mini Games (Coin Mine, Dice Roll, Prize Wheel — one active at a time) */}
+                            <button onClick={!isQuestLocked ? onOpenMiniGames : undefined} className={iconBtn(isQuestLocked)}>
                                 <div className="relative leading-none">
-                                    <img src="/ui/coinmine.png" alt="" style={iconStyle(isQuestLocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                    {!isQuestLocked && wildCredits > 0 && (
+                                    <img src={questState.activeGame === 'DICE' ? '/ui/dice.png' : questState.activeGame === 'WHEEL' ? '/ui/wheel.png' : '/ui/coinmine.png'} alt="" style={iconStyle(isQuestLocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                    {!isQuestLocked && miniGameCredits > 0 && (
                                         <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
                                             style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
-                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{wildCredits}</span>
+                                            <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{miniGameCredits}</span>
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">Mine</span>
+                                <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">Mini</span>
                             </button>
 
                             {sep}
@@ -578,22 +564,6 @@ export const Lobby: React.FC<LobbyProps> = ({
                             {dockExpanded && (
                                 <div className="relative flex items-end justify-center gap-0.5 overflow-visible"
                                     style={{ paddingLeft:'14px', paddingRight:'38px', paddingBottom:'4px', paddingTop:'4px' }}>
-
-                                    {/* Dice */}
-                                    <button onClick={!isQuestLocked ? () => { onOpenDice?.(); setDockExpanded(false); } : undefined} className={iconBtn(isQuestLocked)}>
-                                        <div className="relative leading-none">
-                                            <img src="/ui/dice.png" alt="" style={iconStyle(isQuestLocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                            {!isQuestLocked && diceCredits > 0 && (
-                                                <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
-                                                    style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
-                                                    <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{diceCredits}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">Dice</span>
-                                    </button>
-
-                                    {sep}
 
                                     {/* Guild (reuses the Arena dock icon; Arena itself moved to its own lobby card) */}
                                     <button onClick={guildUnlocked ? () => { onOpenGuild?.(); setDockExpanded(false); } : undefined} className={iconBtn(!guildUnlocked)}>

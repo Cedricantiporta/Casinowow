@@ -3,7 +3,7 @@ import { formatCommaNumber } from '../constants';
 
 interface StageCompleteModalProps {
     isOpen: boolean;
-    gameType: 'WILD' | 'DICE';
+    gameType: 'WILD' | 'DICE' | 'WHEEL';
     stage: number;
     coins: number;
     diamonds: number;
@@ -43,12 +43,15 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
     }
 
     const isDice = gameType === 'DICE';
+    const isWheel = gameType === 'WHEEL';
     const bg = isDice
         ? 'linear-gradient(180deg,#c9901a 0%,#9a6800 35%,#5a3800 100%)'
+        : isWheel
+        ? 'linear-gradient(180deg,#a855f7 0%,#7c1fd4 35%,#3b0764 100%)'
         : 'linear-gradient(180deg,#1e3a8a,#0f172a)';
-    const shadowColor = isDice ? 'rgba(251,191,36,0.4)' : 'rgba(59,130,246,0.4)';
-    const accentColor = isDice ? '#fbbf24' : '#60a5fa';
-    const subtitleColor = isDice ? '#fde68a' : '#93c5fd';
+    const shadowColor = isDice ? 'rgba(251,191,36,0.4)' : isWheel ? 'rgba(168,85,247,0.4)' : 'rgba(59,130,246,0.4)';
+    const accentColor = isDice ? '#fbbf24' : isWheel ? '#e9d5ff' : '#60a5fa';
+    const subtitleColor = isDice ? '#fde68a' : isWheel ? '#e9d5ff' : '#93c5fd';
 
     return (
         <div className="absolute inset-0 z-[350] flex items-center justify-center bg-black/75 backdrop-blur-sm">
@@ -60,7 +63,7 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
                         Stage {stage} Complete!
                     </span>
                     <span style={{ fontSize: 9, fontWeight: 700, color: subtitleColor, letterSpacing: '0.08em' }}>
-                        {isDice ? 'Dice Quest' : 'Mine Quest'} Rewards
+                        {isDice ? 'Dice Quest' : isWheel ? 'Prize Wheel' : 'Mine Quest'} Rewards
                     </span>
                 </div>
                 {/* Rewards */}

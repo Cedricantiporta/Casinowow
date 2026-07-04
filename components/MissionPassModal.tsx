@@ -97,7 +97,7 @@ export const MissionPassModal: React.FC<MissionPassModalProps> = ({
         const style = { width: sz, height: sz, objectFit: 'contain' as const, filter: locked ? 'brightness(0.55)' : undefined };
         if (reward.type === 'COINS') return <img src="/new_coinicon.png" alt="" style={style} />;
         if (reward.type === 'DIAMONDS') return <img src="/symbols/diamond.png" alt="" style={style} />;
-        if (reward.type === 'PICKS' || reward.type === 'DICE_CREDITS') return <img src="/pass-picksdice.png" alt="" style={style} />;
+        if (reward.type === 'MINI_CREDITS') return <img src="/pass-picksdice.png" alt="" style={style} />;
         if (reward.type === 'CREDIT_BACK') return <img src={reward.label.toLowerCase().includes('premium') ? '/card_premium.png' : '/card_normal.png'} alt="" style={{ width: '2rem', height: sz, objectFit: 'contain' as const, filter: locked ? 'brightness(0.55)' : undefined }} />;
         return <img src="/topbar_levelstar.png" alt="" style={style} />;
     };
