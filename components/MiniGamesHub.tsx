@@ -60,39 +60,23 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
                     <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={onClose}><i className="ti ti-x" /></button>
                 </div>
 
-                {/* Shared token wallet — the one progress bar design, reused everywhere */}
-                {!isQuestLocked && (() => {
-                    const capped = Math.min(credits, 60);
-                    const pct = (capped / 60) * 100;
-                    const complete = capped >= 60;
-                    return (
-                        <div className="px-4 pb-2">
-                            <div className="rtrack" style={{ height: 16, minWidth: 0, padding: '0 6px' }}>
-                                <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
-                                    <div style={{
-                                        position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 12,
-                                        width: `${pct}%`,
-                                        background: complete
-                                            ? 'linear-gradient(180deg,#ffe066,#e8a800 60%,#b07000)'
-                                            : 'linear-gradient(180deg,#7fd0ff,#2b8fe8 60%,#1565b0)',
-                                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.6)',
-                                        transition: 'width 0.4s ease',
-                                    }}>
-                                        <div className="absolute inset-y-0 w-5 bg-white/50 skew-x-[-20deg] animate-xp-bar-shine pointer-events-none" />
-                                    </div>
-                                </div>
-                                <span className="relative font-black text-white" style={{ fontSize: 9, lineHeight: 1, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{capped}/60 tokens</span>
-                            </div>
-                        </div>
-                    );
-                })()}
-
                 {/* Tiles */}
                 <div className="flex gap-2 px-4 pb-5 pt-1">
                     {games.map(game => {
                         const isSelected = selectedGame === game.key;
                         return (
-                            <div key={game.key} className={isSelected && !isQuestLocked ? 'tcard-gold flex flex-col items-center flex-1 gap-2 p-2.5' : 'tcard flex flex-col items-center flex-1 gap-2 p-2.5'}>
+                            <div key={game.key} className={isSelected && !isQuestLocked ? 'tcard-gold flex flex-col items-center flex-1 gap-2 p-2.5 relative' : 'tcard flex flex-col items-center flex-1 gap-2 p-2.5 relative'}>
+                                {/* Individual key/token dot counter */}
+                                {!isQuestLocked && credits > 0 && (
+                                    <div className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
+                                        style={{
+                                            background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)',
+                                            boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)',
+                                        }}>
+                                        <span className="font-black text-white leading-none" style={{ fontSize: 9 }}>{credits > 60 ? 60 : credits}</span>
+                                    </div>
+                                )}
+
                                 <div className={`flex items-center justify-center ${isQuestLocked ? 'grayscale opacity-60' : ''}`} style={{ width: 64, height: 64 }}>
                                     <img src={game.icon} alt=""
                                         style={{ width: 64, height: 64, objectFit: 'contain', filter: isQuestLocked ? undefined : `drop-shadow(0 0 12px ${game.glow})` }} />

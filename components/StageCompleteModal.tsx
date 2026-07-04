@@ -1,17 +1,18 @@
 import React, { useEffect } from 'react';
-import { formatCommaNumber } from '../constants';
+import { formatK } from '../constants';
 
 interface StageCompleteModalProps {
     isOpen: boolean;
     gameType: 'WILD' | 'DICE' | 'WHEEL';
     stage: number;
+    run?: number;
     coins: number;
     diamonds: number;
     autoAdvance?: boolean;
     onNext: () => void;
 }
 
-export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, gameType, stage, coins, diamonds, autoAdvance, onNext }) => {
+export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, gameType, stage, run = 0, coins, diamonds, autoAdvance, onNext }) => {
     useEffect(() => {
         if (!isOpen || gameType !== 'DICE') return;
         const delay = autoAdvance ? 2000 : 3000;
@@ -20,6 +21,8 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
     }, [isOpen, gameType, autoAdvance]);
 
     if (!isOpen) return null;
+
+    const stageLabel = run > 0 ? `Stage ${stage} · Run ${run + 1}` : `Stage ${stage}`;
 
     // Dice auto-roll: compact toast instead of full-screen overlay
     if (gameType === 'DICE' && autoAdvance) {
@@ -33,9 +36,9 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
                     }}>
                     <span style={{ fontSize: 18 }}>🎲</span>
                     <div className="flex flex-col">
-                        <span style={{ fontSize: 11, fontWeight: 900, color: '#fbbf24', letterSpacing: '0.1em' }}>Stage {stage} Complete!</span>
-                        {coins > 0 && <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>+{formatCommaNumber(coins)} Coins</span>}
-                        {diamonds > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#c4b5fd' }}>+{diamonds} Gems</span>}
+                        <span style={{ fontSize: 11, fontWeight: 900, color: '#fff', letterSpacing: '0.1em' }}>Congratulations! {stageLabel}</span>
+                        {coins > 0 && <span style={{ fontSize: 14, fontWeight: 900, color: '#facc15' }}>+{formatK(coins)} Coins</span>}
+                        {diamonds > 0 && <span style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>+{diamonds} Gems</span>}
                     </div>
                 </div>
             </div>
@@ -50,8 +53,6 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
         ? 'linear-gradient(180deg,#a855f7 0%,#7c1fd4 35%,#3b0764 100%)'
         : 'linear-gradient(180deg,#1e3a8a,#0f172a)';
     const shadowColor = isDice ? 'rgba(251,191,36,0.4)' : isWheel ? 'rgba(168,85,247,0.4)' : 'rgba(59,130,246,0.4)';
-    const accentColor = isDice ? '#fbbf24' : isWheel ? '#e9d5ff' : '#60a5fa';
-    const subtitleColor = isDice ? '#fde68a' : isWheel ? '#e9d5ff' : '#93c5fd';
 
     return (
         <div className="absolute inset-0 z-[350] flex items-center justify-center bg-black/75 backdrop-blur-sm">
@@ -59,25 +60,23 @@ export const StageCompleteModal: React.FC<StageCompleteModalProps> = ({ isOpen, 
                 style={{ background: bg, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.14), 0 8px 32px ${shadowColor}` }}>
                 {/* Title */}
                 <div className="flex flex-col items-center gap-0.5">
-                    <span style={{ fontSize: 11, fontWeight: 900, color: accentColor, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                        Stage {stage} Complete!
-                    </span>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: subtitleColor, letterSpacing: '0.08em' }}>
-                        {isDice ? 'Dice Quest' : isWheel ? 'Prize Wheel' : 'Mine Quest'} Rewards
+                    <span style={{ fontSize: 15, fontWeight: 900, color: '#fff' }}>Congratulations!</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        {stageLabel} Prize
                     </span>
                 </div>
                 {/* Rewards */}
                 <div className="flex items-center justify-center gap-4">
                     {coins > 0 && (
                         <div className="flex flex-col items-center gap-0.5">
-                            <span style={{ fontSize: 22, fontWeight: 900, color: '#fff', lineHeight: 1 }}>+{formatCommaNumber(coins)}</span>
-                            <span style={{ fontSize: 8, fontWeight: 700, color: subtitleColor, letterSpacing: '0.1em' }}>COINS</span>
+                            <span style={{ fontSize: 26, fontWeight: 900, color: '#facc15', lineHeight: 1 }}>+{formatK(coins)}</span>
+                            <span style={{ fontSize: 8, fontWeight: 700, color: '#fff', letterSpacing: '0.1em' }}>COINS</span>
                         </div>
                     )}
                     {diamonds > 0 && (
                         <div className="flex flex-col items-center gap-0.5">
-                            <span style={{ fontSize: 22, fontWeight: 900, color: '#a78bfa', lineHeight: 1 }}>+{diamonds} 💎</span>
-                            <span style={{ fontSize: 8, fontWeight: 700, color: '#c4b5fd', letterSpacing: '0.1em' }}>GEMS</span>
+                            <span style={{ fontSize: 22, fontWeight: 900, color: '#fff', lineHeight: 1 }}>+{diamonds} 💎</span>
+                            <span style={{ fontSize: 8, fontWeight: 700, color: '#fff', letterSpacing: '0.1em' }}>GEMS</span>
                         </div>
                     )}
                 </div>

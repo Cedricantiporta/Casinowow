@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, LoginStreakState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState, GuildDonationState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK, questDifficultyMult } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -29,7 +29,6 @@ import { SettingsModal } from './components/SettingsModal';
 import { VipLoungeModal } from './components/VipLoungeModal';
 import { MiniGamesHub } from './components/MiniGamesHub';
 import { audioService } from './services/audioService';
-import { hapticsService, isHapticsEnabled, setHapticsEnabled } from './services/hapticsService';
 import { jackpotService } from './services/jackpotService';
 import { JackpotCelebration } from './components/JackpotCelebration';
 import { StageCompleteModal } from './components/StageCompleteModal';
@@ -370,8 +369,6 @@ function shuffledQuestPath(baseIds: string[], cycle: number): string[] {
     }
     return arr;
 }
-// Missions get 20% harder each completed cycle, capped at 200% harder (3x).
-const questDifficultyMult = (cycleCount: number) => Math.min(3, 1 + Math.max(0, cycleCount) * 0.2);
 const questDayKey = (): string => { const d = new Date(); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; };
 
 const App: React.FC = () => {
@@ -609,6 +606,7 @@ const App: React.FC = () => {
                       }),
                       isCompleted: savedDeck.isCompleted ?? false,
                       rewardClaimed: savedDeck.rewardClaimed ?? false,
+                      stage: savedDeck.stage ?? 1,
                   };
               });
           }
@@ -638,7 +636,6 @@ const App: React.FC = () => {
   const [autoMaxBet, setAutoMaxBet] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
-  const [hapticsOn, setHapticsOn] = useState(() => isHapticsEnabled());
   const [showSettings, setShowSettings] = useState(false);
   const [showEventsPopup, setShowEventsPopup] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
@@ -754,7 +751,7 @@ const App: React.FC = () => {
 
   // Quest state initialized with separate stages, persisted to localStorage
   const [quest, setQuest] = useState<QuestState>(() => {
-      const defaults: QuestState = { miniGameCredits: 5, wildStage: 1, diceStage: 1, wheelStage: 1, max: 60, dicePosition: 0, activeGame: 'WILD', wildGrid: [] };
+      const defaults: QuestState = { miniGameCredits: 5, wildStage: 1, diceStage: 1, wheelStage: 1, wildRun: 0, diceRun: 0, wheelRun: 0, max: 60, dicePosition: 0, activeGame: 'WILD', wildGrid: [] };
       try {
           const saved = localStorage.getItem('cw_quest');
           if (saved) {
@@ -766,6 +763,9 @@ const App: React.FC = () => {
                   wildStage: parsed.wildStage || 1,
                   diceStage: parsed.diceStage || 1,
                   wheelStage: parsed.wheelStage || 1,
+                  wildRun: parsed.wildRun || 0,
+                  diceRun: parsed.diceRun || 0,
+                  wheelRun: parsed.wheelRun || 0,
                   dicePosition: parsed.dicePosition || 0,
                   wildGrid: parsed.wildGrid || [],
                   miniGameCredits: migratedCredits,
@@ -1475,7 +1475,7 @@ const App: React.FC = () => {
   const [newSlotIds, setNewSlotIds] = useState<string[]>(() => {
       try { return JSON.parse(localStorage.getItem('cw_new_slots') || '[]'); } catch { return []; }
   });
-  const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE' | 'WHEEL'; stage: number; coins: number; diamonds: number; autoAdvance?: boolean } | null>(null);
+  const [stageCompletePopup, setStageCompletePopup] = useState<{ gameType: 'WILD' | 'DICE' | 'WHEEL'; stage: number; run: number; coins: number; diamonds: number; autoAdvance?: boolean } | null>(null);
   const [jackpotWinTier, setJackpotWinTier] = useState<null | { name: string; color: string; icon: string; amount: number }>(null);
   const [pendingBigWin, setPendingBigWin] = useState(false);
   type ActiveToast = { type: 'LEVEL_UP'; level: number; reward: number; maxBetIncreased: boolean; newMaxBet: number } | { type: 'PACK' } | { type: 'CARD'; rarity: 'COMMON' | 'RARE'; cardName: string } | null;
@@ -2307,8 +2307,8 @@ const App: React.FC = () => {
   }, [savedGameStates]);
 
   useEffect(() => {
-    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, wheelStage: quest.wheelStage, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, miniGameCredits: quest.miniGameCredits, activeGame: quest.activeGame })); } catch {}
-  }, [quest.wildStage, quest.diceStage, quest.wheelStage, quest.dicePosition, quest.wildGrid, quest.miniGameCredits, quest.activeGame]);
+    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, wheelStage: quest.wheelStage, wildRun: quest.wildRun, diceRun: quest.diceRun, wheelRun: quest.wheelRun, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, miniGameCredits: quest.miniGameCredits, activeGame: quest.activeGame })); } catch {}
+  }, [quest.wildStage, quest.diceStage, quest.wheelStage, quest.wildRun, quest.diceRun, quest.wheelRun, quest.dicePosition, quest.wildGrid, quest.miniGameCredits, quest.activeGame]);
 
   // When all slot quest missions complete, stop auto-spin and open the quest path modal.
   // If a bonus is still running, defer until it ends.
@@ -2727,7 +2727,12 @@ const App: React.FC = () => {
   };
 
   const handleClaimDeckReward = (deckId: string, reward: number) => {
-      setDecks(prev => prev.map(d => d.gameId === deckId ? { ...d, rewardClaimed: true } : d));
+      // Claiming re-locks every card and advances the album to its next stage —
+      // same run/cycle idea as the mini games and Quest Path.
+      setDecks(prev => prev.map(d => d.gameId === deckId
+          ? { ...d, cards: d.cards.map(c => ({ ...c, count: 0 })), isCompleted: false, rewardClaimed: false, stage: (d.stage ?? 1) + 1 }
+          : d
+      ));
       setPlayer(p => ({ ...p, balance: p.balance + reward }));
       triggerCoinAnim(reward);
       setCelebrationMsg(`+${formatCommaNumber(reward)} Coins`);
@@ -3852,9 +3857,21 @@ const App: React.FC = () => {
       setPlayer(p => ({ ...p, balance: p.balance + bonusCoins, diamonds: p.diamonds + bonusDiamonds }));
 
       if (gameType === 'WILD') {
-          setQuest(q => ({ ...q, wildStage: q.wildStage + 1, wildGrid: [] }));
+          const isLastStage = quest.wildStage >= 25;
+          setQuest(q => ({
+              ...q,
+              wildStage: isLastStage ? 1 : q.wildStage + 1,
+              wildRun: isLastStage ? (q.wildRun || 0) + 1 : (q.wildRun || 0),
+              wildGrid: [],
+          }));
       } else {
-          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
+          const isLastStage = quest.diceStage >= 25;
+          setQuest(q => ({
+              ...q,
+              diceStage: isLastStage ? 1 : q.diceStage + 1,
+              diceRun: isLastStage ? (q.diceRun || 0) + 1 : (q.diceRun || 0),
+              dicePosition: 0,
+          }));
       }
 
       if (autoAdvance) {
@@ -3894,11 +3911,18 @@ const App: React.FC = () => {
       }
       if (creditsGained > 0) { setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + creditsGained })); msgParts.push(`+${creditsGained} 🎫`); }
       if (isFinish) {
-          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (1.0 + 0.04 * quest.diceStage));
-          setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
           const currentStage = quest.diceStage;
-          setQuest(q => ({ ...q, diceStage: q.diceStage + 1, dicePosition: 0 }));
-          setStageCompletePopup({ gameType: 'DICE', stage: currentStage, coins: bonusCoins, diamonds: 0 });
+          const currentRun = quest.diceRun || 0;
+          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (1.0 + 0.04 * currentStage) * questDifficultyMult(currentRun));
+          setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
+          const isLastStage = currentStage >= 25;
+          setQuest(q => ({
+              ...q,
+              diceStage: isLastStage ? 1 : q.diceStage + 1,
+              diceRun: isLastStage ? currentRun + 1 : currentRun,
+              dicePosition: 0,
+          }));
+          setStageCompletePopup({ gameType: 'DICE', stage: currentStage, run: currentRun, coins: bonusCoins, diamonds: 0 });
       }
       if (msgParts.length > 0) { setCelebrationMsg(msgParts.join(' · ')); audioService.playWinBig(); }
   };
@@ -3918,11 +3942,17 @@ const App: React.FC = () => {
       if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
       if (creditsGained > 0) { setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + creditsGained })); msgParts.push(`+${creditsGained} 🎫`); }
       if (isJackpot) {
-          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (1.0 + 0.04 * quest.wheelStage));
-          setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
           const currentStage = quest.wheelStage;
-          setQuest(q => ({ ...q, wheelStage: q.wheelStage + 1 }));
-          setStageCompletePopup({ gameType: 'WHEEL', stage: currentStage, coins: bonusCoins, diamonds: 0 });
+          const currentRun = quest.wheelRun || 0;
+          const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (1.0 + 0.04 * currentStage) * questDifficultyMult(currentRun));
+          setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
+          const isLastStage = currentStage >= 25;
+          setQuest(q => ({
+              ...q,
+              wheelStage: isLastStage ? 1 : q.wheelStage + 1,
+              wheelRun: isLastStage ? currentRun + 1 : currentRun,
+          }));
+          setStageCompletePopup({ gameType: 'WHEEL', stage: currentStage, run: currentRun, coins: bonusCoins, diamonds: 0 });
       } else if (msgParts.length > 0) {
           setCelebrationMsg(msgParts.join(' · ')); audioService.playWinBig();
       }
@@ -6155,7 +6185,6 @@ const App: React.FC = () => {
           audioService.playClick();
       } else {
           if (status === GameStatus.IDLE || (status === GameStatus.FREE_SPIN_INTRO && freeSpinsRemaining > 0)) {
-              hapticsService.medium();
               spin();
           } else if (status === GameStatus.SPINNING || status === GameStatus.STOPPING) {
               setInstantStop(true);
@@ -6168,7 +6197,9 @@ const App: React.FC = () => {
   const getDeckReward = (deckId: string, level: number) => {
       const idx = decks.findIndex(d => d.gameId === deckId);
       const pct = 0.5 + Math.max(0, idx) * 0.10;
-      return Math.round(MAX_BET_BY_LEVEL(level) * 100 * pct);
+      const base = Math.round(MAX_BET_BY_LEVEL(level) * 100 * pct);
+      const stage = decks[idx]?.stage ?? 1;
+      return Math.round(base * questDifficultyMult(stage - 1));
   };
   const getGrandAlbumReward = (level: number) => MAX_BET_BY_LEVEL(level) * 1000;
 
@@ -7366,6 +7397,9 @@ const App: React.FC = () => {
         wildStage={quest.wildStage}
         diceStage={quest.diceStage}
         wheelStage={quest.wheelStage}
+        wildRun={quest.wildRun}
+        diceRun={quest.diceRun}
+        wheelRun={quest.wheelRun}
         dicePosition={quest.dicePosition}
         activeGame={quest.activeGame}
         savedGrid={quest.wildGrid}
@@ -7610,6 +7644,7 @@ const App: React.FC = () => {
           isOpen={!!stageCompletePopup}
           gameType={stageCompletePopup?.gameType ?? 'DICE'}
           stage={stageCompletePopup?.stage ?? 1}
+          run={stageCompletePopup?.run ?? 0}
           coins={stageCompletePopup?.coins ?? 0}
           diamonds={stageCompletePopup?.diamonds ?? 0}
           autoAdvance={stageCompletePopup?.autoAdvance}
@@ -7798,8 +7833,6 @@ const App: React.FC = () => {
           onToggleMute={() => setIsMuted(audioService.toggleSfxMute())}
           isMusicMuted={isMusicMuted}
           onToggleMusic={() => setIsMusicMuted(audioService.toggleMusicMute())}
-          isHapticsOn={hapticsOn}
-          onToggleHaptics={() => { const next = !hapticsOn; setHapticsEnabled(next); setHapticsOn(next); if (next) hapticsService.light(); }}
           deviceId={getDeviceId()}
           redeemedCodes={redeemedCodes}
           onRedeem={(code) => {

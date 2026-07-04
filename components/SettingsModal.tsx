@@ -8,8 +8,6 @@ interface SettingsModalProps {
     onToggleMute: () => void;
     isMusicMuted: boolean;
     onToggleMusic: () => void;
-    isHapticsOn: boolean;
-    onToggleHaptics: () => void;
     deviceId: string;
     onRedeem: (code: string) => void;
     redeemedCodes: string[];
@@ -138,7 +136,7 @@ const Toggle: React.FC<{ on: boolean; onToggle: () => void; label: string; sub?:
 );
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
-    isOpen, onClose, isMuted, onToggleMute, isMusicMuted, onToggleMusic, isHapticsOn, onToggleHaptics, deviceId, onRedeem, redeemedCodes, onReset
+    isOpen, onClose, isMuted, onToggleMute, isMusicMuted, onToggleMusic, deviceId, onRedeem, redeemedCodes, onReset
 }) => {
     const [redeemInput, setRedeemInput] = useState('');
     const [pendingCode, setPendingCode] = useState<string | null>(null);
@@ -274,7 +272,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         <div className="flex flex-col gap-1.5">
                             <Toggle on={!isMuted} onToggle={onToggleMute} icon="🔊" label="Sound Effects" sub="Button clicks, wins, SFX" />
                             <Toggle on={!isMusicMuted} onToggle={onToggleMusic} icon="🎵" label="Music" sub="Background music" />
-                            <Toggle on={isHapticsOn} onToggle={onToggleHaptics} icon="📳" label="Vibration" sub="Spin & win feedback" />
                         </div>
                     </div>
 

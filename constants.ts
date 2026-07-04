@@ -860,6 +860,11 @@ export const formatKShort = (n: number): string => {
     return sign + Math.round(abs).toLocaleString('en-US');
 };
 
+// Shared "run/cycle" difficulty scaler: rewards get 20% bigger each completed
+// run, capped at 200% bigger (3x). Used by the Quest Path cycle and by each
+// mini game's own run counter (both reset-and-repeat once their stages are done).
+export const questDifficultyMult = (cycleCount: number) => Math.min(3, 1 + Math.max(0, cycleCount) * 0.2);
+
 // Coin formatter: shows full number with commas up to 15 raw digits.
 // At 16+ digits, abbreviates with the smallest unit that keeps the shown number <= 15 digits.
 // This maximizes visible digits: e.g. 1,500,000,000,000,000 → "1,500,000,000,000K" not "1.5T".
@@ -1342,6 +1347,7 @@ export const GENERATE_DECKS = (): Deck[] => ALBUM_DEFS.map((album, albumIdx) => 
     })),
     isCompleted: false,
     rewardClaimed: false,
+    stage: 1,
 }));
 
 // Two INDEPENDENT systems on the same screen:

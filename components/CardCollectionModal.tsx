@@ -391,6 +391,11 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 <div className="w-full relative flex items-center justify-center" style={{ aspectRatio: '1/1' }}>
                                                     <img src={deck.coverImage} alt="" className="max-w-full max-h-full object-contain" style={{ imageRendering: 'auto' }} />
                                                     {isComplete && <div className="absolute top-0.5 right-0.5 text-xs z-10">✅</div>}
+                                                    {(deck.stage ?? 1) > 1 && (
+                                                        <div className="absolute top-0.5 left-0.5 rounded-full px-1.5 py-0.5 z-10" style={{ background: 'rgba(0,0,0,0.75)' }}>
+                                                            <span className="font-black text-yellow-300" style={{ fontSize: 8 }}>Stage {deck.stage}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="rtrack mt-1 w-full" style={{ height: 15, minWidth: 0, padding: '0 6px' }}>
                                                     <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 18, pointerEvents: 'none' }}>
@@ -478,6 +483,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                 {selectedDeckId && (
                     <div className="flex flex-col h-full">
                         <div className="shrink-0 text-center mb-2">
+                            {(decks.find(d => d.gameId === selectedDeckId)?.stage ?? 1) > 1 && (
+                                <div className="text-white/60 text-[8px] font-black uppercase tracking-widest">Stage {decks.find(d => d.gameId === selectedDeckId)?.stage}</div>
+                            )}
                             <div className="text-yellow-400 text-[8px] font-black uppercase tracking-widest">Completion Reward</div>
                             <div className="text-white font-black text-lg leading-none">{formatCommaNumber(getDeckReward(selectedDeckId))}</div>
                             <div className="mt-1">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MiniGameReward, WildGridCell } from '../types';
-import { formatNumber, formatCommaNumber } from '../constants';
+import { formatNumber, formatCommaNumber, formatK, questDifficultyMult } from '../constants';
 import { audioService } from '../services/audioService';
 import { PrizeWheel, PrizeWheelHandle } from './PrizeWheel';
 
@@ -10,6 +10,9 @@ interface MiniGameModalProps {
     wildStage: number;
     diceStage: number;
     wheelStage: number;
+    wildRun: number;
+    diceRun: number;
+    wheelRun: number;
     dicePosition: number;
     activeGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL';
     savedGrid?: WildGridCell[];
@@ -82,7 +85,7 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 );
 
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
-    isOpen, credits: creditsRaw, wildStage, diceStage, wheelStage, dicePosition = 0, activeGame, savedGrid,
+    isOpen, credits: creditsRaw, wildStage, diceStage, wheelStage, wildRun = 0, diceRun = 0, wheelRun = 0, dicePosition = 0, activeGame, savedGrid,
     balance = 0, diamonds = 0,
     onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onWheelSpin, onClose, playerLevel, maxBet, onOpenGemShop
 }) => {
@@ -101,6 +104,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [showBuyPopup, setShowBuyPopup] = useState(false);
     const [explodingCells, setExplodingCells] = useState<Set<number>>(new Set());
     const [shatteringCells, setShatteringCells] = useState<Set<number>>(new Set());
+    const [isTileAnimating, setIsTileAnimating] = useState(false);
     const [starBuff, setStarBuff] = useState(false);
 
     const gridRef = useRef<WildGridCell[]>([]);
@@ -123,13 +127,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const [wheelSpinning, setWheelSpinning] = useState(false);
     const prizeWheelRef = useRef<PrizeWheelHandle>(null);
 
-    // Stage prizes locked at stage-start; not recalculated when maxBet changes mid-stage
-    const [lockedWildPrize, setLockedWildPrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * wildStage)));
-    const [lockedDicePrize, setLockedDicePrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * diceStage)));
-    const [lockedWheelPrize, setLockedWheelPrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * wheelStage)));
-    useEffect(() => { setLockedWildPrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * wildStage))); }, [wildStage]); // eslint-disable-line react-hooks/exhaustive-deps
-    useEffect(() => { setLockedDicePrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * diceStage))); }, [diceStage]); // eslint-disable-line react-hooks/exhaustive-deps
-    useEffect(() => { setLockedWheelPrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * wheelStage))); }, [wheelStage]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Stage prizes locked at stage-start; not recalculated when maxBet changes mid-stage.
+    // Each game's run count scales its prize harder, same as the Quest Path's cycle scaling.
+    const [lockedWildPrize, setLockedWildPrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * wildStage) * questDifficultyMult(wildRun)));
+    const [lockedDicePrize, setLockedDicePrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * diceStage) * questDifficultyMult(diceRun)));
+    const [lockedWheelPrize, setLockedWheelPrize] = useState(() => Math.floor((maxBet || 10000) * (1.0 + 0.04 * wheelStage) * questDifficultyMult(wheelRun)));
+    useEffect(() => { setLockedWildPrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * wildStage) * questDifficultyMult(wildRun))); }, [wildStage, wildRun]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => { setLockedDicePrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * diceStage) * questDifficultyMult(diceRun))); }, [diceStage, diceRun]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => { setLockedWheelPrize(Math.floor((maxBet || 10000) * (1.0 + 0.04 * wheelStage) * questDifficultyMult(wheelRun))); }, [wheelStage, wheelRun]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const boardLength = Math.round((10 + ((diceStage - 1) * 5)) * 1.4);
     const boardContainerRef = useRef<HTMLDivElement>(null);
@@ -362,13 +367,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     }, []);
 
     const handleTileClick = (index: number) => {
-        if (grid[index].revealed || stageWinning || stagePending || shatteringCells.has(index) || processingRef.current.has(index)) return;
+        if (grid[index].revealed || stageWinning || stagePending || isTileAnimating || shatteringCells.has(index) || processingRef.current.has(index)) return;
         if (wildCredits <= 0) {
             setNoPicksMsg(true);
             setTimeout(() => setNoPicksMsg(false), 2000);
             return;
         }
         processingRef.current.add(index);
+        setIsTileAnimating(true);
         const cell = grid[index];
         const newGrid = [...grid.map(c => ({ ...c }))];
 
@@ -379,13 +385,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             setShatteringCells(prev => new Set(prev).add(index));
             setTimeout(() => {
                 processingRef.current.delete(index);
+                setIsTileAnimating(false);
                 setShatteringCells(prev => { const n = new Set(prev); n.delete(index); return n; });
                 const freshGrid = gridRef.current.map(c => ({ ...c }));
                 freshGrid[index] = { ...cell, revealed: false, content: cell.blockBase ?? 'REWARD' };
                 setGrid(freshGrid);
                 if (onGridUpdate) onGridUpdate(freshGrid);
                 onPickTile(false, null);
-            }, 350);
+            }, 1000);
             return;
         }
 
@@ -418,6 +425,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             audioService.playWinBig();
             setTimeout(() => {
                 processingRef.current.delete(index);
+                setIsTileAnimating(false);
                 setExplodingCells(new Set());
                 const finalGrid = gridRef.current.map(c => ({ ...c }));
                 const surroundingRewards: MiniGameReward[] = [];
@@ -452,7 +460,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 if (gemFoundFromBomb) {
                     triggerStageClear(stagePrizeCoins(bombGemMult), stagePrizeGems());
                 }
-            }, 600);
+            }, 1000);
             return;
         }
 
@@ -461,6 +469,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         setShatteringCells(prev => new Set(prev).add(index));
         setTimeout(() => {
             processingRef.current.delete(index);
+            setIsTileAnimating(false);
             setShatteringCells(prev => { const n = new Set(prev); n.delete(index); return n; });
             const latestGrid = [...gridRef.current.map(c => ({ ...c }))];
             latestGrid[index] = { ...cell, revealed: true };
@@ -476,7 +485,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             } else {
                 onPickTile(false, null);
             }
-        }, 350);
+        }, 1000);
     };
 
     const handleAutoPick = () => {
@@ -730,14 +739,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                                     const isShattering = shatteringCells.has(i);
                                     return (
                                         <button key={i} onClick={() => handleTileClick(i)}
-                                            disabled={revealed || wildCredits <= 0 || stageWinning || stagePending || isShattering}
+                                            disabled={revealed || wildCredits <= 0 || stageWinning || stagePending || isShattering || isTileAnimating}
                                             className={`relative flex flex-col items-center justify-center transition-all${isExploding ? ' animate-bounce' : ''}`}
                                             style={{
                                                 width: tileSize, height: tileSize,
                                                 background: 'none',
                                                 border: 'none',
                                                 boxShadow: 'none',
-                                                cursor: revealed || wildCredits <= 0 || stageWinning || isShattering ? 'default' : 'pointer',
+                                                cursor: revealed || wildCredits <= 0 || stageWinning || isShattering || isTileAnimating ? 'default' : 'pointer',
                                                 margin: '-4px',
                                             }}>
                                             {isExploding ? (
@@ -773,6 +782,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         <div className="flex flex-col items-center leading-none">
                             <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
                             <span className="font-black text-white text-2xl leading-none">{wildStage}</span>
+                            {wildRun > 0 && <span className="text-white/50 text-[8px] font-black mt-0.5">Run {wildRun + 1}</span>}
                         </div>
                         <div className="w-full h-px bg-white/10" />
                         <div className="flex flex-col items-center leading-none">
@@ -877,6 +887,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         <div className="flex flex-col items-center leading-none">
                             <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
                             <span className="font-black text-white text-2xl leading-none">{diceStage}</span>
+                            {diceRun > 0 && <span className="text-white/50 text-[8px] font-black mt-0.5">Run {diceRun + 1}</span>}
                         </div>
                         <div className="w-full h-px bg-white/10" />
                         <div className="flex flex-col items-center leading-none">
@@ -960,6 +971,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                         <div className="flex flex-col items-center leading-none">
                             <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
                             <span className="font-black text-white text-2xl leading-none">{wheelStage}</span>
+                            {wheelRun > 0 && <span className="text-white/50 text-[8px] font-black mt-0.5">Run {wheelRun + 1}</span>}
                         </div>
                         <div className="w-full h-px bg-white/10" />
                         <div className="flex flex-col items-center leading-none">
@@ -988,9 +1000,14 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
                     <div className="animate-pop-in rounded-2xl flex flex-col items-center gap-4 px-8 py-6 pointer-events-auto"
                         style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', minWidth: 240 }}>
-                        <div className="font-black text-yellow-300 uppercase tracking-widest" style={{ fontSize: '1.3rem', textShadow: '0 0 16px rgba(250,220,80,0.7)' }}>Stage Clear!</div>
+                        <div className="flex flex-col items-center gap-0.5">
+                            <span className="font-black text-white" style={{ fontSize: '1rem' }}>Congratulations!</span>
+                            <span className="font-black text-white uppercase tracking-widest" style={{ fontSize: '0.7rem' }}>
+                                {wildRun > 0 ? `Stage ${wildStage} · Run ${wildRun + 1}` : `Stage ${wildStage}`} Prize
+                            </span>
+                        </div>
                         <div className="flex flex-col items-center gap-1.5">
-                            <span className="text-white font-black font-mono leading-none" style={{ fontSize: '1.8rem' }}>+{formatCommaNumber(stageClearData.coins)}</span>
+                            <span className="font-black font-mono leading-none" style={{ fontSize: '1.8rem', color: '#facc15' }}>+{formatK(stageClearData.coins)}</span>
                             {stageClearData.gems > 0 && <span className="text-white font-black text-xl font-mono leading-none">+{stageClearData.gems} 💎</span>}
                         </div>
                         <button onClick={handleNextStage} className="pill-green">

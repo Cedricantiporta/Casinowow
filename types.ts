@@ -123,6 +123,12 @@ export interface QuestState {
   wildStage: number; // Separated Stage
   diceStage: number; // Separated Stage
   wheelStage: number; // Separated Stage
+  // Each mini game caps at stage 25 — completing it resets that game's stage to 1
+  // and bumps its run count, scaling that game's stage-clear prize harder (mirrors
+  // the Quest Path's cycleCount pattern: 20% harder per run, capped at 200%/3x).
+  wildRun: number;
+  diceRun: number;
+  wheelRun: number;
   max: 60;
   dicePosition: number;
   activeGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL';
@@ -330,6 +336,9 @@ export interface Deck {
     cards: Card[];
     isCompleted: boolean;
     rewardClaimed: boolean;
+    // Claiming a completed deck's reward re-locks all its cards and advances this —
+    // same run/cycle idea as the mini games and Quest Path.
+    stage: number;
 }
 
 // The classic 7-day cycle — claim-driven, loops forever (not a streak).
