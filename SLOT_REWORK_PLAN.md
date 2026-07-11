@@ -495,6 +495,35 @@ fortune pots land on the reels and each instantly pays 1x-5x bet.
 
 ---
 
+## Batch 5 (separate initiative) — Paylines + mechanic disclosure UI (legal requirement)
+
+Not part of the uniqueness rework itself — a compliance requirement the owner flagged
+separately: every slot needs to disclose its paylines and how its mechanic works,
+likely required for legal/regulatory reasons in real-money or licensed markets.
+
+Requirements (not yet scoped in detail — treat the below as a starting brief, not a
+finished spec):
+1. A per-slot "Paylines" view — show the actual line patterns `GET_PAYLINES(rows, reels)`
+   draws across the grid (the same data already driving win evaluation), so the
+   displayed lines are always accurate to what's actually paying out.
+2. A per-slot "How It Works" mechanic explainer — plain-language description of that
+   slot's headline feature (Hold & Win, Katana Wilds, Win Both Ways, Boss Battle,
+   Kraken Attack, High Noon Duel, etc. — see the identity table near the top of this
+   file for the full list once all 4 batches land).
+3. **Must reuse each slot's own existing icon/symbol assets** for the mechanic
+   illustrations (`SYMBOL_MAP[theme]` images, `coverImage`, theme wild/scatter art) —
+   no generic stock art, no new icon set. This keeps the explainer visually
+   consistent with the slot itself and avoids a second art pass.
+4. Likely entry point: an info ("i") affordance near the bet controls or settings,
+   opening a modal — but the exact placement/trigger is undecided; scope this with
+   the owner before implementing.
+5. This should cover all 22 slots, not just the 8 replicas being reworked above —
+   flagships need paylines/mechanic disclosure too.
+
+Status: requirement captured only — no design, component, or wiring exists yet.
+
+---
+
 ## Verification playbook (headless browser)
 
 Dev server: `nohup npm run dev -- --port 5185 --host` (Vite). Playwright:
