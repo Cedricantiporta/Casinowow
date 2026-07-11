@@ -66,6 +66,7 @@ import { SpinCountRouletteModal } from './components/SpinCountRouletteModal';
 import { AngryFlockSpinCountModal } from './components/AngryFlockSpinCountModal';
 import { AngryFlockRouletteModal, AngryFlockWildColor } from './components/AngryFlockRouletteModal';
 import { BeastRouletteModal } from './components/BeastRouletteModal';
+import { DuelGambleModal } from './components/DuelGambleModal';
 import { ArcticPickGrid } from './components/ArcticPickGrid';
 
 // Interface for persisted game state
@@ -102,9 +103,7 @@ interface SavedGameState {
 // Samurai Honor (Katana Wilds) and Dungeon Raid (Boss Battle) have their own
 // dedicated features below — no longer aliased to Egypt's hold & win.
 const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
-    WESTERN: 'PIRATE',
     LEPRECHAUN: 'CANDY',
-    UNDERWATER: 'ARCTIC',
     PETS: 'CANDY',      // Mystic Pets → Sugar Rush wild-wheel free spins (Companion Wheel)
 };
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
@@ -1361,6 +1360,26 @@ const App: React.FC = () => {
   // Base game: a rare Loot Goblin can transmute low cells on a dead spin.
   const mmorpgBossRef = useRef<{ level: number; hp: number; maxHp: number; mult: number } | null>(null);
   const [mmorpgBossUi, setMmorpgBossUi] = useState<{ level: number; hp: number; maxHp: number; mult: number } | null>(null);
+
+  // Deep Blue — Kraken Attack. On a dead base/free spin, the Kraken can crush 1-2
+  // whole reels into wilds before the spin is scored. Instantaneous — no persistence,
+  // just the chosen columns for a one-spin teal glow overlay.
+  const [krakenCols, setKrakenCols] = useState<number[]>([]);
+
+  // Gold Rush — Dynamite Blast + High Noon Duel. Dynamite scatters 4-6 random cells
+  // into wilds on a dead spin (instantaneous, like Kraken). The duel is a
+  // double-or-nothing gamble offered after a 2x+ win, resolved in DuelGambleModal.
+  const [dynamiteCells, setDynamiteCells] = useState<{ col: number; row: number }[]>([]);
+  const [duelOffer, setDuelOffer] = useState<{ amount: number; round: number } | null>(null);
+  const [showDuelModal, setShowDuelModal] = useState(false);
+  const duelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Duel offer chip auto-dismisses (auto-keep) after ~6s if the player ignores it —
+  // paused while the gamble modal itself is open.
+  useEffect(() => {
+      if (!duelOffer || showDuelModal) return;
+      duelTimerRef.current = setTimeout(() => setDuelOffer(null), 6000);
+      return () => { if (duelTimerRef.current) clearTimeout(duelTimerRef.current); };
+  }, [duelOffer, showDuelModal]);
 
   // Beast Rage — standard 3-scatter trigger for 10 free spins, then a roulette picks
   // one wild multiplier (2x-5x, higher rarer) that applies for the whole session.
@@ -4105,6 +4124,9 @@ const App: React.FC = () => {
     if (goldenPotFrozen) return;
     if (dragonPotShaking || showDragonTriggerPopup) return;
     if (showEgyptHoldWinPopup) return;
+    if (showDuelModal) return;
+    // Spinning again implicitly declines any pending High Noon Duel offer (auto-keep).
+    if (duelOffer) setDuelOffer(null);
 
     // Auto max bet: snap to highest available bet before spinning
     if (autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active && !samuraiRespinRef.current.active) {
@@ -4221,6 +4243,8 @@ const App: React.FC = () => {
     setCascadeGrid(null);
     setCascadeNewCells(null);
     setCascadeDissolving(false);
+    setKrakenCols([]);
+    setDynamiteCells([]);
     setStatus(GameStatus.SPINNING);
     setWinData(null);
     setEgyptCoinMeta(null);
@@ -4229,7 +4253,7 @@ const App: React.FC = () => {
     setOlympusOrbGrid(null);
     setBuffaloCollectGrid(null);
     setBuffaloWildMultGrid(null);
-  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, goldenPotFrozen, player.level, selectedGame.theme]);
+  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, goldenPotFrozen, player.level, selectedGame.theme, showDuelModal, duelOffer]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -4879,6 +4903,58 @@ const App: React.FC = () => {
             return next;
         }
 
+        // DEEP BLUE (UNDERWATER) Kraken Attack: on a dead spin, the Kraken can crush
+        // 1-2 reels fully wild before scoring — chance roughly doubles in free spins.
+        if (selectedGame.theme === 'UNDERWATER' && scatterCount < selectedGame.scattersToTrigger && !gridHasLineWin(targetGrid)) {
+            const krakenChance = isCurrentFreeSpinRef.current ? 0.09 : 0.045;
+            if (Math.random() < krakenChance) {
+                const eligibleCols = Array.from({ length: Math.max(0, selectedGame.reels - 2) }, (_, i) => i + 1);
+                const shuffledCols = [...eligibleCols].sort(() => Math.random() - 0.5);
+                const numReels = Math.random() < 0.3 ? 2 : 1;
+                const chosenCols = shuffledCols.slice(0, Math.min(numReels, shuffledCols.length));
+                const krakenGrid = targetGrid.map((col, c) => chosenCols.includes(c)
+                    ? col.map(s => s === SymbolType.SCATTER ? s : SymbolType.WILD)
+                    : col);
+                const krakenMask = krakenGrid.map((col, c) => col.map((s, r) => s !== targetGrid[c][r]));
+                setTargetGrid(krakenGrid);
+                setCascadeGrid(krakenGrid.map(col => [...col]));
+                setCascadeNewCells(krakenMask);
+                setCascadeDissolving(false);
+                setKrakenCols(chosenCols);
+                setCelebrationMsg('Kraken Attack!');
+                audioService.playScatterTrigger();
+                setTimeout(() => calculateWin(krakenGrid), 900);
+                return next;
+            }
+        }
+
+        // GOLD RUSH (WESTERN) Dynamite Blast: on a dead spin, 4-6 random cells explode
+        // into wilds before scoring — chance roughly doubles in free spins.
+        if (selectedGame.theme === 'WESTERN' && scatterCount < selectedGame.scattersToTrigger && !gridHasLineWin(targetGrid)) {
+            const dynamiteChance = isCurrentFreeSpinRef.current ? 0.12 : 0.05;
+            if (Math.random() < dynamiteChance) {
+                const eligibleCells: { col: number; row: number }[] = [];
+                targetGrid.forEach((col, c) => col.forEach((s, r) => {
+                    if (s !== SymbolType.SCATTER && !String(s).startsWith('JACKPOT')) eligibleCells.push({ col: c, row: r });
+                }));
+                const shuffledCells = [...eligibleCells].sort(() => Math.random() - 0.5);
+                const cellCount = Math.min(4 + Math.floor(Math.random() * 3), shuffledCells.length);
+                const chosenCells = shuffledCells.slice(0, cellCount);
+                const dynamiteGrid = targetGrid.map(col => [...col]);
+                chosenCells.forEach(({ col, row }) => { dynamiteGrid[col][row] = SymbolType.WILD; });
+                const dynamiteMask = dynamiteGrid.map((col, c) => col.map((s, r) => s !== targetGrid[c][r]));
+                setTargetGrid(dynamiteGrid);
+                setCascadeGrid(dynamiteGrid.map(col => [...col]));
+                setCascadeNewCells(dynamiteMask);
+                setCascadeDissolving(false);
+                setDynamiteCells(chosenCells);
+                setCelebrationMsg('Dynamite!');
+                audioService.playScatterTrigger();
+                setTimeout(() => calculateWin(dynamiteGrid), 900);
+                return next;
+            }
+        }
+
         calculateWin(targetGrid);
       }
       return next;
@@ -4978,6 +5054,41 @@ const App: React.FC = () => {
         }
       }
     });
+
+    // DEEP BLUE (UNDERWATER) Win Both Ways: every payline also pays right-to-left as
+    // a separate win. A full-length match (already paid once above, direction-agnostic)
+    // is skipped here so it isn't credited twice.
+    if (selectedGame.theme === 'UNDERWATER') {
+        currentPaylines.forEach(line => {
+            const symbols = line.indices.map((row, col) => normalizePiggy((finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN));
+            const reversed = [...symbols].reverse();
+            let matchLen = 1;
+            let matchSymbol = reversed[0];
+            for (let i = 1; i < reversed.length; i++) {
+                const s = reversed[i];
+                if (s === matchSymbol || isCoinOrWild(s) || isCoinOrWild(matchSymbol)) {
+                    if (isCoinOrWild(matchSymbol) && !isCoinOrWild(s)) matchSymbol = s;
+                    matchLen++;
+                } else break;
+            }
+            if (matchLen >= 3 && matchLen < symbols.length) {
+                const symbolConfig = GET_SYMBOLS(selectedGame.theme)[matchSymbol];
+                if (symbolConfig) {
+                    const baseValue = symbolConfig.value;
+                    const lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
+                    const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult);
+                    if (lineWin > 0) {
+                        totalPayout += lineWin;
+                        winningLines.push(line.id);
+                        for (let i = 0; i < matchLen; i++) {
+                            const col = symbols.length - 1 - i;
+                            winningCells.push({ col, row: line.indices[col] });
+                        }
+                    }
+                }
+            }
+        });
+    }
     }
 
     let scatterCount = 0;
@@ -4998,6 +5109,12 @@ const App: React.FC = () => {
     // JUNGLE: overall win amount cut by 50%.
     if (selectedGame.theme === 'JUNGLE') {
         totalPayout = Math.floor(totalPayout * 0.5);
+    }
+
+    // DEEP BLUE (UNDERWATER): Win Both Ways roughly doubles the line-win hit rate —
+    // dampen the combined total to offset it.
+    if (selectedGame.theme === 'UNDERWATER') {
+        totalPayout = Math.floor(totalPayout * 0.75);
     }
 
     // SPACE: Supernova progressive multiplier applies to line wins during free spins.
@@ -5214,6 +5331,13 @@ const App: React.FC = () => {
        // Base-game win amount shown in the bottom bar (persists until next spin).
        if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
            setLastWinAmount(totalPayout);
+       }
+
+       // GOLD RUSH (WESTERN) High Noon Duel: offer a double-or-nothing gamble on a
+       // mid-size base-game win (2x-10x bet) — tiered wins keep their own celebration.
+       if (selectedGame.theme === 'WESTERN' && !creditOnly && totalFreeSpins === 0 && !winTier &&
+           totalPayout >= currentBet * 2 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
+           setDuelOffer({ amount: totalPayout, round: 1 });
        }
 
        if (!creditOnly) {
@@ -5951,6 +6075,11 @@ const App: React.FC = () => {
           // Reset Dungeon Raid boss state on game change
           mmorpgBossRef.current = null;
           setMmorpgBossUi(null);
+          // Reset Deep Blue Kraken overlay + Gold Rush Dynamite/Duel state on game change
+          setKrakenCols([]);
+          setDynamiteCells([]);
+          setDuelOffer(null);
+          setShowDuelModal(false);
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -6118,6 +6247,23 @@ const App: React.FC = () => {
               setTimeout(() => setReelTransitioning(false), 1100);
           }));
       }, 900);
+  };
+
+  // GOLD RUSH High Noon Duel: apply the win/lose outcome, then either offer another
+  // round (doubled stakes, capped at 3 total) or close out.
+  const handleDuelResolve = (win: boolean) => {
+      if (!duelOffer) { setShowDuelModal(false); return; }
+      const amt = duelOffer.amount;
+      if (win) {
+          setPlayer(p => ({ ...p, balance: p.balance + amt }));
+          const nextRound = duelOffer.round + 1;
+          setDuelOffer(nextRound <= 3 ? { amount: amt * 2, round: nextRound } : null);
+      } else {
+          setPlayer(p => ({ ...p, balance: p.balance - amt }));
+          setCelebrationMsg('Outdrawn…');
+          setDuelOffer(null);
+      }
+      setShowDuelModal(false);
   };
 
   const handleFreeSpinSummaryClose = () => {
@@ -6290,6 +6436,12 @@ const App: React.FC = () => {
         // Bonus roulettes must resolve — ignore back to avoid losing the awarded free spins.
         return;
     }
+    if (showDuelModal) {
+        // High Noon Duel is mid-draw — must resolve before backing out.
+        return;
+    }
+    // A pending (unopened) duel chip auto-keeps on exit — the win is already credited.
+    if (duelOffer) setDuelOffer(null);
     if (showNeonRoulette) {
         handleNeonRouletteClose();
         return;
@@ -7433,6 +7585,62 @@ const App: React.FC = () => {
                             </div>
                         )}
 
+                        {/* DEEP BLUE (UNDERWATER) Kraken Attack — teal column glow while it resolves */}
+                        {selectedGame.theme === 'UNDERWATER' && krakenCols.length > 0 && (
+                            <div className="absolute inset-0 z-20 pointer-events-none animate-pop-in">
+                                {krakenCols.map(c => (
+                                    <div key={c} className="absolute inset-y-1"
+                                        style={{
+                                            left: `calc(${(c / selectedGame.reels) * 100}% + 2px)`,
+                                            width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
+                                            borderRadius: 5,
+                                            boxShadow: '0 0 22px rgba(45,212,191,0.85), inset 0 0 26px rgba(45,212,191,0.35)',
+                                            background: 'linear-gradient(180deg,rgba(45,212,191,0.18),rgba(8,74,68,0.08))',
+                                        }} />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* GOLD RUSH (WESTERN) Dynamite Blast — per-cell amber glow while it resolves */}
+                        {selectedGame.theme === 'WESTERN' && dynamiteCells.length > 0 && (
+                            <div className="absolute inset-0 z-20 pointer-events-none animate-pop-in">
+                                {dynamiteCells.map(({ col, row }) => (
+                                    <div key={`${col}-${row}`} className="absolute"
+                                        style={{
+                                            left: `calc(${(col / selectedGame.reels) * 100}% + 2px)`,
+                                            top: `calc(${(row / selectedGame.rows) * 100}% + 2px)`,
+                                            width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
+                                            height: `calc(${(1 / selectedGame.rows) * 100}% - 4px)`,
+                                            borderRadius: 5,
+                                            boxShadow: '0 0 18px rgba(251,146,60,0.85), inset 0 0 20px rgba(251,146,60,0.35)',
+                                            background: 'linear-gradient(180deg,rgba(251,146,60,0.18),rgba(124,45,18,0.08))',
+                                        }} />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* GOLD RUSH (WESTERN) High Noon Duel — offer chip after a mid-size win */}
+                        {selectedGame.theme === 'WESTERN' && duelOffer && !showDuelModal && status === GameStatus.IDLE && (
+                            <div className="absolute -bottom-1 inset-x-0 flex justify-center z-30 animate-pop-in">
+                                <div className="flex items-center gap-2" style={{
+                                    background: 'linear-gradient(180deg,#92400e,#451a03)',
+                                    borderRadius: 999,
+                                    padding: '5px 8px 5px 12px',
+                                    boxShadow: '0 0 18px rgba(251,191,36,0.4), 0 4px 10px rgba(0,0,0,0.6)',
+                                }}>
+                                    <span className="font-black" style={{ fontSize: 10, color: '#fde68a' }}>Risk it for {formatK(duelOffer.amount)}?</span>
+                                    <button onClick={() => setShowDuelModal(true)} className="font-black rounded-full"
+                                        style={{ fontSize: 10, padding: '4px 10px', background: '#fbbf24', color: '#451a03' }}>
+                                        Duel ×2
+                                    </button>
+                                    <button onClick={() => setDuelOffer(null)} className="font-black rounded-full"
+                                        style={{ fontSize: 10, padding: '4px 10px', background: 'rgba(255,255,255,0.12)', color: '#fde68a' }}>
+                                        Keep
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Dragon Pick-and-Win grid — renders inside reel container as absolute overlay */}
                         {showDragonPickModal && selectedGame.theme === 'DRAGON' && (
                             <DragonPickGrid
@@ -7974,6 +8182,13 @@ const App: React.FC = () => {
           isOpen={showBeastRoulette}
           freeSpins={freeSpinsWon}
           onComplete={handleBeastRouletteComplete}
+      />
+
+      <DuelGambleModal
+          isOpen={showDuelModal}
+          amount={duelOffer?.amount ?? 0}
+          round={duelOffer?.round ?? 1}
+          onResolve={handleDuelResolve}
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
