@@ -63,9 +63,11 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
         .map(id => GAMES_CONFIG.find(g => g.id === id))
         .filter(Boolean) as typeof GAMES_CONFIG;
 
-    // Per-stage reward: stage i = maxBet * (i+1) * 20
-    const stageReward = (i: number) => maxBet * (i + 1) * 20;
-    const grandPrize = maxBet * 300;
+    // Per-stage reward: stage i = maxBet * (i+1) * 10. Grand prize halved to 150x
+    // so the final stage's combined total (stage + grand) stays proportionate —
+    // it should never dwarf the "Final Stage Bonus" header above it.
+    const stageReward = (i: number) => maxBet * (i + 1) * 10;
+    const grandPrize = maxBet * 150;
 
     const handleClaim = () => {
         const nextIdx = currentPathIndex + 1;

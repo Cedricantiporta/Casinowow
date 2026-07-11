@@ -133,7 +133,11 @@ export interface QuestState {
   dicePosition: number;
   activeGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL'; // 'WHEEL' = RPG Roulette
   wildGrid: WildGridCell[]; // Persistence for Wild Quest
-  miniGameCredits: number; // Shared token wallet across all mini games
+  // Each mini game has its own token pool — a credit earned only benefits whichever
+  // game was selected (activeGame) at the time, never all three at once.
+  wildCredits: number;
+  diceCredits: number;
+  wheelCredits: number;
   // RPG Roulette: current enemy HP on the active stage, so closing/reopening the
   // mini-game mid-fight doesn't reset progress. Reset to that stage's max HP
   // whenever wheelStage/wheelRun advances (a fresh enemy).

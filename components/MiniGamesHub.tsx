@@ -6,14 +6,16 @@ interface MiniGamesHubProps {
     onOpenWildQuest: () => void;
     onOpenDiceQuest: () => void;
     onOpenWheelQuest: () => void;
-    credits: number;
+    wildCredits: number;
+    diceCredits: number;
+    wheelCredits: number;
     selectedGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL';
     isQuestLocked: boolean;
 }
 
 export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
     isOpen, onClose, onOpenWildQuest, onOpenDiceQuest, onOpenWheelQuest,
-    credits, selectedGame, isQuestLocked,
+    wildCredits, diceCredits, wheelCredits, selectedGame, isQuestLocked,
 }) => {
     if (!isOpen) return null;
 
@@ -25,6 +27,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
             blurb: 'Dig for coins, gems and multipliers',
             glow: 'rgba(168,85,247,0.55)',
             onOpen: onOpenWildQuest,
+            credits: wildCredits,
         },
         {
             key: 'DICE' as const,
@@ -33,6 +36,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
             blurb: 'Roll across the board for big rewards',
             glow: 'rgba(56,189,248,0.55)',
             onOpen: onOpenDiceQuest,
+            credits: diceCredits,
         },
         {
             key: 'WHEEL' as const,
@@ -42,6 +46,7 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
             blurb: 'Spin to attack enemies and loot rewards',
             glow: 'rgba(217,119,6,0.55)',
             onOpen: onOpenWheelQuest,
+            credits: wheelCredits,
         },
     ];
 
@@ -67,14 +72,14 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
                         const isSelected = selectedGame === game.key;
                         return (
                             <div key={game.key} className={isSelected && !isQuestLocked ? 'tcard-gold flex flex-col items-center flex-1 gap-2 p-2.5 relative' : 'tcard flex flex-col items-center flex-1 gap-2 p-2.5 relative'}>
-                                {/* Individual key/token dot counter */}
-                                {!isQuestLocked && credits > 0 && (
+                                {/* Individual key/token dot counter — each game's own pool */}
+                                {!isQuestLocked && game.credits > 0 && (
                                     <div className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1 z-10"
                                         style={{
                                             background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)',
                                             boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)',
                                         }}>
-                                        <span className="font-black text-white leading-none" style={{ fontSize: 9 }}>{credits > 60 ? 60 : credits}</span>
+                                        <span className="font-black text-white leading-none" style={{ fontSize: 9 }}>{game.credits > 60 ? 60 : game.credits}</span>
                                     </div>
                                 )}
 

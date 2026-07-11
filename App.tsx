@@ -654,9 +654,11 @@ const App: React.FC = () => {
   const lifetimeSpinsRef = useRef<number>(0);
   const firstFreeSpinDoneRef = useRef<boolean>(false);
   const forceFreeSpinRef = useRef<boolean>(false);
-  // Piggy Riches' guaranteed first-time-player free-spin round also guarantees a
-  // predetermined MAJOR jackpot partway through (not left to the normal per-cell chance).
+  // Piggy Riches' guaranteed first-time-player free-spin round also guarantees two
+  // predetermined MAJOR jackpots — one partway through, one on the final free spin —
+  // instead of leaving them to the normal per-cell chance.
   const piggyGuaranteedJackpotRef = useRef<boolean>(false);
+  const piggyGuaranteedJackpot2Ref = useRef<boolean>(false);
   useEffect(() => {
       try {
           lifetimeSpinsRef.current = JSON.parse(localStorage.getItem('cw_player') || '{}')?.stats?.totalSpins || 0;
@@ -753,15 +755,22 @@ const App: React.FC = () => {
 
   // Quest state initialized with separate stages, persisted to localStorage
   const [quest, setQuest] = useState<QuestState>(() => {
-      const defaults: QuestState = { miniGameCredits: 5, wildStage: 1, diceStage: 1, wheelStage: 1, wildRun: 0, diceRun: 0, wheelRun: 0, max: 60, dicePosition: 0, activeGame: 'WILD', wildGrid: [], rpgEnemyHp: rpgEnemyMaxHp(1, 0) };
+      const defaults: QuestState = { wildCredits: 5, diceCredits: 5, wheelCredits: 5, wildStage: 1, diceStage: 1, wheelStage: 1, wildRun: 0, diceRun: 0, wheelRun: 0, max: 60, dicePosition: 0, activeGame: 'WILD', wildGrid: [], rpgEnemyHp: rpgEnemyMaxHp(1, 0) };
       try {
           const saved = localStorage.getItem('cw_quest');
           if (saved) {
               const parsed = JSON.parse(saved);
-              // Migrate legacy separate wildCredits/diceCredits wallets into the single shared pool.
-              const migratedCredits = parsed.miniGameCredits ?? (((parsed.wildCredits ?? 0) + (parsed.diceCredits ?? 0)) || 5);
               const wheelStage = parsed.wheelStage || 1;
               const wheelRun = parsed.wheelRun || 0;
+              // Migrate the old single shared wallet: whichever game was selected when
+              // last saved keeps the balance, the other two start fresh — a shared
+              // number can't be un-mixed any other way.
+              const legacyShared = parsed.miniGameCredits;
+              const migrate = (field: 'wildCredits' | 'diceCredits' | 'wheelCredits', game: QuestState['activeGame']) => {
+                  if (parsed[field] !== undefined) return parsed[field];
+                  if (legacyShared !== undefined) return parsed.activeGame === game ? legacyShared : 0;
+                  return 5;
+              };
               return {
                   ...defaults,
                   wildStage: parsed.wildStage || 1,
@@ -772,7 +781,9 @@ const App: React.FC = () => {
                   wheelRun,
                   dicePosition: parsed.dicePosition || 0,
                   wildGrid: parsed.wildGrid || [],
-                  miniGameCredits: migratedCredits,
+                  wildCredits: migrate('wildCredits', 'WILD'),
+                  diceCredits: migrate('diceCredits', 'DICE'),
+                  wheelCredits: migrate('wheelCredits', 'WHEEL'),
                   activeGame: parsed.activeGame || 'WILD',
                   rpgEnemyHp: parsed.rpgEnemyHp || rpgEnemyMaxHp(wheelStage, wheelRun),
               };
@@ -780,6 +791,10 @@ const App: React.FC = () => {
       } catch {}
       return defaults;
   });
+  // Each mini game has its own credit/key pool now — a credit earned while, say,
+  // Dice Roll is selected only ever lands in diceCredits, never all three at once.
+  const activeGameCreditsKey = (game: QuestState['activeGame']): 'wildCredits' | 'diceCredits' | 'wheelCredits' =>
+      game === 'DICE' ? 'diceCredits' : game === 'WHEEL' ? 'wheelCredits' : 'wildCredits';
   // Slot quest state — quest path + active missions
   // Handpicked order: variety of features (Hold&Win, respins, pick bonus, roulette, walking wilds, ice pick, cascade, expanding wilds)
   const QUEST_PATH_IDS = [
@@ -806,7 +821,7 @@ const App: React.FC = () => {
           freespin: (t: number): SlotQuestMission => ({ id: `${slotId}_freespin`, type: 'FREE_SPIN_COUNT', label: 'Bonus',    description: `Complete ${t} Free Spin${t !== 1 ? 's' : ''} or Respin${t !== 1 ? 's' : ''}`, current: 0, target: t }),
           level:    (t: number): SlotQuestMission => ({ id: `${slotId}_level`,    type: 'LEVEL_UP',       label: 'Level',    description: `Level up ${t} ${t === 1 ? 'time' : 'times'}`, current: 0, target: t }),
           reach:  (t: number): SlotQuestMission => ({ id: `${slotId}_reach`,  type: 'REACH_LEVEL',   label: 'Level', description: `Reach level ${t}`, current: Math.min(t, playerLevel), target: t }),
-          bonus:  (t: number): SlotQuestMission => ({ id: `${slotId}_bonus`,  type: 'BONUS_TRIGGER', label: 'Bonus', description: `Complete ${t} Bonus game${t !== 1 ? 's' : ''}`, current: 0, target: t }),
+          bonus:  (t: number): SlotQuestMission => ({ id: `${slotId}_bonus`,  type: 'BONUS_TRIGGER', label: 'Bonus', description: `Complete ${t} Bonus Game${t !== 1 ? 's' : ''} or Free Spins`, current: 0, target: t }),
       };
       // Each cycle reset scales every target/coin-multiplier up to 20% harder,
       // capped at 200% harder overall (difficultyMult caps at 3).
@@ -828,12 +843,18 @@ const App: React.FC = () => {
   // Advance a slot-quest mission of the given type while playing the active path slot.
   const trackSlotQuest = (matchType: SlotQuestMission['type'], delta: number) => {
       if (delta <= 0 || !selectedGame) return;
+      // BONUS_TRIGGER and FREE_SPIN_COUNT both mean "completed a bonus round" — just
+      // different sources (hold&win/roulette/walking-wilds/retriggers vs. a plain
+      // scatter-triggered free-spin session). A mission worded either way should
+      // progress from any of them, on any slot.
+      const isBonusRoundEvent = matchType === 'BONUS_TRIGGER' || matchType === 'FREE_SPIN_COUNT';
       setSlotQuestState(prev => {
           if (!prev.missions.length || prev.pathSlotIds[prev.currentPathIndex] !== selectedGame.id) return prev;
           let changed = false;
           let justCompleted: SlotQuestMission | null = null;
           const updated = prev.missions.map(m => {
-              if (m.type === matchType && m.current < m.target) {
+              const matches = m.type === matchType || (isBonusRoundEvent && (m.type === 'BONUS_TRIGGER' || m.type === 'FREE_SPIN_COUNT'));
+              if (matches && m.current < m.target) {
                   changed = true;
                   const newCurrent = Math.min(m.target, m.current + delta);
                   const next = { ...m, current: newCurrent };
@@ -2038,10 +2059,11 @@ const App: React.FC = () => {
       const stageIdx = slotQuestState.currentPathIndex;
       const maxBetNow = MAX_BET_BY_LEVEL(player.level);
       // Stage reward: 10×, 20×, ... 70× of max bet per stage
-      const stageReward = maxBetNow * (stageIdx + 1) * 20;
-      // Grand prize on completing all 7 stages: +300× max bet
+      const stageReward = maxBetNow * (stageIdx + 1) * 10;
+      // Grand prize on completing all 7 stages: +150× max bet (halved so the last
+      // stage's combined total stays proportionate to the grand prize header — see QuestPathModal.tsx)
       const isLastStage = stageIdx + 1 >= QUEST_PATH_IDS.length;
-      const grandPrize = isLastStage ? maxBetNow * 300 : 0;
+      const grandPrize = isLastStage ? maxBetNow * 150 : 0;
       setPlayer(p => ({ ...p, balance: p.balance + stageReward + grandPrize }));
       setSlotQuestState(prev => {
           const nextIndex = prev.currentPathIndex + 1;
@@ -2328,8 +2350,8 @@ const App: React.FC = () => {
   }, [savedGameStates]);
 
   useEffect(() => {
-    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, wheelStage: quest.wheelStage, wildRun: quest.wildRun, diceRun: quest.diceRun, wheelRun: quest.wheelRun, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, miniGameCredits: quest.miniGameCredits, activeGame: quest.activeGame, rpgEnemyHp: quest.rpgEnemyHp })); } catch {}
-  }, [quest.wildStage, quest.diceStage, quest.wheelStage, quest.wildRun, quest.diceRun, quest.wheelRun, quest.dicePosition, quest.wildGrid, quest.miniGameCredits, quest.activeGame, quest.rpgEnemyHp]);
+    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, wheelStage: quest.wheelStage, wildRun: quest.wildRun, diceRun: quest.diceRun, wheelRun: quest.wheelRun, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, wildCredits: quest.wildCredits, diceCredits: quest.diceCredits, wheelCredits: quest.wheelCredits, activeGame: quest.activeGame, rpgEnemyHp: quest.rpgEnemyHp })); } catch {}
+  }, [quest.wildStage, quest.diceStage, quest.wheelStage, quest.wildRun, quest.diceRun, quest.wheelRun, quest.dicePosition, quest.wildGrid, quest.wildCredits, quest.diceCredits, quest.wheelCredits, quest.activeGame, quest.rpgEnemyHp]);
 
   // When all slot quest missions complete, stop auto-spin and open the quest path modal.
   // If a bonus is still running, defer until it ends.
@@ -2507,7 +2529,7 @@ const App: React.FC = () => {
                   msg = `+${reward.value} Card Packs`;
               }
           } else if (reward.type === 'MINI_CREDITS') {
-              setQuest(q => ({ ...q, miniGameCredits: (q.miniGameCredits ?? 0) + reward.value }));
+              setQuest(q => { const key = activeGameCreditsKey(q.activeGame); return { ...q, [key]: (q[key] ?? 0) + reward.value }; });
               msg = `+${reward.value} Mini Game Tokens`;
           }
       }
@@ -2552,7 +2574,7 @@ const App: React.FC = () => {
           premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPremPackCredits,
       }));
       if (totalMiniCredits > 0) {
-          setQuest(q => ({ ...q, miniGameCredits: (q.miniGameCredits ?? 0) + totalMiniCredits }));
+          setQuest(q => { const key = activeGameCreditsKey(q.activeGame); return { ...q, [key]: (q[key] ?? 0) + totalMiniCredits }; });
       }
       
       const claimedMap = new Map(rewardsToClaim.map(r => [
@@ -3649,6 +3671,25 @@ const App: React.FC = () => {
           piggyGuaranteedJackpotRef.current = false;
       }
 
+      // Piggy Riches: same guarantee again on the very last free spin of that first
+      // round — 2 forced MAJOR jackpots total across the one guaranteed session.
+      if (ft === 'PIGGY' && isFreeSpin && piggyGuaranteedJackpot2Ref.current && freeSpinsRemaining === 1) {
+          const eligible: { c: number; r: number }[] = [];
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  if (newGrid[c][r] !== SymbolType.SCATTER && newGrid[c][r] !== SymbolType.WILD) eligible.push({ c, r });
+              }
+          }
+          for (let i = eligible.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+          }
+          for (let i = 0; i < Math.min(3, eligible.length); i++) {
+              newGrid[eligible[i].c][eligible[i].r] = SymbolType.JACKPOT_MAJOR;
+          }
+          piggyGuaranteedJackpot2Ref.current = false;
+      }
+
       // PIRATE: while the Ghost Ship is walking, force all active ship columns to full WILD stacks.
       if (ft === 'PIRATE' && pirateWalkRef.current.active) {
           const shipCol = pirateWalkRef.current.shipCol;
@@ -3695,7 +3736,8 @@ const App: React.FC = () => {
               const s = newGrid[c]?.[r];
               return s !== undefined && s !== SymbolType.SCATTER && !String(s).startsWith('JACKPOT');
           };
-          const midCols = [1, 2, 3].filter(c => c <= cols - 2);
+          // Middle reels = every column except the first and last, whatever the reel count.
+          const midCols = Array.from({ length: Math.max(0, cols - 2) }, (_, i) => i + 1);
           if (samuraiRespinRef.current.active) {
               // Respin: ~14% per open middle reel for a fresh katana wild to chain the feature.
               for (const c of midCols) {
@@ -3816,6 +3858,7 @@ const App: React.FC = () => {
                   newGrid[eligible[i].c][eligible[i].r] = SymbolType.COIN;
               }
               piggyGuaranteedJackpotRef.current = true;
+              piggyGuaranteedJackpot2Ref.current = true;
           } else if (ft !== 'EGYPT') {
               // All non-Egypt, non-Piggy slots: drop enough scatters in distinct columns.
               const need = Math.min(selectedGame.scattersToTrigger || 3, cols);
@@ -3970,7 +4013,7 @@ const App: React.FC = () => {
   };
 
   const handleDiceRoll = (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean, cost: number = 1) => {
-      setQuest(q => ({ ...q, miniGameCredits: Math.max(0, q.miniGameCredits - cost), dicePosition: newPosition }));
+      setQuest(q => ({ ...q, diceCredits: Math.max(0, q.diceCredits - cost), dicePosition: newPosition }));
       const msgParts: string[] = [];
       let totalCoins = 0;
       let totalGems = 0;
@@ -3994,7 +4037,7 @@ const App: React.FC = () => {
               msgParts.push(`+${totalPacks} 🃏`);
           }
       }
-      if (creditsGained > 0) { setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + creditsGained })); msgParts.push(`+${creditsGained} 🎫`); }
+      if (creditsGained > 0) { setQuest(q => ({ ...q, diceCredits: q.diceCredits + creditsGained })); msgParts.push(`+${creditsGained} 🎫`); }
       if (isFinish) {
           const currentStage = quest.diceStage;
           const currentRun = quest.diceRun || 0;
@@ -4017,7 +4060,7 @@ const App: React.FC = () => {
   // fight's HP hits zero — reuses the exact stage-clear flow the old Prize Wheel
   // jackpot used, plus arming the next enemy's fresh HP.
   const handleWheelSpin = (rewards: MiniGameReward[], cost: number, enemyDefeated: boolean) => {
-      setQuest(q => ({ ...q, miniGameCredits: Math.max(0, q.miniGameCredits - cost) }));
+      setQuest(q => ({ ...q, wheelCredits: Math.max(0, q.wheelCredits - cost) }));
       const msgParts: string[] = [];
       let totalCoins = 0;
       let totalGems = 0;
@@ -4029,7 +4072,7 @@ const App: React.FC = () => {
       });
       if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
       if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
-      if (creditsGained > 0) { setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + creditsGained })); msgParts.push(`+${creditsGained} 🎫`); }
+      if (creditsGained > 0) { setQuest(q => ({ ...q, wheelCredits: q.wheelCredits + creditsGained })); msgParts.push(`+${creditsGained} 🎫`); }
       if (enemyDefeated) {
           const currentStage = quest.wheelStage;
           const currentRun = quest.wheelRun || 0;
@@ -4780,7 +4823,7 @@ const App: React.FC = () => {
         // SAMURAI Katana Wilds: detect a slash on any open middle reel (base game only —
         // free-spin sticky wilds pay through the normal calculateWin path below).
         if (selectedGame.theme === 'SAMURAI' && !isCurrentFreeSpinRef.current) {
-            const midColsNow = [1, 2, 3].filter(c => c <= selectedGame.reels - 2);
+            const midColsNow = Array.from({ length: Math.max(0, selectedGame.reels - 2) }, (_, i) => i + 1);
             const openCols = midColsNow.filter(c => !samuraiRespinRef.current.heldCols.includes(c));
             const wildCols = openCols.filter(c => targetGrid[c]?.some(s => s === SymbolType.WILD));
 
@@ -5298,7 +5341,7 @@ const App: React.FC = () => {
   };
 
   const gainQuestCredit = () => {
-      setQuest(q => ({ ...q, miniGameCredits: Math.min(60, q.miniGameCredits + 1) }));
+      setQuest(q => { const key = activeGameCreditsKey(q.activeGame); return { ...q, [key]: Math.min(60, q[key] + 1) }; });
       setQuestCreditToast(true);
       if (questCreditToastTimer.current) clearTimeout(questCreditToastTimer.current);
       questCreditToastTimer.current = setTimeout(() => setQuestCreditToast(false), 2000);
@@ -5708,12 +5751,12 @@ const App: React.FC = () => {
   const handleBuyQuestBundle = (amount: number, coins: number, gemCost: number, bonusGems: number = 0) => {
       if (player.diamonds < gemCost) { setCelebrationMsg('Not Enough Gems!'); audioService.playStoneBreak(); return; }
       setPlayer(p => ({ ...p, diamonds: p.diamonds - gemCost + bonusGems, balance: p.balance + coins }));
-      setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + amount }));
+      setQuest(q => { const key = activeGameCreditsKey(q.activeGame); return { ...q, [key]: q[key] + amount }; });
       audioService.playWinBig();
       setCelebrationMsg(`Bundle claimed!`);
   };
   const handleMiniGamePick = (isGem: boolean, reward: MiniGameReward | null) => {
-      setQuest(q => ({ ...q, miniGameCredits: Math.max(0, q.miniGameCredits - 1) }));
+      setQuest(q => ({ ...q, wildCredits: Math.max(0, q.wildCredits - 1) }));
       if (reward) {
           if (reward.type === 'COINS') {
               setPlayer(p => ({ ...p, balance: p.balance + reward.value }));
@@ -5721,7 +5764,7 @@ const App: React.FC = () => {
           }
           else if (reward.type === 'DIAMONDS') { setPlayer(p => ({ ...p, diamonds: p.diamonds + reward.value })); setCelebrationMsg(`+${reward.value} Gems`); }
           else if (reward.type === 'XP_BOOST') { setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 })); setCelebrationMsg(`2× XP Boost!`); }
-          else if (reward.type === 'MINI_CREDITS') { setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + reward.value })); setCelebrationMsg(`+${reward.value} Credits`); }
+          else if (reward.type === 'MINI_CREDITS') { setQuest(q => ({ ...q, wildCredits: q.wildCredits + reward.value })); setCelebrationMsg(`+${reward.value} Credits`); }
           else if (reward.type === 'CREDIT_BACK') {
               const premChance = Math.min(0.20, 0.10 + Math.floor(player.level / 5) * 0.01);
               if (Math.random() < premChance) {
@@ -5736,7 +5779,7 @@ const App: React.FC = () => {
   };
 
   const handleBatchPick = (picksUsed: number, rewards: MiniGameReward[]) => {
-      setQuest(q => ({ ...q, miniGameCredits: Math.max(0, q.miniGameCredits - picksUsed) }));
+      setQuest(q => ({ ...q, wildCredits: Math.max(0, q.wildCredits - picksUsed) }));
 
       let totalCoins = 0;
       let totalGems = 0;
@@ -5759,7 +5802,7 @@ const App: React.FC = () => {
 
       if (totalCoins > 0) setPlayer(p => ({ ...p, balance: p.balance + totalCoins }));
       if (totalGems > 0) setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems }));
-      if (totalCreditsFound > 0) setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + totalCreditsFound }));
+      if (totalCreditsFound > 0) setQuest(q => ({ ...q, wildCredits: q.wildCredits + totalCreditsFound }));
       if (xpBoostFound) setPlayer(p => ({ ...p, xpMultiplier: 2, xpBoostEndTime: Math.max(Date.now(), p.xpBoostEndTime) + 3600000 }));
       if (totalPacks > 0) setPlayer(p => ({ ...p, packCredits: p.packCredits + totalPacks }));
       if (totalPremPacks > 0) setPlayer(p => ({ ...p, premiumPackCredits: (p.premiumPackCredits ?? 0) + totalPremPacks }));
@@ -6288,9 +6331,9 @@ const App: React.FC = () => {
   // Buffs granted alongside a coin/gem purchase, scaled by purchase tier (1–3).
   const PURCHASE_BUFFS = [
       null,
-      { collectDays: 1, xpDays: 1, arenaDays: 1, dice: 2,  picks: 2,  packs: 2 },
-      { collectDays: 3, xpDays: 2, arenaDays: 2, dice: 5,  picks: 5,  packs: 5 },
-      { collectDays: 7, xpDays: 3, arenaDays: 3, dice: 10, picks: 10, packs: 10 },
+      { collectDays: 1, xpDays: 1, arenaDays: 1, dice: 2,  picks: 2,  wheel: 2,  packs: 2 },
+      { collectDays: 3, xpDays: 2, arenaDays: 2, dice: 5,  picks: 5,  wheel: 5,  packs: 5 },
+      { collectDays: 7, xpDays: 3, arenaDays: 3, dice: 10, picks: 10, wheel: 10, packs: 10 },
   ];
   const purchaseTier = (cost?: number, gemAmount?: number): number => {
       if (gemAmount) return gemAmount >= 2500 ? 3 : gemAmount >= 500 ? 2 : 1;
@@ -6309,7 +6352,12 @@ const App: React.FC = () => {
           arenaXpMultiplier: 2, arenaXpBoostEndTime: Math.max(now, p.arenaXpBoostEndTime || 0) + b.arenaDays * DAY,
           packCredits: p.packCredits + b.packs,
       }));
-      setQuest(q => ({ ...q, miniGameCredits: Math.min(60, q.miniGameCredits + b.dice + b.picks) }));
+      setQuest(q => ({
+          ...q,
+          wildCredits: Math.min(60, q.wildCredits + b.picks),
+          diceCredits: Math.min(60, q.diceCredits + b.dice),
+          wheelCredits: Math.min(60, q.wheelCredits + b.wheel),
+      }));
   };
 
   const handleShopBuy = (type: 'COIN' | 'BOOST' | 'DIAMOND' | 'PASS_XP' | 'PACK_CREDIT' | 'COLLECT_BOOST' | 'ARENA_XP' | 'VIP_XP_BOOST', amount: number, duration?: number, cost?: number) => {
@@ -6850,11 +6898,14 @@ const App: React.FC = () => {
                                         onClick={!isQuestLocked ? () => setShowMiniGamesHub(true) : undefined}
                                         className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
                                     >
-                                        {quest.miniGameCredits > 0 && !isQuestLocked && (
-                                            <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
-                                                {quest.miniGameCredits}
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const activeCredits = quest.activeGame === 'DICE' ? quest.diceCredits : quest.activeGame === 'WHEEL' ? quest.wheelCredits : quest.wildCredits;
+                                            return activeCredits > 0 && !isQuestLocked && (
+                                                <div className="absolute top-1 right-1 w-4 h-4 bg-red-600 rounded-full border border-yellow-400 flex items-center justify-center text-[9px] text-white font-black z-10" style={{ WebkitTextStroke:'0.5px #000', paintOrder:'stroke fill' }}>
+                                                    {activeCredits}
+                                                </div>
+                                            );
+                                        })()}
                                         <img src={miniGameIcon} alt="" style={{ width: 54, height: 54, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                                         <div style={pillStyle}>Play</div>
                                     </button>
@@ -7695,7 +7746,9 @@ const App: React.FC = () => {
 
       {activeModal === 'MINIGAME' && <MiniGameModal
         isOpen
-        credits={quest.miniGameCredits}
+        wildCredits={quest.wildCredits}
+        diceCredits={quest.diceCredits}
+        wheelCredits={quest.wheelCredits}
         wildStage={quest.wildStage}
         diceStage={quest.diceStage}
         wheelStage={quest.wheelStage}
@@ -8296,7 +8349,9 @@ const App: React.FC = () => {
           onOpenWildQuest={() => { setShowMiniGamesHub(false); setTimeout(handleWildQuestClaim, 50); }}
           onOpenDiceQuest={() => { setShowMiniGamesHub(false); setTimeout(handleDiceQuestClaim, 50); }}
           onOpenWheelQuest={() => { setShowMiniGamesHub(false); setTimeout(handleWheelQuestClaim, 50); }}
-          credits={quest.miniGameCredits}
+          wildCredits={quest.wildCredits}
+          diceCredits={quest.diceCredits}
+          wheelCredits={quest.wheelCredits}
           selectedGame={quest.activeGame}
           isQuestLocked={player.level < 20}
       />

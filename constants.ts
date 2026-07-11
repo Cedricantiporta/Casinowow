@@ -289,7 +289,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     name: 'Samurai Honor',
     theme: 'SAMURAI',
     rows: 3,
-    reels: 5,
+    reels: 7,
     scattersToTrigger: 3,
     description: 'Katana Wilds! Middle-reel wilds slash their whole reel wild and respin. Free-spin wilds stay locked in place.',
     color: 'from-red-700 via-red-900 to-black',

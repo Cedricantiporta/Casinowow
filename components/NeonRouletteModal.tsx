@@ -371,7 +371,9 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                 multCountRef.current = newMc;
                 setMultCount(newMc);
                 setPhase('mult_popup');
-                timerRef.current = setTimeout(() => { doSpinRef.current(newMc); }, 2500);
+                // Show the win briefly, then hand control back to the player instead
+                // of auto-spinning again — they must press Spin to continue.
+                timerRef.current = setTimeout(() => { setPhase('ready'); }, 2000);
             } else {
                 const amt = jpRef.current[JP_IDX[seg.jp!]] ?? betRef.current * 50;
                 setPrize(amt);
@@ -455,7 +457,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
 
                     {/* Center SPIN button */}
                     {phase === 'ready' && (
-                        <button onClick={() => doSpinRef.current(0)}
+                        <button onClick={() => doSpinRef.current(multCountRef.current)}
                             className="absolute flex flex-col items-center justify-center transition-all hover:scale-105 active:scale-95"
                             style={{
                                 top: 48 + 155 - 34, left: 155 - 34, width: 68, height: 68, borderRadius: '50%',
@@ -474,7 +476,7 @@ export const NeonRouletteModal: React.FC<Props> = ({ isOpen, bet, jackpotAmounts
                                 style={{ ...containerShell('neon'), minWidth: 160 }}>
                                 <div className="text-sky-100/70 text-[9px] font-black uppercase tracking-[0.25em]">{wonSeg.label} Bonus</div>
                                 <span className="font-black text-white text-2xl font-mono" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>+{formatCommaNumber(multPayout)}</span>
-                                <span className="text-white/50 text-[9px] uppercase tracking-widest animate-pulse">Spinning again…</span>
+                                <span className="text-white/50 text-[9px] tracking-widest animate-pulse">Tap Spin to continue</span>
                             </div>
                         </div>
                     )}

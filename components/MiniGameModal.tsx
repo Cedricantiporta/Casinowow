@@ -6,7 +6,9 @@ import { RPGRouletteWheel, RPGRouletteWheelHandle, RpgSpinResult } from './RPGRo
 
 interface MiniGameModalProps {
     isOpen: boolean;
-    credits: number;
+    wildCredits: number;
+    diceCredits: number;
+    wheelCredits: number;
     wildStage: number;
     diceStage: number;
     wheelStage: number;
@@ -87,14 +89,14 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 );
 
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
-    isOpen, credits: creditsRaw, wildStage, diceStage, wheelStage, wildRun = 0, diceRun = 0, wheelRun = 0, dicePosition = 0, activeGame, savedGrid, savedEnemyHp,
+    isOpen, wildCredits: wildCreditsRaw, diceCredits: diceCreditsRaw, wheelCredits: wheelCreditsRaw, wildStage, diceStage, wheelStage, wildRun = 0, diceRun = 0, wheelRun = 0, dicePosition = 0, activeGame, savedGrid, savedEnemyHp,
     balance = 0, diamonds = 0,
     onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onWheelSpin, onEnemyHpUpdate, onClose, playerLevel, maxBet, onOpenGemShop
 }) => {
-    const credits = creditsRaw ?? 0;
-    // Both games draw from the same shared token wallet.
-    const diceCredits = credits;
-    const wildCredits = credits;
+    // Each mini game now has its own token pool — no more shared wallet.
+    const wildCredits = wildCreditsRaw ?? 0;
+    const diceCredits = diceCreditsRaw ?? 0;
+    const wheelCredits = wheelCreditsRaw ?? 0;
     const { cols: gridCols, rows: gridRows } = getGridDimensions(wildStage);
     const totalCells = gridCols * gridRows;
 
@@ -1027,7 +1029,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                     <div className="flex-1 flex overflow-hidden">
                         <RPGRouletteWheel
                             ref={prizeWheelRef}
-                            credits={credits}
+                            credits={wheelCredits}
                             stage={wheelStage}
                             maxBet={maxBet || 10000}
                             onSpinResult={handleRpgSpinResult}
@@ -1045,7 +1047,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             <div className="w-full h-px bg-white/10" />
                             <div className="flex flex-col items-center leading-none">
                                 <img src="/coinmine_pickaxe.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
-                                <span className="font-black text-white text-xl leading-none mt-0.5">{credits}</span>
+                                <span className="font-black text-white text-xl leading-none mt-0.5">{wheelCredits}</span>
                                 <span className="text-white/50 text-[8px] font-black">Keys</span>
                             </div>
                             <button onClick={() => setShowBuyPopup(true)} className="pill-green w-full">
@@ -1054,8 +1056,8 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             <div className="flex-1" />
                             <button
                                 onClick={() => prizeWheelRef.current?.spin()}
-                                disabled={credits <= 0 || wheelSpinning}
-                                className={`${credits <= 0 || wheelSpinning ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
+                                disabled={wheelCredits <= 0 || wheelSpinning}
+                                className={`${wheelCredits <= 0 || wheelSpinning ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
                                 <div className="pill-face" style={{ padding: '7px 8px', fontSize: '10px' }}>
                                     {wheelSpinning ? 'Spinning…' : 'Spin'}
                                 </div>

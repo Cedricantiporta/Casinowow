@@ -191,8 +191,8 @@ export const Lobby: React.FC<LobbyProps> = ({
     const isRankingLocked = playerLevel < 18;
     const isVipLocked = playerLevel < 44;
 
-    // Shared mini-game token wallet
-    const miniGameCredits = Math.floor(questState.miniGameCredits ?? 0);
+    // Each mini game has its own token pool — show whichever is currently selected.
+    const miniGameCredits = Math.floor((questState.activeGame === 'DICE' ? questState.diceCredits : questState.activeGame === 'WHEEL' ? questState.wheelCredits : questState.wildCredits) ?? 0);
 
     // Piggy full state
     const piggyCap = (piggyMaxBet ?? 0) * 5;
@@ -478,7 +478,7 @@ export const Lobby: React.FC<LobbyProps> = ({
                             <div className="relative flex items-end justify-center gap-0.5 overflow-visible"
                                 style={{ paddingLeft:'14px', paddingRight:'38px', paddingBottom: dockExpanded ? 0 : '4px', paddingTop:'8px' }}>
 
-                            {/* Mini Games (Coin Mine, Dice Roll, Prize Wheel — one active at a time) */}
+                            {/* Mini Games (Coin Mine, Dice Roll, RPG Roulette — one active at a time) */}
                             <button onClick={!isQuestLocked ? onOpenMiniGames : undefined} className={iconBtn(isQuestLocked)}>
                                 <div className="relative leading-none">
                                     <img src={questState.activeGame === 'DICE' ? '/ui/dice.png' : questState.activeGame === 'WHEEL' ? '/ui/wheel.png' : '/ui/coinmine.png'} alt="" style={iconStyle(isQuestLocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
