@@ -4937,10 +4937,9 @@ const App: React.FC = () => {
     }));
     if (scatterCount >= selectedGame.scattersToTrigger) winningCells.push(...scatterCells);
 
-    // Mystery feature themes (Farm, Beast, AngryFlock, Princess): 20% win boost,
-    // then reduced by 30% on top (net 1.2 * 0.7 = 0.84x line payouts)
+    // Mystery feature themes (Farm, Beast, AngryFlock, Princess): 20% win boost on line payouts
     if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
-        totalPayout = Math.floor(totalPayout * 1.2 * 0.7);
+        totalPayout = Math.floor(totalPayout * 1.2);
     }
 
     // JUNGLE: overall win amount cut by 50%.
@@ -7008,7 +7007,7 @@ const App: React.FC = () => {
                                 newCells={cascadeNewCells ? cascadeNewCells[i] : undefined}
                                 dissolving={cascadeDissolving}
                                 anticipation={isAnticipating && i === stoppedReels}
-                                inFreeSpins={freeSpinsRemaining > 0}
+                                inFreeSpins={freeSpinsWon > 0}
                                 instantStop={instantStop}
                                 beastMultiplier={beastMultiplier}
                                 orbValues={olympusOrbGrid ? olympusOrbGrid[i] : undefined}
