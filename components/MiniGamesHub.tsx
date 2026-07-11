@@ -37,8 +37,9 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
         {
             key: 'WHEEL' as const,
             icon: '/ui/wheel.png',
-            label: 'Prize Wheel',
-            blurb: 'Spin for coins, gems and a jackpot',
+            iconFont: 'ti-swords',
+            label: 'RPG Roulette',
+            blurb: 'Spin to attack enemies and loot rewards',
             glow: 'rgba(217,119,6,0.55)',
             onOpen: onOpenWheelQuest,
         },
@@ -78,8 +79,12 @@ export const MiniGamesHub: React.FC<MiniGamesHubProps> = ({
                                 )}
 
                                 <div className={`flex items-center justify-center ${isQuestLocked ? 'grayscale opacity-60' : ''}`} style={{ width: 64, height: 64 }}>
-                                    <img src={game.icon} alt=""
-                                        style={{ width: 64, height: 64, objectFit: 'contain', filter: isQuestLocked ? undefined : `drop-shadow(0 0 12px ${game.glow})` }} />
+                                    {game.iconFont ? (
+                                        <i className={`ti ${game.iconFont}`} style={{ fontSize: 44, color: '#fff', filter: isQuestLocked ? undefined : `drop-shadow(0 0 12px ${game.glow})` }} />
+                                    ) : (
+                                        <img src={game.icon} alt=""
+                                            style={{ width: 64, height: 64, objectFit: 'contain', filter: isQuestLocked ? undefined : `drop-shadow(0 0 12px ${game.glow})` }} />
+                                    )}
                                 </div>
 
                                 <div className="font-black text-white text-center" style={{ fontSize: 12 }}>{game.label}</div>

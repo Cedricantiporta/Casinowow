@@ -122,7 +122,7 @@ export interface WildGridCell {
 export interface QuestState {
   wildStage: number; // Separated Stage
   diceStage: number; // Separated Stage
-  wheelStage: number; // Separated Stage
+  wheelStage: number; // RPG Roulette's stage (field kept from the old Prize Wheel game)
   // Each mini game caps at stage 25 — completing it resets that game's stage to 1
   // and bumps its run count, scaling that game's stage-clear prize harder (mirrors
   // the Quest Path's cycleCount pattern: 20% harder per run, capped at 200%/3x).
@@ -131,9 +131,13 @@ export interface QuestState {
   wheelRun: number;
   max: 60;
   dicePosition: number;
-  activeGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL';
+  activeGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL'; // 'WHEEL' = RPG Roulette
   wildGrid: WildGridCell[]; // Persistence for Wild Quest
   miniGameCredits: number; // Shared token wallet across all mini games
+  // RPG Roulette: current enemy HP on the active stage, so closing/reopening the
+  // mini-game mid-fight doesn't reset progress. Reset to that stage's max HP
+  // whenever wheelStage/wheelRun advances (a fresh enemy).
+  rpgEnemyHp: number;
 }
 
 export interface SlotQuestMission {

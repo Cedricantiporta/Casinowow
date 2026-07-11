@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, LoginStreakState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState, GuildDonationState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK, questDifficultyMult } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK, questDifficultyMult, rpgEnemyMaxHp } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -753,25 +753,28 @@ const App: React.FC = () => {
 
   // Quest state initialized with separate stages, persisted to localStorage
   const [quest, setQuest] = useState<QuestState>(() => {
-      const defaults: QuestState = { miniGameCredits: 5, wildStage: 1, diceStage: 1, wheelStage: 1, wildRun: 0, diceRun: 0, wheelRun: 0, max: 60, dicePosition: 0, activeGame: 'WILD', wildGrid: [] };
+      const defaults: QuestState = { miniGameCredits: 5, wildStage: 1, diceStage: 1, wheelStage: 1, wildRun: 0, diceRun: 0, wheelRun: 0, max: 60, dicePosition: 0, activeGame: 'WILD', wildGrid: [], rpgEnemyHp: rpgEnemyMaxHp(1, 0) };
       try {
           const saved = localStorage.getItem('cw_quest');
           if (saved) {
               const parsed = JSON.parse(saved);
               // Migrate legacy separate wildCredits/diceCredits wallets into the single shared pool.
               const migratedCredits = parsed.miniGameCredits ?? (((parsed.wildCredits ?? 0) + (parsed.diceCredits ?? 0)) || 5);
+              const wheelStage = parsed.wheelStage || 1;
+              const wheelRun = parsed.wheelRun || 0;
               return {
                   ...defaults,
                   wildStage: parsed.wildStage || 1,
                   diceStage: parsed.diceStage || 1,
-                  wheelStage: parsed.wheelStage || 1,
+                  wheelStage,
                   wildRun: parsed.wildRun || 0,
                   diceRun: parsed.diceRun || 0,
-                  wheelRun: parsed.wheelRun || 0,
+                  wheelRun,
                   dicePosition: parsed.dicePosition || 0,
                   wildGrid: parsed.wildGrid || [],
                   miniGameCredits: migratedCredits,
                   activeGame: parsed.activeGame || 'WILD',
+                  rpgEnemyHp: parsed.rpgEnemyHp || rpgEnemyMaxHp(wheelStage, wheelRun),
               };
           }
       } catch {}
@@ -2325,8 +2328,8 @@ const App: React.FC = () => {
   }, [savedGameStates]);
 
   useEffect(() => {
-    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, wheelStage: quest.wheelStage, wildRun: quest.wildRun, diceRun: quest.diceRun, wheelRun: quest.wheelRun, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, miniGameCredits: quest.miniGameCredits, activeGame: quest.activeGame })); } catch {}
-  }, [quest.wildStage, quest.diceStage, quest.wheelStage, quest.wildRun, quest.diceRun, quest.wheelRun, quest.dicePosition, quest.wildGrid, quest.miniGameCredits, quest.activeGame]);
+    try { localStorage.setItem('cw_quest', JSON.stringify({ wildStage: quest.wildStage, diceStage: quest.diceStage, wheelStage: quest.wheelStage, wildRun: quest.wildRun, diceRun: quest.diceRun, wheelRun: quest.wheelRun, dicePosition: quest.dicePosition, wildGrid: quest.wildGrid, miniGameCredits: quest.miniGameCredits, activeGame: quest.activeGame, rpgEnemyHp: quest.rpgEnemyHp })); } catch {}
+  }, [quest.wildStage, quest.diceStage, quest.wheelStage, quest.wildRun, quest.diceRun, quest.wheelRun, quest.dicePosition, quest.wildGrid, quest.miniGameCredits, quest.activeGame, quest.rpgEnemyHp]);
 
   // When all slot quest missions complete, stop auto-spin and open the quest path modal.
   // If a bonus is still running, defer until it ends.
@@ -4009,7 +4012,11 @@ const App: React.FC = () => {
       if (msgParts.length > 0) { setCelebrationMsg(msgParts.join(' · ')); audioService.playWinBig(); }
   };
 
-  const handleWheelSpin = (rewards: MiniGameReward[], cost: number, isJackpot: boolean) => {
+  // RPG Roulette: rewards is whatever the spin's action rolled (Shield keys / Loot
+  // coins-or-gems / nothing for Attack, Skill, Miss). enemyDefeated fires once the
+  // fight's HP hits zero — reuses the exact stage-clear flow the old Prize Wheel
+  // jackpot used, plus arming the next enemy's fresh HP.
+  const handleWheelSpin = (rewards: MiniGameReward[], cost: number, enemyDefeated: boolean) => {
       setQuest(q => ({ ...q, miniGameCredits: Math.max(0, q.miniGameCredits - cost) }));
       const msgParts: string[] = [];
       let totalCoins = 0;
@@ -4023,16 +4030,19 @@ const App: React.FC = () => {
       if (totalCoins > 0) { setPlayer(p => ({ ...p, balance: p.balance + totalCoins })); msgParts.push(`+${formatCommaNumber(totalCoins)} Coins`); }
       if (totalGems > 0) { setPlayer(p => ({ ...p, diamonds: p.diamonds + totalGems })); msgParts.push(`+${totalGems} 💎`); }
       if (creditsGained > 0) { setQuest(q => ({ ...q, miniGameCredits: q.miniGameCredits + creditsGained })); msgParts.push(`+${creditsGained} 🎫`); }
-      if (isJackpot) {
+      if (enemyDefeated) {
           const currentStage = quest.wheelStage;
           const currentRun = quest.wheelRun || 0;
           const bonusCoins = Math.floor(MAX_BET_BY_LEVEL(player.level) * (1.0 + 0.04 * currentStage) * questDifficultyMult(currentRun));
           setPlayer(p => ({ ...p, balance: p.balance + bonusCoins }));
           const isLastStage = currentStage >= 25;
+          const nextStage = isLastStage ? 1 : currentStage + 1;
+          const nextRun = isLastStage ? currentRun + 1 : currentRun;
           setQuest(q => ({
               ...q,
-              wheelStage: isLastStage ? 1 : q.wheelStage + 1,
-              wheelRun: isLastStage ? currentRun + 1 : currentRun,
+              wheelStage: nextStage,
+              wheelRun: nextRun,
+              rpgEnemyHp: rpgEnemyMaxHp(nextStage, nextRun),
           }));
           setStageCompletePopup({ gameType: 'WHEEL', stage: currentStage, run: currentRun, coins: bonusCoins, diamonds: 0 });
       } else if (msgParts.length > 0) {
@@ -6835,7 +6845,7 @@ const App: React.FC = () => {
                                     )}
                                     {/* Pass — always on page 0 */}
                                     {passBtn}
-                                    {/* Mini Games — Coin Mine, Dice Roll, Prize Wheel, one at a time */}
+                                    {/* Mini Games — Coin Mine, Dice Roll, RPG Roulette, one at a time */}
                                     <button
                                         onClick={!isQuestLocked ? () => setShowMiniGamesHub(true) : undefined}
                                         className={`relative flex flex-col items-center transition-transform ${isQuestLocked ? 'grayscale opacity-50 cursor-not-allowed' : 'active:scale-95'}`}
@@ -7695,6 +7705,7 @@ const App: React.FC = () => {
         dicePosition={quest.dicePosition}
         activeGame={quest.activeGame}
         savedGrid={quest.wildGrid}
+        savedEnemyHp={quest.rpgEnemyHp}
         balance={player.balance}
         diamonds={player.diamonds}
         onBuyQuestBundle={handleBuyQuestBundle}
@@ -7704,6 +7715,7 @@ const App: React.FC = () => {
         onGridUpdate={handleWildGridUpdate}
         onDiceRoll={handleDiceRoll}
         onWheelSpin={handleWheelSpin}
+        onEnemyHpUpdate={(hp) => setQuest(q => ({ ...q, rpgEnemyHp: hp }))}
         onClose={() => setActiveModal('NONE')}
         playerLevel={player.level}
         maxBet={MAX_BET_BY_LEVEL(player.level)}

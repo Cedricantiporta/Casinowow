@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MiniGameReward, WildGridCell } from '../types';
-import { formatNumber, formatCommaNumber, formatK, questDifficultyMult } from '../constants';
+import { formatNumber, formatCommaNumber, formatK, questDifficultyMult, rpgEnemyMaxHp, rpgEnemyName, rpgIsBossStage } from '../constants';
 import { audioService } from '../services/audioService';
-import { PrizeWheel, PrizeWheelHandle } from './PrizeWheel';
+import { RPGRouletteWheel, RPGRouletteWheelHandle, RpgSpinResult } from './RPGRouletteWheel';
 
 interface MiniGameModalProps {
     isOpen: boolean;
@@ -16,6 +16,7 @@ interface MiniGameModalProps {
     dicePosition: number;
     activeGame: 'NONE' | 'WILD' | 'DICE' | 'WHEEL';
     savedGrid?: WildGridCell[];
+    savedEnemyHp?: number;
     balance?: number;
     diamonds?: number;
     onBuyQuestBundle?: (amount: number, coins: number, gemCost: number, bonusGems: number) => void;
@@ -25,6 +26,7 @@ interface MiniGameModalProps {
     onGridUpdate?: (grid: WildGridCell[]) => void;
     onDiceRoll: (roll: number, newPosition: number, rewards: MiniGameReward[], isFinish: boolean, cost?: number) => void;
     onWheelSpin: (rewards: MiniGameReward[], cost: number, isJackpot: boolean) => void;
+    onEnemyHpUpdate?: (hp: number) => void;
     onClose: () => void;
     playerLevel: number;
     maxBet?: number;
@@ -85,9 +87,9 @@ const Btn3D: React.FC<{ onClick?: () => void; disabled?: boolean; color?: string
 );
 
 export const MiniGameModal: React.FC<MiniGameModalProps> = ({
-    isOpen, credits: creditsRaw, wildStage, diceStage, wheelStage, wildRun = 0, diceRun = 0, wheelRun = 0, dicePosition = 0, activeGame, savedGrid,
+    isOpen, credits: creditsRaw, wildStage, diceStage, wheelStage, wildRun = 0, diceRun = 0, wheelRun = 0, dicePosition = 0, activeGame, savedGrid, savedEnemyHp,
     balance = 0, diamonds = 0,
-    onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onWheelSpin, onClose, playerLevel, maxBet, onOpenGemShop
+    onBuyQuestBundle, onPickTile, onBatchPick, onStageComplete, onGridUpdate, onDiceRoll, onWheelSpin, onEnemyHpUpdate, onClose, playerLevel, maxBet, onOpenGemShop
 }) => {
     const credits = creditsRaw ?? 0;
     // Both games draw from the same shared token wallet.
@@ -125,7 +127,24 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const isLongPressRef = useRef(false);
     const mouseIsDownRef = useRef(false);
     const [wheelSpinning, setWheelSpinning] = useState(false);
-    const prizeWheelRef = useRef<PrizeWheelHandle>(null);
+    const prizeWheelRef = useRef<RPGRouletteWheelHandle>(null);
+    // RPG Roulette: current enemy HP for the active stage, initialized from the
+    // persisted value (or a fresh max HP if none saved / stage just advanced).
+    const rpgMaxHp = rpgEnemyMaxHp(wheelStage, wheelRun);
+    const [enemyHp, setEnemyHpState] = useState(() => (savedEnemyHp && savedEnemyHp > 0 ? savedEnemyHp : rpgMaxHp));
+    const [combatLog, setCombatLog] = useState<{ text: string; key: number } | null>(null);
+    useEffect(() => {
+        // A fresh stage (new wheelStage/wheelRun) means a fresh enemy — the parent
+        // already reset savedEnemyHp to that stage's max HP in the same update.
+        setEnemyHpState(savedEnemyHp && savedEnemyHp > 0 ? savedEnemyHp : rpgMaxHp);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [wheelStage, wheelRun]);
+    const setEnemyHp = (hp: number) => { setEnemyHpState(hp); onEnemyHpUpdate?.(hp); };
+    useEffect(() => {
+        if (!combatLog) return;
+        const t = setTimeout(() => setCombatLog(null), 1400);
+        return () => clearTimeout(t);
+    }, [combatLog]);
 
     // Stage prizes locked at stage-start; not recalculated when maxBet changes mid-stage.
     // Each game's run count scales its prize harder, same as the Quest Path's cycle scaling.
@@ -639,10 +658,34 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
         }
     };
 
+    // RPG Roulette: apply the spin's action to the current fight. Attack/Skill chip
+    // away at enemyHp locally; Shield/Loot pass rewards straight through to the
+    // shared wallet/balance via onWheelSpin. Defeating the enemy reuses the exact
+    // same "stage clear" plumbing the old Prize Wheel jackpot used.
+    const handleRpgSpinResult = (result: RpgSpinResult) => {
+        const logText = result.action === 'ATTACK' ? `Attack! -${result.damage} HP`
+            : result.action === 'SKILL' ? `Skill! -${result.damage} HP`
+            : result.action === 'SHIELD' ? `Shield! +${result.rewards[0]?.value ?? 0} Key${(result.rewards[0]?.value ?? 0) > 1 ? 's' : ''}`
+            : result.action === 'LOOT' ? `Loot! +${result.rewards[0]?.label ?? ''}${result.rewards[0]?.type === 'DIAMONDS' ? ' Gems' : ''}`
+            : 'Miss…';
+        setCombatLog({ text: logText, key: Date.now() });
+
+        if (result.damage > 0) {
+            const newHp = Math.max(0, enemyHp - result.damage);
+            setEnemyHp(newHp);
+            if (newHp <= 0) {
+                // Let the HP bar visibly hit zero before the stage-clear popup takes over.
+                setTimeout(() => onWheelSpin(result.rewards, 1, true), 400);
+                return;
+            }
+        }
+        onWheelSpin(result.rewards, 1, false);
+    };
+
     if (!isOpen) return null;
 
     const isWild = activeGame === 'WILD';
-    const questTitle = isWild ? 'CoinMine' : activeGame === 'DICE' ? 'Fortune Trail' : 'Prize Wheel';
+    const questTitle = isWild ? 'CoinMine' : activeGame === 'DICE' ? 'Fortune Trail' : 'RPG Roulette';
 
     return (
         <div className="absolute inset-0 z-[150] flex flex-col animate-pop-in select-none"
@@ -953,47 +996,75 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 </div>
             )}
 
-            {/* ── PRIZE WHEEL ── */}
-            {activeGame === 'WHEEL' && (
-                <div className="flex-1 flex overflow-hidden">
-                    <PrizeWheel
-                        ref={prizeWheelRef}
-                        credits={credits}
-                        stage={wheelStage}
-                        maxBet={maxBet || 10000}
-                        onSpinResult={(rewards, cost, isJackpot) => onWheelSpin(rewards, cost, isJackpot)}
-                        onSpinningChange={setWheelSpinning}
-                    />
-
-                    {/* Right sidebar — stage, token counter, buy, spin (mirrors the Dice roll button) */}
-                    <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
-                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 90, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
-                        <div className="flex flex-col items-center leading-none">
-                            <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
-                            <span className="font-black text-white text-2xl leading-none">{wheelStage}</span>
-                            {wheelRun > 0 && <span className="text-white/50 text-[8px] font-black mt-0.5">Run {wheelRun + 1}</span>}
-                        </div>
-                        <div className="w-full h-px bg-white/10" />
-                        <div className="flex flex-col items-center leading-none">
-                            <img src="/coinmine_pickaxe.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
-                            <span className="font-black text-white text-xl leading-none mt-0.5">{credits}</span>
-                            <span className="text-white/50 text-[8px] font-black">Tokens</span>
-                        </div>
-                        <button onClick={() => setShowBuyPopup(true)} className="pill-green w-full">
-                            <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
-                        </button>
-                        <div className="flex-1" />
-                        <button
-                            onClick={() => prizeWheelRef.current?.spin()}
-                            disabled={credits <= 0 || wheelSpinning}
-                            className={`${credits <= 0 || wheelSpinning ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
-                            <div className="pill-face" style={{ padding: '7px 8px', fontSize: '10px' }}>
-                                {wheelSpinning ? 'Spinning…' : 'Spin'}
+            {/* ── RPG ROULETTE ── */}
+            {activeGame === 'WHEEL' && (() => {
+                const isBoss = rpgIsBossStage(wheelStage);
+                const enemyName = rpgEnemyName(wheelStage);
+                const hpPct = Math.max(0, Math.min(100, (enemyHp / rpgMaxHp) * 100));
+                return (
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    {/* Enemy panel */}
+                    <div className="shrink-0 flex flex-col items-center gap-1.5 px-4 pt-2 pb-1.5 relative">
+                        <div className="flex items-center gap-2">
+                            <i className={`ti ${isBoss ? 'ti-crown' : 'ti-flame'}`} style={{ fontSize: 36, color: isBoss ? '#fbbf24' : '#f87171' }} />
+                            <div className="flex flex-col items-start leading-none">
+                                <span className="font-black text-white" style={{ fontSize: 13 }}>{enemyName}</span>
+                                <span className="text-white/55 mt-0.5" style={{ fontSize: 9 }}>{isBoss ? 'Boss' : 'Enemy'} · Stage {wheelStage}</span>
                             </div>
-                        </button>
+                        </div>
+                        <div style={{ width: 210, height: 10, borderRadius: 999, background: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
+                            <div style={{ width: `${hpPct}%`, height: '100%', background: 'linear-gradient(90deg,#f87171,#dc2626)', transition: 'width 0.4s ease-out' }} />
+                        </div>
+                        <span className="text-white/70 font-black" style={{ fontSize: 9 }}>{enemyHp} / {rpgMaxHp} HP</span>
+
+                        {combatLog && (
+                            <div key={combatLog.key} className="absolute animate-pop-in pointer-events-none" style={{ top: 4, right: 14 }}>
+                                <span className="font-black" style={{ fontSize: 11, color: '#fde68a', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>{combatLog.text}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex-1 flex overflow-hidden">
+                        <RPGRouletteWheel
+                            ref={prizeWheelRef}
+                            credits={credits}
+                            stage={wheelStage}
+                            maxBet={maxBet || 10000}
+                            onSpinResult={handleRpgSpinResult}
+                            onSpinningChange={setWheelSpinning}
+                        />
+
+                        {/* Right sidebar — stage, key counter, buy, spin (mirrors the Dice roll button) */}
+                        <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
+                            style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 90, borderRadius: 16, margin: '0 8px 8px 0', flexShrink: 0 }}>
+                            <div className="flex flex-col items-center leading-none">
+                                <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
+                                <span className="font-black text-white text-2xl leading-none">{wheelStage}</span>
+                                {wheelRun > 0 && <span className="text-white/50 text-[8px] font-black mt-0.5">Run {wheelRun + 1}</span>}
+                            </div>
+                            <div className="w-full h-px bg-white/10" />
+                            <div className="flex flex-col items-center leading-none">
+                                <img src="/coinmine_pickaxe.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
+                                <span className="font-black text-white text-xl leading-none mt-0.5">{credits}</span>
+                                <span className="text-white/50 text-[8px] font-black">Keys</span>
+                            </div>
+                            <button onClick={() => setShowBuyPopup(true)} className="pill-green w-full">
+                                <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
+                            </button>
+                            <div className="flex-1" />
+                            <button
+                                onClick={() => prizeWheelRef.current?.spin()}
+                                disabled={credits <= 0 || wheelSpinning}
+                                className={`${credits <= 0 || wheelSpinning ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
+                                <div className="pill-face" style={{ padding: '7px 8px', fontSize: '10px' }}>
+                                    {wheelSpinning ? 'Spinning…' : 'Spin'}
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            )}
+                );
+            })()}
 
             {/* Stage clear reward modal — centered, shown for both WILD and DICE */}
             {stageWinning && stageClearData && (

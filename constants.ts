@@ -865,6 +865,25 @@ export const formatKShort = (n: number): string => {
 // mini game's own run counter (both reset-and-repeat once their stages are done).
 export const questDifficultyMult = (cycleCount: number) => Math.min(3, 1 + Math.max(0, cycleCount) * 0.2);
 
+// RPG Roulette: every 10th stage (10, 20 within the 25-stage cycle) is a boss fight.
+export const rpgIsBossStage = (stage: number): boolean => stage % 10 === 0;
+
+// RPG Roulette: enemy HP scales gradually per stage, jumps 4x on boss stages, and
+// scales harder again per run cycle (same questDifficultyMult curve as everything else).
+export const rpgEnemyMaxHp = (stage: number, run: number): number => {
+    const base = 20 * (1 + 0.08 * (stage - 1));
+    const bossMult = rpgIsBossStage(stage) ? 4 : 1;
+    return Math.round(base * bossMult * questDifficultyMult(run));
+};
+
+// Flavor names cycling by stage tier (every 5 stages) — normal enemy vs. its boss form.
+export const RPG_ENEMY_NAMES = ['Slime', 'Goblin', 'Wolf', 'Golem', 'Wraith'];
+export const RPG_BOSS_NAMES = ['Slime King', 'Goblin Chief', 'Alpha Wolf', 'Golem Titan', 'Wraith Lord'];
+export const rpgEnemyName = (stage: number): string => {
+    const tier = Math.floor((stage - 1) / 5) % RPG_ENEMY_NAMES.length;
+    return rpgIsBossStage(stage) ? RPG_BOSS_NAMES[tier] : RPG_ENEMY_NAMES[tier];
+};
+
 // Coin formatter: shows full number with commas up to 15 raw digits.
 // At 16+ digits, abbreviates with the smallest unit that keeps the shown number <= 15 digits.
 // This maximizes visible digits: e.g. 1,500,000,000,000,000 → "1,500,000,000,000K" not "1.5T".
