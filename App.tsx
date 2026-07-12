@@ -93,6 +93,7 @@ interface SavedGameState {
     mmorpgBoss?: { level: number; hp: number; maxHp: number; mult: number } | null;
     petsCompanion?: PetsCompanion | null;
     petsStickyWilds?: { col: number; row: number }[];
+    princessChosen?: SymbolType | null;
 }
 
 // Feature-theme aliasing: the lower-tier slots reuse a proven feature mechanic from one of the
@@ -113,11 +114,13 @@ interface SavedGameState {
 const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {};
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
-// Mystery Symbol free-spins feature — shared by the "creature" slots. During free
-// spins, mystery tiles drop onto the reels and, once they stop, all reveal the SAME
-// randomly-chosen symbol at once for big matching combos. Angry Flock and Beast Rage
-// have their own dedicated roulette bonuses instead (see their feature blocks below).
-const MYSTERY_FEATURE_THEMES = new Set<GameTheme>(['FARM', 'PRINCESS']);
+// Mystery Symbol free-spins feature — Barnyard Bonanza's own dedicated identity.
+// During free spins, mystery tiles drop onto the reels and, once they stop, all
+// reveal the SAME randomly-chosen symbol at once for big matching combos. Angry
+// Flock and Beast Rage have their own dedicated roulette bonuses instead (see their
+// feature blocks below); Princess Realm has its own Enchanted Mirror expanding-symbol
+// feature (see the PRINCESS blocks below) — it no longer shares this mechanic.
+const MYSTERY_FEATURE_THEMES = new Set<GameTheme>(['FARM']);
 
 // Cascading/tumbling-reel slots — wins explode, new symbols drop in, and a
 // climbing free-spin multiplier applies to each successive cascade step.
@@ -1346,6 +1349,12 @@ const App: React.FC = () => {
   const petsCompanionRef = useRef<PetsCompanion | null>(null);
   const [petsCompanionUi, setPetsCompanionUi] = useState<PetsCompanion | null>(null);
   const petsStickyWildsRef = useRef<{ col: number; row: number }[]>([]);
+
+  // Princess Realm — Enchanted Mirror. Free spins crown one Chosen Symbol; 3+ of it
+  // landing anywhere expands every reel containing it fully, then rescores.
+  const princessChosenRef = useRef<SymbolType | null>(null);
+  const [princessChosenUi, setPrincessChosenUi] = useState<SymbolType | null>(null);
+
   const [candyShuffledCols, setCandyShuffledCols] = useState<{ col: number; seedRow: number }[] | null>(null);
   const [candyShuffledSingles, setCandyShuffledSingles] = useState<{ col: number; row: number }[] | null>(null);
 
@@ -3696,6 +3705,22 @@ const App: React.FC = () => {
           }
       }
 
+      // GOLDEN LUCKY POT (GOLDEN_POT): during free spins, ~18% of spins place 1-2
+      // fortune-pot (COIN) cells that pay instantly when the spin settles (see
+      // handleReelStop) — on top of the drip's own every-10th-spin pot.
+      if (selectedGame.theme === 'GOLDEN_POT' && isFreeSpin && Math.random() < 0.18) {
+          const potCount = 1 + Math.floor(Math.random() * 2);
+          const eligible = (c: number, r: number) => newGrid[c]?.[r] !== undefined && newGrid[c][r] !== SymbolType.SCATTER;
+          const placed: { c: number; r: number }[] = [];
+          let guard = 0;
+          while (placed.length < potCount && guard < 200) {
+              const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
+              if (eligible(c, r) && !placed.some(p => p.c === c && p.r === r)) placed.push({ c, r });
+              guard++;
+          }
+          placed.forEach(p => { newGrid[p.c][p.r] = SymbolType.COIN; });
+      }
+
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
       // JUNGLE: the colossal center symbol occupies reels 2-4 every free spin, so no jackpot injection there.
@@ -5098,6 +5123,43 @@ const App: React.FC = () => {
             }
         }
 
+        // PRINCESS REALM (PRINCESS) Enchanted Mirror: 3+ Chosen Symbol cells anywhere
+        // during free spins expands every reel containing one fully, then rescores.
+        if (selectedGame.theme === 'PRINCESS' && isCurrentFreeSpinRef.current && princessChosenRef.current) {
+            const chosen = princessChosenRef.current;
+            let chosenCount = 0;
+            const chosenCols = new Set<number>();
+            targetGrid.forEach((col, c) => col.forEach(s => {
+                if (s === chosen) { chosenCount++; chosenCols.add(c); }
+            }));
+            if (chosenCount >= 3) {
+                const expanded = targetGrid.map((col, c) => chosenCols.has(c) ? col.map(() => chosen) : col);
+                const expandMask = expanded.map((col, c) => col.map((s, r) => s !== targetGrid[c][r]));
+                setTargetGrid(expanded);
+                setCascadeGrid(expanded.map(col => [...col]));
+                setCascadeNewCells(expandMask);
+                setCascadeDissolving(false);
+                setCelebrationMsg('Enchanted Mirror!');
+                audioService.playScatterTrigger();
+                setTimeout(() => calculateWin(expanded), 900);
+                return next;
+            }
+        }
+
+        // GOLDEN LUCKY POT (GOLDEN_POT) Fortune Pots: every pot cell during free spins
+        // instantly pays 1-5x bet, on top of whatever the spin's paylines pay normally.
+        if (selectedGame.theme === 'GOLDEN_POT' && isCurrentFreeSpinRef.current) {
+            const potCells: { col: number; row: number }[] = [];
+            targetGrid.forEach((col, c) => col.forEach((s, r) => { if (s === SymbolType.COIN) potCells.push({ col: c, row: r }); }));
+            if (potCells.length > 0) {
+                const currentBet = currentBetRef.current;
+                const potTotal = potCells.reduce((sum) => sum + Math.floor(currentBet * (1 + Math.floor(Math.random() * 5))), 0);
+                setPlayer(p => ({ ...p, balance: p.balance + potTotal }));
+                setCelebrationMsg(`+${formatCommaNumber(potTotal)} Coins`);
+                audioService.playWinSmall();
+            }
+        }
+
         calculateWin(targetGrid);
       }
       return next;
@@ -6129,6 +6191,7 @@ const App: React.FC = () => {
           mmorpgBoss: mmorpgBossRef.current,
           petsCompanion: petsCompanionRef.current,
           petsStickyWilds: petsStickyWildsRef.current,
+          princessChosen: princessChosenRef.current,
       };
       setSavedGameStates(prev => ({ ...prev, [selectedGame.id]: currentState }));
 
@@ -6237,6 +6300,9 @@ const App: React.FC = () => {
           petsCompanionRef.current = null;
           setPetsCompanionUi(null);
           petsStickyWildsRef.current = [];
+          // Reset Princess Realm Enchanted Mirror chosen symbol on game change
+          princessChosenRef.current = null;
+          setPrincessChosenUi(null);
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -6291,6 +6357,10 @@ const App: React.FC = () => {
               if (savedState.petsStickyWilds) {
                   petsStickyWildsRef.current = savedState.petsStickyWilds;
               }
+              if (savedState.princessChosen) {
+                  princessChosenRef.current = savedState.princessChosen;
+                  setPrincessChosenUi(savedState.princessChosen);
+              }
           } else {
               setFreeSpinsRemaining(0);
               setTotalFreeSpins(0);
@@ -6333,6 +6403,20 @@ const App: React.FC = () => {
           const freshBoss = { level: 1, hp: 12, maxHp: 12, mult: 1 };
           mmorpgBossRef.current = freshBoss;
           setMmorpgBossUi(freshBoss);
+      }
+      // PRINCESS (Enchanted Mirror): crown one Chosen Symbol for this free-spin
+      // session — low symbols expand often, high symbols rarely (classic Book economy).
+      if (selectedGame.theme === 'PRINCESS') {
+          const CHOSEN_POOL: { s: SymbolType; w: number }[] = [
+              { s: SymbolType.ACE, w: 30 }, { s: SymbolType.KING, w: 25 }, { s: SymbolType.QUEEN, w: 20 },
+              { s: SymbolType.GRAPE, w: 12 }, { s: SymbolType.BELL, w: 8 }, { s: SymbolType.BAR, w: 4 }, { s: SymbolType.CHERRY, w: 1 },
+          ];
+          const totalW = CHOSEN_POOL.reduce((a, p) => a + p.w, 0);
+          let roll = Math.random() * totalW;
+          let chosen = CHOSEN_POOL[0].s;
+          for (const p of CHOSEN_POOL) { roll -= p.w; if (roll <= 0) { chosen = p.s; break; } }
+          princessChosenRef.current = chosen;
+          setPrincessChosenUi(chosen);
       }
       setReelTransitioning('out');
       savedAutoSpinRef.current = { active: player.autoSpin, remaining: autoSpinRemainingRef.current };
@@ -6543,6 +6627,9 @@ const App: React.FC = () => {
       petsCompanionRef.current = null;
       setPetsCompanionUi(null);
       petsStickyWildsRef.current = [];
+      // The chosen Mirror Symbol only lasts for this one Princess Realm session.
+      princessChosenRef.current = null;
+      setPrincessChosenUi(null);
 
       // Transition animation: fade the reels out (free-spin theme) then back in (normal theme)
       setReelTransitioning('out');
@@ -6693,6 +6780,7 @@ const App: React.FC = () => {
                 mmorpgBoss: mmorpgBossRef.current,
                 petsCompanion: petsCompanionRef.current,
                 petsStickyWilds: petsStickyWildsRef.current,
+                princessChosen: princessChosenRef.current,
             }
         }));
         setPlayer(p => ({ ...p, autoSpin: false }));
@@ -7820,6 +7908,22 @@ const App: React.FC = () => {
                                             : petsCompanionUi === 'PHOENIX' ? 'Phoenix · Upgrades'
                                             : 'Cat · Wild Rain'}
                                     </span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* PRINCESS REALM Enchanted Mirror — Mirror Symbol pill during free spins */}
+                        {selectedGame.theme === 'PRINCESS' && totalFreeSpins > 0 && princessChosenUi && (
+                            <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
+                                <div className="flex items-center gap-1.5" style={{
+                                    background: 'linear-gradient(180deg,#a21caf,#4a044e)',
+                                    borderRadius: 999,
+                                    padding: '4px 12px 4px 4px',
+                                    boxShadow: '0 0 18px rgba(232,121,249,0.5), 0 4px 10px rgba(0,0,0,0.6)',
+                                }}>
+                                    <img src={GET_SYMBOLS(selectedGame.theme)[princessChosenUi].icon} alt=""
+                                        style={{ width: 22, height: 22, objectFit: 'contain' }} />
+                                    <span className="font-black" style={{ fontSize: 9, color: '#fae8ff' }}>Mirror Symbol</span>
                                 </div>
                             </div>
                         )}
