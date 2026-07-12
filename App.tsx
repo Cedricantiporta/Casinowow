@@ -559,8 +559,8 @@ const App: React.FC = () => {
   // Effect to update Golden Treasury rewards when level changes
   useEffect(() => {
       const maxBet = MAX_BET_BY_LEVEL(player.level);
-      // Quick = 50% maxBet, Super = 250% maxBet, Mega = 1000% maxBet, all ×100
-      const pcts = [0.5, 2.5, 10.0].map(p => p * 100);
+      // Quick = 50% maxBet, Super = 250% maxBet, Mega = 1000% maxBet
+      const pcts = [0.5, 2.5, 10.0];
       setBonusTimers(prev => prev.map(t => ({
           ...t,
           reward: Math.floor(maxBet * pcts[t.id])
