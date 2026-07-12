@@ -69,6 +69,7 @@ import { BeastRouletteModal } from './components/BeastRouletteModal';
 import { DuelGambleModal } from './components/DuelGambleModal';
 import { RainbowTrailModal } from './components/RainbowTrailModal';
 import { CompanionPickModal, PetsCompanion } from './components/CompanionPickModal';
+import { GameInfoModal } from './components/GameInfoModal';
 import { ArcticPickGrid } from './components/ArcticPickGrid';
 
 // Interface for persisted game state
@@ -646,6 +647,7 @@ const App: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isMusicMuted, setIsMusicMuted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showGameInfo, setShowGameInfo] = useState(false);
   const [showEventsPopup, setShowEventsPopup] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showVipLounge, setShowVipLounge] = useState(false);
@@ -8098,6 +8100,13 @@ const App: React.FC = () => {
                       );
                   })()}
 
+                  {/* Info button — paylines + how-it-works disclosure for the current slot */}
+                  <div onClick={() => setShowGameInfo(true)} className="icon-btn shrink-0 flex flex-col items-center justify-end"
+                      style={isHighLimit ? { background:'linear-gradient(180deg,#ffec70 0%,#ffbe2a 50%,#ff8c12 100%)', borderColor:'#8b6200' } : {}}>
+                      <i className="ti ti-info-circle"></i>
+                      <span>Info</span>
+                  </div>
+
                   {/* Minus Bet */}
                   <div
                       onClick={() => {
@@ -8543,6 +8552,12 @@ const App: React.FC = () => {
       <CompanionPickModal
           isOpen={showCompanionPick}
           onComplete={handleCompanionPickComplete}
+      />
+
+      <GameInfoModal
+          isOpen={showGameInfo}
+          onClose={() => setShowGameInfo(false)}
+          game={selectedGame}
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />

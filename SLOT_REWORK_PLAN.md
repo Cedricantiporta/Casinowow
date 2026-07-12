@@ -520,7 +520,19 @@ finished spec):
 5. This should cover all 22 slots, not just the 8 replicas being reworked above —
    flagships need paylines/mechanic disclosure too.
 
-Status: requirement captured only — no design, component, or wiring exists yet.
+Status: **done.** `components/GameInfoModal.tsx` — an "Info" button next to Missions in
+the in-game bottom bar opens a two-tab modal for `selectedGame`:
+- "How it works": a per-theme mechanic explainer (`MECHANIC_INFO` map, one entry per
+  `GameTheme`, all 22 covered) plus a "Key symbols" row rendering that slot's own
+  Wild/Scatter/Seven/Ace icons via `GET_SYMBOLS(theme)` — no generic art.
+- "Paylines": all 50 lines from `GET_PAYLINES(rows, reels)` rendered as mini line
+  diagrams (the exact data the spin engine scores against). Buffalo Thunder and
+  Olympus Ascend don't use fixed paylines (Ways to Win / Scatter Pays), so this tab
+  shows an explanatory message for them instead of misleading line diagrams.
+
+Verified live on both a fixed-payline slot (Piggy Riches — how-it-works text, key
+symbol icons, and all 50 payline diagrams rendered) and a non-payline slot (Buffalo
+Thunder — correctly shows the Ways to Win explanation instead of line diagrams).
 
 ---
 
