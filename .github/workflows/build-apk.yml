@@ -5,6 +5,7 @@ on:
     branches:
       - claude/kind-sagan-rKUPh
       - claude/slots-balance-bugs-8h5etm
+      - claude/casino-game-review-krw8p5
     paths:
       - '**.tsx'
       - '**.ts'
