@@ -2079,11 +2079,14 @@ const App: React.FC = () => {
       const maxBetNow = MAX_BET_BY_LEVEL(player.level);
       // Stage reward: 10×, 20×, ... 70× of max bet per stage
       const stageReward = maxBetNow * (stageIdx + 1) * 10;
-      // Grand prize on completing all 7 stages: +150× max bet (halved so the last
-      // stage's combined total stays proportionate to the grand prize header — see QuestPathModal.tsx)
+      // Grand prize on completing all 7 stages: 150× max bet. This REPLACES stage 7's own
+      // stageReward rather than stacking on top of it — stage prizes and the grand prize
+      // are separate things; the grand prize is the reward for finishing, not an addition
+      // to the last stage's own payout (see QuestPathModal.tsx for the matching display).
       const isLastStage = stageIdx + 1 >= QUEST_PATH_IDS.length;
-      const grandPrize = isLastStage ? maxBetNow * 150 : 0;
-      setPlayer(p => ({ ...p, balance: p.balance + stageReward + grandPrize }));
+      const grandPrize = maxBetNow * 150;
+      const claimAmount = isLastStage ? grandPrize : stageReward;
+      setPlayer(p => ({ ...p, balance: p.balance + claimAmount }));
       setSlotQuestState(prev => {
           const nextIndex = prev.currentPathIndex + 1;
           // Mark the completion date on the final stage so the daily-reset check
@@ -2863,8 +2866,10 @@ const App: React.FC = () => {
           // cap. Only inject a refill wild into a column with no surviving wild.
           let columnHasWild = remaining.includes(SymbolType.WILD);
           const newSyms = Array(newCount).fill(null).map(() => {
-              // Arctic: wild chance on falling cells (boosted in free spins)
-              const arcticCascadeWildChance = freeSpinsRemaining > 0 ? 0.20 : 0.12;
+              // Arctic: wild chance on falling cells (boosted in free spins). Read from the
+              // ref, not freeSpinsRemaining — it's already decremented to 0 on the last free
+              // spin's cascade even though this cascade is still part of that free spin.
+              const arcticCascadeWildChance = isCurrentFreeSpinRef.current ? 0.20 : 0.12;
               if (featureThemeOf(selectedGame.theme) === 'ARCTIC' && c >= 1 && c <= 3 && !columnHasWild && Math.random() < arcticCascadeWildChance) {
                   columnHasWild = true;
                   return SymbolType.WILD;
@@ -3008,7 +3013,10 @@ const App: React.FC = () => {
       const bet = currentBetRef.current;
       const result = computeGridWins(newGrid, bet);
       if (result.payout > 0 && depth < MAX_CASCADE_STEPS) {
-          const inFreeSpins = freeSpinsRemaining > 0;
+          // Read from the ref, not freeSpinsRemaining — on the last free spin it's already
+          // decremented to 0 by the time this cascade chain runs, even though the chain is
+          // still part of that free spin (this is what was zeroing the climbing multiplier).
+          const inFreeSpins = isCurrentFreeSpinRef.current;
           const effectiveMult = inFreeSpins ? mult : 1;
           const cascadeWin = result.payout * effectiveMult;
           const newAccWin = accWin + cascadeWin;
@@ -4517,7 +4525,10 @@ const App: React.FC = () => {
 
              // CANDY: two-stage bonus — spin count roulette first, then wild wheel roulette.
              if (ft === 'CANDY') {
-                 if (freeSpinsRemaining > 0) {
+                 // isCurrentFreeSpinRef, not freeSpinsRemaining — the latter already reads 0
+                 // on the last free spin, which would misclassify a genuine retrigger as a
+                 // fresh trigger and wipe the in-progress feature state.
+                 if (isCurrentFreeSpinRef.current) {
                      // Retrigger mid-feature: add spins, keep wild config.
                      const retrigerSpins = 5;
                      setFreeSpinsWon(retrigerSpins);
@@ -4535,7 +4546,8 @@ const App: React.FC = () => {
 
              // ANGRYFLOCK: two-stage bonus — spin count roulette (3-6) then bird color roulette.
              if (ft === 'ANGRYFLOCK') {
-                 if (freeSpinsRemaining > 0) {
+                 // isCurrentFreeSpinRef, not freeSpinsRemaining — see the CANDY branch above.
+                 if (isCurrentFreeSpinRef.current) {
                      // Retrigger mid-feature: add spins, keep the same bird color/wild pattern.
                      const retrigerSpins = 3;
                      setFreeSpinsWon(retrigerSpins);
@@ -4553,7 +4565,8 @@ const App: React.FC = () => {
 
              // BEAST: standard scatter trigger, straight to a single wild-multiplier roulette.
              if (selectedGame.theme === 'BEAST') {
-                 if (freeSpinsRemaining > 0) {
+                 // isCurrentFreeSpinRef, not freeSpinsRemaining — see the CANDY branch above.
+                 if (isCurrentFreeSpinRef.current) {
                      // Retrigger mid-feature: add 10 more spins, keep the same wild multiplier.
                      const retrigerSpins = 10;
                      setFreeSpinsWon(retrigerSpins);
@@ -4586,7 +4599,8 @@ const App: React.FC = () => {
              setFreeSpinsWon(spinsWon);
              setTotalFreeSpins(prev => prev + spinsWon);
 
-             if (freeSpinsRemaining > 0) {
+             // isCurrentFreeSpinRef, not freeSpinsRemaining — see the CANDY branch above.
+             if (isCurrentFreeSpinRef.current) {
                  setShowFreeSpinsPopup(true);
                  audioService.playFreeSpinTrigger();
              } else {
@@ -4620,7 +4634,8 @@ const App: React.FC = () => {
                 const spinsWon = 10;
                 setFreeSpinsWon(spinsWon);
                 setTotalFreeSpins(prev => prev + spinsWon);
-                if (freeSpinsRemaining > 0) {
+                // isCurrentFreeSpinRef, not freeSpinsRemaining — see the CANDY branch above.
+                if (isCurrentFreeSpinRef.current) {
                     setShowFreeSpinsPopup(true);
                     audioService.playFreeSpinTrigger();
                 } else {
@@ -4639,7 +4654,10 @@ const App: React.FC = () => {
             setDragonCoinAbsorbing(true);
             setTimeout(() => setDragonCoinAbsorbing(false), 600);
         }
-        if (selectedGame.theme === 'DRAGON' && freeSpinsRemaining === 0) {
+        // isCurrentFreeSpinRef, not freeSpinsRemaining — the latter already reads 0 on the
+        // last free spin, which would wrongly let this base-game-only accumulator advance
+        // one spin early, while that spin is still part of the free-spin session.
+        if (selectedGame.theme === 'DRAGON' && !isCurrentFreeSpinRef.current) {
             dragonPickSpinsRef.current++;
             const spins = dragonPickSpinsRef.current;
             if (spins % 10 === 0) {
@@ -4663,7 +4681,8 @@ const App: React.FC = () => {
         }
         // Arctic's own bonus: fill a bar over many spins, then a random chance per
         // spin to trigger the pick-and-win jackpot.
-        if (ft === 'ARCTIC' && freeSpinsRemaining === 0) {
+        // isCurrentFreeSpinRef, not freeSpinsRemaining — see the DRAGON accumulator above.
+        if (ft === 'ARCTIC' && !isCurrentFreeSpinRef.current) {
             arcticPickSpinsRef.current++;
             // Fill progress bar +1 to +5 per spin, cap at ARCTIC_PROGRESS_TARGET (30%
             // less than before), stay full
@@ -4704,7 +4723,8 @@ const App: React.FC = () => {
         // Olympus's own bonus: collect the value of every multiplier orb landed
         // (base game only) and once the running total hits 100, deterministically
         // trigger the same pick-and-win jackpot popup sequence Arctic uses.
-        if (selectedGame.theme === 'OLYMPUS' && freeSpinsRemaining === 0) {
+        // isCurrentFreeSpinRef, not freeSpinsRemaining — see the DRAGON accumulator above.
+        if (selectedGame.theme === 'OLYMPUS' && !isCurrentFreeSpinRef.current) {
             const orbGrid = olympusOrbGridRef.current;
             let orbSumThisSpin = 0;
             if (orbGrid) {
@@ -4973,11 +4993,14 @@ const App: React.FC = () => {
     const currentPaylines = GET_PAYLINES(selectedGame.rows, selectedGame.reels);
 
     const isPiggy = selectedGame.theme === 'PIGGY';
-    // PIGGY: coins only substitute as wilds during free spins (not in the base game)
-    const isCoinOrWild = (sym: SymbolType) => sym === SymbolType.WILD || (isPiggy && freeSpinsRemaining > 0 && sym === SymbolType.COIN);
+    // PIGGY: coins only substitute as wilds during free spins (not in the base game).
+    // isCurrentFreeSpinRef, not freeSpinsRemaining — the latter already reads 0 while
+    // scoring the last free spin, which would wrongly normalize its coins to SEVEN
+    // instead of scoring them as wilds.
+    const isCoinOrWild = (sym: SymbolType) => sym === SymbolType.WILD || (isPiggy && isCurrentFreeSpinRef.current && sym === SymbolType.COIN);
     // PIGGY: on normal spins, COIN scores as SEVEN (scatter coin counts toward seven paylines)
     const normalizePiggy = (sym: SymbolType): SymbolType =>
-        (isPiggy && freeSpinsRemaining === 0 && sym === SymbolType.COIN) ? SymbolType.SEVEN : sym;
+        (isPiggy && !isCurrentFreeSpinRef.current && sym === SymbolType.COIN) ? SymbolType.SEVEN : sym;
     if (selectedGame.theme === 'OLYMPUS' || selectedGame.theme === 'BUFFALO') {
         // These two use their own real win models instead of fixed paylines —
         // Scatter Pays for Olympus, Ways to Win for Buffalo.

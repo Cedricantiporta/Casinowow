@@ -108,11 +108,10 @@ export const QuestPathModal: React.FC<QuestPathModalProps> = ({
                         const isLocked = pi > currentPathIndex;
                         const isUnlocking = pi === unlockingIndex;
                         const isLastStage = pi === pathGames.length - 1;
-                        // Always show just this stage's own reward — never pre-summed with the
-                        // grand prize, so no stage tile ever outsizes the "Final Stage Bonus"
-                        // header above. The last stage still credits stageReward + grandPrize on
-                        // claim (see handleClaim/App.tsx); this is a display-only separation.
-                        const reward = stageReward(pi);
+                        // The grand prize REPLACES stage 7's own stageReward on claim (see
+                        // handleSlotQuestClaim in App.tsx) — they're two separate rewards, not
+                        // summed, so this tile always matches what's actually credited.
+                        const reward = isLastStage ? grandPrize : stageReward(pi);
 
                         return (
                             <React.Fragment key={game.id}>
