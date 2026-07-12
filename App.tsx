@@ -67,6 +67,8 @@ import { AngryFlockSpinCountModal } from './components/AngryFlockSpinCountModal'
 import { AngryFlockRouletteModal, AngryFlockWildColor } from './components/AngryFlockRouletteModal';
 import { BeastRouletteModal } from './components/BeastRouletteModal';
 import { DuelGambleModal } from './components/DuelGambleModal';
+import { RainbowTrailModal } from './components/RainbowTrailModal';
+import { CompanionPickModal, PetsCompanion } from './components/CompanionPickModal';
 import { ArcticPickGrid } from './components/ArcticPickGrid';
 
 // Interface for persisted game state
@@ -89,6 +91,8 @@ interface SavedGameState {
     samuraiHeldCols?: number[];
     samuraiStickyWilds?: { col: number; row: number }[];
     mmorpgBoss?: { level: number; hp: number; maxHp: number; mult: number } | null;
+    petsCompanion?: PetsCompanion | null;
+    petsStickyWilds?: { col: number; row: number }[];
 }
 
 // Feature-theme aliasing: the lower-tier slots reuse a proven feature mechanic from one of the
@@ -102,10 +106,11 @@ interface SavedGameState {
 // scatter free spins) — no longer aliased to Space's Supernova mechanic.
 // Samurai Honor (Katana Wilds) and Dungeon Raid (Boss Battle) have their own
 // dedicated features below — no longer aliased to Egypt's hold & win.
-const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {
-    LEPRECHAUN: 'CANDY',
-    PETS: 'CANDY',      // Mystic Pets → Sugar Rush wild-wheel free spins (Companion Wheel)
-};
+// Batches 1-3 of the slot uniqueness rework have de-aliased every replica onto its
+// own dedicated feature — nothing left to alias. Kept as an empty map (rather than
+// deleted outright) since featureThemeOf/ft is still used everywhere as the single
+// source of truth for "which feature logic does this slot's spin engine run."
+const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {};
 const featureThemeOf = (t: GameTheme): GameTheme => FEATURE_THEME_MAP[t] ?? t;
 
 // Mystery Symbol free-spins feature — shared by the "creature" slots. During free
@@ -1329,6 +1334,18 @@ const App: React.FC = () => {
   // first commit pops in, later commits slide from the previous position.
   const candyCommitCountRef = useRef(0);
   const [candyConfig, setCandyConfig] = useState<CandyWildConfig | null>(null);
+
+  // Lucky Leprechaun — Rainbow Trail board bonus. No free spins; the bonus resolves
+  // atomically to a bet-multiplier collected at whatever step the player stops on.
+  const [showRainbowTrail, setShowRainbowTrail] = useState(false);
+  const [trailBet, setTrailBet] = useState(0);
+
+  // Mystic Pets — Choose Your Companion. 3 scatters let the player pick their free-spin
+  // style; each companion has its own distinct mechanic for the session.
+  const [showCompanionPick, setShowCompanionPick] = useState(false);
+  const petsCompanionRef = useRef<PetsCompanion | null>(null);
+  const [petsCompanionUi, setPetsCompanionUi] = useState<PetsCompanion | null>(null);
+  const petsStickyWildsRef = useRef<{ col: number; row: number }[]>([]);
   const [candyShuffledCols, setCandyShuffledCols] = useState<{ col: number; seedRow: number }[] | null>(null);
   const [candyShuffledSingles, setCandyShuffledSingles] = useState<{ col: number; row: number }[] | null>(null);
 
@@ -3641,6 +3658,44 @@ const App: React.FC = () => {
           }
       }
 
+      // MYSTIC PETS: Choose Your Companion free spins. Each companion has its own
+      // mechanic — Dragon's perk (flat x3 on every win) is a payout multiplier applied
+      // in calculateWin, not a grid change, so it does nothing here.
+      if (selectedGame.theme === 'PETS' && isFreeSpin && petsCompanionRef.current) {
+          const companion = petsCompanionRef.current;
+          const eligible = (c: number, r: number) => newGrid[c]?.[r] !== undefined && newGrid[c][r] !== SymbolType.SCATTER;
+          if (companion === 'UNICORN') {
+              // Sticky wilds: one new attempt per spin, persists for the rest of the session.
+              const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
+              const existing = petsStickyWildsRef.current;
+              if (eligible(c, r) && !existing.some(p => p.col === c && p.row === r)) {
+                  petsStickyWildsRef.current = [...existing, { col: c, row: r }];
+              }
+              petsStickyWildsRef.current.forEach(p => { if (eligible(p.col, p.row)) newGrid[p.col][p.row] = SymbolType.WILD; });
+          } else if (companion === 'CAT') {
+              // 1-3 random non-sticky wilds every spin.
+              const count = 1 + Math.floor(Math.random() * 3);
+              const placed: { c: number; r: number }[] = [];
+              let guard = 0;
+              while (placed.length < count && guard < 200) {
+                  const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
+                  if (eligible(c, r) && !placed.some(p => p.c === c && p.r === r)) placed.push({ c, r });
+                  guard++;
+              }
+              placed.forEach(p => { newGrid[p.c][p.r] = SymbolType.WILD; });
+          } else if (companion === 'PHOENIX') {
+              // Every low symbol (10/J/Q) upgrades to a random higher symbol, rolled per cell per spin.
+              const UPGRADE_POOL: SymbolType[] = [SymbolType.KING, SymbolType.ACE, SymbolType.GRAPE, SymbolType.BELL];
+              for (let c = 0; c < cols; c++) {
+                  for (let r = 0; r < rows; r++) {
+                      if (newGrid[c][r] === SymbolType.TEN || newGrid[c][r] === SymbolType.JACK || newGrid[c][r] === SymbolType.QUEEN) {
+                          newGrid[c][r] = UPGRADE_POOL[Math.floor(Math.random() * UPGRADE_POOL.length)];
+                      }
+                  }
+              }
+          }
+      }
+
       // Jackpot cell injection: during free spins only, except ARCTIC and NEON.
       // PIRATE: jackpots spawn on non-ship reels for visual decoration; won only by separate chance roll below.
       // JUNGLE: the colossal center symbol occupies reels 2-4 every free spin, so no jackpot injection there.
@@ -4127,6 +4182,7 @@ const App: React.FC = () => {
     if (showFreeSpinsPopup) return;
     if (showFreeSpinSummary) return;
     if (showCandyRoulette || showSpinCountRoulette) return;
+    if (showRainbowTrail || showCompanionPick) return;
     if (showAngryFlockSpinCount || showAngryFlockRoulette) return;
     if (showBeastRoulette) return;
     if (goldenPotFrozen) return;
@@ -4261,7 +4317,7 @@ const App: React.FC = () => {
     setOlympusOrbGrid(null);
     setBuffaloCollectGrid(null);
     setBuffaloWildMultGrid(null);
-  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, goldenPotFrozen, player.level, selectedGame.theme, showDuelModal, duelOffer]);
+  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, goldenPotFrozen, player.level, selectedGame.theme, showDuelModal, duelOffer, showRainbowTrail, showCompanionPick]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -4523,6 +4579,21 @@ const App: React.FC = () => {
                  return next;
              }
 
+             // LEPRECHAUN: Rainbow Trail — a trail/ladder bonus, no free spins. spin() is
+             // blocked while the trail is open, so a trigger here always just (re)opens it.
+             if (ft === 'LEPRECHAUN') {
+                 setStatus(GameStatus.SCATTER_SHOWCASE);
+                 audioService.playScatterTrigger();
+                 setSpinsWithoutBonus(0);
+                 const betAmt = currentBetRef.current;
+                 setTimeout(() => {
+                     audioService.playBonusTrigger();
+                     setTrailBet(betAmt);
+                     setShowRainbowTrail(true);
+                 }, 1500);
+                 return next;
+             }
+
              // CANDY: two-stage bonus — spin count roulette first, then wild wheel roulette.
              if (ft === 'CANDY') {
                  // isCurrentFreeSpinRef, not freeSpinsRemaining — the latter already reads 0
@@ -4540,6 +4611,25 @@ const App: React.FC = () => {
                      audioService.playScatterTrigger();
                      setSpinsWithoutBonus(0);
                      setTimeout(() => { audioService.playBonusTrigger(); setShowSpinCountRoulette(true); }, 1500);
+                 }
+                 return next;
+             }
+
+             // PETS: Choose Your Companion — a pick-your-bonus-style volatility choice.
+             if (selectedGame.theme === 'PETS') {
+                 // isCurrentFreeSpinRef, not freeSpinsRemaining — see the CANDY branch above.
+                 if (isCurrentFreeSpinRef.current) {
+                     // Retrigger mid-feature: add 5 more spins, keep the same companion.
+                     const retrigerSpins = 5;
+                     setFreeSpinsWon(retrigerSpins);
+                     setTotalFreeSpins(prev => prev + retrigerSpins);
+                     setShowFreeSpinsPopup(true);
+                     audioService.playFreeSpinTrigger();
+                 } else {
+                     setStatus(GameStatus.SCATTER_SHOWCASE);
+                     audioService.playScatterTrigger();
+                     setSpinsWithoutBonus(0);
+                     setTimeout(() => { audioService.playBonusTrigger(); setShowCompanionPick(true); }, 1500);
                  }
                  return next;
              }
@@ -4975,6 +5065,39 @@ const App: React.FC = () => {
             }
         }
 
+        // LUCKY LEPRECHAUN (LEPRECHAUN) Leprechaun Luck: rare dead-spin nudge — a payline
+        // whose first two cells match (wild-aware) but whose third breaks it gets that
+        // third cell nudged into the match, completing a 3-of-a-kind.
+        if (selectedGame.theme === 'LEPRECHAUN' && scatterCount < selectedGame.scattersToTrigger && !gridHasLineWin(targetGrid) && Math.random() < 0.04) {
+            const isWild = (s: SymbolType) => s === SymbolType.WILD;
+            let nudge: { col: number; row: number; sym: SymbolType } | null = null;
+            for (const line of GET_PAYLINES(selectedGame.rows, selectedGame.reels)) {
+                const s0 = targetGrid[0]?.[line.indices[0]];
+                const s1 = targetGrid[1]?.[line.indices[1]];
+                const s2 = targetGrid[2]?.[line.indices[2]];
+                if (s0 === undefined || s1 === undefined || s2 === undefined) continue;
+                if (s0 === SymbolType.SCATTER || s1 === SymbolType.SCATTER || s2 === SymbolType.SCATTER || String(s2).startsWith('JACKPOT')) continue;
+                const matchSymbol = isWild(s0) ? s1 : s0;
+                if (String(matchSymbol).startsWith('JACKPOT')) continue;
+                const firstTwoMatch = (s0 === matchSymbol || isWild(s0)) && (s1 === matchSymbol || isWild(s1));
+                const thirdBreaks = s2 !== matchSymbol && !isWild(s2);
+                if (firstTwoMatch && thirdBreaks) { nudge = { col: 2, row: line.indices[2], sym: matchSymbol }; break; }
+            }
+            if (nudge) {
+                const nudgedGrid = targetGrid.map(col => [...col]);
+                nudgedGrid[nudge.col][nudge.row] = nudge.sym;
+                const nudgeMask = nudgedGrid.map((col, c) => col.map((s, r) => c === nudge!.col && r === nudge!.row));
+                setTargetGrid(nudgedGrid);
+                setCascadeGrid(nudgedGrid.map(col => [...col]));
+                setCascadeNewCells(nudgeMask);
+                setCascadeDissolving(false);
+                setCelebrationMsg('Leprechaun Luck!');
+                audioService.playScatterTrigger();
+                setTimeout(() => calculateWin(nudgedGrid), 900);
+                return next;
+            }
+        }
+
         calculateWin(targetGrid);
       }
       return next;
@@ -5068,7 +5191,9 @@ const App: React.FC = () => {
             // BEAST free spins: any WILD in the winning sequence applies the roulette-picked multiplier
             const beastMult = (selectedGame.theme === 'BEAST' && totalFreeSpins > 0 && beastMultiplierRef.current && symbols.slice(0, matchLen).some(s => s === SymbolType.WILD))
                 ? beastMultiplierRef.current : 1;
-            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * coinMult * beastMult);
+            // Mystic Pets — Dragon companion: every free-spin win pays 3x.
+            const petsDragonMult = (selectedGame.theme === 'PETS' && totalFreeSpins > 0 && petsCompanionRef.current === 'DRAGON') ? 3 : 1;
+            const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult * neonMult * coinMult * beastMult * petsDragonMult);
             if (lineWin > 0) {
                 totalPayout += lineWin;
                 winningLines.push(line.id);
@@ -6002,6 +6127,8 @@ const App: React.FC = () => {
           samuraiHeldCols: samuraiRespinRef.current.heldCols,
           samuraiStickyWilds: samuraiStickyWildsRef.current,
           mmorpgBoss: mmorpgBossRef.current,
+          petsCompanion: petsCompanionRef.current,
+          petsStickyWilds: petsStickyWildsRef.current,
       };
       setSavedGameStates(prev => ({ ...prev, [selectedGame.id]: currentState }));
 
@@ -6103,6 +6230,13 @@ const App: React.FC = () => {
           setDynamiteCells([]);
           setDuelOffer(null);
           setShowDuelModal(false);
+          // Reset Lucky Leprechaun Rainbow Trail on game change (bonus resolves atomically)
+          setShowRainbowTrail(false);
+          // Reset Mystic Pets companion state on game change
+          setShowCompanionPick(false);
+          petsCompanionRef.current = null;
+          setPetsCompanionUi(null);
+          petsStickyWildsRef.current = [];
           const savedState = savedGameStates[game.id];
           if (savedState) {
               setFreeSpinsRemaining(savedState.freeSpinsRemaining);
@@ -6149,6 +6283,13 @@ const App: React.FC = () => {
               if (savedState.mmorpgBoss) {
                   mmorpgBossRef.current = savedState.mmorpgBoss;
                   setMmorpgBossUi(savedState.mmorpgBoss);
+              }
+              if (savedState.petsCompanion) {
+                  petsCompanionRef.current = savedState.petsCompanion;
+                  setPetsCompanionUi(savedState.petsCompanion);
+              }
+              if (savedState.petsStickyWilds) {
+                  petsStickyWildsRef.current = savedState.petsStickyWilds;
               }
           } else {
               setFreeSpinsRemaining(0);
@@ -6212,6 +6353,26 @@ const App: React.FC = () => {
       setShowCandyRoulette(true);
   };
 
+  // LUCKY LEPRECHAUN Rainbow Trail: atomic bonus, no free spins — just credit the
+  // collected bet-multiple and show the usual win-tier celebration.
+  const handleRainbowTrailComplete = (mult: number) => {
+      const payout = Math.floor(mult * trailBet);
+      setPlayer(p => ({ ...p, balance: p.balance + payout }));
+      setShowRainbowTrail(false);
+      setLastWinAmount(payout);
+      trackSlotQuest('BONUS_TRIGGER', 1);
+      const tier = getWinTier(payout, trailBet || 1);
+      if (tier) {
+          setWinData({ payout, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: tier });
+          audioService.playWinTier(tier);
+          setShowWinPopup(true);
+          setStatus(GameStatus.WIN_ANIMATION);
+      } else {
+          audioService.playWinSmall();
+          setStatus(GameStatus.IDLE);
+      }
+  };
+
   const handleCandyRouletteComplete = (cfg: CandyWildConfig) => {
       candyWildConfigRef.current = cfg;
       candyCommitCountRef.current = 0;
@@ -6263,6 +6424,30 @@ const App: React.FC = () => {
       setReelTransitioning('out');
       setTimeout(() => {
           setFreeSpinsRemaining(prev => prev + freeSpinsWon);
+          savedFastSpinRef.current = fastSpin;
+          setStatus(GameStatus.IDLE);
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+              setReelTransitioning('in');
+              setTimeout(() => setReelTransitioning(false), 1100);
+          }));
+      }, 900);
+  };
+
+  // MYSTIC PETS: Choose Your Companion — each pet grants a different free-spin count
+  // and mechanic for the session (mirrors the Beast Rage roulette flow end-to-end).
+  const PETS_SPINS: Record<PetsCompanion, number> = { DRAGON: 6, UNICORN: 10, PHOENIX: 8, CAT: 15 };
+  const handleCompanionPickComplete = (pet: PetsCompanion) => {
+      petsCompanionRef.current = pet;
+      setPetsCompanionUi(pet);
+      petsStickyWildsRef.current = [];
+      const spinsForPet = PETS_SPINS[pet];
+      setFreeSpinsWon(spinsForPet);
+      setTotalFreeSpins(prev => prev + spinsForPet);
+      setShowCompanionPick(false);
+      savedAutoSpinRef.current = { active: player.autoSpin, remaining: autoSpinRemainingRef.current };
+      setReelTransitioning('out');
+      setTimeout(() => {
+          setFreeSpinsRemaining(prev => prev + spinsForPet);
           savedFastSpinRef.current = fastSpin;
           setStatus(GameStatus.IDLE);
           requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -6353,6 +6538,11 @@ const App: React.FC = () => {
       // The boss and its raid multiplier only last for this one Dungeon Raid session.
       mmorpgBossRef.current = null;
       setMmorpgBossUi(null);
+      // The chosen companion (and any accumulated Unicorn sticky wilds) only last for
+      // this one Mystic Pets free-spin session.
+      petsCompanionRef.current = null;
+      setPetsCompanionUi(null);
+      petsStickyWildsRef.current = [];
 
       // Transition animation: fade the reels out (free-spin theme) then back in (normal theme)
       setReelTransitioning('out');
@@ -6459,6 +6649,11 @@ const App: React.FC = () => {
         // Bonus roulettes must resolve — ignore back to avoid losing the awarded free spins.
         return;
     }
+    if (showRainbowTrail || showCompanionPick) {
+        // Rainbow Trail must resolve to credit its payout; Companion Pick must resolve
+        // so a free-spin session actually starts.
+        return;
+    }
     if (showDuelModal) {
         // High Noon Duel is mid-draw — must resolve before backing out.
         return;
@@ -6496,6 +6691,8 @@ const App: React.FC = () => {
                 samuraiHeldCols: samuraiRespinRef.current.heldCols,
                 samuraiStickyWilds: samuraiStickyWildsRef.current,
                 mmorpgBoss: mmorpgBossRef.current,
+                petsCompanion: petsCompanionRef.current,
+                petsStickyWilds: petsStickyWildsRef.current,
             }
         }));
         setPlayer(p => ({ ...p, autoSpin: false }));
@@ -7608,6 +7805,25 @@ const App: React.FC = () => {
                             </div>
                         )}
 
+                        {/* MYSTIC PETS Choose Your Companion — companion pill during free spins */}
+                        {selectedGame.theme === 'PETS' && totalFreeSpins > 0 && petsCompanionUi && (
+                            <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
+                                <div style={{
+                                    background: 'linear-gradient(180deg,#581c87,#2e1065)',
+                                    borderRadius: 999,
+                                    padding: '5px 14px',
+                                    boxShadow: '0 0 18px rgba(216,180,254,0.5), 0 4px 10px rgba(0,0,0,0.6)',
+                                }}>
+                                    <span className="font-black" style={{ fontSize: 9, color: '#e9d5ff' }}>
+                                        {petsCompanionUi === 'DRAGON' ? 'Dragon · ×3 Wins'
+                                            : petsCompanionUi === 'UNICORN' ? 'Unicorn · Sticky Wilds'
+                                            : petsCompanionUi === 'PHOENIX' ? 'Phoenix · Upgrades'
+                                            : 'Cat · Wild Rain'}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* DEEP BLUE (UNDERWATER) Kraken Attack — teal column glow while it resolves */}
                         {selectedGame.theme === 'UNDERWATER' && krakenCols.length > 0 && (
                             <div className="absolute inset-0 z-20 pointer-events-none animate-pop-in">
@@ -8212,6 +8428,17 @@ const App: React.FC = () => {
           amount={duelOffer?.amount ?? 0}
           round={duelOffer?.round ?? 1}
           onResolve={handleDuelResolve}
+      />
+
+      <RainbowTrailModal
+          isOpen={showRainbowTrail}
+          bet={trailBet}
+          onComplete={handleRainbowTrailComplete}
+      />
+
+      <CompanionPickModal
+          isOpen={showCompanionPick}
+          onComplete={handleCompanionPickComplete}
       />
 
       <JackpotCelebration tier={jackpotWinTier} onClose={handleJackpotClose} />
