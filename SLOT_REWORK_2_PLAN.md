@@ -99,50 +99,57 @@ unchanged.
 
 ---
 
-## Batch R2 — Gold Rush (`WESTERN`, 3x5) → "Gold Cart Bonus"
+## Batch R2 — Gold Rush (`WESTERN`, 3x5) → "Gold Cart Bonus" [BUILT]
 
 **Source machine: Money Train 2/3/4 (Relax Gaming) — the Money Cart bonus.** 3+
 bonus symbols open a separate hold-&-spin grid where every symbol carries a bet-
 multiple value; 3 respins, any new symbol resets to 3; special modifier symbols act
 on the other values. Train-heist theme fits Gold Rush's western identity exactly.
 
-Remove first:
-1. Dynamite Blast block in `handleReelStop`, `dynamiteCells` state + amber overlay.
-2. High Noon Duel end-to-end: `duelOffer`/`showDuelModal` state + auto-dismiss
-   effect, the `calculateWin` offer site, the offer chip JSX, `handleDuelResolve`,
-   spin()/handleHeaderBack guards, `<DuelGambleModal>` render, and delete
-   `components/DuelGambleModal.tsx`.
-3. Description → `'Gold Cart! 3 bonus symbols start the heist — every symbol holds a prize, and collectors, payers and snipers grow the haul.'`
+**What was removed:** Dynamite Blast (`dynamiteCells` state, `handleReelStop` block,
+amber overlay JSX) and High Noon Duel end-to-end (`duelOffer`/`showDuelModal` state
++ auto-dismiss effect, the `calculateWin` offer site, the offer chip JSX,
+`handleDuelResolve`, the `spin()`/`handleHeaderBack` guards, the `<DuelGambleModal>`
+render, and `components/DuelGambleModal.tsx` itself, deleted).
 
-Build — new `components/GoldCartModal.tsx` (self-contained bonus like
-`NeonRouletteModal`: opens from a scatter trigger, resolves via
-`onComplete(totalWin)`):
-1. Grid 5x3 (match the slot). Feature starts with the 3+ triggering symbols placed
-   with rolled values, 3 respins.
-2. Each respin, every empty cell lands a symbol with probability ~13%. Any landing
-   resets respins to 3. Ends at 0 respins or full grid.
-3. Symbol types on landing (weighted):
-   - **Value** (~86%): 1x/2x/3x/5x/10x bet — weights 42/28/16/10/4.
-   - **Payer** (~6%): has own value (1x-2x); on landing, adds its value to every
-     other symbol once.
-   - **Collector** (~5%): collects the values of all other symbols and adds the sum
-     to itself (others keep their values — Money Train semantics: collector adds the
-     total to its own value).
-   - **Sniper** (~3%): doubles the value of 3 random other symbols.
-4. Full grid: total x2 (stand-in for Money Train's row-unlock escalation — note in a
-   comment; a future pass can add literal row unlocks).
-5. End: credit `sum(values) * bet` — reuse the `handleRainbowTrailComplete` pattern
-   (win-tier celebration, `trackSlotQuest('BONUS_TRIGGER', 1)`).
-6. Wiring: WESTERN branch in the scatter-trigger section of `handleReelStop`
-   (modeled on the NEON branch): `SCATTER_SHOWCASE` → capture bet → open modal.
-   Guards: `spin()` early-return, `handleHeaderBack` must-resolve list, game-change
-   reset. No SavedGameState fields (bonus resolves atomically).
-7. UI: dusty gold/wood palette, symbols as gold-nugget chips with value text; the
-   respin counter as 3 dots; modifier lands get a brief flash + toast. Title case.
+**What was built:**
+- New `components/GoldCartModal.tsx` — self-contained bonus (like
+  `RainbowTrailModal`/`NeonRouletteModal`): 5x3 grid, seeded with the triggering
+  scatter count worth of symbols (clamped 3-15), 3 respins. Each respin, every empty
+  cell independently has a 13% chance to land a symbol; any landing resets the
+  counter to 3; ends at 0 respins or a full grid.
+- Symbol kinds (weighted 86/6/5/3 value/payer/collector/sniper): **Value** rolls
+  1x/2x/3x/5x/10x bet (weights 42/28/16/10/4); **Payer** carries 1x-2x bet and adds
+  its value to every other present cell once on landing; **Collector** sums every
+  other present cell's value into itself (others keep their values); **Sniper**
+  doubles 3 random other present cells. Modifier resolution is applied in raster
+  index order via a pure `applyLandings` helper, covering both the initial seed and
+  each respin's new landings (so a modifier in the opening seed also fires).
+- Full grid doubles the total (`sum(values) * 2`); otherwise `sum(values)`. Credited
+  via `handleGoldCartComplete`, mirroring `handleRainbowTrailComplete`'s pattern
+  (win-tier celebration, `trackSlotQuest('BONUS_TRIGGER', 1)`).
+- Wiring: new `if (selectedGame.theme === 'WESTERN')` branch in the scatter-trigger
+  section of `handleReelStop`, modeled directly on the LEPRECHAUN branch (no free
+  spins — the bonus itself is the whole feature): `SCATTER_SHOWCASE` → capture bet
+  and scatter count → open modal after a delay. `spin()` and `handleHeaderBack` both
+  block/guard on `showGoldCartModal` until it resolves; no `SavedGameState` fields
+  (the bonus resolves atomically, same as Rainbow Trail).
+- UI: dusty gold/wood palette (browns/ambers, no thick borders), a 5x3 grid of
+  rounded cells with value text (modifier cells get a 3-letter tag — PAY/COL/SNP —
+  above the amount; Sniper's own value is hidden until non-zero rather than showing
+  a bare "0"), respin counter shown as 3 dots + "Respins X/3" text, and a brief
+  pill-shaped flash toast on modifier landings. Title case throughout.
+- `GameInfoModal.tsx` `MECHANIC_INFO.WESTERN` rewritten to describe the actual
+  Payer/Collector/Sniper rules.
 
-Verify: forced trigger; landing resets counter; each modifier acts exactly per its
-rule (assert value math on a seeded run via console probe); balance delta equals the
-shown total; full-grid doubling; Pirate/generic scatter FS untouched.
+Verified live via Playwright with a TEMP-TEST-BUMP (`scattersToTrigger: 0`) forcing
+a trigger on every spin across 6+ consecutive rounds — confirmed the grid seeds
+correctly, modifiers render and act as specified (observed Sniper cells, payout
+totals reconciling exactly with the credited balance delta once the spin's own bet
+is netted out), respins auto-advance and resolve to a Collect screen, and the game
+returns cleanly to a spin-ready state every time with zero console errors. Then
+reverted the TEMP-TEST-BUMP, re-typechecked, and regression-checked Pirate (an
+adjacent scatter-trigger branch) plus 60 real-odds Gold Rush spins with no crashes.
 
 ---
 

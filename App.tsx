@@ -66,7 +66,7 @@ import { SpinCountRouletteModal } from './components/SpinCountRouletteModal';
 import { AngryFlockSpinCountModal } from './components/AngryFlockSpinCountModal';
 import { AngryFlockRouletteModal, AngryFlockWildColor } from './components/AngryFlockRouletteModal';
 import { BeastRouletteModal } from './components/BeastRouletteModal';
-import { DuelGambleModal } from './components/DuelGambleModal';
+import { GoldCartModal } from './components/GoldCartModal';
 import { RainbowTrailModal } from './components/RainbowTrailModal';
 import { CompanionPickModal, PetsCompanion } from './components/CompanionPickModal';
 import { GameInfoModal } from './components/GameInfoModal';
@@ -1385,20 +1385,12 @@ const App: React.FC = () => {
   // rules based on pearl connectivity — see getPearlGroups below and the
   // `ft === 'UNDERWATER'` blocks in generateSmartGrid/handleReelStop.
 
-  // Gold Rush — Dynamite Blast + High Noon Duel. Dynamite scatters 4-6 random cells
-  // into wilds on a dead spin (instantaneous — no persistence). The duel is a
-  // double-or-nothing gamble offered after a 2x+ win, resolved in DuelGambleModal.
-  const [dynamiteCells, setDynamiteCells] = useState<{ col: number; row: number }[]>([]);
-  const [duelOffer, setDuelOffer] = useState<{ amount: number; round: number } | null>(null);
-  const [showDuelModal, setShowDuelModal] = useState(false);
-  const duelTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Duel offer chip auto-dismisses (auto-keep) after ~6s if the player ignores it —
-  // paused while the gamble modal itself is open.
-  useEffect(() => {
-      if (!duelOffer || showDuelModal) return;
-      duelTimerRef.current = setTimeout(() => setDuelOffer(null), 6000);
-      return () => { if (duelTimerRef.current) clearTimeout(duelTimerRef.current); };
-  }, [duelOffer, showDuelModal]);
+  // Gold Rush — Gold Cart Bonus. 3+ bonus symbols open GoldCartModal, a self-contained
+  // Money Train-style hold-and-spin bonus that resolves atomically (no free spins,
+  // no persistence — see the WESTERN branch in the scatter-trigger section below).
+  const [showGoldCartModal, setShowGoldCartModal] = useState(false);
+  const [goldCartBet, setGoldCartBet] = useState(0);
+  const [goldCartTriggerCount, setGoldCartTriggerCount] = useState(3);
 
   // Beast Rage — standard 3-scatter trigger for 10 free spins, then a roulette picks
   // one wild multiplier (2x-5x, higher rarer) that applies for the whole session.
@@ -4388,9 +4380,7 @@ const App: React.FC = () => {
     if (goldenPotFrozen) return;
     if (dragonPotShaking || showDragonTriggerPopup) return;
     if (showEgyptHoldWinPopup) return;
-    if (showDuelModal) return;
-    // Spinning again implicitly declines any pending High Noon Duel offer (auto-keep).
-    if (duelOffer) setDuelOffer(null);
+    if (showGoldCartModal) return;
 
     // Auto max bet: snap to highest available bet before spinning
     if (autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active && !samuraiRespinRef.current.active) {
@@ -4507,7 +4497,6 @@ const App: React.FC = () => {
     setCascadeGrid(null);
     setCascadeNewCells(null);
     setCascadeDissolving(false);
-    setDynamiteCells([]);
     setStatus(GameStatus.SPINNING);
     setWinData(null);
     setEgyptCoinMeta(null);
@@ -4516,7 +4505,7 @@ const App: React.FC = () => {
     setOlympusOrbGrid(null);
     setBuffaloCollectGrid(null);
     setBuffaloWildMultGrid(null);
-  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, goldenPotFrozen, player.level, selectedGame.theme, showDuelModal, duelOffer, showRainbowTrail, showCompanionPick]);
+  }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, goldenPotFrozen, player.level, selectedGame.theme, showGoldCartModal, showRainbowTrail, showCompanionPick]);
 
   useEffect(() => {
     if (status === GameStatus.SPINNING && targetGrid.length === 0) {
@@ -4910,6 +4899,23 @@ const App: React.FC = () => {
                      audioService.playBonusTrigger();
                      setTrailBet(betAmt);
                      setShowRainbowTrail(true);
+                 }, 1500);
+                 return next;
+             }
+
+             // GOLD RUSH: Gold Cart Bonus — a self-contained Money Train-style hold-and-spin
+             // bonus, no free spins. spin() is blocked while it's open, so a trigger here
+             // always just (re)opens it.
+             if (selectedGame.theme === 'WESTERN') {
+                 setStatus(GameStatus.SCATTER_SHOWCASE);
+                 audioService.playScatterTrigger();
+                 setSpinsWithoutBonus(0);
+                 const betAmt = currentBetRef.current;
+                 setGoldCartTriggerCount(scatterCount);
+                 setTimeout(() => {
+                     audioService.playBonusTrigger();
+                     setGoldCartBet(betAmt);
+                     setShowGoldCartModal(true);
                  }, 1500);
                  return next;
              }
@@ -5333,33 +5339,6 @@ const App: React.FC = () => {
             return next;
         }
 
-        // GOLD RUSH (WESTERN) Dynamite Blast: on a dead spin, 4-6 random cells explode
-        // into wilds before scoring — chance roughly doubles in free spins.
-        if (selectedGame.theme === 'WESTERN' && scatterCount < selectedGame.scattersToTrigger && !gridHasLineWin(targetGrid)) {
-            const dynamiteChance = isCurrentFreeSpinRef.current ? 0.12 : 0.05;
-            if (Math.random() < dynamiteChance) {
-                const eligibleCells: { col: number; row: number }[] = [];
-                targetGrid.forEach((col, c) => col.forEach((s, r) => {
-                    if (s !== SymbolType.SCATTER && !String(s).startsWith('JACKPOT')) eligibleCells.push({ col: c, row: r });
-                }));
-                const shuffledCells = [...eligibleCells].sort(() => Math.random() - 0.5);
-                const cellCount = Math.min(4 + Math.floor(Math.random() * 3), shuffledCells.length);
-                const chosenCells = shuffledCells.slice(0, cellCount);
-                const dynamiteGrid = targetGrid.map(col => [...col]);
-                chosenCells.forEach(({ col, row }) => { dynamiteGrid[col][row] = SymbolType.WILD; });
-                const dynamiteMask = dynamiteGrid.map((col, c) => col.map((s, r) => s !== targetGrid[c][r]));
-                setTargetGrid(dynamiteGrid);
-                setCascadeGrid(dynamiteGrid.map(col => [...col]));
-                setCascadeNewCells(dynamiteMask);
-                setCascadeDissolving(false);
-                setDynamiteCells(chosenCells);
-                setCelebrationMsg('Dynamite!');
-                audioService.playScatterTrigger();
-                setTimeout(() => calculateWin(dynamiteGrid), 900);
-                return next;
-            }
-        }
-
         // LUCKY LEPRECHAUN (LEPRECHAUN) Leprechaun Luck: rare dead-spin nudge — a payline
         // whose first two cells match (wild-aware) but whose third breaks it gets that
         // third cell nudged into the match, completing a 3-of-a-kind.
@@ -5771,13 +5750,6 @@ const App: React.FC = () => {
        // Base-game win amount shown in the bottom bar (persists until next spin).
        if (totalFreeSpins === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
            setLastWinAmount(totalPayout);
-       }
-
-       // GOLD RUSH (WESTERN) High Noon Duel: offer a double-or-nothing gamble on a
-       // mid-size base-game win (2x-10x bet) — tiered wins keep their own celebration.
-       if (selectedGame.theme === 'WESTERN' && !creditOnly && totalFreeSpins === 0 && !winTier &&
-           totalPayout >= currentBet * 2 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
-           setDuelOffer({ amount: totalPayout, round: 1 });
        }
 
        if (!creditOnly) {
@@ -6521,10 +6493,8 @@ const App: React.FC = () => {
           // Reset Dungeon Raid boss state on game change
           mmorpgBossRef.current = null;
           setMmorpgBossUi(null);
-          // Reset Gold Rush Dynamite/Duel state on game change
-          setDynamiteCells([]);
-          setDuelOffer(null);
-          setShowDuelModal(false);
+          // Reset Gold Rush Gold Cart Bonus on game change (bonus resolves atomically)
+          setShowGoldCartModal(false);
           // Reset Lucky Leprechaun Rainbow Trail on game change (bonus resolves atomically)
           setShowRainbowTrail(false);
           // Reset Mystic Pets companion state on game change
@@ -6773,21 +6743,23 @@ const App: React.FC = () => {
       }, 900);
   };
 
-  // GOLD RUSH High Noon Duel: apply the win/lose outcome, then either offer another
-  // round (doubled stakes, capped at 3 total) or close out.
-  const handleDuelResolve = (win: boolean) => {
-      if (!duelOffer) { setShowDuelModal(false); return; }
-      const amt = duelOffer.amount;
-      if (win) {
-          setPlayer(p => ({ ...p, balance: p.balance + amt }));
-          const nextRound = duelOffer.round + 1;
-          setDuelOffer(nextRound <= 3 ? { amount: amt * 2, round: nextRound } : null);
+  // GOLD RUSH Gold Cart Bonus: credit the bonus total, matching the Rainbow Trail
+  // completion pattern (win-tier celebration, then quest credit).
+  const handleGoldCartComplete = (total: number) => {
+      setPlayer(p => ({ ...p, balance: p.balance + total }));
+      setShowGoldCartModal(false);
+      setLastWinAmount(total);
+      trackSlotQuest('BONUS_TRIGGER', 1);
+      const tier = getWinTier(total, goldCartBet || 1);
+      if (tier) {
+          setWinData({ payout: total, winningLines: [], winningCells: [], isBigWin: true, scattersFound: 0, winType: tier });
+          audioService.playWinTier(tier);
+          setShowWinPopup(true);
+          setStatus(GameStatus.WIN_ANIMATION);
       } else {
-          setPlayer(p => ({ ...p, balance: p.balance - amt }));
-          setCelebrationMsg('Outdrawn…');
-          setDuelOffer(null);
+          audioService.playWinSmall();
+          setStatus(GameStatus.IDLE);
       }
-      setShowDuelModal(false);
   };
 
   const handleFreeSpinSummaryClose = () => {
@@ -6973,12 +6945,10 @@ const App: React.FC = () => {
         // so a free-spin session actually starts.
         return;
     }
-    if (showDuelModal) {
-        // High Noon Duel is mid-draw — must resolve before backing out.
+    if (showGoldCartModal) {
+        // Gold Cart Bonus must resolve to credit its payout.
         return;
     }
-    // A pending (unopened) duel chip auto-keeps on exit — the win is already credited.
-    if (duelOffer) setDuelOffer(null);
     if (showNeonRoulette) {
         handleNeonRouletteClose();
         return;
@@ -8184,46 +8154,6 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* GOLD RUSH (WESTERN) Dynamite Blast — per-cell amber glow while it resolves */}
-                        {selectedGame.theme === 'WESTERN' && dynamiteCells.length > 0 && (
-                            <div className="absolute inset-0 z-20 pointer-events-none animate-pop-in">
-                                {dynamiteCells.map(({ col, row }) => (
-                                    <div key={`${col}-${row}`} className="absolute"
-                                        style={{
-                                            left: `calc(${(col / selectedGame.reels) * 100}% + 2px)`,
-                                            top: `calc(${(row / selectedGame.rows) * 100}% + 2px)`,
-                                            width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
-                                            height: `calc(${(1 / selectedGame.rows) * 100}% - 4px)`,
-                                            borderRadius: 5,
-                                            boxShadow: '0 0 18px rgba(251,146,60,0.85), inset 0 0 20px rgba(251,146,60,0.35)',
-                                            background: 'linear-gradient(180deg,rgba(251,146,60,0.18),rgba(124,45,18,0.08))',
-                                        }} />
-                                ))}
-                            </div>
-                        )}
-
-                        {/* GOLD RUSH (WESTERN) High Noon Duel — offer chip after a mid-size win */}
-                        {selectedGame.theme === 'WESTERN' && duelOffer && !showDuelModal && status === GameStatus.IDLE && (
-                            <div className="absolute -bottom-1 inset-x-0 flex justify-center z-30 animate-pop-in">
-                                <div className="flex items-center gap-2" style={{
-                                    background: 'linear-gradient(180deg,#92400e,#451a03)',
-                                    borderRadius: 999,
-                                    padding: '5px 8px 5px 12px',
-                                    boxShadow: '0 0 18px rgba(251,191,36,0.4), 0 4px 10px rgba(0,0,0,0.6)',
-                                }}>
-                                    <span className="font-black" style={{ fontSize: 10, color: '#fde68a' }}>Risk it for {formatK(duelOffer.amount)}?</span>
-                                    <button onClick={() => setShowDuelModal(true)} className="font-black rounded-full"
-                                        style={{ fontSize: 10, padding: '4px 10px', background: '#fbbf24', color: '#451a03' }}>
-                                        Duel ×2
-                                    </button>
-                                    <button onClick={() => setDuelOffer(null)} className="font-black rounded-full"
-                                        style={{ fontSize: 10, padding: '4px 10px', background: 'rgba(255,255,255,0.12)', color: '#fde68a' }}>
-                                        Keep
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
                         {/* Dragon Pick-and-Win grid — renders inside reel container as absolute overlay */}
                         {showDragonPickModal && selectedGame.theme === 'DRAGON' && (
                             <DragonPickGrid
@@ -8784,11 +8714,11 @@ const App: React.FC = () => {
           onComplete={handleBeastRouletteComplete}
       />
 
-      <DuelGambleModal
-          isOpen={showDuelModal}
-          amount={duelOffer?.amount ?? 0}
-          round={duelOffer?.round ?? 1}
-          onResolve={handleDuelResolve}
+      <GoldCartModal
+          isOpen={showGoldCartModal}
+          bet={goldCartBet}
+          triggerCount={goldCartTriggerCount}
+          onComplete={handleGoldCartComplete}
       />
 
       <RainbowTrailModal

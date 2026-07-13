@@ -277,7 +277,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     rows: 3,
     reels: 5,
     scattersToTrigger: 3,
-    description: 'Dynamite wilds on dead spins — and every win can be risked in a High Noon duel, double or nothing.',
+    description: 'Gold Cart Bonus! 3 bonus symbols start the heist — every symbol holds a prize, and collectors, payers and snipers grow the haul.',
     color: 'from-orange-700 via-amber-800 to-yellow-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #b45309 0%, #451a03 100%)',
     reelBg: REEL_BGS.WESTERN,
