@@ -213,7 +213,7 @@ regression-checked Dragon (shares the cadence formula and `JP_META`).
 
 ---
 
-## Batch R4 — Samurai Honor (`SAMURAI`) → 6 reels + "Sticky Wild Reels" (pip counters)
+## Batch R4 — Samurai Honor (`SAMURAI`) → 6 reels + "Sticky Wild Reels" (pip counters) [BUILT]
 
 **Source machine: Sakura Fortune / Sakura Fortune 2 (Quickspin)** — samurai-Japan
 themed, princess wilds nudge to cover the full reel, lock in place, and award
@@ -222,47 +222,57 @@ free spins make every wild sticky with +1 spin per wild. The owner's spec ("two
 dots each column, column wild stays for 2 spins, free spins are a better version of
 the dots") maps directly onto this.
 
-Changes:
-1. `constants.ts`: `reels: 7 → 6`. Description →
-   `'Sticky Wild Reels! Wilds grow to fill their reel and stay locked for 2 spins — free-spin wilds stay longer and add spins.'`
-2. **Remove the Katana slash respin machinery**: `samuraiRespinRef`,
-   `samuraiHeldCols` state + its spin()/pointer guards + the IDLE auto-continue
-   branch, the slash blocks in `generateSmartGrid` and `handleReelStop`, and the
-   `samuraiHeldCols`/`samuraiStickyWilds` SavedGameState fields (replace, don't
-   strand them).
-3. New state:
-   ```tsx
-   // Each sticky wild reel remembers its column and how many spins it has left.
-   const samuraiStickyReelsRef = useRef<{ col: number; pips: number }[]>([]);
-   const [samuraiStickyReelsUi, setSamuraiStickyReelsUi] = useState<{ col: number; pips: number }[]>([]);
-   ```
-4. Base game: in `generateSmartGrid` (SAMURAI block, replacing the slash seeding) a
-   single wild seeds on a middle reel (~11% per spin, cols 1..4, one at most). In
-   `handleReelStop` before `calculateWin`: any middle reel containing a wild (and
-   not already sticky) **nudges to a full wild reel** (forced-redraw pattern), joins
-   `samuraiStickyReelsRef` with `pips: 2`, toast `'Wild Reel locked!'`, delayed
-   rescore, `return next`.
-5. Pip lifecycle: at the top of `spin()` (paid or free), decrement every sticky
-   reel's pips; drop entries at 0. In `generateSmartGrid`, stamp every surviving
-   sticky column fully wild before other phases (skip SCATTER injection into those
-   columns). Multiple columns can be sticky at once, each with independent pips.
-6. Free spins ("better version"): every wild that lands anywhere nudges its reel
-   fully wild, sticks with `pips: 3`, and awards `+1` free spin (Sakura Fortune 2's
-   loop — cap total session spins at +10 extra to keep it sane). Landing a wild on
-   an already-sticky reel refreshes its pips to 3.
-7. UI: reuse the existing red column glow for sticky reels; above each sticky
-   column render its pips as 2-3 small dots (filled = spins remaining) — small
-   `absolute` row at the column top, shadow only, no border.
-8. Persistence: `samuraiStickyReels` optional field in `SavedGameState` (save in
-   `handleHeaderBack`, restore in `handleGameSelect`, reset on slot change +
-   `handleFreeSpinSummaryClose` clears FS-earned reels? **No** — sticky reels earned
-   in FS die naturally by pips; only clear on game change).
-9. Spin guards: none needed (no respin loop anymore — sticky reels ride normal
-   spins). Remove the old samurai guard conditions from `spin()`/pointer handlers.
+**What was removed:** the entire Katana slash respin machinery — `samuraiRespinRef`/
+`samuraiHeldCols` state, its `spin()`/pointer-handler guards, the IDLE auto-continue
+respin branch, the slash blocks in `generateSmartGrid` and `handleReelStop`, and the
+old `samuraiHeldCols`/`samuraiStickyWilds` `SavedGameState` fields.
 
-Verify: 6 reels render; wild → full-reel nudge; reel visibly persists exactly 2
-subsequent spins with pips counting down; two simultaneous sticky reels; FS: 3 pips,
-pip refresh, +1 spin per new wild reel; exit/re-enter restores pips.
+**What was built:**
+- `constants.ts`: `reels: 7 → 6`, description updated. `GET_PAYLINES` is already
+  reel-count-agnostic (only the 6 unused legacy diagonal shapes stay 5-wide, a
+  pre-existing, unrelated quirk that applied equally at 7 reels).
+- New `samuraiStickyReelsRef`/`samuraiStickyReelsUi`: `{ col, pips }[]`, plus
+  `samuraiFsBonusSpinsRef` tracking this free-spin session's granted bonus spins
+  (capped at 10).
+- `generateSmartGrid`: base game seeds at most one wild (~11% per spin) on an open
+  middle reel; free spins seed 0-2 wilds on any open reel (ported from the old
+  free-spin roll). Every currently-sticky reel is then unconditionally re-stamped
+  fully wild, so it survives regardless of what was just seeded.
+- `handleReelStop`: a single unified block (used for both base game and free
+  spins, unlike the old base-game-only slash detection) finds any not-yet-sticky
+  eligible reel showing a wild, nudges it fully wild, and adds `{ col, pips: 2 }`
+  (base) or `{ col, pips: 3 }` (free spins) to the sticky list — multiple reels can
+  lock in the same settle. During free spins, each newly-locked reel grants +1 free
+  spin (capped by the 10-spin session bonus cap), then the grid rescores after the
+  same 900ms nudge-animation delay the old slash used.
+- Pip lifecycle: at the top of `spin()` (paid or free), every sticky reel's pips
+  decrement by 1 and any reel reaching 0 is dropped — runs before the next grid is
+  generated, so a reel plays normally again exactly 2 (or 3, in FS) spins after it
+  locked.
+- **Scope trim (disclosed):** the plan's "landing a wild on an already-sticky reel
+  refreshes its pips to 3" nuance was dropped — since sticky reels are always
+  re-stamped fully wild every spin regardless of a natural re-landing, there's no
+  way to distinguish a genuine re-landing from the stamp itself, so it's
+  unimplementable as specified without extra state this pass didn't add. The core
+  loop (nudge → stick → count down → expire, plus the free-spin bonus-spin grant)
+  is unaffected.
+- UI: the red column glow is reused; pip dots (one per remaining spin, filled red)
+  render just above each sticky column.
+- Persistence: `SavedGameState.samuraiStickyReels` (both save sites + restore +
+  game-change reset); sticky reels are deliberately **not** cleared when a
+  free-spin session ends (only pips expiring or a game change clears them, per the
+  plan) — only the FS bonus-spin cap resets at free-spin entry.
+
+Verified live via Playwright with TEMP-TEST-BUMPs (guaranteed wild seeding, forced
+free-spin entry) — confirmed the reel count is visibly 6, a wild nudges its full
+reel with the "Wild Reel Locked!" toast, multiple independent reels can be sticky
+at once, free-spin entry works, the +1-free-spin-per-new-reel grant fires
+correctly (observed the free-spin counter jump up mid-session) alongside the
+game's existing generic scatter retrigger with no conflict, and the game always
+settles back to a clean spin-ready state. Reverted the TEMP-TEST-BUMPs,
+re-typechecked, ran 50 real-odds spins with zero console errors, and
+regression-checked Pirate's Bounty (shares the same reel-count-agnostic column
+math).
 
 ---
 

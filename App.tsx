@@ -89,8 +89,7 @@ interface SavedGameState {
     pirateShipCol?: number;
     pirateShip2Col?: number;
     pirateWalkTotalWin?: number;
-    samuraiHeldCols?: number[];
-    samuraiStickyWilds?: { col: number; row: number }[];
+    samuraiStickyReels?: { col: number; pips: number }[];
     mmorpgBoss?: { level: number; hp: number; maxHp: number; mult: number } | null;
     petsCompanion?: PetsCompanion | null;
     petsStickyWilds?: { col: number; row: number }[];
@@ -1410,14 +1409,14 @@ const App: React.FC = () => {
   // low-to-high) — SCATTER never appears here, so free spins can't retrigger more.
   const [jungleBigIcon, setJungleBigIcon] = useState<SymbolType | null>(null);
 
-  // Samurai Honor — Katana Wilds. Base game: a wild landing on the middle reels
-  // slashes its whole reel into wilds, holds it, and awards a free respin; fresh
-  // middle-reel wilds during the respin chain the feature. Free spins: every wild
-  // that lands sticks in place for the rest of the session.
-  const samuraiRespinRef = useRef<{ active: boolean; heldCols: number[] }>({ active: false, heldCols: [] });
-  const [samuraiHeldCols, setSamuraiHeldCols] = useState<number[]>([]);
-  const samuraiStickyWildsRef = useRef<{ col: number; row: number }[]>([]);
-  const [samuraiStickyCount, setSamuraiStickyCount] = useState(0);
+  // Samurai Honor — Sticky Wild Reels (Sakura Fortune / Sakura Fortune 2, Quickspin).
+  // Base game: a wild landing on a middle reel nudges that whole reel wild and
+  // sticks it in place for 2 more spins (a "pip" counter). Free spins: every wild
+  // that lands nudges its reel wild, sticks with 3 pips (refreshed if it lands
+  // again), and awards +1 free spin per newly-stuck reel (capped +10 extra spins).
+  const samuraiStickyReelsRef = useRef<{ col: number; pips: number }[]>([]);
+  const [samuraiStickyReelsUi, setSamuraiStickyReelsUi] = useState<{ col: number; pips: number }[]>([]);
+  const samuraiFsBonusSpinsRef = useRef(0);
 
   // Dungeon Raid — Boss Battle free spins. Every free-spin win strikes the boss
   // (damage = win in bet-multiples); slaying it awards +2 spins, raises the raid
@@ -3467,7 +3466,7 @@ const App: React.FC = () => {
                // DRAGON: no full-column wild stacks, only single-cell wilds
                if (selectedGame.theme === 'DRAGON') wildStackChance = 0;
                // SAMURAI: no pre-stacked wild columns — a full wild reel is only ever
-               // earned through the Katana slash (single wilds seeded in its own block below)
+               // earned through the sticky wild reel nudge (seeded in its own block below)
                if (selectedGame.theme === 'SAMURAI') wildStackChance = 0;
                // OLYMPUS: a full-reel wild stack would count toward every symbol's
                // Scatter Pays cluster at once, blowing out the win model — no full-reel
@@ -4022,10 +4021,10 @@ const App: React.FC = () => {
           }
       }
 
-      // SAMURAI Katana Wilds: single wilds seeded on the middle reels. During the
-      // slash respin the held reels stay fully wild and any fresh middle-reel wild
-      // chains another respin; during free spins every wild that lands sticks for
-      // the rest of the session (re-stamped onto each new grid).
+      // SAMURAI Sticky Wild Reels (Sakura Fortune / Sakura Fortune 2): seed candidate
+      // wilds, then re-stamp every currently-sticky reel fully wild so it survives
+      // regardless of what was just seeded. handleReelStop detects any wild that
+      // lands on a not-yet-sticky reel and nudges/sticks it there.
       if (selectedGame.theme === 'SAMURAI') {
           const samuraiEligible = (c: number, r: number) => {
               const s = newGrid[c]?.[r];
@@ -4033,55 +4032,33 @@ const App: React.FC = () => {
           };
           // Middle reels = every column except the first and last, whatever the reel count.
           const midCols = Array.from({ length: Math.max(0, cols - 2) }, (_, i) => i + 1);
-          if (samuraiRespinRef.current.active) {
-              // Respin: ~14% per open middle reel for a fresh katana wild to chain the feature.
-              for (const c of midCols) {
-                  if (samuraiRespinRef.current.heldCols.includes(c)) continue;
-                  if (Math.random() < 0.14) {
-                      const r = Math.floor(Math.random() * rows);
-                      if (samuraiEligible(c, r)) newGrid[c][r] = SymbolType.WILD;
-                  }
-              }
-              samuraiRespinRef.current.heldCols.forEach(c => {
-                  for (let r = 0; r < rows; r++) newGrid[c][r] = SymbolType.WILD;
-              });
-              // No scatters during the slash respin — the feature always resolves cleanly.
-              for (let c = 0; c < cols; c++) {
-                  for (let r = 0; r < rows; r++) {
-                      if (newGrid[c][r] === SymbolType.SCATTER) newGrid[c][r] = SymbolType.TEN;
-                  }
-              }
-          } else if (!isFreeSpin) {
-              // Base game: ~4.5% per middle reel for a single katana wild.
-              for (const c of midCols) {
-                  if (Math.random() < 0.045) {
-                      const r = Math.floor(Math.random() * rows);
-                      if (samuraiEligible(c, r)) newGrid[c][r] = SymbolType.WILD;
-                  }
-              }
-          } else {
-              // Free spins: 0-2 new wilds land per spin, then EVERY wild on the final
-              // grid (seeded or natural) locks in place for the rest of the session.
-              const swRoll = Math.random();
-              const newWilds = swRoll < 0.10 ? 2 : swRoll < 0.55 ? 1 : 0;
-              for (let i = 0; i < newWilds; i++) {
-                  const c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
+          const stickyCols = new Set(samuraiStickyReelsRef.current.map(p => p.col));
+
+          if (!isFreeSpin) {
+              // Base game: ~11% chance per spin for a single wild to seed on an open
+              // middle reel — at most one new sticky reel starts per spin.
+              const availableMid = midCols.filter(c => !stickyCols.has(c));
+              if (availableMid.length > 0 && Math.random() < 0.11) {
+                  const c = availableMid[Math.floor(Math.random() * availableMid.length)];
+                  const r = Math.floor(Math.random() * rows);
                   if (samuraiEligible(c, r)) newGrid[c][r] = SymbolType.WILD;
               }
-              samuraiStickyWildsRef.current.forEach(p => {
-                  if (samuraiEligible(p.col, p.row)) newGrid[p.col][p.row] = SymbolType.WILD;
-              });
-              const sticky = [...samuraiStickyWildsRef.current];
-              for (let c = 0; c < cols; c++) {
-                  for (let r = 0; r < rows; r++) {
-                      if (newGrid[c][r] === SymbolType.WILD && !sticky.some(p => p.col === c && p.row === r)) {
-                          sticky.push({ col: c, row: r });
-                      }
-                  }
+          } else {
+              // Free spins ("better version"): 0-2 new wilds can seed on any open reel.
+              const swRoll = Math.random();
+              const newWilds = swRoll < 0.10 ? 2 : swRoll < 0.55 ? 1 : 0;
+              const availableCols = Array.from({ length: cols }, (_, i) => i).filter(c => !stickyCols.has(c));
+              for (let i = 0; i < newWilds && availableCols.length > 0; i++) {
+                  const c = availableCols[Math.floor(Math.random() * availableCols.length)];
+                  const r = Math.floor(Math.random() * rows);
+                  if (samuraiEligible(c, r)) newGrid[c][r] = SymbolType.WILD;
               }
-              samuraiStickyWildsRef.current = sticky;
-              setSamuraiStickyCount(sticky.length);
           }
+
+          // Re-stamp every currently-sticky reel fully wild.
+          samuraiStickyReelsRef.current.forEach(({ col }) => {
+              for (let r = 0; r < rows; r++) newGrid[col][r] = SymbolType.WILD;
+          });
       }
 
       // MYSTERY feature: during free spins, scatter mystery tiles across the grid that all
@@ -4411,21 +4388,30 @@ const App: React.FC = () => {
     if (showEgyptHoldWinPopup) return;
     if (showGoldCartModal) return;
 
+    // SAMURAI: decrement every sticky wild reel's pips at the top of each spin (paid
+    // or free) — a reel that reaches 0 pips plays normally again from this spin on.
+    if (selectedGame.theme === 'SAMURAI' && samuraiStickyReelsRef.current.length > 0) {
+        const nextSticky = samuraiStickyReelsRef.current
+            .map(p => ({ ...p, pips: p.pips - 1 }))
+            .filter(p => p.pips > 0);
+        samuraiStickyReelsRef.current = nextSticky;
+        setSamuraiStickyReelsUi(nextSticky);
+    }
+
     // Auto max bet: snap to highest available bet before spinning
-    if (autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active && !samuraiRespinRef.current.active) {
+    if (autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active) {
         setBetIndex(availableBets.length - 1);
     }
-    const currentBet = autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active && !samuraiRespinRef.current.active
+    const currentBet = autoMaxBet && freeSpinsRemaining === 0 && !holdWinRef.current.active && !pirateWalkRef.current.active
         ? availableBets[availableBets.length - 1]
         : availableBets[betIndex];
     const isFreeSpin = freeSpinsRemaining > 0;
     isCurrentFreeSpinRef.current = isFreeSpin; // captured before state batch so generateSmartGrid sees the right value
     const isHoldWinRespin = holdWinRef.current.active;
     const isPirateWalk = pirateWalkRef.current.active;
-    const isSamuraiRespin = samuraiRespinRef.current.active;
 
     // Insufficient Funds Check
-    if (!isFreeSpin && !isHoldWinRespin && !isPirateWalk && !isSamuraiRespin && player.balance < currentBet) {
+    if (!isFreeSpin && !isHoldWinRespin && !isPirateWalk && player.balance < currentBet) {
       if (player.balance < 10000) {
           setShowBankruptcy(true);
       } else {
@@ -4441,7 +4427,7 @@ const App: React.FC = () => {
     // below) instead of one Supabase round-trip per spin.
     if (myGuild) guildSpinPointsBufferRef.current += betIndex + 1;
 
-    if (!isFreeSpin && !isHoldWinRespin && !isPirateWalk && !isSamuraiRespin) {
+    if (!isFreeSpin && !isHoldWinRespin && !isPirateWalk) {
       // Piggy Bank Logic: 8% of Bet (15% if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
           const savings = currentBet * (player.isVip ? 0.15 : 0.08);
@@ -4509,8 +4495,8 @@ const App: React.FC = () => {
       if (!firstFreeSpinDoneRef.current && lifetimeSpinsRef.current >= 10) {
           forceFreeSpinRef.current = true;
       }
-    } else if (isHoldWinRespin || isPirateWalk || isSamuraiRespin) {
-        // Hold and Win / Ghost Ship / Katana slash respin: free, no missions, no stats
+    } else if (isHoldWinRespin || isPirateWalk) {
+        // Hold and Win / Ghost Ship respin: free, no missions, no stats
     } else {
         setFreeSpinsRemaining(prev => prev - 1);
         // SPACE: ramp the Supernova multiplier (+1 each free spin, capped ×15)
@@ -5316,35 +5302,45 @@ const App: React.FC = () => {
             return next;
         }
 
-        // SAMURAI Katana Wilds: detect a slash on any open middle reel (base game only —
-        // free-spin sticky wilds pay through the normal calculateWin path below).
-        if (selectedGame.theme === 'SAMURAI' && !isCurrentFreeSpinRef.current) {
-            const midColsNow = Array.from({ length: Math.max(0, selectedGame.reels - 2) }, (_, i) => i + 1);
-            const openCols = midColsNow.filter(c => !samuraiRespinRef.current.heldCols.includes(c));
-            const wildCols = openCols.filter(c => targetGrid[c]?.some(s => s === SymbolType.WILD));
+        // SAMURAI Sticky Wild Reels: any wild landing on a reel that isn't already
+        // sticky nudges that whole reel fully wild and locks it for 2 spins (base
+        // game) or 3 spins (free spins). Free spins also award +1 free spin per
+        // newly-stuck reel (capped +10 extra this session) — Sakura Fortune 2's loop.
+        if (selectedGame.theme === 'SAMURAI') {
+            const isFS = isCurrentFreeSpinRef.current;
+            const stickyCols = new Set(samuraiStickyReelsRef.current.map(p => p.col));
+            const eligibleCols = isFS
+                ? Array.from({ length: selectedGame.reels }, (_, i) => i)
+                : Array.from({ length: Math.max(0, selectedGame.reels - 2) }, (_, i) => i + 1);
+            const newWildCols = eligibleCols.filter(c => !stickyCols.has(c) && targetGrid[c]?.some(s => s === SymbolType.WILD));
 
-            if (wildCols.length > 0) {
-                // Slash: expand the reel(s) fully wild, hold them, chain a respin.
-                const expanded = targetGrid.map((col, c) => wildCols.includes(c) ? col.map(() => SymbolType.WILD) : col);
-                const merged = [...samuraiRespinRef.current.heldCols, ...wildCols];
-                samuraiRespinRef.current = { active: true, heldCols: merged };
-                setSamuraiHeldCols(merged);
+            if (newWildCols.length > 0) {
+                const expanded = targetGrid.map((col, c) => newWildCols.includes(c) ? col.map(() => SymbolType.WILD) : col);
+                const pips = isFS ? 3 : 2;
+                const nextSticky = [...samuraiStickyReelsRef.current, ...newWildCols.map(c => ({ col: c, pips }))];
+                samuraiStickyReelsRef.current = nextSticky;
+                setSamuraiStickyReelsUi(nextSticky);
+
                 setSpinsWithoutBonus(0);
                 setTargetGrid(expanded);
-                const slashMask = expanded.map((col, c) => col.map(() => wildCols.includes(c)));
+                const nudgeMask = expanded.map((col, c) => col.map(() => newWildCols.includes(c)));
                 setCascadeGrid(expanded.map(col => [...col]));
-                setCascadeNewCells(slashMask);
+                setCascadeNewCells(nudgeMask);
                 setCascadeDissolving(false);
                 audioService.playScatterTrigger();
-                setCelebrationMsg('Katana Slash! Respin');
+                setCelebrationMsg(newWildCols.length > 1 ? 'Wild Reels Locked!' : 'Wild Reel Locked!');
+
+                if (isFS) {
+                    const bonusSoFar = samuraiFsBonusSpinsRef.current;
+                    const grant = Math.min(newWildCols.length, Math.max(0, 10 - bonusSoFar));
+                    if (grant > 0) {
+                        samuraiFsBonusSpinsRef.current = bonusSoFar + grant;
+                        setFreeSpinsRemaining(prev => prev + grant);
+                        setTotalFreeSpins(prev => prev + grant);
+                    }
+                }
+
                 setTimeout(() => calculateWin(expanded), 900);
-                return next;
-            } else if (samuraiRespinRef.current.active) {
-                // Respin landed nothing new — feature resolves; the held wilds still pay.
-                samuraiRespinRef.current = { active: false, heldCols: [] };
-                setSamuraiHeldCols([]);
-                trackSlotQuest('BONUS_TRIGGER', 1);
-                calculateWin(targetGrid);
                 return next;
             }
         }
@@ -6518,8 +6514,7 @@ const App: React.FC = () => {
           pirateShipCol: pirateWalkRef.current.shipCol,
           pirateShip2Col: pirateWalkRef.current.ship2Col,
           pirateWalkTotalWin: pirateWalkTotalWinRef.current,
-          samuraiHeldCols: samuraiRespinRef.current.heldCols,
-          samuraiStickyWilds: samuraiStickyWildsRef.current,
+          samuraiStickyReels: samuraiStickyReelsRef.current,
           mmorpgBoss: mmorpgBossRef.current,
           petsCompanion: petsCompanionRef.current,
           petsStickyWilds: petsStickyWildsRef.current,
@@ -6613,11 +6608,10 @@ const App: React.FC = () => {
           setShowBeastRoulette(false);
           beastMultiplierRef.current = null;
           setBeastMultiplier(null);
-          // Reset Samurai Katana Wilds state on game change
-          samuraiRespinRef.current = { active: false, heldCols: [] };
-          setSamuraiHeldCols([]);
-          samuraiStickyWildsRef.current = [];
-          setSamuraiStickyCount(0);
+          // Reset Samurai Sticky Wild Reels state on game change
+          samuraiStickyReelsRef.current = [];
+          setSamuraiStickyReelsUi([]);
+          samuraiFsBonusSpinsRef.current = 0;
           // Reset Dungeon Raid boss state on game change
           mmorpgBossRef.current = null;
           setMmorpgBossUi(null);
@@ -6675,13 +6669,9 @@ const App: React.FC = () => {
                   setPirateShip2Col(savedState.pirateShip2Col ?? -1);
                   setPirateWalkTotalWin(savedState.pirateWalkTotalWin ?? 0);
               }
-              if (savedState.samuraiHeldCols && savedState.samuraiHeldCols.length > 0) {
-                  samuraiRespinRef.current = { active: true, heldCols: savedState.samuraiHeldCols };
-                  setSamuraiHeldCols(savedState.samuraiHeldCols);
-              }
-              if (savedState.samuraiStickyWilds) {
-                  samuraiStickyWildsRef.current = savedState.samuraiStickyWilds;
-                  setSamuraiStickyCount(savedState.samuraiStickyWilds.length);
+              if (savedState.samuraiStickyReels) {
+                  samuraiStickyReelsRef.current = savedState.samuraiStickyReels;
+                  setSamuraiStickyReelsUi(savedState.samuraiStickyReels);
               }
               if (savedState.mmorpgBoss) {
                   mmorpgBossRef.current = savedState.mmorpgBoss;
@@ -6735,10 +6725,10 @@ const App: React.FC = () => {
       arcticFreeSpinCountRef.current = 0;
       arcticJpPickTriggeredRef.current = false;
       setSpaceMultiplier(1);
-      // SAMURAI: fresh free-spin session starts with no sticky wilds yet.
+      // SAMURAI: sticky wild reels earned in the base game carry into free spins
+      // (they only die naturally by pips) — just reset this session's bonus-spin cap.
       if (selectedGame.theme === 'SAMURAI') {
-          samuraiStickyWildsRef.current = [];
-          setSamuraiStickyCount(0);
+          samuraiFsBonusSpinsRef.current = 0;
       }
       // MMORPG (Dungeon Raid): summon the first boss for this free-spin session.
       if (selectedGame.theme === 'MMORPG') {
@@ -6960,9 +6950,8 @@ const App: React.FC = () => {
       setPirateShipCol(-1);
       setPirateShip2Col(-1);
       setPirateWalkTotalWin(0);
-      // Samurai's sticky wilds only last for this one free-spin session.
-      samuraiStickyWildsRef.current = [];
-      setSamuraiStickyCount(0);
+      // Samurai's sticky wild reels carry over into normal spins (they only die
+      // naturally by pips, or clear on game change) — nothing to reset here.
       // The boss and its raid multiplier only last for this one Dungeon Raid session.
       mmorpgBossRef.current = null;
       setMmorpgBossUi(null);
@@ -7050,9 +7039,6 @@ const App: React.FC = () => {
           } else if (holdWinActive) {
               // Auto-continue Hold and Win respins
               if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 1080);
-          } else if (samuraiHeldCols.length > 0) {
-              // Auto-continue Katana Wilds slash respins
-              if (activeModal === 'NONE') setTimeout(() => spin(), fastSpin ? 100 : 1080);
           } else if (freeSpinsRemaining > 0) {
               const delay = 1200;
               if (activeModal === 'NONE' && !showFreeSpinsPopup && !showArcticPickModal && !pendingArcticFreePick && !jackpotWinTier) setTimeout(() => spin(), delay);
@@ -7073,7 +7059,7 @@ const App: React.FC = () => {
               }
           }
       }
-  }, [status, reelTransitioning, holdWinActive, pirateWalkActive, samuraiHeldCols, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary, jackpotWinTier, pendingArcticFreePick, showArcticPickModal]);
+  }, [status, reelTransitioning, holdWinActive, pirateWalkActive, freeSpinsRemaining, player.autoSpin, freeSpinsWon, spin, fastSpin, activeModal, showFreeSpinsPopup, showFreeSpinSummary, jackpotWinTier, pendingArcticFreePick, showArcticPickModal]);
 
   const handleHeaderBack = () => {
     if (showCandyRoulette || showSpinCountRoulette || showAngryFlockSpinCount || showAngryFlockRoulette || showBeastRoulette) {
@@ -7117,8 +7103,7 @@ const App: React.FC = () => {
                 pirateShipCol: pirateWalkRef.current.shipCol,
                 pirateShip2Col: pirateWalkRef.current.ship2Col,
                 pirateWalkTotalWin: pirateWalkTotalWinRef.current,
-                samuraiHeldCols: samuraiRespinRef.current.heldCols,
-                samuraiStickyWilds: samuraiStickyWildsRef.current,
+                samuraiStickyReels: samuraiStickyReelsRef.current,
                 mmorpgBoss: mmorpgBossRef.current,
                 petsCompanion: petsCompanionRef.current,
                 petsStickyWilds: petsStickyWildsRef.current,
@@ -7243,7 +7228,6 @@ const App: React.FC = () => {
   const handleSpinPointerDown = (e: React.PointerEvent) => {
       e.preventDefault(); // prevent scroll / synthetic mouse events on touch
       if (pirateWalkRef.current.active) return;
-      if (samuraiRespinRef.current.active) return;
       if (freeSpinsRemaining > 0) return;
       isLongPressRef.current = false;
       spinButtonTimeoutRef.current = setTimeout(() => {
@@ -7260,7 +7244,6 @@ const App: React.FC = () => {
       }
       if (isLongPressRef.current) return;
       if (pirateWalkRef.current.active) return;
-      if (samuraiRespinRef.current.active) return;
       if (freeSpinsRemaining > 0) {
           if (status === GameStatus.SPINNING) {
               setInstantStop(true);
@@ -8202,36 +8185,29 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* SAMURAI Katana Wilds — held-column glow while the slash respin chains */}
-                        {selectedGame.theme === 'SAMURAI' && samuraiHeldCols.length > 0 && (
+                        {/* SAMURAI Sticky Wild Reels — column glow + pip dots (spins remaining) per sticky reel */}
+                        {selectedGame.theme === 'SAMURAI' && samuraiStickyReelsUi.length > 0 && (
                             <div className="absolute inset-0 z-20 pointer-events-none">
-                                {samuraiHeldCols.map(c => (
-                                    <div key={c} className="absolute inset-y-1"
+                                {samuraiStickyReelsUi.map(({ col, pips }) => (
+                                    <div key={col} className="absolute inset-y-1"
                                         style={{
-                                            left: `calc(${(c / selectedGame.reels) * 100}% + 2px)`,
+                                            left: `calc(${(col / selectedGame.reels) * 100}% + 2px)`,
                                             width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
                                             borderRadius: 5,
                                             boxShadow: '0 0 22px rgba(248,113,113,0.85), inset 0 0 26px rgba(248,113,113,0.35)',
                                             background: 'linear-gradient(180deg,rgba(248,113,113,0.18),rgba(153,27,27,0.08))',
-                                        }} />
+                                        }}>
+                                        <div className="absolute -top-3.5 inset-x-0 flex items-center justify-center gap-0.5">
+                                            {Array.from({ length: pips }).map((_, i) => (
+                                                <div key={i} className="rounded-full" style={{
+                                                    width: 6, height: 6,
+                                                    background: '#f87171',
+                                                    boxShadow: '0 0 6px rgba(248,113,113,0.9)',
+                                                }} />
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))}
-                            </div>
-                        )}
-
-                        {/* SAMURAI Katana Wilds — locked sticky-wild count during free spins */}
-                        {selectedGame.theme === 'SAMURAI' && totalFreeSpins > 0 && samuraiStickyCount > 0 && (
-                            <div className="absolute -top-1 inset-x-0 flex justify-center z-30 pointer-events-none animate-pop-in">
-                                <div style={{
-                                    background: 'linear-gradient(180deg,#7f1d1d,#450a0a)',
-                                    borderRadius: 999,
-                                    padding: '4px 14px',
-                                    boxShadow: '0 0 18px rgba(248,113,113,0.6), 0 4px 10px rgba(0,0,0,0.6)',
-                                    whiteSpace: 'nowrap',
-                                }}>
-                                    <span className="font-black" style={{ fontSize: 'clamp(9px,2.4vw,13px)', color: '#fecaca', textShadow: '0 0 8px rgba(248,113,113,0.9)' }}>
-                                        Locked Wilds ×{samuraiStickyCount}
-                                    </span>
-                                </div>
                             </div>
                         )}
 
