@@ -8215,42 +8215,49 @@ const App: React.FC = () => {
 
                         {/* SAMURAI Sticky Wild Reels — every eligible reel shows a persistent pip-dot
                             indicator (2 dots base game, 3 during free spins) so the mechanic is visible
-                            before it ever triggers; dots fill in and glow red once that reel locks wild,
-                            counting down as its remaining spins deplete. */}
+                            before it ever triggers; dots fill in once that reel locks wild, counting down
+                            as its remaining spins deplete. Uses the exact same "flex gap-0" layout as the
+                            actual reel columns below (not a percentage-based calc) so each indicator lines
+                            up pixel-perfect with its reel regardless of the reel box's rendered width. */}
                         {selectedGame.theme === 'SAMURAI' && (() => {
                             const isFsNow = freeSpinsRemaining > 0;
                             const maxPips = isFsNow ? 3 : 2;
-                            const eligibleCols = isFsNow
-                                ? Array.from({ length: selectedGame.reels }, (_, i) => i)
-                                : Array.from({ length: Math.max(0, selectedGame.reels - 2) }, (_, i) => i + 1);
                             const stickyMap = new Map(samuraiStickyReelsUi.map(p => [p.col, p.pips]));
                             return (
-                                <div className="absolute inset-0 z-20 pointer-events-none">
-                                    {eligibleCols.map(col => {
+                                <div className="absolute inset-0 z-20 pointer-events-none flex gap-0">
+                                    {Array.from({ length: selectedGame.reels }, (_, col) => {
+                                        const eligible = isFsNow || (col >= 1 && col <= selectedGame.reels - 2);
                                         const pips = stickyMap.get(col);
                                         const isSticky = pips !== undefined;
                                         return (
-                                            <div key={col} className="absolute inset-y-1"
-                                                style={{
-                                                    left: `calc(${(col / selectedGame.reels) * 100}% + 2px)`,
-                                                    width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
-                                                    borderRadius: 5,
-                                                    boxShadow: isSticky ? '0 0 22px rgba(248,113,113,0.85), inset 0 0 26px rgba(248,113,113,0.35)' : 'none',
-                                                    background: isSticky ? 'linear-gradient(180deg,rgba(248,113,113,0.18),rgba(153,27,27,0.08))' : 'transparent',
-                                                }}>
-                                                <div className="absolute top-1 inset-x-0 flex items-center justify-center gap-1 py-0.5"
-                                                    style={{ background: 'rgba(0,0,0,0.35)', borderRadius: 6, width: 'fit-content', margin: '0 auto', padding: '2px 5px' }}>
-                                                    {Array.from({ length: maxPips }).map((_, i) => {
-                                                        const filled = isSticky && i < (pips as number);
-                                                        return (
-                                                            <div key={i} className="rounded-full" style={{
-                                                                width: 6, height: 6,
-                                                                background: filled ? '#f87171' : 'rgba(255,255,255,0.4)',
-                                                                boxShadow: filled ? '0 0 6px rgba(248,113,113,0.9)' : 'none',
-                                                            }} />
-                                                        );
-                                                    })}
-                                                </div>
+                                            <div key={col} className="flex-1 relative">
+                                                {isSticky && (
+                                                    <div className="absolute inset-y-1 inset-x-0.5" style={{
+                                                        borderRadius: 5,
+                                                        boxShadow: '0 0 22px rgba(248,113,113,0.85), inset 0 0 26px rgba(248,113,113,0.35)',
+                                                        background: 'linear-gradient(180deg,rgba(248,113,113,0.18),rgba(153,27,27,0.08))',
+                                                    }} />
+                                                )}
+                                                {eligible && (
+                                                    <div className="absolute top-0 inset-x-0 flex justify-center">
+                                                        <div className="flex items-center gap-1" style={{
+                                                            background: isSticky ? 'linear-gradient(180deg,#fde047,#ca8a04)' : 'rgba(250,204,21,0.35)',
+                                                            borderRadius: '0 0 7px 7px',
+                                                            padding: '3px 7px',
+                                                            boxShadow: isSticky ? '0 0 10px rgba(250,204,21,0.85)' : 'none',
+                                                        }}>
+                                                            {Array.from({ length: maxPips }).map((_, i) => {
+                                                                const filled = isSticky && i < (pips as number);
+                                                                return (
+                                                                    <div key={i} className="rounded-full" style={{
+                                                                        width: 6, height: 6,
+                                                                        background: filled ? '#7c2d12' : 'rgba(255,255,255,0.75)',
+                                                                    }} />
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}

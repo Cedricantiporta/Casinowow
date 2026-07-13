@@ -730,16 +730,19 @@ export const GET_PAYLINES = (rowCount: number, colCount: number = 5): Payline[] 
     
     // Adjust diagonals for colCount
     if (rowCount >= 3 && colCount >= 3) {
-        const v = Math.floor(rowCount / 2);
-        const lastRow = rowCount - 1;
-        
         // Simple V and Inverted V for 3x3 and others
         if (colCount === 3) {
             lines.push({ id: 100, indices: [0,1,2], color: '#eab308' });
             lines.push({ id: 101, indices: [2,1,0], color: '#a855f7' });
         } else {
-            lines.push({ id: 100, indices: [0,1,2,1,0], color: '#eab308' });
-            lines.push({ id: 101, indices: [2,1,0,1,2], color: '#a855f7' }); 
+            // Tent function: 0 at both edges, rising to the middle reel(s) — generalizes
+            // the old hardcoded 5-reel-only [0,1,2,1,0] pattern to any reel count (e.g.
+            // Samurai's 6 reels), instead of silently truncating to 5 columns.
+            const vRow = (col: number) => Math.min(Math.min(col, colCount - 1 - col), rowCount - 1);
+            const vIndices = Array.from({ length: colCount }, (_, col) => vRow(col));
+            const invIndices = vIndices.map(r => (rowCount - 1) - r);
+            lines.push({ id: 100, indices: vIndices, color: '#eab308' });
+            lines.push({ id: 101, indices: invIndices, color: '#a855f7' });
         }
     }
     
