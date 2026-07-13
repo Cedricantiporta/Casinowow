@@ -420,7 +420,7 @@ const ReelCell: React.FC<{
                             />
                         </div>
                     )}
-                    {theme === 'BUFFALO' && isWild && !blur && !!wildMultValue && (
+                    {(theme === 'BUFFALO' || theme === 'GOLDEN_POT') && isWild && !blur && !!wildMultValue && (
                         <div className="absolute top-0 w-full flex justify-center items-start pt-0.5 z-30 pointer-events-none">
                             <span
                                 className="block leading-none"

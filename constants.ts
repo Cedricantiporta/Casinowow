@@ -306,7 +306,7 @@ export const GAMES_CONFIG: GameConfig[] = [
     rows: 3,
     reels: 5,
     scattersToTrigger: 999,
-    description: 'Three Fortune Pots fill as you spin — full pots burst together for free spins, jackpots and multipliers!',
+    description: 'Three Fortune Pots fill as you spin — any burst triggers free spins, and the pot(s) that fired decide if jackpots and multipliers join in!',
     color: 'from-yellow-500 via-amber-700 to-red-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #d97706 0%, #7f1d1d 100%)',
     reelBg: REEL_BGS.GOLDEN_POT,

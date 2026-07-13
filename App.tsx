@@ -231,7 +231,7 @@ const GoldenPotsBanner: React.FC<{ pots: { spins: number; jackpot: number; multi
         { key: 'multiplier', label: 'Multiplier', icon: 'ti-bolt' },
     ];
     return (
-        <div className="absolute top-1.5 inset-x-0 z-30 flex items-center justify-center gap-2 pointer-events-none">
+        <div className="flex items-center justify-center gap-2 mx-auto" style={{ height: 40 }}>
             {ITEMS.map(({ key, label, icon }) => {
                 const fill = pots[key];
                 const full = fill >= potFull;
@@ -1454,21 +1454,27 @@ const App: React.FC = () => {
   // Golden Lucky Pot — Three Fortune Pots (Coin Kingdom / More Chilli / Gold Stacks
   // 88 family). Three pots (spins/jackpot/multiplier) fill gradually on paid base
   // spins; once ≥1 pot is full, each settle rolls a DRAGON-pot-style rising chance
-  // to burst — every full pot fires simultaneously (1, 2, or 3 features at once).
+  // to burst — every full pot fires simultaneously, and EVERY burst enters free
+  // spins (base 10, or 10 + spinsBonus if the spins pot is part of the combo).
+  // Which other pot(s) fired decides this session's "flavor":
+  //  - plain (spins only): ordinary free spins, nothing else.
+  //  - jackpot flavor: the shared JACKPOT_MINI..GRAND cell-injection/3-match-to-win
+  //    mechanic (already generic, used by most themes) is allowed to run.
+  //  - multiplier flavor: wilds get an independent chance at a 2x-5x tag each spin
+  //    (Buffalo Thunder's own wild-multiplier mechanic, reused verbatim) that
+  //    boosts that spin's whole win — including a jackpot payout landing the same
+  //    spin, if jackpot flavor is also active.
   const POT_FULL = 10;
   const goldenPotsRef = useRef({ spins: 0, jackpot: 0, multiplier: 0, spinsBonus: 0 });
   const [goldenPotsUi, setGoldenPotsUi] = useState({ spins: 0, jackpot: 0, multiplier: 0, spinsBonus: 0 });
   const goldenPotSpinsSinceFeatureRef = useRef(0);
-  // Session-scoped: the multiplier pot's roll, either applied to every FS win this
-  // session (if the spins pot fired alongside it) or armed as a one-shot sticky
-  // multiplier for the next winning base-game spin (if it fired alone).
-  const goldenPotFsMultRef = useRef(1);
-  const [goldenPotFsMultUi, setGoldenPotFsMultUi] = useState(1);
-  const goldenPotStickyMultRef = useRef<number | null>(null);
-  const [goldenPotStickyMultUi, setGoldenPotStickyMultUi] = useState<number | null>(null);
-  // Runs after the jackpot celebration closes, when the jackpot pot fired alongside
-  // the spins/multiplier pots — mirrors hwCountContinuationRef's pattern.
-  const goldenPotJackpotContinuationRef = useRef<(() => void) | null>(null);
+  const goldenPotFsFlavorRef = useRef({ jackpot: false, multiplier: false });
+  const goldenPotWildMultGridRef = useRef<(number | null)[][] | null>(null);
+  const [goldenPotWildMultGrid, setGoldenPotWildMultGrid] = useState<(number | null)[][] | null>(null);
+  // React.StrictMode double-invokes the setStoppedReels updater below in dev mode;
+  // the burst roll/increment must only really happen once per spin. null = not yet
+  // resolved this spin (reset in spin()); reused verbatim on the phantom re-invoke.
+  const goldenPotBurstFiredRef = useRef<boolean | null>(null);
 
   // Golden Treasury collect multiplier — builds with qualifying spins.
   // 50 qualifying spins per tier: 1x → 2x(50) → 3x(100) → 4x(150) → 5x(200) → 10x(250).
@@ -3913,7 +3919,11 @@ const App: React.FC = () => {
       // JUNGLE: the colossal center symbol occupies reels 2-4 every free spin, so no jackpot injection there.
       // Olympus (cascading) and Buffalo (Ways to Win + its own Collect feature)
       // both skip jackpot cells — they have their own progression mechanics.
-      if (isFreeSpin && !isCascadeTheme(ft) && selectedGame.theme !== 'BUFFALO' && ft !== 'NEON' && selectedGame.theme !== 'JUNGLE' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)) {
+      // GOLDEN_POT: only when the jackpot pot fired this burst (this session's
+      // "jackpot flavor") — otherwise a plain or multiplier-only FS session shows
+      // no jackpot cells at all, per the Three Fortune Pots design.
+      if (isFreeSpin && !isCascadeTheme(ft) && selectedGame.theme !== 'BUFFALO' && ft !== 'NEON' && selectedGame.theme !== 'JUNGLE' && !MYSTERY_FEATURE_THEMES.has(selectedGame.theme)
+          && (selectedGame.theme !== 'GOLDEN_POT' || goldenPotFsFlavorRef.current.jackpot)) {
           // CANDY gets 50% reduced jackpot spawn rates.
           const jpScale = ft === 'CANDY' ? 0.5 : 1.0;
           const JP_SPAWN = [
@@ -4259,6 +4269,34 @@ const App: React.FC = () => {
           buffaloWildMultGridRef.current = wildMultGrid;
       }
 
+      // GOLDEN LUCKY POT (multiplier flavor free spins): any wild has an independent
+      // chance to carry a 2x-5x bonus tag, freshly rolled every spin — same mechanic
+      // and odds as Buffalo Thunder's wild multiplier, reused verbatim. Buffalo gets
+      // its wilds from its own Collect-to-wild payoff; Golden Pot has no such feeder
+      // and the base symbol weights (WILD weight 0.1) almost never roll one naturally,
+      // so inject a few wilds here first — same JP_SPAWN-style capped injection as the
+      // jackpot flavor above, just targeting WILD instead of JACKPOT_X.
+      if (selectedGame.theme === 'GOLDEN_POT' && isFreeSpin && goldenPotFsFlavorRef.current.multiplier) {
+          let goldenPotWildsPlaced = 0;
+          for (let c = 0; c < cols && goldenPotWildsPlaced < 3; c++) {
+              for (let r = 0; r < rows && goldenPotWildsPlaced < 3; r++) {
+                  const s = newGrid[c][r];
+                  if (s === SymbolType.SCATTER || s === SymbolType.WILD || String(s).startsWith('JACKPOT')) continue;
+                  if (Math.random() < 0.10) { newGrid[c][r] = SymbolType.WILD; goldenPotWildsPlaced++; }
+              }
+          }
+          const wildMultGrid: (number | null)[][] = Array.from({ length: cols }, () => Array(rows).fill(null));
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  if (newGrid[c][r] === SymbolType.WILD && Math.random() < 0.25) {
+                      const roll = Math.random();
+                      wildMultGrid[c][r] = roll < 0.6 ? 2 : roll < 0.9 ? 3 : 5;
+                  }
+              }
+          }
+          goldenPotWildMultGridRef.current = wildMultGrid;
+      }
+
       return newGrid;
   }, [selectedGame, freeSpinsRemaining, freeSpinsWon, spinsWithoutBonus]);
 
@@ -4407,6 +4445,7 @@ const App: React.FC = () => {
         : availableBets[betIndex];
     const isFreeSpin = freeSpinsRemaining > 0;
     isCurrentFreeSpinRef.current = isFreeSpin; // captured before state batch so generateSmartGrid sees the right value
+    goldenPotBurstFiredRef.current = null; // fresh burst-roll verdict for this real spin (see handleReelStop)
     const isHoldWinRespin = holdWinRef.current.active;
     const isPirateWalk = pirateWalkRef.current.active;
 
@@ -4527,6 +4566,7 @@ const App: React.FC = () => {
     setOlympusOrbGrid(null);
     setBuffaloCollectGrid(null);
     setBuffaloWildMultGrid(null);
+    setGoldenPotWildMultGrid(null);
   }, [status, reelTransitioning, player.balance, availableBets, betIndex, freeSpinsRemaining, activeModal, showFreeSpinsPopup, showFreeSpinSummary, showCandyRoulette, showSpinCountRoulette, showAngryFlockSpinCount, showAngryFlockRoulette, showBeastRoulette, player.level, selectedGame.theme, showGoldCartModal, showRainbowTrail, showCompanionPick]);
 
   useEffect(() => {
@@ -4537,6 +4577,8 @@ const App: React.FC = () => {
       // BUFFALO: mirror this spin's Collect marker + wild multiplier placement into state.
       setBuffaloCollectGrid(selectedGame.theme === 'BUFFALO' ? buffaloCollectGridRef.current : null);
       setBuffaloWildMultGrid(selectedGame.theme === 'BUFFALO' ? buffaloWildMultGridRef.current : null);
+      // GOLDEN_POT: mirror this spin's wild-multiplier placement into state (multiplier flavor FS only).
+      setGoldenPotWildMultGrid(selectedGame.theme === 'GOLDEN_POT' ? goldenPotWildMultGridRef.current : null);
       // MYSTERY: arm the tile overlay for this spin (cleared each spin; populated only in free spins).
       setMysteryRevealed(false);
       setMysteryCells(mysteryCellsRef.current);
@@ -5429,10 +5471,16 @@ const App: React.FC = () => {
 
         // GOLDEN LUCKY POT (GOLDEN_POT) Three Fortune Pots: while ≥1 pot is full, each
         // base-game settle rolls a DRAGON-pot-style rising chance to burst — every full
-        // pot fires at once. This runs alongside (not instead of) the spin's own normal
-        // payline win, same as Arctic/Dragon's independent side-bonus accumulators.
+        // pot fires at once, and EVERY burst enters free spins (no more instant payouts).
         // isCurrentFreeSpinRef, not freeSpinsRemaining — see the DRAGON accumulator above.
+        let goldenPotBurstFired = false;
         if (selectedGame.theme === 'GOLDEN_POT' && !isCurrentFreeSpinRef.current) {
+            if (goldenPotBurstFiredRef.current !== null) {
+                // Phantom StrictMode re-invocation of this updater — goldenPotsRef was
+                // already mutated (or not) by the real first pass; reuse its verdict
+                // instead of re-rolling against already-consumed pot state.
+                goldenPotBurstFired = goldenPotBurstFiredRef.current;
+            } else {
             const pots = goldenPotsRef.current;
             const spinsFull = pots.spins >= POT_FULL;
             const multFull = pots.multiplier >= POT_FULL;
@@ -5442,13 +5490,8 @@ const App: React.FC = () => {
                 const extraMult = Math.floor(goldenPotSpinsSinceFeatureRef.current / 10);
                 const chance = Math.min(0.06 + extraMult * 0.015, 0.20);
                 if (Math.random() < chance) {
+                    goldenPotBurstFired = true;
                     goldenPotSpinsSinceFeatureRef.current = 0;
-
-                    let multiplierValue: number | null = null;
-                    if (multFull) {
-                        const mr = Math.random();
-                        multiplierValue = mr < 0.55 ? 2 : mr < 0.88 ? 3 : 5;
-                    }
 
                     const nextPots = { ...pots };
                     if (spinsFull) { nextPots.spins = 0; nextPots.spinsBonus = 0; }
@@ -5457,63 +5500,38 @@ const App: React.FC = () => {
                     goldenPotsRef.current = nextPots;
                     setGoldenPotsUi(nextPots);
 
-                    if (spinsFull) {
-                        // Fresh FS session — clear any stale multiplier from a previous burst first.
-                        goldenPotFsMultRef.current = 1;
-                        setGoldenPotFsMultUi(1);
-                    }
-                    if (multFull) {
-                        if (spinsFull) {
-                            goldenPotFsMultRef.current = multiplierValue!;
-                            setGoldenPotFsMultUi(multiplierValue!);
-                        } else {
-                            goldenPotStickyMultRef.current = multiplierValue;
-                            setGoldenPotStickyMultUi(multiplierValue);
-                        }
-                    }
+                    // Every burst is a free-spin session: 10 base, or 10 + whatever spinsBonus
+                    // had accumulated if the spins pot itself is part of the combo. Jackpot
+                    // and/or multiplier firing alongside just flavors that same 10+ session —
+                    // they don't add their own spins.
+                    const spinsAwarded = spinsFull ? (10 + pots.spinsBonus) : 10;
+                    goldenPotFsFlavorRef.current = { jackpot: jpFull, multiplier: multFull };
 
+                    setFreeSpinsWon(spinsAwarded);
+                    setTotalFreeSpins(prev => prev + spinsAwarded);
                     setPlayer(p => ({ ...p, autoSpin: false }));
                     setTimeout(() => {
                         setInstantStop(true);
                         audioService.playBonusTrigger();
-
-                        const proceedAfterJackpot = () => {
-                            if (spinsFull) {
-                                const spinsAwarded = 8 + pots.spinsBonus;
-                                setFreeSpinsWon(spinsAwarded);
-                                setTotalFreeSpins(prev => prev + spinsAwarded);
-                                setStatus(GameStatus.SCATTER_SHOWCASE);
-                                audioService.playScatterTrigger();
-                                setSpinsWithoutBonus(0);
-                                setTimeout(() => {
-                                    audioService.playFreeSpinTrigger();
-                                    setShowFreeSpinsPopup(true);
-                                }, 1200);
-                            } else if (multFull) {
-                                setCelebrationMsg(`${multiplierValue}x Multiplier Armed!`);
-                                setStatus(GameStatus.IDLE);
-                            } else {
-                                setStatus(GameStatus.IDLE);
-                            }
-                        };
-
-                        if (jpFull) {
-                            const jr = Math.random();
-                            const idx = jr < 0.55 ? 0 : jr < 0.85 ? 1 : jr < 0.97 ? 2 : 3;
-                            const jackpotAmount = jackpotService.getAmounts()[idx] * (multiplierValue ?? 1);
-                            goldenPotJackpotContinuationRef.current = proceedAfterJackpot;
-                            setPlayer(p => ({ ...p, balance: p.balance + jackpotAmount }));
-                            audioService.playJackpotSound(JP_META[idx].name);
-                            setJackpotWinTier({ ...JP_META[idx], amount: jackpotAmount });
-                        } else {
-                            proceedAfterJackpot();
-                        }
+                        setStatus(GameStatus.SCATTER_SHOWCASE);
+                        audioService.playScatterTrigger();
+                        setSpinsWithoutBonus(0);
+                        setTimeout(() => {
+                            audioService.playFreeSpinTrigger();
+                            setShowFreeSpinsPopup(true);
+                        }, 1200);
                     }, 500);
                 }
             }
+            goldenPotBurstFiredRef.current = goldenPotBurstFired;
+            }
         }
 
-        calculateWin(targetGrid);
+        // creditOnly when a burst just fired: the burst's own SCATTER_SHOWCASE/popup
+        // chain owns the status transition from here — letting calculateWin's normal
+        // (raced, setTimeout-based) IDLE/WIN_ANIMATION transition run too would
+        // occasionally clobber it back to IDLE before the free-spin popup ever shows.
+        calculateWin(targetGrid, goldenPotBurstFired);
       }
       return next;
     });
@@ -5651,16 +5669,23 @@ const App: React.FC = () => {
         }
     }
 
-    // GOLDEN LUCKY POT: the multiplier pot's roll either boosts every free-spin win
-    // this session (fired alongside the spins pot) or arms a one-shot multiplier for
-    // the next winning base-game spin (fired alone) — see the burst trigger above.
-    if (selectedGame.theme === 'GOLDEN_POT') {
-        if (totalFreeSpins > 0 && goldenPotFsMultRef.current > 1 && totalPayout > 0) {
-            totalPayout = Math.floor(totalPayout * goldenPotFsMultRef.current);
-        } else if (totalFreeSpins === 0 && goldenPotStickyMultRef.current && totalPayout > 0) {
-            totalPayout = Math.floor(totalPayout * goldenPotStickyMultRef.current);
-            goldenPotStickyMultRef.current = null;
-            setGoldenPotStickyMultUi(null);
+    // GOLDEN LUCKY POT (multiplier flavor free spins): any wild's independent 2x-5x
+    // tag applies to the whole spin's win, freshly rolled every spin — Buffalo
+    // Thunder's own wild-multiplier mechanic, reused verbatim. goldenPotBestMult is
+    // reused below for the jackpot payout too, if jackpot flavor is also active.
+    let goldenPotBestMult = 1;
+    if (selectedGame.theme === 'GOLDEN_POT' && goldenPotFsFlavorRef.current.multiplier) {
+        const wildMultGrid = goldenPotWildMultGridRef.current;
+        if (wildMultGrid) {
+            for (let c = 0; c < wildMultGrid.length; c++) {
+                for (let r2 = 0; r2 < (wildMultGrid[c]?.length || 0); r2++) {
+                    const m = wildMultGrid[c][r2];
+                    if (m) goldenPotBestMult = Math.max(goldenPotBestMult, m);
+                }
+            }
+        }
+        if (goldenPotBestMult > 1 && totalPayout > 0) {
+            totalPayout = Math.floor(totalPayout * goldenPotBestMult);
         }
     }
 
@@ -5793,10 +5818,17 @@ const App: React.FC = () => {
         }));
         if (jpCount >= 3) {
             jackpotWon = true;
-            totalPayout += jpAmounts[tier];
+            // GOLDEN LUCKY POT: if the multiplier flavor is also active this session,
+            // a jackpot landing the same spin as an active wild multiplier gets
+            // multiplied too — the multiplier doesn't need to sit on one of the 3
+            // jackpot cells itself, just be active on the grid this spin.
+            const jpAmount = (selectedGame.theme === 'GOLDEN_POT' && goldenPotBestMult > 1)
+                ? jpAmounts[tier] * goldenPotBestMult
+                : jpAmounts[tier];
+            totalPayout += jpAmount;
             winningCells.push(...jpCells);
             audioService.playJackpotSound(JP_META[tier].name);
-            setJackpotWinTier({ ...JP_META[tier], amount: jpAmounts[tier] });
+            setJackpotWinTier({ ...JP_META[tier], amount: jpAmount });
         }
     });
 
@@ -6363,12 +6395,6 @@ const App: React.FC = () => {
           cont();
           return;
       }
-      if (goldenPotJackpotContinuationRef.current) {
-          const cont = goldenPotJackpotContinuationRef.current;
-          goldenPotJackpotContinuationRef.current = null;
-          cont();
-          return;
-      }
       if (pendingBigWin) {
           setPendingBigWin(false);
           if (pendingWinTierRef.current) {
@@ -6620,10 +6646,9 @@ const App: React.FC = () => {
           // Golden Lucky Pot: session-scoped modifiers reset on game change (the pot
           // fill levels themselves persist — restored from savedState below).
           goldenPotSpinsSinceFeatureRef.current = 0;
-          goldenPotFsMultRef.current = 1;
-          setGoldenPotFsMultUi(1);
-          goldenPotStickyMultRef.current = null;
-          setGoldenPotStickyMultUi(null);
+          goldenPotFsFlavorRef.current = { jackpot: false, multiplier: false };
+          goldenPotWildMultGridRef.current = null;
+          setGoldenPotWildMultGrid(null);
           // Reset Lucky Leprechaun Rainbow Trail on game change (bonus resolves atomically)
           setShowRainbowTrail(false);
           // Reset Mystic Pets companion state on game change
@@ -6922,6 +6947,9 @@ const App: React.FC = () => {
       setOlympusOrbGrid(null);
     setBuffaloCollectGrid(null);
     setBuffaloWildMultGrid(null);
+      goldenPotFsFlavorRef.current = { jackpot: false, multiplier: false };
+      goldenPotWildMultGridRef.current = null;
+      setGoldenPotWildMultGrid(null);
       spaceFsMultRef.current = 1;
       setSpaceMultiplier(1);
       candyWildConfigRef.current = null;
@@ -7788,6 +7816,11 @@ const App: React.FC = () => {
                                 </div>
                             ) : selectedGame.theme === 'BUFFALO' ? (
                                 <JackpotTicker slotIdx={GAMES_CONFIG.findIndex(g => g.id === selectedGame.id)} currentBet={availableBets[betIndex]} isSpinning={status === GameStatus.SPINNING || status === GameStatus.STOPPING} theme={selectedGame.theme} />
+                            ) : selectedGame.theme === 'GOLDEN_POT' ? (
+                                // Golden Lucky Pot's jackpot wins come from its own Three Fortune
+                                // Pots mechanic, not the shared progressive pool — show pot fill
+                                // progress here instead of the (unrelated) jackpot ticker.
+                                <GoldenPotsBanner pots={goldenPotsUi} potFull={POT_FULL} />
                             ) : isCascadeTheme(featureThemeOf(selectedGame.theme)) ? (
                                 freeSpinsRemaining > 0
                                     ? <ArcticMultiplierBar
@@ -7859,7 +7892,7 @@ const App: React.FC = () => {
                                 beastMultiplier={beastMultiplier}
                                 orbValues={olympusOrbGrid ? olympusOrbGrid[i] : undefined}
                                 collectValues={buffaloCollectGrid ? buffaloCollectGrid[i] : undefined}
-                                wildMultValues={buffaloWildMultGrid ? buffaloWildMultGrid[i] : undefined}
+                                wildMultValues={buffaloWildMultGrid ? buffaloWildMultGrid[i] : goldenPotWildMultGrid ? goldenPotWildMultGrid[i] : undefined}
                             />
                             ));
                         })()}
@@ -7870,11 +7903,6 @@ const App: React.FC = () => {
                         )}
                         {selectedGame.theme === 'OLYMPUS' && freeSpinsRemaining === 0 && !showArcticPickModal && (
                             <ArcticProgressBar progress={olympusOrbCollectProgress} max={OLYMPUS_ORB_COLLECT_TARGET} />
-                        )}
-
-                        {/* Golden Lucky Pot — Three Fortune Pots banner */}
-                        {selectedGame.theme === 'GOLDEN_POT' && freeSpinsRemaining === 0 && (
-                            <GoldenPotsBanner pots={goldenPotsUi} potFull={POT_FULL} />
                         )}
 
                         {/* Mystery tile overlay — covers the masked cells until they reveal. */}

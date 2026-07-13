@@ -185,7 +185,103 @@ every-10th-spin drip (`goldenPotSpinCount`, `goldenPotLastBetRef`,
 `goldenPotPendingRef`, `goldenPotFrozen`, `goldenPotWin` + its award effect and
 popup JSX) — the pots replace both wholesale.
 
-**What was built:**
+**v2 redesign (owner feedback):** the original v1 build (below, superseded) paid
+the jackpot pot instantly and armed a one-shot sticky multiplier when the
+multiplier pot fired alone. The owner's follow-up clarified the intended
+gameplay: **every burst — whichever pot(s) fire — always enters free spins.**
+Which pot(s) fired only decides that session's *flavor*: a plain burst is just
+ordinary free spins; the jackpot pot lets the shared JACKPOT_MINI..GRAND
+cell/3-match mechanic run during those spins (no partial pay below 3, per
+owner spec — "collect 3 to unlock"); the multiplier pot gives wilds a fresh
+independent 2x-5x tag every single spin (owner spec: "fresh roll every time it
+triggers") — Buffalo Thunder's own wild-multiplier mechanic, reused verbatim,
+satisfying the "no invented mechanics" rule since both are already-generic,
+already-shipped systems rather than new bespoke logic. Free spin count is flat
+10 for any combo that doesn't include the spins pot, or `10 + spinsBonus` when
+the spins pot is part of the burst (per owner spec — spinsBonus is the
+pre-existing "extra spins stacked up while the spins pot waits to fire"
+accumulator, unchanged from v1). If a wild multiplier is active the same spin a
+jackpot lands, the jackpot payout itself gets multiplied too (owner spec: "if
+multiplier hit jackpot then its a winning jackpot... multiplied jackpot").
+
+**What was built (v2):**
+- `goldenPotsRef`/`goldenPotsUi`: `{ spins, jackpot, multiplier, spinsBonus }`,
+  `POT_FULL = 10`, persisted via `SavedGameState.goldenPots` — unchanged from v1.
+- Fill: unchanged from v1 (35% chance per paid base spin, weighted spins 45 /
+  multiplier 35 / jackpot 20; spinsBonus accumulates instead once the spins pot
+  is already full).
+- Trigger, in `handleReelStop` (base game only): unchanged DRAGON-style rising
+  cadence roll. On a hit, every full pot resets and `goldenPotFsFlavorRef` is
+  stamped `{ jackpot, multiplier }` from whichever pot(s) fired, then free spins
+  are granted (`10 + spinsBonus` if the spins pot fired, else flat `10`) via the
+  same generic `showFreeSpinsPopup`/`handleStartFreeSpins` flow every other
+  scatter-triggered slot uses. `calculateWin` is called with `creditOnly=true`
+  for this triggering spin — its own normal status-setting is skipped so it
+  can't race the burst's SCATTER_SHOWCASE transition (see StrictMode note below).
+- `generateSmartGrid`'s existing jackpot-cell injection (`JP_SPAWN`) now also
+  gates on `goldenPotFsFlavorRef.current.jackpot` for this theme — jackpot cells
+  only spawn when that flavor is active, reusing the exact mechanic every other
+  theme's free spins already use.
+- New wild-multiplier tag block for `GOLDEN_POT`, gated on
+  `goldenPotFsFlavorRef.current.multiplier`: mirrors Buffalo's
+  `buffaloWildMultGridRef` roll (25% per wild, 2x/3x/5x weighted 60/30/10)
+  verbatim into a parallel `goldenPotWildMultGridRef`/`goldenPotWildMultGrid`.
+  Since Golden Pot has no Buffalo-style Collect feeder and the base symbol
+  weights (WILD weight 0.1) almost never roll a natural wild, a small
+  JP_SPAWN-style capped injection (up to 3 cells, 10% each, skipping
+  scatter/wild/jackpot cells) places wilds first so the tag has somewhere to
+  land. `calculateWin` computes `goldenPotBestMult` the same way Buffalo
+  computes `bestWildMult`, applies it to the spin's total payout, and reuses it
+  to multiply a same-spin jackpot payout too.
+- `wildMultValues` (the prop that actually renders the "2X/3X/5X" badge in
+  `Reel.tsx`) previously only ever read from `buffaloWildMultGrid` — falls back
+  to `goldenPotWildMultGrid` now, and `Reel.tsx`'s Cell component's render gate
+  widened from `theme === 'BUFFALO'` to include `'GOLDEN_POT'`. Without this the
+  tags were computed and applied to payout correctly but never actually
+  rendered on screen.
+- UI: `GoldenPotsBanner` moved out of its old absolute-overlay position (inside
+  the reel container) into the shared top banner slot (the `w-full z-10 p-0 m-0`
+  container above the reels, the same slot `JackpotTicker`/`ArcticMultiplierBar`/
+  Buffalo's "Collected" counter use) — replacing the (unrelated, and now
+  actively misleading for this theme) progressive `JackpotTicker` display for
+  `GOLDEN_POT`, per owner spec ("remove the jackpot tiers"). The component's
+  root div was restyled from `absolute` overlay positioning to a normal
+  `flex`-row child of that container.
+- **React.StrictMode double-invoke fix:** `setStoppedReels`'s updater (which
+  runs all of `handleReelStop`'s per-theme bonus logic) gets genuinely
+  double-invoked by StrictMode in dev builds, since it contains real side
+  effects (a documented React anti-pattern this codebase's per-theme bonus
+  blocks already broadly rely on). For Golden Pot specifically this was
+  visible: the phantom second invocation saw pots already zeroed by the first,
+  took the "no burst" fallback, and called `calculateWin` with
+  `creditOnly=false` — scheduling a real, racing `setStatus(IDLE)` that
+  sometimes clobbered the burst's SCATTER_SHOWCASE transition a few ms after it
+  was set, ending the session instantly with 0 free spins played. Fixed with a
+  `goldenPotBurstFiredRef` (`null` until resolved, reset once per real `spin()`
+  call) — the phantom invocation reuses the first invocation's verdict instead
+  of re-rolling/recomputing against already-mutated ref state.
+- `constants.ts` description and `GameInfoModal.tsx` `MECHANIC_INFO.GOLDEN_POT`
+  rewritten for the v2 flavor system.
+
+Verified live via Playwright with TEMP-TEST-BUMPs (burst chance → guaranteed,
+pot state seeded via `cw_saved_game_states` localStorage for each flavor
+combo) — confirmed the plain/jackpot/multiplier/combined flavor sessions each
+grant the right spin count (`10`, or `10+spinsBonus` when spins pot included),
+confirmed jackpot cells only appear when jackpot flavor is active and wild
+multiplier tags only appear when multiplier flavor is active (never both when
+only one fired), confirmed the combined session shows both simultaneously,
+confirmed the banner renders correctly in its new top-container position with
+`JackpotTicker` no longer showing for this theme, and confirmed 5 consecutive
+runs of the StrictMode race fix with no premature session termination.
+Reverted the TEMP-TEST-BUMPs and debug instrumentation, re-typechecked (grep
+confirmed no `TEMP_TEST_BUMP`/debug markers remain), and regression-checked
+Buffalo Thunder (shares the wild-multiplier grid/prop/render-gate pattern) —
+the fallback ordering means `goldenPotWildMultGrid` is provably inert whenever
+`buffaloWildMultGrid` is set, so Buffalo's own path is unaffected.
+
+<details>
+<summary>v1 build (superseded — kept for history)</summary>
+
 - `goldenPotsRef`/`goldenPotsUi`: `{ spins, jackpot, multiplier, spinsBonus }`,
   `POT_FULL = 10`, persisted via a new `SavedGameState.goldenPots` field (both save
   sites + the restore site + the "no saved state" default all wired).
@@ -215,18 +311,8 @@ popup JSX) — the pots replace both wholesale.
   SCATTER replaced with a plain symbol in `generateSmartGrid`) since the pot
   mechanic runs entirely off a per-spin chance roll, not grid symbols — same
   precedent as Egypt/Deep Blue's Hold & Spin themes.
-- `GameInfoModal.tsx` `MECHANIC_INFO.GOLDEN_POT` rewritten to describe the three
-  pots and their simultaneous-burst behavior.
 
-Verified live via Playwright with TEMP-TEST-BUMPs (fill chance → guaranteed,
-burst chance → guaranteed, and a forced-jackpot-pick variant) — confirmed a
-single-pot (spins) burst runs the full cycle (fill → burst → free-spins popup →
-auto-played free spins → completion summary → clean return to a spin-ready
-state), confirmed the jackpot-alone path via balance-delta (credited correctly,
-game returned to IDLE afterward, no stuck states), and confirmed pot fill levels
-persist exactly across a game-switch/re-entry cycle. Reverted the TEMP-TEST-BUMPs,
-re-typechecked, ran 50 real-odds spins with zero console errors, and
-regression-checked Dragon (shares the cadence formula and `JP_META`).
+</details>
 
 ---
 
