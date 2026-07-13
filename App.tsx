@@ -8213,31 +8213,50 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* SAMURAI Sticky Wild Reels — column glow + pip dots (spins remaining) per sticky reel */}
-                        {selectedGame.theme === 'SAMURAI' && samuraiStickyReelsUi.length > 0 && (
-                            <div className="absolute inset-0 z-20 pointer-events-none">
-                                {samuraiStickyReelsUi.map(({ col, pips }) => (
-                                    <div key={col} className="absolute inset-y-1"
-                                        style={{
-                                            left: `calc(${(col / selectedGame.reels) * 100}% + 2px)`,
-                                            width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
-                                            borderRadius: 5,
-                                            boxShadow: '0 0 22px rgba(248,113,113,0.85), inset 0 0 26px rgba(248,113,113,0.35)',
-                                            background: 'linear-gradient(180deg,rgba(248,113,113,0.18),rgba(153,27,27,0.08))',
-                                        }}>
-                                        <div className="absolute -top-3.5 inset-x-0 flex items-center justify-center gap-0.5">
-                                            {Array.from({ length: pips }).map((_, i) => (
-                                                <div key={i} className="rounded-full" style={{
-                                                    width: 6, height: 6,
-                                                    background: '#f87171',
-                                                    boxShadow: '0 0 6px rgba(248,113,113,0.9)',
-                                                }} />
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        {/* SAMURAI Sticky Wild Reels — every eligible reel shows a persistent pip-dot
+                            indicator (2 dots base game, 3 during free spins) so the mechanic is visible
+                            before it ever triggers; dots fill in and glow red once that reel locks wild,
+                            counting down as its remaining spins deplete. */}
+                        {selectedGame.theme === 'SAMURAI' && (() => {
+                            const isFsNow = freeSpinsRemaining > 0;
+                            const maxPips = isFsNow ? 3 : 2;
+                            const eligibleCols = isFsNow
+                                ? Array.from({ length: selectedGame.reels }, (_, i) => i)
+                                : Array.from({ length: Math.max(0, selectedGame.reels - 2) }, (_, i) => i + 1);
+                            const stickyMap = new Map(samuraiStickyReelsUi.map(p => [p.col, p.pips]));
+                            return (
+                                <div className="absolute inset-0 z-20 pointer-events-none">
+                                    {eligibleCols.map(col => {
+                                        const pips = stickyMap.get(col);
+                                        const isSticky = pips !== undefined;
+                                        return (
+                                            <div key={col} className="absolute inset-y-1"
+                                                style={{
+                                                    left: `calc(${(col / selectedGame.reels) * 100}% + 2px)`,
+                                                    width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
+                                                    borderRadius: 5,
+                                                    boxShadow: isSticky ? '0 0 22px rgba(248,113,113,0.85), inset 0 0 26px rgba(248,113,113,0.35)' : 'none',
+                                                    background: isSticky ? 'linear-gradient(180deg,rgba(248,113,113,0.18),rgba(153,27,27,0.08))' : 'transparent',
+                                                }}>
+                                                <div className="absolute top-1 inset-x-0 flex items-center justify-center gap-1 py-0.5"
+                                                    style={{ background: 'rgba(0,0,0,0.35)', borderRadius: 6, width: 'fit-content', margin: '0 auto', padding: '2px 5px' }}>
+                                                    {Array.from({ length: maxPips }).map((_, i) => {
+                                                        const filled = isSticky && i < (pips as number);
+                                                        return (
+                                                            <div key={i} className="rounded-full" style={{
+                                                                width: 6, height: 6,
+                                                                background: filled ? '#f87171' : 'rgba(255,255,255,0.4)',
+                                                                boxShadow: filled ? '0 0 6px rgba(248,113,113,0.9)' : 'none',
+                                                            }} />
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
 
                         {/* MMORPG Dungeon Raid — Boss Battle status pill during free spins */}
                         {selectedGame.theme === 'MMORPG' && totalFreeSpins > 0 && mmorpgBossUi && (
