@@ -135,12 +135,29 @@ render, and `components/DuelGambleModal.tsx` itself, deleted).
   block/guard on `showGoldCartModal` until it resolves; no `SavedGameState` fields
   (the bonus resolves atomically, same as Rainbow Trail).
 - UI: dusty gold/wood palette (browns/ambers, no thick borders), a 5x3 grid of
-  rounded cells with value text (modifier cells get a 3-letter tag — PAY/COL/SNP —
-  above the amount; Sniper's own value is hidden until non-zero rather than showing
-  a bare "0"), respin counter shown as 3 dots + "Respins X/3" text, and a brief
-  pill-shaped flash toast on modifier landings. Title case throughout.
+  rounded cells with value text (modifier cells get a Tabler icon — coins/magnet/
+  target for Payer/Collector/Sniper — plus a 3-letter tag; Sniper's own value is
+  hidden until non-zero rather than showing a bare "0"), respin counter shown as 3
+  dots + "Respins X/3" text, and a brief pill-shaped flash toast on modifier
+  landings, color-matched to the modifier. Title case throughout.
 - `GameInfoModal.tsx` `MECHANIC_INFO.WESTERN` rewritten to describe the actual
   Payer/Collector/Sniper rules.
+
+**Follow-up polish pass (owner feedback: too easy to fill the whole cart, wanted
+more juice):**
+- Harder to fill: per-cell land chance 13% → 10%, plus a new decay curve
+  (`fillDecay`) that cuts the effective chance further as the board empties out
+  (×0.8 at ≤8 empty, ×0.5 at ≤5, ×0.22 at ≤2) — completing the whole cart is now a
+  rare climax instead of a routine outcome from a single bonus round.
+- Real reveal animation: newly-landing cells now flicker through random glyphs for
+  ~600ms (a mini reel-tumble) before settling into their rolled value, instead of
+  popping in instantly.
+- `applyLandings` now also returns which cells a modifier touched (Payer's boosted
+  targets, Collector's own cell, Sniper's doubled targets); those cells get a
+  distinct colored glow ring for ~900ms, and the flash toast is color-matched to
+  the modifier (green/blue/red) instead of always amber — makes cause-and-effect
+  visible at a glance.
+- Respin dots now pop/pulse on every reset instead of just updating silently.
 
 Verified live via Playwright with a TEMP-TEST-BUMP (`scattersToTrigger: 0`) forcing
 a trigger on every spin across 6+ consecutive rounds — confirmed the grid seeds
