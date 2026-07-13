@@ -31,53 +31,71 @@ from CLAUDE.md apply (no all caps, no borders, no separators, line icons only).
 
 ---
 
-## Batch R1 — Deep Blue (`UNDERWATER`, 3x5) → "Pearl Hold & Spin"
+## Batch R1 — Deep Blue (`UNDERWATER`, 3x5) → "Pearl Hold & Spin" [BUILT]
 
-**Source machine: Lightning Link / Dragon Link (Aristocrat).** Land 6+ cash-value
-orbs → they lock, 3 respins, every new orb resets the counter to 3, orbs carry cash
-values or jackpot tags, filling all 15 positions awards the Grand. This *replaces*
-Deep Blue's free game entirely — the Hold & Spin IS the feature, exactly like
-Lightning Link.
+**Source mechanic: Lightning Link / Dragon Link (Aristocrat) Hold & Spin, with a
+bespoke connectivity/linking twist specified directly by the project owner** (not a
+plain Lightning Link clone — the owner hand-specified the exact linking rules below,
+superseding the original "flat 6-coin" draft that was in this section previously).
 
-Remove first:
-1. Win Both Ways block in `calculateWin` (the UNDERWATER reversed-line loop) **and**
-   the UNDERWATER 0.75x payout dampener.
-2. Kraken Attack block in `handleReelStop`, `krakenCols` state, and the teal column
-   overlay JSX.
-3. Description → `'Pearl Hold & Spin! 6 pearls lock the reels — every new pearl resets 3 respins. Fill the screen for the Grand.'`
+**Owner's exact rules (authoritative):**
+1. Trigger: a single base-game spin producing a 4-directionally-connected group of
+   3+ amount-bearing pearls (any shape — straight line, L-shape, etc.) enters the
+   feature, OR any jackpot-tagged pearl present enters it on its own.
+2. Respin reset: the 3-respin counter only resets to 3 if a pearl newly placed this
+   respin is itself "linked" — jackpot-tagged, or 4-adjacent to any other pearl now
+   on the grid (pre-existing or also new this same respin). An isolated new pearl
+   decrements the counter like a miss.
+3. Multiple clusters can coexist unconnected on the same grid; each qualifying
+   (3+) cluster pays its own sum independently.
+4. Jackpot pearls pay their tier individually regardless of adjacency/grouping —
+   exempt from the 3+ requirement that applies to amount pearls.
+5. A fully-filled 15-cell grid still awards the Grand jackpot on top of everything
+   else (reuses Egypt's existing `isFull` → `currentBet * 100` bonus path as-is).
+6. Payout is a flat cash amount per pearl (not a multiplier badge). Unlinked/inert
+   pearls (isolated or size-2 pairs) stay locked and visible but pay nothing and get
+   no border; qualifying (3+) groups get one continuous perimeter border traced
+   around the outer edge of the connected shape (not per-cell boxes).
 
-Build (reuse the existing Hold & Win engine rather than duplicating it):
-1. Introduce `const HOLD_WIN_THEMES = new Set<GameTheme>(['EGYPT', 'UNDERWATER'])` and
-   `isHoldWinTheme(ft)`. Audit and convert each `ft === 'EGYPT'` gate deliberately —
-   there are 4 (App.tsx ~3110 respin-grid generation, ~3453 coin injection in
-   `generateSmartGrid`, ~4454 respin settle, ~4500 trigger/value-overlay) plus 2
-   `ft !== 'EGYPT'` scatter-skip gates (~3971, ~4582). Egypt behavior must be
-   byte-identical after the change (regression check mandatory).
-2. `scattersToTrigger: 999` for Deep Blue — no scatter free spins; pearls are the
-   only feature (faithful to Lightning Link where Hold & Spin is the headline).
-   The `ft !== 'EGYPT'` scatter-count skip becomes `!isHoldWinTheme(ft)` so pearls
-   aren't misread as scatters.
-3. Pearls = `SymbolType.COIN` for UNDERWATER. Add a pearl icon to
-   `SYMBOL_MAP.UNDERWATER[COIN]` — reuse existing deep-sea art; if no dedicated
-   pearl asset exists, the generic `/symbols/coin.png` with the theme tile is
-   acceptable for v1 (note it for an art pass).
-4. Per-theme knobs where Egypt currently hardcodes: trigger count stays 6; UNDERWATER
-   pearls get a higher jackpot-tag chance than Egypt's coins (MINI/MINOR/MAJOR only);
-   **full 15-cell grid awards the GRAND jackpot on top of the pearl sum** — the
-   `isFull` path already exists (`startHwCounting(..., isFull, ...)`, ~4481/5948);
-   for UNDERWATER make `isFull` add `jackpotService.getAmounts()[4]` and fire the
-   jackpot celebration.
-5. Value overlay: the `egyptCoinMeta` pipeline already renders per-coin values —
-   generalize its gate; no new UI needed beyond the pearl art.
-6. Persistence: hold&win state already persists via `SavedGameState` (holdWin*
-   fields) — nothing new.
+**What was removed:** the Win Both Ways reversed-payline loop + its 0.75x payout
+dampener in `calculateWin`, and the entire Kraken Attack dead-spin block (`krakenCols`
+state, the teal column overlay JSX, and its reset call-sites).
 
-Tuning intent: pearl land-rate ≈ Egypt's coin rate x0.9 (feature every ~60-80 spins);
-value table 1x/2x/3x/5x/10x bet weighted 40/30/17/10/3; jackpot tag ~6% per pearl.
+**What was built (App.tsx):**
+- `getPearlGroups(presentGrid, coinValues, jpGrid)` — pure BFS/flood-fill helper,
+  4-directional adjacency, amount-bearing cells only (jackpot cells deliberately
+  excluded from the graph — they pay individually and don't need to connect).
+- `getUnderwaterPayableMask(...)` — true for cells in a 3+ group or jackpot-tagged;
+  used both to filter `startHwCounting`'s payout animation (new optional
+  `payableMask` param, Egypt passes none → unchanged behavior) and to compute the
+  live win-panel total during the feature.
+- `pickClusteredEmptyCells(...)` — places new pearls with a 55% bias toward cells
+  adjacent to an existing/just-placed pearl, so natural 3+ connected groups form
+  often enough to matter (both in the base-game injection and the respin generator
+  inside `generateSmartGrid`, parallel `ft === 'UNDERWATER'` blocks alongside
+  Egypt's untouched `ft === 'EGYPT'` ones).
+- `rollHoldWinJackpotRare()` — separate, much rarer per-cell jackpot odds
+  (~1.5% vs. Egypt/in-feature's ~11.1%) used only for base-game trigger-context
+  pearls, since a single jackpot pearl triggers the whole feature on its own and
+  needed its own tuned rarity; in-feature respins keep the normal `rollHoldWinJackpot`
+  odds unchanged.
+- Trigger/respin-settle/value-overlay logic added as parallel `ft === 'UNDERWATER'`
+  blocks beside each Egypt block, reusing the same `holdWinRef`/`holdWinActive`/
+  `egyptCoinMeta` state and the same theme-agnostic trigger animation timeline
+  (SCATTER_SHOWCASE → popup → reel transition) — Egypt's own code paths were left
+  textually unchanged.
+- Reel overlay: locked-cell rendering reused from Egypt, extended with a per-group
+  perimeter border (conditional border-top/right/bottom/left based on whether each
+  neighbour shares the same group id) and a dimmed glow for non-qualifying pearls.
+- Trigger popup, `scattersToTrigger: 999`, `SYMBOL_MAP.UNDERWATER[COIN]` (reuses the
+  scatter art as the pearl icon, same pattern as Egypt), and the first-spin
+  free-bonus guarantee (3 pearls in a row, always connected) all updated to match.
+- `GameInfoModal.tsx` `MECHANIC_INFO.UNDERWATER` rewritten to describe the linked-pearl
+  rules above (legal disclosure must track real behavior).
 
-Verify: TEMP-bump pearl injection → 6-pearl trigger, respins lock/reset correctly,
-sum credited, jackpot pearl pays its tier, full-grid GRAND fires; **Pharaoh's Tomb
-unchanged** (trigger, respins, popup, payout).
+Verified live via Playwright with a TEMP-TEST-BUMP pass forcing guaranteed trigger
+and forcing links/misses on respins; Pharaoh's Tomb (EGYPT) regression-checked
+unchanged.
 
 ---
 

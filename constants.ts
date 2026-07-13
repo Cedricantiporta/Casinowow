@@ -262,8 +262,8 @@ export const GAMES_CONFIG: GameConfig[] = [
     theme: 'UNDERWATER',
     rows: 3,
     reels: 5,
-    scattersToTrigger: 3,
-    description: 'Win Both Ways! Paylines pay left and right — and on dead spins the Kraken can crush whole reels into wilds.',
+    scattersToTrigger: 999,
+    description: 'Pearl Hold & Spin! Land 3 linked pearls to lock the board and trigger 3 respins — only connected pearls pay.',
     color: 'from-cyan-500 via-blue-600 to-blue-900',
     bgImage: 'radial-gradient(circle at 50% 0%, #0ea5e9 0%, #1e3a8a 100%)',
     reelBg: REEL_BGS.UNDERWATER,
@@ -403,7 +403,7 @@ const SYMBOL_MAP: Record<GameTheme, Record<SymbolType, string>> = {
   UNDERWATER: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',
     [SymbolType.GRAPE]: '/deep_green.png', [SymbolType.BELL]: '/deep_blue.png', [SymbolType.BAR]: '/deep_purple.png', [SymbolType.CHERRY]: '/deep_red.png', [SymbolType.SEVEN]: '/deep_red.png',
-    [SymbolType.WILD]: '/deep_wild.png', [SymbolType.SCATTER]: '/deep_scatter.png', ...JP_ICONS
+    [SymbolType.WILD]: '/deep_wild.png', [SymbolType.SCATTER]: '/deep_scatter.png', ...JP_ICONS, [SymbolType.COIN]: '/deep_scatter.png'
   },
   WESTERN: {
     [SymbolType.TEN]: '10', [SymbolType.JACK]: 'J', [SymbolType.QUEEN]: 'Q', [SymbolType.KING]: 'K', [SymbolType.ACE]: 'A',

@@ -97,19 +97,10 @@ interface SavedGameState {
     princessChosen?: SymbolType | null;
 }
 
-// Feature-theme aliasing: the lower-tier slots reuse a proven feature mechanic from one of the
-// flagship themes. This map applies ONLY to bonus/feature logic — each slot keeps its own symbols,
-// background and paylines (which are driven by selectedGame.theme directly, never by this alias).
-// For every flagship/untouched game the alias is identity, so their behaviour is unchanged.
-//   Deep Blue (UNDERWATER) → Arctic   : cascading reels + climbing multiplier
-//   Gold Rush (WESTERN)     → Pirate   : walking wilds
-//   Lucky Leprechaun        → Candy    : bonus wheel (distinct pot-of-gold variant)
-// Jungle Rumble (JUNGLE) has its own dedicated feature (colossal center symbol/
-// scatter free spins) — no longer aliased to Space's Supernova mechanic.
-// Samurai Honor (Katana Wilds) and Dungeon Raid (Boss Battle) have their own
-// dedicated features below — no longer aliased to Egypt's hold & win.
-// Batches 1-3 of the slot uniqueness rework have de-aliased every replica onto its
-// own dedicated feature — nothing left to alias. Kept as an empty map (rather than
+// Feature-theme aliasing: previously, lower-tier slots reused a proven feature mechanic
+// from one of the flagship themes via this map. Every slot has since been de-aliased onto
+// its own dedicated feature (Deep Blue's Pearl Hold & Spin, Gold Rush's Dynamite + Duel,
+// Samurai's Katana Wilds, etc.) — nothing left to alias. Kept as an empty map (rather than
 // deleted outright) since featureThemeOf/ft is still used everywhere as the single
 // source of truth for "which feature logic does this slot's spin engine run."
 const FEATURE_THEME_MAP: Partial<Record<GameTheme, GameTheme>> = {};
@@ -1389,13 +1380,13 @@ const App: React.FC = () => {
   const mmorpgBossRef = useRef<{ level: number; hp: number; maxHp: number; mult: number } | null>(null);
   const [mmorpgBossUi, setMmorpgBossUi] = useState<{ level: number; hp: number; maxHp: number; mult: number } | null>(null);
 
-  // Deep Blue — Kraken Attack. On a dead base/free spin, the Kraken can crush 1-2
-  // whole reels into wilds before the spin is scored. Instantaneous — no persistence,
-  // just the chosen columns for a one-spin teal glow overlay.
-  const [krakenCols, setKrakenCols] = useState<number[]>([]);
+  // Deep Blue — Pearl Hold & Spin. Reuses Egypt's generic holdWinRef/holdWinActive
+  // engine (lockedGrid/coinValues/jpGrid/respins) with its own trigger/reset/payout
+  // rules based on pearl connectivity — see getPearlGroups below and the
+  // `ft === 'UNDERWATER'` blocks in generateSmartGrid/handleReelStop.
 
   // Gold Rush — Dynamite Blast + High Noon Duel. Dynamite scatters 4-6 random cells
-  // into wilds on a dead spin (instantaneous, like Kraken). The duel is a
+  // into wilds on a dead spin (instantaneous — no persistence). The duel is a
   // double-or-nothing gamble offered after a 2x+ win, resolved in DuelGambleModal.
   const [dynamiteCells, setDynamiteCells] = useState<{ col: number; row: number }[]>([]);
   const [duelOffer, setDuelOffer] = useState<{ amount: number; round: number } | null>(null);
@@ -2881,6 +2872,99 @@ const App: React.FC = () => {
       return null;
   };
 
+  // Deep Blue base-game jackpot pearl: much rarer per-cell odds than rollHoldWinJackpot
+  // (which is for pearls landing during an already-active respin) — a jackpot pearl alone
+  // triggers the feature with no linking required, so it needs to stay a rare event.
+  const rollHoldWinJackpotRare = (): string | null => {
+      const r = Math.random();
+      if (r < 0.0002) return 'GRAND';
+      if (r < 0.001)  return 'MEGA';
+      if (r < 0.003)  return 'MAJOR';
+      if (r < 0.007)  return 'MINOR';
+      if (r < 0.015)  return 'MINI';
+      return null;
+  };
+
+  // Deep Blue Pearl Hold & Spin: 4-directionally-connected groups of amount-bearing
+  // pearls (present && no jackpot tier && value > 0). Jackpot pearls are deliberately
+  // excluded from the graph — they pay individually on their own tier, need no group,
+  // and don't help connect neighbouring amount pearls either.
+  const getPearlGroups = (presentGrid: boolean[][], coinValues: number[][], jpGrid: (string|null)[][]): {c:number,r:number}[][] => {
+      const cols = presentGrid.length;
+      const rows = presentGrid[0]?.length || 0;
+      const visited: boolean[][] = Array(cols).fill(null).map(() => Array(rows).fill(false));
+      const isAmountPearl = (c: number, r: number) => !!presentGrid[c]?.[r] && !jpGrid[c]?.[r] && (coinValues[c]?.[r] || 0) > 0;
+      const groups: {c:number,r:number}[][] = [];
+      for (let c = 0; c < cols; c++) {
+          for (let r = 0; r < rows; r++) {
+              if (isAmountPearl(c, r) && !visited[c][r]) {
+                  const group: {c:number,r:number}[] = [];
+                  const stack = [{ c, r }];
+                  visited[c][r] = true;
+                  while (stack.length) {
+                      const cur = stack.pop()!;
+                      group.push(cur);
+                      const neighbors = [[cur.c - 1, cur.r], [cur.c + 1, cur.r], [cur.c, cur.r - 1], [cur.c, cur.r + 1]];
+                      for (const [nc, nr] of neighbors) {
+                          if (nc >= 0 && nc < cols && nr >= 0 && nr < rows && isAmountPearl(nc, nr) && !visited[nc][nr]) {
+                              visited[nc][nr] = true;
+                              stack.push({ c: nc, r: nr });
+                          }
+                      }
+                  }
+                  groups.push(group);
+              }
+          }
+      }
+      return groups;
+  };
+
+  // Which locked pearl cells actually pay: members of a 3+-linked amount group, plus
+  // every jackpot-tagged cell individually (jackpot pearls always pay on their own tier,
+  // no linking required). Isolated/paired amount pearls stay locked and visible but pay 0.
+  const getUnderwaterPayableMask = (presentGrid: boolean[][], coinValues: number[][], jpGrid: (string|null)[][]): boolean[][] => {
+      const cols = presentGrid.length;
+      const rows = presentGrid[0]?.length || 0;
+      const mask: boolean[][] = Array(cols).fill(null).map(() => Array(rows).fill(false));
+      getPearlGroups(presentGrid, coinValues, jpGrid)
+          .filter(g => g.length >= 3)
+          .forEach(g => g.forEach(({ c, r }) => { mask[c][r] = true; }));
+      for (let c = 0; c < cols; c++) {
+          for (let r = 0; r < rows; r++) {
+              if (presentGrid[c]?.[r] && jpGrid[c]?.[r]) mask[c][r] = true;
+          }
+      }
+      return mask;
+  };
+
+  // Deep Blue Pearl Hold & Spin: place `count` pearls among `emptyCells` with a bias
+  // toward clustering next to an existing pearl (isPresent — locked from a prior respin)
+  // or another pearl just placed this same call, so 3-in-a-row/L-shaped linked groups
+  // form often enough to matter instead of scattering uniformly at random.
+  const pickClusteredEmptyCells = (emptyCells: {c:number,r:number}[], isPresent: (c:number,r:number)=>boolean, count: number): {c:number,r:number}[] => {
+      const remaining = [...emptyCells];
+      const chosen: {c:number,r:number}[] = [];
+      const chosenSet = new Set<string>();
+      for (let i = 0; i < count && remaining.length > 0; i++) {
+          const candidates: number[] = [];
+          for (let j = 0; j < remaining.length; j++) {
+              const { c, r } = remaining[j];
+              const neighbors = [[c - 1, r], [c + 1, r], [c, r - 1], [c, r + 1]];
+              if (neighbors.some(([nc, nr]) => isPresent(nc, nr) || chosenSet.has(`${nc},${nr}`))) {
+                  candidates.push(j);
+              }
+          }
+          const idx = (candidates.length > 0 && Math.random() < 0.55)
+              ? candidates[Math.floor(Math.random() * candidates.length)]
+              : Math.floor(Math.random() * remaining.length);
+          const picked = remaining[idx];
+          chosen.push(picked);
+          chosenSet.add(`${picked.c},${picked.r}`);
+          remaining.splice(idx, 1);
+      }
+      return chosen;
+  };
+
   // Cascade: remove winning cells and fill from top with new random symbols
   const compactGrid = (currentGrid: SymbolType[][], winCells: {col: number, row: number}[]): { grid: SymbolType[][], newCells: boolean[][] } => {
       const newCells: boolean[][] = [];
@@ -3134,6 +3218,52 @@ const App: React.FC = () => {
               for (let i = 0; i < Math.min(count, shuffled.length); i++) {
                   coinCellKeys.add(shuffled[i].c * rows + shuffled[i].r);
               }
+          }
+
+          for (let c = 0; c < cols; c++) {
+              const col: SymbolType[] = [];
+              for (let r = 0; r < rows; r++) {
+                  if (lockedGrid[c]?.[r]) {
+                      col.push(SymbolType.COIN);
+                  } else if (coinCellKeys.has(c * rows + r)) {
+                      col.push(SymbolType.COIN);
+                  } else {
+                      let sym = getRandomSymbol(false, spinsWithoutBonus);
+                      while (sym === SymbolType.SCATTER || sym === SymbolType.COIN) {
+                          sym = getRandomSymbol(false, spinsWithoutBonus);
+                      }
+                      col.push(sym);
+                  }
+              }
+              newGrid.push(col);
+          }
+          return newGrid;
+      }
+
+      // UNDERWATER Pearl Hold & Spin: generate respin grid keeping locked cells as
+      // COIN pearls. New pearls are placed with a clustering bias (pickClusteredEmptyCells)
+      // toward the existing locked shape so a fresh pearl is more likely to actually link.
+      if (ft === 'UNDERWATER' && holdWinRef.current.active) {
+          const lockedGrid = holdWinRef.current.lockedGrid;
+          const respinsUsed = 3 - holdWinRef.current.respins;
+          let baseCoinChance = respinsUsed >= 2 ? 0.005 : Math.max(0, 0.50 - respinsUsed * 0.15);
+
+          const emptyCells: {c: number, r: number}[] = [];
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  if (!lockedGrid[c]?.[r]) emptyCells.push({ c, r });
+              }
+          }
+
+          if (emptyCells.length <= 2) baseCoinChance *= 0.5;
+
+          const coinCellKeys = new Set<number>();
+          if (emptyCells.length > 0 && Math.random() < baseCoinChance) {
+              const cr = Math.random();
+              const count = cr < 0.60 ? 1 : cr < 0.90 ? 2 : 3;
+              const isPresent = (c: number, r: number) => !!lockedGrid[c]?.[r];
+              const picked = pickClusteredEmptyCells(emptyCells, isPresent, count);
+              picked.forEach(p => coinCellKeys.add(p.c * rows + p.r));
           }
 
           for (let c = 0; c < cols; c++) {
@@ -3476,6 +3606,40 @@ const App: React.FC = () => {
               for (let i = 0; i < Math.min(targetCoins, eligible.length); i++) {
                   newGrid[eligible[i].c][eligible[i].r] = SymbolType.COIN;
               }
+          }
+          // Replace any scatter symbols with a plain low symbol
+          for (let c = 0; c < cols; c++) {
+              for (let r = 0; r < rows; r++) {
+                  if (newGrid[c][r] === SymbolType.SCATTER) newGrid[c][r] = SymbolType.TEN;
+              }
+          }
+      }
+
+      // UNDERWATER: inject pearl symbols (1-6 cells) in base game. A 3+-linked amount
+      // group, or any jackpot pearl, triggers the Pearl Hold & Spin (see handleReelStop).
+      // Pearls appear far less often than Egypt's coins since even a single jackpot
+      // pearl here can trigger on its own — see getPearlGroups/handleReelStop.
+      if (ft === 'UNDERWATER' && !isFreeSpin) {
+          const coinRoll = Math.random();
+          let targetCoins = 0;
+          if (coinRoll >= 0.9995)     targetCoins = 6;
+          else if (coinRoll >= 0.999) targetCoins = 5;
+          else if (coinRoll >= 0.996) targetCoins = 4;
+          else if (coinRoll >= 0.986) targetCoins = 3;
+          else if (coinRoll >= 0.95)  targetCoins = 2;
+          else if (coinRoll >= 0.88)  targetCoins = 1;
+          if (targetCoins > 0) {
+              const eligible: {c: number; r: number}[] = [];
+              for (let c = 0; c < cols; c++) {
+                  for (let r = 0; r < rows; r++) {
+                      const s = newGrid[c][r];
+                      if (s !== SymbolType.SCATTER && s !== SymbolType.WILD && !String(s).startsWith('JACKPOT')) {
+                          eligible.push({c, r});
+                      }
+                  }
+              }
+              const picked = pickClusteredEmptyCells(eligible, () => false, targetCoins);
+              picked.forEach(p => { newGrid[p.c][p.r] = SymbolType.COIN; });
           }
           // Replace any scatter symbols with a plain low symbol
           for (let c = 0; c < cols; c++) {
@@ -3968,8 +4132,17 @@ const App: React.FC = () => {
               }
               piggyGuaranteedJackpotRef.current = true;
               piggyGuaranteedJackpot2Ref.current = true;
+          } else if (ft === 'UNDERWATER') {
+              // Deep Blue: place 3 pearls in a row on adjacent columns — always
+              // connected, so this reliably triggers the Pearl Hold & Spin.
+              const startCol = Math.floor(Math.random() * Math.max(1, cols - 2));
+              const row = Math.floor(Math.random() * rows);
+              for (let i = 0; i < 3; i++) {
+                  const c = startCol + i;
+                  if (newGrid[c]) newGrid[c][row] = SymbolType.COIN;
+              }
           } else if (ft !== 'EGYPT') {
-              // All non-Egypt, non-Piggy slots: drop enough scatters in distinct columns.
+              // All non-Egypt, non-Piggy, non-UNDERWATER slots: drop enough scatters in distinct columns.
               const need = Math.min(selectedGame.scattersToTrigger || 3, cols);
               const colOrder = Array.from({ length: cols }, (_, i) => i);
               for (let i = colOrder.length - 1; i > 0; i--) {
@@ -4334,7 +4507,6 @@ const App: React.FC = () => {
     setCascadeGrid(null);
     setCascadeNewCells(null);
     setCascadeDissolving(false);
-    setKrakenCols([]);
     setDynamiteCells([]);
     setStatus(GameStatus.SPINNING);
     setWinData(null);
@@ -4397,7 +4569,7 @@ const App: React.FC = () => {
   }, [status, targetGrid.length, fastSpin, player.autoSpin]);
 
   // Pure check: would this grid pay any left-to-right payline win? Used by
-  // dead-spin rescue features (Loot Goblin, and later batches' Kraken/Dynamite)
+  // dead-spin rescue features (Loot Goblin, Gold Rush's Dynamite Blast)
   // to only fire on genuinely dead spins. No side effects.
   const gridHasLineWin = (g: SymbolType[][]): boolean => {
       for (const line of GET_PAYLINES(selectedGame.rows, selectedGame.reels)) {
@@ -4550,6 +4722,127 @@ const App: React.FC = () => {
             }
         }
 
+        // UNDERWATER: Pearl Hold & Spin respin handling. The 3-respin counter only resets
+        // to 3 if a pearl newly placed this respin is itself "linked" — jackpot-tagged, or
+        // 4-adjacent to any other pearl now on the grid (pre-existing or also new this same
+        // respin, so two brand-new neighbouring pearls linking to each other still counts).
+        // An isolated new pearl (or no new pearl at all) decrements the counter like a miss.
+        if (ft === 'UNDERWATER' && holdWinRef.current.active) {
+            const lockedGrid = holdWinRef.current.lockedGrid;
+            const coinValues = holdWinRef.current.coinValues;
+            const jpGrid = holdWinRef.current.jpGrid;
+            const currentBet = currentBetRef.current;
+            const newLockedGrid = lockedGrid.map(c => [...c]);
+            const newCoinValues = coinValues.map(c => [...c]);
+            const newJpGrid = jpGrid.map(c => [...c]);
+            const newlyPlaced: {c:number,r:number}[] = [];
+            targetGrid.forEach((col, c) => {
+                col.forEach((sym, r) => {
+                    if (!lockedGrid[c]?.[r] && sym === SymbolType.COIN) {
+                        newlyPlaced.push({ c, r });
+                        newLockedGrid[c][r] = true;
+                        const jpTier = rollHoldWinJackpot();
+                        newJpGrid[c][r] = jpTier;
+                        if (jpTier) {
+                            newCoinValues[c][r] = jackpotService.getAmounts()[HW_JP_IDX[jpTier]];
+                        } else {
+                            const roll = Math.random();
+                            const mult = roll < 0.40 ? 1 : roll < 0.60 ? 2 : roll < 0.73 ? 3 : roll < 0.83 ? 5 : roll < 0.91 ? 10 : roll < 0.96 ? 20 : roll < 0.99 ? 50 : 100;
+                            newCoinValues[c][r] = currentBet * mult;
+                        }
+                    }
+                });
+            });
+            const didLink = newlyPlaced.some(({ c, r }) => {
+                if (newJpGrid[c]?.[r]) return true;
+                const neighbors = [[c - 1, r], [c + 1, r], [c, r - 1], [c, r + 1]];
+                return neighbors.some(([nc, nr]) => !!newLockedGrid[nc]?.[nr]);
+            });
+            const lockedCount = newLockedGrid.reduce((s, col) => s + col.filter(Boolean).length, 0);
+            const isFull = lockedCount === selectedGame.reels * selectedGame.rows;
+            const newRespins = didLink ? 3 : holdWinRef.current.respins - 1;
+            holdWinRef.current.lockedGrid = newLockedGrid;
+            holdWinRef.current.coinValues = newCoinValues;
+            holdWinRef.current.jpGrid = newJpGrid;
+            holdWinRef.current.respins = newRespins;
+            setHoldWinLockedGrid(newLockedGrid);
+            setHoldWinCoinValues(newCoinValues);
+            setHoldWinJpGrid(newJpGrid);
+            setHoldWinRespins(newRespins);
+            if (isFull || newRespins <= 0) {
+                const payableMask = getUnderwaterPayableMask(newLockedGrid, newCoinValues, newJpGrid);
+                startHwCounting(newLockedGrid, newCoinValues, newJpGrid, isFull, currentBet, payableMask);
+            } else {
+                setTimeout(() => setStatus(GameStatus.IDLE), 960);
+            }
+            return next;
+        }
+
+        // UNDERWATER: assign values to all pearl cells (shown on overlay) + trigger the
+        // Pearl Hold & Spin if the settled grid has a 3+-linked amount group, OR any
+        // jackpot pearl (rare, separate odds from in-feature respins — see
+        // rollHoldWinJackpotRare) — normal spins only.
+        if (ft === 'UNDERWATER' && !holdWinRef.current.active) {
+            const currentBet = currentBetRef.current;
+            const presentGrid: boolean[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(false));
+            const preValues: (number|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
+            const preJpGrid: (string|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
+            let hasJackpotPearl = false;
+            targetGrid.forEach((col, c) => {
+                col.forEach((sym, r) => {
+                    if (sym === SymbolType.COIN) {
+                        presentGrid[c][r] = true;
+                        const jpTier = rollHoldWinJackpotRare();
+                        if (jpTier) {
+                            hasJackpotPearl = true;
+                            preJpGrid[c][r] = jpTier;
+                            preValues[c][r] = jackpotService.getAmounts()[HW_JP_IDX[jpTier]];
+                        } else {
+                            preValues[c][r] = getHoldWinCoinValue(currentBet);
+                        }
+                    }
+                });
+            });
+            setEgyptCoinMeta({ values: preValues, jpGrid: preJpGrid });
+            const groups = getPearlGroups(presentGrid, preValues as number[][], preJpGrid);
+            const hasQualifyingGroup = groups.some(g => g.length >= 3);
+            if ((hasQualifyingGroup || hasJackpotPearl) && freeSpinsRemaining === 0) {
+                const lockedGrid: boolean[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(false));
+                const coinValues: number[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(0));
+                const jpGrid: (string|null)[][] = Array(selectedGame.reels).fill(null).map(() => Array(selectedGame.rows).fill(null));
+                targetGrid.forEach((col, c) => {
+                    col.forEach((sym, r) => {
+                        if (sym === SymbolType.COIN) {
+                            lockedGrid[c][r] = true;
+                            coinValues[c][r] = preValues[c][r] || 0;
+                            jpGrid[c][r] = preJpGrid[c][r];
+                        }
+                    });
+                });
+                holdWinRef.current = { active: false, lockedGrid, coinValues, jpGrid, respins: 3 };
+                setTimeout(() => {
+                    audioService.playScatterTrigger();
+                    setSpinsWithoutBonus(0);
+                    setStatus(GameStatus.SCATTER_SHOWCASE);
+                    setTimeout(() => {
+                        audioService.playBonusTrigger();
+                        setShowEgyptHoldWinPopup(true);
+                        setTimeout(() => {
+                            setShowEgyptHoldWinPopup(false);
+                            setReelTransitioning('out');
+                            setTimeout(() => {
+                                holdWinRef.current.active = true;
+                                setHoldWinActive(true); setHoldWinLockedGrid(lockedGrid); setHoldWinCoinValues(coinValues); setHoldWinJpGrid(jpGrid); setHoldWinRespins(3);
+                                setReelTransitioning('in');
+                                setTimeout(() => { setReelTransitioning(false); setStatus(GameStatus.IDLE); }, 1100);
+                            }, 900);
+                        }, 1800);
+                    }, 900);
+                }, 0);
+                return next;
+            }
+        }
+
         // PIRATE: Ghost Ship Walking Wilds. The wild column "sails" one reel left per free respin
         // (the leftward step is taken in the IDLE auto-continue effect, so the overlay matches the screen).
         if (ft === 'PIRATE') {
@@ -4579,7 +4872,7 @@ const App: React.FC = () => {
 
         let scatterCount = 0;
         const scatters: {col: number, row: number}[] = [];
-        if (ft !== 'EGYPT') {
+        if (ft !== 'EGYPT' && ft !== 'UNDERWATER') {
         targetGrid.forEach((col, colIdx) => {
             col.forEach((sym, rowIdx) => {
                 if (sym === SymbolType.SCATTER) {
@@ -5040,31 +5333,6 @@ const App: React.FC = () => {
             return next;
         }
 
-        // DEEP BLUE (UNDERWATER) Kraken Attack: on a dead spin, the Kraken can crush
-        // 1-2 reels fully wild before scoring — chance roughly doubles in free spins.
-        if (selectedGame.theme === 'UNDERWATER' && scatterCount < selectedGame.scattersToTrigger && !gridHasLineWin(targetGrid)) {
-            const krakenChance = isCurrentFreeSpinRef.current ? 0.09 : 0.045;
-            if (Math.random() < krakenChance) {
-                const eligibleCols = Array.from({ length: Math.max(0, selectedGame.reels - 2) }, (_, i) => i + 1);
-                const shuffledCols = [...eligibleCols].sort(() => Math.random() - 0.5);
-                const numReels = Math.random() < 0.3 ? 2 : 1;
-                const chosenCols = shuffledCols.slice(0, Math.min(numReels, shuffledCols.length));
-                const krakenGrid = targetGrid.map((col, c) => chosenCols.includes(c)
-                    ? col.map(s => s === SymbolType.SCATTER ? s : SymbolType.WILD)
-                    : col);
-                const krakenMask = krakenGrid.map((col, c) => col.map((s, r) => s !== targetGrid[c][r]));
-                setTargetGrid(krakenGrid);
-                setCascadeGrid(krakenGrid.map(col => [...col]));
-                setCascadeNewCells(krakenMask);
-                setCascadeDissolving(false);
-                setKrakenCols(chosenCols);
-                setCelebrationMsg('Kraken Attack!');
-                audioService.playScatterTrigger();
-                setTimeout(() => calculateWin(krakenGrid), 900);
-                return next;
-            }
-        }
-
         // GOLD RUSH (WESTERN) Dynamite Blast: on a dead spin, 4-6 random cells explode
         // into wilds before scoring — chance roughly doubles in free spins.
         if (selectedGame.theme === 'WESTERN' && scatterCount < selectedGame.scattersToTrigger && !gridHasLineWin(targetGrid)) {
@@ -5267,40 +5535,6 @@ const App: React.FC = () => {
       }
     });
 
-    // DEEP BLUE (UNDERWATER) Win Both Ways: every payline also pays right-to-left as
-    // a separate win. A full-length match (already paid once above, direction-agnostic)
-    // is skipped here so it isn't credited twice.
-    if (selectedGame.theme === 'UNDERWATER') {
-        currentPaylines.forEach(line => {
-            const symbols = line.indices.map((row, col) => normalizePiggy((finalGrid[col] && finalGrid[col][row]) ? finalGrid[col][row] : SymbolType.TEN));
-            const reversed = [...symbols].reverse();
-            let matchLen = 1;
-            let matchSymbol = reversed[0];
-            for (let i = 1; i < reversed.length; i++) {
-                const s = reversed[i];
-                if (s === matchSymbol || isCoinOrWild(s) || isCoinOrWild(matchSymbol)) {
-                    if (isCoinOrWild(matchSymbol) && !isCoinOrWild(s)) matchSymbol = s;
-                    matchLen++;
-                } else break;
-            }
-            if (matchLen >= 3 && matchLen < symbols.length) {
-                const symbolConfig = GET_SYMBOLS(selectedGame.theme)[matchSymbol];
-                if (symbolConfig) {
-                    const baseValue = symbolConfig.value;
-                    const lenMult = matchLen === 4 ? 2.0 : matchLen >= 5 ? 4.0 : 0.5;
-                    const lineWin = Math.floor(currentBet * (baseValue / 3) * lenMult);
-                    if (lineWin > 0) {
-                        totalPayout += lineWin;
-                        winningLines.push(line.id);
-                        for (let i = 0; i < matchLen; i++) {
-                            const col = symbols.length - 1 - i;
-                            winningCells.push({ col, row: line.indices[col] });
-                        }
-                    }
-                }
-            }
-        });
-    }
     }
 
     let scatterCount = 0;
@@ -5321,12 +5555,6 @@ const App: React.FC = () => {
     // JUNGLE: overall win amount cut by 50%.
     if (selectedGame.theme === 'JUNGLE') {
         totalPayout = Math.floor(totalPayout * 0.5);
-    }
-
-    // DEEP BLUE (UNDERWATER): Win Both Ways roughly doubles the line-win hit rate —
-    // dampen the combined total to offset it.
-    if (selectedGame.theme === 'UNDERWATER') {
-        totalPayout = Math.floor(totalPayout * 0.75);
     }
 
     // SPACE: Supernova progressive multiplier applies to line wins during free spins.
@@ -5879,7 +6107,10 @@ const App: React.FC = () => {
       }
   };
 
-  const startHwCounting = (finalLockedGrid: boolean[][], finalCoinValues: number[][], finalJpGrid: (string|null)[][], isFull: boolean, currentBet: number) => {
+  // payableMask: optional — when provided, only cells marked true actually pay/count
+  // (Deep Blue's unlinked pearls are locked and visible but pay nothing). Omitted for
+  // Egypt, where every locked coin cell always pays.
+  const startHwCounting = (finalLockedGrid: boolean[][], finalCoinValues: number[][], finalJpGrid: (string|null)[][], isFull: boolean, currentBet: number, payableMask?: boolean[][]) => {
       setStatus(GameStatus.WIN_ANIMATION);
       setHwCounting(true);
       setHwCountingTotal(0);
@@ -5921,7 +6152,7 @@ const App: React.FC = () => {
           const cells: {c:number,r:number}[] = [];
           for (let c = 0; c < finalLockedGrid.length; c++) {
               for (let r = 0; r < (finalLockedGrid[c]?.length || 0); r++) {
-                  if (finalLockedGrid[c][r]) cells.push({ c, r });
+                  if (finalLockedGrid[c][r] && (!payableMask || payableMask[c]?.[r])) cells.push({ c, r });
               }
           }
 
@@ -6290,8 +6521,7 @@ const App: React.FC = () => {
           // Reset Dungeon Raid boss state on game change
           mmorpgBossRef.current = null;
           setMmorpgBossUi(null);
-          // Reset Deep Blue Kraken overlay + Gold Rush Dynamite/Duel state on game change
-          setKrakenCols([]);
+          // Reset Gold Rush Dynamite/Duel state on game change
           setDynamiteCells([]);
           setDuelOffer(null);
           setShowDuelModal(false);
@@ -7611,11 +7841,21 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Hold and Win locked-cell overlay */}
-                        {holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && (() => {
+                        {/* Hold and Win locked-cell overlay — reused by Deep Blue's Pearl Hold & Spin */}
+                        {holdWinActive && (featureThemeOf(selectedGame.theme) === 'EGYPT' || selectedGame.theme === 'UNDERWATER') && (() => {
                             // Coin icon for the active theme — drawn opaquely on locked cells so
                             // they stay visually "stuck" instead of spinning during respins.
                             const coinIcon = GET_SYMBOLS(selectedGame.theme)[SymbolType.COIN]?.icon;
+                            const isUnderwater = selectedGame.theme === 'UNDERWATER';
+                            // Deep Blue only: which group (if any, size 3+) each cell belongs to, so we
+                            // can trace a single perimeter border around each linked pearl shape.
+                            const groupIdGrid: number[][] = [];
+                            if (isUnderwater) {
+                                for (let c = 0; c < selectedGame.reels; c++) groupIdGrid[c] = Array(selectedGame.rows).fill(-1);
+                                getPearlGroups(holdWinLockedGrid, holdWinCoinValues, holdWinJpGrid)
+                                    .filter(g => g.length >= 3)
+                                    .forEach((g, gi) => g.forEach(({ c, r }) => { groupIdGrid[c][r] = gi; }));
+                            }
                             return (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
@@ -7626,19 +7866,33 @@ const App: React.FC = () => {
                                             const jpTier = holdWinJpGrid[c]?.[r];
                                             const JP_COLORS: Record<string, string> = { MINI: '#4ade80', MINOR: '#67e8f9', MAJOR: '#d8b4fe', MEGA: '#fda4af', GRAND: '#fde68a' };
                                             const isCounting = hwCountingCell?.c === c && hwCountingCell?.r === r;
-                                            const GOLD = '#ffe600';
-                                            const glowColor = isCounting ? 'rgba(255,255,255,0.9)' : (locked ? (jpTier ? JP_COLORS[jpTier] + 'cc' : 'rgba(255,230,0,0.85)') : 'transparent');
+                                            const gid = isUnderwater ? groupIdGrid[c]?.[r] : -1;
+                                            const inGroup = isUnderwater && gid !== undefined && gid !== -1;
+                                            const sameGroup = (nc: number, nr: number) => isUnderwater && groupIdGrid[nc]?.[nr] === gid;
+                                            const glowColor = isCounting
+                                                ? 'rgba(255,255,255,0.9)'
+                                                : (locked
+                                                    ? (jpTier ? JP_COLORS[jpTier] + 'cc' : (isUnderwater && !inGroup ? 'rgba(255,255,255,0.22)' : 'rgba(255,230,0,0.85)'))
+                                                    : 'transparent');
+                                            const EDGE = '3px solid rgba(255,230,0,0.95)';
+                                            const groupBorder: React.CSSProperties = inGroup ? {
+                                                borderTop: sameGroup(c, r - 1) ? 'none' : EDGE,
+                                                borderBottom: sameGroup(c, r + 1) ? 'none' : EDGE,
+                                                borderLeft: sameGroup(c - 1, r) ? 'none' : EDGE,
+                                                borderRight: sameGroup(c + 1, r) ? 'none' : EDGE,
+                                            } : {};
                                             return (
                                                 <div key={r} className={`flex-1 relative flex items-center justify-center overflow-hidden ${isCounting ? 'animate-bounce-sm' : ''}`}
                                                     style={{
                                                         boxShadow: locked ? `0 0 ${isCounting ? 18 : 12}px ${glowColor}` : 'none',
+                                                        ...groupBorder,
                                                     }}>
                                                     {locked ? (
                                                         <>
                                                             {/* Full-size coin — always show behind both amounts and jackpot badges */}
                                                             {coinIcon && (
                                                                 <img src={coinIcon} alt="" className="absolute inset-0 pointer-events-none select-none"
-                                                                    style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 1 }} />
+                                                                    style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: isUnderwater && !inGroup && !jpTier ? 0.6 : 1 }} />
                                                             )}
                                                             <div className="relative flex flex-col items-center justify-center gap-0.5 w-full h-full">
                                                                 {jpTier ? (
@@ -7660,8 +7914,8 @@ const App: React.FC = () => {
                             );
                         })()}
 
-                        {/* Egypt coin meta overlay — show values on COIN cells during normal/free spins */}
-                        {!holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && egyptCoinMeta &&
+                        {/* Egypt coin meta overlay — show values on COIN cells during normal/free spins (reused by Deep Blue's pearls) */}
+                        {!holdWinActive && (featureThemeOf(selectedGame.theme) === 'EGYPT' || selectedGame.theme === 'UNDERWATER') && egyptCoinMeta &&
                          status !== GameStatus.SPINNING && (
                             <div className="absolute inset-0 z-20 pointer-events-none flex gap-0">
                                 {Array(selectedGame.reels).fill(null).map((_, c) => (
@@ -7930,22 +8184,6 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        {/* DEEP BLUE (UNDERWATER) Kraken Attack — teal column glow while it resolves */}
-                        {selectedGame.theme === 'UNDERWATER' && krakenCols.length > 0 && (
-                            <div className="absolute inset-0 z-20 pointer-events-none animate-pop-in">
-                                {krakenCols.map(c => (
-                                    <div key={c} className="absolute inset-y-1"
-                                        style={{
-                                            left: `calc(${(c / selectedGame.reels) * 100}% + 2px)`,
-                                            width: `calc(${(1 / selectedGame.reels) * 100}% - 4px)`,
-                                            borderRadius: 5,
-                                            boxShadow: '0 0 22px rgba(45,212,191,0.85), inset 0 0 26px rgba(45,212,191,0.35)',
-                                            background: 'linear-gradient(180deg,rgba(45,212,191,0.18),rgba(8,74,68,0.08))',
-                                        }} />
-                                ))}
-                            </div>
-                        )}
-
                         {/* GOLD RUSH (WESTERN) Dynamite Blast — per-cell amber glow while it resolves */}
                         {selectedGame.theme === 'WESTERN' && dynamiteCells.length > 0 && (
                             <div className="absolute inset-0 z-20 pointer-events-none animate-pop-in">
@@ -8048,8 +8286,8 @@ const App: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Egypt HW respin counter — short yellow banner over the reels */}
-                    {holdWinActive && featureThemeOf(selectedGame.theme) === 'EGYPT' && (
+                    {/* Egypt HW respin counter — short yellow banner over the reels (reused by Deep Blue) */}
+                    {holdWinActive && (featureThemeOf(selectedGame.theme) === 'EGYPT' || selectedGame.theme === 'UNDERWATER') && (
                         <div className="absolute z-30 flex items-center justify-center gap-1.5 px-4 py-0.5"
                             style={{ top: 0, left: '50%', transform: 'translateX(-50%)', background: 'linear-gradient(180deg,#ffe24d 0%,#ffb31a 50%,#f57c00 100%)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.5), 0 2px 6px rgba(0,0,0,0.5)' }}>
                             <span style={{ fontSize: 11, color: '#5a3000', fontWeight: 900, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Respins</span>
@@ -8150,7 +8388,10 @@ const App: React.FC = () => {
                           ) : status === GameStatus.CASCADE && cascadeTotalWin > 0 ? (
                               formatK(cascadeTotalWin)
                           ) : holdWinActive ? (
-                              formatK(holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
+                              formatK(selectedGame.theme === 'UNDERWATER'
+                                  ? getUnderwaterPayableMask(holdWinLockedGrid, holdWinCoinValues, holdWinJpGrid)
+                                      .reduce((s, col, c) => s + col.reduce((a, pay, r) => a + (pay ? (holdWinCoinValues[c]?.[r] || 0) : 0), 0), 0)
+                                  : holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
                           ) : pirateWalkActive ? (
                               formatK(pirateWalkTotalWin)
                           ) : showNeonRoulette ? (
@@ -8466,18 +8707,25 @@ const App: React.FC = () => {
           </div>
       )}
 
-      {showEgyptHoldWinPopup && (
+      {showEgyptHoldWinPopup && (() => {
+          const isUnderwater = selectedGame.theme === 'UNDERWATER';
+          return (
           <div className="absolute inset-0 z-[250] flex items-center justify-center backdrop-blur-md" style={{ background: 'rgba(0,0,0,0.2)' }}>
               <div className="animate-pop-in flex flex-col items-center gap-4 rounded-2xl px-8 py-7"
-                  style={{ background: 'linear-gradient(180deg,#b5701a 0%,#7a4500 30%,#3a2000 100%)', boxShadow: 'inset 0 1px 0 rgba(255,210,130,0.5), 0 8px 40px rgba(245,158,11,0.5)', maxWidth: 300, textAlign: 'center' }}>
-                  <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>🏺</span>
-                  <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: '0 0 12px rgba(245,158,11,0.9)' }}>
-                      Hold &amp; Win<br />Triggered!
+                  style={isUnderwater
+                      ? { background: 'linear-gradient(180deg,#0e5a8c 0%,#073a5c 30%,#001830 100%)', boxShadow: 'inset 0 1px 0 rgba(150,220,255,0.5), 0 8px 40px rgba(34,211,238,0.5)', maxWidth: 300, textAlign: 'center' }
+                      : { background: 'linear-gradient(180deg,#b5701a 0%,#7a4500 30%,#3a2000 100%)', boxShadow: 'inset 0 1px 0 rgba(255,210,130,0.5), 0 8px 40px rgba(245,158,11,0.5)', maxWidth: 300, textAlign: 'center' }}>
+                  <span style={{ fontSize: '3.5rem', lineHeight: 1 }}>{isUnderwater ? '🦪' : '🏺'}</span>
+                  <div className="font-black text-white uppercase tracking-widest" style={{ fontSize: 'clamp(14px,3vw,20px)', textShadow: isUnderwater ? '0 0 12px rgba(34,211,238,0.9)' : '0 0 12px rgba(245,158,11,0.9)' }}>
+                      {isUnderwater ? <>Pearls Linked!</> : <>Hold &amp; Win<br />Triggered!</>}
                   </div>
-                  <div className="text-amber-300 font-bold text-xs uppercase tracking-widest">6 Coins Landed!</div>
+                  <div className={`font-bold text-xs uppercase tracking-widest ${isUnderwater ? 'text-cyan-300' : 'text-amber-300'}`}>
+                      {isUnderwater ? 'Hold & Spin Started' : '6 Coins Landed!'}
+                  </div>
               </div>
           </div>
-      )}
+          );
+      })()}
 
       {showArcticTriggerPopup && (() => {
           const isOlympusPick = selectedGame.theme === 'OLYMPUS';
