@@ -159,54 +159,57 @@ adjacent scatter-trigger branch) plus 60 real-odds Gold Rush spins with no crash
 persistent bonus, More Chilli's fill-the-peppers, Gold Stacks 88's pot collect
 (Aristocrat/IGT family).** Three pots sit above the reels; normal spins gradually
 fill them; a full pot arms its feature; the trigger fires with the same cadence as
-Ox Gold Power's pot (the DRAGON 10-spin chance roll), and **every armed pot fires
-together** — 1, 2, or 3 features at once.
+the DRAGON Pick-and-Win's 10-spin chance roll, and **every armed pot fires
+together** — 1, 2, or 3 features at once. [BUILT]
 
-Remove first:
-1. Batch-4 "Fortune Pots" FS instant-pay block (`handleReelStop`) and its
-   `generateSmartGrid` COIN injection.
-2. The old every-10th-spin drip: `goldenPotSpinCount`, `goldenPotLastBetRef`,
-   `goldenPotPendingRef`, `goldenPotFrozen`, `goldenPotWin` + its award effect and
-   popup JSX (the pots replace it wholesale).
-3. Description → `'Three Fortune Pots fill as you spin — full pots burst together for free spins, jackpots and multipliers!'`
+**What was removed:** the Batch-4 "Fortune Pots" FS instant-pay block
+(`handleReelStop`) and its `generateSmartGrid` COIN injection, and the old
+every-10th-spin drip (`goldenPotSpinCount`, `goldenPotLastBetRef`,
+`goldenPotPendingRef`, `goldenPotFrozen`, `goldenPotWin` + its award effect and
+popup JSX) — the pots replace both wholesale.
 
-Build:
-1. State (persist via `SavedGameState` — pot fill is long-term collect state):
-   ```tsx
-   const goldenPotsRef = useRef({ spins: 0, jackpot: 0, multiplier: 0, spinsBonus: 0 });
-   const [goldenPotsUi, setGoldenPotsUi] = useState({ ...goldenPotsRef.current });
-   const POT_FULL = 10;
-   ```
-2. Fill: each paid base-game spin (`GOLDEN_POT`, `!isFreeSpin`, in the same
-   `spin()` site the old drip used), ~35% chance to add +1 to one pot — weights
-   spins 45 / multiplier 35 / jackpot 20. If the spins pot is already full and gets
-   picked again → `spinsBonus += 1` (cap +10) — this is the owner's "free spins pot
-   can keep increasing".
-3. Trigger (mirror the DRAGON pot cadence): while ≥1 pot is full, each settle has a
-   ~6% chance (+1.5% per 10 spins since last feature, capped 20%) → pot-shake
-   animation on the full pot(s) → popup ("Pots burst!") → activate **all** full pots
-   simultaneously:
-   - **Spins pot** → `8 + spinsBonus` free spins (generic FS flow).
-   - **Multiplier pot** → roll x2/x3/x5 (weights 55/33/12). If free spins also
-     fired, it multiplies every FS win this session (apply next to the SPACE
-     Supernova block in `calculateWin`). If it fired alone, it arms a sticky
-     next-win multiplier (persists until a winning spin consumes it).
-   - **Jackpot pot** → award a jackpot tier via a weighted roll MINI 55 / MINOR 30 /
-     MAJOR 12 / MEGA 3 with the standard jackpot celebration; multiplied if the
-     multiplier pot fired too.
-   - Every activated pot resets to 0 (`spinsBonus` resets with the spins pot).
-4. UI: a pots row above the reels (SPACE banner slot): three small pot icons
-   (reuse `/goldenpot_scatter.png` art or the theme's pot art) each with a thin fill
-   bar and a label — `Spins +N` / `Jackpot` / `Multiplier`. Full pot = gold glow
-   (boxShadow, no border). Fill ticks get a small pop animation.
-5. Resets: pots do NOT reset on game change or exit (persist in SavedGameState +
-   restore); the FS multiplier resets on session end (`handleFreeSpinSummaryClose`)
-   and game change like every session-scoped modifier.
+**What was built:**
+- `goldenPotsRef`/`goldenPotsUi`: `{ spins, jackpot, multiplier, spinsBonus }`,
+  `POT_FULL = 10`, persisted via a new `SavedGameState.goldenPots` field (both save
+  sites + the restore site + the "no saved state" default all wired).
+- Fill: in `spin()` (paid `GOLDEN_POT` base spins only), 35% chance to add +1 to one
+  pot, weighted spins 45 / multiplier 35 / jackpot 20. Spins pot already full →
+  `spinsBonus += 1` (capped +10) instead.
+- Trigger, in `handleReelStop` (base game only, runs alongside — not instead of —
+  the spin's own normal payline win, same as the Arctic/Dragon side-accumulator
+  pattern): while ≥1 pot is full, each settle rolls the DRAGON cadence formula
+  (`min(0.06 + 0.015*floor(spinsSinceFeature/10), 0.20)`). On a hit, every full pot
+  resets and fires: **spins pot** → `8 + spinsBonus` free spins, entered via the
+  same generic `showFreeSpinsPopup`/`handleStartFreeSpins` flow every other
+  scatter-triggered slot uses; **multiplier pot** → rolls x2/x3/x5 (55/33/12) — if
+  spins also fired, boosts every FS win this session (`goldenPotFsMultRef`,
+  applied in `calculateWin`); if it fired alone, arms a one-shot sticky multiplier
+  for the next winning base-game spin (`goldenPotStickyMultRef`); **jackpot pot** →
+  rolls MINI/MINOR/MAJOR/MEGA (55/30/12/3) via the existing `JP_META`/
+  `jackpotWinTier` celebration (multiplied if the multiplier pot fired too), with a
+  new `goldenPotJackpotContinuationRef` (mirroring `hwCountContinuationRef`) so the
+  free-spin entry or multiplier-armed toast correctly runs after the player
+  dismisses the jackpot popup via the existing `handleJackpotClose`.
+- UI: new `GoldenPotsBanner` component — three small chips above the reels (Tabler
+  icons, thin fill bars, gold glow when full, a small "+N" badge on the spins chip
+  for `spinsBonus`), reusing the same absolute-banner slot pattern as
+  `ArcticProgressBar`.
+- Scatter symbols retired for this theme (`scattersToTrigger: 999`, literal
+  SCATTER replaced with a plain symbol in `generateSmartGrid`) since the pot
+  mechanic runs entirely off a per-spin chance roll, not grid symbols — same
+  precedent as Egypt/Deep Blue's Hold & Spin themes.
+- `GameInfoModal.tsx` `MECHANIC_INFO.GOLDEN_POT` rewritten to describe the three
+  pots and their simultaneous-burst behavior.
 
-Verify: TEMP-bump fill + trigger chances; single-pot, dual-pot and triple-pot
-bursts each behave (spins count includes bonus, multiplier applies to FS wins,
-jackpot pays tier x multiplier); pots persist across exit/re-enter and app reload;
-Ox Gold Power's own pot trigger untouched.
+Verified live via Playwright with TEMP-TEST-BUMPs (fill chance → guaranteed,
+burst chance → guaranteed, and a forced-jackpot-pick variant) — confirmed a
+single-pot (spins) burst runs the full cycle (fill → burst → free-spins popup →
+auto-played free spins → completion summary → clean return to a spin-ready
+state), confirmed the jackpot-alone path via balance-delta (credited correctly,
+game returned to IDLE afterward, no stuck states), and confirmed pot fill levels
+persist exactly across a game-switch/re-entry cycle. Reverted the TEMP-TEST-BUMPs,
+re-typechecked, ran 50 real-odds spins with zero console errors, and
+regression-checked Dragon (shares the cadence formula and `JP_META`).
 
 ---
 
