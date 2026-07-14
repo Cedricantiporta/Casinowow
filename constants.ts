@@ -871,12 +871,14 @@ export const questDifficultyMult = (cycleCount: number) => Math.min(3, 1 + Math.
 // RPG Roulette: every 10th stage (10, 20 within the 25-stage cycle) is a boss fight.
 export const rpgIsBossStage = (stage: number): boolean => stage % 10 === 0;
 
-// RPG Roulette: enemy HP scales gradually per stage, jumps 4x on boss stages, and
-// scales harder again per run cycle (same questDifficultyMult curve as everything else).
+// RPG Roulette: enemy HP scales gradually per stage, and scales harder again per run
+// cycle (same questDifficultyMult curve as everything else). A boss's HP is a flat
+// 3x whatever the last (immediately preceding) mob's HP was — not its own inflated
+// base — so the jump is exactly 3x no matter which stage tier the boss falls on.
 export const rpgEnemyMaxHp = (stage: number, run: number): number => {
+    if (rpgIsBossStage(stage)) return rpgEnemyMaxHp(stage - 1, run) * 3;
     const base = 20 * (1 + 0.08 * (stage - 1));
-    const bossMult = rpgIsBossStage(stage) ? 4 : 1;
-    return Math.round(base * bossMult * questDifficultyMult(run));
+    return Math.round(base * questDifficultyMult(run));
 };
 
 // Flavor names cycling by stage tier (every 5 stages) — normal enemy vs. its boss form.

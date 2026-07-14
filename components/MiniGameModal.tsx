@@ -129,6 +129,10 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     const isLongPressRef = useRef(false);
     const mouseIsDownRef = useRef(false);
     const [wheelSpinning, setWheelSpinning] = useState(false);
+    const [wheelAutoSpin, setWheelAutoSpin] = useState(false);
+    const wheelSpinButtonTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const wheelIsLongPressRef = useRef(false);
+    const wheelMouseIsDownRef = useRef(false);
     const prizeWheelRef = useRef<RPGRouletteWheelHandle>(null);
     // RPG Roulette: current enemy HP for the active stage, initialized from the
     // persisted value (or a fresh max HP if none saved / stage just advanced).
@@ -300,6 +304,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             setIsRolling(false);
             setIsMoving(false);
             setAutoRoll(false);
+            setWheelAutoSpin(false);
         }
     }, [isOpen, activeGame]);
 
@@ -360,7 +365,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     useEffect(() => { visualPositionRef.current = visualPosition; }, [visualPosition]);
 
     useEffect(() => {
-        if (autoRoll && stageWinning && stageClearData) {
+        if ((autoRoll || wheelAutoSpin) && stageWinning && stageClearData) {
             const t = setTimeout(() => {
                 onStageComplete(stageClearData.coins, stageClearData.gems, true);
                 setStageClearData(null);
@@ -368,7 +373,16 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             }, 1500);
             return () => clearTimeout(t);
         }
-    }, [autoRoll, stageWinning, stageClearData]);
+    }, [autoRoll, wheelAutoSpin, stageWinning, stageClearData]);
+
+    // RPG Roulette: keep spinning on its own once auto-spin is armed — same idle-loop
+    // pattern as Dice's autoRoll above, gated on the wheel's own spinning/credit state.
+    useEffect(() => {
+        if (activeGame === 'WHEEL' && wheelAutoSpin && !wheelSpinning && !stageWinning && !stagePending && wheelCredits > 0) {
+            const t = setTimeout(() => prizeWheelRef.current?.spin(), 900);
+            return () => clearTimeout(t);
+        } else if (wheelAutoSpin && wheelCredits <= 0) setWheelAutoSpin(false);
+    }, [activeGame, wheelAutoSpin, wheelSpinning, stageWinning, stagePending, wheelCredits]);
 
     useEffect(() => {
         if (autoRoll && !isRolling && !isMoving && !stageWinning && !stagePending && diceCredits > 0) {
@@ -682,6 +696,28 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
             }
         }
         onWheelSpin(result.rewards, 1, false);
+    };
+
+    // RPG Roulette spin button — same hold-800ms-to-arm-autospin / tap-to-toggle
+    // pattern as Dice's roll button above.
+    const handleWheelSpinMouseDown = () => {
+        if (wheelCredits <= 0 || wheelSpinning) return;
+        wheelMouseIsDownRef.current = true;
+        wheelIsLongPressRef.current = false;
+        wheelSpinButtonTimeoutRef.current = setTimeout(() => {
+            wheelIsLongPressRef.current = true;
+            if (!wheelAutoSpin) { setWheelAutoSpin(true); audioService.playClick(); }
+        }, 800);
+    };
+
+    const handleWheelSpinMouseUp = () => {
+        if (!wheelMouseIsDownRef.current) return;
+        wheelMouseIsDownRef.current = false;
+        if (wheelSpinButtonTimeoutRef.current) { clearTimeout(wheelSpinButtonTimeoutRef.current); wheelSpinButtonTimeoutRef.current = null; }
+        if (!wheelIsLongPressRef.current) {
+            if (wheelAutoSpin) { setWheelAutoSpin(false); audioService.playClick(); }
+            else prizeWheelRef.current?.spin();
+        }
     };
 
     if (!isOpen) return null;
@@ -1055,11 +1091,15 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                             </button>
                             <div className="flex-1" />
                             <button
-                                onClick={() => prizeWheelRef.current?.spin()}
-                                disabled={wheelCredits <= 0 || wheelSpinning}
-                                className={`${wheelCredits <= 0 || wheelSpinning ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
+                                onMouseDown={handleWheelSpinMouseDown}
+                                onMouseUp={handleWheelSpinMouseUp}
+                                onMouseLeave={handleWheelSpinMouseUp}
+                                onTouchStart={handleWheelSpinMouseDown}
+                                onTouchEnd={handleWheelSpinMouseUp}
+                                disabled={wheelCredits <= 0}
+                                className={`${wheelAutoSpin ? 'pill-red' : wheelCredits <= 0 || wheelSpinning ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
                                 <div className="pill-face" style={{ padding: '7px 8px', fontSize: '10px' }}>
-                                    {wheelSpinning ? 'Spinning…' : 'Spin'}
+                                    {wheelAutoSpin ? 'Stop' : wheelSpinning ? 'Spinning…' : 'Spin'}
                                 </div>
                             </button>
                         </div>
