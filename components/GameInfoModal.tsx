@@ -58,9 +58,11 @@ export const GameInfoModal: React.FC<Props> = ({ isOpen, onClose, game }) => {
     const symbols = GET_SYMBOLS(game.theme);
 
     return (
-        <div className="absolute inset-0 z-[220] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-pop-in select-none">
+        <div className="absolute inset-0 z-[220] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-pop-in select-none"
+            onClick={onClose}>
             <div className="w-full max-w-[480px] flex flex-col rounded-3xl overflow-hidden"
-                style={{ maxHeight: '86vh', background: 'linear-gradient(180deg,#1e1b4b 0%,#0f0c29 100%)', boxShadow: 'inset 0 1px 0 rgba(196,181,253,0.25), 0 8px 32px rgba(0,0,0,0.85)' }}>
+                onClick={e => e.stopPropagation()}
+                style={{ maxHeight: '86%', background: 'linear-gradient(180deg,#1e1b4b 0%,#0f0c29 100%)', boxShadow: 'inset 0 1px 0 rgba(196,181,253,0.25), 0 8px 32px rgba(0,0,0,0.85)' }}>
 
                 <div className="shrink-0 flex items-center gap-2 px-4 pt-4 pb-2">
                     <span className="font-tanker text-white" style={{ fontSize: 17 }}>{game.name}</span>
@@ -78,7 +80,7 @@ export const GameInfoModal: React.FC<Props> = ({ isOpen, onClose, game }) => {
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto px-4 pb-4">
+                <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
                     {tab === 'HOW' ? (
                         <div className="flex flex-col gap-3">
                             <div className="rounded-2xl p-3.5" style={{ background: 'rgba(255,255,255,0.05)' }}>
