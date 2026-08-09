@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type InboxMessageType = 'WELCOME' | 'DAILY_COINS' | 'DAILY_PACK' | 'VIP_CASHBACK' | 'MONTHLY_RANK' | 'GUILD_RANK' | 'FRIEND_GIFT';
+export type InboxMessageType = 'WELCOME' | 'DAILY_COINS' | 'DAILY_PACK' | 'VIP_CASHBACK' | 'MONTHLY_RANK' | 'GUILD_RANK' | 'FRIEND_GIFT' | 'HOLIDAY_BONUS' | 'MONTHLY_PASS_GIFT';
 
 export interface InboxMessage {
     id: string;
@@ -28,6 +28,8 @@ const MSG_ICONS: Record<string, string> = {
     MONTHLY_RANK: '/symbols/diamond.png',
     GUILD_RANK:   '/symbols/diamond.png',
     FRIEND_GIFT:  '/ui/gift_mail.png',
+    HOLIDAY_BONUS:    '/ui/gift_mail.png',
+    MONTHLY_PASS_GIFT: '/ui/pass.png',
 };
 
 function daysLeft(expiresAt?: number): number | null {

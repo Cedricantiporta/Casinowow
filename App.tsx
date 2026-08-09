@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, LoginStreakState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState, GuildDonationState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK, questDifficultyMult, rpgEnemyMaxHp } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK, questDifficultyMult, rpgEnemyMaxHp, US_HOLIDAY_EVENTS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -1141,6 +1141,24 @@ const App: React.FC = () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myGuild?.id]);
 
+  // Every max-bet spin adds 1 XP to the guild's LEVEL (separate from the contribution-
+  // points buffer above) — same buffered-flush shape, its own accumulator.
+  const guildXpBufferRef = useRef(0);
+  useEffect(() => {
+      const flush = () => {
+          const amount = guildXpBufferRef.current;
+          if (amount <= 0 || !myGuild) return;
+          guildXpBufferRef.current = 0;
+          contributeGuildXp(myGuild.id, amount).then(newLevel => {
+              if (newLevel) setCelebrationMsg(`${myGuild.name} reached Level ${newLevel}!`);
+              if (showGuild) refreshMyGuild();
+          });
+      };
+      const t = setInterval(flush, 10000);
+      return () => { clearInterval(t); flush(); };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myGuild?.id]);
+
   const handleGuildSearch = (query: string) => {
       setGuildLoading(true);
       searchGuilds(query).then(res => { setGuildSearchResults(res); setGuildLoading(false); });
@@ -1809,6 +1827,62 @@ const App: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Holiday/event inbox bonus: on mount, check if today falls within any US holiday's
+  // grant window (the holiday's date plus a short grace period, so players who don't
+  // happen to open the app on the exact day still catch it) and hasn't already been
+  // granted this calendar year — insert a message worth 10x the player's current max
+  // bet in coins + 200 gems. The coin amount is computed fresh at claim time (see
+  // handleClaimInbox), same convention as MONTHLY_RANK/GUILD_RANK, so it always
+  // reflects the player's max bet at the moment they actually claim it.
+  useEffect(() => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const GRACE_DAYS = 2;
+      setInbox(prev => {
+          let next = prev;
+          for (const holiday of US_HOLIDAY_EVENTS) {
+              const hd = holiday.getDate(year);
+              const holidayMidnight = new Date(hd.getFullYear(), hd.getMonth(), hd.getDate()).getTime();
+              const daysSince = Math.round((todayMidnight - holidayMidnight) / 86400000);
+              if (daysSince < 0 || daysSince > GRACE_DAYS) continue;
+              const msgId = `holiday_${holiday.id}_${year}`;
+              if (next.some(m => m.id === msgId)) continue;
+              next = [...next, {
+                  id: msgId,
+                  type: 'HOLIDAY_BONUS' as const,
+                  title: `${holiday.name}!`,
+                  body: '10x Max Bet in Coins · +200 Gems',
+                  claimed: false,
+                  createdAt: Date.now(),
+                  expiresAt: Date.now() + 7 * 86400000,
+              }];
+          }
+          return next;
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // One-time free monthly Premium Pass gift for every player. There's no live server
+  // to push this to already-open sessions instantly — it's inserted the next time
+  // each player's client loads, tracked by its own localStorage flag so every player
+  // gets it exactly once and it never re-appears after that.
+  useEffect(() => {
+      try {
+          if (localStorage.getItem('cw_monthly_pass_gift_sent')) return;
+          localStorage.setItem('cw_monthly_pass_gift_sent', '1');
+          setInbox(prev => prev.some(m => m.id === 'monthly_pass_gift') ? prev : [...prev, {
+              id: 'monthly_pass_gift',
+              type: 'MONTHLY_PASS_GIFT' as const,
+              title: 'Free Monthly Pass!',
+              body: 'Premium Pass — 30 Days, on the house',
+              claimed: false,
+              createdAt: Date.now(),
+          }]);
+      } catch {}
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const triggerCoinAnim = (addAmount: number) => {
       if (addAmount <= 0) return;
       // playerRef.current.balance is the pre-add value here (setPlayer is async),
@@ -1913,6 +1987,15 @@ const App: React.FC = () => {
                       setFriendsState(p => ({ ...p, friends: p.friends.map(f => f.id === fromDevice ? { ...f, lastSentAt: Date.now() } : f) }));
                   });
               }
+          } else if (msg.type === 'HOLIDAY_BONUS') {
+              const coinReward = MAX_BET_BY_LEVEL(player.level) * 10;
+              setPlayer(p => ({ ...p, balance: p.balance + coinReward, diamonds: p.diamonds + 200 }));
+              triggerCoinAnim(coinReward);
+              setCelebrationMsg(`+${formatCommaNumber(coinReward)} Coins · +200 Gems`);
+          } else if (msg.type === 'MONTHLY_PASS_GIFT') {
+              const nowMs = Date.now();
+              setMissionState(prev => ({ ...prev, isPremium: true, premiumExpiry: Math.max(nowMs, prev.premiumExpiry || 0) + 30 * 24 * 3600000 }));
+              setCelebrationMsg('👑 Premium Pass activated for 30 days!');
           }
           audioService.playWinBig();
           return prev.map(m => m.id === id ? { ...m, claimed: true } : m);
@@ -2843,15 +2926,21 @@ const App: React.FC = () => {
   };
 
   const handleClaimDeckReward = (deckId: string, reward: number) => {
-      // Claiming re-locks every card and advances the album to its next stage —
-      // same run/cycle idea as the mini games and Quest Path.
-      setDecks(prev => prev.map(d => d.gameId === deckId
-          ? { ...d, cards: d.cards.map(c => ({ ...c, count: 0 })), isCompleted: false, rewardClaimed: false, stage: (d.stage ?? 1) + 1 }
-          : d
-      ));
-      setPlayer(p => ({ ...p, balance: p.balance + reward }));
-      triggerCoinAnim(reward);
-      setCelebrationMsg(`+${formatCommaNumber(reward)} Coins`);
+      // Claiming an individual album just marks it claimed and leaves its cards/stage
+      // alone — advancing to the next stage (and paying the grand prize shown at the
+      // top of the album screen) requires every album to be claimed together, not
+      // just this one.
+      let grandTotal = 0;
+      setDecks(prev => {
+          const marked = prev.map(d => d.gameId === deckId ? { ...d, rewardClaimed: true } : d);
+          if (!marked.every(d => d.rewardClaimed)) return marked;
+          grandTotal = getGrandAlbumReward(player.level);
+          return marked.map(d => ({ ...d, cards: d.cards.map(c => ({ ...c, count: 0 })), isCompleted: false, rewardClaimed: false, stage: (d.stage ?? 1) + 1 }));
+      });
+      const total = reward + grandTotal;
+      setPlayer(p => ({ ...p, balance: p.balance + total }));
+      triggerCoinAnim(total);
+      setCelebrationMsg(grandTotal > 0 ? `All Albums Complete! +${formatCommaNumber(total)} Coins` : `+${formatCommaNumber(reward)} Coins`);
       audioService.playWinBig();
   };
 
@@ -4516,7 +4605,10 @@ const App: React.FC = () => {
       // Track slot quest progress (per-spin: spin count, total bet, max-bet spins)
       trackSlotQuest('SPIN_COUNT', 1);
       trackSlotQuest('BET_COINS', currentBet);
-      if (betIndex === availableBets.length - 1) trackSlotQuest('MAX_BET_SPIN', 1);
+      if (betIndex === availableBets.length - 1) {
+          trackSlotQuest('MAX_BET_SPIN', 1);
+          if (myGuild) guildXpBufferRef.current += 1;
+      }
       // Track VIP bets for end-of-day cashback
       if (player.isVip) {
           const today = new Date().toDateString();

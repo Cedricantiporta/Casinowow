@@ -21,7 +21,11 @@ const TABS: { key: LeaderboardMetric; label: string }[] = [
     { key: 'maxWin',     label: 'Max Win' },
 ];
 
-export const EXCLUSIVE_AVATAR = '/profilepicsnew (13).png';
+// Was '/profilepicsnew (13).png' — that's the Arena Legend-tier avatar (see
+// avatarService.ts's AVATARS list), so the #1 monthly prize was quietly handing out
+// a ranking-progression avatar instead of a true event-exclusive one. Every avatar
+// with unlock.type 'event' is otherwise ungettable through normal progression.
+export const EXCLUSIVE_AVATAR = '/profilepicsnew (12).png';
 
 export interface RankReward { gems: number; collectDays?: number; expDays?: number; missionExpHours?: number; exclusiveAvatar?: boolean }
 export const RANK_REWARDS: Record<number, RankReward> = {

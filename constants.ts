@@ -1401,3 +1401,36 @@ export const LOGIN_STREAK_MILESTONES = [
     { days: 22, multiplier: 0,      gems: 150 },
     { days: 30, multiplier: 84.375, gems: 200 },
 ].map(r => ({ ...r, coins: r.multiplier }));
+
+// Holiday/event calendar for the automatic Inbox bonus (10x current max bet in coins
+// + 200 gems, once per holiday per calendar year — see the "Holiday inbox bonus"
+// effect in App.tsx). `getDate` resolves the holiday's actual date for a given year,
+// so movable holidays (Thanksgiving, Memorial/Labor Day) work the same as fixed ones.
+export interface HolidayEvent { id: string; name: string; getDate: (year: number) => Date }
+
+// Nth (1-based) occurrence of `weekday` (0=Sun..6=Sat) in `month` (1-12) of `year`.
+const nthWeekdayOfMonth = (year: number, month: number, weekday: number, n: number): Date => {
+    const first = new Date(year, month - 1, 1);
+    const offset = (weekday - first.getDay() + 7) % 7;
+    return new Date(year, month - 1, 1 + offset + (n - 1) * 7);
+};
+// Last occurrence of `weekday` in `month` of `year`.
+const lastWeekdayOfMonth = (year: number, month: number, weekday: number): Date => {
+    const lastDayNum = new Date(year, month, 0).getDate();
+    const last = new Date(year, month - 1, lastDayNum);
+    return new Date(year, month - 1, lastDayNum - ((last.getDay() - weekday + 7) % 7));
+};
+const fixedDate = (month: number, day: number) => (year: number) => new Date(year, month - 1, day);
+
+export const US_HOLIDAY_EVENTS: HolidayEvent[] = [
+    { id: 'new_year',     name: "New Year's Day",    getDate: fixedDate(1, 1) },
+    { id: 'valentines',   name: "Valentine's Day",   getDate: fixedDate(2, 14) },
+    { id: 'st_patricks',  name: "St. Patrick's Day", getDate: fixedDate(3, 17) },
+    { id: 'memorial_day', name: 'Memorial Day',      getDate: year => lastWeekdayOfMonth(year, 5, 1) },
+    { id: 'independence', name: 'Independence Day',  getDate: fixedDate(7, 4) },
+    { id: 'labor_day',    name: 'Labor Day',         getDate: year => nthWeekdayOfMonth(year, 9, 1, 1) },
+    { id: 'halloween',    name: 'Halloween',         getDate: fixedDate(10, 31) },
+    { id: 'thanksgiving', name: 'Thanksgiving',      getDate: year => nthWeekdayOfMonth(year, 11, 4, 4) },
+    { id: 'christmas',    name: 'Christmas',         getDate: fixedDate(12, 25) },
+    { id: 'new_years_eve',name: "New Year's Eve",    getDate: fixedDate(12, 31) },
+];
