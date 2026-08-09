@@ -202,6 +202,18 @@ begin
     update guilds set description = left(coalesce(p_description,''),200) where id = p_guild_id;
 end $$;
 
+-- guild_join/guild_create only snapshot the player's name/avatar at that moment —
+-- this keeps the member row in sync whenever the player renames or changes avatar
+-- later. Self-only (a member can only update their own row).
+create or replace function guild_update_member_profile(p_guild_id uuid, p_name text, p_avatar text)
+returns void language plpgsql security definer set search_path = public as $$
+declare me text := auth.uid()::text;
+begin
+    if guild_my_role(p_guild_id, me) is null then raise exception 'not a member'; end if;
+    update guild_members set name = left(coalesce(p_name, name), 40), avatar = coalesce(p_avatar, avatar)
+        where guild_id = p_guild_id and device_id = me;
+end $$;
+
 -- Members contribute to guild LEVEL xp (capped) — returns the new level if it
 -- leveled up, else null. Amount is clamped so a tampered client can't inject huge values.
 create or replace function guild_contribute_xp(p_guild_id uuid, p_amount double precision)
@@ -241,13 +253,15 @@ revoke all on function
     guild_create(text,text,text,text,boolean,text,text), guild_join(uuid,text,text),
     guild_leave(uuid), guild_transfer_leadership(uuid,text), guild_kick(uuid,text),
     guild_set_role(uuid,text,text), guild_disband(uuid), guild_update_description(uuid,text),
-    guild_contribute_xp(uuid,double precision), guild_contribute_points(uuid,double precision)
+    guild_contribute_xp(uuid,double precision), guild_contribute_points(uuid,double precision),
+    guild_update_member_profile(uuid,text,text)
     from public;
 grant execute on function
     guild_create(text,text,text,text,boolean,text,text), guild_join(uuid,text,text),
     guild_leave(uuid), guild_transfer_leadership(uuid,text), guild_kick(uuid,text),
     guild_set_role(uuid,text,text), guild_disband(uuid), guild_update_description(uuid,text),
-    guild_contribute_xp(uuid,double precision), guild_contribute_points(uuid,double precision)
+    guild_contribute_xp(uuid,double precision), guild_contribute_points(uuid,double precision),
+    guild_update_member_profile(uuid,text,text)
     to anon, authenticated;
 
 notify pgrst, 'reload schema';

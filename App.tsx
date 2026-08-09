@@ -43,7 +43,7 @@ import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { GuildModal } from './components/GuildModal';
 import {
     searchGuilds, getMyGuild, getTopGuildsByContribution, createGuild, joinGuild, leaveGuild, transferLeadership, disbandGuild,
-    kickMember, setMemberRole, contributeGuildXp, contributeGuildPoints, updateGuildDescription, rewardTierForRank,
+    kickMember, setMemberRole, contributeGuildXp, contributeGuildPoints, updateGuildDescription, updateGuildMemberProfile, rewardTierForRank,
     GUILD_CREATE_COST_GEMS, GUILD_DONATE_GEMS, GUILD_DONATE_BET_PCT, GUILD_DONATE_CONTRIBUTION,
     GUILD_TASK_REFRESH_BASE_COST, GUILD_TASK_REFRESH_MAX_MULT,
 } from './services/guildService';
@@ -1097,6 +1097,12 @@ const App: React.FC = () => {
       try { localStorage.setItem('cw_guild_reward_month', monthKey); } catch {}
       const guild = await getMyGuild(getDeviceId());
       if (!guild) return;
+      // Only reward members who were already in the guild before this month started —
+      // someone who just joined couldn't have contributed to last month's placement,
+      // so they shouldn't be handed a reward for a period they weren't part of.
+      const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+      const me = guild.members.find(m => m.deviceId === getDeviceId());
+      if (!me || me.joinedAt >= startOfThisMonth) return;
       const top10 = await getTopGuildsByContribution(10);
       const rank = top10.findIndex(g => g.id === guild.id);
       if (rank < 0) return;
@@ -1655,6 +1661,7 @@ const App: React.FC = () => {
       maxJackpot: player.stats?.maxJackpotWin || 0,
       maxWin: player.stats?.maxSingleWin || 0,
     });
+    if (myGuild) updateGuildMemberProfile(myGuild.id, trimmed, profileEmoji).then(refreshMyGuild);
   };
   const [gameLoadingConfig, setGameLoadingConfig] = useState<GameConfig | null>(null);
   const [inbox, setInbox] = useState<InboxMessage[]>(() => {
@@ -9392,7 +9399,7 @@ const App: React.FC = () => {
           passBoostEndTime={missionState.passBoostEndTime}
           recentGames={GAMES_CONFIG.filter(g => (player.stats?.recentSlots || []).includes(g.id)).sort((a, b) => (player.stats?.recentSlots || []).indexOf(a.id) - (player.stats?.recentSlots || []).indexOf(b.id))}
           profileEmoji={profileEmoji}
-          onSetProfileEmoji={(e) => { setProfileEmoji(e); try { localStorage.setItem('cw_profile_emoji', e); } catch {} }}
+          onSetProfileEmoji={(e) => { setProfileEmoji(e); try { localStorage.setItem('cw_profile_emoji', e); } catch {}; if (myGuild) updateGuildMemberProfile(myGuild.id, playerName, e).then(refreshMyGuild); }}
           playerName={playerName}
           onSetPlayerName={handleSetPlayerName}
           onNavigateToGame={(game) => { setShowProfile(false); handleGameSelect(game as GameConfig); }}
@@ -9405,6 +9412,7 @@ const App: React.FC = () => {
               setPlayer(p => ({ ...p, diamonds: p.diamonds - cost, unlockedAvatars: [...(p.unlockedAvatars || []), path] }));
               setProfileEmoji(path);
               try { localStorage.setItem('cw_profile_emoji', path); } catch {}
+              if (myGuild) updateGuildMemberProfile(myGuild.id, playerName, path).then(refreshMyGuild);
               audioService.playClick();
           }}
       />

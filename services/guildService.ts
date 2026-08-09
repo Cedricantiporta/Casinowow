@@ -263,6 +263,14 @@ export async function updateGuildDescription(guildId: string, description: strin
     try { await supabase.rpc('guild_update_description', { p_guild_id: guildId, p_description: description.slice(0, 200) }); } catch { /* best-effort */ }
 }
 
+// guild_join/guild_create only snapshot name/avatar at that moment — call this
+// whenever the player renames or changes avatar so the guild roster stays current.
+export async function updateGuildMemberProfile(guildId: string, name: string, avatar: string): Promise<void> {
+    if (!supabase) return;
+    await ensureAuthId();
+    try { await supabase.rpc('guild_update_member_profile', { p_guild_id: guildId, p_name: name, p_avatar: avatar }); } catch { /* best-effort */ }
+}
+
 // Adds XP to the guild's LEVEL (capped at GUILD_MAX_LEVEL server-side). Returns
 // the guild's new level if it leveled up, else null.
 export async function contributeGuildXp(guildId: string, amount: number): Promise<number | null> {
