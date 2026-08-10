@@ -864,9 +864,14 @@ export const formatKShort = (n: number): string => {
 };
 
 // Shared "run/cycle" difficulty scaler: rewards get 20% bigger each completed
-// run, capped at 200% bigger (3x). Used by the Quest Path cycle and by each
-// mini game's own run counter (both reset-and-repeat once their stages are done).
+// run, capped at 200% bigger (3x). Used by each mini game's own run counter
+// (reset-and-repeat once its stages are done).
 export const questDifficultyMult = (cycleCount: number) => Math.min(3, 1 + Math.max(0, cycleCount) * 0.2);
+
+// Quest Path missions jump to 5x harder targets once the player has finished
+// every stage of the path at least once — a much steeper wall than the generic
+// run-scaler above, so repeating the same 7-slot path feels like a real new tier.
+export const questPathDifficultyMult = (cycleCount: number) => (cycleCount > 0 ? 5 : 1);
 
 // RPG Roulette: every 10th stage (10, 20 within the 25-stage cycle) is a boss fight.
 export const rpgIsBossStage = (stage: number): boolean => stage % 10 === 0;

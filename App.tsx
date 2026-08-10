@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SymbolType, GameStatus, PlayerState, WinData, QuestState, MiniGameReward, GameConfig, GameTheme, MissionState, MissionType, PassReward, Mission, Deck, Card, DailyLoginState, LoginStreakState, WildGridCell, SlotQuestState, SlotQuestMission, ArenaState, Friend, FriendsState, Guild, GuildSummary, GuildTask, GuildTaskState, GuildDonationState } from './types';
-import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK, questDifficultyMult, rpgEnemyMaxHp, US_HOLIDAY_EVENTS } from './constants';
+import { GAMES_CONFIG, GET_DYNAMIC_WEIGHTS, SPIN_DURATION, REEL_DELAY, INITIAL_BALANCE, GET_PAYLINES, XP_BASE_REQ, GET_ALL_BETS, MAX_BET_BY_LEVEL, formatNumber, formatCommaNumber, formatWinNumber, GET_SYMBOLS, AUTO_SPIN_DELAY, GENERATE_DAILY_MISSIONS, GENERATE_PASS_REWARDS, INITIAL_GEMS, GENERATE_DECKS, CALCULATE_TIME_BONUS, DUPLICATE_CREDIT_VALUES, GENERATE_REPLACEMENT_MISSION, DAILY_LOGIN_REWARDS, DAILY_LOGIN_TOTAL_DAYS, LOGIN_STREAK_MILESTONES, PACK_COSTS, SCALE_COIN_REWARD, formatK, formatKShort, NEON_WEIGHTS, REGENERATE_MISSION_STACK, ALL_COVER_ASSETS, ALBUM_COVER_ASSETS, GENERATE_GUILD_TASKS, GENERATE_ONE_GUILD_TASK, questDifficultyMult, questPathDifficultyMult, rpgEnemyMaxHp, US_HOLIDAY_EVENTS } from './constants';
 import { Reel, borderThemeFor } from './components/Reel';
 import { ViperBorder } from './components/ViperBorder';
 import { WinPopup } from './components/WinPopup';
@@ -466,6 +466,8 @@ const App: React.FC = () => {
               totalWon: p.stats?.totalCoinsWon || 0,
               maxJackpot: p.stats?.maxJackpotWin || 0,
               maxWin: p.stats?.maxSingleWin || 0,
+              arenaTier: arenaStateRef.current.tierIndex,
+              albumStage: decksRef.current[0]?.stage || 1,
           };
       };
       // Initial sync shortly after mount so new sessions register quickly.
@@ -488,6 +490,8 @@ const App: React.FC = () => {
           totalWon: player.stats?.totalCoinsWon || 0,
           maxJackpot: player.stats?.maxJackpotWin || 0,
           maxWin: player.stats?.maxSingleWin || 0,
+          arenaTier: arenaStateRef.current.tierIndex,
+          albumStage: decksRef.current[0]?.stage || 1,
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player.level]);
@@ -659,6 +663,11 @@ const App: React.FC = () => {
       } catch {}
       return GENERATE_DECKS();
   });
+  // All 8 albums share one stage number (see handleClaimDeckReward — they only ever
+  // advance together), so decks[0].stage is "the" album stage. Refreshed via ref so
+  // the periodic leaderboard sync below always reads the latest value.
+  const decksRef = useRef(decks);
+  useEffect(() => { decksRef.current = decks; }, [decks]);
 
   const [availableBets, setAvailableBets] = useState<number[]>(ALL_BETS);
   const [betIndex, setBetIndex] = useState(0);
@@ -984,6 +993,10 @@ const App: React.FC = () => {
       } catch {}
       return initialArenaState(Date.now());
   });
+  // Refreshed via ref so the periodic leaderboard sync below always reads the
+  // latest tier instead of a stale value captured when that effect first mounted.
+  const arenaStateRef = useRef(arenaState);
+  useEffect(() => { arenaStateRef.current = arenaState; }, [arenaState]);
   const [showArena, setShowArena] = useState(false);
   const [showArenaResults, setShowArenaResults] = useState(false);
 
@@ -1660,6 +1673,8 @@ const App: React.FC = () => {
       totalWon: player.stats?.totalCoinsWon || 0,
       maxJackpot: player.stats?.maxJackpotWin || 0,
       maxWin: player.stats?.maxSingleWin || 0,
+      arenaTier: arenaState.tierIndex,
+      albumStage: decks[0]?.stage || 1,
     });
     if (myGuild) updateGuildMemberProfile(myGuild.id, trimmed, profileEmoji).then(refreshMyGuild);
   };
@@ -6066,6 +6081,7 @@ const App: React.FC = () => {
       name: playerName, avatar: profileEmoji, level: player.level, vipLevel: player.vipLevel ?? 0,
       score: player.balance, gems: player.diamonds, totalWon: player.stats?.totalCoinsWon || 0,
       maxJackpot: player.stats?.maxJackpotWin || 0, maxWin: player.stats?.maxSingleWin || 0,
+      arenaTier: arenaState.tierIndex, albumStage: decks[0]?.stage || 1,
   });
   const MAX_FRIENDS = 50;
   const handleAddFriend = async (friend: Friend) => {
@@ -6658,7 +6674,7 @@ const App: React.FC = () => {
           setSlotQuestState(prev => {
               const activePath = prev.pathSlotIds[prev.currentPathIndex];
               if (game.id === activePath && (!prev.missions || prev.missions.length === 0 || prev.missions[0].id.split('_')[0] !== game.id)) {
-                  const newMissions = makeSlotMissions(game.id, currentBetRef.current, prev.currentPathIndex, player.level, questDifficultyMult(prev.cycleCount || 0));
+                  const newMissions = makeSlotMissions(game.id, currentBetRef.current, prev.currentPathIndex, player.level, questPathDifficultyMult(prev.cycleCount || 0));
                   const next = { ...prev, missions: newMissions };
                   try { localStorage.setItem('cw_slot_quest', JSON.stringify(next)); } catch {}
                   return next;
@@ -9324,6 +9340,8 @@ const App: React.FC = () => {
                       totalWon: 0,
                       maxJackpot: 0,
                       maxWin: 0,
+                      arenaTier: 0,
+                      albumStage: 1,
                   });
               } catch {}
               try {
@@ -9437,6 +9455,8 @@ const App: React.FC = () => {
               totalWon: player.stats?.totalCoinsWon || 0,
               maxJackpot: player.stats?.maxJackpotWin || 0,
               maxWin: player.stats?.maxSingleWin || 0,
+              arenaTier: arenaState.tierIndex,
+              albumStage: decks[0]?.stage || 1,
           }}
           friendIds={friendsState.friends.map(f => f.id)}
           pendingFriendIds={pendingFriendRequestIds}
@@ -9509,6 +9529,8 @@ const App: React.FC = () => {
               totalWon: player.stats?.totalCoinsWon || 0,
               maxJackpot: player.stats?.maxJackpotWin || 0,
               maxWin: player.stats?.maxSingleWin || 0,
+              arenaTier: arenaState.tierIndex,
+              albumStage: decks[0]?.stage || 1,
           }}
           maxBet={MAX_BET_BY_LEVEL(player.level)}
           incomingRequests={incomingFriendRequests}

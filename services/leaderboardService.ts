@@ -4,17 +4,18 @@
 // upserts the local device's stats and reads the live top players. When it is not
 // configured, it falls back to a deterministic seeded board so the UI always works.
 import { supabase, ensureAuthId } from './supabaseClient';
-import { AI_NAMES } from './arenaService';
+import { AI_NAMES, MAX_TIER } from './arenaService';
 
 // Ranking metrics the board can be sorted by.
-export type LeaderboardMetric = 'score' | 'level' | 'maxJackpot' | 'maxWin';
+export type LeaderboardMetric = 'score' | 'level' | 'arena' | 'maxWin' | 'albums';
 
 // Maps a metric to its Supabase column.
 const METRIC_COLUMN: Record<LeaderboardMetric, string> = {
     score: 'score',
     level: 'level',
-    maxJackpot: 'max_jackpot',
+    arena: 'arena_tier',
     maxWin: 'max_win',
+    albums: 'album_stage',
 };
 
 export interface LeaderboardEntry {
@@ -28,6 +29,8 @@ export interface LeaderboardEntry {
     totalWon: number;    // lifetime coins won
     maxJackpot: number;  // biggest jackpot
     maxWin: number;      // biggest single win
+    arenaTier: number;   // highest Arena tierIndex reached (see arenaService.MAX_TIER)
+    albumStage: number;  // current card-album stage (all 8 albums always share one stage)
     isYou?: boolean;
 }
 
@@ -41,12 +44,15 @@ export interface LocalPlayer {
     totalWon: number;
     maxJackpot: number;
     maxWin: number;
+    arenaTier: number;
+    albumStage: number;
 }
 
 // A fixed roster of high rollers. Values are large and static so the board feels
 // established; the local player is merged in each time it's read. Gems are derived
 // from score so the seed stays compact.
-const SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = [
+type SeedEntry = Omit<LeaderboardEntry, 'isYou' | 'gems' | 'arenaTier' | 'albumStage'>;
+const SEED: SeedEntry[] = [
     { id: 's1',  name: 'MidnightAce',  avatar: '/profilepicsnew (2).png',  level: 142, vipLevel: 20, score: 8_420_000_000, totalWon: 31_200_000_000, maxJackpot: 1_850_000_000, maxWin: 940_000_000 },
     { id: 's2',  name: 'GoldenTiger',  avatar: '/profilepicsnew (6).png',  level: 137, vipLevel: 18, score: 6_910_000_000, totalWon: 27_400_000_000, maxJackpot: 1_620_000_000, maxWin: 880_000_000 },
     { id: 's3',  name: 'LuckyNova',    avatar: '/profilepicsnew (10).png',  level: 129, vipLevel: 17, score: 5_730_000_000, totalWon: 23_900_000_000, maxJackpot: 1_410_000_000, maxWin: 760_000_000 },
@@ -76,7 +82,7 @@ const EXTRA_NAMES = AI_NAMES.slice(0, 52);
 const EXTRA_PICS = ['/profilepicsnew (2).png', '/profilepicsnew (3).png', '/profilepicsnew (4).png', '/profilepicsnew (5).png'];
 const EXTRA_DEFAULT = '/profilepicsnew (4).png';
 
-const EXTRA_SEED: Omit<LeaderboardEntry, 'isYou' | 'gems'>[] = EXTRA_NAMES.map((name, i) => {
+const EXTRA_SEED: SeedEntry[] = EXTRA_NAMES.map((name, i) => {
     // Scores start just under the lowest whale (~78M) and taper to ~12M.
     const score = Math.round(64_000_000 * Math.pow(0.965, i)) + 8_000_000;
     const r = (i * 2654435761 % 1000) / 1000; // deterministic pseudo-random in [0,1)
@@ -113,7 +119,10 @@ const SHUFFLED_NAMES = seededShuffle(AI_NAMES, 0x5eed42);
 // modest and derived from level rather than the (huge) coin score. Names are taken
 // from the shuffled pool by index so placements are randomized.
 const AI_SCALE = 330_000;
-function aiEntry(e: Omit<LeaderboardEntry, 'isYou' | 'gems'>, i: number): LeaderboardEntry {
+// Combined AI roster size — used to spread arenaTier/albumStage deterministically
+// across the whole board (index 0 = top of the roster, down to AI_TOTAL - 1).
+const AI_TOTAL = SEED.length + EXTRA_SEED.length;
+function aiEntry(e: SeedEntry, i: number): LeaderboardEntry {
     return {
         ...e,
         name: SHUFFLED_NAMES[i % SHUFFLED_NAMES.length],
@@ -123,11 +132,13 @@ function aiEntry(e: Omit<LeaderboardEntry, 'isYou' | 'gems'>, i: number): Leader
         maxWin: e.maxWin * AI_SCALE,
         vipLevel: i % 2 === 0 ? e.vipLevel : 0, // ~50% have VIP
         gems: Math.round(e.level * 80),
+        arenaTier: Math.max(0, MAX_TIER - Math.floor(i * MAX_TIER / (AI_TOTAL - 1))),
+        albumStage: Math.max(1, 6 - Math.floor(i / 12)),
     };
 }
 
-const metricValue = (e: { score: number; level: number; maxJackpot: number; maxWin: number }, m: LeaderboardMetric) =>
-    m === 'level' ? e.level : m === 'maxJackpot' ? e.maxJackpot : m === 'maxWin' ? e.maxWin : e.score;
+const metricValue = (e: { score: number; level: number; arenaTier: number; maxWin: number; albumStage: number }, m: LeaderboardMetric) =>
+    m === 'level' ? e.level : m === 'arena' ? e.arenaTier : m === 'maxWin' ? e.maxWin : m === 'albums' ? e.albumStage : e.score;
 
 // Stable anonymous identity for this device.
 export function getDeviceId(): string {
@@ -146,7 +157,7 @@ export function getDeviceId(): string {
 function seededBoard(you: LocalPlayer, metric: LeaderboardMetric): LeaderboardEntry[] {
     const merged: LeaderboardEntry[] = [
         ...[...SEED, ...EXTRA_SEED].map(aiEntry),
-        { id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, vipLevel: you.vipLevel ?? 0, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true },
+        { id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, vipLevel: you.vipLevel ?? 0, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, arenaTier: you.arenaTier, albumStage: you.albumStage, isYou: true },
     ];
     merged.sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
     return merged.slice(0, LIMIT);
@@ -172,6 +183,8 @@ export async function getPlayerById(id: string): Promise<LeaderboardEntry | null
             totalWon: Number(data.total_won) || 0,
             maxJackpot: Number(data.max_jackpot) || 0,
             maxWin: Number(data.max_win) || 0,
+            arenaTier: Number(data.arena_tier) || 0,
+            albumStage: Number(data.album_stage) || 1,
         };
     } catch {
         return null;
@@ -209,6 +222,8 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
             totalWon: Number(row.total_won) || 0,
             maxJackpot: Number(row.max_jackpot) || 0,
             maxWin: Number(row.max_win) || 0,
+            arenaTier: Number(row.arena_tier) || 0,
+            albumStage: Number(row.album_stage) || 1,
             isYou: row.device_id === deviceId,
         }));
         // Blend in the AI roster so the board always feels populated, even with few
@@ -219,7 +234,7 @@ export async function fetchTopPlayers(you: LocalPlayer, metric: LeaderboardMetri
             .filter(e => !liveNames.has(e.name.toLowerCase()));
         const merged: LeaderboardEntry[] = [...live, ...ai];
         if (!merged.some(e => e.isYou)) {
-            merged.push({ id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, vipLevel: you.vipLevel ?? 0, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, isYou: true });
+            merged.push({ id: 'you', name: you.name || 'You', avatar: you.avatar, level: you.level, vipLevel: you.vipLevel ?? 0, score: you.score, gems: you.gems, totalWon: you.totalWon, maxJackpot: you.maxJackpot, maxWin: you.maxWin, arenaTier: you.arenaTier, albumStage: you.albumStage, isYou: true });
         }
         merged.sort((a, b) => metricValue(b, metric) - metricValue(a, metric));
         return merged.slice(0, LIMIT);
@@ -259,6 +274,8 @@ export async function submitScore(you: LocalPlayer): Promise<void> {
         total_won: safeNum(you.totalWon),
         max_jackpot: safeNum(you.maxJackpot),
         max_win: safeNum(you.maxWin),
+        arena_tier: Math.max(0, Math.round(safeNum(you.arenaTier))),
+        album_stage: Math.max(1, Math.round(safeNum(you.albumStage || 1))),
     };
     try {
         const { error } = await supabase.from(TABLE).upsert(full, { onConflict: 'device_id' });

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { formatCommaNumber, formatK } from '../constants';
 import { fetchTopPlayers, LeaderboardEntry, LeaderboardMetric, LocalPlayer } from '../services/leaderboardService';
+import { rankInfo } from '../services/arenaService';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { GroupedList } from './GroupedList';
 import { RewardChip, fmtRewardDuration } from './RewardChip';
@@ -15,10 +16,11 @@ interface LeaderboardModalProps {
 }
 
 const TABS: { key: LeaderboardMetric; label: string }[] = [
-    { key: 'score',      label: 'Total Coins' },
-    { key: 'level',      label: 'Top Level' },
-    { key: 'maxJackpot', label: 'Max Jackpot' },
-    { key: 'maxWin',     label: 'Max Win' },
+    { key: 'score',  label: 'Total Coins' },
+    { key: 'level',  label: 'Top Level' },
+    { key: 'arena',  label: 'Arena' },
+    { key: 'maxWin', label: 'Max Win' },
+    { key: 'albums', label: 'Albums' },
 ];
 
 // Was '/profilepicsnew (13).png' — that's the Arena Legend-tier avatar (see
@@ -45,7 +47,7 @@ const fmtDuration = fmtRewardDuration;
 const formatScore = (n: number) => formatK(n, 3);
 
 const metricOf = (e: LeaderboardEntry, m: LeaderboardMetric) =>
-    m === 'level' ? e.level : m === 'maxJackpot' ? e.maxJackpot : m === 'maxWin' ? e.maxWin : e.score;
+    m === 'level' ? e.level : m === 'arena' ? e.arenaTier : m === 'maxWin' ? e.maxWin : m === 'albums' ? e.albumStage : e.score;
 
 // Medal treatment for the top three; soft chip for everyone else. No hard borders.
 const medal = (rank: number): { bg: string; color: string; glow?: string } => {
@@ -74,7 +76,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             if (alive) { setEntries(list); setLoading(false); }
         });
         return () => { alive = false; };
-    }, [isOpen, metric, player.score, player.level, player.maxJackpot, player.maxWin, player.name, player.avatar]);
+    }, [isOpen, metric, player.score, player.level, player.arenaTier, player.maxWin, player.albumStage, player.name, player.avatar]);
 
     // Persist the player's score-tab rank so monthly rewards can reference it.
     useEffect(() => {
@@ -114,9 +116,12 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 <div className="shrink-0 flex flex-col items-end gap-1">
                     {/* Score / metric value — always shown */}
                     <div className="flex items-center gap-1">
-                        {metric !== 'level' && <img src="/new_coinicon.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />}
+                        {(metric === 'score' || metric === 'maxWin') && <img src="/new_coinicon.png" alt="" style={{ width: 14, height: 14, objectFit: 'contain' }} />}
                         <span className="font-black text-yellow-300" style={{ fontSize: 12 }}>
-                            {metric === 'level' ? `Lv ${e.level}` : formatScore(metricOf(e, metric))}
+                            {metric === 'level' ? `Lv ${e.level}`
+                                : metric === 'arena' ? rankInfo(e.arenaTier).label
+                                : metric === 'albums' ? `Stage ${e.albumStage}`
+                                : formatScore(metricOf(e, metric))}
                         </span>
                     </div>
                     {/* Monthly reward chips — horizontal row, score tab only, top 10 */}

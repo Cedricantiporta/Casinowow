@@ -18,6 +18,8 @@ create table if not exists public.leaderboard (
     total_won   double precision not null default 0,
     max_jackpot double precision not null default 0,
     max_win     double precision not null default 0,
+    arena_tier  int         not null default 0,
+    album_stage int         not null default 1,
     updated_at  timestamptz not null default now()
 );
 
@@ -27,6 +29,11 @@ alter table public.leaderboard add column if not exists gems        double preci
 alter table public.leaderboard add column if not exists total_won   double precision not null default 0;
 alter table public.leaderboard add column if not exists max_jackpot double precision not null default 0;
 alter table public.leaderboard add column if not exists max_win     double precision not null default 0;
+-- arena_tier: highest Arena tierIndex reached (see arenaService.MAX_TIER, currently 17).
+-- album_stage: current card-album stage — all 8 albums always advance together, so
+-- this is a single number per player, not per-album.
+alter table public.leaderboard add column if not exists arena_tier  int    not null default 0;
+alter table public.leaderboard add column if not exists album_stage int    not null default 1;
 
 -- Migration for an existing table where these were created as bigint — widen them
 -- so writes stop failing once a player's numbers exceed bigint's range.
@@ -41,6 +48,8 @@ create index if not exists leaderboard_score_idx       on public.leaderboard (sc
 create index if not exists leaderboard_total_won_idx   on public.leaderboard (total_won desc);
 create index if not exists leaderboard_max_jackpot_idx on public.leaderboard (max_jackpot desc);
 create index if not exists leaderboard_max_win_idx     on public.leaderboard (max_win desc);
+create index if not exists leaderboard_arena_tier_idx  on public.leaderboard (arena_tier desc);
+create index if not exists leaderboard_album_stage_idx on public.leaderboard (album_stage desc);
 
 -- Row Level Security. The board is publicly READABLE, but a device can only
 -- write ITS OWN row: the row's device_id must equal the caller's anonymous
@@ -74,6 +83,8 @@ do $$ begin
         and total_won >= 0 and total_won < 1e300
         and max_jackpot >= 0 and max_jackpot < 1e300
         and max_win >= 0 and max_win < 1e300
+        and arena_tier >= 0 and arena_tier < 100000
+        and album_stage >= 0 and album_stage < 100000
     );
 exception when duplicate_object then null; end $$;
 
