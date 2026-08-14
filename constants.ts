@@ -886,20 +886,22 @@ export const questDifficultyMult = (cycleCount: number) => Math.min(3, 1 + Math.
 // run-scaler above, so repeating the same 7-slot path feels like a real new tier.
 export const questPathDifficultyMult = (cycleCount: number) => (cycleCount > 0 ? 5 : 1);
 
-// RPG Roulette: every 10th stage (10, 20 within the 25-stage cycle) is a boss fight.
-export const rpgIsBossStage = (stage: number): boolean => stage % 10 === 0;
+// RPG Roulette: every 5th stage is a boss fight — the last stage of each
+// monster tier's 5-stage block (see rpgEnemyName below).
+export const rpgIsBossStage = (stage: number): boolean => stage % 5 === 0;
 
-// RPG Roulette: enemy HP scales gradually per stage, and scales harder again per run
-// cycle (same questDifficultyMult curve as everything else). A boss's HP is a flat
-// 3x whatever the last (immediately preceding) mob's HP was — not its own inflated
-// base — so the jump is exactly 3x no matter which stage tier the boss falls on.
+// RPG Roulette: enemy HP starts at 10 and grows 10% per non-boss stage, and
+// scales harder again per run cycle (same questDifficultyMult curve as
+// everything else). A boss's HP is a flat 3x whatever the last (immediately
+// preceding) mob's HP was — not its own inflated base — so the jump is
+// exactly 3x no matter which stage tier the boss falls on.
 export const rpgEnemyMaxHp = (stage: number, run: number): number => {
     if (rpgIsBossStage(stage)) return rpgEnemyMaxHp(stage - 1, run) * 3;
-    const base = 20 * (1 + 0.08 * (stage - 1));
+    const base = 10 * (1 + 0.10 * (stage - 1));
     return Math.round(base * questDifficultyMult(run));
 };
 
-// Flavor names cycling by stage tier (every 5 stages) — normal enemy vs. its boss form.
+// Flavor names cycling by stage tier (every 5 stages, one boss fight per tier) — normal enemy vs. its boss form.
 export const RPG_ENEMY_NAMES = ['Slime', 'Goblin', 'Wolf', 'Golem', 'Wraith'];
 export const RPG_BOSS_NAMES = ['Slime King', 'Goblin Chief', 'Alpha Wolf', 'Golem Titan', 'Wraith Lord'];
 export const rpgEnemyName = (stage: number): string => {

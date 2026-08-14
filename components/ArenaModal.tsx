@@ -6,6 +6,7 @@ import {
     getArenaBoard, positionOf, rankInfo, phaseTimeRemaining, seasonPhase,
     formatCountdown, arenaReward, arenaRewardPool, outcomeFor, ArenaEntry, RANK_NAMES, MAX_TIER,
 } from '../services/arenaService';
+import { msUntilMonthlyReset, fmtResetCountdown } from '../services/dateUtils';
 
 interface ArenaModalProps {
     isOpen: boolean;
@@ -63,7 +64,8 @@ export const ArenaModal: React.FC<ArenaModalProps> = ({ isOpen, onClose, arena, 
                 {/* Header */}
                 <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
                     <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Arena</span>
-                    <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={onClose}><i className="ti ti-x" /></button>
+                    <span className="ml-auto font-bold" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>Resets {fmtResetCountdown(msUntilMonthlyReset(now))}</span>
+                    <button className="round-btn cursor-pointer shrink-0 z-10" onClick={onClose}><i className="ti ti-x" /></button>
                 </div>
 
                 {/* Player rank summary card */}

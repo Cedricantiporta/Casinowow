@@ -6,6 +6,7 @@ import { isGlowingAvatar, GLOWING_AVATAR_RING } from '../services/avatarService'
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { GroupedList } from './GroupedList';
 import { RewardChip, fmtRewardDuration } from './RewardChip';
+import { msUntilMonthlyReset, fmtResetCountdown } from '../services/dateUtils';
 
 interface LeaderboardModalProps {
     isOpen: boolean;
@@ -67,20 +68,6 @@ const Avatar: React.FC<{ src: string; size: number; ring?: string }> = ({ src, s
         <img src={src} alt="" className="shrink-0 rounded-full object-cover"
             style={{ width: size, height: size, boxShadow: shadow }} />
     );
-};
-
-// Rankings reset with the calendar month (see App.tsx's MONTHLY_RANK reward,
-// which checks for a new month on mount) — countdown to local midnight on the 1st.
-const msUntilRankingReset = (now: number): number => {
-    const d = new Date(now);
-    const next = new Date(d.getFullYear(), d.getMonth() + 1, 1, 0, 0, 0, 0);
-    return Math.max(0, next.getTime() - now);
-};
-const fmtResetCountdown = (ms: number): string => {
-    const days = Math.floor(ms / 86400000);
-    const hours = Math.floor((ms % 86400000) / 3600000);
-    const mins = Math.floor((ms % 3600000) / 60000);
-    return days > 0 ? `${days}d ${hours}h` : `${hours}h ${mins}m`;
 };
 
 export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, player, friendIds = [], pendingFriendIds = [], onAddFriend, top3DeviceIds = [] }) => {
@@ -204,7 +191,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             <div className="shrink-0 flex items-center gap-2 px-4 pt-3 pb-2">
                 <img src="/ui/high_roller.png" alt="" style={{ width: 30, height: 30, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                 <h2 className="font-black text-white text-base tracking-wide" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>Top Players</h2>
-                <span className="ml-auto font-bold" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>Resets {fmtResetCountdown(msUntilRankingReset(now))}</span>
+                <span className="ml-auto font-bold" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>Resets {fmtResetCountdown(msUntilMonthlyReset(now))}</span>
                 <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></div>
             </div>
 

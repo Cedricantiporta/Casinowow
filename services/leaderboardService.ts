@@ -4,7 +4,7 @@
 // upserts the local device's stats and reads the live top players. When it is not
 // configured, it falls back to a deterministic seeded board so the UI always works.
 import { supabase, ensureAuthId } from './supabaseClient';
-import { AI_NAMES, MAX_TIER } from './arenaService';
+import { AI_NAMES, PRE_MYTHIC_TIERS } from './arenaService';
 
 // Ranking metrics the board can be sorted by.
 export type LeaderboardMetric = 'score' | 'level' | 'arena' | 'maxWin' | 'albums';
@@ -132,10 +132,11 @@ function aiEntry(e: SeedEntry, i: number): LeaderboardEntry {
         maxWin: e.maxWin * AI_SCALE,
         vipLevel: i % 2 === 0 ? e.vipLevel : 0, // ~50% have VIP
         gems: Math.round(e.level * 80),
-        // Steep decay (not linear) — Mythic's 4000-level range dwarfs the other
-        // ranks, so a handful of top entries reach deep Mythic while most of the
-        // roster still tapers down into Warrior/Master, keeping visible variety.
-        arenaTier: Math.max(0, Math.round(MAX_TIER * Math.pow(1 - i / (AI_TOTAL - 1), 8))),
+        // Bots never reach Mythic — that rank is reserved for real players — so
+        // this only spreads across the pre-Mythic tiers (Warrior..Legend III),
+        // tapering the top of the roster down toward Legend and the rest toward
+        // Warrior for visible variety.
+        arenaTier: Math.max(0, Math.round((PRE_MYTHIC_TIERS - 1) * Math.pow(1 - i / (AI_TOTAL - 1), 3))),
         albumStage: Math.max(1, 6 - Math.floor(i / 12)),
     };
 }

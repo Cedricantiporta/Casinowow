@@ -59,6 +59,7 @@ import {
     arenaReward, nextTier, outcomeFor, seasonPhase, phaseTimeRemaining, SEASON_TOTAL_MS, SEASON_ACTIVE_MS,
     winBonusPoints, isProtectedFromDemotion,
 } from './services/arenaService';
+import { currentMonthKey } from './services/dateUtils';
 import { DragonPickGrid } from './components/DragonPickModal';
 import { NeonRouletteModal } from './components/NeonRouletteModal';
 import { CandyRouletteModal, CandyWildConfig } from './components/CandyRouletteModal';
@@ -997,6 +998,20 @@ const App: React.FC = () => {
   useEffect(() => { arenaStateRef.current = arenaState; }, [arenaState]);
   const [showArena, setShowArena] = useState(false);
   const [showArenaResults, setShowArenaResults] = useState(false);
+
+  // Arena rank resets with the calendar month, same cadence as the Total Coins
+  // leaderboard's reward cycle (see the MONTHLY_RANK effect below). Checked once
+  // on mount; a first-time-seen player (no lastMonthlyResetMonth yet) just gets
+  // the baseline stamped without wiping their existing progress.
+  useEffect(() => {
+      const thisMonth = currentMonthKey(Date.now());
+      setArenaState(prev => {
+          if (!prev.lastMonthlyResetMonth) return { ...prev, lastMonthlyResetMonth: thisMonth };
+          if (prev.lastMonthlyResetMonth === thisMonth) return prev;
+          return { ...prev, tierIndex: 0, points: 0, lastResult: null, lastMonthlyResetMonth: thisMonth };
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Friends — add top players / AI, send + collect a daily coin gift with each.
   const [friendsState, setFriendsState] = useState<FriendsState>(() => {
@@ -2086,17 +2101,8 @@ const App: React.FC = () => {
               }
               const giftId = Number(msg.id.replace('friendgift_', ''));
               if (giftId) markGiftClaimed(giftId);
-              // Accepting sends one back automatically — one-time per friend, so
-              // this can't loop into an endless receive/send cycle.
-              const fromDevice = msg.meta;
-              const backFriend = fromDevice ? friendsState.friends.find(f => f.id === fromDevice) : undefined;
-              if (fromDevice && backFriend && friendCanSend(backFriend, Date.now()) && sendsRemainingToday > 0) {
-                  sendGiftToFriend(meAsLocalPlayer(), fromDevice).then(ok => {
-                      if (!ok) return;
-                      recordGiftSent();
-                      setFriendsState(p => ({ ...p, friends: p.friends.map(f => f.id === fromDevice ? { ...f, lastSentAt: Date.now() } : f) }));
-                  });
-              }
+              // Sending one back is now an explicit action in the Inbox's Friends
+              // tab (see handleSendGift) rather than automatic on accept.
           } else if (msg.type === 'HOLIDAY_BONUS') {
               const coinReward = MAX_BET_BY_LEVEL(player.level) * 10;
               setPlayer(p => ({ ...p, balance: p.balance + coinReward, diamonds: p.diamonds + 200 }));
@@ -6215,9 +6221,9 @@ const App: React.FC = () => {
       });
       setIncomingFriendRequests(prev => prev.filter(r => r.id !== req.id));
   };
-  // Gifting a friend is one-time per day — accepting a friend's gift (see
-  // handleClaimInbox) auto-sends one back, so there's no separate reply action,
-  // and the daily cooldown keeps it from bouncing back and forth all at once.
+  // Gifting a friend is one-time per day per friend. Used both from the Friends
+  // list and as the explicit "send back" action on a received gift in the
+  // Inbox's Friends tab.
   const handleSendGift = async (friendId: string) => {
       const friend = friendsState.friends.find(f => f.id === friendId);
       if (!friend || !friendCanSend(friend, Date.now())) return;
@@ -9548,6 +9554,8 @@ const App: React.FC = () => {
           onClose={() => setShowInbox(false)}
           messages={inbox.filter((m: any) => !m.claimed)}
           onClaim={handleClaimInbox}
+          friends={friendsState.friends}
+          onSendGift={handleSendGift}
       />
 
       <LeaderboardModal

@@ -23,7 +23,7 @@ export const SEASON_TOTAL_MS = SEASON_ACTIVE_MS + SEASON_PROCESSING_MS;
 export const RANK_NAMES = ['Warrior', 'Master', 'G.Master', 'Epic', 'Legend', 'Mythic'];
 const DIVISION_LABELS = ['III', 'II', 'I']; // index 0 = lowest division of a rank
 const PRE_MYTHIC_RANKS = RANK_NAMES.length - 1;
-const PRE_MYTHIC_TIERS = PRE_MYTHIC_RANKS * 3; // 15 — tiers 0-14 cover Warrior..Legend
+export const PRE_MYTHIC_TIERS = PRE_MYTHIC_RANKS * 3; // 15 — tiers 0-14 cover Warrior..Legend
 export const MYTHIC_LEVELS = 4000;
 export const MAX_TIER = PRE_MYTHIC_TIERS + MYTHIC_LEVELS - 1; // 4014
 

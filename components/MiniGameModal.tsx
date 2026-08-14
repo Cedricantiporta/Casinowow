@@ -679,7 +679,7 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
     // shared wallet/balance via onWheelSpin. Defeating the enemy reuses the exact
     // same "stage clear" plumbing the old Prize Wheel jackpot used.
     const handleRpgSpinResult = (result: RpgSpinResult) => {
-        const logText = result.action === 'ATTACK' ? `Attack! -${result.damage} HP`
+        const logText = result.action === 'ATTACK' ? (result.crit ? `Critical! -${result.damage} HP` : `Attack! -${result.damage} HP`)
             : result.action === 'SKILL' ? `Skill! -${result.damage} HP`
             : result.action === 'SHIELD' ? `Shield! +${result.rewards[0]?.value ?? 0} Key${(result.rewards[0]?.value ?? 0) > 1 ? 's' : ''}`
             : result.action === 'LOOT' ? `Loot! +${result.rewards[0]?.label ?? ''}${result.rewards[0]?.type === 'DIAMONDS' ? ' Gems' : ''}`
@@ -1040,69 +1040,64 @@ export const MiniGameModal: React.FC<MiniGameModalProps> = ({
                 const enemyName = rpgEnemyName(wheelStage);
                 const hpPct = Math.max(0, Math.min(100, (enemyHp / rpgMaxHp) * 100));
                 return (
-                <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Enemy panel */}
-                    <div className="shrink-0 flex flex-col items-center gap-1.5 px-4 pt-2 pb-1.5 relative">
-                        <div className="flex items-center gap-2">
-                            <i className={`ti ${isBoss ? 'ti-crown' : 'ti-flame'}`} style={{ fontSize: 36, color: isBoss ? '#fbbf24' : '#f87171' }} />
-                            <div className="flex flex-col items-start leading-none">
-                                <span className="font-black text-white" style={{ fontSize: 13 }}>{enemyName}</span>
-                                <span className="text-white/55 mt-0.5" style={{ fontSize: 9 }}>{isBoss ? 'Boss' : 'Enemy'} · Stage {wheelStage}</span>
-                            </div>
-                        </div>
-                        <div style={{ width: 210, height: 10, borderRadius: 999, background: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
-                            <div style={{ width: `${hpPct}%`, height: '100%', background: 'linear-gradient(90deg,#f87171,#dc2626)', transition: 'width 0.4s ease-out' }} />
-                        </div>
-                        <span className="text-white/70 font-black" style={{ fontSize: 9 }}>{enemyHp} / {rpgMaxHp} HP</span>
+                <div className="flex-1 flex overflow-hidden">
+                    {/* Roulette wheel — left */}
+                    <RPGRouletteWheel
+                        ref={prizeWheelRef}
+                        credits={wheelCredits}
+                        stage={wheelStage}
+                        maxBet={maxBet || 10000}
+                        onSpinResult={handleRpgSpinResult}
+                        onSpinningChange={setWheelSpinning}
+                    />
 
-                        {combatLog && (
-                            <div key={combatLog.key} className="absolute animate-pop-in pointer-events-none" style={{ top: 4, right: 14 }}>
-                                <span className="font-black" style={{ fontSize: 11, color: '#fde68a', textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}>{combatLog.text}</span>
+                    {/* Right sidebar — enemy panel, stage, key counter, buy, spin */}
+                    <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
+                        style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 112, borderRadius: 16, margin: '8px 8px 8px 0', flexShrink: 0 }}>
+                        {/* Enemy panel — black window container */}
+                        <div className="relative w-full flex flex-col items-center gap-1 px-2 py-2 rounded-xl"
+                            style={{ background: 'rgba(0,0,0,0.62)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.5)' }}>
+                            <i className={`ti ${isBoss ? 'ti-crown' : 'ti-flame'}`} style={{ fontSize: 22, color: isBoss ? '#fbbf24' : '#f87171' }} />
+                            <span className="font-black text-white text-center leading-tight" style={{ fontSize: 10.5 }}>{enemyName}</span>
+                            <span className="text-white/55 text-center" style={{ fontSize: 8 }}>{isBoss ? 'Boss' : 'Enemy'} · Stage {wheelStage}</span>
+                            <div className="w-full" style={{ height: 8, borderRadius: 999, background: 'rgba(255,255,255,0.14)', overflow: 'hidden' }}>
+                                <div style={{ width: `${hpPct}%`, height: '100%', background: 'linear-gradient(90deg,#f87171,#dc2626)', transition: 'width 0.4s ease-out' }} />
                             </div>
-                        )}
-                    </div>
+                            <span className="text-white/70 font-black" style={{ fontSize: 8.5 }}>{enemyHp} / {rpgMaxHp} HP</span>
 
-                    <div className="flex-1 flex overflow-hidden">
-                        <RPGRouletteWheel
-                            ref={prizeWheelRef}
-                            credits={wheelCredits}
-                            stage={wheelStage}
-                            maxBet={maxBet || 10000}
-                            onSpinResult={handleRpgSpinResult}
-                            onSpinningChange={setWheelSpinning}
-                        />
-
-                        {/* Right sidebar — stage, key counter, buy, spin (mirrors the Dice roll button) */}
-                        <div className="shrink-0 flex flex-col items-center gap-2 px-2 py-3"
-                            style={{ background: 'linear-gradient(180deg,rgba(197,16,224,0.32) 0%,rgba(160,60,255,0.22) 20%,rgba(10,0,50,0.75) 100%)', boxShadow: 'inset 0 1px 0 rgba(200,120,255,0.4), 0 4px 16px rgba(0,0,0,0.6)', width: 90, borderRadius: 16, margin: '0 8px 8px 0', flexShrink: 0 }}>
-                            <div className="flex flex-col items-center leading-none">
-                                <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
-                                <span className="font-black text-white text-2xl leading-none">{wheelStage}</span>
-                                {wheelRun > 0 && <span className="text-white/50 text-[8px] font-black mt-0.5">Run {wheelRun + 1}</span>}
-                            </div>
-                            <div className="w-full h-px bg-white/10" />
-                            <div className="flex flex-col items-center leading-none">
-                                <img src="/coinmine_pickaxe.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
-                                <span className="font-black text-white text-xl leading-none mt-0.5">{wheelCredits}</span>
-                                <span className="text-white/50 text-[8px] font-black">Keys</span>
-                            </div>
-                            <button onClick={() => setShowBuyPopup(true)} className="pill-green w-full">
-                                <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
-                            </button>
-                            <div className="flex-1" />
-                            <button
-                                onMouseDown={handleWheelSpinMouseDown}
-                                onMouseUp={handleWheelSpinMouseUp}
-                                onMouseLeave={handleWheelSpinMouseUp}
-                                onTouchStart={handleWheelSpinMouseDown}
-                                onTouchEnd={handleWheelSpinMouseUp}
-                                disabled={wheelCredits <= 0}
-                                className={`${wheelAutoSpin ? 'pill-red' : wheelCredits <= 0 || wheelSpinning ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
-                                <div className="pill-face" style={{ padding: '7px 8px', fontSize: '10px' }}>
-                                    {wheelAutoSpin ? 'Stop' : wheelSpinning ? 'Spinning…' : 'Spin'}
+                            {combatLog && (
+                                <div key={combatLog.key} className="absolute animate-pop-in pointer-events-none flex justify-center" style={{ top: 4, left: 2, right: 2 }}>
+                                    <span className="font-black text-center" style={{ fontSize: 9.5, color: '#fde68a', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>{combatLog.text}</span>
                                 </div>
-                            </button>
+                            )}
                         </div>
+                        <div className="flex flex-col items-center leading-none">
+                            <span className="text-white/50 text-[8px] font-black tracking-widest">Stage</span>
+                            <span className="font-black text-white text-2xl leading-none">{wheelStage}</span>
+                            {wheelRun > 0 && <span className="text-white/50 text-[8px] font-black mt-0.5">Run {wheelRun + 1}</span>}
+                        </div>
+                        <div className="w-full h-px bg-white/10" />
+                        <div className="flex flex-col items-center leading-none">
+                            <img src="/coinmine_pickaxe.png" alt="" style={{ width: '1.6rem', height: '1.6rem', objectFit: 'contain' }} />
+                            <span className="font-black text-white text-xl leading-none mt-0.5">{wheelCredits}</span>
+                            <span className="text-white/50 text-[8px] font-black">Keys</span>
+                        </div>
+                        <button onClick={() => setShowBuyPopup(true)} className="pill-green w-full">
+                            <div className="pill-face" style={{ padding: '5px 6px', fontSize: '9px' }}>Buy</div>
+                        </button>
+                        <div className="flex-1" />
+                        <button
+                            onMouseDown={handleWheelSpinMouseDown}
+                            onMouseUp={handleWheelSpinMouseUp}
+                            onMouseLeave={handleWheelSpinMouseUp}
+                            onTouchStart={handleWheelSpinMouseDown}
+                            onTouchEnd={handleWheelSpinMouseUp}
+                            disabled={wheelCredits <= 0}
+                            className={`${wheelAutoSpin ? 'pill-red' : wheelCredits <= 0 || wheelSpinning ? 'pill-green opacity-40' : 'pill-gold'} w-full`}>
+                            <div className="pill-face" style={{ padding: '7px 8px', fontSize: '10px' }}>
+                                {wheelAutoSpin ? 'Stop' : wheelSpinning ? 'Spinning…' : 'Spin'}
+                            </div>
+                        </button>
                     </div>
                 </div>
                 );

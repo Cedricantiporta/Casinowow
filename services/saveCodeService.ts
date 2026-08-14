@@ -3,7 +3,17 @@
 // real account system. Generating a code snapshots every game-state key from
 // localStorage and uploads it to Supabase under a short random code; redeeming
 // that code elsewhere downloads the snapshot and overwrites local storage.
-import { supabase } from './supabaseClient';
+import { supabase, ensureAuthId } from './supabaseClient';
+
+// Non-localStorage keys smuggled through the same jsonb blob so a redeem can
+// also take over the ORIGINAL device's Supabase anonymous-auth session — not
+// just its cw_device_id string. Without this, the new device keeps its own
+// (different) anon auth user; that user's session silently gets re-mirrored
+// into cw_device_id the moment anything calls ensureAuthId() again (e.g. the
+// background leaderboard sync), which forks all future leaderboard/guild
+// writes onto a second row under the same restored name.
+const SESSION_ACCESS_TOKEN_KEY = '__sb_access_token';
+const SESSION_REFRESH_TOKEN_KEY = '__sb_refresh_token';
 
 // Every localStorage key the game persists (see App.tsx's setItem/getItem
 // calls). Keep this in sync when a new persistent slice is added.
@@ -56,6 +66,14 @@ export interface CreateSaveCodeResult {
 export async function createSaveCode(): Promise<CreateSaveCodeResult> {
     if (!supabase) return { code: null, error: 'Backend not configured.' };
     const data = collectSaveData();
+    try {
+        await ensureAuthId(); // guarantee a session exists so it can be embedded below
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token && session?.refresh_token) {
+            data[SESSION_ACCESS_TOKEN_KEY] = session.access_token;
+            data[SESSION_REFRESH_TOKEN_KEY] = session.refresh_token;
+        }
+    } catch {}
     for (let attempt = 0; attempt < 5; attempt++) {
         const code = generateCode();
         const { error } = await supabase.from('save_codes').insert({ code, data });
@@ -87,7 +105,18 @@ export async function redeemSaveCode(code: string): Promise<RedeemSaveCodeResult
         const { data, error } = await supabase.rpc('redeem_save_code', { p_code: normalized });
         if (error) return { success: false, error: 'Could not reach the server.' };
         if (!data) return { success: false, error: 'Code not found or expired.' };
-        applySaveData(data as Record<string, string>);
+        const blob = { ...(data as Record<string, string>) };
+        const accessToken = blob[SESSION_ACCESS_TOKEN_KEY];
+        const refreshToken = blob[SESSION_REFRESH_TOKEN_KEY];
+        delete blob[SESSION_ACCESS_TOKEN_KEY];
+        delete blob[SESSION_REFRESH_TOKEN_KEY];
+        // Take over the original device's Supabase identity BEFORE writing
+        // local storage, so the restored cw_device_id and the live auth
+        // session agree — otherwise the next ensureAuthId() call re-forks them.
+        if (accessToken && refreshToken) {
+            try { await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken }); } catch {}
+        }
+        applySaveData(blob);
         return { success: true };
     } catch {
         return { success: false, error: 'Could not reach the server.' };

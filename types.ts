@@ -259,6 +259,7 @@ export interface ArenaState {
     refMult: number;          // bet-tier multiplier snapshot for AI scaling
     lastResult?: ArenaResult | null; // pending results popup, if any
     hasJoined?: boolean;      // explicit opt-in — spins only score points once true
+    lastMonthlyResetMonth?: string; // "{year}-{month}" of the last monthly rank reset
 }
 
 export type RewardType = 'NOTHING' | 'COINS' | 'XP_BOOST' | 'CREDIT_BACK' | 'DIAMONDS' | 'MINI_CREDITS' | 'GEM' | 'BACK' | 'PACKS' | 'STAR';

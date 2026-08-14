@@ -9,6 +9,7 @@ export interface RpgSpinResult {
     action: RpgAction;
     damage: number;
     rewards: MiniGameReward[];
+    crit?: boolean;
 }
 
 interface WheelSeg {
@@ -30,6 +31,8 @@ const SEGMENTS: WheelSeg[] = [
 ];
 
 const ATTACK_DAMAGE = 2;
+const CRIT_DAMAGE = 5;
+const CRIT_CHANCE = 0.2;
 const SKILL_DAMAGE = 10;
 
 const N = SEGMENTS.length;
@@ -287,8 +290,9 @@ export const RPGRouletteWheel = forwardRef<RPGRouletteWheelHandle, RPGRouletteWh
                 onSpinningChange?.(false);
                 const seg = SEGMENTS[idx];
                 if (seg.action === 'ATTACK') {
+                    const crit = Math.random() < CRIT_CHANCE;
                     audioService.playWinSmall();
-                    onSpinResult({ action: 'ATTACK', damage: ATTACK_DAMAGE, rewards: [] });
+                    onSpinResult({ action: 'ATTACK', damage: crit ? CRIT_DAMAGE : ATTACK_DAMAGE, rewards: [], crit });
                 } else if (seg.action === 'SKILL') {
                     audioService.playScatterTrigger();
                     onSpinResult({ action: 'SKILL', damage: SKILL_DAMAGE, rewards: [] });
