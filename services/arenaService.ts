@@ -15,11 +15,17 @@ export const SEASON_PROCESSING_MS = 3 * 60 * 1000;  // 3 minutes between seasons
 export const SEASON_TOTAL_MS = SEASON_ACTIVE_MS + SEASON_PROCESSING_MS;
 
 // ── Ranks & divisions ──
-// 6 ranks × 3 divisions = 18 tiers. tierIndex 0 = lowest (Warrior III),
-// tierIndex 17 = highest (Mythic I). Future ranks can be appended to RANK_NAMES.
+// Warrior through Legend are 3-division ranks (III/II/I), 5 ranks × 3 = 15
+// tiers (tierIndex 0-14). Mythic is the endgame rank and instead of stopping
+// at a 3rd division, it runs 4000 individually-numbered levels (Mythic 1
+// lowest through Mythic 4000, the new absolute top of the ladder) — a long
+// prestige grind of ±1 tier per season instead of a quick 3-step cap.
 export const RANK_NAMES = ['Warrior', 'Master', 'G.Master', 'Epic', 'Legend', 'Mythic'];
 const DIVISION_LABELS = ['III', 'II', 'I']; // index 0 = lowest division of a rank
-export const MAX_TIER = RANK_NAMES.length * 3 - 1;
+const PRE_MYTHIC_RANKS = RANK_NAMES.length - 1;
+const PRE_MYTHIC_TIERS = PRE_MYTHIC_RANKS * 3; // 15 — tiers 0-14 cover Warrior..Legend
+export const MYTHIC_LEVELS = 4000;
+export const MAX_TIER = PRE_MYTHIC_TIERS + MYTHIC_LEVELS - 1; // 4014
 
 // Accent colour per rank — used for badges/zones in the UI.
 export const RANK_COLORS: Record<string, string> = {
@@ -34,16 +40,21 @@ export const RANK_COLORS: Record<string, string> = {
 export interface RankInfo {
     tierIndex: number;
     rankName: string;
-    division: string;   // 'I' | 'II' | 'III'
+    division: string;   // 'I' | 'II' | 'III' pre-Mythic, or the Mythic level number as a string
     color: string;
-    label: string;      // e.g. "Master II"
+    label: string;      // e.g. "Master II" or "Mythic 4000"
 }
 
 export function rankInfo(tierIndex: number): RankInfo {
     const t = Math.max(0, Math.min(MAX_TIER, tierIndex));
-    const rankName = RANK_NAMES[Math.floor(t / 3)];
-    const division = DIVISION_LABELS[t % 3];
-    return { tierIndex: t, rankName, division, color: RANK_COLORS[rankName] || '#9ca3af', label: `${rankName} ${division}` };
+    if (t < PRE_MYTHIC_TIERS) {
+        const rankName = RANK_NAMES[Math.floor(t / 3)];
+        const division = DIVISION_LABELS[t % 3];
+        return { tierIndex: t, rankName, division, color: RANK_COLORS[rankName] || '#9ca3af', label: `${rankName} ${division}` };
+    }
+    const mythicLevel = t - PRE_MYTHIC_TIERS + 1; // 1..4000
+    const rankName = 'Mythic';
+    return { tierIndex: t, rankName, division: String(mythicLevel), color: RANK_COLORS[rankName], label: `${rankName} ${mythicLevel}` };
 }
 
 // ── Arena points ──
@@ -83,7 +94,12 @@ export function winBonusPoints(winType: string | null, betIndex: number): number
 // the old 100×/1.5^tier factors let a top player out-earn every other system
 // in the game combined.
 const REWARD_FACTORS: Record<number, number> = { 1: 25, 2: 15, 3: 8, 4: 4, 5: 4 };
-export const rankRewardMultiplier = (tierIndex: number): number => Math.pow(1.25, Math.max(0, tierIndex));
+// Reward scaling is capped at the ladder's old top (tier 17, ~46.9x) — Mythic's
+// 4000 sub-levels are a prestige/progression grind, not a reward multiplier, so
+// 1.25^tierIndex is never actually evaluated against the new, much larger
+// MAX_TIER (which would overflow to Infinity well before Mythic 4000).
+const OLD_MAX_TIER = 17;
+export const rankRewardMultiplier = (tierIndex: number): number => Math.pow(1.25, Math.max(0, Math.min(OLD_MAX_TIER, tierIndex)));
 
 export function arenaReward(position: number, maxBet: number, tierIndex: number = 0): number {
     let factor = 0;

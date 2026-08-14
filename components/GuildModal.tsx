@@ -45,6 +45,7 @@ interface GuildModalProps {
     friendIds: string[];
     pendingFriendIds: string[];
     onAddFriend: (member: { id: string; name: string; avatar: string; level: number }) => void;
+    top3DeviceIds: string[];
 }
 
 const RANK_BADGE = (rank: number) => rank <= 3 ? `/Rank (${rank}).png` : null;
@@ -58,7 +59,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
     onTransferLeadership, onKick, onSetRole, onUpdateDescription, createCostGems, playerBalance, playerGems,
     tasks, onClaimTask, refreshCostFor, onRefreshTask, donationState, donateCoinAmount, donateGemAmount, onDonate,
     donatedTodayCount, dailyRewardAmount, dailyRewardClaimable, dailyRewardClaimedToday, onClaimDailyReward, errorMsg,
-    friendIds, pendingFriendIds, onAddFriend,
+    friendIds, pendingFriendIds, onAddFriend, top3DeviceIds,
 }) => {
     const [browseTab, setBrowseTab] = useState<'BROWSE' | 'CREATE' | 'TOP'>('BROWSE');
     const [rightTab, setRightTab] = useState<'DONATE' | 'MEMBERS' | 'TASKS'>('DONATE');
@@ -76,6 +77,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
     const [viewingGuildId, setViewingGuildId] = useState<string | null>(null);
     const [viewingGuild, setViewingGuild] = useState<Guild | null>(null);
     const [viewingLoading, setViewingLoading] = useState(false);
+    const [showTopGuilds, setShowTopGuilds] = useState(false);
 
     useEffect(() => {
         if (!viewingGuildId) { setViewingGuild(null); return; }
@@ -184,6 +186,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
             <div className="shrink-0 flex items-center justify-center px-4 pt-3 pb-2 relative">
                 <div className="round-btn cursor-pointer absolute left-4" onClick={onClose}><i className="ti ti-arrow-left" /></div>
                 <h2 className="font-tanker text-white tracking-wide" style={{ fontSize: 16 }}>Guild</h2>
+                <div className="round-btn cursor-pointer absolute right-4" onClick={() => setShowTopGuilds(true)}><i className="ti ti-trophy" /></div>
             </div>
 
             {errorMsg && (
@@ -398,7 +401,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                             <button key={m.deviceId} onClick={() => { onTransferLeadership(m.deviceId); setPickingSuccessor(false); }}
                                                 className="flex items-center gap-2 rounded-xl px-2.5 py-1.5" style={{ background: 'rgba(0,0,0,0.25)' }}>
                                                 <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 24, height: 24, boxShadow: isGlowingAvatar(m.avatar) ? GLOWING_AVATAR_RING : undefined }} />
-                                                <span className="font-bold text-white flex-1 text-left" style={{ fontSize: 11 }}>{m.name}</span>
+                                                <span className="font-bold flex-1 text-left" style={{ fontSize: 11, color: top3DeviceIds.includes(m.deviceId) ? '#fde047' : '#fff' }}>{m.name}</span>
                                             </button>
                                         ))}
                                         <button onClick={() => setPickingSuccessor(false)} className="text-center py-1">
@@ -531,7 +534,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                                 onClick={(e) => { e.stopPropagation(); setProfileTarget({ id: m.deviceId, name: m.name, avatar: m.avatar, level: 1 }); }}>
                                                 <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 36, height: 36, boxShadow: isGlowingAvatar(m.avatar) ? `inset 0 0 0 1.5px rgba(255,255,255,0.25), ${GLOWING_AVATAR_RING}` : 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
                                                 <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                                                    <span className="font-black text-white truncate" style={{ fontSize: 12 }}>{m.name}</span>
+                                                    <span className="font-black truncate" style={{ fontSize: 12, color: top3DeviceIds.includes(m.deviceId) ? '#fde047' : '#fff' }}>{m.name}</span>
                                                     {isMe && <span className="text-white/40 font-bold shrink-0" style={{ fontSize: 9 }}>(You)</span>}
                                                     <span className="shrink-0 px-1.5 py-0.5 rounded-full font-black flex items-center gap-0.5" style={{
                                                         fontSize: 7.5,
@@ -646,9 +649,23 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                     guildName={myGuild?.name}
                     isFriend={friendIds.includes(profileTarget.id)}
                     isPending={pendingFriendIds.includes(profileTarget.id)}
+                    isTop3={top3DeviceIds.includes(profileTarget.id)}
                     onClose={() => setProfileTarget(null)}
                     onAddFriend={() => onAddFriend(profileTarget)}
                 />
+            )}
+
+            {/* Top Guilds — opened from the trophy button in the header */}
+            {showTopGuilds && (
+                <div className="absolute inset-0 z-[200] flex flex-col select-none" style={{ background: 'linear-gradient(180deg,#9e0cb3 0%,#7c14a8 12%,#601e96 28%,#481280 55%,#220450 100%)' }}>
+                    <div className="shrink-0 flex items-center px-4 pt-3 pb-2 relative">
+                        <div className="round-btn cursor-pointer" onClick={() => setShowTopGuilds(false)}><i className="ti ti-arrow-left" /></div>
+                        <h2 className="absolute left-0 right-0 text-center font-tanker text-white pointer-events-none" style={{ fontSize: 15 }}>Top Guilds</h2>
+                    </div>
+                    <div className="flex-1 overflow-y-auto no-scrollbar px-3 pb-3">
+                        <TopGuildsList onSelect={id => { setShowTopGuilds(false); setViewingGuildId(id); }} />
+                    </div>
+                </div>
             )}
 
             {/* Public guild profile — opened from any Browse/Search/Rankings row */}
@@ -731,7 +748,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                                 <div className="flex items-center gap-2.5 px-3 py-2">
                                                     <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 32, height: 32, boxShadow: isGlowingAvatar(m.avatar) ? GLOWING_AVATAR_RING : undefined }} />
                                                     <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                                                        <span className="font-black text-white truncate" style={{ fontSize: 11.5 }}>{m.name}</span>
+                                                        <span className="font-black truncate" style={{ fontSize: 11.5, color: top3DeviceIds.includes(m.deviceId) ? '#fde047' : '#fff' }}>{m.name}</span>
                                                         <span className="shrink-0 font-bold" style={{ fontSize: 8.5, color: m.role === 'LEADER' ? '#facc15' : m.role === 'OFFICER' ? '#7dd3fc' : 'rgba(255,255,255,0.45)' }}>
                                                             {m.role === 'LEADER' ? 'Leader' : m.role === 'OFFICER' ? 'Officer' : 'Member'}
                                                         </span>

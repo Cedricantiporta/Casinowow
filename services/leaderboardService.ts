@@ -132,7 +132,10 @@ function aiEntry(e: SeedEntry, i: number): LeaderboardEntry {
         maxWin: e.maxWin * AI_SCALE,
         vipLevel: i % 2 === 0 ? e.vipLevel : 0, // ~50% have VIP
         gems: Math.round(e.level * 80),
-        arenaTier: Math.max(0, MAX_TIER - Math.floor(i * MAX_TIER / (AI_TOTAL - 1))),
+        // Steep decay (not linear) — Mythic's 4000-level range dwarfs the other
+        // ranks, so a handful of top entries reach deep Mythic while most of the
+        // roster still tapers down into Warrior/Master, keeping visible variety.
+        arenaTier: Math.max(0, Math.round(MAX_TIER * Math.pow(1 - i / (AI_TOTAL - 1), 8))),
         albumStage: Math.max(1, 6 - Math.floor(i / 12)),
     };
 }

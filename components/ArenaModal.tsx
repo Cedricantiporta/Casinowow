@@ -298,7 +298,7 @@ export const ArenaBadge: React.FC<{ tierIndex: number; size?: number }> = ({ tie
                 boxShadow: `inset 0 1px 0 rgba(255,255,255,0.45), 0 0 ${size / 4}px ${info.color}66`,
             }} />
             <span className="relative font-tanker text-white leading-none" style={{ fontSize: size * 0.34, textShadow: '0 1px 2px rgba(0,0,0,0.7)' }}>{initials}</span>
-            <span className="absolute font-black text-white leading-none" style={{ bottom: 1, right: 3, fontSize: size * 0.2, textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{info.division}</span>
+            <span className="absolute font-black text-white leading-none" style={{ bottom: 1, right: 3, fontSize: size * (info.division.length > 2 ? 0.13 : 0.2), textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}>{info.division}</span>
         </div>
     );
 };

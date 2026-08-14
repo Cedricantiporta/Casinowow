@@ -17,6 +17,7 @@ interface FriendsModalProps {
     onSendGift: (friendId: string) => void;
     onRemoveFriend: (friendId: string) => void;
     maxFriends: number;
+    top3DeviceIds: string[];
 }
 
 const fmtCountdown = (ms: number): string => {
@@ -27,7 +28,7 @@ const fmtCountdown = (ms: number): string => {
 };
 
 export const FriendsModal: React.FC<FriendsModalProps> = ({
-    isOpen, onClose, friends, you, maxBet, incomingRequests, pendingRequestIds, onAddFriend, onAcceptRequest, onSendGift, onRemoveFriend, maxFriends,
+    isOpen, onClose, friends, you, maxBet, incomingRequests, pendingRequestIds, onAddFriend, onAcceptRequest, onSendGift, onRemoveFriend, maxFriends, top3DeviceIds,
 }) => {
     const [tab, setTab] = useState<'FRIENDS' | 'ADD'>('FRIENDS');
     const [addable, setAddable] = useState<LeaderboardEntry[]>([]);
@@ -137,7 +138,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                     style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
                                     <img src={f.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 38, height: 38, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
                                     <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setProfileTarget({ id: f.id, name: f.name, avatar: f.avatar, level: f.level, isFriend: true })}>
-                                        <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{f.name}</div>
+                                        <div className="font-black truncate" style={{ fontSize: 12.5, color: top3DeviceIds.includes(f.id) ? '#fde047' : '#fff' }}>{f.name}</div>
                                         <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {f.level}{!f.isAI ? ' · Friend' : ''}</div>
                                     </div>
                                     {confirming ? (
@@ -192,7 +193,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                                         style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.45)' }}>
                                         <img src={e.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 38, height: 38, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
                                         <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setProfileTarget({ id: e.id, name: e.name, avatar: e.avatar, level: e.level, isPending: requestSent })}>
-                                            <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{e.name}</div>
+                                            <div className="font-black truncate" style={{ fontSize: 12.5, color: top3DeviceIds.includes(e.id) ? '#fde047' : '#fff' }}>{e.name}</div>
                                             <div className="text-white/50 font-bold" style={{ fontSize: 9.5 }}>Level {e.level}</div>
                                         </div>
                                         <button
@@ -221,6 +222,7 @@ export const FriendsModal: React.FC<FriendsModalProps> = ({
                     level={profileTarget.level}
                     isFriend={profileTarget.isFriend}
                     isPending={profileTarget.isPending}
+                    isTop3={top3DeviceIds.includes(profileTarget.id)}
                     onClose={() => setProfileTarget(null)}
                     onAddFriend={profileTarget.isFriend ? undefined : () => {
                         const entry = addable.find(a => a.id === profileTarget.id);

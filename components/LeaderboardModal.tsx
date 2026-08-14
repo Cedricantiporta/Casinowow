@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { formatCommaNumber, formatK } from '../constants';
-import { fetchTopPlayers, LeaderboardEntry, LeaderboardMetric, LocalPlayer } from '../services/leaderboardService';
+import { fetchTopPlayers, getDeviceId, LeaderboardEntry, LeaderboardMetric, LocalPlayer } from '../services/leaderboardService';
 import { rankInfo } from '../services/arenaService';
 import { isGlowingAvatar, GLOWING_AVATAR_RING } from '../services/avatarService';
 import { PlayerProfileModal } from './PlayerProfileModal';
@@ -14,6 +14,7 @@ interface LeaderboardModalProps {
     friendIds?: string[];
     pendingFriendIds?: string[];
     onAddFriend?: (entry: LeaderboardEntry) => void;
+    top3DeviceIds?: string[];
 }
 
 const TABS: { key: LeaderboardMetric; label: string }[] = [
@@ -82,7 +83,7 @@ const fmtResetCountdown = (ms: number): string => {
     return days > 0 ? `${days}d ${hours}h` : `${hours}h ${mins}m`;
 };
 
-export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, player, friendIds = [], pendingFriendIds = [], onAddFriend }) => {
+export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, player, friendIds = [], pendingFriendIds = [], onAddFriend, top3DeviceIds = [] }) => {
     const [metric, setMetric] = useState<LeaderboardMetric>('score');
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -132,7 +133,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                 )}
                 <Avatar src={e.avatar} size={34} ring={rank <= 3 ? `0 0 0 2px ${rank === 1 ? '#ffd24a' : rank === 2 ? '#cdd6e2' : '#d68a48'}, 0 2px 6px rgba(0,0,0,0.45)` : undefined} />
                 <div className="flex-1 min-w-0">
-                    <div className="font-black text-white truncate" style={{ fontSize: 12.5 }}>{pinned ? 'Your rank' : e.name}{e.isYou && !pinned ? ' (You)' : ''}</div>
+                    <div className="font-black truncate" style={{ fontSize: 12.5, color: top3DeviceIds.includes(e.isYou ? getDeviceId() : e.id) ? '#fde047' : '#fff' }}>{pinned ? 'Your rank' : e.name}{e.isYou && !pinned ? ' (You)' : ''}</div>
                     {(e.vipLevel ?? 0) > 0 && (
                         <div className="flex items-center gap-0.5 mt-0.5">
                             <i className="ti ti-crown" style={{ fontSize: 9, color: '#fbbf24' }} />
@@ -275,6 +276,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
                     onClose={() => setSelected(null)}
                     isFriend={friendIds.includes(selected.entry.id)}
                     isPending={pendingFriendIds.includes(selected.entry.id)}
+                    isTop3={top3DeviceIds.includes(selected.entry.isYou ? getDeviceId() : selected.entry.id)}
                     onAddFriend={onAddFriend ? () => onAddFriend(selected.entry) : undefined}
                 />
             )}

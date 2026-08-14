@@ -15,6 +15,7 @@ export interface PlayerProfileModalProps {
     isYou?: boolean;
     isFriend?: boolean;
     isPending?: boolean;
+    isTop3?: boolean;
     onAddFriend?: () => void;
 }
 
@@ -28,7 +29,7 @@ const medal = (rank: number): { bg: string; color: string; glow?: string } => {
 };
 
 export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
-    isOpen, onClose, id, name, avatar, level, rank, guildName, isYou, isFriend, isPending, onAddFriend,
+    isOpen, onClose, id, name, avatar, level, rank, guildName, isYou, isFriend, isPending, isTop3, onAddFriend,
 }) => {
     const [stats, setStats] = useState<LeaderboardEntry | null>(null);
     const [loading, setLoading] = useState(false);
@@ -72,7 +73,7 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
                                 ) : null}
                             </div>
                             <div className="flex flex-col items-start gap-1 min-w-0">
-                                <div className="font-black text-white truncate" style={{ fontSize: 15 }}>{name}{isYou ? ' (You)' : ''}</div>
+                                <div className="font-black truncate" style={{ fontSize: 15, color: isTop3 ? '#fde047' : '#fff' }}>{name}{isYou ? ' (You)' : ''}</div>
                                 <div className="text-white/55 font-bold" style={{ fontSize: 10 }}>Level {displayLevel}</div>
                                 {guildName && (
                                     <div className="flex items-center gap-1">

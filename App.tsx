@@ -38,7 +38,7 @@ import { ProfileModal } from './components/ProfileModal';
 import { InboxModal, InboxMessage } from './components/InboxModal';
 import { LeaderboardModal, RANK_REWARDS, EXCLUSIVE_AVATAR } from './components/LeaderboardModal';
 import { AnimatedBalance, AnimatedBalanceHandle } from './components/AnimatedBalance';
-import { submitScore } from './services/leaderboardService';
+import { submitScore, fetchTopPlayers } from './services/leaderboardService';
 import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { GuildModal } from './components/GuildModal';
 import {
@@ -1694,6 +1694,18 @@ const App: React.FC = () => {
   // Keep refs in sync so the background sync intervals don't hold stale closures.
   useEffect(() => { playerNameRef.current = playerName; }, [playerName]);
   useEffect(() => { profileEmojiRef.current = profileEmoji; }, [profileEmoji]);
+
+  // Top-3-by-score device ids — drives the yellow name highlight in Guild,
+  // Friends, and player profile popups. Refreshed whenever one of those views
+  // opens rather than on a background timer, since it's purely cosmetic.
+  const [top3DeviceIds, setTop3DeviceIds] = useState<string[]>([]);
+  useEffect(() => {
+      if (!showGuild && !showFriends && !showLeaderboard) return;
+      fetchTopPlayers(meAsLocalPlayer(), 'score').then(list => {
+          setTop3DeviceIds(list.slice(0, 3).map(e => e.isYou ? getDeviceId() : e.id));
+      });
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showGuild, showFriends, showLeaderboard]);
 
   // Persist a new display name locally and push it (with current stats) to the leaderboard.
   const handleSetPlayerName = (name: string) => {
@@ -6105,8 +6117,12 @@ const App: React.FC = () => {
                setShowWinPopup(true);
                setStatus(GameStatus.WIN_ANIMATION);
            } else {
-               // Win during Ghost Ship walk — no popup, auto-return to IDLE so walk can continue
+               // Win during Ghost Ship walk — no blocking popup (auto-returns to IDLE so the
+               // walk can continue), but during free spins each winning column still gets a
+               // quick non-blocking celebration toast (auto-dismisses, doesn't pause the walk).
+               audioService.playWinTier(winTier);
                setStatus(GameStatus.WIN_ANIMATION);
+               if (totalFreeSpins > 0) setCelebrationMsg(`+${formatCommaNumber(totalPayout)}`);
                const effectiveFastSpin = fastSpin && totalFreeSpins === 0;
                setTimeout(() => setStatus(GameStatus.IDLE), effectiveFastSpin ? 150 : 500);
            }
@@ -8690,11 +8706,14 @@ const App: React.FC = () => {
                                   ? getUnderwaterPayableMask(holdWinLockedGrid, holdWinCoinValues, holdWinJpGrid)
                                       .reduce((s, col, c) => s + col.reduce((a, pay, r) => a + (pay ? (holdWinCoinValues[c]?.[r] || 0) : 0), 0), 0)
                                   : holdWinCoinValues.reduce((s, col) => s + col.reduce((a, v) => a + v, 0), 0))
-                          ) : pirateWalkActive ? (
+                          ) : pirateWalkActive && freeSpinsRemaining === 0 ? (
                               formatK(pirateWalkTotalWin)
                           ) : showNeonRoulette ? (
                               neonRouletteTotal > 0 ? formatK(neonRouletteTotal) : '—'
                           ) : freeSpinsRemaining > 0 ? (
+                              // Always the running free-spin total — even mid-walk, since
+                              // freeSpinTotalWin already accumulates every Ghost Ship column's
+                              // payout in real time (see the totalFreeSpins>0 tally above).
                               formatK(freeSpinTotalWin)
                           ) : lastWinAmount === null ? (
                               // Fresh slot, no spin yet.
@@ -8705,7 +8724,7 @@ const App: React.FC = () => {
                           )}
                       </span>
                       <span className="total-win">
-                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : pirateWalkActive ? 'GHOST SHIP' : showNeonRoulette ? 'ROULETTE' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
+                          {hwCounting ? 'COUNTING...' : status === GameStatus.CASCADE ? `CASCADE  ×${cascadeMultiplier}` : holdWinActive ? 'HOLD & WIN' : pirateWalkActive && freeSpinsRemaining === 0 ? 'GHOST SHIP' : showNeonRoulette ? 'ROULETTE' : freeSpinsRemaining > 0 ? `FREE SPINS: ${freeSpinsRemaining}` : 'TOTAL WIN'}
                       </span>
                   </div>
 
@@ -8745,9 +8764,11 @@ const App: React.FC = () => {
                                   {player.autoSpin ? 'STOP' : (status === GameStatus.SPINNING || status === GameStatus.STOPPING) ? 'STOP' : (freeSpinsRemaining > 0 ? 'AUTO' : 'SPIN')}
                               </span>
                               <span className="sub">
-                                  {player.autoSpin
-                                      ? (autoSpinRemaining > 0 ? `AUTO · ${autoSpinRemaining}` : 'AUTO ACTIVE')
-                                      : 'HOLD FOR AUTOSPIN'}
+                                  {freeSpinsRemaining > 0
+                                      ? `${totalFreeSpins - freeSpinsRemaining + 1}/${totalFreeSpins} Spins`
+                                      : player.autoSpin
+                                          ? (autoSpinRemaining > 0 ? `AUTO · ${autoSpinRemaining}` : 'AUTO ACTIVE')
+                                          : 'HOLD FOR AUTOSPIN'}
                               </span>
                           </div>
                       </div>
@@ -9548,6 +9569,7 @@ const App: React.FC = () => {
           friendIds={friendsState.friends.map(f => f.id)}
           pendingFriendIds={pendingFriendRequestIds}
           onAddFriend={(entry) => handleAddFriend(toFriend(entry, Date.now()))}
+          top3DeviceIds={top3DeviceIds}
       />
 
       {/* Arena ranking */}
@@ -9604,6 +9626,7 @@ const App: React.FC = () => {
           friendIds={friendsState.friends.map(f => f.id)}
           pendingFriendIds={pendingFriendRequestIds}
           onAddFriend={(m) => handleAddFriend({ id: m.id, name: m.name, avatar: m.avatar, level: m.level, isAI: false, addedAt: Date.now() })}
+          top3DeviceIds={top3DeviceIds}
       />
 
       {/* Friends */}
@@ -9611,6 +9634,7 @@ const App: React.FC = () => {
           isOpen={showFriends}
           onClose={() => setShowFriends(false)}
           friends={friendsState.friends}
+          top3DeviceIds={top3DeviceIds}
           you={{
               name: playerName,
               avatar: profileEmoji,
