@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Guild, GuildDonationState, GuildRole, GuildSummary, GuildTask } from '../types';
 import { GUILD_ICONS, GUILD_MAX_LEVEL, GUILD_MAX_MEMBERS, guildXpForNextLevel, rewardTierForRank, getGuildById } from '../services/guildService';
 import { formatKShort, formatCommaNumber, formatNumber } from '../constants';
+import { isGlowingAvatar, GLOWING_AVATAR_RING } from '../services/avatarService';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { GroupedList } from './GroupedList';
 import { RewardChip, fmtRewardDuration } from './RewardChip';
@@ -414,7 +415,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                         {myGuild.members.filter(m => m.deviceId !== deviceId).map(m => (
                                             <button key={m.deviceId} onClick={() => { onTransferLeadership(m.deviceId); setPickingSuccessor(false); }}
                                                 className="flex items-center gap-2 rounded-xl px-2.5 py-1.5" style={{ background: 'rgba(0,0,0,0.25)' }}>
-                                                <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 24, height: 24 }} />
+                                                <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 24, height: 24, boxShadow: isGlowingAvatar(m.avatar) ? GLOWING_AVATAR_RING : undefined }} />
                                                 <span className="font-bold text-white flex-1 text-left" style={{ fontSize: 11 }}>{m.name}</span>
                                             </button>
                                         ))}
@@ -485,7 +486,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                         <div className="relative flex items-center gap-2.5 px-3 py-2">
                                             <div className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer"
                                                 onClick={(e) => { e.stopPropagation(); setProfileTarget({ id: m.deviceId, name: m.name, avatar: m.avatar, level: 1 }); }}>
-                                                <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 36, height: 36, boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
+                                                <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 36, height: 36, boxShadow: isGlowingAvatar(m.avatar) ? `inset 0 0 0 1.5px rgba(255,255,255,0.25), ${GLOWING_AVATAR_RING}` : 'inset 0 0 0 1.5px rgba(255,255,255,0.25)' }} />
                                                 <div className="flex-1 min-w-0 flex items-center gap-1.5">
                                                     <span className="font-black text-white truncate" style={{ fontSize: 12 }}>{m.name}</span>
                                                     {isMe && <span className="text-white/40 font-bold shrink-0" style={{ fontSize: 9 }}>(You)</span>}
@@ -687,7 +688,7 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                             keyFn={m => m.deviceId}
                                             renderRow={m => (
                                                 <div className="flex items-center gap-2.5 px-3 py-2">
-                                                    <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 32, height: 32 }} />
+                                                    <img src={m.avatar} alt="" className="rounded-full object-cover shrink-0" style={{ width: 32, height: 32, boxShadow: isGlowingAvatar(m.avatar) ? GLOWING_AVATAR_RING : undefined }} />
                                                     <div className="flex-1 min-w-0 flex items-center gap-1.5">
                                                         <span className="font-black text-white truncate" style={{ fontSize: 11.5 }}>{m.name}</span>
                                                         <span className="shrink-0 font-bold" style={{ fontSize: 8.5, color: m.role === 'LEADER' ? '#facc15' : m.role === 'OFFICER' ? '#7dd3fc' : 'rgba(255,255,255,0.45)' }}>

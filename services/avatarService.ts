@@ -50,6 +50,18 @@ export function isAvatarUnlocked(def: AvatarDef, ctx: AvatarContext): boolean {
     }
 }
 
+// Avatars that get a glowing gold ring wherever they're shown publicly (guild
+// roster, leaderboard): Legend/Mythic arena tiers and every event-exclusive avatar.
+const GLOWING_ARENA_RANKS = new Set(['Legend', 'Mythic']);
+export function isGlowingAvatar(path: string): boolean {
+    const def = AVATARS.find(a => a.path === path);
+    if (!def) return false;
+    if (def.unlock.type === 'event') return true;
+    if (def.unlock.type === 'arena') return GLOWING_ARENA_RANKS.has(def.unlock.rank);
+    return false;
+}
+export const GLOWING_AVATAR_RING = '0 0 0 2px #ffd24a, 0 0 10px 3px rgba(255,210,74,0.75)';
+
 // Short requirement label for a locked avatar (e.g. "Lvl 25", "VIP", "Master", "Event").
 export function avatarRequirementLabel(def: AvatarDef): string {
     switch (def.unlock.type) {

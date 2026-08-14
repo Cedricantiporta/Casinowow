@@ -12,10 +12,9 @@ interface PiggyBankModalProps {
     maxBet?: number;
     balance?: number;
     onOpenGemShop?: () => void;
-    eventPiggyBoost?: number;
 }
 
-export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet = 0, balance = 0, onOpenGemShop, eventPiggyBoost = 0 }) => {
+export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose, amount, diamonds, onBreak, level, maxBet = 0, balance = 0, onOpenGemShop }) => {
     const [breaking, setBreaking] = useState(false);
     const [openShake, setOpenShake] = useState(false);
 
@@ -29,9 +28,9 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
 
     if (!isOpen) return null;
 
-    const cap = Math.floor(maxBet * 8 * (1 + eventPiggyBoost));
+    const cap = Math.floor(maxBet * 8);
 
-    const GEM_BREAK_COST = 50;
+    const GEM_BREAK_COST = 200;
 
     const handleBreak = () => {
         if (breaking || amount <= 0 || diamonds < GEM_BREAK_COST) return;
@@ -106,14 +105,8 @@ export const PiggyBankModal: React.FC<PiggyBankModalProps> = ({ isOpen, onClose,
                 </button>
 
                 <p className="text-white/30 text-[9px] text-center max-w-xs">
-                    Gains 8% of each bet (15% with VIP) · Max {formatK(Math.floor(cap))} coins
+                    Gains 1% of each bet (2% with VIP) · Max {formatK(Math.floor(cap))} coins
                 </p>
-                {eventPiggyBoost > 0 && (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
-                        <i className="ti ti-calendar" style={{ fontSize: 11, color: '#f87171' }} />
-                        <span style={{ color: '#f87171', fontSize: 10, fontWeight: 700 }}>Events: +{Math.round(eventPiggyBoost * 100)}% higher cap</span>
-                    </div>
-                )}
             </div>
         </div>
         </div>

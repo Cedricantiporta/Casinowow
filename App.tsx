@@ -172,8 +172,8 @@ const RIPPLE_COLORS: Partial<Record<GameTheme, string>> = {
 };
 const rippleColorFor = (theme: GameTheme): string => RIPPLE_COLORS[theme] ?? '#b450ff';
 
-const getRandomSymbol = (isFreeSpin: boolean, spinsWithoutBonus: number): SymbolType => {
-  const weights = GET_DYNAMIC_WEIGHTS(isFreeSpin, spinsWithoutBonus);
+const getRandomSymbol = (isFreeSpin: boolean, spinsWithoutBonus: number, scatterMult: number = 1): SymbolType => {
+  const weights = GET_DYNAMIC_WEIGHTS(isFreeSpin, spinsWithoutBonus, scatterMult);
   const totalWeight = weights.reduce((acc, w) => acc + w.weight, 0);
   let random = Math.random() * totalWeight;
   for (const item of weights) {
@@ -355,8 +355,6 @@ const STARTUP_ASSETS = [
     '/gem_1.png', '/gem_2.png', '/gem_3.png',
     // shop bonus wheel item icon
     '/bonus wheel shop.png',
-    // events modal banners
-    '/event (1).png', '/event (2).png',
     // scatter icons for all slot themes (preload so first-open is instant)
     '/symbols/neon_bonus.png', '/pharaoh_scatter.png', '/dragon/dragon-1.png', '/pirate_scatter.png',
     '/cosmic_scatter.png', '/candy_scatter.png', '/jungle_scatter.png', '/deep_scatter.png',
@@ -1540,9 +1538,8 @@ const App: React.FC = () => {
       { mult: 10, at: 750 },  // 250 more
   ];
   const collectBoostActive = (player.collectBoostEndTime || 0) > Date.now();
-  // Active event boosts (always on while events are running)
-  const EVENT_EXP_BOOST = 0.20;   // +20% XP
-  const EVENT_PIGGY_BOOST = 0.20; // +20% piggybank cap
+  // Single active event (always on while the event is running): +20% VIP EXP.
+  const EVENT_VIP_XP_BOOST = 0.20;
   const treasuryMultiplier = (() => {
       let m = 1;
       for (const t of TREASURY_MULT_TIERS) if (treasuryMultProgress >= t.at) m = t.mult;
@@ -1692,6 +1689,39 @@ const App: React.FC = () => {
   const [vipBetTracking, setVipBetTracking] = useState<{ date: string; total: number }>(() => {
       try { return JSON.parse(localStorage.getItem('cw_vip_bets') || '{"date":"","total":0}'); } catch { return { date: '', total: 0 }; }
   });
+  // Weekly key = the Monday that starts the current week, so it rolls over once a week.
+  const weekKeyStr = () => {
+      const d = new Date();
+      const monday = new Date(d);
+      monday.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+      monday.setHours(0, 0, 0, 0);
+      return monday.toDateString();
+  };
+  // Win-cap tracking: cumulative coin winnings per day / per week, compared against
+  // a multiple of the current max bet. Exceeding either cap doesn't stop winning —
+  // it just throttles how often free spins/bonus games/picks trigger afterward,
+  // reset automatically at the next day/week rollover.
+  const [dailyWinTracking, setDailyWinTracking] = useState<{ date: string; total: number }>(() => {
+      try { return JSON.parse(localStorage.getItem('cw_daily_win') || '{"date":"","total":0}'); } catch { return { date: '', total: 0 }; }
+  });
+  const [weeklyWinTracking, setWeeklyWinTracking] = useState<{ week: string; total: number }>(() => {
+      try { return JSON.parse(localStorage.getItem('cw_weekly_win') || '{"week":"","total":0}'); } catch { return { week: '', total: 0 }; }
+  });
+  const recordWinForCaps = (amount: number) => {
+      if (amount <= 0) return;
+      const today = todayDateStr();
+      const week = weekKeyStr();
+      setDailyWinTracking(prev => prev.date === today ? { ...prev, total: prev.total + amount } : { date: today, total: amount });
+      setWeeklyWinTracking(prev => prev.week === week ? { ...prev, total: prev.total + amount } : { week, total: amount });
+  };
+  const dailyCapExceeded = dailyWinTracking.date === todayDateStr() && dailyWinTracking.total >= MAX_BET_BY_LEVEL(player.level) * 100;
+  const weeklyCapExceeded = weeklyWinTracking.week === weekKeyStr() && weeklyWinTracking.total >= MAX_BET_BY_LEVEL(player.level) * 1000;
+  // Combined bonus-trigger multiplier: a flat 30% reduction always applies, stacked
+  // with a further 50% cut once the weekly cap (1000x max bet) is exceeded and a
+  // further 30% cut once the daily cap (100x max bet) is exceeded.
+  const bonusChanceMultiplier = 0.7 * (weeklyCapExceeded ? 0.5 : 1) * (dailyCapExceeded ? 0.7 : 1);
+  const bonusChanceMultRef = useRef(bonusChanceMultiplier);
+  useEffect(() => { bonusChanceMultRef.current = bonusChanceMultiplier; }, [bonusChanceMultiplier]);
   const [redeemedCodes, setRedeemedCodes] = useState<string[]>(() => {
       try { return JSON.parse(localStorage.getItem('cw_redeemed_codes') || '[]'); } catch { return []; }
   });
@@ -1712,6 +1742,12 @@ const App: React.FC = () => {
   useEffect(() => {
       try { localStorage.setItem('cw_vip_bets', JSON.stringify(vipBetTracking)); } catch {}
   }, [vipBetTracking]);
+  useEffect(() => {
+      try { localStorage.setItem('cw_daily_win', JSON.stringify(dailyWinTracking)); } catch {}
+  }, [dailyWinTracking]);
+  useEffect(() => {
+      try { localStorage.setItem('cw_weekly_win', JSON.stringify(weeklyWinTracking)); } catch {}
+  }, [weeklyWinTracking]);
   useEffect(() => {
       try { localStorage.setItem('cw_inbox', JSON.stringify(inbox)); } catch {}
   }, [inbox]);
@@ -3130,7 +3166,7 @@ const App: React.FC = () => {
                   return SymbolType.WILD;
               }
               let sym: SymbolType;
-              do { sym = getRandomSymbol(false, 0); }
+              do { sym = getRandomSymbol(false, 0, bonusChanceMultRef.current); }
               while (sym === SymbolType.SCATTER || String(sym).startsWith('JACKPOT') || sym === SymbolType.COIN);
               return sym;
           });
@@ -3371,9 +3407,9 @@ const App: React.FC = () => {
                   } else if (coinCellKeys.has(c * rows + r)) {
                       col.push(SymbolType.COIN);
                   } else {
-                      let sym = getRandomSymbol(false, spinsWithoutBonus);
+                      let sym = getRandomSymbol(false, spinsWithoutBonus, bonusChanceMultRef.current);
                       while (sym === SymbolType.SCATTER || sym === SymbolType.COIN) {
-                          sym = getRandomSymbol(false, spinsWithoutBonus);
+                          sym = getRandomSymbol(false, spinsWithoutBonus, bonusChanceMultRef.current);
                       }
                       col.push(sym);
                   }
@@ -3417,9 +3453,9 @@ const App: React.FC = () => {
                   } else if (coinCellKeys.has(c * rows + r)) {
                       col.push(SymbolType.COIN);
                   } else {
-                      let sym = getRandomSymbol(false, spinsWithoutBonus);
+                      let sym = getRandomSymbol(false, spinsWithoutBonus, bonusChanceMultRef.current);
                       while (sym === SymbolType.SCATTER || sym === SymbolType.COIN) {
-                          sym = getRandomSymbol(false, spinsWithoutBonus);
+                          sym = getRandomSymbol(false, spinsWithoutBonus, bonusChanceMultRef.current);
                       }
                       col.push(sym);
                   }
@@ -3432,21 +3468,21 @@ const App: React.FC = () => {
       for(let c=0; c<cols; c++) {
           const colData: SymbolType[] = [];
           for(let r=0; r<rows; r++) {
-              let sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
+              let sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus, bonusChanceMultRef.current);
               while (selectedGame.theme === 'PIGGY' && sym === SymbolType.SCATTER) {
-                  sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
+                  sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus, bonusChanceMultRef.current);
               }
               // Mystery feature themes: scatter appears ~75% less often overall
               // (an additional 50% reduction stacked on top of the prior 50% cut).
               if (MYSTERY_FEATURE_THEMES.has(selectedGame.theme) && sym === SymbolType.SCATTER && Math.random() < 0.75) {
-                  sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
+                  sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus, bonusChanceMultRef.current);
               }
               // JUNGLE: never let the shared symbol table place a scatter anywhere —
               // its colossal scatter is placed explicitly below with its own
               // independent, fixed chance, decoupled from the shared per-cell weight
               // and pity-timer (which assumes needing 3 simultaneous hits, not 1).
               if (selectedGame.theme === 'JUNGLE' && sym === SymbolType.SCATTER) {
-                  do { sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus); } while (sym === SymbolType.SCATTER);
+                  do { sym = getRandomSymbol(isFreeSpin, spinsWithoutBonus, bonusChanceMultRef.current); } while (sym === SymbolType.SCATTER);
               }
               if (c === 2) {
                   const highPaying = [SymbolType.GRAPE, SymbolType.BELL, SymbolType.BAR, SymbolType.SEVEN, SymbolType.CHERRY];
@@ -3608,7 +3644,7 @@ const App: React.FC = () => {
                     for(let r=0; r<rows; r++) {
                         if (newGrid[c][r] === SymbolType.WILD) {
                             if (Math.random() < 0.98) {
-                                 newGrid[c][r] = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
+                                 newGrid[c][r] = getRandomSymbol(isFreeSpin, spinsWithoutBonus, bonusChanceMultRef.current);
                                  if(newGrid[c][r] === SymbolType.WILD) newGrid[c][r] = SymbolType.TEN; 
                             }
                         }
@@ -3817,7 +3853,7 @@ const App: React.FC = () => {
           for (let c = 0; c < cols; c++) {
               for (let r = 0; r < rows; r++) {
                   while (String(newGrid[c][r]).startsWith('JACKPOT') || newGrid[c][r] === SymbolType.COIN) {
-                      newGrid[c][r] = getRandomSymbol(isFreeSpin, spinsWithoutBonus);
+                      newGrid[c][r] = getRandomSymbol(isFreeSpin, spinsWithoutBonus, bonusChanceMultRef.current);
                   }
               }
           }
@@ -4578,10 +4614,10 @@ const App: React.FC = () => {
     if (myGuild) guildSpinPointsBufferRef.current += betIndex + 1;
 
     if (!isFreeSpin && !isHoldWinRespin && !isPirateWalk) {
-      // Piggy Bank Logic: 8% of Bet (15% if VIP), Capped. Only saves if Level >= 5.
+      // Piggy Bank Logic: 1% of Bet (2% if VIP), Capped. Only saves if Level >= 5.
       if (player.level >= 5) {
-          const savings = currentBet * (player.isVip ? 0.15 : 0.08);
-          const cap = Math.floor(MAX_BET_BY_LEVEL(player.level) * 8 * (1 + EVENT_PIGGY_BOOST));
+          const savings = currentBet * (player.isVip ? 0.02 : 0.01);
+          const cap = Math.floor(MAX_BET_BY_LEVEL(player.level) * 8);
           setPlayer(prev => ({ 
               ...prev, 
               balance: prev.balance - currentBet,
@@ -5864,6 +5900,7 @@ const App: React.FC = () => {
                     recentSlots: prev.stats?.recentSlots || [],
                 }
             }));
+            recordWinForCaps(totalPayout);
             if (totalFreeSpins > 0) setFreeSpinTotalWin(p => p + totalPayout);
             updateMissions(MissionType.WIN_COINS, totalPayout);
             setCascadeMultiplier(1);
@@ -5961,6 +5998,7 @@ const App: React.FC = () => {
                 recentSlots: prev.stats?.recentSlots || [],
             }
         }));
+        recordWinForCaps(totalPayout);
     }
 
     const winTier = getWinTier(totalPayout, currentBet);
@@ -6158,7 +6196,7 @@ const App: React.FC = () => {
   const addXp = (amount: number) => {
       setPlayer(prev => {
           // Base EXP increased by 50% across all sources
-          let newXp = prev.xp + Math.floor(amount * 1.5 * (1 + EVENT_EXP_BOOST));
+          let newXp = prev.xp + Math.floor(amount * 1.5);
           let newLevel = prev.level;
           let newReq = prev.xpToNextLevel;
           let leveledUp = false;
@@ -6314,7 +6352,7 @@ const App: React.FC = () => {
   const addVipXp = (amount: number) => {
       setPlayer(prev => {
           const boosted = (prev.vipXpBoostEndTime || 0) > Date.now() ? (prev.vipXpBoostMultiplier || 1) : 1;
-          let newVipXp = (prev.vipXp ?? 0) + Math.round(amount * boosted);
+          let newVipXp = (prev.vipXp ?? 0) + Math.round(amount * boosted * (1 + EVENT_VIP_XP_BOOST));
           let newVipLevel = prev.vipLevel ?? 1;
           let newVipXpToNext = 500 * newVipLevel;
           while (newVipXp >= newVipXpToNext) {
@@ -7530,7 +7568,7 @@ const App: React.FC = () => {
                         <img src="/ui/piggy.png" alt=""
                             style={{ width: 34, height: 34, objectFit: 'contain', cursor: 'pointer' }}
                             className="active:scale-90 transition-transform animate-piggy-shake-loop" />
-                        {player.level >= 10 && player.piggyBank >= Math.floor(MAX_BET_BY_LEVEL(player.level) * 8 * (1 + EVENT_PIGGY_BOOST)) && (
+                        {player.level >= 10 && player.piggyBank >= Math.floor(MAX_BET_BY_LEVEL(player.level) * 8) && (
                             <div className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
                                 style={{ bottom: 2, background: '#e01c1c', borderRadius: 6, padding: '1px 5px', fontSize: 7, fontWeight: 900, color: '#fff', letterSpacing: '0.06em', lineHeight: 1.4, whiteSpace: 'nowrap' }}>
                                 FULL
@@ -8834,7 +8872,7 @@ const App: React.FC = () => {
       <LoginBonusModal isOpen={activeModal === 'LOGIN_BONUS'} currentDay={loginState.currentDay} claimedToday={loginState.claimedToday} maxBet={MAX_BET_BY_LEVEL(player.level)} onClaim={handleClaimLoginBonus} onClose={() => setActiveModal('NONE')}
           currentStreak={loginStreakState.currentStreak} claimedMilestones={loginStreakState.claimedMilestones} onClaimMilestone={handleClaimStreakMilestone} />
       
-    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} onOpenGemShop={() => openShop('DIAMONDS')} eventPiggyBoost={EVENT_PIGGY_BOOST} />
+    <PiggyBankModal isOpen={activeModal === 'PIGGY'} onClose={() => setActiveModal('NONE')} amount={player.piggyBank} diamonds={player.diamonds} onBreak={handleBreakPiggy} level={player.level} maxBet={MAX_BET_BY_LEVEL(player.level)} balance={player.balance} onOpenGemShop={() => openShop('DIAMONDS')} />
 
       <FeatureUnlockModal 
         isOpen={activeModal === 'FEATURE_UNLOCK'} 
@@ -9204,19 +9242,26 @@ const App: React.FC = () => {
       {showEventsPopup && (
           <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none" onClick={() => setShowEventsPopup(false)}>
               <div className="w-full max-w-sm rounded-3xl overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}
-                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)', height: 280 }}>
+                  style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
                   {/* Header */}
                   <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 relative">
                       <span className="absolute left-0 right-0 text-center text-white font-tanker text-base drop-shadow pointer-events-none">Events</span>
                       <button className="round-btn cursor-pointer shrink-0 ml-auto z-10" onClick={() => setShowEventsPopup(false)}><i className="ti ti-x"></i></button>
                   </div>
-                  {/* Event banners — vertically scrollable, ~1 banner tall, scrollbar hidden, no extra container */}
-                  <div className="flex-1 flex flex-col overflow-y-auto no-scrollbar gap-3 px-4 pb-4 min-h-0">
-                      {['/event (1).png', '/event (2).png'].map((src, i) => (
-                          <img key={i} src={src} alt=""
-                              className="w-full rounded-2xl object-contain shrink-0"
-                              style={{ display: 'block' }} />
-                      ))}
+                  {/* Single active event card — real text UI, not an image banner */}
+                  <div className="px-4 pb-4">
+                      <div className="rounded-2xl px-4 py-4 flex items-center gap-3"
+                          style={{ background: 'rgba(0,0,0,0.22)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)' }}>
+                          <div className="shrink-0 flex items-center justify-center rounded-full"
+                              style={{ width: 44, height: 44, background: 'linear-gradient(180deg,#ffe27a,#e8a200)', boxShadow: '0 0 10px rgba(255,200,60,0.5)' }}>
+                              <i className="ti ti-crown" style={{ fontSize: 22, color: '#3a2600' }} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                              <div className="font-black text-white" style={{ fontSize: 14 }}>VIP EXP boost</div>
+                              <div className="text-white/60 font-bold mt-0.5" style={{ fontSize: 11 }}>Earn VIP EXP faster from every source while this event runs.</div>
+                          </div>
+                          <div className="shrink-0 font-black text-yellow-300" style={{ fontSize: 16 }}>+20%</div>
+                      </div>
                   </div>
               </div>
           </div>

@@ -356,7 +356,9 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                         <span className="num">{premiumPackCredits}</span>
                     </div>
                 </div>
-                <div className="round-btn cursor-pointer shrink-0 ml-1" onClick={onClose}><i className="ti ti-x"></i></div>
+                {!selectedDeckId && (
+                    <div className="round-btn cursor-pointer shrink-0 ml-1" onClick={onClose}><i className="ti ti-x"></i></div>
+                )}
             </div>
 
             {/* Main content */}
@@ -623,8 +625,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     </div>
                                 </div>
                                 {[
-                                    { name: 'Starter', img: '/card_normal.png', gemCost: 80, packs: 20, contents: ['20 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 25))} Coins`], bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)', accent: '#3b82f6', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
-                                    { name: 'Pro Bundle', img: '/card_normal.png', gemCost: 280, packs: 60, contents: ['60 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 100))} Coins`], bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)', accent: '#60a5fa', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                    { name: 'Starter', img: '/card_normal.png', gemCost: 80, packs: 5, contents: ['5 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 25))} Coins`], bg: 'linear-gradient(160deg,#0f1f55,#1a35a0)', accent: '#3b82f6', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
+                                    { name: 'Premium', img: '/card_normal.png', gemCost: 280, packs: 10, contents: ['10 Standard Packs', `+${formatCommaNumber(Math.round(maxBet * 100))} Coins`], bg: 'linear-gradient(160deg,#1e3a8a,#1d4ed8)', accent: '#60a5fa', shadowClr: '#1e3a8a', dotColor: 'text-blue-300', textColor: 'text-blue-100/80' },
                                 ].map(opt => {
                                     const canAfford = diamonds >= opt.gemCost;
                                     return (
@@ -645,7 +647,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 </div>
                                             </div>
                                             <div className="px-3 pb-3 pt-1 shrink-0">
-                                                <button onClick={() => { if (!canAfford) { audioService.playError(); return; } audioService.playPurchase(); onBuyCredits(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
+                                                <button onClick={() => { if (!canAfford) { audioService.playError(); return; } audioService.playPurchase(); onBuyCredits(opt.gemCost, opt.packs); }}
                                                     disabled={!canAfford}
                                                     className="pill-green w-full">
                                                     <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
@@ -664,8 +666,8 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                     </div>
                                 </div>
                                 {[
-                                    { name: 'Starter', img: '/card_premium.png', gemCost: 320, packs: 20, contents: ['20 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 50))} Coins`], bg: 'linear-gradient(160deg,#2e1065,#5b21b6)', accent: '#a855f7', shadowClr: '#2e1065', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
-                                    { name: 'Pro Bundle', img: '/card_premium.png', gemCost: 1100, packs: 60, contents: ['60 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 200))} Coins`], bg: 'linear-gradient(160deg,#3b0764,#6d28d9)', accent: '#c084fc', shadowClr: '#3b0764', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                    { name: 'Starter', img: '/card_premium.png', gemCost: 320, packs: 5, contents: ['5 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 50))} Coins`], bg: 'linear-gradient(160deg,#2e1065,#5b21b6)', accent: '#a855f7', shadowClr: '#2e1065', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
+                                    { name: 'Premium', img: '/card_premium.png', gemCost: 1100, packs: 10, contents: ['10 Premium Packs', `+${formatCommaNumber(Math.round(maxBet * 200))} Coins`], bg: 'linear-gradient(160deg,#3b0764,#6d28d9)', accent: '#c084fc', shadowClr: '#3b0764', dotColor: 'text-purple-300', textColor: 'text-purple-100/80' },
                                 ].map(opt => {
                                     const canAfford = diamonds >= opt.gemCost;
                                     const buyFn = onBuyPremiumCredits;
@@ -687,7 +689,7 @@ export const CardCollectionModal: React.FC<CardCollectionModalProps> = ({
                                                 </div>
                                             </div>
                                             <div className="px-3 pb-3 pt-1 shrink-0">
-                                                <button onClick={() => { if (!canAfford || !buyFn) { audioService.playError(); return; } audioService.playPurchase(); buyFn(opt.gemCost, opt.packs); setShowPackBuyPopup(null); }}
+                                                <button onClick={() => { if (!canAfford || !buyFn) { audioService.playError(); return; } audioService.playPurchase(); buyFn(opt.gemCost, opt.packs); }}
                                                     disabled={!canAfford}
                                                     className="pill-green w-full">
                                                     <div className="pill-face" style={{ padding: '6px 8px', fontSize: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>

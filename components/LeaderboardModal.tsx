@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { formatCommaNumber, formatK } from '../constants';
 import { fetchTopPlayers, LeaderboardEntry, LeaderboardMetric, LocalPlayer } from '../services/leaderboardService';
 import { rankInfo } from '../services/arenaService';
+import { isGlowingAvatar, GLOWING_AVATAR_RING } from '../services/avatarService';
 import { PlayerProfileModal } from './PlayerProfileModal';
 import { GroupedList } from './GroupedList';
 import { RewardChip, fmtRewardDuration } from './RewardChip';
@@ -57,10 +58,14 @@ const medal = (rank: number): { bg: string; color: string; glow?: string } => {
     return { bg: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.8)' };
 };
 
-const Avatar: React.FC<{ src: string; size: number; ring?: string }> = ({ src, size, ring }) => (
-    <img src={src} alt="" className="shrink-0 rounded-full object-cover"
-        style={{ width: size, height: size, boxShadow: ring || '0 2px 6px rgba(0,0,0,0.45)' }} />
-);
+const Avatar: React.FC<{ src: string; size: number; ring?: string }> = ({ src, size, ring }) => {
+    const base = ring || '0 2px 6px rgba(0,0,0,0.45)';
+    const shadow = isGlowingAvatar(src) ? `${base}, ${GLOWING_AVATAR_RING}` : base;
+    return (
+        <img src={src} alt="" className="shrink-0 rounded-full object-cover"
+            style={{ width: size, height: size, boxShadow: shadow }} />
+    );
+};
 
 export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, player, friendIds = [], pendingFriendIds = [], onAddFriend }) => {
     const [metric, setMetric] = useState<LeaderboardMetric>('score');

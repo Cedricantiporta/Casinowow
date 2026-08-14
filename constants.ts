@@ -707,13 +707,18 @@ export const FREE_SPIN_WEIGHTS = [
   { type: SymbolType.COIN, weight: 0 },
 ];
 
-export const GET_DYNAMIC_WEIGHTS = (isFreeSpin: boolean, spinsWithoutBonus: number) => {
-    if (isFreeSpin) return FREE_SPIN_WEIGHTS;
+// scatterMult scales the SCATTER symbol's weight only — the shared lever for every
+// slot's free-spin/bonus trigger frequency (see App.tsx's bonusChanceMultiplier:
+// a flat 30% reduction, stacked with further cuts once the daily/weekly win caps
+// are exceeded).
+export const GET_DYNAMIC_WEIGHTS = (isFreeSpin: boolean, spinsWithoutBonus: number, scatterMult: number = 1) => {
+    if (isFreeSpin) return FREE_SPIN_WEIGHTS.map(w => w.type === SymbolType.SCATTER ? { ...w, weight: w.weight * scatterMult } : w);
     // Every 70 spins without a bonus, scatter chance increases by 20% (resets when free spin triggers)
     const bonusStacks = Math.floor(spinsWithoutBonus / 70);
-    if (bonusStacks === 0) return WEIGHTS;
-    const scatterMult = 1 + 0.2 * bonusStacks;
-    return WEIGHTS.map(w => w.type === SymbolType.SCATTER ? { ...w, weight: w.weight * scatterMult } : w);
+    const stackMult = bonusStacks === 0 ? 1 : 1 + 0.2 * bonusStacks;
+    const finalMult = stackMult * scatterMult;
+    if (finalMult === 1) return WEIGHTS;
+    return WEIGHTS.map(w => w.type === SymbolType.SCATTER ? { ...w, weight: w.weight * finalMult } : w);
 };
 
 const PAYLINES_CACHE = new Map<string, Payline[]>();
@@ -774,17 +779,23 @@ export const AUTO_SPIN_DELAY = 1500;
 
 const GENERATE_SCALES = () => {
     const bets: number[] = [];
-    const steps = 40;
+    // 20 extra tiers on top of the original 40, continuing the exact same
+    // per-tier log-space growth ratio so the first 40 values are unchanged
+    // and the new ones keep climbing at the same pace instead of compressing.
+    const steps = 60;
     const minBet = 5000;
-    const maxBet = 1.5e19; // 15 quintillion (bet scaling halved)
+    const oldSteps = 40;
+    const oldMaxBet = 1.5e19; // 15 quintillion — top of the original 40-tier scale
     const logMin = Math.log(minBet);
-    const logMax = Math.log(maxBet);
-    const scaleFactor = (logMax - logMin) / (steps - 1);
+    const scaleFactor = (Math.log(oldMaxBet) - logMin) / (oldSteps - 1);
+    const maxBet = Math.exp(logMin + (steps - 1) * scaleFactor);
 
     for (let i = 0; i < steps; i++) {
         const rawValue = Math.exp(logMin + (i * scaleFactor));
         let rounded = rawValue;
-        if (rawValue > 1e18) rounded = Math.round(rawValue / 1e18) * 1e18;
+        if (rawValue > 1e24) rounded = Math.round(rawValue / 1e24) * 1e24;
+        else if (rawValue > 1e21) rounded = Math.round(rawValue / 1e21) * 1e21;
+        else if (rawValue > 1e18) rounded = Math.round(rawValue / 1e18) * 1e18;
         else if (rawValue > 1e15) rounded = Math.round(rawValue / 1e15) * 1e15;
         else if (rawValue > 1e12) rounded = Math.round(rawValue / 1e12) * 1e12;
         else if (rawValue > 1e9) rounded = Math.round(rawValue / 1e9) * 1e9;
@@ -798,8 +809,10 @@ const GENERATE_SCALES = () => {
 };
 const SCALES = GENERATE_SCALES();
 export const GET_ALL_BETS = () => SCALES;
+// Per-level growth rate halved (0.2 -> 0.1): a tier now takes 10 levels instead of
+// 5, so max bet climbs noticeably slower as players level up.
 export const MAX_BET_BY_LEVEL = (level: number): number => {
-    const index = Math.min(Math.floor(level * 0.2), SCALES.length - 1);
+    const index = Math.min(Math.floor(level * 0.1), SCALES.length - 1);
     return SCALES[index];
 };
 
