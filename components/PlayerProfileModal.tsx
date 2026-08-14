@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { formatK } from '../constants';
 import { getPlayerById, LeaderboardEntry } from '../services/leaderboardService';
+import { rankInfo } from '../services/arenaService';
 
 export interface PlayerProfileModalProps {
     isOpen: boolean;
@@ -41,10 +42,10 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
     if (!isOpen) return null;
 
     const displayLevel = stats?.level ?? level ?? 1;
-    const rows: { icon: string; label: string; value: number }[] = stats ? [
+    const rows: { icon: string; label: string; value: number; display?: string }[] = stats ? [
         { icon: '/symbols/diamond.png',  label: 'Total Gems',  value: stats.gems },
         { icon: '/new_coinicon.png',     label: 'Total Won',   value: stats.totalWon },
-        { icon: '/ui/high_roller.png',   label: 'Max Jackpot', value: stats.maxJackpot },
+        { icon: '/ui/high_roller.png',   label: 'Arena Rank',  value: stats.arenaTier, display: rankInfo(stats.arenaTier).label },
         { icon: '/ui/high_roller.png',   label: 'Max Win',     value: stats.maxWin },
     ] : [];
     const m = medal(rank || 0);
@@ -116,7 +117,7 @@ export const PlayerProfileModal: React.FC<PlayerProfileModalProps> = ({
                                         <span className="font-bold text-white/55" style={{ fontSize: 9.5 }}>{r.label}</span>
                                         <div className="flex items-center gap-1.5">
                                             <img src={r.icon} alt="" style={{ width: 15, height: 15, objectFit: 'contain' }} />
-                                            <span className="font-black text-yellow-300" style={{ fontSize: 14 }}>{formatScore(r.value)}</span>
+                                            <span className="font-black text-yellow-300" style={{ fontSize: 14 }}>{r.display ?? formatScore(r.value)}</span>
                                         </div>
                                     </div>
                                 ))}

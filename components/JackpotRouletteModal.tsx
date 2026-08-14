@@ -381,7 +381,7 @@ export const JackpotRouletteModal: React.FC<Props> = ({ isOpen, baseAmount, coll
                 {/* Right — Title, amount, action */}
                 <div className="flex flex-col gap-2.5 pr-4 py-4" style={{ minWidth: 138 }}>
                     {/* Title only — no close button */}
-                    <span className="text-white font-tanker text-base leading-none">Jackpot</span>
+                    <span className="text-white font-tanker text-base leading-none">Roulette</span>
 
                     {/* Base amount number — prominent */}
                     <div className="font-mono font-black text-white" style={{ fontSize: '1.05rem', lineHeight: 1 }}>

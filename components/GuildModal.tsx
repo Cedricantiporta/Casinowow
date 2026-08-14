@@ -36,6 +36,11 @@ interface GuildModalProps {
     donateCoinAmount: number;
     donateGemAmount: number;
     onDonate: (kind: 'COINS' | 'GEMS') => void;
+    donatedTodayCount: number;
+    dailyRewardAmount: number;
+    dailyRewardClaimable: boolean;
+    dailyRewardClaimedToday: boolean;
+    onClaimDailyReward: () => void;
     errorMsg?: string;
     friendIds: string[];
     pendingFriendIds: string[];
@@ -51,11 +56,12 @@ const ROLE_RANK: Record<GuildRole, number> = { LEADER: 0, OFFICER: 1, MEMBER: 2 
 export const GuildModal: React.FC<GuildModalProps> = ({
     isOpen, onClose, deviceId, myGuild, maxBet, topGuildsByContribution, loading, searchResults, onSearch, onCreate, onJoin, onLeave, onDisband,
     onTransferLeadership, onKick, onSetRole, onUpdateDescription, createCostGems, playerBalance, playerGems,
-    tasks, onClaimTask, refreshCostFor, onRefreshTask, donationState, donateCoinAmount, donateGemAmount, onDonate, errorMsg,
+    tasks, onClaimTask, refreshCostFor, onRefreshTask, donationState, donateCoinAmount, donateGemAmount, onDonate,
+    donatedTodayCount, dailyRewardAmount, dailyRewardClaimable, dailyRewardClaimedToday, onClaimDailyReward, errorMsg,
     friendIds, pendingFriendIds, onAddFriend,
 }) => {
     const [browseTab, setBrowseTab] = useState<'BROWSE' | 'CREATE' | 'TOP'>('BROWSE');
-    const [rightTab, setRightTab] = useState<'MEMBERS' | 'TASKS' | 'TOP'>('MEMBERS');
+    const [rightTab, setRightTab] = useState<'DONATE' | 'MEMBERS' | 'TASKS'>('DONATE');
     const [search, setSearch] = useState('');
     const [name, setName] = useState('');
     const [iconIdx, setIconIdx] = useState(0);
@@ -365,30 +371,6 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                             )}
                         </div>
 
-                        {/* Daily donations */}
-                        <div className="tcard p-3 flex flex-col gap-2">
-                            <div className="flex items-center gap-2">
-                                <img src="/new_coinicon.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
-                                <span className="flex-1 font-bold text-white/70" style={{ fontSize: 10.5 }}>Donate Coins</span>
-                                <button onClick={() => !donationState.coinsDonated && onDonate('COINS')} disabled={donationState.coinsDonated}
-                                    className="pill-green shrink-0" style={{ opacity: donationState.coinsDonated ? 0.5 : 1 }}>
-                                    <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9.5px' }}>
-                                        {donationState.coinsDonated ? 'Donated' : `${formatCommaNumber(donateCoinAmount)}`}
-                                    </div>
-                                </button>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <img src="/symbols/diamond.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
-                                <span className="flex-1 font-bold text-white/70" style={{ fontSize: 10.5 }}>Donate Gems</span>
-                                <button onClick={() => !donationState.gemsDonated && onDonate('GEMS')} disabled={donationState.gemsDonated}
-                                    className="pill-green shrink-0" style={{ opacity: donationState.gemsDonated ? 0.5 : 1 }}>
-                                    <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9.5px' }}>
-                                        {donationState.gemsDonated ? 'Donated' : `${donateGemAmount}`}
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-
                         {/* My Contribution / Guild Rank */}
                         <div className="tcard p-3 flex">
                             <div className="flex-1 flex flex-col items-center gap-0.5">
@@ -455,17 +437,78 @@ export const GuildModal: React.FC<GuildModalProps> = ({
 
                     {/* Right column — full height, swaps content via the small tab group */}
                     <div className="flex-1 flex flex-col gap-2 overflow-hidden">
-                        <div className="shrink-0 flex gap-1.5 p-1 rounded-2xl" style={{ background: 'rgba(0,0,0,0.28)' }}>
-                            {([{ key: 'MEMBERS' as const, label: `Members (${myGuild.memberCount})` }, { key: 'TASKS' as const, label: 'Missions' }, { key: 'TOP' as const, label: 'Rankings' }]).map(t => (
-                                <button key={t.key} onClick={() => setRightTab(t.key)}
-                                    className="flex-1 relative rounded-xl py-1.5 px-1 transition-all active:scale-95"
-                                    style={{ background: rightTab === t.key ? 'linear-gradient(180deg,#52c215,#35900a 50%,#246606)' : 'transparent' }}>
-                                    <span className="font-black block leading-tight" style={{ fontSize: 10, color: rightTab === t.key ? '#fff' : 'rgba(255,255,255,0.6)' }}>{t.label}</span>
-                                </button>
-                            ))}
-                        </div>
+                        {(() => {
+                            const missionsClaimable = tasks.filter(t => t.completed && !t.claimed).length;
+                            const TABS = [
+                                { key: 'DONATE' as const, label: 'Donate' },
+                                { key: 'MEMBERS' as const, label: `Members (${myGuild.memberCount})` },
+                                { key: 'TASKS' as const, label: 'Missions' },
+                            ];
+                            return (
+                                <div className="shrink-0 flex gap-1.5 p-1 rounded-2xl" style={{ background: 'rgba(0,0,0,0.28)' }}>
+                                    {TABS.map(t => (
+                                        <button key={t.key} onClick={() => setRightTab(t.key)}
+                                            className="flex-1 relative rounded-xl py-1.5 px-1 transition-all active:scale-95"
+                                            style={{ background: rightTab === t.key ? 'linear-gradient(180deg,#52c215,#35900a 50%,#246606)' : 'transparent' }}>
+                                            <span className="font-black block leading-tight" style={{ fontSize: 10, color: rightTab === t.key ? '#fff' : 'rgba(255,255,255,0.6)' }}>{t.label}</span>
+                                            {t.key === 'TASKS' && missionsClaimable > 0 && (
+                                                <div className="absolute -top-1 -right-1 min-w-[15px] h-[15px] rounded-full flex items-center justify-center px-0.5 z-10"
+                                                    style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.65), 0 1px 3px rgba(0,0,0,0.8)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
+                                                    <span className="font-black text-white leading-none" style={{ fontSize: 8 }}>{missionsClaimable}</span>
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            );
+                        })()}
 
                         <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-1.5" onClick={() => setActionsOpenFor(null)}>
+                            {rightTab === 'DONATE' && (
+                                <div className="flex flex-col gap-2">
+                                    <div className="tcard p-3 flex flex-col gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <img src="/new_coinicon.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+                                            <span className="flex-1 font-bold text-white/70" style={{ fontSize: 10.5 }}>Donate Coins</span>
+                                            <button onClick={() => !donationState.coinsDonated && onDonate('COINS')} disabled={donationState.coinsDonated}
+                                                className="pill-green shrink-0" style={{ opacity: donationState.coinsDonated ? 0.5 : 1 }}>
+                                                <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9.5px' }}>
+                                                    {donationState.coinsDonated ? 'Donated' : `${formatCommaNumber(donateCoinAmount)}`}
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <img src="/symbols/diamond.png" alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />
+                                            <span className="flex-1 font-bold text-white/70" style={{ fontSize: 10.5 }}>Donate Gems</span>
+                                            <button onClick={() => !donationState.gemsDonated && onDonate('GEMS')} disabled={donationState.gemsDonated}
+                                                className="pill-green shrink-0" style={{ opacity: donationState.gemsDonated ? 0.5 : 1 }}>
+                                                <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9.5px' }}>
+                                                    {donationState.gemsDonated ? 'Donated' : `${donateGemAmount}`}
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="tcard p-3 flex flex-col gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <i className="ti ti-gift text-yellow-300" style={{ fontSize: 20 }} />
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-bold text-white/70" style={{ fontSize: 10.5 }}>Daily Guild Reward</div>
+                                                <div className="text-white/40 font-bold" style={{ fontSize: 9 }}>{Math.min(donatedTodayCount, 10)}/10 members donated today</div>
+                                            </div>
+                                            <button onClick={onClaimDailyReward} disabled={!dailyRewardClaimable}
+                                                className="pill-green shrink-0" style={{ opacity: dailyRewardClaimable ? 1 : 0.5 }}>
+                                                <div className="pill-face" style={{ padding: '5px 10px', fontSize: '9.5px' }}>
+                                                    {dailyRewardClaimedToday ? 'Claimed' : `+${formatCommaNumber(dailyRewardAmount)}`}
+                                                </div>
+                                            </button>
+                                        </div>
+                                        <div className="relative h-2 rounded-full overflow-hidden w-full" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                                            <div className="absolute inset-y-0 left-0 rounded-full transition-all" style={{ width: `${Math.min(100, (donatedTodayCount / 10) * 100)}%`, background: 'linear-gradient(90deg,#fbbf24,#d97706)' }} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {rightTab === 'MEMBERS' && (() => {
                                 const sorted = [...myGuild.members].sort((a, b) => {
                                     const roleDiff = ROLE_RANK[a.role] - ROLE_RANK[b.role];
@@ -588,8 +631,6 @@ export const GuildModal: React.FC<GuildModalProps> = ({
                                     })}
                                 </div>
                             )}
-
-                            {rightTab === 'TOP' && <TopGuildsList onSelect={setViewingGuildId} />}
                         </div>
                     </div>
                 </div>

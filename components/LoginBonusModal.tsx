@@ -128,10 +128,6 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({
                 {/* SYSTEM 2: 30-day consecutive login streak — independent of the 7-day
                     rewards below. Missing a day resets currentStreak to 0. */}
                 <div className="relative px-6 pt-2 pb-3">
-                    <div className="flex items-center justify-between px-0.5 mb-1">
-                        <span className="font-black text-white/60 uppercase tracking-widest" style={{ fontSize: 8.5 }}>Login Streak</span>
-                        <span className="font-black text-yellow-300" style={{ fontSize: 9.5 }}>{currentStreak} Day{currentStreak !== 1 ? 's' : ''}</span>
-                    </div>
                     <div className="relative flex items-center justify-between" style={{ height: 34 }}>
                         <div className="absolute left-0 right-0 rounded-full" style={{ top: '50%', height: 3, transform: 'translateY(-50%)', background: 'rgba(0,0,0,0.35)' }} />
                         <div className="absolute left-0 rounded-full" style={{
@@ -166,7 +162,6 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({
                                                 boxShadow: 'inset 0 1px 0 rgba(180,100,255,0.4), 0 4px 14px rgba(0,0,0,0.85)',
                                             }}
                                             onClick={e => e.stopPropagation()}>
-                                            <span className="font-black text-white" style={{ fontSize: 9.5 }}>{m.days}-Day Streak</span>
                                             <div className="flex items-center gap-1.5">
                                                 {m.multiplier > 0 && (
                                                     <div className="flex items-center gap-1">
@@ -187,9 +182,7 @@ export const LoginBonusModal: React.FC<LoginBonusModalProps> = ({
                                                 <button onClick={() => { onClaimMilestone(m.days); setOpenMilestone(null); }} className="pill-green w-full">
                                                     <div className="pill-face" style={{ padding: '4px 8px', fontSize: '9px' }}>Claim</div>
                                                 </button>
-                                            ) : (
-                                                <span className="font-bold text-white/45" style={{ fontSize: 8.5 }}>Reach day {m.days}</span>
-                                            )}
+                                            ) : null}
                                         </div>
                                     )}
                                 </div>

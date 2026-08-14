@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatCommaNumber } from '../constants';
 
 interface VipLoungeModalProps {
     isOpen: boolean;
@@ -10,8 +11,11 @@ interface VipLoungeModalProps {
     vipXpToNext?: number;
     vipExpiry?: number;
     onJoinVip: () => void;
-    onOpenHighLimit?: () => void;
     onOpenPremium?: () => void;
+    maxBet: number;
+    dailyRewardClaimable: boolean;
+    dailyRewardClaimedToday: boolean;
+    onClaimDailyReward: () => void;
 }
 
 interface VipTier {
@@ -47,14 +51,15 @@ const getCurrentTier = (vipLevel: number): VipTier | null => {
 };
 
 export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
-    isOpen, onClose, isVip, playerLevel, vipLevel = 1, vipXp = 0, vipXpToNext = 500, vipExpiry, onJoinVip, onOpenHighLimit, onOpenPremium
+    isOpen, onClose, isVip, playerLevel, vipLevel = 1, vipXp = 0, vipXpToNext = 500, vipExpiry, onJoinVip, onOpenPremium,
+    maxBet, dailyRewardClaimable, dailyRewardClaimedToday, onClaimDailyReward,
 }) => {
     if (!isOpen) return null;
 
     const currentTier = getCurrentTier(vipLevel);
     const vipDaysLeft = vipExpiry ? Math.max(0, Math.ceil((vipExpiry - Date.now()) / (24 * 3600000))) : null;
     const xpPct = Math.min(100, (vipXp / vipXpToNext) * 100);
-    const hlUnlocked = playerLevel >= 35 && isVip;
+    const dailyRewardAmount = Math.round(maxBet * 3);
 
     return (
         <div className="absolute inset-0 z-[150] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in select-none">
@@ -138,24 +143,28 @@ export const VipLoungeModal: React.FC<VipLoungeModalProps> = ({
                         </div>
                     </div>
 
-                    {/* RIGHT — High Limit */}
+                    {/* RIGHT — Daily VIP Reward */}
                     <div className="tcard flex-[2] flex flex-col overflow-hidden">
 
                         <div className="shrink-0 px-3 pt-3 pb-1 text-center">
-                            <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>High Limit</span>
+                            <span className="font-black text-[12px] tracking-widest" style={{ color: '#e9d5ff' }}>Daily Reward</span>
                         </div>
 
                         <div className="flex-1 flex flex-col items-center justify-center gap-2 p-3">
-                            <img src="/ui/high_roller.png" alt=""
-                                style={{ width: 110, height: 110, objectFit: 'contain', filter: hlUnlocked ? 'drop-shadow(0 4px 16px rgba(255,220,50,0.9))' : 'grayscale(1) brightness(0.5)' }} />
+                            <img src="/ui/gift_store.png" alt=""
+                                style={{ width: 110, height: 110, objectFit: 'contain', filter: isVip ? 'drop-shadow(0 4px 16px rgba(255,220,50,0.9))' : 'grayscale(1) brightness(0.5)' }} />
+                            {isVip && (
+                                <span className="font-black text-[11px]" style={{ color: '#fde68a' }}>+{formatCommaNumber(dailyRewardAmount)}</span>
+                            )}
                         </div>
 
                         <div className="shrink-0 px-3 pb-3">
                             <button
-                                onClick={() => { if (hlUnlocked) { onClose(); setTimeout(() => onOpenHighLimit?.(), 50); } }}
-                                className={`pill-green w-full${!hlUnlocked ? ' opacity-40' : ''}`}>
+                                onClick={() => { if (dailyRewardClaimable) onClaimDailyReward(); }}
+                                disabled={!dailyRewardClaimable}
+                                className={`pill-green w-full${!dailyRewardClaimable ? ' opacity-40' : ''}`}>
                                 <div className="pill-face">
-                                    {hlUnlocked ? 'Enter' : (!isVip ? 'VIP Only' : 'Lv.35')}
+                                    {!isVip ? 'VIP Only' : dailyRewardClaimedToday ? 'Claimed' : 'Claim'}
                                 </div>
                             </button>
                         </div>

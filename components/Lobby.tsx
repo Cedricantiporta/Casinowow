@@ -38,6 +38,7 @@ interface LobbyProps {
     onOpenArena?: () => void;
     onOpenGuild?: () => void;
     guildUnlocked?: boolean;
+    guildMissionClaimableCount?: number;
     arena?: ArenaState;
     arenaPlayerName?: string;
     arenaPlayerAvatar?: string;
@@ -82,6 +83,7 @@ export const Lobby: React.FC<LobbyProps> = ({
     onOpenArena,
     onOpenGuild,
     guildUnlocked,
+    guildMissionClaimableCount,
     arena,
     arenaPlayerName,
     arenaPlayerAvatar,
@@ -567,9 +569,30 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                                     {/* Guild (reuses the Arena dock icon; Arena itself moved to its own lobby card) */}
                                     <button onClick={guildUnlocked ? () => { onOpenGuild?.(); setDockExpanded(false); } : undefined} className={iconBtn(!guildUnlocked)}>
-                                        <img src="/Lobby_arena.png" alt="" style={iconStyle(!guildUnlocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                        <div className="relative leading-none">
+                                            <img src="/Lobby_arena.png" alt="" style={iconStyle(!guildUnlocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                            {!!guildUnlocked && (guildMissionClaimableCount ?? 0) > 0 && (
+                                                <div className="absolute top-1 right-1 min-w-[16px] h-[16px] rounded-full flex items-center justify-center px-0.5 z-10"
+                                                    style={{ background: 'radial-gradient(circle at 40% 28%, #ff7070, #cc0000 60%, #990000)', boxShadow: 'inset 0 2px 2px rgba(255,255,255,0.65), inset 0 -1px 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.9)', border: '1.5px solid rgba(255,120,120,0.7)' }}>
+                                                    <span className="font-black text-white leading-none" style={{ fontSize: '8px' }}>{guildMissionClaimableCount}</span>
+                                                </div>
+                                            )}
+                                        </div>
                                         <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">Guild</span>
                                     </button>
+
+                                    {sep}
+
+                                    {/* High Limit — VIP + Lv.35, same icon the VIP Lounge used to show for this */}
+                                    {(() => {
+                                        const highLimitLocked = !(isVip && playerLevel >= 35);
+                                        return (
+                                            <button onClick={!highLimitLocked ? () => { onOpenHighRoller(); setDockExpanded(false); } : undefined} className={iconBtn(highLimitLocked)}>
+                                                <img src="/ui/high_roller.png" alt="" style={iconStyle(highLimitLocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                                <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">High Limit</span>
+                                            </button>
+                                        );
+                                    })()}
 
                                     {sep}
 
@@ -621,10 +644,10 @@ export const Lobby: React.FC<LobbyProps> = ({
 
                                     {sep}
 
-                                    {/* Leaderboard / Ranking */}
+                                    {/* Leaderboard */}
                                     <button onClick={!isRankingLocked ? () => { onOpenRanking(); setDockExpanded(false); } : undefined} className={iconBtn(isRankingLocked)}>
-                                        <img src="/ui/high_roller.png" alt="" style={iconStyle(isRankingLocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
-                                        <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">Ranking</span>
+                                        <img src="/leaderboard.png" alt="" style={iconStyle(isRankingLocked)} className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.7)]" />
+                                        <span className="text-[8px] font-black text-white tracking-wider leading-none -mt-2">Leaderboard</span>
                                     </button>
 
                                 </div>

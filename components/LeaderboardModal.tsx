@@ -31,13 +31,14 @@ const TABS: { key: LeaderboardMetric; label: string }[] = [
 export const EXCLUSIVE_AVATAR = '/profilepicsnew (12).png';
 
 export interface RankReward { gems: number; collectDays?: number; expDays?: number; missionExpHours?: number; exclusiveAvatar?: boolean }
+// Gem amounts halved from their original values.
 export const RANK_REWARDS: Record<number, RankReward> = {
-    1:  { gems: 10000, collectDays: 30, expDays: 7,  missionExpHours: 72, exclusiveAvatar: true },
-    2:  { gems: 5000,  collectDays: 15, expDays: 3,  missionExpHours: 24 },
-    3:  { gems: 2000,  collectDays: 7,  expDays: 1,  missionExpHours: 12 },
-    4:  { gems: 500,   collectDays: 1,  missionExpHours: 1 },
-    5:  { gems: 500,   collectDays: 1,  missionExpHours: 1 },
-    6:  { gems: 200 }, 7: { gems: 200 }, 8: { gems: 200 }, 9: { gems: 200 }, 10: { gems: 200 },
+    1:  { gems: 5000,  collectDays: 30, expDays: 7,  missionExpHours: 72, exclusiveAvatar: true },
+    2:  { gems: 2500,  collectDays: 15, expDays: 3,  missionExpHours: 24 },
+    3:  { gems: 1000,  collectDays: 7,  expDays: 1,  missionExpHours: 12 },
+    4:  { gems: 250,   collectDays: 1,  missionExpHours: 1 },
+    5:  { gems: 250,   collectDays: 1,  missionExpHours: 1 },
+    6:  { gems: 100 }, 7: { gems: 100 }, 8: { gems: 100 }, 9: { gems: 100 }, 10: { gems: 100 },
 };
 
 const fmtDuration = fmtRewardDuration;
@@ -67,11 +68,32 @@ const Avatar: React.FC<{ src: string; size: number; ring?: string }> = ({ src, s
     );
 };
 
+// Rankings reset with the calendar month (see App.tsx's MONTHLY_RANK reward,
+// which checks for a new month on mount) — countdown to local midnight on the 1st.
+const msUntilRankingReset = (now: number): number => {
+    const d = new Date(now);
+    const next = new Date(d.getFullYear(), d.getMonth() + 1, 1, 0, 0, 0, 0);
+    return Math.max(0, next.getTime() - now);
+};
+const fmtResetCountdown = (ms: number): string => {
+    const days = Math.floor(ms / 86400000);
+    const hours = Math.floor((ms % 86400000) / 3600000);
+    const mins = Math.floor((ms % 3600000) / 60000);
+    return days > 0 ? `${days}d ${hours}h` : `${hours}h ${mins}m`;
+};
+
 export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onClose, player, friendIds = [], pendingFriendIds = [], onAddFriend }) => {
     const [metric, setMetric] = useState<LeaderboardMetric>('score');
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<{ entry: LeaderboardEntry; rank: number } | null>(null);
+    const [now, setNow] = useState(Date.now());
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const t = setInterval(() => setNow(Date.now()), 60000);
+        return () => clearInterval(t);
+    }, [isOpen]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -181,7 +203,8 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({ isOpen, onCl
             <div className="shrink-0 flex items-center gap-2 px-4 pt-3 pb-2">
                 <img src="/ui/high_roller.png" alt="" style={{ width: 30, height: 30, objectFit: 'contain', filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.5))' }} />
                 <h2 className="font-black text-white text-base tracking-wide" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.5)' }}>Top Players</h2>
-                <div className="round-btn cursor-pointer ml-auto" onClick={onClose}><i className="ti ti-x" /></div>
+                <span className="ml-auto font-bold" style={{ color: 'rgba(255,255,255,0.5)', fontSize: 10 }}>Resets {fmtResetCountdown(msUntilRankingReset(now))}</span>
+                <div className="round-btn cursor-pointer" onClick={onClose}><i className="ti ti-x" /></div>
             </div>
 
             {/* Tabs — segmented pills, no borders */}

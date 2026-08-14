@@ -80,6 +80,7 @@ function memberRowToMember(row: any): GuildMember {
         role: (row.role || 'MEMBER') as GuildRole,
         contribution: Number(row.contribution) || 0,
         joinedAt: row.joined_at ? new Date(row.joined_at).getTime() : Date.now(),
+        lastDonatedDate: row.last_donated_date || '',
     };
 }
 
@@ -296,4 +297,13 @@ export async function contributeGuildPoints(guildId: string, _deviceId: string, 
     } catch (e) {
         console.warn('[guild] contributeGuildPoints exception:', e);
     }
+}
+
+// Stamps this member's last-donated date (server-side) — drives the "N members
+// donated today" count the daily guild reward is gated on. Call alongside
+// contributeGuildPoints when the contribution came from an actual donation.
+export async function recordGuildDonation(guildId: string): Promise<void> {
+    if (!supabase) return;
+    await ensureAuthId();
+    try { await supabase.rpc('guild_record_donation', { p_guild_id: guildId }); } catch { /* best-effort */ }
 }

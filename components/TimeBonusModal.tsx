@@ -35,6 +35,7 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [showRoulette, setShowRoulette] = useState(false);
     const [pendingClaim, setPendingClaim] = useState<{ id: number; reward: number } | null>(null);
+    const [showRouletteInfo, setShowRouletteInfo] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -141,14 +142,20 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                     );
                 })}
 
-                {/* Jackpot roulette tile — unlocks once Mega has been collected
-                    megaOpensRequired times today. */}
+                {/* Roulette tile — unlocks once Mega has been collected
+                    megaOpensRequired times. That counter never resets on its own;
+                    it only resets once Roulette is actually played. */}
                 <div className={`${megaJackpotReady ? 'tcard-goldpurple' : 'tcard'} flex flex-col items-center flex-1 gap-2 p-3 relative`}>
+                    <div className="absolute cursor-pointer flex items-center justify-center rounded-full"
+                        style={{ top: 6, right: 6, width: 16, height: 16, background: 'rgba(0,0,0,0.35)' }}
+                        onClick={(e) => { e.stopPropagation(); setShowRouletteInfo(true); }}>
+                        <i className="ti ti-question-mark" style={{ fontSize: 10, color: 'rgba(255,255,255,0.7)' }} />
+                    </div>
                     <div className={`transition-all duration-300 mt-2 flex items-center justify-center ${megaJackpotReady ? 'scale-105' : 'brightness-50 grayscale'}`} style={{ width: 72, height: 72 }}>
                         <img src="/symbols/neon_bonus.png" alt=""
                             style={{ width: 72, height: 72, objectFit: 'contain', filter: megaJackpotReady ? 'drop-shadow(0 0 10px rgba(251,191,36,0.8))' : undefined }} />
                     </div>
-                    <div className="text-[10px] font-black text-yellow-200/90 tracking-wider text-center">Jackpot</div>
+                    <div className="text-[10px] font-black text-yellow-200/90 tracking-wider text-center">Roulette</div>
                     {/* jackpotBaseAmount already includes collect multiplier from App.tsx */}
                     <div className="text-sm font-black text-white text-center drop-shadow-md">{formatCommaNumber(jackpotBaseAmount)}</div>
                     <button
@@ -198,9 +205,26 @@ export const TimeBonusModal: React.FC<TimeBonusModalProps> = ({
                     </div>
                 </div>
             )}
+
+            {/* Roulette info popup */}
+            {showRouletteInfo && (
+                <div
+                    className="absolute inset-0 z-[10] flex items-center justify-center bg-black/10 backdrop-blur-md p-4 animate-pop-in"
+                    onClick={() => setShowRouletteInfo(false)}>
+                    <div
+                        className="rounded-2xl overflow-hidden flex flex-col items-center gap-2.5 px-5 py-4 max-w-[260px] text-center"
+                        onClick={e => e.stopPropagation()}
+                        style={{ background: 'linear-gradient(180deg,#c510e0 0%,#a018d4 12%,#8028c8 28%,#6018a8 55%,#380870 100%)', boxShadow: 'inset 0 1px 0 rgba(220,170,255,0.5), 0 8px 32px rgba(0,0,0,0.8)' }}>
+                        <p className="text-white font-bold" style={{ fontSize: 11.5, lineHeight: 1.5 }}>Collect Mega 3 times to unlock Roulette.</p>
+                        <button className="pill-green w-full" onClick={() => setShowRouletteInfo(false)}>
+                            <div className="pill-face" style={{ padding: '6px 10px', fontSize: '11px' }}>Got it</div>
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
 
-        {/* Jackpot roulette — outside overflow-hidden card so it can fill the screen */}
+        {/* Roulette — outside overflow-hidden card so it can fill the screen */}
         <JackpotRouletteModal
             isOpen={showRoulette}
             baseAmount={jackpotBaseAmount}

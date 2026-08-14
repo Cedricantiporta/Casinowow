@@ -31,8 +31,12 @@ create table if not exists public.guild_members (
     role         text not null default 'MEMBER', -- 'LEADER' | 'OFFICER' | 'MEMBER'
     contribution double precision not null default 0,
     joined_at    timestamptz not null default now(),
+    last_donated_date text not null default '',
     primary key (guild_id, device_id)
 );
+
+-- Migration for an existing table created before daily-donation tracking existed.
+alter table public.guild_members add column if not exists last_donated_date text not null default '';
 
 -- A device can only be in one guild at a time.
 create unique index if not exists guild_members_device_idx on public.guild_members (device_id);
@@ -249,19 +253,32 @@ begin
         where guild_id = p_guild_id and device_id = me;
 end $$;
 
+-- Stamps this member's last_donated_date with today's (server) date — separate
+-- from guild_contribute_points because that RPC also fires for guild-task
+-- rewards, which aren't donations. Drives the "N members donated today" count
+-- the daily guild reward is gated on.
+create or replace function guild_record_donation(p_guild_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare me text := auth.uid()::text;
+begin
+    if guild_my_role(p_guild_id, me) is null then raise exception 'not a member'; end if;
+    update guild_members set last_donated_date = to_char(now(), 'YYYY-MM-DD')
+        where guild_id = p_guild_id and device_id = me;
+end $$;
+
 revoke all on function
     guild_create(text,text,text,text,boolean,text,text), guild_join(uuid,text,text),
     guild_leave(uuid), guild_transfer_leadership(uuid,text), guild_kick(uuid,text),
     guild_set_role(uuid,text,text), guild_disband(uuid), guild_update_description(uuid,text),
     guild_contribute_xp(uuid,double precision), guild_contribute_points(uuid,double precision),
-    guild_update_member_profile(uuid,text,text)
+    guild_update_member_profile(uuid,text,text), guild_record_donation(uuid)
     from public;
 grant execute on function
     guild_create(text,text,text,text,boolean,text,text), guild_join(uuid,text,text),
     guild_leave(uuid), guild_transfer_leadership(uuid,text), guild_kick(uuid,text),
     guild_set_role(uuid,text,text), guild_disband(uuid), guild_update_description(uuid,text),
     guild_contribute_xp(uuid,double precision), guild_contribute_points(uuid,double precision),
-    guild_update_member_profile(uuid,text,text)
+    guild_update_member_profile(uuid,text,text), guild_record_donation(uuid)
     to anon, authenticated;
 
 notify pgrst, 'reload schema';

@@ -191,6 +191,7 @@ export interface GuildMember {
     role: GuildRole;
     contribution: number; // donation/task-earned CONTRIBUTION points (separate from guild level XP)
     joinedAt: number;
+    lastDonatedDate: string; // 'YYYY-MM-DD' server date of this member's last donation, '' if never
 }
 
 export interface GuildSummary {

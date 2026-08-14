@@ -43,7 +43,7 @@ import { ArenaModal, ArenaSideWidget } from './components/ArenaModal';
 import { GuildModal } from './components/GuildModal';
 import {
     searchGuilds, getMyGuild, getTopGuildsByContribution, createGuild, joinGuild, leaveGuild, transferLeadership, disbandGuild,
-    kickMember, setMemberRole, contributeGuildXp, contributeGuildPoints, updateGuildDescription, updateGuildMemberProfile, rewardTierForRank,
+    kickMember, setMemberRole, contributeGuildXp, contributeGuildPoints, updateGuildDescription, updateGuildMemberProfile, recordGuildDonation, rewardTierForRank,
     GUILD_CREATE_COST_GEMS, GUILD_DONATE_GEMS, GUILD_DONATE_BET_PCT, GUILD_DONATE_CONTRIBUTION,
     GUILD_TASK_REFRESH_BASE_COST, GUILD_TASK_REFRESH_MAX_MULT,
 } from './services/guildService';
@@ -323,7 +323,7 @@ const STARTUP_ASSETS = [
     // modal / UI assets
     '/ui/VIP.png', '/ui/bigbag.png', '/ui/dice.png', '/ui/double.png',
     '/ui/dragon_vase.png', '/ui/gems500.png', '/ui/gems5000.png',
-    '/ui/gift_mail.png', '/ui/gift_store.png', '/ui/high_roller.png',
+    '/ui/gift_mail.png', '/ui/gift_store.png', '/ui/high_roller.png', '/leaderboard.png',
     '/ui/inbox.png', '/ui/lock.png', '/ui/mine_new.png', '/ui/minigames.png',
     '/ui/missions_new.png', '/ui/pick.png', '/ui/piggy_red.png',
     '/ui/rock.png', '/ui/roller.png', '/ui/stage_gem.png', '/ui/star.png',
@@ -1086,6 +1086,15 @@ const App: React.FC = () => {
       if (guildDonationState.date !== today) setGuildDonationState({ date: today, coinsDonated: false, gemsDonated: false });
       try { localStorage.setItem('cw_guild_donations', JSON.stringify(guildDonationState)); } catch {}
   }, [guildDonationState]);
+  // Matches the server's to_char(now(), 'YYYY-MM-DD') (Postgres now() is UTC by
+  // default) so this device's "today" lines up with last_donated_date rows.
+  const todayDateStrServerFmt = () => new Date().toISOString().slice(0, 10);
+  const [guildDailyRewardClaimedDate, setGuildDailyRewardClaimedDate] = useState<string>(() => {
+      try { return localStorage.getItem('cw_guild_daily_reward_date') || ''; } catch { return ''; }
+  });
+  useEffect(() => {
+      try { localStorage.setItem('cw_guild_daily_reward_date', guildDailyRewardClaimedDate); } catch {}
+  }, [guildDailyRewardClaimedDate]);
 
   // Monthly top-10 guild rewards — approximated client-side (no server cron):
   // whenever a member opens the game in a new calendar month, their device checks
@@ -1282,7 +1291,20 @@ const App: React.FC = () => {
       // that's the whole point of the split (every guild has a shot at monthly
       // rewards, not just whichever happens to be highest-level).
       await contributeGuildPoints(myGuild.id, getDeviceId(), GUILD_DONATE_CONTRIBUTION);
+      await recordGuildDonation(myGuild.id);
       refreshMyGuild();
+  };
+  // Daily guild reward: once at least 10 members have donated (coins or gems)
+  // today, every member can claim 2x their own max bet — once per device per day.
+  const donatedTodayCount = myGuild ? myGuild.members.filter(m => m.lastDonatedDate === todayDateStrServerFmt()).length : 0;
+  const guildDailyRewardClaimable = donatedTodayCount >= 10 && guildDailyRewardClaimedDate !== todayDateStrServerFmt();
+  const handleClaimGuildDailyReward = () => {
+      if (!myGuild || !guildDailyRewardClaimable) return;
+      const reward = Math.round(MAX_BET_BY_LEVEL(player.level) * 2);
+      setPlayer(p => ({ ...p, balance: p.balance + reward }));
+      triggerCoinAnim(reward);
+      setGuildDailyRewardClaimedDate(todayDateStrServerFmt());
+      setCelebrationMsg(`+${formatCommaNumber(reward)} Coins — Guild Daily Reward!`);
   };
   // Guild tasks reuse the same event types Daily Missions already tracks.
   const updateGuildTasks = (type: string, amount: number) => {
@@ -1552,6 +1574,23 @@ const App: React.FC = () => {
   // milestone reward was claimed — only days 5/10/15/20/25/30 actually have a
   // reward to claim; the days between just count toward the next milestone.
   const todayDateStr = () => new Date().toDateString();
+  // VIP Lounge's daily claimable reward (3x max bet) — replaces the old High
+  // Limit promo card, which moved to its own Lobby dock entry.
+  const [vipDailyRewardClaimedDate, setVipDailyRewardClaimedDate] = useState<string>(() => {
+      try { return localStorage.getItem('cw_vip_daily_reward_date') || ''; } catch { return ''; }
+  });
+  useEffect(() => {
+      try { localStorage.setItem('cw_vip_daily_reward_date', vipDailyRewardClaimedDate); } catch {}
+  }, [vipDailyRewardClaimedDate]);
+  const vipDailyRewardClaimable = !!player.isVip && vipDailyRewardClaimedDate !== todayDateStr();
+  const handleClaimVipDailyReward = () => {
+      if (!vipDailyRewardClaimable) return;
+      const reward = Math.round(MAX_BET_BY_LEVEL(player.level) * 3);
+      setPlayer(p => ({ ...p, balance: p.balance + reward }));
+      triggerCoinAnim(reward);
+      setVipDailyRewardClaimedDate(todayDateStr());
+      setCelebrationMsg(`+${formatCommaNumber(reward)} Coins — VIP Daily Reward!`);
+  };
   // Classic 7-day cycle — claim-driven, not a streak. currentDay only advances
   // when the player actually claims; a missed day just resets claimedToday so
   // that day's reward is claimable again (no penalty, no auto-advance).
@@ -1602,18 +1641,19 @@ const App: React.FC = () => {
       audioService.playWinBig();
   };
 
-  // Golden Treasury's Jackpot tile unlocks once the Mega tile has been
-  // collected 3 times in a day — collecting Jackpot resets the count.
+  // Golden Treasury's Roulette tile unlocks once the Mega tile has been
+  // collected 3 times — this counter never resets on its own (not daily, not
+  // any timer); it only resets back to 0 once the player actually plays
+  // (claims) Roulette.
   const MEGA_JACKPOT_OPENS_REQUIRED = 3;
-  const [megaJackpotOpens, setMegaJackpotOpens] = useState<{ date: string; opens: number }>(() => {
+  const [megaJackpotOpens, setMegaJackpotOpens] = useState<{ opens: number }>(() => {
       try {
           const saved = JSON.parse(localStorage.getItem('cw_mega_jackpot_opens') || 'null');
-          if (saved && saved.date === todayDateStr()) return saved;
+          if (saved && typeof saved.opens === 'number') return { opens: saved.opens };
       } catch {}
-      return { date: todayDateStr(), opens: 0 };
+      return { opens: 0 };
   });
   useEffect(() => {
-      if (megaJackpotOpens.date !== todayDateStr()) { setMegaJackpotOpens({ date: todayDateStr(), opens: 0 }); return; }
       try { localStorage.setItem('cw_mega_jackpot_opens', JSON.stringify(megaJackpotOpens)); } catch {}
   }, [megaJackpotOpens]);
 
@@ -2216,10 +2256,7 @@ const App: React.FC = () => {
       }));
 
       if (id === 2) {
-          setMegaJackpotOpens(prev => ({
-              date: todayDateStr(),
-              opens: Math.min(MEGA_JACKPOT_OPENS_REQUIRED, (prev.date === todayDateStr() ? prev.opens : 0) + 1),
-          }));
+          setMegaJackpotOpens(prev => ({ opens: Math.min(MEGA_JACKPOT_OPENS_REQUIRED, prev.opens + 1) }));
       }
 
       setPlayer(p => ({ ...p, balance: p.balance + awardedReward }));
@@ -2414,28 +2451,30 @@ const App: React.FC = () => {
     try { localStorage.setItem('cw_pending_friend_reqs', JSON.stringify(pendingFriendRequestIds)); } catch {}
   }, [pendingFriendRequestIds]);
 
-  // Bot friends auto-send a daily coin gift — no claim needed, since there's no
-  // real device on the other end to gift back and forth with. Checked periodically
-  // so it fires shortly after becoming due, not just once at load.
+  // Bot friends auto-send a daily coin gift — lands in the Inbox like a real
+  // friend's gift (no popup), since there's no real device on the other end to
+  // gift back and forth with. Checked periodically so it fires shortly after
+  // becoming due, not just once at load.
   useEffect(() => {
     const checkBotGifts = () => {
         const now = Date.now();
         if (friendsState.friends.every(f => !f.isAI)) return;
         const maxBet = MAX_BET_BY_LEVEL(player.level);
-        let totalGift = 0;
-        let count = 0;
-        const updatedFriends = friendsState.friends.map(f => {
-            if (!f.isAI) return f;
-            if (f.lastAutoGiftAt && now - f.lastAutoGiftAt < DAILY_MS) return f;
-            totalGift += receivedGiftAmount(maxBet);
-            count++;
-            return { ...f, lastAutoGiftAt: now };
+        const dueFriends = friendsState.friends.filter(f => f.isAI && (!f.lastAutoGiftAt || now - f.lastAutoGiftAt >= DAILY_MS));
+        if (dueFriends.length === 0) return;
+        const amount = receivedGiftAmount(maxBet);
+        setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => dueFriends.some(d => d.id === f.id) ? { ...f, lastAutoGiftAt: now } : f) }));
+        setInbox(prev => {
+            const existingIds = new Set(prev.map(m => m.id));
+            const additions = dueFriends
+                .filter(f => !existingIds.has(`friendgift_bot_${f.id}_${now}`))
+                .map(f => ({
+                    id: `friendgift_bot_${f.id}_${now}`, type: 'FRIEND_GIFT' as const,
+                    title: `Gift from ${f.name}`, body: `+${amount.toLocaleString()} Coins`,
+                    claimed: false, createdAt: now, meta: f.id,
+                }));
+            return additions.length > 0 ? [...additions, ...prev] : prev;
         });
-        if (count > 0) {
-            setFriendsState(prev => ({ ...prev, friends: updatedFriends }));
-            setPlayer(p => ({ ...p, balance: p.balance + totalGift }));
-            setCelebrationMsg(`${count} friend${count > 1 ? 's' : ''} sent you +${formatCommaNumber(totalGift)} Coins!`);
-        }
     };
     checkBotGifts();
     const t = setInterval(checkBotGifts, 5 * 60_000);
@@ -6175,7 +6214,6 @@ const App: React.FC = () => {
           recordGiftSent();
       }
       setFriendsState(prev => ({ ...prev, friends: prev.friends.map(f => f.id === friendId ? { ...f, lastSentAt: Date.now() } : f) }));
-      setCelebrationMsg('Gift Sent!');
   };
 
   const gainQuestCredit = () => {
@@ -7778,6 +7816,7 @@ const App: React.FC = () => {
                 onOpenArena={() => setShowArena(true)}
                 onOpenGuild={() => setShowGuild(true)}
                 guildUnlocked={guildUnlocked}
+                guildMissionClaimableCount={guildTaskState.tasks.filter(t => t.completed && !t.claimed).length}
                 arena={arenaUnlocked ? arenaState : undefined}
                 arenaPlayerName={playerName}
                 arenaPlayerAvatar={profileEmoji}
@@ -7799,7 +7838,7 @@ const App: React.FC = () => {
                 piggyMaxBet={MAX_BET_BY_LEVEL(player.level)}
                 packCredits={player.packCredits}
                 premiumPackCredits={player.premiumPackCredits ?? 0}
-                isJackpotReady={megaJackpotOpens.date === todayDateStr() && megaJackpotOpens.opens >= MEGA_JACKPOT_OPENS_REQUIRED}
+                isJackpotReady={megaJackpotOpens.opens >= MEGA_JACKPOT_OPENS_REQUIRED}
                 questPathCurrentIndex={slotQuestState.currentPathIndex}
                 newSlotIds={newSlotIds}
                 bonusTimers={bonusTimers}
@@ -8858,11 +8897,11 @@ const App: React.FC = () => {
           collectMultiplier={treasuryMultiplier}
           multProgress={treasuryMultProgress}
           jackpotBaseAmount={MAX_BET_BY_LEVEL(player.level) * 7 * treasuryMultiplier}
-          megaOpensToday={megaJackpotOpens.date === todayDateStr() ? megaJackpotOpens.opens : 0}
+          megaOpensToday={megaJackpotOpens.opens}
           megaOpensRequired={MEGA_JACKPOT_OPENS_REQUIRED}
           onJackpotClaim={(amount) => {
               setPlayer(p => ({ ...p, balance: p.balance + amount }));
-              setMegaJackpotOpens({ date: todayDateStr(), opens: 0 });
+              setMegaJackpotOpens({ opens: 0 });
               triggerCoinAnim(amount);
               audioService.playWinBig();
               setCelebrationMsg(`+${formatCommaNumber(amount)} Coins`);
@@ -9410,8 +9449,11 @@ const App: React.FC = () => {
           vipXpToNext={player.vipXpToNext ?? 500}
           vipExpiry={player.vipExpiry}
           onJoinVip={handleJoinVip}
-          onOpenHighLimit={() => { setShowVipLounge(false); setTimeout(handleOpenHighRoller, 50); }}
           onOpenPremium={() => { setShowVipLounge(false); setTimeout(() => setShowPremiumModal(true), 50); }}
+          maxBet={MAX_BET_BY_LEVEL(player.level)}
+          dailyRewardClaimable={vipDailyRewardClaimable}
+          dailyRewardClaimedToday={vipDailyRewardClaimedDate === todayDateStr()}
+          onClaimDailyReward={handleClaimVipDailyReward}
       />
 
       {/* First-time welcome gift — 7 days of free VIP */}
@@ -9553,6 +9595,11 @@ const App: React.FC = () => {
           donateCoinAmount={Math.round(MAX_BET_BY_LEVEL(player.level) * GUILD_DONATE_BET_PCT)}
           donateGemAmount={GUILD_DONATE_GEMS}
           onDonate={handleGuildDonate}
+          donatedTodayCount={donatedTodayCount}
+          dailyRewardAmount={Math.round(MAX_BET_BY_LEVEL(player.level) * 2)}
+          dailyRewardClaimable={guildDailyRewardClaimable}
+          dailyRewardClaimedToday={guildDailyRewardClaimedDate === todayDateStrServerFmt()}
+          onClaimDailyReward={handleClaimGuildDailyReward}
           errorMsg={guildError}
           friendIds={friendsState.friends.map(f => f.id)}
           pendingFriendIds={pendingFriendRequestIds}
