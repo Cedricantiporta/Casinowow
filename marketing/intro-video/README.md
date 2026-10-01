@@ -2,14 +2,14 @@
 
 `cozy-casino-intro.mp4` is a 1920×1080, 30fps, 30-second landscape intro, built with [HyperFrames](https://github.com/heygen-com/hyperframes).
 
-All gameplay footage is real: it was captured from the game running locally in a 932×430 landscape phone viewport.
+All gameplay footage is real: it was captured from the game running locally in a 932×430 landscape phone viewport at 3× pixel density (2796×1290).
 
 ## Edit and re-render
 
 ```bash
 cd marketing/intro-video
 npx hyperframes preview   # live preview / timeline studio
-npx hyperframes render -f 30 -q delivery --video-frame-format png -o cozy-casino-intro.mp4
+npx hyperframes render -f 30 -q delivery --crf 14 --video-frame-format png -o cozy-casino-intro.mp4
 ```
 
 Every scene is in `index.html`. Scene timing is snapped to the music. The drop (`D = 4.26s`) and kick spacing (`P = 0.54s`) are at the top of the script.

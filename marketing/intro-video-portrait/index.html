@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>Cozy Casino Intro (portrait)</title>
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Titan One"; src: url("assets/fonts/TitanOne.woff2") format("woff2"); font-display: block; }
+      @font-face { font-family: "Fredoka"; src: url("assets/fonts/Fredoka.woff2") format("woff2"); font-weight: 300 700; font-display: block; }
+      @font-face { font-family: "tabler-icons"; src: url("assets/fonts/tabler-icons.woff2") format("woff2"); font-display: block; }
+
+      :root { --gold-1: #fff3b0; --gold-2: #ffd34d; --gold-3: #ff9d1a; --plum-0: #0e0222; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--plum-0); }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; font-family: "Fredoka", system-ui, sans-serif; color: #fff; background: var(--plum-0); }
+
+      .scene { position: absolute; inset: 0; overflow: hidden; visibility: hidden; opacity: 0; }
+      .fill { position: absolute; inset: 0; }
+      .center-text { position: absolute; left: 70px; right: 70px; text-align: center; text-wrap: balance; }
+
+      .gold-text {
+        font-family: "Titan One", sans-serif;
+        background: linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 42%, var(--gold-3) 100%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        filter: drop-shadow(0 6px 0 #6b2a00) drop-shadow(0 14px 28px rgba(0,0,0,0.55));
+      }
+      .white-text { font-family: "Titan One", sans-serif; color: #fff; filter: drop-shadow(0 5px 0 #3a0b78) drop-shadow(0 12px 24px rgba(0,0,0,0.5)); }
+      .sub { font-family: "Fredoka", sans-serif; font-weight: 600; color: rgba(255,255,255,0.9); }
+
+      .bokeh { position: absolute; border-radius: 50%; filter: blur(2px); }
+      .spark { position: absolute; width: 18px; height: 18px; filter: drop-shadow(0 0 6px #ffe9a8); }
+      .spark::before, .spark::after { content: ""; position: absolute; left: 50%; top: 50%; background: #fff; border-radius: 4px; }
+      .spark::before { width: 3px; height: 100%; transform: translate(-50%, -50%); }
+      .spark::after { width: 100%; height: 3px; transform: translate(-50%, -50%); }
+
+      .rays { position: absolute; left: 50%; top: 50%; border-radius: 50%;
+        -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 60%); mask-image: radial-gradient(circle, #000 0%, transparent 60%); }
+
+      /* Scene 1 */
+      #s1-bg { background: radial-gradient(1100px 1300px at 50% 52%, #3a0b78 0%, #1d0642 45%, #0a0118 100%); }
+      #s1-rays { width: 3000px; height: 3000px; margin: -1500px 0 0 -1500px; background: repeating-conic-gradient(from 0deg, rgba(197,16,224,0.12) 0deg 7deg, rgba(197,16,224,0) 7deg 18deg); }
+      #s1-title { top: 250px; font-size: 104px; line-height: 1.12; }
+      #reels { position: absolute; left: 50%; top: 600px; width: 960px; height: 780px; margin-left: -480px; border-radius: 52px; padding: 50px 46px;
+        background: linear-gradient(180deg, rgba(197,16,224,0.35) 0%, rgba(96,24,168,0.45) 30%, rgba(20,2,50,0.92) 100%);
+        box-shadow: inset 0 2px 0 rgba(230,180,255,0.5), 0 30px 90px rgba(0,0,0,0.6), 0 0 120px rgba(197,16,224,0.35);
+        display: flex; gap: 28px; }
+      .reel { position: relative; flex: 1; height: 680px; overflow: hidden; border-radius: 30px; background: linear-gradient(180deg, #12032b, #22074a 50%, #12032b); }
+      .reel::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,0,20,0.85) 0%, rgba(8,0,20,0) 22%, rgba(8,0,20,0) 78%, rgba(8,0,20,0.85) 100%); }
+      .strip { position: absolute; left: 0; top: 0; width: 100%; }
+      .cell { width: 100%; height: 226px; display: flex; align-items: center; justify-content: center; }
+      .cell img { width: 176px; height: 176px; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.45)); }
+      #payline { position: absolute; left: 30px; right: 30px; top: 276px; height: 226px; border-radius: 30px; opacity: 0; background: radial-gradient(closest-side, rgba(255,211,77,0.45), rgba(255,211,77,0)); }
+      #flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 50; }
+
+      /* Scene 2 */
+      #s2-bg { background: url("assets/img/keyart.png") center / cover no-repeat; filter: blur(30px) brightness(0.5) saturate(1.25); }
+      #s2-vig { background: radial-gradient(900px 1100px at 50% 40%, rgba(58,11,120,0.15), rgba(10,1,24,0.88) 100%); }
+      #s2-burst { width: 2800px; height: 2800px; margin: -1640px 0 0 -1400px; background: repeating-conic-gradient(from 0deg, rgba(255,211,77,0.16) 0deg 6deg, rgba(255,211,77,0) 6deg 15deg); }
+      #s2-glow { position: absolute; left: 50%; top: 680px; width: 1300px; height: 1100px; margin: -550px 0 0 -650px; background: radial-gradient(closest-side, rgba(255,190,80,0.45), rgba(197,16,224,0.18) 55%, rgba(0,0,0,0)); }
+      #logo-wrap { position: absolute; left: 50%; top: 330px; width: 980px; height: 720px; margin-left: -490px; }
+      #logo-wrap img { width: 100%; height: 100%; display: block; }
+      #logo-sweep { position: absolute; inset: 0; -webkit-mask-image: url("assets/img/logo.png"); mask-image: url("assets/img/logo.png"); -webkit-mask-size: 100% 100%; mask-size: 100% 100%; overflow: hidden; }
+      #logo-sweep-bar { position: absolute; top: -20%; left: 0; width: 240px; height: 140%; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.75) 50%, rgba(255,255,255,0)); transform: rotate(18deg); }
+      #shock { position: absolute; left: 50%; top: 690px; width: 640px; height: 640px; margin: -320px 0 0 -320px; border-radius: 50%; opacity: 0;
+        background: radial-gradient(closest-side, rgba(255,255,255,0) 70%, rgba(255,230,160,0.85) 86%, rgba(255,255,255,0) 100%); }
+      #tagline { top: 1130px; font-size: 92px; line-height: 1.1; }
+      #tagline-sub { top: 1380px; font-size: 46px; }
+      .coin { position: absolute; width: 104px; height: 104px; left: 488px; top: 638px; }
+
+      /* Scene 3 */
+      #s3-bg { background: url("assets/img/city.jpg") center / cover no-repeat; filter: blur(10px) brightness(0.45); }
+      #s3-tint { background: linear-gradient(180deg, rgba(14,2,34,0.92) 0%, rgba(29,6,66,0.6) 40%, rgba(14,2,34,0.85) 100%); }
+      #s3-kicker { top: 200px; font-size: 44px; color: #e6b8ff; }
+      #s3-title { top: 276px; font-size: 92px; white-space: nowrap; left: 0; right: 0; }
+      #s3-sub { top: 418px; font-size: 44px; line-height: 1.35; }
+      #s3-window { position: absolute; left: 70px; top: 640px; width: 940px; height: 1060px; border-radius: 56px; overflow: hidden; background: #000;
+        box-shadow: 0 40px 100px rgba(0,0,0,0.65), 0 0 100px rgba(197,16,224,0.4); }
+      #s3-window video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; }
+      #s3-window .glare { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0) 35%); }
+
+      /* Scene 4 */
+      #s4-bg { background: radial-gradient(1100px 1500px at 50% 50%, #3a0b78 0%, #12032b 70%, #08011a 100%); }
+      #wall-persp { position: absolute; inset: 0; perspective: 1800px; }
+      #wall { position: absolute; left: 50%; top: 50%; width: 2400px; height: 2700px; margin: -1350px 0 0 -1200px; display: flex; flex-direction: column; gap: 30px; justify-content: center; }
+      .wall-row { display: flex; gap: 30px; width: max-content; }
+      .wall-row img { width: 290px; height: 290px; border-radius: 40px; display: block; box-shadow: 0 18px 40px rgba(0,0,0,0.55); }
+      #s4-dim { background: radial-gradient(760px 420px at 50% 50%, rgba(10,1,24,0.94) 0%, rgba(10,1,24,0.8) 50%, rgba(10,1,24,0.2) 100%); }
+      .phrase { position: absolute; left: 0; right: 0; top: 50%; margin-top: -80px; height: 160px; text-align: center; font-size: 116px; line-height: 160px; opacity: 0; }
+
+      /* Scene 5 */
+      #s5-bg { background: radial-gradient(1200px 1600px at 50% 55%, #3a0b78 0%, #1d0642 50%, #0a0118 100%); }
+      #s5-streaks { position: absolute; inset: -300px; background: repeating-linear-gradient(115deg, rgba(197,16,224,0) 0px, rgba(197,16,224,0) 140px, rgba(197,16,224,0.10) 160px, rgba(197,16,224,0) 200px); }
+      #s5-words { position: absolute; left: 0; right: 0; top: 140px; height: 130px; display: flex; justify-content: center; gap: 30px; font-size: 96px; line-height: 130px; }
+      #s5-words span { display: inline-block; }
+      .stage3d { position: absolute; perspective: 2000px; }
+      .phone { position: absolute; inset: 0; border-radius: 48px; padding: 18px;
+        background: linear-gradient(160deg, #3a3646 0%, #15131c 30%, #0b0a10 70%, #2a2633 100%);
+        box-shadow: 0 34px 90px rgba(0,0,0,0.65), 0 0 0 2px rgba(255,255,255,0.06) inset, 0 0 70px rgba(197,16,224,0.32); }
+      .phone-screen { position: absolute; inset: 18px; border-radius: 30px; overflow: hidden; background: #000; }
+      .phone-screen video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .phone-glare { position: absolute; inset: 18px; border-radius: 30px; background: linear-gradient(115deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 32%); }
+      .pstage { left: 80px; width: 920px; height: 442px; }
+      #ps0 { top: 330px; } #ps1 { top: 820px; } #ps2 { top: 1310px; }
+      .badge { position: absolute; right: -14px; top: -34px; padding: 12px 30px; border-radius: 999px; font-family: "Titan One", sans-serif; font-size: 44px; color: #3a1500;
+        background: linear-gradient(180deg, #fff3b0, #ffd34d 45%, #ff9d1a); box-shadow: 0 8px 0 #8a3b00, 0 18px 36px rgba(0,0,0,0.5); opacity: 0; }
+
+      /* Scene 6 */
+      #s6-bg { background: radial-gradient(1000px 1200px at 50% 42%, #7a2bb8 0%, #3a0b78 40%, #12032b 100%); }
+      #s6-rays { width: 3400px; height: 3400px; margin: -1900px 0 0 -1700px; background: repeating-conic-gradient(from 0deg, rgba(255,211,77,0.28) 0deg 8deg, rgba(255,211,77,0) 8deg 20deg); }
+      #s6-title { top: 320px; font-size: 210px; line-height: 250px; }
+      #s6-count-wrap { position: absolute; left: 60px; width: 960px; top: 880px; height: 170px; border-radius: 999px;
+        background: linear-gradient(180deg, rgba(20,2,50,0.85), rgba(10,1,24,0.92)); box-shadow: inset 0 2px 0 rgba(255,220,120,0.35), 0 20px 60px rgba(0,0,0,0.55);
+        display: flex; align-items: center; justify-content: center; gap: 24px; }
+      #s6-count-wrap img { width: 110px; height: 110px; }
+      #s6-count { font-family: "Titan One", sans-serif; font-size: 100px; font-variant-numeric: tabular-nums; min-width: 690px; text-align: left; }
+      #s6-sub { top: 1140px; font-size: 58px; line-height: 1.3; }
+      .rain { position: absolute; top: 0; width: 90px; height: 90px; }
+
+      /* Scene 7 */
+      #s7-bg { background: radial-gradient(1200px 1400px at 50% 55%, #4a1190 0%, #1d0642 55%, #0a0118 100%); }
+      #s7-title { top: 230px; font-size: 104px; line-height: 1.12; }
+      #cards { position: absolute; left: 60px; right: 60px; top: 600px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px 30px; }
+      .fcard { height: 400px; border-radius: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;
+        background: linear-gradient(180deg, rgba(197,16,224,0.42) 0%, rgba(160,60,255,0.28) 24%, rgba(20,2,50,0.88) 100%);
+        box-shadow: inset 0 2px 0 rgba(220,160,255,0.45), 0 24px 50px rgba(0,0,0,0.5); }
+      .fcard img { width: 190px; height: 190px; object-fit: contain; filter: drop-shadow(0 12px 16px rgba(0,0,0,0.45)); }
+      .fcard div { font-family: "Fredoka", sans-serif; font-weight: 700; font-size: 40px; color: #fff; }
+
+      /* Scene 8 */
+      #s8-bg { background: url("assets/img/keyart.png") center / cover no-repeat; filter: blur(36px) brightness(0.4) saturate(1.25); }
+      #s8-vig { background: radial-gradient(900px 1200px at 50% 40%, rgba(58,11,120,0.2), rgba(8,1,20,0.9) 100%); }
+      #s8-logo { position: absolute; left: 50%; top: 200px; width: 880px; height: 646px; margin-left: -440px; }
+      #s8-gift { position: absolute; left: 70px; width: 940px; top: 890px; height: 120px; border-radius: 999px; display: flex; align-items: center; justify-content: center; gap: 18px;
+        background: linear-gradient(180deg, rgba(40,6,80,0.9), rgba(14,2,34,0.92)); box-shadow: inset 0 2px 0 rgba(255,220,120,0.35), 0 16px 40px rgba(0,0,0,0.5); font-size: 50px; }
+      #s8-gift img { width: 80px; height: 80px; }
+      #s8-logo img { width: 100%; height: 100%; }
+      #s8-cta { position: absolute; left: 90px; width: 900px; top: 1080px; height: 150px; border-radius: 999px;
+        background: linear-gradient(180deg, #8af06a 0%, #45c92f 48%, #279c1c 100%); box-shadow: inset 0 3px 0 rgba(255,255,255,0.55), 0 12px 0 #145c0e, 0 28px 50px rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center; gap: 22px; font-family: "Titan One", sans-serif; font-size: 62px; color: #fff; }
+      #s8-cta .ti { font-family: "tabler-icons"; font-size: 76px; line-height: 1; }
+      #s8-cta .label { filter: drop-shadow(0 4px 0 #145c0e); }
+      #s8-sub { top: 1300px; font-size: 46px; line-height: 1.35; }
+      #s8-legal { top: 1470px; font-size: 30px; color: rgba(255,255,255,0.62); font-weight: 500; }
+      #fade-out { position: absolute; inset: 0; background: #000; opacity: 0; z-index: 60; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="portrait" data-start="0" data-width="1080" data-height="1920" data-duration="30">
+
+      <div id="s1" class="scene">
+        <div id="s1-bg" class="fill"></div>
+        <div id="s1-rays" class="rays"></div>
+        <div id="s1-particles" class="fill"></div>
+        <div id="s1-title" class="center-text white-text">Feeling lucky tonight?</div>
+        <div id="reels">
+          <div class="reel"><div class="strip" id="strip0"></div></div>
+          <div class="reel"><div class="strip" id="strip1"></div></div>
+          <div class="reel"><div class="strip" id="strip2"></div></div>
+          <div id="payline"></div>
+        </div>
+      </div>
+
+      <div id="s2" class="scene">
+        <div id="s2-bg" class="fill"></div>
+        <div id="s2-vig" class="fill"></div>
+        <div id="s2-burst" class="rays"></div>
+        <div id="s2-glow"></div>
+        <div id="s2-particles" class="fill"></div>
+        <div id="shock"></div>
+        <div id="s2-coins" class="fill"></div>
+        <div id="logo-wrap"><img src="assets/img/logo.png" alt="Cozy Casino" /><div id="logo-sweep"><div id="logo-sweep-bar"></div></div></div>
+        <div id="tagline" class="center-text gold-text">Your cozy corner of Vegas</div>
+        <div id="tagline-sub" class="center-text sub">A free social slots game for Android</div>
+      </div>
+
+      <div id="s3" class="scene">
+        <div id="s3-bg" class="fill"></div>
+        <div id="s3-tint" class="fill"></div>
+        <div id="s3-particles" class="fill"></div>
+        <div id="s3-kicker" class="center-text sub">Built for landscape play</div>
+        <div id="s3-title" class="center-text gold-text">20+ themed slots</div>
+        <div id="s3-sub" class="center-text sub">Jackpots, wild features and a lobby that feels like home.</div>
+        <div id="s3-window">
+          <video id="pv-lobby" src="assets/video/lobby.mp4" data-start="8.58" data-duration="4.32" data-track-index="1" muted playsinline></video>
+          <div class="glare"></div>
+        </div>
+      </div>
+
+      <div id="s4" class="scene">
+        <div id="s4-bg" class="fill"></div>
+        <div id="wall-persp"><div id="wall"></div></div>
+        <div id="s4-dim" class="fill"></div>
+        <div class="phrase gold-text" id="ph0">Piggy heists</div>
+        <div class="phrase gold-text" id="ph1">Sugar rushes</div>
+        <div class="phrase gold-text" id="ph2">Pharaoh gold</div>
+        <div class="phrase white-text" id="ph3">Pick your vibe</div>
+      </div>
+
+      <div id="s5" class="scene">
+        <div id="s5-bg" class="fill"></div>
+        <div id="s5-streaks"></div>
+        <div id="s5-words"><span class="gold-text" id="w0">Spin.</span><span class="white-text" id="w1">Win.</span><span class="gold-text" id="w2">Repeat.</span></div>
+        <div id="ps0" class="stage3d pstage">
+          <div class="phone"><div class="phone-screen">
+            <video id="pv-piggy" src="assets/video/piggy_p.mp4" data-start="16.68" data-duration="5.94" data-track-index="2" muted playsinline></video>
+          </div><div class="phone-glare"></div></div>
+          <div class="badge" id="badge0">Wild win</div>
+        </div>
+        <div id="ps1" class="stage3d pstage">
+          <div class="phone"><div class="phone-screen">
+            <video id="pv-pharaoh" src="assets/video/pharaoh_p.mp4" data-start="18.30" data-duration="4.32" data-track-index="3" muted playsinline></video>
+          </div><div class="phone-glare"></div></div>
+          <div class="badge" id="badge1">Big payout</div>
+        </div>
+        <div id="ps2" class="stage3d pstage">
+          <div class="phone"><div class="phone-screen">
+            <video id="pv-buffalo" src="assets/video/buffalo_p.mp4" data-start="19.92" data-duration="2.70" data-track-index="4" muted playsinline></video>
+          </div><div class="phone-glare"></div></div>
+          <div class="badge" id="badge2">5x wild</div>
+        </div>
+      </div>
+
+      <div id="s6" class="scene">
+        <div id="s6-bg" class="fill"></div>
+        <div id="s6-rays" class="rays"></div>
+        <div id="s6-rain" class="fill"></div>
+        <div id="s6-title" class="center-text gold-text">Free coins!</div>
+        <div id="s6-count-wrap"><img src="assets/img/starcoin.png" alt="" /><div id="s6-count" class="gold-text">0</div></div>
+        <div id="s6-sub" class="center-text sub">Welcome gift for every new player</div>
+      </div>
+
+      <div id="s7" class="scene">
+        <div id="s7-bg" class="fill"></div>
+        <div id="s7-particles" class="fill"></div>
+        <div id="s7-title" class="center-text white-text">So much more to play</div>
+        <div id="cards">
+          <div class="fcard"><img src="assets/img/wheel.png" alt="" /><div>Daily wheel</div></div>
+          <div class="fcard"><img src="assets/img/pass.png" alt="" /><div>Mission pass</div></div>
+          <div class="fcard"><img src="assets/img/cards_new.png" alt="" /><div>Card albums</div></div>
+          <div class="fcard"><img src="assets/img/coinmine.png" alt="" /><div>Mini games</div></div>
+          <div class="fcard"><img src="assets/img/Lobby_arena.png" alt="" /><div>Arena</div></div>
+          <div class="fcard"><img src="assets/img/VIP.png" alt="" /><div>VIP lounge</div></div>
+        </div>
+      </div>
+
+      <div id="s8" class="scene">
+        <div id="s8-bg" class="fill"></div>
+        <div id="s8-vig" class="fill"></div>
+        <div id="s8-particles" class="fill"></div>
+        <div id="s8-logo"><img src="assets/img/logo.png" alt="Cozy Casino" /></div>
+        <div id="s8-gift"><img src="assets/img/starcoin.png" alt="" /><span class="gold-text">10,000,000 free coins to start</span></div>
+        <div id="s8-cta"><span class="ti">&#xec16;</span><span class="label">Play free on Android</span></div>
+        <div id="s8-sub" class="center-text sub">Spin, collect and climb the leaderboard</div>
+        <div id="s8-legal" class="center-text">For entertainment only. No real money gambling.</div>
+      </div>
+
+      <div id="flash"></div>
+      <div id="fade-out"></div>
+
+      <audio id="p-bgm" src="assets/audio/neon_music.mp3" data-start="0" data-duration="30" data-media-start="11.5" data-track-index="10" data-volume="0.9"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.4,"v":0.9},{"t":28.2,"v":0.9},{"t":30,"v":0}]}]}'></audio>
+      <audio id="p-tick0" src="assets/audio/tick.wav" data-start="2.64" data-duration="0.09" data-track-index="11" data-volume="0.55"></audio>
+      <audio id="p-tick1" src="assets/audio/tick.wav" data-start="3.18" data-duration="0.09" data-track-index="12" data-volume="0.55"></audio>
+      <audio id="p-tick2" src="assets/audio/tick.wav" data-start="3.72" data-duration="0.09" data-track-index="13" data-volume="0.55"></audio>
+      <audio id="p-logo" src="assets/audio/bigwin_soundeffect.wav" data-start="4.2" data-duration="2" data-track-index="14" data-volume="0.55"></audio>
+      <audio id="p-w1" src="assets/audio/whoosh.wav" data-start="8.2" data-duration="0.6" data-track-index="15" data-volume="0.45"></audio>
+      <audio id="p-w2" src="assets/audio/whoosh.wav" data-start="12.52" data-duration="0.6" data-track-index="16" data-volume="0.45"></audio>
+      <audio id="p-w3" src="assets/audio/whoosh.wav" data-start="16.3" data-duration="0.6" data-track-index="17" data-volume="0.45"></audio>
+      <audio id="p-mega" src="assets/audio/megawin_soundeffect.wav" data-start="22.6" data-duration="3" data-track-index="18" data-volume="0.6"></audio>
+      <audio id="p-coins" src="assets/audio/cointcount_soundeffect.wav" data-start="23.0" data-duration="2.2" data-track-index="19" data-volume="0.4"></audio>
+      <audio id="p-w4" src="assets/audio/whoosh.wav" data-start="24.94" data-duration="0.6" data-track-index="20" data-volume="0.45"></audio>
+      <audio id="p-w5" src="assets/audio/whoosh.wav" data-start="27.1" data-duration="0.6" data-track-index="21" data-volume="0.45"></audio>
+    </div>
+
+    <script>
+      (function () {
+        let seed = 20261001;
+        const rnd = () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        const $ = (s) => document.querySelector(s);
+        const W = 1080, H = 1920;
+
+        const D = 4.26, P = 0.54;
+        const T = { s1: 0, s2: D, s3: D + 8 * P, s4: D + 16 * P, s5: D + 23 * P, s6: D + 34 * P, s7: D + 39 * P, s8: D + 43 * P, end: 30 };
+        const CELL = 226;
+
+        const SYM = ["cherry", "bell", "diamond", "bar", "clover", "coin", "seven"].map((n) => `assets/img/${n}.png`);
+        const N = 18;
+        for (let r = 0; r < 3; r++) {
+          const strip = $("#strip" + r);
+          for (let i = 0; i < N; i++) {
+            let src = SYM[Math.floor(rnd() * 6)];
+            if (i === 1) src = "assets/img/seven.png";
+            if (i === 0) src = SYM[(r * 2) % 6];
+            if (i === 2) src = SYM[(r * 2 + 3) % 6];
+            const c = document.createElement("div"); c.className = "cell"; c.innerHTML = `<img src="${src}" alt="" />`; strip.appendChild(c);
+          }
+        }
+
+        function particles(host, count, opts = {}) {
+          const els = [];
+          for (let i = 0; i < count; i++) {
+            const isSpark = rnd() < (opts.sparkRatio ?? 0.45);
+            const el = document.createElement("div");
+            if (isSpark) { el.className = "spark"; const s = 10 + rnd() * 18; el.style.width = el.style.height = s + "px"; }
+            else { el.className = "bokeh"; const s = 14 + rnd() * 70; el.style.width = el.style.height = s + "px";
+              const hue = rnd() < 0.5 ? "255,211,77" : "197,16,224"; el.style.background = `radial-gradient(circle, rgba(${hue},0.55), rgba(${hue},0))`; }
+            el.style.left = rnd() * W + "px"; el.style.top = rnd() * H + "px"; host.appendChild(el); els.push(el);
+          }
+          return els;
+        }
+        const p1 = particles($("#s1-particles"), 50), p2 = particles($("#s2-particles"), 44, { sparkRatio: 0.6 });
+        const p3 = particles($("#s3-particles"), 26), p7 = particles($("#s7-particles"), 30), p8 = particles($("#s8-particles"), 44, { sparkRatio: 0.6 });
+
+        const coins = [];
+        for (let i = 0; i < 26; i++) {
+          const c = document.createElement("img"); c.src = "assets/img/starcoin.png"; c.className = "coin"; c.alt = "";
+          c.dataset.s = 0.55 + rnd() * 0.7; const a = (i / 26) * Math.PI * 2 + rnd() * 0.3; const dist = 380 + rnd() * 360;
+          c.dataset.x = Math.cos(a) * dist; c.dataset.y = Math.sin(a) * dist * 1.25 - 80; c.dataset.r = (rnd() - 0.5) * 900;
+          $("#s2-coins").appendChild(c); coins.push(c);
+        }
+
+        const covers = Array.from({ length: 22 }, (_, i) => `assets/img/cover${i + 1}.jpg`);
+        const rows = [];
+        for (let r = 0; r < 8; r++) {
+          const row = document.createElement("div"); row.className = "wall-row";
+          for (let i = 0; i < 9; i++) { const im = document.createElement("img"); im.src = covers[(r * 5 + i * 3) % covers.length]; im.alt = ""; row.appendChild(im); }
+          $("#wall").appendChild(row); rows.push(row);
+        }
+
+        const rain = [];
+        for (let i = 0; i < 46; i++) {
+          const c = document.createElement("img"); c.src = "assets/img/starcoin.png"; c.className = "rain"; c.alt = "";
+          c.style.left = rnd() * (W - 60) + "px"; c.dataset.s = 0.6 + rnd() * 0.9; c.dataset.d = rnd(); c.dataset.r = (rnd() - 0.5) * 720;
+          $("#s6-rain").appendChild(c); rain.push(c);
+        }
+
+        const tl = gsap.timeline({ paused: true });
+        function scene(id, a, b) { tl.set(id, { autoAlpha: 1 }, a); if (b < 30) tl.set(id, { autoAlpha: 0 }, b); }
+        function drift(els, a, b) {
+          els.forEach((el) => {
+            const dy = -(40 + rnd() * 140), dx = (rnd() - 0.5) * 80;
+            tl.fromTo(el, { x: 0, y: 0, opacity: 0 }, { x: dx, y: dy, opacity: 0.35 + rnd() * 0.65, duration: (b - a) * 0.5, ease: "sine.out" }, a);
+            tl.to(el, { opacity: 0, x: dx * 2, y: dy * 2, duration: (b - a) * 0.5, ease: "sine.in" }, a + (b - a) * 0.5);
+            if (el.className === "spark") tl.fromTo(el, { scale: 0.3, rotation: 0 }, { scale: 1, rotation: 90, duration: b - a, ease: "sine.inOut" }, a);
+          });
+        }
+
+        // Scene 1
+        scene("#s1", T.s1, T.s2);
+        tl.fromTo("#s1", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0);
+        drift(p1, 0, T.s2);
+        tl.fromTo("#s1-rays", { rotation: 0 }, { rotation: 40, duration: T.s2, ease: "none" }, 0);
+        tl.fromTo("#s1-title", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.3);
+        tl.fromTo("#reels", { y: 90, opacity: 0, scale: 0.92 }, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "power3.out" }, 0.15);
+        const stops = [D - 3 * P, D - 2 * P, D - P];
+        for (let r = 0; r < 3; r++) {
+          tl.fromTo("#strip" + r, { y: -(N - 3) * CELL }, { y: 0, duration: stops[r] - 0.55, ease: "back.out(0.9)" }, 0.55);
+          tl.fromTo("#strip" + r, { filter: "blur(5px)" }, { filter: "blur(0px)", duration: 0.35, ease: "power1.in" }, stops[r] - 0.45);
+        }
+        tl.fromTo("#payline", { opacity: 0, scaleX: 0.6 }, { opacity: 1, scaleX: 1, duration: 0.3, ease: "power2.out" }, D - P + 0.05);
+        tl.to("#reels .reel .cell:nth-child(2) img", { scale: 1.18, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, D - P + 0.08);
+        tl.to("#reels", { scale: 1.06, duration: 0.5, ease: "power2.in" }, D - 0.5);
+        tl.fromTo("#flash", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power2.in" }, D - 0.12);
+        tl.to("#flash", { opacity: 0, duration: 0.5, ease: "power2.out" }, D);
+
+        // Scene 2
+        scene("#s2", T.s2, T.s3);
+        drift(p2, T.s2, T.s3);
+        tl.fromTo("#s2-bg", { scale: 1.2 }, { scale: 1.05, duration: T.s3 - T.s2, ease: "sine.out" }, T.s2);
+        tl.fromTo("#s2-burst", { rotation: 0, scale: 0.6, opacity: 0 }, { rotation: 30, scale: 1, opacity: 1, duration: T.s3 - T.s2, ease: "power1.out" }, T.s2);
+        tl.fromTo("#logo-wrap", { scale: 2.4, opacity: 0, rotation: -6 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.42, ease: "back.out(1.7)" }, T.s2);
+        tl.fromTo("#shock", { scale: 0.4, opacity: 1 }, { scale: 3.2, opacity: 0, duration: 0.8, ease: "power2.out" }, T.s2 + 0.12);
+        tl.fromTo("#s2", { x: 0, y: 0 }, { x: 10, y: -8, duration: 0.05, yoyo: true, repeat: 5, ease: "none" }, T.s2 + 0.1);
+        coins.forEach((c, i) => {
+          tl.fromTo(c, { x: 0, y: 0, scale: 0.2, rotation: 0, opacity: 1 }, { x: +c.dataset.x, y: +c.dataset.y, scale: +c.dataset.s, rotation: +c.dataset.r, duration: 1.1, ease: "power3.out" }, T.s2 + 0.08 + (i % 5) * 0.012);
+          tl.to(c, { y: +c.dataset.y + 640, opacity: 0, duration: 1.0, ease: "power2.in" }, T.s2 + 1.24);
+        });
+        tl.fromTo("#logo-sweep-bar", { x: -300 }, { x: 1300, duration: 0.9, ease: "power2.inOut" }, T.s2 + 0.6);
+        tl.to("#logo-wrap", { y: -12, scale: 1.02, duration: 1.6, yoyo: true, repeat: 1, ease: "sine.inOut" }, T.s2 + 0.5);
+        tl.fromTo("#tagline", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "back.out(1.6)" }, T.s2 + 2 * P);
+        tl.fromTo("#tagline-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, T.s2 + 4 * P);
+        tl.to(["#logo-wrap", "#tagline", "#tagline-sub"], { opacity: 0, y: -40, duration: 0.3, ease: "power2.in" }, T.s3 - 0.3);
+
+        // Scene 3: tall crop of the scrolling lobby
+        scene("#s3", T.s3, T.s4);
+        drift(p3, T.s3, T.s4);
+        tl.fromTo("#s3-bg", { scale: 1.15 }, { scale: 1.05, duration: T.s4 - T.s3, ease: "none" }, T.s3);
+        tl.fromTo("#s3-window", { y: 700, rotation: 6, scale: 0.9 }, { y: 0, rotation: 0, scale: 1, duration: 0.8, ease: "power4.out" }, T.s3);
+        tl.to("#s3-window", { y: -16, rotation: -1, duration: T.s4 - T.s3 - 1.1, ease: "sine.inOut" }, T.s3 + 0.8);
+        tl.fromTo("#s3-kicker", { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, T.s3 + 0.2);
+        tl.fromTo("#s3-title", { scale: 1.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, T.s3 + P);
+        tl.fromTo("#s3-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "power3.out" }, T.s3 + 2 * P);
+        tl.to(["#s3-kicker", "#s3-title", "#s3-sub"], { y: -200, opacity: 0, duration: 0.3, ease: "power3.in" }, T.s4 - 0.3);
+        tl.to("#s3-window", { y: -216, opacity: 0, duration: 0.3, ease: "power3.in" }, T.s4 - 0.3);
+
+        // Scene 4
+        scene("#s4", T.s4, T.s5);
+        tl.fromTo("#wall", { rotationX: 20, rotationZ: -10, scale: 1.2, y: 80 }, { rotationX: 16, rotationZ: -8, scale: 1.08, y: 0, duration: T.s5 - T.s4, ease: "sine.out" }, T.s4);
+        rows.forEach((row, i) => { const dir = i % 2 ? 1 : -1; tl.fromTo(row, { x: dir * -220 - 260 }, { x: dir * 220 - 260, duration: T.s5 - T.s4, ease: "none" }, T.s4); });
+        tl.fromTo("#s4-dim", { opacity: 0 }, { opacity: 1, duration: 0.4 }, T.s4 + 0.1);
+        [0, 1, 2, 3].forEach((i) => {
+          const a = T.s4 + 0.27 + i * 1.5 * P * 0.9 + i * 0.05;
+          tl.fromTo("#ph" + i, { scale: 1.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: "power3.out" }, a);
+          if (i < 3) tl.to("#ph" + i, { scale: 0.85, opacity: 0, duration: 0.16, ease: "power2.in" }, a + 0.62);
+        });
+        tl.to("#ph3", { scale: 2.2, opacity: 0, duration: 0.3, ease: "power2.in" }, T.s5 - 0.3);
+
+        // Scene 5: three phones stack in on the beat
+        scene("#s5", T.s5, T.s6);
+        tl.fromTo("#s5-streaks", { x: -200 }, { x: 200, duration: T.s6 - T.s5, ease: "none" }, T.s5);
+        const entries = [T.s5, T.s5 + 3 * P, T.s5 + 6 * P];
+        entries.forEach((t, i) => {
+          const dir = i % 2 ? 1 : -1;
+          tl.fromTo("#ps" + i, { x: dir * -1100, rotationY: dir * 30, rotation: dir * -4 }, { x: 0, rotationY: dir * -6, rotation: 0, duration: 0.6, ease: "power4.out" }, t);
+          tl.to("#ps" + i, { rotationY: 0, duration: T.s6 - t - 0.6, ease: "sine.inOut" }, t + 0.6);
+          tl.fromTo("#w" + i, { y: -60, scale: 1.6, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" }, t + 0.1);
+        });
+        [[T.s5 + 2.4 * P, T.s5 + 10.5 * P], [T.s5 + 5.0 * P, T.s5 + 10.5 * P], [T.s5 + 8.3 * P, T.s5 + 10.5 * P]].forEach(([a, b], i) => {
+          tl.fromTo("#badge" + i, { scale: 0.3, rotation: -12, opacity: 0 }, { scale: 1, rotation: -5, opacity: 1, duration: 0.3, ease: "back.out(2.2)" }, a);
+        });
+        tl.to(["#ps0", "#ps1", "#ps2", "#s5-words"], { scale: 1.25, opacity: 0, duration: 0.28, ease: "power3.in" }, T.s6 - 0.28);
+
+        // Scene 6
+        scene("#s6", T.s6, T.s7);
+        tl.fromTo("#s6-rays", { rotation: 0, scale: 0.7 }, { rotation: 45, scale: 1.05, duration: T.s7 - T.s6, ease: "power1.out" }, T.s6);
+        tl.fromTo("#s6-title", { scale: 3, opacity: 0, rotation: -8 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.4, ease: "back.out(1.8)" }, T.s6);
+        tl.to("#s6-title", { scale: 1.06, duration: P / 2, yoyo: true, repeat: 3, ease: "sine.inOut" }, T.s6 + 0.5);
+        tl.fromTo("#s6", { x: 0, y: 0 }, { x: -12, y: 8, duration: 0.05, yoyo: true, repeat: 5, ease: "none" }, T.s6 + 0.05);
+        tl.fromTo("#s6-count-wrap", { y: 60, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.6)" }, T.s6 + 0.25);
+        const counter = { v: 0 };
+        tl.fromTo(counter, { v: 0 }, { v: 10000000, duration: 1.9, ease: "power2.out", onUpdate: () => { $("#s6-count").textContent = Math.round(counter.v).toLocaleString("en-US"); } }, T.s6 + 0.35);
+        tl.to("#s6-count-wrap", { scale: 1.08, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }, T.s6 + 2.25);
+        tl.fromTo("#s6-sub", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "back.out(1.6)" }, T.s6 + 2 * P);
+        rain.forEach((c) => {
+          const s = +c.dataset.s;
+          tl.fromTo(c, { y: -140, rotation: 0, scale: s }, { y: H + 140, rotation: +c.dataset.r, duration: 1.6 - s * 0.25, ease: "power1.in" }, T.s6 + 0.1 + +c.dataset.d * 1.8);
+        });
+        tl.to(["#s6-title", "#s6-count-wrap", "#s6-sub"], { y: -60, opacity: 0, duration: 0.28, ease: "power2.in" }, T.s7 - 0.28);
+
+        // Scene 7
+        scene("#s7", T.s7, T.s8);
+        drift(p7, T.s7, T.s8);
+        tl.fromTo("#s7-title", { y: -40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, T.s7 + 0.05);
+        tl.fromTo(".fcard", { y: 180, opacity: 0, rotation: (i) => (i % 2 ? 6 : -6) }, { y: 0, opacity: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", stagger: P / 3 }, T.s7 + 0.2);
+        tl.fromTo(".fcard img", { y: 0 }, { y: -14, duration: P, yoyo: true, repeat: 2, ease: "sine.inOut", stagger: P / 3 }, T.s7 + 0.8);
+        tl.to(["#s7-title", "#cards"], { scale: 0.9, opacity: 0, duration: 0.28, ease: "power2.in" }, T.s8 - 0.28);
+
+        // Scene 8
+        scene("#s8", T.s8, T.end);
+        drift(p8, T.s8, T.end);
+        tl.fromTo("#s8-bg", { scale: 1.12 }, { scale: 1.02, duration: T.end - T.s8, ease: "sine.out" }, T.s8);
+        tl.fromTo("#s8-logo", { scale: 0.4, opacity: 0, y: 40 }, { scale: 1, opacity: 1, y: 0, duration: 0.55, ease: "back.out(1.6)" }, T.s8);
+        tl.fromTo("#s8-gift", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2)" }, T.s8 + 0.5 * P);
+        tl.fromTo("#s8-cta", { y: 80, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.8)" }, T.s8 + P);
+        tl.to("#s8-cta", { scale: 1.05, duration: P, yoyo: true, repeat: 1, ease: "sine.inOut" }, T.s8 + 1.4);
+        tl.fromTo("#s8-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, T.s8 + 1.5 * P);
+        tl.fromTo("#s8-legal", { opacity: 0 }, { opacity: 1, duration: 0.4 }, T.s8 + 2 * P);
+        tl.fromTo("#fade-out", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.in" }, 29.4);
+
+        window.__timelines["portrait"] = tl;
+      })();
+    </script>
+  </body>
+</html>
