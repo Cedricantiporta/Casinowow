@@ -21,8 +21,8 @@ Every scene is in `index.html`. Scene timing is snapped to the music. The drop (
 | 8.6–12.9s | Lobby on a phone. "20+ themed slots" |
 | 12.9–16.7s | Wall of slot covers with kinetic phrases |
 | 16.7–22.6s | Gameplay cut on the beat (Piggy Riches, Pharaoh's Tomb, Buffalo Thunder) |
-| 22.6–25.3s | Mega win counter, coin rain and jackpot tiers |
+| 22.6–25.3s | "Free coins!" welcome gift counter to 10,000,000 with coin rain |
 | 25.3–27.5s | Feature cards |
-| 27.5–30s | End card. "Play free on Android" |
+| 27.5–30s | End card: "10,000,000 free coins to start" and "Play free on Android" |
 
 Music is the in-game Neon Vegas track (`neon_music.mp3`), starting at 11.5s into the track. Sound effects come from the game, plus a synthesized whoosh and reel tick.

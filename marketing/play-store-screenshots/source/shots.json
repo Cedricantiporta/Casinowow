@@ -1,0 +1,9 @@
+[
+ {"src":"welcome.png","headline":"10,000,000 free coins","sub":"A welcome gift to start your journey","crop":[298,68,336,292],"sticker":"Free gift","coin":true,"seed":3},
+ {"src":"lobby.png","headline":"20+ themed slots","sub":"Piggy heists, pharaoh gold and more","crop":[312,46,620,282],"seed":11},
+ {"src":"piggy_2_3400.png","headline":"Land wild wins","sub":"Stacked wilds that pay out big","crop":[178,72,574,292],"sticker":"Wild win","seed":19},
+ {"src":"buffalo_5_3400.png","headline":"Multiply your wins","sub":"2x and 5x wild multipliers","crop":[186,40,420,290],"sticker":"5x wild","seed":23},
+ {"src":"menu_pass.png","headline":"Unlock the mission pass","sub":"Free and premium rewards as you level up","crop":[70,40,420,320],"seed":29},
+ {"src":"menu_cards.png","headline":"Collect card albums","sub":"Complete themed sets for huge coin prizes","crop":[16,70,624,250],"seed":31},
+ {"src":"menu_mini.png","headline":"Bonus mini games","sub":"Coin Mine, Dice Roll and RPG Roulette","crop":[250,74,428,282],"seed":37}
+]
