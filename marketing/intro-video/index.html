@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>Cozy Casino Intro</title>
+    <script src="assets/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Titan One"; src: url("assets/fonts/TitanOne.woff2") format("woff2"); font-display: block; }
+      @font-face { font-family: "Fredoka"; src: url("assets/fonts/Fredoka.woff2") format("woff2"); font-weight: 300 700; font-display: block; }
+      @font-face { font-family: "tabler-icons"; src: url("assets/fonts/tabler-icons.woff2") format("woff2"); font-display: block; }
+
+      :root {
+        --gold-1: #fff3b0;
+        --gold-2: #ffd34d;
+        --gold-3: #ff9d1a;
+        --plum-0: #0e0222;
+        --plum-1: #1d0642;
+        --plum-2: #3a0b78;
+        --magenta: #c510e0;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--plum-0); }
+      #root {
+        position: relative; width: 100%; height: 100%; overflow: hidden;
+        font-family: "Fredoka", system-ui, sans-serif; color: #fff;
+        background: var(--plum-0);
+      }
+
+      /* Scene wrappers are untimed; the timeline toggles them at beat-snapped boundaries. */
+      .scene { position: absolute; inset: 0; overflow: hidden; visibility: hidden; opacity: 0; }
+      .fill { position: absolute; inset: 0; }
+
+      .gold-text {
+        font-family: "Titan One", sans-serif;
+        background: linear-gradient(180deg, var(--gold-1) 0%, var(--gold-2) 42%, var(--gold-3) 100%);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        filter: drop-shadow(0 6px 0 #6b2a00) drop-shadow(0 14px 28px rgba(0,0,0,0.55));
+      }
+      .white-text { font-family: "Titan One", sans-serif; color: #fff; filter: drop-shadow(0 5px 0 #3a0b78) drop-shadow(0 12px 24px rgba(0,0,0,0.5)); }
+      .sub { font-family: "Fredoka", sans-serif; font-weight: 600; color: rgba(255,255,255,0.88); }
+
+      /* Bokeh + sparkle particles */
+      .bokeh { position: absolute; border-radius: 50%; filter: blur(2px); }
+      .spark { position: absolute; width: 18px; height: 18px; }
+      .spark::before, .spark::after { content: ""; position: absolute; left: 50%; top: 50%; background: #fff; border-radius: 4px; }
+      .spark::before { width: 3px; height: 100%; transform: translate(-50%, -50%); }
+      .spark::after { width: 100%; height: 3px; transform: translate(-50%, -50%); }
+      .spark { filter: drop-shadow(0 0 6px #ffe9a8); }
+
+      /* ---------- Scene 1: reels ---------- */
+      #s1-bg { background: radial-gradient(1200px 800px at 50% 55%, #3a0b78 0%, #1d0642 45%, #0a0118 100%); }
+      #s1-rays {
+        position: absolute; left: 50%; top: 56%; width: 2600px; height: 2600px; margin: -1300px 0 0 -1300px;
+        background: repeating-conic-gradient(from 0deg, rgba(197,16,224,0.10) 0deg 7deg, rgba(197,16,224,0) 7deg 18deg);
+        border-radius: 50%;
+        -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 62%); mask-image: radial-gradient(circle, #000 0%, transparent 62%);
+      }
+      #s1-title { position: absolute; left: 0; right: 0; top: 96px; text-align: center; font-size: 84px; }
+      #reels {
+        position: absolute; left: 50%; top: 250px; width: 900px; height: 690px; margin-left: -450px;
+        border-radius: 48px; padding: 45px 45px;
+        background: linear-gradient(180deg, rgba(197,16,224,0.35) 0%, rgba(96,24,168,0.45) 30%, rgba(20,2,50,0.92) 100%);
+        box-shadow: inset 0 2px 0 rgba(230,180,255,0.5), 0 30px 90px rgba(0,0,0,0.6), 0 0 120px rgba(197,16,224,0.35);
+        display: flex; gap: 30px;
+      }
+      .reel { position: relative; flex: 1; height: 600px; overflow: hidden; border-radius: 28px; background: linear-gradient(180deg, #12032b, #22074a 50%, #12032b); }
+      .reel::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+        background: linear-gradient(180deg, rgba(8,0,20,0.85) 0%, rgba(8,0,20,0) 22%, rgba(8,0,20,0) 78%, rgba(8,0,20,0.85) 100%); }
+      .strip { position: absolute; left: 0; top: 0; width: 100%; }
+      .cell { width: 100%; height: 200px; display: flex; align-items: center; justify-content: center; }
+      .cell img { width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(0,0,0,0.45)); }
+      #payline { position: absolute; left: 30px; right: 30px; top: 245px; height: 200px; border-radius: 30px; opacity: 0;
+        background: radial-gradient(closest-side, rgba(255,211,77,0.45), rgba(255,211,77,0)); }
+      #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 50; }
+
+      /* ---------- Scene 2: logo ---------- */
+      #s2-bg { background: url("assets/img/keyart.png") center / cover no-repeat; filter: blur(30px) brightness(0.5) saturate(1.25); }
+      #s2-vignette { background: radial-gradient(900px 620px at 50% 46%, rgba(58,11,120,0.15), rgba(10,1,24,0.85) 100%); }
+      #s2-burst {
+        position: absolute; left: 50%; top: 44%; width: 2400px; height: 2400px; margin: -1200px 0 0 -1200px; border-radius: 50%;
+        background: repeating-conic-gradient(from 0deg, rgba(255,211,77,0.16) 0deg 6deg, rgba(255,211,77,0) 6deg 15deg);
+        -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 60%); mask-image: radial-gradient(circle, #000 0%, transparent 60%);
+      }
+      #s2-glow { position: absolute; left: 50%; top: 44%; width: 1300px; height: 900px; margin: -450px 0 0 -650px;
+        background: radial-gradient(closest-side, rgba(255,190,80,0.45), rgba(197,16,224,0.18) 55%, rgba(0,0,0,0)); }
+      #logo-wrap { position: absolute; left: 50%; top: 80px; width: 820px; height: 602px; margin-left: -410px; }
+      #logo-wrap img { width: 100%; height: 100%; display: block; }
+      #logo-sweep { position: absolute; inset: 0;
+        -webkit-mask-image: url("assets/img/logo.png"); mask-image: url("assets/img/logo.png");
+        -webkit-mask-size: 100% 100%; mask-size: 100% 100%; overflow: hidden; }
+      #logo-sweep-bar { position: absolute; top: -20%; left: 0; width: 220px; height: 140%;
+        background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0) 100%); transform: rotate(18deg); }
+      #shock { position: absolute; left: 50%; top: 44%; width: 600px; height: 600px; margin: -300px 0 0 -300px; border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(255,255,255,0) 70%, rgba(255,230,160,0.85) 86%, rgba(255,255,255,0) 100%); opacity: 0; }
+      #tagline { position: absolute; left: 0; right: 0; top: 760px; text-align: center; font-size: 64px; }
+      #tagline-sub { position: absolute; left: 0; right: 0; top: 870px; text-align: center; font-size: 40px; }
+      .coin { position: absolute; width: 96px; height: 96px; left: 912px; top: 427px; }
+
+      /* ---------- Scene 3: lobby on phone ---------- */
+      #s3-bg { background: url("assets/img/city.jpg") center / cover no-repeat; filter: blur(10px) brightness(0.5); }
+      #s3-tint { background: linear-gradient(90deg, rgba(14,2,34,0.92) 0%, rgba(29,6,66,0.65) 38%, rgba(58,11,120,0.25) 100%); }
+      .stage3d { position: absolute; perspective: 2200px; }
+      .phone {
+        position: absolute; inset: 0; border-radius: 64px; padding: 24px;
+        background: linear-gradient(160deg, #3a3646 0%, #15131c 30%, #0b0a10 70%, #2a2633 100%);
+        box-shadow: 0 50px 120px rgba(0,0,0,0.65), 0 0 0 2px rgba(255,255,255,0.06) inset, 0 0 90px rgba(197,16,224,0.35);
+      }
+      .phone-screen { position: absolute; inset: 24px; border-radius: 40px; overflow: hidden; background: #000; }
+      .phone-screen video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .phone-glare { position: absolute; inset: 24px; border-radius: 40px; pointer-events: none;
+        background: linear-gradient(115deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 32%, rgba(255,255,255,0) 100%); }
+      #s3-stage { left: 650px; top: 228px; width: 1228px; height: 592px; }
+      #s3-copy { position: absolute; left: 90px; top: 300px; width: 620px; }
+      #s3-kicker { font-size: 40px; color: #e6b8ff; }
+      #s3-title { font-size: 92px; line-height: 1.04; margin-top: 18px; }
+      #s3-sub { font-size: 40px; line-height: 1.35; margin-top: 30px; max-width: 520px; }
+
+      /* ---------- Scene 4: cover wall ---------- */
+      #s4-bg { background: radial-gradient(1400px 900px at 50% 50%, #3a0b78 0%, #12032b 70%, #08011a 100%); }
+      #wall-persp { position: absolute; inset: 0; perspective: 1800px; }
+      #wall { position: absolute; left: 50%; top: 50%; width: 3200px; height: 1500px; margin: -750px 0 0 -1600px; display: flex; flex-direction: column; gap: 34px; justify-content: center; }
+      .wall-row { display: flex; gap: 34px; width: max-content; }
+      .wall-row img { width: 300px; height: 300px; border-radius: 40px; display: block; box-shadow: 0 18px 40px rgba(0,0,0,0.55); }
+      #s4-dim { background: radial-gradient(1150px 420px at 50% 50%, rgba(10,1,24,0.94) 0%, rgba(10,1,24,0.82) 45%, rgba(10,1,24,0.25) 100%); }
+      .phrase { position: absolute; left: 0; right: 0; top: 50%; margin-top: -80px; height: 160px; text-align: center; font-size: 132px; line-height: 160px; opacity: 0; }
+
+      /* ---------- Scene 5: gameplay ---------- */
+      #s5-bg { background: radial-gradient(1500px 900px at 50% 60%, #3a0b78 0%, #1d0642 50%, #0a0118 100%); }
+      #s5-streaks { position: absolute; inset: -200px; background: repeating-linear-gradient(115deg, rgba(197,16,224,0) 0px, rgba(197,16,224,0) 140px, rgba(197,16,224,0.10) 160px, rgba(197,16,224,0) 200px); }
+      #s5-stage { left: 210px; top: 270px; width: 1500px; height: 724px; }
+      #s5-words { position: absolute; left: 0; right: 0; top: 70px; height: 150px; display: flex; justify-content: center; gap: 48px; font-size: 118px; line-height: 150px; }
+      #s5-words span { display: inline-block; }
+      .cut-flash { position: absolute; inset: 24px; border-radius: 40px; background: #fff; opacity: 0; pointer-events: none; }
+      .badge { position: absolute; padding: 14px 34px; border-radius: 999px; font-family: "Titan One", sans-serif; font-size: 48px; color: #3a1500;
+        background: linear-gradient(180deg, #fff3b0, #ffd34d 45%, #ff9d1a); box-shadow: 0 10px 0 #8a3b00, 0 20px 40px rgba(0,0,0,0.5); opacity: 0; }
+
+      /* ---------- Scene 6: big win ---------- */
+      #s6-bg { background: radial-gradient(1100px 760px at 50% 46%, #7a2bb8 0%, #3a0b78 40%, #12032b 100%); }
+      #s6-rays { position: absolute; left: 50%; top: 42%; width: 3000px; height: 3000px; margin: -1500px 0 0 -1500px; border-radius: 50%;
+        background: repeating-conic-gradient(from 0deg, rgba(255,211,77,0.28) 0deg 8deg, rgba(255,211,77,0) 8deg 20deg);
+        -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 58%); mask-image: radial-gradient(circle, #000 0%, transparent 58%); }
+      #s6-title { position: absolute; left: 0; right: 0; top: 190px; text-align: center; font-size: 250px; line-height: 290px; }
+      #s6-count-wrap { position: absolute; left: 50%; top: 520px; width: 1100px; height: 170px; margin-left: -550px; border-radius: 999px;
+        background: linear-gradient(180deg, rgba(20,2,50,0.85), rgba(10,1,24,0.92)); box-shadow: inset 0 2px 0 rgba(255,220,120,0.35), 0 20px 60px rgba(0,0,0,0.55);
+        display: flex; align-items: center; justify-content: center; gap: 26px; }
+      #s6-count-wrap img { width: 112px; height: 112px; }
+      #s6-count { font-family: "Titan One", sans-serif; font-size: 112px; font-variant-numeric: tabular-nums; min-width: 760px; text-align: left; }
+      #jackpots { position: absolute; left: 0; right: 0; top: 790px; display: flex; justify-content: center; gap: 30px; }
+      #jackpots img { width: 300px; height: 61px; display: block; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.6)); }
+      .rain { position: absolute; top: 0; width: 84px; height: 84px; }
+
+      /* ---------- Scene 7: features ---------- */
+      #s7-bg { background: radial-gradient(1400px 800px at 50% 60%, #4a1190 0%, #1d0642 55%, #0a0118 100%); }
+      #s7-title { position: absolute; left: 0; right: 0; top: 120px; text-align: center; font-size: 104px; }
+      #cards { position: absolute; left: 0; right: 0; top: 380px; display: flex; justify-content: center; gap: 34px; }
+      .fcard { width: 262px; height: 360px; border-radius: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px;
+        background: linear-gradient(180deg, rgba(197,16,224,0.42) 0%, rgba(160,60,255,0.28) 24%, rgba(20,2,50,0.88) 100%);
+        box-shadow: inset 0 2px 0 rgba(220,160,255,0.45), 0 24px 50px rgba(0,0,0,0.5); }
+      .fcard img { width: 176px; height: 176px; object-fit: contain; filter: drop-shadow(0 12px 16px rgba(0,0,0,0.45)); }
+      .fcard div { font-family: "Fredoka", sans-serif; font-weight: 700; font-size: 38px; color: #fff; }
+
+      /* ---------- Scene 8: end card ---------- */
+      #s8-bg { background: url("assets/img/keyart.png") center / cover no-repeat; filter: blur(36px) brightness(0.4) saturate(1.25); }
+      #s8-vig { background: radial-gradient(1000px 700px at 50% 42%, rgba(58,11,120,0.2), rgba(8,1,20,0.9) 100%); }
+      #s8-logo { position: absolute; left: 50%; top: 60px; width: 700px; height: 514px; margin-left: -350px; }
+      #s8-logo img { width: 100%; height: 100%; }
+      #s8-cta { position: absolute; left: 50%; top: 640px; width: 760px; height: 132px; margin-left: -380px; border-radius: 999px;
+        background: linear-gradient(180deg, #8af06a 0%, #45c92f 48%, #279c1c 100%); box-shadow: inset 0 3px 0 rgba(255,255,255,0.55), 0 12px 0 #145c0e, 0 28px 50px rgba(0,0,0,0.5);
+        display: flex; align-items: center; justify-content: center; gap: 22px; font-family: "Titan One", sans-serif; font-size: 58px; color: #fff; }
+      #s8-cta .ti { font-family: "tabler-icons"; font-size: 70px; line-height: 1; }
+      #s8-cta span.label { filter: drop-shadow(0 4px 0 #145c0e); }
+      #s8-sub { position: absolute; left: 0; right: 0; top: 830px; text-align: center; font-size: 42px; }
+      #s8-legal { position: absolute; left: 0; right: 0; top: 960px; text-align: center; font-size: 28px; color: rgba(255,255,255,0.6); font-weight: 500; }
+      #fade-out { position: absolute; inset: 0; background: #000; opacity: 0; z-index: 60; pointer-events: none; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-width="1920" data-height="1080" data-duration="30">
+
+      <!-- Scene 1 · Reels spin up and land on triple sevens -->
+      <div id="s1" class="scene">
+        <div id="s1-bg" class="fill"></div>
+        <div id="s1-rays"></div>
+        <div id="s1-particles" class="fill"></div>
+        <div id="s1-title" class="white-text">Feeling lucky tonight?</div>
+        <div id="reels">
+          <div class="reel"><div class="strip" id="strip0"></div></div>
+          <div class="reel"><div class="strip" id="strip1"></div></div>
+          <div class="reel"><div class="strip" id="strip2"></div></div>
+          <div id="payline"></div>
+        </div>
+      </div>
+
+      <!-- Scene 2 · Logo slam on the drop -->
+      <div id="s2" class="scene">
+        <div id="s2-bg" class="fill"></div>
+        <div id="s2-vignette" class="fill"></div>
+        <div id="s2-burst"></div>
+        <div id="s2-glow"></div>
+        <div id="s2-particles" class="fill"></div>
+        <div id="shock"></div>
+        <div id="s2-coins" class="fill"></div>
+        <div id="logo-wrap">
+          <img src="assets/img/logo.png" alt="Cozy Casino" />
+          <div id="logo-sweep"><div id="logo-sweep-bar"></div></div>
+        </div>
+        <div id="tagline" class="gold-text">Your cozy corner of Vegas</div>
+        <div id="tagline-sub" class="sub">A free social slots game for Android</div>
+      </div>
+
+      <!-- Scene 3 · Lobby on device -->
+      <div id="s3" class="scene">
+        <div id="s3-bg" class="fill"></div>
+        <div id="s3-tint" class="fill"></div>
+        <div id="s3-particles" class="fill"></div>
+        <div id="s3-copy">
+          <div id="s3-kicker" class="sub">Built for landscape play</div>
+          <div id="s3-title" class="gold-text">20+ themed slots</div>
+          <div id="s3-sub" class="sub">Jackpots, wild features and a lobby that feels like home.</div>
+        </div>
+        <div id="s3-stage" class="stage3d">
+          <div id="s3-phone" class="phone">
+            <div class="phone-screen">
+              <video id="v-lobby" src="assets/video/lobby.mp4" data-start="8.58" data-duration="4.32" data-track-index="1" muted playsinline></video>
+            </div>
+            <div class="phone-glare"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scene 4 · Wall of slot covers + kinetic phrases -->
+      <div id="s4" class="scene">
+        <div id="s4-bg" class="fill"></div>
+        <div id="wall-persp"><div id="wall"></div></div>
+        <div id="s4-dim" class="fill"></div>
+        <div class="phrase gold-text" id="ph0">Piggy heists</div>
+        <div class="phrase gold-text" id="ph1">Sugar rushes</div>
+        <div class="phrase gold-text" id="ph2">Pharaoh gold</div>
+        <div class="phrase white-text" id="ph3">Pick your vibe</div>
+      </div>
+
+      <!-- Scene 5 · Real gameplay, cut on the beat -->
+      <div id="s5" class="scene">
+        <div id="s5-bg" class="fill"></div>
+        <div id="s5-streaks"></div>
+        <div id="s5-words"><span class="gold-text" id="w0">Spin.</span><span class="white-text" id="w1">Win.</span><span class="gold-text" id="w2">Repeat.</span></div>
+        <div id="s5-stage" class="stage3d">
+          <div id="s5-phone" class="phone">
+            <div class="phone-screen">
+              <video id="v-piggy" src="assets/video/piggy.mp4" data-start="16.68" data-duration="2.16" data-media-start="1.6" data-track-index="2" muted playsinline></video>
+              <video id="v-pharaoh" src="assets/video/pharaoh.mp4" data-start="18.84" data-duration="1.62" data-media-start="1.7" data-track-index="3" muted playsinline></video>
+              <video id="v-buffalo" src="assets/video/buffalo.mp4" data-start="20.46" data-duration="2.16" data-media-start="1.3" data-track-index="4" muted playsinline></video>
+            </div>
+            <div class="phone-glare"></div>
+            <div class="cut-flash" id="cut-flash"></div>
+          </div>
+          <div class="badge" id="badge0" style="left: 1120px; top: -40px;">Wild win</div>
+          <div class="badge" id="badge1" style="left: 1120px; top: -40px;">Big payout</div>
+          <div class="badge" id="badge2" style="left: 1120px; top: -40px;">5x wild</div>
+        </div>
+      </div>
+
+      <!-- Scene 6 · Mega win -->
+      <div id="s6" class="scene">
+        <div id="s6-bg" class="fill"></div>
+        <div id="s6-rays"></div>
+        <div id="s6-rain" class="fill"></div>
+        <div id="s6-title" class="gold-text">Mega win!</div>
+        <div id="s6-count-wrap"><img src="assets/img/starcoin.png" alt="" /><div id="s6-count" class="gold-text">0</div></div>
+        <div id="jackpots">
+          <img src="assets/img/jp1.png" alt="" /><img src="assets/img/jp2.png" alt="" /><img src="assets/img/jp3.png" alt="" /><img src="assets/img/jp4.png" alt="" /><img src="assets/img/jp5.png" alt="" />
+        </div>
+      </div>
+
+      <!-- Scene 7 · Features -->
+      <div id="s7" class="scene">
+        <div id="s7-bg" class="fill"></div>
+        <div id="s7-particles" class="fill"></div>
+        <div id="s7-title" class="white-text">So much more to play</div>
+        <div id="cards">
+          <div class="fcard"><img src="assets/img/wheel.png" alt="" /><div>Daily wheel</div></div>
+          <div class="fcard"><img src="assets/img/pass.png" alt="" /><div>Mission pass</div></div>
+          <div class="fcard"><img src="assets/img/cards_new.png" alt="" /><div>Card albums</div></div>
+          <div class="fcard"><img src="assets/img/coinmine.png" alt="" /><div>Mini games</div></div>
+          <div class="fcard"><img src="assets/img/Lobby_arena.png" alt="" /><div>Arena</div></div>
+          <div class="fcard"><img src="assets/img/VIP.png" alt="" /><div>VIP lounge</div></div>
+        </div>
+      </div>
+
+      <!-- Scene 8 · End card -->
+      <div id="s8" class="scene">
+        <div id="s8-bg" class="fill"></div>
+        <div id="s8-vig" class="fill"></div>
+        <div id="s8-particles" class="fill"></div>
+        <div id="s8-logo"><img src="assets/img/logo.png" alt="Cozy Casino" /></div>
+        <div id="s8-cta"><span class="ti">&#xec16;</span><span class="label">Play free on Android</span></div>
+        <div id="s8-sub" class="sub">Spin, collect and climb the leaderboard</div>
+        <div id="s8-legal">For entertainment only. No real money gambling.</div>
+      </div>
+
+      <div id="flash"></div>
+      <div id="fade-out"></div>
+
+      <!-- Audio -->
+      <audio id="bgm" src="assets/audio/neon_music.mp3" data-start="0" data-duration="30" data-media-start="11.5" data-track-index="10" data-volume="0.9"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.4,"v":0.9},{"t":28.2,"v":0.9},{"t":30,"v":0}]}]}'></audio>
+      <audio id="sfx-tick0" src="assets/audio/tick.wav" data-start="2.64" data-duration="0.09" data-track-index="11" data-volume="0.55"></audio>
+      <audio id="sfx-tick1" src="assets/audio/tick.wav" data-start="3.18" data-duration="0.09" data-track-index="12" data-volume="0.55"></audio>
+      <audio id="sfx-tick2" src="assets/audio/tick.wav" data-start="3.72" data-duration="0.09" data-track-index="13" data-volume="0.55"></audio>
+      <audio id="sfx-logo" src="assets/audio/bigwin_soundeffect.wav" data-start="4.2" data-duration="2" data-track-index="14" data-volume="0.55"></audio>
+      <audio id="sfx-w1" src="assets/audio/whoosh.wav" data-start="8.2" data-duration="0.6" data-track-index="15" data-volume="0.45"></audio>
+      <audio id="sfx-w2" src="assets/audio/whoosh.wav" data-start="12.52" data-duration="0.6" data-track-index="16" data-volume="0.45"></audio>
+      <audio id="sfx-w3" src="assets/audio/whoosh.wav" data-start="16.3" data-duration="0.6" data-track-index="17" data-volume="0.45"></audio>
+      <audio id="sfx-mega" src="assets/audio/megawin_soundeffect.wav" data-start="22.6" data-duration="3" data-track-index="18" data-volume="0.6"></audio>
+      <audio id="sfx-coins" src="assets/audio/cointcount_soundeffect.wav" data-start="23.0" data-duration="2.2" data-track-index="19" data-volume="0.4"></audio>
+      <audio id="sfx-w4" src="assets/audio/whoosh.wav" data-start="24.94" data-duration="0.6" data-track-index="20" data-volume="0.45"></audio>
+      <audio id="sfx-w5" src="assets/audio/whoosh.wav" data-start="27.1" data-duration="0.6" data-track-index="21" data-volume="0.45"></audio>
+    </div>
+
+    <script>
+      (function () {
+        // Seeded PRNG so particle layouts are identical on every frame and every render.
+        let seed = 20261001;
+        const rnd = () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+        const $ = (s) => document.querySelector(s);
+
+        // Music grid: the drop lands at D, kicks every P seconds.
+        const D = 4.26, P = 0.54;
+        const T = { s1: 0, s2: D, s3: D + 8 * P, s4: D + 16 * P, s5: D + 23 * P, s6: D + 34 * P, s7: D + 39 * P, s8: D + 43 * P, end: 30 };
+
+        // ---------- Build DOM ----------
+        const SYM = ["cherry", "bell", "diamond", "bar", "clover", "coin", "seven"].map((n) => `assets/img/${n}.png`);
+        const N = 18;
+        for (let r = 0; r < 3; r++) {
+          const strip = $("#strip" + r);
+          for (let i = 0; i < N; i++) {
+            let src = SYM[Math.floor(rnd() * 6)];
+            if (i === 1) src = "assets/img/seven.png"; // landing row
+            if (i === 0) src = SYM[(r * 2) % 6];
+            if (i === 2) src = SYM[(r * 2 + 3) % 6];
+            const c = document.createElement("div"); c.className = "cell";
+            c.innerHTML = `<img src="${src}" alt="" />`;
+            strip.appendChild(c);
+          }
+        }
+
+        function particles(host, count, opts = {}) {
+          const els = [];
+          for (let i = 0; i < count; i++) {
+            const isSpark = rnd() < (opts.sparkRatio ?? 0.45);
+            const el = document.createElement("div");
+            if (isSpark) { el.className = "spark"; const s = 10 + rnd() * 18; el.style.width = el.style.height = s + "px"; }
+            else {
+              el.className = "bokeh"; const s = 14 + rnd() * 70; el.style.width = el.style.height = s + "px";
+              const hue = rnd() < 0.5 ? "255,211,77" : "197,16,224";
+              el.style.background = `radial-gradient(circle, rgba(${hue},0.55), rgba(${hue},0))`;
+            }
+            el.style.left = rnd() * 1920 + "px"; el.style.top = rnd() * 1080 + "px";
+            host.appendChild(el); els.push(el);
+          }
+          return els;
+        }
+        const p1 = particles($("#s1-particles"), 46);
+        const p2 = particles($("#s2-particles"), 40, { sparkRatio: 0.6 });
+        const p3 = particles($("#s3-particles"), 26);
+        const p7 = particles($("#s7-particles"), 30);
+        const p8 = particles($("#s8-particles"), 40, { sparkRatio: 0.6 });
+
+        // Logo coin burst
+        const coins = [];
+        for (let i = 0; i < 26; i++) {
+          const c = document.createElement("img"); c.src = "assets/img/starcoin.png"; c.className = "coin"; c.alt = "";
+          const s = 0.55 + rnd() * 0.7; c.dataset.s = s;
+          const a = (i / 26) * Math.PI * 2 + rnd() * 0.3; const dist = 520 + rnd() * 520;
+          c.dataset.x = Math.cos(a) * dist; c.dataset.y = Math.sin(a) * dist * 0.62 - 120; c.dataset.r = (rnd() - 0.5) * 900;
+          $("#s2-coins").appendChild(c); coins.push(c);
+        }
+
+        // Cover wall
+        const covers = Array.from({ length: 22 }, (_, i) => `assets/img/cover${i + 1}.jpg`);
+        const rows = [];
+        for (let r = 0; r < 4; r++) {
+          const row = document.createElement("div"); row.className = "wall-row";
+          for (let i = 0; i < 11; i++) { const im = document.createElement("img"); im.src = covers[(r * 5 + i * 3) % covers.length]; im.alt = ""; row.appendChild(im); }
+          $("#wall").appendChild(row); rows.push(row);
+        }
+
+        // Coin rain
+        const rain = [];
+        for (let i = 0; i < 44; i++) {
+          const c = document.createElement("img"); c.src = "assets/img/starcoin.png"; c.className = "rain"; c.alt = "";
+          c.style.left = (rnd() * 1860) + "px"; const s = 0.6 + rnd() * 0.9; c.dataset.s = s; c.dataset.d = rnd(); c.dataset.r = (rnd() - 0.5) * 720;
+          $("#s6-rain").appendChild(c); rain.push(c);
+        }
+
+        // ---------- Timeline ----------
+        const tl = gsap.timeline({ paused: true });
+
+        function scene(id, a, b) {
+          tl.set(id, { autoAlpha: 1 }, a);
+          if (b < 30) tl.set(id, { autoAlpha: 0 }, b);
+        }
+        function drift(els, a, b) {
+          els.forEach((el) => {
+            const dy = -(40 + rnd() * 120), dx = (rnd() - 0.5) * 80;
+            tl.fromTo(el, { x: 0, y: 0, opacity: 0 }, { x: dx, y: dy, opacity: 0.35 + rnd() * 0.65, duration: (b - a) * 0.5, ease: "sine.out" }, a);
+            tl.to(el, { opacity: 0, x: dx * 2, y: dy * 2, duration: (b - a) * 0.5, ease: "sine.in" }, a + (b - a) * 0.5);
+            if (el.className === "spark") tl.fromTo(el, { scale: 0.3, rotation: 0 }, { scale: 1, rotation: 90, duration: (b - a), ease: "sine.inOut" }, a);
+          });
+        }
+
+        // Scene 1: reels
+        scene("#s1", T.s1, T.s2);
+        tl.fromTo("#s1", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0);
+        drift(p1, 0, T.s2);
+        tl.fromTo("#s1-rays", { rotation: 0 }, { rotation: 40, duration: T.s2, ease: "none" }, 0);
+        tl.fromTo("#s1-title", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, 0.3);
+        tl.fromTo("#reels", { y: 80, opacity: 0, scale: 0.92 }, { y: 0, opacity: 1, scale: 1, duration: 0.7, ease: "power3.out" }, 0.15);
+        const stops = [D - 3 * P, D - 2 * P, D - P];
+        for (let r = 0; r < 3; r++) {
+          tl.fromTo("#strip" + r, { y: -(N - 3) * 200 }, { y: 0, duration: stops[r] - 0.55, ease: "back.out(0.9)" }, 0.55);
+          tl.fromTo("#strip" + r, { filter: "blur(5px)" }, { filter: "blur(0px)", duration: 0.35, ease: "power1.in" }, stops[r] - 0.45);
+        }
+        tl.fromTo("#payline", { opacity: 0, scaleX: 0.6 }, { opacity: 1, scaleX: 1, duration: 0.3, ease: "power2.out" }, D - P + 0.05);
+        tl.to("#reels .reel .cell:nth-child(2) img", { scale: 1.18, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, D - P + 0.08);
+        tl.to("#reels", { scale: 1.06, duration: 0.5, ease: "power2.in" }, D - 0.5);
+        tl.fromTo("#flash", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power2.in" }, D - 0.12);
+        tl.to("#flash", { opacity: 0, duration: 0.5, ease: "power2.out" }, D);
+
+        // Scene 2: logo slam
+        scene("#s2", T.s2, T.s3);
+        drift(p2, T.s2, T.s3);
+        tl.fromTo("#s2-bg", { scale: 1.2 }, { scale: 1.05, duration: T.s3 - T.s2, ease: "sine.out" }, T.s2);
+        tl.fromTo("#s2-burst", { rotation: 0, scale: 0.6, opacity: 0 }, { rotation: 30, scale: 1, opacity: 1, duration: T.s3 - T.s2, ease: "power1.out" }, T.s2);
+        tl.fromTo("#logo-wrap", { scale: 2.6, opacity: 0, rotation: -6 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.42, ease: "back.out(1.7)" }, T.s2);
+        tl.fromTo("#shock", { scale: 0.4, opacity: 1 }, { scale: 3.4, opacity: 0, duration: 0.8, ease: "power2.out" }, T.s2 + 0.12);
+        tl.fromTo("#s2", { x: 0, y: 0 }, { x: 10, y: -8, duration: 0.05, yoyo: true, repeat: 5, ease: "none" }, T.s2 + 0.1);
+        coins.forEach((c, i) => {
+          const s = +c.dataset.s;
+          tl.fromTo(c, { x: 0, y: 0, scale: 0.2, rotation: 0, opacity: 1 },
+            { x: +c.dataset.x, y: +c.dataset.y, scale: s, rotation: +c.dataset.r, duration: 1.1, ease: "power3.out" }, T.s2 + 0.08 + (i % 5) * 0.012);
+          tl.to(c, { y: "+=520", opacity: 0, duration: 1.0, ease: "power2.in" }, T.s2 + 1.1);
+        });
+        tl.fromTo("#logo-sweep-bar", { x: -300 }, { x: 1100, duration: 0.9, ease: "power2.inOut" }, T.s2 + 0.6);
+        tl.to("#logo-wrap", { y: -10, scale: 1.02, duration: 1.6, yoyo: true, repeat: 1, ease: "sine.inOut" }, T.s2 + 0.5);
+        tl.fromTo("#tagline", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "back.out(1.6)" }, T.s2 + 2 * P);
+        tl.fromTo("#tagline-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, T.s2 + 4 * P);
+        tl.to(["#logo-wrap", "#tagline", "#tagline-sub"], { opacity: 0, y: -40, duration: 0.3, ease: "power2.in" }, T.s3 - 0.3);
+
+        // Scene 3: lobby on device
+        scene("#s3", T.s3, T.s4);
+        drift(p3, T.s3, T.s4);
+        tl.fromTo("#s3-bg", { scale: 1.15, x: 60 }, { scale: 1.05, x: -40, duration: T.s4 - T.s3, ease: "none" }, T.s3);
+        tl.fromTo("#s3-stage", { x: 700, rotationY: -38, rotationX: 8, y: 40 }, { x: 0, rotationY: -14, rotationX: 4, y: 0, duration: 0.85, ease: "power4.out" }, T.s3);
+        tl.to("#s3-stage", { rotationY: -8, rotationX: 2, y: -14, duration: T.s4 - T.s3 - 0.85, ease: "sine.inOut" }, T.s3 + 0.85);
+        tl.fromTo("#s3-kicker", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, T.s3 + 0.25);
+        tl.fromTo("#s3-title", { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.55, ease: "back.out(1.4)" }, T.s3 + P);
+        tl.fromTo("#s3-sub", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, T.s3 + 2 * P);
+        tl.to(["#s3-copy", "#s3-stage"], { x: "-=220", opacity: 0, duration: 0.3, ease: "power3.in" }, T.s4 - 0.3);
+
+        // Scene 4: cover wall
+        scene("#s4", T.s4, T.s5);
+        tl.fromTo("#wall", { rotationX: 22, rotationZ: -9, scale: 1.25, y: 60 }, { rotationX: 18, rotationZ: -7, scale: 1.12, y: 0, duration: T.s5 - T.s4, ease: "sine.out" }, T.s4);
+        rows.forEach((row, i) => {
+          const dir = i % 2 ? 1 : -1;
+          tl.fromTo(row, { x: dir * -260 - 300 }, { x: dir * 260 - 300, duration: T.s5 - T.s4, ease: "none" }, T.s4);
+        });
+        tl.fromTo("#s4-dim", { opacity: 0 }, { opacity: 1, duration: 0.4 }, T.s4 + 0.1);
+        [0, 1, 2, 3].forEach((i) => {
+          const a = T.s4 + 0.27 + i * 1.5 * P * 0.9 + i * 0.05;
+          tl.fromTo("#ph" + i, { scale: 1.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: "power3.out" }, a);
+          if (i < 3) tl.to("#ph" + i, { scale: 0.85, opacity: 0, duration: 0.16, ease: "power2.in" }, a + 0.62);
+        });
+        tl.to("#ph3", { scale: 2.2, opacity: 0, duration: 0.3, ease: "power2.in" }, T.s5 - 0.3);
+
+        // Scene 5: gameplay
+        scene("#s5", T.s5, T.s6);
+        tl.fromTo("#s5-streaks", { x: -200 }, { x: 200, duration: T.s6 - T.s5, ease: "none" }, T.s5);
+        tl.fromTo("#s5-stage", { y: 420, rotationX: 28, scale: 0.9 }, { y: 0, rotationX: 6, scale: 1, duration: 0.7, ease: "power4.out" }, T.s5);
+        tl.to("#s5-stage", { rotationX: 2, duration: T.s6 - T.s5 - 0.7, ease: "sine.inOut" }, T.s5 + 0.7);
+        ["#w0", "#w1", "#w2"].forEach((w, i) => {
+          tl.fromTo(w, { y: -60, scale: 1.6, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" }, T.s5 + (i + 1) * 2 * P - P);
+        });
+        // beat cuts
+        [T.s5 + 4 * P, T.s5 + 7 * P].forEach((t) => {
+          tl.fromTo("#cut-flash", { opacity: 0.7 }, { opacity: 0, duration: 0.25, ease: "power2.out", immediateRender: false }, t);
+          tl.fromTo("#s5-phone", { scale: 1.04 }, { scale: 1, duration: 0.3, ease: "power3.out", immediateRender: false }, t);
+        });
+        [[T.s5 + 2.4 * P, T.s5 + 3.8 * P], [T.s5 + 5.0 * P, T.s5 + 6.8 * P], [T.s5 + 8.3 * P, T.s5 + 10.8 * P]].forEach(([a, b], i) => {
+          tl.fromTo("#badge" + i, { scale: 0.3, rotation: -12, opacity: 0 }, { scale: 1, rotation: -6, opacity: 1, duration: 0.3, ease: "back.out(2.2)" }, a);
+          tl.to("#badge" + i, { scale: 0.6, opacity: 0, duration: 0.18, ease: "power2.in" }, b);
+        });
+        tl.to(["#s5-stage", "#s5-words"], { scale: 1.3, opacity: 0, duration: 0.28, ease: "power3.in" }, T.s6 - 0.28);
+
+        // Scene 6: mega win
+        scene("#s6", T.s6, T.s7);
+        tl.fromTo("#s6-rays", { rotation: 0, scale: 0.7 }, { rotation: 45, scale: 1.05, duration: T.s7 - T.s6, ease: "power1.out" }, T.s6);
+        tl.fromTo("#s6-title", { scale: 3, opacity: 0, rotation: -8 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.4, ease: "back.out(1.8)" }, T.s6);
+        tl.to("#s6-title", { scale: 1.06, duration: P / 2, yoyo: true, repeat: 3, ease: "sine.inOut" }, T.s6 + 0.5);
+        tl.fromTo("#s6", { x: 0, y: 0 }, { x: -12, y: 8, duration: 0.05, yoyo: true, repeat: 5, ease: "none" }, T.s6 + 0.05);
+        tl.fromTo("#s6-count-wrap", { y: 60, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.6)" }, T.s6 + 0.25);
+        const counter = { v: 0 };
+        tl.fromTo(counter, { v: 0 }, {
+          v: 25000000, duration: 1.9, ease: "power2.out",
+          onUpdate: () => { $("#s6-count").textContent = Math.round(counter.v).toLocaleString("en-US"); },
+        }, T.s6 + 0.35);
+        tl.to("#s6-count-wrap", { scale: 1.08, duration: 0.12, yoyo: true, repeat: 1, ease: "power2.out" }, T.s6 + 2.25);
+        tl.fromTo("#jackpots img", { y: 60, opacity: 0, scale: 0.6 }, { y: 0, opacity: 1, scale: 1, duration: 0.35, ease: "back.out(2)", stagger: P / 3 }, T.s6 + 2 * P);
+        rain.forEach((c) => {
+          const delay = +c.dataset.d * 1.8, s = +c.dataset.s;
+          tl.fromTo(c, { y: -140, rotation: 0, scale: s }, { y: 1220, rotation: +c.dataset.r, duration: 1.3 - s * 0.25, ease: "power1.in" }, T.s6 + 0.1 + delay);
+        });
+        tl.to(["#s6-title", "#s6-count-wrap", "#jackpots"], { y: -60, opacity: 0, duration: 0.28, ease: "power2.in" }, T.s7 - 0.28);
+
+        // Scene 7: features
+        scene("#s7", T.s7, T.s8);
+        drift(p7, T.s7, T.s8);
+        tl.fromTo("#s7-title", { y: -40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, T.s7 + 0.05);
+        tl.fromTo(".fcard", { y: 160, opacity: 0, rotation: (i) => (i % 2 ? 6 : -6) }, { y: 0, opacity: 1, rotation: 0, duration: 0.5, ease: "back.out(1.5)", stagger: P / 3 }, T.s7 + 0.2);
+        tl.fromTo(".fcard img", { y: 0 }, { y: -14, duration: P, yoyo: true, repeat: 2, ease: "sine.inOut", stagger: P / 3 }, T.s7 + 0.8);
+        tl.to(["#s7-title", "#cards"], { scale: 0.9, opacity: 0, duration: 0.28, ease: "power2.in" }, T.s8 - 0.28);
+
+        // Scene 8: end card
+        scene("#s8", T.s8, T.end);
+        drift(p8, T.s8, T.end);
+        tl.fromTo("#s8-bg", { scale: 1.12 }, { scale: 1.02, duration: T.end - T.s8, ease: "sine.out" }, T.s8);
+        tl.fromTo("#s8-logo", { scale: 0.4, opacity: 0, y: 40 }, { scale: 1, opacity: 1, y: 0, duration: 0.55, ease: "back.out(1.6)" }, T.s8);
+        tl.fromTo("#s8-cta", { y: 80, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: "back.out(1.8)" }, T.s8 + P);
+        tl.to("#s8-cta", { scale: 1.05, duration: P, yoyo: true, repeat: 1, ease: "sine.inOut" }, T.s8 + 1.4);
+        tl.fromTo("#s8-sub", { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, T.s8 + 1.5 * P);
+        tl.fromTo("#s8-legal", { opacity: 0 }, { opacity: 1, duration: 0.4 }, T.s8 + 2 * P);
+        tl.fromTo("#fade-out", { opacity: 0 }, { opacity: 1, duration: 0.6, ease: "power1.in" }, 29.4);
+
+        window.__timelines["main"] = tl;
+      })();
+    </script>
+  </body>
+</html>
