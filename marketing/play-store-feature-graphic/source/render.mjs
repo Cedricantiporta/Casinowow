@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1024, height: 500 }, deviceScaleFactor: 2 });
+await p.goto('file://' + process.cwd() + '/feature.html');
+await p.evaluate(() => document.fonts.ready);
+await p.waitForFunction(() => [...document.images].every((im) => im.complete));
+await p.evaluate(() => Promise.all(['lobby.png', 'piggy_2_3400.png', 'keyart.png'].map((s) => new Promise((r) => { const i = new Image(); i.onload = r; i.onerror = r; i.src = s; }))));
+await p.waitForTimeout(800);
+await p.screenshot({ path: 'feature@2x.png' });
+await b.close();
